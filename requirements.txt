@@ -1,0 +1,5 @@
+Django
+MySQL-python
+psycopg2
+
+ipdb

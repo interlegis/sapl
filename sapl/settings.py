@@ -37,6 +37,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'legacy',
+    'base',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -76,11 +78,24 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sapl',
+        'USER': 'sapl',
+        'PASSWORD': 'sapl',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'legacy': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sapl3',
+        'USER': 'root',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
 
+DATABASE_ROUTERS = ['sapl.legacyrouter.LegacyRouter', ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
