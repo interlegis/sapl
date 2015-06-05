@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'legacy',
     'base',
+    'parlamentares',
 )
 
 MIDDLEWARE_CLASSES = (
