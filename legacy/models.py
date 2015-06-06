@@ -25,23 +25,6 @@ class AcompMateria(models.Model):
         unique_together = (('cod_materia', 'end_email'),)
 
 
-class Afastamento(models.Model):
-    cod_afastamento = models.AutoField(primary_key=True)
-    cod_parlamentar = models.IntegerField()
-    cod_mandato = models.IntegerField()
-    num_legislatura = models.IntegerField()
-    tip_afastamento = models.IntegerField()
-    dat_inicio_afastamento = models.DateField()
-    dat_fim_afastamento = models.DateField(blank=True, null=True)
-    cod_parlamentar_suplente = models.IntegerField()
-    txt_observacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'afastamento'
-
-
 class Anexada(models.Model):
     cod_materia_principal = models.IntegerField()
     cod_materia_anexada = models.IntegerField()
@@ -53,19 +36,6 @@ class Anexada(models.Model):
         managed = False
         db_table = 'anexada'
         unique_together = (('cod_materia_principal', 'cod_materia_anexada'),)
-
-
-class Apenso(models.Model):
-    cod_materia_principal = models.IntegerField()
-    cod_materia_apensada = models.IntegerField()
-    dat_apensacao = models.DateField()
-    dat_desapensacao = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'apenso'
-        unique_together = (('cod_materia_principal', 'cod_materia_apensada'),)
 
 
 class AssuntoMateria(models.Model):
@@ -94,7 +64,6 @@ class Autor(models.Model):
     cod_autor = models.AutoField(primary_key=True)
     cod_partido = models.IntegerField(blank=True, null=True)
     cod_comissao = models.IntegerField(blank=True, null=True)
-    cod_bancada = models.IntegerField(blank=True, null=True)
     cod_parlamentar = models.IntegerField(blank=True, null=True)
     tip_autor = models.IntegerField()
     nom_autor = models.CharField(max_length=50, blank=True, null=True)
@@ -117,32 +86,6 @@ class Autoria(models.Model):
         managed = False
         db_table = 'autoria'
         unique_together = (('cod_autor', 'cod_materia'),)
-
-
-class Bancada(models.Model):
-    cod_bancada = models.AutoField(primary_key=True)
-    num_legislatura = models.IntegerField()
-    cod_partido = models.IntegerField(blank=True, null=True)
-    nom_bancada = models.CharField(max_length=60)
-    descricao = models.TextField(blank=True, null=True)
-    dat_criacao = models.DateField(blank=True, null=True)
-    dat_extincao = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'bancada'
-
-
-class CargoBancada(models.Model):
-    cod_cargo = models.AutoField(primary_key=True)
-    des_cargo = models.CharField(max_length=50, blank=True, null=True)
-    ind_unico = models.IntegerField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'cargo_bancada'
 
 
 class CargoComissao(models.Model):
@@ -208,23 +151,6 @@ class Comissao(models.Model):
         db_table = 'comissao'
 
 
-class ComposicaoBancada(models.Model):
-    cod_comp_bancada = models.AutoField(primary_key=True)
-    cod_parlamentar = models.IntegerField()
-    cod_bancada = models.IntegerField()
-    cod_cargo = models.IntegerField()
-    ind_titular = models.IntegerField()
-    dat_designacao = models.DateField()
-    dat_desligamento = models.DateField(blank=True, null=True)
-    des_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
-    obs_composicao = models.CharField(max_length=150, blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'composicao_bancada'
-
-
 class ComposicaoColigacao(models.Model):
     cod_partido = models.IntegerField()
     cod_coligacao = models.IntegerField()
@@ -256,45 +182,14 @@ class ComposicaoComissao(models.Model):
 
 class ComposicaoMesa(models.Model):
     cod_parlamentar = models.IntegerField()
-    cod_sessao_leg = models.IntegerField(blank=True, null=True)
-    cod_periodo_comp = models.IntegerField()
+    cod_sessao_leg = models.IntegerField()
     cod_cargo = models.IntegerField()
     ind_excluido = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'composicao_mesa'
-        unique_together = (('cod_parlamentar', 'cod_periodo_comp', 'cod_cargo'),)
-
-
-class CronometroAparte(models.Model):
-    int_reset = models.IntegerField()
-    int_start = models.IntegerField()
-    int_stop = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'cronometro_aparte'
-
-
-class CronometroDiscurso(models.Model):
-    int_reset = models.IntegerField()
-    int_start = models.IntegerField()
-    int_stop = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'cronometro_discurso'
-
-
-class CronometroOrdem(models.Model):
-    int_reset = models.IntegerField()
-    int_start = models.IntegerField()
-    int_stop = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'cronometro_ordem'
+        unique_together = (('cod_parlamentar', 'cod_sessao_leg', 'cod_cargo'),)
 
 
 class Dependente(models.Model):
@@ -330,11 +225,10 @@ class DocumentoAcessorio(models.Model):
     cod_documento = models.AutoField(primary_key=True)
     cod_materia = models.IntegerField()
     tip_documento = models.IntegerField()
-    nom_documento = models.CharField(max_length=50, blank=True, null=True)
+    nom_documento = models.CharField(max_length=30)
     dat_documento = models.DateField(blank=True, null=True)
     nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
     txt_ementa = models.TextField(blank=True, null=True)
-    txt_observacao = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
     ind_excluido = models.IntegerField()
 
@@ -381,37 +275,6 @@ class DocumentoAdministrativo(models.Model):
         db_table = 'documento_administrativo'
 
 
-class Emenda(models.Model):
-    cod_emenda = models.AutoField(primary_key=True)
-    tip_emenda = models.CharField(max_length=15)
-    num_emenda = models.IntegerField()
-    cod_materia = models.IntegerField()
-    num_protocolo = models.IntegerField(blank=True, null=True)
-    dat_apresentacao = models.DateField(blank=True, null=True)
-    txt_ementa = models.CharField(max_length=400, blank=True, null=True)
-    txt_observacao = models.CharField(max_length=150, blank=True, null=True)
-    cod_autor = models.IntegerField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'emenda'
-        unique_together = (('num_emenda', 'cod_materia', 'ind_excluido'),)
-
-
-class EncerramentoPresenca(models.Model):
-    cod_presenca_encerramento = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
-    cod_parlamentar = models.IntegerField()
-    dat_ordem = models.DateField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'encerramento_presenca'
-        unique_together = (('cod_sessao_plen', 'cod_parlamentar'),)
-
-
 class ExpedienteMateria(models.Model):
     cod_ordem = models.AutoField(primary_key=True)
     cod_sessao_plen = models.IntegerField()
@@ -422,25 +285,10 @@ class ExpedienteMateria(models.Model):
     num_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
     tip_votacao = models.IntegerField()
-    ind_votacao_iniciada = models.IntegerField()
-    dat_ultima_votacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'expediente_materia'
-
-
-class ExpedientePresenca(models.Model):
-    cod_presenca_expediente = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
-    cod_parlamentar = models.IntegerField()
-    dat_ordem = models.DateField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'expediente_presenca'
-        unique_together = (('cod_sessao_plen', 'cod_parlamentar'),)
 
 
 class ExpedienteSessaoPlenaria(models.Model):
@@ -466,35 +314,6 @@ class Filiacao(models.Model):
         managed = False
         db_table = 'filiacao'
         unique_together = (('dat_filiacao', 'cod_parlamentar', 'cod_partido'),)
-
-
-class Instituicao(models.Model):
-    cod_instituicao = models.AutoField(primary_key=True)
-    tip_instituicao = models.IntegerField()
-    nom_instituicao = models.CharField(max_length=200, blank=True, null=True)
-    end_instituicao = models.TextField(blank=True, null=True)
-    nom_bairro = models.CharField(max_length=80, blank=True, null=True)
-    cod_localidade = models.IntegerField(blank=True, null=True)
-    num_cep = models.CharField(max_length=9, blank=True, null=True)
-    num_telefone = models.CharField(max_length=50, blank=True, null=True)
-    num_fax = models.CharField(max_length=50, blank=True, null=True)
-    end_email = models.CharField(max_length=100, blank=True, null=True)
-    end_web = models.CharField(max_length=100, blank=True, null=True)
-    nom_responsavel = models.CharField(max_length=50, blank=True, null=True)
-    des_cargo = models.CharField(max_length=80, blank=True, null=True)
-    txt_forma_tratamento = models.CharField(max_length=30, blank=True, null=True)
-    txt_observacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
-    dat_insercao = models.DateTimeField(blank=True, null=True)
-    txt_user_insercao = models.CharField(max_length=20, blank=True, null=True)
-    txt_ip_insercao = models.CharField(max_length=15, blank=True, null=True)
-    timestamp_alteracao = models.DateTimeField()
-    txt_user_alteracao = models.CharField(max_length=20, blank=True, null=True)
-    txt_ip_alteracao = models.CharField(max_length=15, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'instituicao'
 
 
 class LegislacaoCitada(models.Model):
@@ -583,32 +402,16 @@ class Mandato(models.Model):
     tip_afastamento = models.IntegerField(blank=True, null=True)
     num_legislatura = models.IntegerField()
     cod_coligacao = models.IntegerField(blank=True, null=True)
-    dat_inicio_mandato = models.DateField(blank=True, null=True)
     tip_causa_fim_mandato = models.IntegerField(blank=True, null=True)
     dat_fim_mandato = models.DateField(blank=True, null=True)
     num_votos_recebidos = models.IntegerField(blank=True, null=True)
     dat_expedicao_diploma = models.DateField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
-    ind_titular = models.IntegerField()
     ind_excluido = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'mandato'
-
-
-class MateriaApresentadaSessao(models.Model):
-    cod_ordem = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
-    cod_materia = models.IntegerField()
-    dat_ordem = models.DateField()
-    txt_observacao = models.TextField(blank=True, null=True)
-    num_ordem = models.IntegerField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'materia_apresentada_sessao'
 
 
 class MateriaAssunto(models.Model):
@@ -626,7 +429,6 @@ class MateriaLegislativa(models.Model):
     cod_materia = models.AutoField(primary_key=True)
     tip_id_basica = models.IntegerField()
     num_protocolo = models.IntegerField(blank=True, null=True)
-    num_protocolo_spdo = models.CharField(max_length=18, blank=True, null=True)
     num_ident_basica = models.IntegerField()
     ano_ident_basica = models.SmallIntegerField()
     dat_apresentacao = models.DateField(blank=True, null=True)
@@ -648,10 +450,8 @@ class MateriaLegislativa(models.Model):
     txt_ementa = models.TextField()
     txt_indexacao = models.TextField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
-    cod_situacao = models.IntegerField(blank=True, null=True)
     ind_excluido = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
-    txt_cep = models.CharField(max_length=15, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -698,7 +498,6 @@ class NormaJuridica(models.Model):
     txt_observacao = models.TextField(blank=True, null=True)
     ind_complemento = models.IntegerField(blank=True, null=True)
     cod_assunto = models.CharField(max_length=16)
-    cod_situacao = models.IntegerField(blank=True, null=True)
     dat_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
     ind_excluido = models.IntegerField()
@@ -759,9 +558,6 @@ class OrdemDia(models.Model):
     num_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
     tip_votacao = models.IntegerField()
-    ind_votacao_iniciada = models.IntegerField()
-    tip_quorum = models.IntegerField(blank=True, null=True)
-    dat_ultima_votacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -773,12 +569,6 @@ class OrdemDiaPresenca(models.Model):
     cod_sessao_plen = models.IntegerField()
     cod_parlamentar = models.IntegerField()
     dat_ordem = models.DateField()
-    dat_presenca = models.DateTimeField()
-    cod_ip = models.CharField(max_length=50)
-    cod_mac = models.CharField(max_length=50)
-    cod_perfil = models.CharField(max_length=45)
-    ind_recontagem = models.IntegerField()
-    num_id_quorum = models.IntegerField()
     ind_excluido = models.IntegerField()
 
     class Meta:
@@ -851,9 +641,7 @@ class Parlamentar(models.Model):
     des_local_atuacao = models.CharField(max_length=100, blank=True, null=True)
     ind_ativo = models.IntegerField()
     txt_biografia = models.TextField(blank=True, null=True)
-    txt_observacao = models.TextField(blank=True, null=True)
     ind_unid_deliberativa = models.IntegerField()
-    txt_login = models.CharField(max_length=45)
     ind_excluido = models.IntegerField()
 
     class Meta:
@@ -863,19 +651,6 @@ class Parlamentar(models.Model):
 
 class Partido(models.Model):
     cod_partido = models.AutoField(primary_key=True)
-    sgl_partido = models.CharField(max_length=9, blank=True, null=True)
-    nom_partido = models.CharField(max_length=50, blank=True, null=True)
-    dat_criacao = models.DateField(blank=True, null=True)
-    dat_extincao = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'partido'
-
-
-class PartidoOld(models.Model):
-    cod_partido = models.AutoField(primary_key=True)
     sgl_partido = models.CharField(max_length=9)
     nom_partido = models.CharField(max_length=50)
     dat_criacao = models.DateField(blank=True, null=True)
@@ -884,7 +659,7 @@ class PartidoOld(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'partido_old'
+        db_table = 'partido'
 
 
 class PeriodoCompComissao(models.Model):
@@ -898,29 +673,6 @@ class PeriodoCompComissao(models.Model):
         db_table = 'periodo_comp_comissao'
 
 
-class PeriodoCompMesa(models.Model):
-    cod_periodo_comp = models.AutoField(primary_key=True)
-    num_legislatura = models.IntegerField()
-    dat_inicio_periodo = models.DateField()
-    dat_fim_periodo = models.DateField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'periodo_comp_mesa'
-
-
-class PresencaEndereco(models.Model):
-    cod_presenca_endereco = models.AutoField(primary_key=True)
-    txt_mac_address = models.CharField(max_length=45)
-    txt_ip_address = models.CharField(max_length=45)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'presenca_endereco'
-
-
 class Proposicao(models.Model):
     cod_proposicao = models.AutoField(primary_key=True)
     cod_materia = models.IntegerField(blank=True, null=True)
@@ -928,69 +680,16 @@ class Proposicao(models.Model):
     tip_proposicao = models.IntegerField()
     dat_envio = models.DateTimeField()
     dat_recebimento = models.DateTimeField(blank=True, null=True)
-    txt_descricao = models.CharField(max_length=400)
+    txt_descricao = models.CharField(max_length=100)
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)
     dat_devolucao = models.DateTimeField(blank=True, null=True)
     txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)
-    txt_observacao = models.TextField(blank=True, null=True)
     num_proposicao = models.IntegerField(blank=True, null=True)
     ind_excluido = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'proposicao'
-
-
-class PropsPainel(models.Model):
-    cod_props_painel = models.IntegerField(primary_key=True)
-    txt_jornal = models.TextField(blank=True, null=True)
-    txt_jornal_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_jornal_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_mensagem = models.TextField(blank=True, null=True)
-    txt_mensagem_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_fonte = models.CharField(max_length=45)
-    txt_painel_cor_fonte = models.CharField(max_length=45)
-    txt_painel_cor_fundo = models.CharField(max_length=45)
-    txt_apartante_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_apartante_exp_tempo = models.CharField(max_length=45, blank=True, null=True)
-    txt_apartante_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_questao_ordem_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_questao_ordem_exp_tempo = models.CharField(max_length=45, blank=True, null=True)
-    txt_questao_ordem_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_orador_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_orador_exp_tempo = models.CharField(max_length=45, blank=True, null=True)
-    txt_orador_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_mesa_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_mesa_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_presenca_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_presenca_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_ausencia_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_ausencia_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_presenca_total_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_presenca_total_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_ausencia_total_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_ausencia_total_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_sim_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_sim_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_nao_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_nao_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_abstencao_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_abstencao_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_nao_votou_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_nao_votou_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_votos_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_votos_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_presentes_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_presentes_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_total_ausentes_cor = models.CharField(max_length=45, blank=True, null=True)
-    txt_total_ausentes_fonte = models.CharField(max_length=5, blank=True, null=True)
-    txt_apartante_ord_tempo = models.CharField(max_length=45, blank=True, null=True)
-    txt_questao_ordem_ord_tempo = models.CharField(max_length=45, blank=True, null=True)
-    txt_orador_ord_tempo = models.CharField(max_length=45, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'props_painel'
 
 
 class Protocolo(models.Model):
@@ -1014,7 +713,6 @@ class Protocolo(models.Model):
     txt_ip_anulacao = models.CharField(max_length=15, blank=True, null=True)
     txt_just_anulacao = models.CharField(max_length=60, blank=True, null=True)
     timestamp_anulacao = models.DateTimeField(blank=True, null=True)
-    num_protocolo_spdo = models.CharField(unique=True, max_length=18, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -1031,48 +729,16 @@ class RegimeTramitacao(models.Model):
         db_table = 'regime_tramitacao'
 
 
-class RegistroPresencaOrdem(models.Model):
-    cod_registro_pre = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
-    num_id_quorum = models.IntegerField()
-    ind_status_pre = models.IntegerField()
-    dat_abre_pre = models.DateTimeField()
-    dat_fecha_pre = models.DateTimeField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'registro_presenca_ordem'
-
-
-class RegistroPresencaSessao(models.Model):
-    cod_registro_pre = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
-    num_id_quorum = models.IntegerField()
-    ind_status_pre = models.IntegerField()
-    dat_abre_pre = models.DateTimeField()
-    dat_fecha_pre = models.DateTimeField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'registro_presenca_sessao'
-
-
 class RegistroVotacao(models.Model):
     cod_votacao = models.AutoField(primary_key=True)
     tip_resultado_votacao = models.IntegerField()
     cod_materia = models.IntegerField()
     cod_ordem = models.IntegerField()
-    cod_emenda = models.IntegerField(blank=True, null=True)
-    cod_subemenda = models.IntegerField(blank=True, null=True)
-    cod_substitutivo = models.IntegerField(blank=True, null=True)
     num_votos_sim = models.IntegerField()
     num_votos_nao = models.IntegerField()
     num_abstencao = models.IntegerField()
     txt_observacao = models.TextField(blank=True, null=True)
     ind_excluido = models.IntegerField()
-    num_nao_votou = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -1084,7 +750,6 @@ class RegistroVotacaoParlamentar(models.Model):
     cod_parlamentar = models.IntegerField()
     ind_excluido = models.IntegerField()
     vot_parlamentar = models.CharField(max_length=10)
-    txt_login = models.CharField(max_length=15)
 
     class Meta:
         managed = False
@@ -1100,28 +765,11 @@ class Relatoria(models.Model):
     cod_comissao = models.IntegerField(blank=True, null=True)
     dat_desig_relator = models.DateField()
     dat_destit_relator = models.DateField(blank=True, null=True)
-    tip_apresentacao = models.CharField(max_length=1, blank=True, null=True)
-    txt_parecer = models.TextField(blank=True, null=True)
-    tip_conclusao = models.CharField(max_length=1, blank=True, null=True)
     ind_excluido = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'relatoria'
-
-
-class ReuniaoComissao(models.Model):
-    cod_reuniao = models.AutoField(primary_key=True)
-    cod_comissao = models.IntegerField()
-    num_reuniao = models.IntegerField()
-    dat_inicio_reuniao = models.DateField()
-    hr_inicio_reuniao = models.CharField(max_length=5, blank=True, null=True)
-    txt_observacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'reuniao_comissao'
 
 
 class SessaoLegislativa(models.Model):
@@ -1155,7 +803,6 @@ class SessaoPlenaria(models.Model):
     dat_fim_sessao = models.DateField(blank=True, null=True)
     url_audio = models.CharField(max_length=150, blank=True, null=True)
     url_video = models.CharField(max_length=150, blank=True, null=True)
-    ind_iniciada = models.IntegerField(blank=True, null=True)
     ind_excluido = models.IntegerField()
 
     class Meta:
@@ -1163,49 +810,16 @@ class SessaoPlenaria(models.Model):
         db_table = 'sessao_plenaria'
 
 
-class SessaoPlenariaLog(models.Model):
-    cod_sessao_plen_log = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField(blank=True, null=True)
-    txt_login = models.CharField(max_length=45)
-    txt_ip = models.CharField(max_length=45)
-    txt_mac = models.CharField(max_length=45)
-    txt_acao = models.CharField(max_length=45)
-    txt_mensagem = models.CharField(max_length=500)
-    dat_log = models.DateTimeField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'sessao_plenaria_log'
-
-
 class SessaoPlenariaPresenca(models.Model):
     cod_presenca_sessao = models.AutoField(primary_key=True)
     cod_sessao_plen = models.IntegerField()
     cod_parlamentar = models.IntegerField()
     dat_sessao = models.DateField(blank=True, null=True)
-    dat_presenca = models.DateTimeField()
-    cod_ip = models.CharField(max_length=50)
-    cod_mac = models.CharField(max_length=50)
-    cod_perfil = models.CharField(max_length=20)
-    ind_recontagem = models.IntegerField()
     ind_excluido = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'sessao_plenaria_presenca'
-
-
-class SpdoUsers(models.Model):
-    cod_spdo_users = models.AutoField(primary_key=True)
-    txt_login_sapl = models.CharField(max_length=45)
-    txt_login_spdo = models.CharField(max_length=45)
-    txt_senha_spdo = models.CharField(max_length=45, blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'spdo_users'
 
 
 class StatusTramitacao(models.Model):
@@ -1232,41 +846,6 @@ class StatusTramitacaoAdministrativo(models.Model):
     class Meta:
         managed = False
         db_table = 'status_tramitacao_administrativo'
-
-
-class Subemenda(models.Model):
-    cod_subemenda = models.AutoField(primary_key=True)
-    tip_subemenda = models.CharField(max_length=15)
-    num_subemenda = models.IntegerField()
-    cod_emenda = models.IntegerField()
-    num_protocolo = models.IntegerField(blank=True, null=True)
-    dat_apresentacao = models.DateField(blank=True, null=True)
-    txt_ementa = models.CharField(max_length=400, blank=True, null=True)
-    txt_observacao = models.CharField(max_length=150, blank=True, null=True)
-    cod_autor = models.IntegerField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'subemenda'
-        unique_together = (('num_subemenda', 'cod_emenda', 'ind_excluido'),)
-
-
-class Substitutivo(models.Model):
-    cod_substitutivo = models.AutoField(primary_key=True)
-    num_substitutivo = models.IntegerField()
-    cod_materia = models.IntegerField()
-    num_protocolo = models.IntegerField(blank=True, null=True)
-    dat_apresentacao = models.DateField(blank=True, null=True)
-    txt_ementa = models.CharField(max_length=150, blank=True, null=True)
-    txt_observacao = models.CharField(max_length=150, blank=True, null=True)
-    cod_autor = models.IntegerField()
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'substitutivo'
-        unique_together = (('num_substitutivo', 'cod_materia', 'ind_excluido'),)
 
 
 class TipoAfastamento(models.Model):
@@ -1356,16 +935,6 @@ class TipoFimRelatoria(models.Model):
         db_table = 'tipo_fim_relatoria'
 
 
-class TipoInstituicao(models.Model):
-    tip_instituicao = models.AutoField(primary_key=True)
-    nom_tipo_instituicao = models.CharField(max_length=80, blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'tipo_instituicao'
-
-
 class TipoMateriaLegislativa(models.Model):
     tip_materia = models.AutoField(primary_key=True)
     sgl_tipo_materia = models.CharField(max_length=5)
@@ -1425,16 +994,6 @@ class TipoSessaoPlenaria(models.Model):
         db_table = 'tipo_sessao_plenaria'
 
 
-class TipoSituacaoMateria(models.Model):
-    tip_situacao_materia = models.AutoField(primary_key=True)
-    des_tipo_situacao = models.CharField(max_length=100, blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'tipo_situacao_materia'
-
-
 class TipoSituacaoMilitar(models.Model):
     tip_situacao_militar = models.IntegerField(primary_key=True)
     des_tipo_situacao = models.CharField(max_length=50)
@@ -1443,16 +1002,6 @@ class TipoSituacaoMilitar(models.Model):
     class Meta:
         managed = False
         db_table = 'tipo_situacao_militar'
-
-
-class TipoSituacaoNorma(models.Model):
-    tip_situacao_norma = models.AutoField(primary_key=True)
-    des_tipo_situacao = models.CharField(max_length=100, blank=True, null=True)
-    ind_excluido = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'tipo_situacao_norma'
 
 
 class Tramitacao(models.Model):
@@ -1498,8 +1047,6 @@ class UnidadeTramitacao(models.Model):
     cod_comissao = models.IntegerField(blank=True, null=True)
     cod_orgao = models.IntegerField(blank=True, null=True)
     cod_parlamentar = models.IntegerField(blank=True, null=True)
-    cod_unid_spdo = models.IntegerField(blank=True, null=True)
-    txt_unid_spdo = models.CharField(max_length=45, blank=True, null=True)
     ind_excluido = models.IntegerField()
 
     class Meta:

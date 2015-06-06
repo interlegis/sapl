@@ -88,7 +88,7 @@ DATABASES = {
     },
     'legacy': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sapl3',
+        'NAME': 'sapl25',
         'USER': 'root',
         'PASSWORD': 'admin',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
