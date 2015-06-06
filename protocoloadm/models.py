@@ -11,7 +11,6 @@ class DocumentoAcessorioAdministrativo(models.Model):
     nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
     txt_assunto = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class DocumentoAdministrativo(models.Model):
@@ -28,7 +27,6 @@ class DocumentoAdministrativo(models.Model):
     ind_tramitacao = models.IntegerField()
     txt_assunto = models.TextField()
     txt_observacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class Protocolo(models.Model):
@@ -60,14 +58,12 @@ class StatusTramitacaoAdministrativo(models.Model):
     des_status = models.CharField(max_length=60)
     ind_fim_tramitacao = models.IntegerField()
     ind_retorno_tramitacao = models.IntegerField()
-    ind_excluido = models.IntegerField()
 
 
 class TipoDocumentoAdministrativo(models.Model):
     tip_documento = models.AutoField(primary_key=True)
     sgl_tipo_documento = models.CharField(max_length=5)
     des_tipo_documento = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class TramitacaoAdministrativo(models.Model):
@@ -81,4 +77,3 @@ class TramitacaoAdministrativo(models.Model):
     ind_ult_tramitacao = models.IntegerField()
     txt_tramitacao = models.TextField(blank=True, null=True)
     dat_fim_prazo = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()

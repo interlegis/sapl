@@ -41,7 +41,6 @@ INSTALLED_APPS = (
     'base',
 
     # sapl modules
-    'mesa',
     'parlamentares',
     'comissoes',
     'sessao',

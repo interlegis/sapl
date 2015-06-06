@@ -5,7 +5,6 @@ class AssuntoNorma(models.Model):
     cod_assunto = models.AutoField(primary_key=True)
     des_assunto = models.CharField(max_length=50)
     des_estendida = models.CharField(max_length=250, blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class NormaJuridica(models.Model):
@@ -27,7 +26,6 @@ class NormaJuridica(models.Model):
     cod_assunto = models.CharField(max_length=16)
     dat_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
-    ind_excluido = models.IntegerField()
 
 
 class TipoNormaJuridica(models.Model):
@@ -35,7 +33,6 @@ class TipoNormaJuridica(models.Model):
     voc_lexml = models.CharField(max_length=50, blank=True, null=True)
     sgl_tipo_norma = models.CharField(max_length=3)
     des_tipo_norma = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class VinculoNormaJuridica(models.Model):

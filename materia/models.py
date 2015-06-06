@@ -1,12 +1,13 @@
 from django.db import models
 
+from parlamentares.models import Parlamentar
+
 
 class AcompMateria(models.Model):
     cod_cadastro = models.AutoField(primary_key=True)
     cod_materia = models.IntegerField()
     end_email = models.CharField(max_length=100)
     txt_hash = models.CharField(max_length=8)
-    ind_excluido = models.IntegerField()
 
 
 class Anexada(models.Model):
@@ -14,40 +15,35 @@ class Anexada(models.Model):
     cod_materia_anexada = models.IntegerField()
     dat_anexacao = models.DateField()
     dat_desanexacao = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class AssuntoMateria(models.Model):
     cod_assunto = models.IntegerField(primary_key=True)
     des_assunto = models.CharField(max_length=200)
     des_dispositivo = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class Autor(models.Model):
     cod_autor = models.AutoField(primary_key=True)
     cod_partido = models.IntegerField(blank=True, null=True)
     cod_comissao = models.IntegerField(blank=True, null=True)
-    cod_parlamentar = models.IntegerField(blank=True, null=True)
+    parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
     tip_autor = models.IntegerField()
     nom_autor = models.CharField(max_length=50, blank=True, null=True)
     des_cargo = models.CharField(max_length=50, blank=True, null=True)
     col_username = models.CharField(max_length=50, blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class Autoria(models.Model):
     cod_autor = models.IntegerField()
     cod_materia = models.IntegerField()
     ind_primeiro_autor = models.IntegerField()
-    ind_excluido = models.IntegerField()
 
 
 class DespachoInicial(models.Model):
     cod_materia = models.IntegerField()
     num_ordem = models.IntegerField()
     cod_comissao = models.IntegerField()
-    ind_excluido = models.IntegerField()
 
 
 class DocumentoAcessorio(models.Model):
@@ -59,7 +55,6 @@ class DocumentoAcessorio(models.Model):
     nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
     txt_ementa = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class LegislacaoCitada(models.Model):
@@ -77,13 +72,11 @@ class LegislacaoCitada(models.Model):
     des_inciso = models.CharField(max_length=10, blank=True, null=True)
     des_alinea = models.CharField(max_length=3, blank=True, null=True)
     des_item = models.CharField(max_length=3, blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class MateriaAssunto(models.Model):
     cod_assunto = models.IntegerField()
     cod_materia = models.IntegerField()
-    ind_excluido = models.IntegerField()
 
 
 class MateriaLegislativa(models.Model):
@@ -111,7 +104,7 @@ class MateriaLegislativa(models.Model):
     txt_ementa = models.TextField()
     txt_indexacao = models.TextField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
+
     txt_resultado = models.TextField(blank=True, null=True)
 
 
@@ -122,7 +115,6 @@ class Numeracao(models.Model):
     num_materia = models.CharField(max_length=5)
     ano_materia = models.SmallIntegerField()
     dat_materia = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class Orgao(models.Model):
@@ -132,14 +124,12 @@ class Orgao(models.Model):
     ind_unid_deliberativa = models.IntegerField()
     end_orgao = models.CharField(max_length=100, blank=True, null=True)
     num_tel_orgao = models.CharField(max_length=50, blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class Origem(models.Model):
     cod_origem = models.AutoField(primary_key=True)
     sgl_origem = models.CharField(max_length=10)
     nom_origem = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class Parecer(models.Model):
@@ -148,7 +138,6 @@ class Parecer(models.Model):
     tip_conclusao = models.CharField(max_length=3, blank=True, null=True)
     tip_apresentacao = models.CharField(max_length=1)
     txt_parecer = models.TextField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class Proposicao(models.Model):
@@ -163,24 +152,21 @@ class Proposicao(models.Model):
     dat_devolucao = models.DateTimeField(blank=True, null=True)
     txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)
     num_proposicao = models.IntegerField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class RegimeTramitacao(models.Model):
     cod_regime_tramitacao = models.AutoField(primary_key=True)
     des_regime_tramitacao = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class Relatoria(models.Model):
     cod_relatoria = models.AutoField(primary_key=True)
     cod_materia = models.IntegerField()
-    cod_parlamentar = models.IntegerField()
+    parlamentar = models.ForeignKey(Parlamentar)
     tip_fim_relatoria = models.IntegerField(blank=True, null=True)
     cod_comissao = models.IntegerField(blank=True, null=True)
     dat_desig_relator = models.DateField()
     dat_destit_relator = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class StatusTramitacao(models.Model):
@@ -189,25 +175,21 @@ class StatusTramitacao(models.Model):
     des_status = models.CharField(max_length=60)
     ind_fim_tramitacao = models.IntegerField()
     ind_retorno_tramitacao = models.IntegerField()
-    ind_excluido = models.IntegerField()
 
 
 class TipoAutor(models.Model):
     tip_autor = models.IntegerField(primary_key=True)
     des_tipo_autor = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class TipoDocumento(models.Model):
     tip_documento = models.AutoField(primary_key=True)
     des_tipo_documento = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class TipoFimRelatoria(models.Model):
     tip_fim_relatoria = models.AutoField(primary_key=True)
     des_fim_relatoria = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -216,7 +198,6 @@ class TipoMateriaLegislativa(models.Model):
     des_tipo_materia = models.CharField(max_length=50)
     ind_num_automatica = models.IntegerField()
     quorum_minimo_votacao = models.IntegerField()
-    ind_excluido = models.IntegerField()
 
 
 class TipoProposicao(models.Model):
@@ -225,7 +206,6 @@ class TipoProposicao(models.Model):
     ind_mat_ou_doc = models.CharField(max_length=1)
     tip_mat_ou_doc = models.IntegerField()
     nom_modelo = models.CharField(max_length=50)
-    ind_excluido = models.IntegerField()
 
 
 class Tramitacao(models.Model):
@@ -241,12 +221,10 @@ class Tramitacao(models.Model):
     sgl_turno = models.CharField(max_length=1, blank=True, null=True)
     txt_tramitacao = models.TextField(blank=True, null=True)
     dat_fim_prazo = models.DateField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
 
 
 class UnidadeTramitacao(models.Model):
     cod_unid_tramitacao = models.AutoField(primary_key=True)
     cod_comissao = models.IntegerField(blank=True, null=True)
     cod_orgao = models.IntegerField(blank=True, null=True)
-    cod_parlamentar = models.IntegerField(blank=True, null=True)
-    ind_excluido = models.IntegerField()
+    parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
