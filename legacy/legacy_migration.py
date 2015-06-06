@@ -1,19 +1,38 @@
 from django.db import connection
+from django.db import models
+
 
 import legacy
-from parlamentares.models import NivelInstrucao
+from parlamentares.models import (
+    Legislatura, SessaoLegislativa, NivelInstrucao)
 
 
 mappings = (
-    (NivelInstrucao,
-        'cod_nivel_instrucao',
-     [('des_nivel_instrucao', 'nivel_instrucao')]),
+    (Legislatura, 'num_legislatura', [
+        ('dat_inicio', 'data_inicio'),
+        ('dat_fim', 'data_fim'),
+        ('dat_eleicao', 'data_eleicao'), ]
+     ),
+    (SessaoLegislativa, 'cod_sessao_leg', [
+        ('num_legislatura', 'legislatura'),
+        ('num_sessao_leg', 'numero'),
+        ('tip_sessao_leg', 'tipo'),
+        ('dat_inicio', 'data_inicio'),
+        ('dat_fim', 'data_fim'),
+        ('dat_inicio_intervalo', 'data_inicio_intervalo'),
+        ('dat_fim_intervalo', 'data_fim_intervalo'), ]
+     ),
+    (NivelInstrucao, 'cod_nivel_instrucao', [
+        ('des_nivel_instrucao', 'nivel_instrucao')]
+     ),
 )
 
 
-def run_legacy_migration():
+def migrate():
 
     for model, pk, field_pairs in mappings:
+
+        print 'Migrating %s...' % model.__name__
 
         # clear all model entries
         model.objects.all().delete()
@@ -28,9 +47,15 @@ def run_legacy_migration():
             new = model()
             while not new.id:
                 for old_field, new_field in field_pairs:
-                    setattr(new, new_field, getattr(old, old_field))
+                    value = getattr(old, old_field)
+                    # check for a relation
+                    model_field = model._meta.get_field(new_field)
+                    if isinstance(model_field, models.ForeignKey):
+                        value = model_field.related_model.objects.get(id=value)
+                    setattr(new, new_field, value)
                 new.save()
                 assert new.id <= old_id, 'New id exceeds old one. Be sure your new table was just created!'
                 if new.id < old_id:
                     new.delete()
                     new = model()
+
