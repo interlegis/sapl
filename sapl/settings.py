@@ -39,7 +39,16 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'legacy',
     'base',
+
+    # sapl modules
+    'mesa',
     'parlamentares',
+    'comissoes',
+    'sessao',
+    'materia',
+    'norma',
+    'lexml',
+    'protocoloadm',
 )
 
 MIDDLEWARE_CLASSES = (
