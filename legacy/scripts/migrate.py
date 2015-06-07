@@ -74,6 +74,9 @@ def migrate():
                     value = getattr(old, old_field)
                     # check for a relation
                     model_field = model._meta.get_field(new_field)
+
+                    # TODO ... test for special transformations first (e.g. Parlamentar.localidade_residencia)
+                    # elfi ...
                     if isinstance(model_field, models.ForeignKey):
                         value = model_field.related_model.objects.get(id=value)
                     setattr(new, new_field, value)
