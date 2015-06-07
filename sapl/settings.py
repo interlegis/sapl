@@ -37,7 +37,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # legacy reversed model definitions (temporary)
     'legacy',
+    'pglegacy',
     'base',
 
     # sapl modules
