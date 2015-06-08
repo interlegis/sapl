@@ -100,7 +100,6 @@ class TipoDocumento(models.Model):
 
 
 class DocumentoAcessorio(models.Model):
-    cod_documento = models.AutoField(primary_key=True)
     materia = models.ForeignKey(MateriaLegislativa)
     tipo = models.ForeignKey(TipoDocumento)
     nom_documento = models.CharField(max_length=30)

@@ -8,20 +8,7 @@ class TipoDocumentoAdministrativo(models.Model):
     des_tipo_documento = models.CharField(max_length=50)
 
 
-class DocumentoAcessorioAdministrativo(models.Model):
-    cod_documento_acessorio = models.AutoField(primary_key=True)
-    cod_documento = models.IntegerField()
-    tipo = models.ForeignKey(TipoDocumentoAdministrativo)
-    nom_documento = models.CharField(max_length=30)
-    nom_arquivo = models.CharField(max_length=100)
-    dat_documento = models.DateField(blank=True, null=True)
-    nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
-    txt_assunto = models.TextField(blank=True, null=True)
-    txt_indexacao = models.TextField(blank=True, null=True)
-
-
 class DocumentoAdministrativo(models.Model):
-    cod_documento = models.AutoField(primary_key=True)
     tipo = models.ForeignKey(TipoDocumentoAdministrativo)
     num_documento = models.IntegerField()
     ano_documento = models.SmallIntegerField()
@@ -36,8 +23,18 @@ class DocumentoAdministrativo(models.Model):
     txt_observacao = models.TextField(blank=True, null=True)
 
 
+class DocumentoAcessorioAdministrativo(models.Model):
+    documento = models.ForeignKey(DocumentoAdministrativo)
+    tipo = models.ForeignKey(TipoDocumentoAdministrativo)
+    nom_documento = models.CharField(max_length=30)
+    nom_arquivo = models.CharField(max_length=100)
+    dat_documento = models.DateField(blank=True, null=True)
+    nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
+    txt_assunto = models.TextField(blank=True, null=True)
+    txt_indexacao = models.TextField(blank=True, null=True)
+
+
 class Protocolo(models.Model):
-    cod_protocolo = models.AutoField(primary_key=True)
     num_protocolo = models.IntegerField(blank=True, null=True)
     ano_protocolo = models.SmallIntegerField()
     dat_protocolo = models.DateField()
@@ -67,7 +64,7 @@ class StatusTramitacaoAdministrativo(models.Model):
 
 
 class TramitacaoAdministrativo(models.Model):
-    cod_documento = models.IntegerField()
+    documento = models.ForeignKey(DocumentoAdministrativo)
     dat_tramitacao = models.DateField(blank=True, null=True)
     cod_unid_tram_local = models.IntegerField(blank=True, null=True)
     dat_encaminha = models.DateField(blank=True, null=True)

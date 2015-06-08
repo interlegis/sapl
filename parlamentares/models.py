@@ -80,12 +80,11 @@ class Parlamentar(models.Model):
 
 
 class TipoDependente(models.Model):
-    tip_dependente = models.AutoField(primary_key=True)
     des_tipo_dependente = models.CharField(max_length=50)
 
 
 class Dependente(models.Model):
-    tip_dependente = models.ForeignKey(TipoDependente)
+    tipo_dependente = models.ForeignKey(TipoDependente)
     parlamentar = models.ForeignKey(Parlamentar)
     nom_dependente = models.CharField(max_length=50)
     sex_dependente = models.CharField(max_length=1)
