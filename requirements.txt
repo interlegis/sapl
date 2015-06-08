@@ -3,3 +3,5 @@ MySQL-python
 psycopg2
 
 ipdb
+django-extensions
+pygraphviz

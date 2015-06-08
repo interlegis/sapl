@@ -51,6 +51,9 @@ INSTALLED_APPS = (
     'norma',
     'lexml',
     'protocoloadm',
+
+    # more
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
