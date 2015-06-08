@@ -9,6 +9,13 @@ class AssuntoNorma(models.Model):
     des_estendida = models.CharField(max_length=250, blank=True, null=True)
 
 
+class TipoNormaJuridica(models.Model):
+    tip_norma = models.AutoField(primary_key=True)
+    voc_lexml = models.CharField(max_length=50, blank=True, null=True)
+    sgl_tipo_norma = models.CharField(max_length=3)
+    des_tipo_norma = models.CharField(max_length=50)
+
+
 class NormaJuridica(models.Model):
     cod_norma = models.AutoField(primary_key=True)
     tip_norma = models.ForeignKey(TipoNormaJuridica)
@@ -30,11 +37,22 @@ class NormaJuridica(models.Model):
     timestamp = models.DateTimeField()
 
 
-class TipoNormaJuridica(models.Model):
-    tip_norma = models.AutoField(primary_key=True)
-    voc_lexml = models.CharField(max_length=50, blank=True, null=True)
-    sgl_tipo_norma = models.CharField(max_length=3)
-    des_tipo_norma = models.CharField(max_length=50)
+# XXX maybe should be in materia app, but would cause a circular import
+class LegislacaoCitada(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa)
+    norma = models.ForeignKey(NormaJuridica)
+    des_disposicoes = models.CharField(max_length=15, blank=True, null=True)
+    des_parte = models.CharField(max_length=8, blank=True, null=True)
+    des_livro = models.CharField(max_length=7, blank=True, null=True)
+    des_titulo = models.CharField(max_length=7, blank=True, null=True)
+    des_capitulo = models.CharField(max_length=7, blank=True, null=True)
+    des_secao = models.CharField(max_length=7, blank=True, null=True)
+    des_subsecao = models.CharField(max_length=7, blank=True, null=True)
+    des_artigo = models.CharField(max_length=4, blank=True, null=True)
+    des_paragrafo = models.CharField(max_length=3, blank=True, null=True)
+    des_inciso = models.CharField(max_length=10, blank=True, null=True)
+    des_alinea = models.CharField(max_length=3, blank=True, null=True)
+    des_item = models.CharField(max_length=3, blank=True, null=True)
 
 
 class VinculoNormaJuridica(models.Model):

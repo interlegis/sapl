@@ -24,6 +24,14 @@ class Coligacao(models.Model):
     num_votos_coligacao = models.IntegerField(blank=True, null=True)
 
 
+class Partido(models.Model):
+    cod_partido = models.AutoField(primary_key=True)
+    sgl_partido = models.CharField(max_length=9)
+    nom_partido = models.CharField(max_length=50)
+    dat_criacao = models.DateField(blank=True, null=True)
+    dat_extincao = models.DateField(blank=True, null=True)
+
+
 class ComposicaoColigacao(models.Model):
     partido = models.ForeignKey(Partido)
     coligacao = models.ForeignKey(Coligacao)
@@ -40,6 +48,11 @@ class Localidade(models.Model):
 
 class NivelInstrucao(models.Model):
     nivel_instrucao = models.CharField(max_length=50)
+
+
+class TipoSituacaoMilitar(models.Model):
+    tip_situacao_militar = models.IntegerField(primary_key=True)
+    des_tipo_situacao = models.CharField(max_length=50)
 
 
 class Parlamentar(models.Model):
@@ -71,6 +84,11 @@ class Parlamentar(models.Model):
     ind_unid_deliberativa = models.IntegerField()
 
 
+class TipoDependente(models.Model):
+    tip_dependente = models.AutoField(primary_key=True)
+    des_tipo_dependente = models.CharField(max_length=50)
+
+
 class Dependente(models.Model):
     cod_dependente = models.AutoField(primary_key=True)
     tip_dependente = models.ForeignKey(TipoDependente)
@@ -90,6 +108,14 @@ class Filiacao(models.Model):
     dat_desfiliacao = models.DateField(blank=True, null=True)
 
 
+class TipoAfastamento(models.Model):
+    tip_afastamento = models.AutoField(primary_key=True)
+    des_afastamento = models.CharField(max_length=50)
+    ind_afastamento = models.IntegerField()
+    ind_fim_mandato = models.IntegerField()
+    des_dispositivo = models.CharField(max_length=50, blank=True, null=True)
+
+
 class Mandato(models.Model):
     cod_mandato = models.AutoField(primary_key=True)
     parlamentar = models.ForeignKey(Parlamentar)
@@ -101,32 +127,6 @@ class Mandato(models.Model):
     num_votos_recebidos = models.IntegerField(blank=True, null=True)
     dat_expedicao_diploma = models.DateField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
-
-
-class Partido(models.Model):
-    cod_partido = models.AutoField(primary_key=True)
-    sgl_partido = models.CharField(max_length=9)
-    nom_partido = models.CharField(max_length=50)
-    dat_criacao = models.DateField(blank=True, null=True)
-    dat_extincao = models.DateField(blank=True, null=True)
-
-
-class TipoAfastamento(models.Model):
-    tip_afastamento = models.AutoField(primary_key=True)
-    des_afastamento = models.CharField(max_length=50)
-    ind_afastamento = models.IntegerField()
-    ind_fim_mandato = models.IntegerField()
-    des_dispositivo = models.CharField(max_length=50, blank=True, null=True)
-
-
-class TipoDependente(models.Model):
-    tip_dependente = models.AutoField(primary_key=True)
-    des_tipo_dependente = models.CharField(max_length=50)
-
-
-class TipoSituacaoMilitar(models.Model):
-    tip_situacao_militar = models.IntegerField(primary_key=True)
-    des_tipo_situacao = models.CharField(max_length=50)
 
 
 class CargoMesa(models.Model):

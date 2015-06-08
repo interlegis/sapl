@@ -3,10 +3,12 @@ from django.db import models
 from parlamentares.models import Parlamentar
 
 
-class CargoComissao(models.Model):
-    ###
-    nome = models.CharField(max_length=50)
-    ind_unico = models.IntegerField()
+class TipoComissao(models.Model):
+    tip_comissao = models.AutoField(primary_key=True)
+    nom_tipo_comissao = models.CharField(max_length=50)
+    sgl_natureza_comissao = models.CharField(max_length=1)
+    sgl_tipo_comissao = models.CharField(max_length=10)
+    des_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
 
 
 class Comissao(models.Model):
@@ -33,6 +35,18 @@ class Comissao(models.Model):
     ind_unid_deliberativa = models.IntegerField()
 
 
+class PeriodoCompComissao(models.Model):
+    cod_periodo_comp = models.AutoField(primary_key=True)
+    dat_inicio_periodo = models.DateField()
+    dat_fim_periodo = models.DateField(blank=True, null=True)
+
+
+class CargoComissao(models.Model):
+    ###
+    nome = models.CharField(max_length=50)
+    ind_unico = models.IntegerField()
+
+
 class ComposicaoComissao(models.Model):
     cod_comp_comissao = models.AutoField(primary_key=True)
     parlamentar = models.ForeignKey(Parlamentar)
@@ -44,17 +58,3 @@ class ComposicaoComissao(models.Model):
     dat_desligamento = models.DateField(blank=True, null=True)
     des_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
     obs_composicao = models.CharField(max_length=150, blank=True, null=True)
-
-
-class PeriodoCompComissao(models.Model):
-    cod_periodo_comp = models.AutoField(primary_key=True)
-    dat_inicio_periodo = models.DateField()
-    dat_fim_periodo = models.DateField(blank=True, null=True)
-
-
-class TipoComissao(models.Model):
-    tip_comissao = models.AutoField(primary_key=True)
-    nom_tipo_comissao = models.CharField(max_length=50)
-    sgl_natureza_comissao = models.CharField(max_length=1)
-    sgl_tipo_comissao = models.CharField(max_length=10)
-    des_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
