@@ -33,7 +33,7 @@ class MateriaLegislativa(models.Model):
     tip_apresentacao = models.CharField(max_length=1, blank=True, null=True)
     regime_tramitacao = models.ForeignKey(RegimeTramitacao)
     dat_publicacao = models.DateField(blank=True, null=True)
-    tip_origem_externa = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True)
+    tip_origem_externa = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True, related_name='+')
     num_origem_externa = models.CharField(max_length=5, blank=True, null=True)
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
     dat_origem_externa = models.DateField(blank=True, null=True)
@@ -49,6 +49,10 @@ class MateriaLegislativa(models.Model):
     txt_indexacao = models.TextField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
     txt_resultado = models.TextField(blank=True, null=True)
+    # XXX novo
+    anexadas = models.ManyToManyField('self', through='Anexada',
+                                      symmetrical=False, related_name='anexo_de',
+                                      through_fields=('materia_principal', 'materia_anexada'))
 
 
 class AcompMateria(models.Model):
@@ -59,8 +63,8 @@ class AcompMateria(models.Model):
 
 
 class Anexada(models.Model):
-    materia_principal = models.ForeignKey(MateriaLegislativa)
-    materia_anexada = models.ForeignKey(MateriaLegislativa)
+    materia_principal = models.ForeignKey(MateriaLegislativa, related_name='+')
+    materia_anexada = models.ForeignKey(MateriaLegislativa, related_name='+')
     dat_anexacao = models.DateField()
     dat_desanexacao = models.DateField(blank=True, null=True)
 
@@ -203,9 +207,9 @@ class Tramitacao(models.Model):
     status = models.ForeignKey(StatusTramitacao, blank=True, null=True)
     materia = models.ForeignKey(MateriaLegislativa)
     dat_tramitacao = models.DateField(blank=True, null=True)
-    unid_tram_local = models.ForeignKey(UnidadeTramitacao, blank=True, null=True)
+    unid_tram_local = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
     dat_encaminha = models.DateField(blank=True, null=True)
-    unid_tram_dest = models.ForeignKey(UnidadeTramitacao, blank=True, null=True)
+    unid_tram_dest = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
     ind_ult_tramitacao = models.IntegerField()
     ind_urgencia = models.IntegerField()
     sgl_turno = models.CharField(max_length=1, blank=True, null=True)

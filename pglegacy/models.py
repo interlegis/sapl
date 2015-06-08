@@ -36,8 +36,8 @@ class AndamentoSessao(models.Model):
 
 
 class Anexada(models.Model):
-    cod_materia_principal = models.ForeignKey('MateriaLegislativa', db_column='cod_materia_principal')
-    cod_materia_anexada = models.ForeignKey('MateriaLegislativa', db_column='cod_materia_anexada')
+    cod_materia_principal = models.ForeignKey('MateriaLegislativa', db_column='cod_materia_principal', related_name='+')
+    cod_materia_anexada = models.ForeignKey('MateriaLegislativa', db_column='cod_materia_anexada', related_name='+')
     dat_anexacao = models.DateField()
     dat_desanexacao = models.DateField()
     ind_excluido = models.SmallIntegerField()
@@ -341,14 +341,14 @@ class MateriaAssunto(models.Model):
 
 class MateriaLegislativa(models.Model):
     cod_materia = models.AutoField(primary_key=True)
-    tip_id_basica = models.ForeignKey('TipoMateriaLegislativa', db_column='tip_id_basica')
+    tip_id_basica = models.ForeignKey('TipoMateriaLegislativa', db_column='tip_id_basica', related_name='+')
     num_ident_basica = models.CharField(max_length=6)
     ano_ident_basica = models.SmallIntegerField()
     dat_apresentacao = models.DateField(blank=True, null=True)
     tip_apresentacao = models.CharField(max_length=1, blank=True, null=True)
     cod_regime_tramitacao = models.ForeignKey('RegimeTramitacao', db_column='cod_regime_tramitacao')
     dat_publicacao = models.DateField(blank=True, null=True)
-    tip_origem_externa = models.ForeignKey('TipoMateriaLegislativa', db_column='tip_origem_externa', blank=True, null=True)
+    tip_origem_externa = models.ForeignKey('TipoMateriaLegislativa', db_column='tip_origem_externa', blank=True, null=True, related_name='+')
     num_origem_externa = models.CharField(max_length=9, blank=True, null=True)
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
     dat_origem_externa = models.DateField(blank=True, null=True)
@@ -845,9 +845,9 @@ class Tramitacao(models.Model):
     cod_status = models.ForeignKey(StatusTramitacao, db_column='cod_status', blank=True, null=True)
     cod_materia = models.ForeignKey(MateriaLegislativa, db_column='cod_materia')
     dat_tramitacao = models.DateField(blank=True, null=True)
-    cod_unid_tram_local = models.ForeignKey('UnidadeTramitacao', db_column='cod_unid_tram_local', blank=True, null=True)
+    cod_unid_tram_local = models.ForeignKey('UnidadeTramitacao', db_column='cod_unid_tram_local', blank=True, null=True, related_name='+')
     dat_encaminha = models.DateField(blank=True, null=True)
-    cod_unid_tram_dest = models.ForeignKey('UnidadeTramitacao', db_column='cod_unid_tram_dest', blank=True, null=True)
+    cod_unid_tram_dest = models.ForeignKey('UnidadeTramitacao', db_column='cod_unid_tram_dest', blank=True, null=True, related_name='+')
     ind_ult_tramitacao = models.SmallIntegerField()
     ind_urgencia = models.SmallIntegerField()
     sgl_turno = models.CharField(max_length=1, blank=True, null=True)
@@ -874,8 +874,8 @@ class UnidadeTramitacao(models.Model):
 
 class VinculoNormaJuridica(models.Model):
     cod_vinculo = models.AutoField(primary_key=True)
-    cod_norma_referente = models.ForeignKey(NormaJuridica, db_column='cod_norma_referente')
-    cod_norma_referida = models.ForeignKey(NormaJuridica, db_column='cod_norma_referida')
+    cod_norma_referente = models.ForeignKey(NormaJuridica, db_column='cod_norma_referente', related_name='+')
+    cod_norma_referida = models.ForeignKey(NormaJuridica, db_column='cod_norma_referida', related_name='+')
     tip_vinculo = models.CharField(max_length=1, blank=True, null=True)
     ind_excluido = models.CharField(max_length=1)
 

@@ -57,7 +57,7 @@ class LegislacaoCitada(models.Model):
 
 class VinculoNormaJuridica(models.Model):
     cod_vinculo = models.AutoField(primary_key=True)
-    norma_referente = models.ForeignKey(NormaJuridica)
-    norma_referida = models.ForeignKey(NormaJuridica)
+    norma_referente = models.ForeignKey(NormaJuridica, related_name='+')
+    norma_referida = models.ForeignKey(NormaJuridica, related_name='+')
     tip_vinculo = models.CharField(max_length=1, blank=True, null=True)
     ind_excluido = models.CharField(max_length=1)
