@@ -1,6 +1,9 @@
 from django.db import models
 
-from parlamentares.models import CargoMesa, Legislatura, Parlamentar
+from materia.models import MateriaLegislativa
+from parlamentares.models import CargoMesa
+from parlamentares.models import Parlamentar
+from parlamentares.models import SessaoLegislativa
 
 
 class ExpedienteMateria(models.Model):
@@ -15,21 +18,21 @@ class ExpedienteMateria(models.Model):
 
 
 class ExpedienteSessaoPlenaria(models.Model):
-    cod_sessao_plen = models.IntegerField()
-    cod_expediente = models.IntegerField()
+    sessao_plen = models.ForeignKey(SessaoPlenaria)
+    expediente = models.ForeignKey(TipoExpediente)
     txt_expediente = models.TextField(blank=True, null=True)
 
 
 class MesaSessaoPlenaria(models.Model):
     cargo = models.ForeignKey(CargoMesa)
-    cod_sessao_leg = models.IntegerField()
+    sessao_leg = models.ForeignKey(SessaoLegislativa)
     parlamentar = models.ForeignKey(Parlamentar)
-    cod_sessao_plen = models.IntegerField()
+    sessao_plen = models.ForeignKey(SessaoPlenaria)
     ind_excluido = models.IntegerField(blank=True, null=True)
 
 
 class Oradores(models.Model):
-    cod_sessao_plen = models.IntegerField()
+    sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
     num_ordem = models.IntegerField()
     url_discurso = models.CharField(max_length=150, blank=True, null=True)
@@ -44,8 +47,8 @@ class OradoresExpediente(models.Model):
 
 class OrdemDia(models.Model):
     cod_ordem = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
-    cod_materia = models.IntegerField()
+    sessao_plen = models.ForeignKey(SessaoPlenaria)
+    materia = models.ForeignKey(MateriaLegislativa)
     dat_ordem = models.DateField()
     txt_observacao = models.TextField(blank=True, null=True)
     num_ordem = models.IntegerField()
@@ -62,9 +65,9 @@ class OrdemDiaPresenca(models.Model):
 
 class RegistroVotacao(models.Model):
     cod_votacao = models.AutoField(primary_key=True)
-    tip_resultado_votacao = models.IntegerField()
-    cod_materia = models.IntegerField()
-    cod_ordem = models.IntegerField()
+    tip_resultado_votacao = models.ForeignKey(TipoResultadoVotacao)
+    materia = models.ForeignKey(MateriaLegislativa)
+    ordem = models.ForeignKey(OrdemDia)
     num_votos_sim = models.IntegerField()
     num_votos_nao = models.IntegerField()
     num_abstencao = models.IntegerField()
@@ -72,16 +75,16 @@ class RegistroVotacao(models.Model):
 
 
 class RegistroVotacaoParlamentar(models.Model):
-    cod_votacao = models.IntegerField()
+    votacao = models.ForeignKey(RegistroVotacao)
     parlamentar = models.ForeignKey(Parlamentar)
     vot_parlamentar = models.CharField(max_length=10)
 
 
 class SessaoPlenaria(models.Model):
     cod_sessao_plen = models.AutoField(primary_key=True)
-    cod_andamento_sessao = models.IntegerField(blank=True, null=True)
-    tip_sessao = models.IntegerField()
-    cod_sessao_leg = models.IntegerField()
+    andamento_sessao = models.ForeignKey(AndamentoSessao, blank=True, null=True)
+    tip_sessao = models.ForeignKey(TipoSessaoPlenaria)
+    sessao_leg = models.ForeignKey(SessaoLegislativa)
     legislatura = models.ForeignKey(Legislatura)
     tip_expediente = models.CharField(max_length=10)
     dat_inicio_sessao = models.DateField()
@@ -96,7 +99,7 @@ class SessaoPlenaria(models.Model):
 
 class SessaoPlenariaPresenca(models.Model):
     cod_presenca_sessao = models.AutoField(primary_key=True)
-    cod_sessao_plen = models.IntegerField()
+    sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
     dat_sessao = models.DateField(blank=True, null=True)
 

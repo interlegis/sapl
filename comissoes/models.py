@@ -11,7 +11,7 @@ class CargoComissao(models.Model):
 
 class Comissao(models.Model):
     cod_comissao = models.AutoField(primary_key=True)
-    tip_comissao = models.IntegerField()
+    tip_comissao = models.ForeignKey(TipoComissao)
     nom_comissao = models.CharField(max_length=60)
     sgl_comissao = models.CharField(max_length=10)
     dat_criacao = models.DateField()
@@ -36,8 +36,8 @@ class Comissao(models.Model):
 class ComposicaoComissao(models.Model):
     cod_comp_comissao = models.AutoField(primary_key=True)
     parlamentar = models.ForeignKey(Parlamentar)
-    cod_comissao = models.IntegerField()
-    cod_periodo_comp = models.IntegerField()
+    comissao = models.ForeignKey(Comissao)
+    periodo_comp = models.ForeignKey(PeriodoCompComissao)
     cargo = models.ForeignKey(CargoComissao)
     ind_titular = models.IntegerField()
     dat_designacao = models.DateField()

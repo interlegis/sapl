@@ -1,5 +1,7 @@
 from django.db import models
 
+from materia.models import MateriaLegislativa
+
 
 class AssuntoNorma(models.Model):
     cod_assunto = models.AutoField(primary_key=True)
@@ -9,8 +11,8 @@ class AssuntoNorma(models.Model):
 
 class NormaJuridica(models.Model):
     cod_norma = models.AutoField(primary_key=True)
-    tip_norma = models.IntegerField()
-    cod_materia = models.IntegerField(blank=True, null=True)
+    tip_norma = models.ForeignKey(TipoNormaJuridica)
+    materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     num_norma = models.IntegerField()
     ano_norma = models.SmallIntegerField()
     tip_esfera_federacao = models.CharField(max_length=1)
@@ -37,7 +39,7 @@ class TipoNormaJuridica(models.Model):
 
 class VinculoNormaJuridica(models.Model):
     cod_vinculo = models.AutoField(primary_key=True)
-    cod_norma_referente = models.IntegerField()
-    cod_norma_referida = models.IntegerField()
+    norma_referente = models.ForeignKey(NormaJuridica)
+    norma_referida = models.ForeignKey(NormaJuridica)
     tip_vinculo = models.CharField(max_length=1, blank=True, null=True)
     ind_excluido = models.CharField(max_length=1)

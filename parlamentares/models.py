@@ -25,8 +25,8 @@ class Coligacao(models.Model):
 
 
 class ComposicaoColigacao(models.Model):
-    cod_partido = models.IntegerField()
-    cod_coligacao = models.IntegerField()
+    partido = models.ForeignKey(Partido)
+    coligacao = models.ForeignKey(Coligacao)
 
 
 class Localidade(models.Model):
@@ -44,8 +44,8 @@ class NivelInstrucao(models.Model):
 
 class Parlamentar(models.Model):
     ###
-    cod_nivel_instrucao = models.IntegerField(blank=True, null=True)
-    tip_situacao_militar = models.IntegerField(blank=True, null=True)
+    nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True)
+    tip_situacao_militar = models.ForeignKey(TipoSituacaoMilitar, blank=True, null=True)
     nom_completo = models.CharField(max_length=50)
     nom_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     sex_parlamentar = models.CharField(max_length=1)
@@ -58,7 +58,7 @@ class Parlamentar(models.Model):
     num_tel_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     num_fax_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     end_residencial = models.CharField(max_length=100, blank=True, null=True)
-    cod_localidade_resid = models.IntegerField(blank=True, null=True)
+    localidade_resid = models.ForeignKey(Localidade, blank=True, null=True)
     num_cep_resid = models.CharField(max_length=9, blank=True, null=True)
     num_tel_resid = models.CharField(max_length=50, blank=True, null=True)
     num_fax_resid = models.CharField(max_length=50, blank=True, null=True)
@@ -73,7 +73,7 @@ class Parlamentar(models.Model):
 
 class Dependente(models.Model):
     cod_dependente = models.AutoField(primary_key=True)
-    tip_dependente = models.IntegerField()
+    tip_dependente = models.ForeignKey(TipoDependente)
     parlamentar = models.ForeignKey(Parlamentar)
     nom_dependente = models.CharField(max_length=50)
     sex_dependente = models.CharField(max_length=1)
@@ -86,16 +86,16 @@ class Dependente(models.Model):
 class Filiacao(models.Model):
     dat_filiacao = models.DateField()
     parlamentar = models.ForeignKey(Parlamentar)
-    cod_partido = models.IntegerField()
+    partido = models.ForeignKey(Partido)
     dat_desfiliacao = models.DateField(blank=True, null=True)
 
 
 class Mandato(models.Model):
     cod_mandato = models.AutoField(primary_key=True)
     parlamentar = models.ForeignKey(Parlamentar)
-    tip_afastamento = models.IntegerField(blank=True, null=True)
+    tip_afastamento = models.ForeignKey(TipoAfastamento, blank=True, null=True)
     legislatura = models.ForeignKey(Legislatura)
-    cod_coligacao = models.IntegerField(blank=True, null=True)
+    coligacao = models.ForeignKey(Coligacao, blank=True, null=True)
     tip_causa_fim_mandato = models.IntegerField(blank=True, null=True)
     dat_fim_mandato = models.DateField(blank=True, null=True)
     num_votos_recebidos = models.IntegerField(blank=True, null=True)
