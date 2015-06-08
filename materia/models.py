@@ -5,7 +5,6 @@ from parlamentares.models import Parlamentar, Partido
 
 
 class TipoMateriaLegislativa(models.Model):
-    tip_materia = models.AutoField(primary_key=True)
     sgl_tipo_materia = models.CharField(max_length=5)
     des_tipo_materia = models.CharField(max_length=50)
     ind_num_automatica = models.IntegerField()
@@ -13,18 +12,15 @@ class TipoMateriaLegislativa(models.Model):
 
 
 class RegimeTramitacao(models.Model):
-    cod_regime_tramitacao = models.AutoField(primary_key=True)
     des_regime_tramitacao = models.CharField(max_length=50)
 
 
 class Origem(models.Model):
-    cod_origem = models.AutoField(primary_key=True)
     sgl_origem = models.CharField(max_length=10)
     nom_origem = models.CharField(max_length=50)
 
 
 class MateriaLegislativa(models.Model):
-    cod_materia = models.AutoField(primary_key=True)
     tip_id_basica = models.ForeignKey(TipoMateriaLegislativa)
     num_protocolo = models.IntegerField(blank=True, null=True)
     num_ident_basica = models.IntegerField()
@@ -56,7 +52,6 @@ class MateriaLegislativa(models.Model):
 
 
 class AcompMateria(models.Model):
-    cod_cadastro = models.AutoField(primary_key=True)
     materia = models.ForeignKey(MateriaLegislativa)
     end_email = models.CharField(max_length=100)
     txt_hash = models.CharField(max_length=8)
@@ -70,22 +65,19 @@ class Anexada(models.Model):
 
 
 class AssuntoMateria(models.Model):
-    cod_assunto = models.IntegerField(primary_key=True)
     des_assunto = models.CharField(max_length=200)
     des_dispositivo = models.CharField(max_length=50)
 
 
 class TipoAutor(models.Model):
-    tip_autor = models.IntegerField(primary_key=True)
     des_tipo_autor = models.CharField(max_length=50)
 
 
 class Autor(models.Model):
-    cod_autor = models.AutoField(primary_key=True)
     partido = models.ForeignKey(Partido, blank=True, null=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
-    tip_autor = models.ForeignKey(TipoAutor)
+    tipo = models.ForeignKey(TipoAutor)
     nom_autor = models.CharField(max_length=50, blank=True, null=True)
     des_cargo = models.CharField(max_length=50, blank=True, null=True)
     col_username = models.CharField(max_length=50, blank=True, null=True)
@@ -104,14 +96,13 @@ class DespachoInicial(models.Model):
 
 
 class TipoDocumento(models.Model):
-    tip_documento = models.AutoField(primary_key=True)
     des_tipo_documento = models.CharField(max_length=50)
 
 
 class DocumentoAcessorio(models.Model):
     cod_documento = models.AutoField(primary_key=True)
     materia = models.ForeignKey(MateriaLegislativa)
-    tip_documento = models.ForeignKey(TipoDocumento)
+    tipo = models.ForeignKey(TipoDocumento)
     nom_documento = models.CharField(max_length=30)
     dat_documento = models.DateField(blank=True, null=True)
     nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
@@ -134,7 +125,6 @@ class Numeracao(models.Model):
 
 
 class Orgao(models.Model):
-    cod_orgao = models.AutoField(primary_key=True)
     nom_orgao = models.CharField(max_length=60)
     sgl_orgao = models.CharField(max_length=10)
     ind_unid_deliberativa = models.IntegerField()
@@ -143,12 +133,10 @@ class Orgao(models.Model):
 
 
 class TipoFimRelatoria(models.Model):
-    tip_fim_relatoria = models.AutoField(primary_key=True)
     des_fim_relatoria = models.CharField(max_length=50)
 
 
 class Relatoria(models.Model):
-    cod_relatoria = models.AutoField(primary_key=True)
     materia = models.ForeignKey(MateriaLegislativa)
     parlamentar = models.ForeignKey(Parlamentar)
     tip_fim_relatoria = models.ForeignKey(TipoFimRelatoria, blank=True, null=True)
@@ -166,7 +154,6 @@ class Parecer(models.Model):
 
 
 class TipoProposicao(models.Model):
-    tip_proposicao = models.AutoField(primary_key=True)
     des_tipo_proposicao = models.CharField(max_length=50)
     ind_mat_ou_doc = models.CharField(max_length=1)
     tip_mat_ou_doc = models.IntegerField()
@@ -174,10 +161,9 @@ class TipoProposicao(models.Model):
 
 
 class Proposicao(models.Model):
-    cod_proposicao = models.AutoField(primary_key=True)
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     autor = models.ForeignKey(Autor)
-    tip_proposicao = models.ForeignKey(TipoProposicao)
+    tipo = models.ForeignKey(TipoProposicao)
     dat_envio = models.DateTimeField()
     dat_recebimento = models.DateTimeField(blank=True, null=True)
     txt_descricao = models.CharField(max_length=100)
@@ -188,7 +174,6 @@ class Proposicao(models.Model):
 
 
 class StatusTramitacao(models.Model):
-    cod_status = models.AutoField(primary_key=True)
     sgl_status = models.CharField(max_length=10)
     des_status = models.CharField(max_length=60)
     ind_fim_tramitacao = models.IntegerField()
@@ -196,14 +181,12 @@ class StatusTramitacao(models.Model):
 
 
 class UnidadeTramitacao(models.Model):
-    cod_unid_tramitacao = models.AutoField(primary_key=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     orgao = models.ForeignKey(Orgao, blank=True, null=True)
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
 
 
 class Tramitacao(models.Model):
-    cod_tramitacao = models.AutoField(primary_key=True)
     status = models.ForeignKey(StatusTramitacao, blank=True, null=True)
     materia = models.ForeignKey(MateriaLegislativa)
     dat_tramitacao = models.DateField(blank=True, null=True)

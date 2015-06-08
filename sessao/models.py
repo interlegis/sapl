@@ -7,7 +7,7 @@ from parlamentares.models import CargoMesa, Parlamentar, SessaoLegislativa, Legi
 class ExpedienteMateria(models.Model):
     cod_ordem = models.AutoField(primary_key=True)
     cod_sessao_plen = models.IntegerField()
-    cod_materia = models.IntegerField()
+    materia = models.ForeignKey(MateriaLegislativa)
     dat_ordem = models.DateField()
     txt_observacao = models.TextField(blank=True, null=True)
     num_ordem = models.IntegerField()

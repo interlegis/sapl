@@ -4,21 +4,18 @@ from materia.models import MateriaLegislativa
 
 
 class AssuntoNorma(models.Model):
-    cod_assunto = models.AutoField(primary_key=True)
     des_assunto = models.CharField(max_length=50)
     des_estendida = models.CharField(max_length=250, blank=True, null=True)
 
 
 class TipoNormaJuridica(models.Model):
-    tip_norma = models.AutoField(primary_key=True)
     voc_lexml = models.CharField(max_length=50, blank=True, null=True)
     sgl_tipo_norma = models.CharField(max_length=3)
     des_tipo_norma = models.CharField(max_length=50)
 
 
 class NormaJuridica(models.Model):
-    cod_norma = models.AutoField(primary_key=True)
-    tip_norma = models.ForeignKey(TipoNormaJuridica)
+    tipo = models.ForeignKey(TipoNormaJuridica)
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     num_norma = models.IntegerField()
     ano_norma = models.SmallIntegerField()
@@ -32,7 +29,7 @@ class NormaJuridica(models.Model):
     txt_indexacao = models.TextField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
     ind_complemento = models.IntegerField(blank=True, null=True)
-    cod_assunto = models.CharField(max_length=16)
+    assunto = models.ForeignKey(AssuntoNorma)  # XXX was a CharField (attention on migrate)
     dat_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
 
@@ -56,7 +53,6 @@ class LegislacaoCitada(models.Model):
 
 
 class VinculoNormaJuridica(models.Model):
-    cod_vinculo = models.AutoField(primary_key=True)
     norma_referente = models.ForeignKey(NormaJuridica, related_name='+')
     norma_referida = models.ForeignKey(NormaJuridica, related_name='+')
     tip_vinculo = models.CharField(max_length=1, blank=True, null=True)

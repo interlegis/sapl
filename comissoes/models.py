@@ -4,7 +4,6 @@ from parlamentares.models import Parlamentar
 
 
 class TipoComissao(models.Model):
-    tip_comissao = models.AutoField(primary_key=True)
     nom_tipo_comissao = models.CharField(max_length=50)
     sgl_natureza_comissao = models.CharField(max_length=1)
     sgl_tipo_comissao = models.CharField(max_length=10)
@@ -12,7 +11,6 @@ class TipoComissao(models.Model):
 
 
 class Comissao(models.Model):
-    cod_comissao = models.AutoField(primary_key=True)
     tip_comissao = models.ForeignKey(TipoComissao)
     nom_comissao = models.CharField(max_length=60)
     sgl_comissao = models.CharField(max_length=10)
@@ -36,19 +34,16 @@ class Comissao(models.Model):
 
 
 class PeriodoCompComissao(models.Model):
-    cod_periodo_comp = models.AutoField(primary_key=True)
     dat_inicio_periodo = models.DateField()
     dat_fim_periodo = models.DateField(blank=True, null=True)
 
 
 class CargoComissao(models.Model):
-    ###
     nome = models.CharField(max_length=50)
     ind_unico = models.IntegerField()
 
 
 class ComposicaoComissao(models.Model):
-    cod_comp_comissao = models.AutoField(primary_key=True)
     parlamentar = models.ForeignKey(Parlamentar)
     comissao = models.ForeignKey(Comissao)
     periodo_comp = models.ForeignKey(PeriodoCompComissao)

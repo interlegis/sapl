@@ -2,7 +2,6 @@ from django.db import models
 
 
 class LexmlRegistroProvedor(models.Model):
-    cod_provedor = models.AutoField(primary_key=True)
     id_provedor = models.IntegerField()
     nom_provedor = models.CharField(max_length=255)
     sgl_provedor = models.CharField(max_length=15)
@@ -14,7 +13,6 @@ class LexmlRegistroProvedor(models.Model):
 
 
 class LexmlRegistroPublicador(models.Model):
-    cod_publicador = models.AutoField(primary_key=True)
     id_publicador = models.IntegerField()
     nom_publicador = models.CharField(max_length=255)
     adm_email = models.CharField(max_length=50, blank=True, null=True)

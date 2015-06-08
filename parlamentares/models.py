@@ -18,14 +18,12 @@ class SessaoLegislativa(models.Model):
 
 
 class Coligacao(models.Model):
-    cod_coligacao = models.AutoField(primary_key=True)
     legislatura = models.ForeignKey(Legislatura)
     nom_coligacao = models.CharField(max_length=50)
     num_votos_coligacao = models.IntegerField(blank=True, null=True)
 
 
 class Partido(models.Model):
-    cod_partido = models.AutoField(primary_key=True)
     sgl_partido = models.CharField(max_length=9)
     nom_partido = models.CharField(max_length=50)
     dat_criacao = models.DateField(blank=True, null=True)
@@ -38,7 +36,6 @@ class ComposicaoColigacao(models.Model):
 
 
 class Localidade(models.Model):
-    cod_localidade = models.IntegerField(primary_key=True)
     nom_localidade = models.CharField(max_length=50, blank=True, null=True)
     nom_localidade_pesq = models.CharField(max_length=50, blank=True, null=True)
     tip_localidade = models.CharField(max_length=1, blank=True, null=True)
@@ -50,15 +47,13 @@ class NivelInstrucao(models.Model):
     nivel_instrucao = models.CharField(max_length=50)
 
 
-class TipoSituacaoMilitar(models.Model):
-    tip_situacao_militar = models.IntegerField(primary_key=True)
+class SituacaoMilitar(models.Model):
     des_tipo_situacao = models.CharField(max_length=50)
 
 
 class Parlamentar(models.Model):
-    ###
     nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True)
-    tip_situacao_militar = models.ForeignKey(TipoSituacaoMilitar, blank=True, null=True)
+    situacao_militar = models.ForeignKey(SituacaoMilitar, blank=True, null=True)
     nom_completo = models.CharField(max_length=50)
     nom_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     sex_parlamentar = models.CharField(max_length=1)
@@ -90,7 +85,6 @@ class TipoDependente(models.Model):
 
 
 class Dependente(models.Model):
-    cod_dependente = models.AutoField(primary_key=True)
     tip_dependente = models.ForeignKey(TipoDependente)
     parlamentar = models.ForeignKey(Parlamentar)
     nom_dependente = models.CharField(max_length=50)
@@ -109,7 +103,6 @@ class Filiacao(models.Model):
 
 
 class TipoAfastamento(models.Model):
-    tip_afastamento = models.AutoField(primary_key=True)
     des_afastamento = models.CharField(max_length=50)
     ind_afastamento = models.IntegerField()
     ind_fim_mandato = models.IntegerField()
@@ -117,9 +110,8 @@ class TipoAfastamento(models.Model):
 
 
 class Mandato(models.Model):
-    cod_mandato = models.AutoField(primary_key=True)
     parlamentar = models.ForeignKey(Parlamentar)
-    tip_afastamento = models.ForeignKey(TipoAfastamento, blank=True, null=True)
+    tipo_afastamento = models.ForeignKey(TipoAfastamento, blank=True, null=True)
     legislatura = models.ForeignKey(Legislatura)
     coligacao = models.ForeignKey(Coligacao, blank=True, null=True)
     tip_causa_fim_mandato = models.IntegerField(blank=True, null=True)
