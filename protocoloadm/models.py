@@ -38,7 +38,7 @@ class Protocolo(models.Model):
     num_protocolo = models.IntegerField(blank=True, null=True)
     ano_protocolo = models.SmallIntegerField()
     data_protocolo = models.DateField()
-    hor_protocolo = models.TimeField()
+    hora_protocolo = models.TimeField()
     data_timestamp = models.DateTimeField()
     tipo_protocolo = models.IntegerField()
     tipo_processo = models.IntegerField()
