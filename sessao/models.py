@@ -51,7 +51,7 @@ class MesaSessaoPlenaria(models.Model):
     sessao_leg = models.ForeignKey(SessaoLegislativa)
     parlamentar = models.ForeignKey(Parlamentar)
     sessao_plen = models.ForeignKey(SessaoPlenaria)
-    ind_excluido = models.IntegerField(blank=True, null=True)
+    excluido = models.NullBooleanField(blank=True)
 
 
 class Oradores(models.Model):

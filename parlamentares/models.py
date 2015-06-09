@@ -74,9 +74,9 @@ class Parlamentar(models.Model):
     nome_profissao = models.CharField(max_length=50, blank=True, null=True)
     endereco_email = models.CharField(max_length=100, blank=True, null=True)
     descricao_local_atuacao = models.CharField(max_length=100, blank=True, null=True)
-    ind_ativo = models.IntegerField()
+    ativo = models.BooleanField()
     txt_biografia = models.TextField(blank=True, null=True)
-    ind_unid_deliberativa = models.IntegerField()
+    unid_deliberativa = models.BooleanField()
 
 
 class TipoDependente(models.Model):
@@ -103,8 +103,8 @@ class Filiacao(models.Model):
 
 class TipoAfastamento(models.Model):
     descricao_afastamento = models.CharField(max_length=50)
-    ind_afastamento = models.IntegerField()
-    ind_fim_mandato = models.IntegerField()
+    afastamento = models.BooleanField()
+    fim_mandato = models.BooleanField()
     descricao_dispositivo = models.CharField(max_length=50, blank=True, null=True)
 
 

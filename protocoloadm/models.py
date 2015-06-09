@@ -18,7 +18,7 @@ class DocumentoAdministrativo(models.Model):
     autor = models.ForeignKey(Autor, blank=True, null=True)
     numero_dias_prazo = models.IntegerField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)
-    ind_tramitacao = models.IntegerField()
+    tramitacao = models.BooleanField()
     txt_assunto = models.TextField()
     txt_observacao = models.TextField(blank=True, null=True)
 
@@ -49,7 +49,7 @@ class Protocolo(models.Model):
     tipo_materia = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True)
     numero_paginas = models.IntegerField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
-    ind_anulado = models.IntegerField()
+    anulado = models.BooleanField()
     txt_user_anulacao = models.CharField(max_length=20, blank=True, null=True)
     txt_ip_anulacao = models.CharField(max_length=15, blank=True, null=True)
     txt_just_anulacao = models.CharField(max_length=60, blank=True, null=True)
@@ -59,8 +59,8 @@ class Protocolo(models.Model):
 class StatusTramitacaoAdministrativo(models.Model):
     sigla_status = models.CharField(max_length=10)
     descricao_status = models.CharField(max_length=60)
-    ind_fim_tramitacao = models.IntegerField()
-    ind_retorno_tramitacao = models.IntegerField()
+    fim_tramitacao = models.BooleanField()
+    retorno_tramitacao = models.BooleanField()
 
 
 class TramitacaoAdministrativo(models.Model):
@@ -70,6 +70,6 @@ class TramitacaoAdministrativo(models.Model):
     data_encaminha = models.DateField(blank=True, null=True)
     cod_unid_tram_dest = models.IntegerField(blank=True, null=True)
     status = models.ForeignKey(StatusTramitacaoAdministrativo, blank=True, null=True)
-    ind_ult_tramitacao = models.IntegerField()
+    ult_tramitacao = models.BooleanField()
     txt_tramitacao = models.TextField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)

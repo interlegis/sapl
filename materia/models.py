@@ -7,7 +7,7 @@ from parlamentares.models import Parlamentar, Partido
 class TipoMateriaLegislativa(models.Model):
     sigla_tipo_materia = models.CharField(max_length=5)
     descricao_tipo_materia = models.CharField(max_length=50)
-    ind_num_automatica = models.IntegerField()
+    num_automatica = models.BooleanField()
     quorum_minimo_votacao = models.IntegerField()
 
 
@@ -37,10 +37,10 @@ class MateriaLegislativa(models.Model):
     nome_apelido = models.CharField(max_length=50, blank=True, null=True)
     numero_dias_prazo = models.IntegerField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)
-    ind_tramitacao = models.IntegerField()
-    ind_polemica = models.IntegerField(blank=True, null=True)
+    indicador_tramitacao = models.BooleanField()
+    polemica = models.NullBooleanField(blank=True)
     descricao_objeto = models.CharField(max_length=150, blank=True, null=True)
-    ind_complementar = models.IntegerField(blank=True, null=True)
+    complementar = models.NullBooleanField(blank=True)
     txt_ementa = models.TextField()
     txt_indexacao = models.TextField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
@@ -86,7 +86,7 @@ class Autor(models.Model):
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor)
     materia = models.ForeignKey(MateriaLegislativa)
-    ind_primeiro_autor = models.IntegerField()
+    primeiro_autor = models.BooleanField()
 
 
 class DespachoInicial(models.Model):
@@ -126,7 +126,7 @@ class Numeracao(models.Model):
 class Orgao(models.Model):
     nome_orgao = models.CharField(max_length=60)
     sigla_orgao = models.CharField(max_length=10)
-    ind_unid_deliberativa = models.IntegerField()
+    unid_deliberativa = models.BooleanField()
     endereco_orgao = models.CharField(max_length=100, blank=True, null=True)
     numero_tel_orgao = models.CharField(max_length=50, blank=True, null=True)
 
@@ -154,7 +154,7 @@ class Parecer(models.Model):
 
 class TipoProposicao(models.Model):
     descricao_tipo_proposicao = models.CharField(max_length=50)
-    ind_mat_ou_doc = models.CharField(max_length=1)
+    mat_ou_doc = models.BooleanField()
     tipo_mat_ou_doc = models.IntegerField()
     nome_modelo = models.CharField(max_length=50)
 
@@ -175,8 +175,8 @@ class Proposicao(models.Model):
 class StatusTramitacao(models.Model):
     sigla_status = models.CharField(max_length=10)
     descricao_status = models.CharField(max_length=60)
-    ind_fim_tramitacao = models.IntegerField()
-    ind_retorno_tramitacao = models.IntegerField()
+    fim_tramitacao = models.BooleanField()
+    retorno_tramitacao = models.BooleanField()
 
 
 class UnidadeTramitacao(models.Model):
@@ -192,8 +192,8 @@ class Tramitacao(models.Model):
     unid_tram_local = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
     data_encaminha = models.DateField(blank=True, null=True)
     unid_tram_dest = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
-    ind_ult_tramitacao = models.IntegerField()
-    ind_urgencia = models.IntegerField()
+    ult_tramitacao = models.BooleanField()
+    urgencia = models.BooleanField()
     sigla_turno = models.CharField(max_length=1, blank=True, null=True)
     txt_tramitacao = models.TextField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)

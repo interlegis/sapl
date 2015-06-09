@@ -30,7 +30,7 @@ class Comissao(models.Model):
     local_reuniao = models.CharField(max_length=100, blank=True, null=True)
     txt_finalidade = models.TextField(blank=True, null=True)
     endereco_email = models.CharField(max_length=100, blank=True, null=True)
-    ind_unid_deliberativa = models.IntegerField()
+    unid_deliberativa = models.BooleanField()
 
 
 class PeriodoCompComissao(models.Model):
@@ -40,7 +40,7 @@ class PeriodoCompComissao(models.Model):
 
 class CargoComissao(models.Model):
     nome = models.CharField(max_length=50)
-    ind_unico = models.IntegerField()
+    unico = models.BooleanField()
 
 
 class ComposicaoComissao(models.Model):
@@ -48,7 +48,7 @@ class ComposicaoComissao(models.Model):
     comissao = models.ForeignKey(Comissao)
     periodo_comp = models.ForeignKey(PeriodoCompComissao)
     cargo = models.ForeignKey(CargoComissao)
-    ind_titular = models.IntegerField()
+    titular = models.BooleanField()
     data_designacao = models.DateField()
     data_desligamento = models.DateField(blank=True, null=True)
     descricao_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
