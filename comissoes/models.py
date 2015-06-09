@@ -27,7 +27,7 @@ class Comissao(models.Model):
     num_tel_secretaria = models.CharField(max_length=15, blank=True, null=True)
     num_fax_secretaria = models.CharField(max_length=15, blank=True, null=True)
     descricao_agenda_reuniao = models.CharField(max_length=100, blank=True, null=True)
-    loc_reuniao = models.CharField(max_length=100, blank=True, null=True)
+    local_reuniao = models.CharField(max_length=100, blank=True, null=True)
     txt_finalidade = models.TextField(blank=True, null=True)
     endereco_email = models.CharField(max_length=100, blank=True, null=True)
     ind_unid_deliberativa = models.IntegerField()
