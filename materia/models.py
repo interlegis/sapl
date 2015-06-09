@@ -25,18 +25,18 @@ class MateriaLegislativa(models.Model):
     num_protocolo = models.IntegerField(blank=True, null=True)
     num_ident_basica = models.IntegerField()
     ano_ident_basica = models.SmallIntegerField()
-    dat_apresentacao = models.DateField(blank=True, null=True)
+    data_apresentacao = models.DateField(blank=True, null=True)
     tipo_apresentacao = models.CharField(max_length=1, blank=True, null=True)
     regime_tramitacao = models.ForeignKey(RegimeTramitacao)
-    dat_publicacao = models.DateField(blank=True, null=True)
+    data_publicacao = models.DateField(blank=True, null=True)
     tipo_origem_externa = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True, related_name='+')
     num_origem_externa = models.CharField(max_length=5, blank=True, null=True)
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
-    dat_origem_externa = models.DateField(blank=True, null=True)
+    data_origem_externa = models.DateField(blank=True, null=True)
     local_origem_externa = models.ForeignKey(Origem, blank=True, null=True)
     nome_apelido = models.CharField(max_length=50, blank=True, null=True)
     num_dias_prazo = models.IntegerField(blank=True, null=True)
-    dat_fim_prazo = models.DateField(blank=True, null=True)
+    data_fim_prazo = models.DateField(blank=True, null=True)
     ind_tramitacao = models.IntegerField()
     ind_polemica = models.IntegerField(blank=True, null=True)
     des_objeto = models.CharField(max_length=150, blank=True, null=True)
@@ -60,8 +60,8 @@ class AcompMateria(models.Model):
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(MateriaLegislativa, related_name='+')
     materia_anexada = models.ForeignKey(MateriaLegislativa, related_name='+')
-    dat_anexacao = models.DateField()
-    dat_desanexacao = models.DateField(blank=True, null=True)
+    data_anexacao = models.DateField()
+    data_desanexacao = models.DateField(blank=True, null=True)
 
 
 class AssuntoMateria(models.Model):
@@ -103,7 +103,7 @@ class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     tipo = models.ForeignKey(TipoDocumento)
     nome_documento = models.CharField(max_length=30)
-    dat_documento = models.DateField(blank=True, null=True)
+    data_documento = models.DateField(blank=True, null=True)
     nome_autor_documento = models.CharField(max_length=50, blank=True, null=True)
     txt_ementa = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
@@ -120,7 +120,7 @@ class Numeracao(models.Model):
     tipo_materia = models.ForeignKey(TipoMateriaLegislativa)
     num_materia = models.CharField(max_length=5)
     ano_materia = models.SmallIntegerField()
-    dat_materia = models.DateField(blank=True, null=True)
+    data_materia = models.DateField(blank=True, null=True)
 
 
 class Orgao(models.Model):
@@ -140,8 +140,8 @@ class Relatoria(models.Model):
     parlamentar = models.ForeignKey(Parlamentar)
     tipo_fim_relatoria = models.ForeignKey(TipoFimRelatoria, blank=True, null=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
-    dat_desig_relator = models.DateField()
-    dat_destit_relator = models.DateField(blank=True, null=True)
+    data_desig_relator = models.DateField()
+    data_destit_relator = models.DateField(blank=True, null=True)
 
 
 class Parecer(models.Model):
@@ -163,11 +163,11 @@ class Proposicao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     autor = models.ForeignKey(Autor)
     tipo = models.ForeignKey(TipoProposicao)
-    dat_envio = models.DateTimeField()
-    dat_recebimento = models.DateTimeField(blank=True, null=True)
+    data_envio = models.DateTimeField()
+    data_recebimento = models.DateTimeField(blank=True, null=True)
     txt_descricao = models.CharField(max_length=100)
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)
-    dat_devolucao = models.DateTimeField(blank=True, null=True)
+    data_devolucao = models.DateTimeField(blank=True, null=True)
     txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)
     num_proposicao = models.IntegerField(blank=True, null=True)
 
@@ -188,12 +188,12 @@ class UnidadeTramitacao(models.Model):
 class Tramitacao(models.Model):
     status = models.ForeignKey(StatusTramitacao, blank=True, null=True)
     materia = models.ForeignKey(MateriaLegislativa)
-    dat_tramitacao = models.DateField(blank=True, null=True)
+    data_tramitacao = models.DateField(blank=True, null=True)
     unid_tram_local = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
-    dat_encaminha = models.DateField(blank=True, null=True)
+    data_encaminha = models.DateField(blank=True, null=True)
     unid_tram_dest = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
     ind_ult_tramitacao = models.IntegerField()
     ind_urgencia = models.IntegerField()
     sgl_turno = models.CharField(max_length=1, blank=True, null=True)
     txt_tramitacao = models.TextField(blank=True, null=True)
-    dat_fim_prazo = models.DateField(blank=True, null=True)
+    data_fim_prazo = models.DateField(blank=True, null=True)

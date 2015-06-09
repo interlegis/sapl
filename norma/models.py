@@ -20,8 +20,8 @@ class NormaJuridica(models.Model):
     num_norma = models.IntegerField()
     ano_norma = models.SmallIntegerField()
     tipo_esfera_federacao = models.CharField(max_length=1)
-    dat_norma = models.DateField(blank=True, null=True)
-    dat_publicacao = models.DateField(blank=True, null=True)
+    data_norma = models.DateField(blank=True, null=True)
+    data_publicacao = models.DateField(blank=True, null=True)
     des_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True)
     num_pag_inicio_publ = models.IntegerField(blank=True, null=True)
     num_pag_fim_publ = models.IntegerField(blank=True, null=True)
@@ -30,7 +30,7 @@ class NormaJuridica(models.Model):
     txt_observacao = models.TextField(blank=True, null=True)
     ind_complemento = models.IntegerField(blank=True, null=True)
     assunto = models.ForeignKey(AssuntoNorma)  # XXX was a CharField (attention on migrate)
-    dat_vigencia = models.DateField(blank=True, null=True)
+    data_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
 
 

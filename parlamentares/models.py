@@ -26,8 +26,8 @@ class Coligacao(models.Model):
 class Partido(models.Model):
     sgl_partido = models.CharField(max_length=9)
     nome_partido = models.CharField(max_length=50)
-    dat_criacao = models.DateField(blank=True, null=True)
-    dat_extincao = models.DateField(blank=True, null=True)
+    data_criacao = models.DateField(blank=True, null=True)
+    data_extincao = models.DateField(blank=True, null=True)
 
 
 class ComposicaoColigacao(models.Model):
@@ -57,7 +57,7 @@ class Parlamentar(models.Model):
     nome_completo = models.CharField(max_length=50)
     nome_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     sex_parlamentar = models.CharField(max_length=1)
-    dat_nascimento = models.DateField(blank=True, null=True)
+    data_nascimento = models.DateField(blank=True, null=True)
     num_cpf = models.CharField(max_length=14, blank=True, null=True)
     num_rg = models.CharField(max_length=15, blank=True, null=True)
     num_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
@@ -88,17 +88,17 @@ class Dependente(models.Model):
     parlamentar = models.ForeignKey(Parlamentar)
     nome_dependente = models.CharField(max_length=50)
     sex_dependente = models.CharField(max_length=1)
-    dat_nascimento = models.DateField(blank=True, null=True)
+    data_nascimento = models.DateField(blank=True, null=True)
     num_cpf = models.CharField(max_length=14, blank=True, null=True)
     num_rg = models.CharField(max_length=15, blank=True, null=True)
     num_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
 
 
 class Filiacao(models.Model):
-    dat_filiacao = models.DateField()
+    data_filiacao = models.DateField()
     parlamentar = models.ForeignKey(Parlamentar)
     partido = models.ForeignKey(Partido)
-    dat_desfiliacao = models.DateField(blank=True, null=True)
+    data_desfiliacao = models.DateField(blank=True, null=True)
 
 
 class TipoAfastamento(models.Model):
@@ -114,9 +114,9 @@ class Mandato(models.Model):
     legislatura = models.ForeignKey(Legislatura)
     coligacao = models.ForeignKey(Coligacao, blank=True, null=True)
     tipo_causa_fim_mandato = models.IntegerField(blank=True, null=True)
-    dat_fim_mandato = models.DateField(blank=True, null=True)
+    data_fim_mandato = models.DateField(blank=True, null=True)
     num_votos_recebidos = models.IntegerField(blank=True, null=True)
-    dat_expedicao_diploma = models.DateField(blank=True, null=True)
+    data_expedicao_diploma = models.DateField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
 
 

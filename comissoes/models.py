@@ -14,13 +14,13 @@ class Comissao(models.Model):
     tipo_comissao = models.ForeignKey(TipoComissao)
     nome_comissao = models.CharField(max_length=60)
     sgl_comissao = models.CharField(max_length=10)
-    dat_criacao = models.DateField()
-    dat_extincao = models.DateField(blank=True, null=True)
+    data_criacao = models.DateField()
+    data_extincao = models.DateField(blank=True, null=True)
     nome_apelido_temp = models.CharField(max_length=100, blank=True, null=True)
-    dat_instalacao_temp = models.DateField(blank=True, null=True)
-    dat_final_prevista_temp = models.DateField(blank=True, null=True)
-    dat_prorrogada_temp = models.DateField(blank=True, null=True)
-    dat_fim_comissao = models.DateField(blank=True, null=True)
+    data_instalacao_temp = models.DateField(blank=True, null=True)
+    data_final_prevista_temp = models.DateField(blank=True, null=True)
+    data_prorrogada_temp = models.DateField(blank=True, null=True)
+    data_fim_comissao = models.DateField(blank=True, null=True)
     nome_secretario = models.CharField(max_length=30, blank=True, null=True)
     num_tel_reuniao = models.CharField(max_length=15, blank=True, null=True)
     end_secretaria = models.CharField(max_length=100, blank=True, null=True)
@@ -34,8 +34,8 @@ class Comissao(models.Model):
 
 
 class PeriodoCompComissao(models.Model):
-    dat_inicio_periodo = models.DateField()
-    dat_fim_periodo = models.DateField(blank=True, null=True)
+    data_inicio_periodo = models.DateField()
+    data_fim_periodo = models.DateField(blank=True, null=True)
 
 
 class CargoComissao(models.Model):
@@ -49,7 +49,7 @@ class ComposicaoComissao(models.Model):
     periodo_comp = models.ForeignKey(PeriodoCompComissao)
     cargo = models.ForeignKey(CargoComissao)
     ind_titular = models.IntegerField()
-    dat_designacao = models.DateField()
-    dat_desligamento = models.DateField(blank=True, null=True)
+    data_designacao = models.DateField()
+    data_desligamento = models.DateField(blank=True, null=True)
     des_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
     obs_composicao = models.CharField(max_length=150, blank=True, null=True)

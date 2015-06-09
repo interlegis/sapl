@@ -16,12 +16,12 @@ class SessaoPlenaria(models.Model):
     sessao_leg = models.ForeignKey(SessaoLegislativa)
     legislatura = models.ForeignKey(Legislatura)
     tipo_expediente = models.CharField(max_length=10)
-    dat_inicio_sessao = models.DateField()
+    data_inicio_sessao = models.DateField()
     dia_sessao = models.CharField(max_length=15)
     hr_inicio_sessao = models.CharField(max_length=5)
     hr_fim_sessao = models.CharField(max_length=5, blank=True, null=True)
     num_sessao_plen = models.IntegerField()
-    dat_fim_sessao = models.DateField(blank=True, null=True)
+    data_fim_sessao = models.DateField(blank=True, null=True)
     url_audio = models.CharField(max_length=150, blank=True, null=True)
     url_video = models.CharField(max_length=150, blank=True, null=True)
 
@@ -29,7 +29,7 @@ class SessaoPlenaria(models.Model):
 class ExpedienteMateria(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     materia = models.ForeignKey(MateriaLegislativa)
-    dat_ordem = models.DateField()
+    data_ordem = models.DateField()
     txt_observacao = models.TextField(blank=True, null=True)
     num_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
@@ -71,7 +71,7 @@ class OradoresExpediente(models.Model):
 class OrdemDia(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     materia = models.ForeignKey(MateriaLegislativa)
-    dat_ordem = models.DateField()
+    data_ordem = models.DateField()
     txt_observacao = models.TextField(blank=True, null=True)
     num_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
@@ -81,7 +81,7 @@ class OrdemDia(models.Model):
 class OrdemDiaPresenca(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
-    dat_ordem = models.DateField()
+    data_ordem = models.DateField()
 
 
 class TipoResultadoVotacao(models.Model):
@@ -107,4 +107,4 @@ class RegistroVotacaoParlamentar(models.Model):
 class SessaoPlenariaPresenca(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
-    dat_sessao = models.DateField(blank=True, null=True)
+    data_sessao = models.DateField(blank=True, null=True)
