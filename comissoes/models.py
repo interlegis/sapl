@@ -11,7 +11,7 @@ class TipoComissao(models.Model):
 
 
 class Comissao(models.Model):
-    tip_comissao = models.ForeignKey(TipoComissao)
+    tipo_comissao = models.ForeignKey(TipoComissao)
     nome_comissao = models.CharField(max_length=60)
     sgl_comissao = models.CharField(max_length=10)
     dat_criacao = models.DateField()

@@ -38,7 +38,7 @@ class ComposicaoColigacao(models.Model):
 class Localidade(models.Model):
     nome_localidade = models.CharField(max_length=50, blank=True, null=True)
     nome_localidade_pesq = models.CharField(max_length=50, blank=True, null=True)
-    tip_localidade = models.CharField(max_length=1, blank=True, null=True)
+    tipo_localidade = models.CharField(max_length=1, blank=True, null=True)
     sgl_uf = models.CharField(max_length=2, blank=True, null=True)
     sgl_regiao = models.CharField(max_length=2, blank=True, null=True)
 
@@ -113,7 +113,7 @@ class Mandato(models.Model):
     tipo_afastamento = models.ForeignKey(TipoAfastamento, blank=True, null=True)
     legislatura = models.ForeignKey(Legislatura)
     coligacao = models.ForeignKey(Coligacao, blank=True, null=True)
-    tip_causa_fim_mandato = models.IntegerField(blank=True, null=True)
+    tipo_causa_fim_mandato = models.IntegerField(blank=True, null=True)
     dat_fim_mandato = models.DateField(blank=True, null=True)
     num_votos_recebidos = models.IntegerField(blank=True, null=True)
     dat_expedicao_diploma = models.DateField(blank=True, null=True)

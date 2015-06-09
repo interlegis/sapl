@@ -15,7 +15,7 @@ class SessaoPlenaria(models.Model):
     tipo = models.ForeignKey(TipoSessaoPlenaria)
     sessao_leg = models.ForeignKey(SessaoLegislativa)
     legislatura = models.ForeignKey(Legislatura)
-    tip_expediente = models.CharField(max_length=10)
+    tipo_expediente = models.CharField(max_length=10)
     dat_inicio_sessao = models.DateField()
     dia_sessao = models.CharField(max_length=15)
     hr_inicio_sessao = models.CharField(max_length=5)
@@ -33,7 +33,7 @@ class ExpedienteMateria(models.Model):
     txt_observacao = models.TextField(blank=True, null=True)
     num_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
-    tip_votacao = models.IntegerField()
+    tipo_votacao = models.IntegerField()
 
 
 class TipoExpediente(models.Model):
@@ -75,7 +75,7 @@ class OrdemDia(models.Model):
     txt_observacao = models.TextField(blank=True, null=True)
     num_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
-    tip_votacao = models.IntegerField()
+    tipo_votacao = models.IntegerField()
 
 
 class OrdemDiaPresenca(models.Model):

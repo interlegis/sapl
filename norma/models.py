@@ -19,7 +19,7 @@ class NormaJuridica(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     num_norma = models.IntegerField()
     ano_norma = models.SmallIntegerField()
-    tip_esfera_federacao = models.CharField(max_length=1)
+    tipo_esfera_federacao = models.CharField(max_length=1)
     dat_norma = models.DateField(blank=True, null=True)
     dat_publicacao = models.DateField(blank=True, null=True)
     des_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True)
@@ -55,5 +55,5 @@ class LegislacaoCitada(models.Model):
 class VinculoNormaJuridica(models.Model):
     norma_referente = models.ForeignKey(NormaJuridica, related_name='+')
     norma_referida = models.ForeignKey(NormaJuridica, related_name='+')
-    tip_vinculo = models.CharField(max_length=1, blank=True, null=True)
+    tipo_vinculo = models.CharField(max_length=1, blank=True, null=True)
     ind_excluido = models.CharField(max_length=1)

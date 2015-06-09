@@ -21,15 +21,15 @@ class Origem(models.Model):
 
 
 class MateriaLegislativa(models.Model):
-    tip_id_basica = models.ForeignKey(TipoMateriaLegislativa)
+    tipo_id_basica = models.ForeignKey(TipoMateriaLegislativa)
     num_protocolo = models.IntegerField(blank=True, null=True)
     num_ident_basica = models.IntegerField()
     ano_ident_basica = models.SmallIntegerField()
     dat_apresentacao = models.DateField(blank=True, null=True)
-    tip_apresentacao = models.CharField(max_length=1, blank=True, null=True)
+    tipo_apresentacao = models.CharField(max_length=1, blank=True, null=True)
     regime_tramitacao = models.ForeignKey(RegimeTramitacao)
     dat_publicacao = models.DateField(blank=True, null=True)
-    tip_origem_externa = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True, related_name='+')
+    tipo_origem_externa = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True, related_name='+')
     num_origem_externa = models.CharField(max_length=5, blank=True, null=True)
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
     dat_origem_externa = models.DateField(blank=True, null=True)
@@ -117,7 +117,7 @@ class MateriaAssunto(models.Model):
 class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     num_ordem = models.IntegerField()
-    tip_materia = models.ForeignKey(TipoMateriaLegislativa)
+    tipo_materia = models.ForeignKey(TipoMateriaLegislativa)
     num_materia = models.CharField(max_length=5)
     ano_materia = models.SmallIntegerField()
     dat_materia = models.DateField(blank=True, null=True)
@@ -138,7 +138,7 @@ class TipoFimRelatoria(models.Model):
 class Relatoria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     parlamentar = models.ForeignKey(Parlamentar)
-    tip_fim_relatoria = models.ForeignKey(TipoFimRelatoria, blank=True, null=True)
+    tipo_fim_relatoria = models.ForeignKey(TipoFimRelatoria, blank=True, null=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     dat_desig_relator = models.DateField()
     dat_destit_relator = models.DateField(blank=True, null=True)
@@ -147,15 +147,15 @@ class Relatoria(models.Model):
 class Parecer(models.Model):
     relatoria = models.ForeignKey(Relatoria)
     materia = models.ForeignKey(MateriaLegislativa)
-    tip_conclusao = models.CharField(max_length=3, blank=True, null=True)
-    tip_apresentacao = models.CharField(max_length=1)
+    tipo_conclusao = models.CharField(max_length=3, blank=True, null=True)
+    tipo_apresentacao = models.CharField(max_length=1)
     txt_parecer = models.TextField(blank=True, null=True)
 
 
 class TipoProposicao(models.Model):
     des_tipo_proposicao = models.CharField(max_length=50)
     ind_mat_ou_doc = models.CharField(max_length=1)
-    tip_mat_ou_doc = models.IntegerField()
+    tipo_mat_ou_doc = models.IntegerField()
     nome_modelo = models.CharField(max_length=50)
 
 
