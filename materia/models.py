@@ -53,7 +53,7 @@ class MateriaLegislativa(models.Model):
 
 class AcompMateria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
-    end_email = models.CharField(max_length=100)
+    endereco_email = models.CharField(max_length=100)
     txt_hash = models.CharField(max_length=8)
 
 
@@ -127,7 +127,7 @@ class Orgao(models.Model):
     nome_orgao = models.CharField(max_length=60)
     sgl_orgao = models.CharField(max_length=10)
     ind_unid_deliberativa = models.IntegerField()
-    end_orgao = models.CharField(max_length=100, blank=True, null=True)
+    endereco_orgao = models.CharField(max_length=100, blank=True, null=True)
     num_tel_orgao = models.CharField(max_length=50, blank=True, null=True)
 
 

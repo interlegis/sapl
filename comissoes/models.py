@@ -23,13 +23,13 @@ class Comissao(models.Model):
     data_fim_comissao = models.DateField(blank=True, null=True)
     nome_secretario = models.CharField(max_length=30, blank=True, null=True)
     num_tel_reuniao = models.CharField(max_length=15, blank=True, null=True)
-    end_secretaria = models.CharField(max_length=100, blank=True, null=True)
+    endereco_secretaria = models.CharField(max_length=100, blank=True, null=True)
     num_tel_secretaria = models.CharField(max_length=15, blank=True, null=True)
     num_fax_secretaria = models.CharField(max_length=15, blank=True, null=True)
     des_agenda_reuniao = models.CharField(max_length=100, blank=True, null=True)
     loc_reuniao = models.CharField(max_length=100, blank=True, null=True)
     txt_finalidade = models.TextField(blank=True, null=True)
-    end_email = models.CharField(max_length=100, blank=True, null=True)
+    endereco_email = models.CharField(max_length=100, blank=True, null=True)
     ind_unid_deliberativa = models.IntegerField()
 
 
