@@ -19,13 +19,13 @@ class SessaoLegislativa(models.Model):
 
 class Coligacao(models.Model):
     legislatura = models.ForeignKey(Legislatura)
-    nom_coligacao = models.CharField(max_length=50)
+    nome_coligacao = models.CharField(max_length=50)
     num_votos_coligacao = models.IntegerField(blank=True, null=True)
 
 
 class Partido(models.Model):
     sgl_partido = models.CharField(max_length=9)
-    nom_partido = models.CharField(max_length=50)
+    nome_partido = models.CharField(max_length=50)
     dat_criacao = models.DateField(blank=True, null=True)
     dat_extincao = models.DateField(blank=True, null=True)
 
@@ -36,8 +36,8 @@ class ComposicaoColigacao(models.Model):
 
 
 class Localidade(models.Model):
-    nom_localidade = models.CharField(max_length=50, blank=True, null=True)
-    nom_localidade_pesq = models.CharField(max_length=50, blank=True, null=True)
+    nome_localidade = models.CharField(max_length=50, blank=True, null=True)
+    nome_localidade_pesq = models.CharField(max_length=50, blank=True, null=True)
     tip_localidade = models.CharField(max_length=1, blank=True, null=True)
     sgl_uf = models.CharField(max_length=2, blank=True, null=True)
     sgl_regiao = models.CharField(max_length=2, blank=True, null=True)
@@ -54,8 +54,8 @@ class SituacaoMilitar(models.Model):
 class Parlamentar(models.Model):
     nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True)
     situacao_militar = models.ForeignKey(SituacaoMilitar, blank=True, null=True)
-    nom_completo = models.CharField(max_length=50)
-    nom_parlamentar = models.CharField(max_length=50, blank=True, null=True)
+    nome_completo = models.CharField(max_length=50)
+    nome_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     sex_parlamentar = models.CharField(max_length=1)
     dat_nascimento = models.DateField(blank=True, null=True)
     num_cpf = models.CharField(max_length=14, blank=True, null=True)
@@ -71,7 +71,7 @@ class Parlamentar(models.Model):
     num_tel_resid = models.CharField(max_length=50, blank=True, null=True)
     num_fax_resid = models.CharField(max_length=50, blank=True, null=True)
     end_web = models.CharField(max_length=100, blank=True, null=True)
-    nom_profissao = models.CharField(max_length=50, blank=True, null=True)
+    nome_profissao = models.CharField(max_length=50, blank=True, null=True)
     end_email = models.CharField(max_length=100, blank=True, null=True)
     des_local_atuacao = models.CharField(max_length=100, blank=True, null=True)
     ind_ativo = models.IntegerField()
@@ -86,7 +86,7 @@ class TipoDependente(models.Model):
 class Dependente(models.Model):
     tipo_dependente = models.ForeignKey(TipoDependente)
     parlamentar = models.ForeignKey(Parlamentar)
-    nom_dependente = models.CharField(max_length=50)
+    nome_dependente = models.CharField(max_length=50)
     sex_dependente = models.CharField(max_length=1)
     dat_nascimento = models.DateField(blank=True, null=True)
     num_cpf = models.CharField(max_length=14, blank=True, null=True)

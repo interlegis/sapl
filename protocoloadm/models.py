@@ -26,10 +26,10 @@ class DocumentoAdministrativo(models.Model):
 class DocumentoAcessorioAdministrativo(models.Model):
     documento = models.ForeignKey(DocumentoAdministrativo)
     tipo = models.ForeignKey(TipoDocumentoAdministrativo)
-    nom_documento = models.CharField(max_length=30)
-    nom_arquivo = models.CharField(max_length=100)
+    nome_documento = models.CharField(max_length=30)
+    nome_arquivo = models.CharField(max_length=100)
     dat_documento = models.DateField(blank=True, null=True)
-    nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
+    nome_autor_documento = models.CharField(max_length=50, blank=True, null=True)
     txt_assunto = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
 

@@ -5,7 +5,7 @@ from parlamentares.models import CargoMesa, Parlamentar, SessaoLegislativa, Legi
 
 
 class TipoSessaoPlenaria(models.Model):
-    nom_sessao = models.CharField(max_length=30)
+    nome_sessao = models.CharField(max_length=30)
     num_minimo = models.IntegerField()
 
 
@@ -37,7 +37,7 @@ class ExpedienteMateria(models.Model):
 
 
 class TipoExpediente(models.Model):
-    nom_expediente = models.CharField(max_length=100)
+    nome_expediente = models.CharField(max_length=100)
 
 
 class ExpedienteSessaoPlenaria(models.Model):
@@ -85,7 +85,7 @@ class OrdemDiaPresenca(models.Model):
 
 
 class TipoResultadoVotacao(models.Model):
-    nom_resultado = models.CharField(max_length=100)
+    nome_resultado = models.CharField(max_length=100)
 
 
 class RegistroVotacao(models.Model):

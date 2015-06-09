@@ -4,7 +4,7 @@ from parlamentares.models import Parlamentar
 
 
 class TipoComissao(models.Model):
-    nom_tipo_comissao = models.CharField(max_length=50)
+    nome_tipo_comissao = models.CharField(max_length=50)
     sgl_natureza_comissao = models.CharField(max_length=1)
     sgl_tipo_comissao = models.CharField(max_length=10)
     des_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
@@ -12,16 +12,16 @@ class TipoComissao(models.Model):
 
 class Comissao(models.Model):
     tip_comissao = models.ForeignKey(TipoComissao)
-    nom_comissao = models.CharField(max_length=60)
+    nome_comissao = models.CharField(max_length=60)
     sgl_comissao = models.CharField(max_length=10)
     dat_criacao = models.DateField()
     dat_extincao = models.DateField(blank=True, null=True)
-    nom_apelido_temp = models.CharField(max_length=100, blank=True, null=True)
+    nome_apelido_temp = models.CharField(max_length=100, blank=True, null=True)
     dat_instalacao_temp = models.DateField(blank=True, null=True)
     dat_final_prevista_temp = models.DateField(blank=True, null=True)
     dat_prorrogada_temp = models.DateField(blank=True, null=True)
     dat_fim_comissao = models.DateField(blank=True, null=True)
-    nom_secretario = models.CharField(max_length=30, blank=True, null=True)
+    nome_secretario = models.CharField(max_length=30, blank=True, null=True)
     num_tel_reuniao = models.CharField(max_length=15, blank=True, null=True)
     end_secretaria = models.CharField(max_length=100, blank=True, null=True)
     num_tel_secretaria = models.CharField(max_length=15, blank=True, null=True)

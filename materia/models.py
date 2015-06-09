@@ -17,7 +17,7 @@ class RegimeTramitacao(models.Model):
 
 class Origem(models.Model):
     sgl_origem = models.CharField(max_length=10)
-    nom_origem = models.CharField(max_length=50)
+    nome_origem = models.CharField(max_length=50)
 
 
 class MateriaLegislativa(models.Model):
@@ -34,7 +34,7 @@ class MateriaLegislativa(models.Model):
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
     dat_origem_externa = models.DateField(blank=True, null=True)
     local_origem_externa = models.ForeignKey(Origem, blank=True, null=True)
-    nom_apelido = models.CharField(max_length=50, blank=True, null=True)
+    nome_apelido = models.CharField(max_length=50, blank=True, null=True)
     num_dias_prazo = models.IntegerField(blank=True, null=True)
     dat_fim_prazo = models.DateField(blank=True, null=True)
     ind_tramitacao = models.IntegerField()
@@ -78,7 +78,7 @@ class Autor(models.Model):
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
     tipo = models.ForeignKey(TipoAutor)
-    nom_autor = models.CharField(max_length=50, blank=True, null=True)
+    nome_autor = models.CharField(max_length=50, blank=True, null=True)
     des_cargo = models.CharField(max_length=50, blank=True, null=True)
     col_username = models.CharField(max_length=50, blank=True, null=True)
 
@@ -102,9 +102,9 @@ class TipoDocumento(models.Model):
 class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     tipo = models.ForeignKey(TipoDocumento)
-    nom_documento = models.CharField(max_length=30)
+    nome_documento = models.CharField(max_length=30)
     dat_documento = models.DateField(blank=True, null=True)
-    nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
+    nome_autor_documento = models.CharField(max_length=50, blank=True, null=True)
     txt_ementa = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
 
@@ -124,7 +124,7 @@ class Numeracao(models.Model):
 
 
 class Orgao(models.Model):
-    nom_orgao = models.CharField(max_length=60)
+    nome_orgao = models.CharField(max_length=60)
     sgl_orgao = models.CharField(max_length=10)
     ind_unid_deliberativa = models.IntegerField()
     end_orgao = models.CharField(max_length=100, blank=True, null=True)
@@ -156,7 +156,7 @@ class TipoProposicao(models.Model):
     des_tipo_proposicao = models.CharField(max_length=50)
     ind_mat_ou_doc = models.CharField(max_length=1)
     tip_mat_ou_doc = models.IntegerField()
-    nom_modelo = models.CharField(max_length=50)
+    nome_modelo = models.CharField(max_length=50)
 
 
 class Proposicao(models.Model):
