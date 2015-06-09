@@ -5,7 +5,7 @@ from parlamentares.models import Parlamentar, Partido
 
 
 class TipoMateriaLegislativa(models.Model):
-    sgl_tipo_materia = models.CharField(max_length=5)
+    sigla_tipo_materia = models.CharField(max_length=5)
     descricao_tipo_materia = models.CharField(max_length=50)
     ind_num_automatica = models.IntegerField()
     quorum_minimo_votacao = models.IntegerField()
@@ -16,7 +16,7 @@ class RegimeTramitacao(models.Model):
 
 
 class Origem(models.Model):
-    sgl_origem = models.CharField(max_length=10)
+    sigla_origem = models.CharField(max_length=10)
     nome_origem = models.CharField(max_length=50)
 
 
@@ -125,7 +125,7 @@ class Numeracao(models.Model):
 
 class Orgao(models.Model):
     nome_orgao = models.CharField(max_length=60)
-    sgl_orgao = models.CharField(max_length=10)
+    sigla_orgao = models.CharField(max_length=10)
     ind_unid_deliberativa = models.IntegerField()
     endereco_orgao = models.CharField(max_length=100, blank=True, null=True)
     num_tel_orgao = models.CharField(max_length=50, blank=True, null=True)
@@ -173,7 +173,7 @@ class Proposicao(models.Model):
 
 
 class StatusTramitacao(models.Model):
-    sgl_status = models.CharField(max_length=10)
+    sigla_status = models.CharField(max_length=10)
     descricao_status = models.CharField(max_length=60)
     ind_fim_tramitacao = models.IntegerField()
     ind_retorno_tramitacao = models.IntegerField()
@@ -194,6 +194,6 @@ class Tramitacao(models.Model):
     unid_tram_dest = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+')
     ind_ult_tramitacao = models.IntegerField()
     ind_urgencia = models.IntegerField()
-    sgl_turno = models.CharField(max_length=1, blank=True, null=True)
+    sigla_turno = models.CharField(max_length=1, blank=True, null=True)
     txt_tramitacao = models.TextField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)

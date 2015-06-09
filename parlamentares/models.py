@@ -24,7 +24,7 @@ class Coligacao(models.Model):
 
 
 class Partido(models.Model):
-    sgl_partido = models.CharField(max_length=9)
+    sigla_partido = models.CharField(max_length=9)
     nome_partido = models.CharField(max_length=50)
     data_criacao = models.DateField(blank=True, null=True)
     data_extincao = models.DateField(blank=True, null=True)
@@ -39,8 +39,8 @@ class Localidade(models.Model):
     nome_localidade = models.CharField(max_length=50, blank=True, null=True)
     nome_localidade_pesq = models.CharField(max_length=50, blank=True, null=True)
     tipo_localidade = models.CharField(max_length=1, blank=True, null=True)
-    sgl_uf = models.CharField(max_length=2, blank=True, null=True)
-    sgl_regiao = models.CharField(max_length=2, blank=True, null=True)
+    sigla_uf = models.CharField(max_length=2, blank=True, null=True)
+    sigla_regiao = models.CharField(max_length=2, blank=True, null=True)
 
 
 class NivelInstrucao(models.Model):

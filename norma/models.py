@@ -10,7 +10,7 @@ class AssuntoNorma(models.Model):
 
 class TipoNormaJuridica(models.Model):
     voc_lexml = models.CharField(max_length=50, blank=True, null=True)
-    sgl_tipo_norma = models.CharField(max_length=3)
+    sigla_tipo_norma = models.CharField(max_length=3)
     descricao_tipo_norma = models.CharField(max_length=50)
 
 

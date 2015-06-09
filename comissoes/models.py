@@ -5,15 +5,15 @@ from parlamentares.models import Parlamentar
 
 class TipoComissao(models.Model):
     nome_tipo_comissao = models.CharField(max_length=50)
-    sgl_natureza_comissao = models.CharField(max_length=1)
-    sgl_tipo_comissao = models.CharField(max_length=10)
+    sigla_natureza_comissao = models.CharField(max_length=1)
+    sigla_tipo_comissao = models.CharField(max_length=10)
     descricao_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
 
 
 class Comissao(models.Model):
     tipo_comissao = models.ForeignKey(TipoComissao)
     nome_comissao = models.CharField(max_length=60)
-    sgl_comissao = models.CharField(max_length=10)
+    sigla_comissao = models.CharField(max_length=10)
     data_criacao = models.DateField()
     data_extincao = models.DateField(blank=True, null=True)
     nome_apelido_temp = models.CharField(max_length=100, blank=True, null=True)
