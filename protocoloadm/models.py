@@ -10,13 +10,13 @@ class TipoDocumentoAdministrativo(models.Model):
 
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(TipoDocumentoAdministrativo)
-    num_documento = models.IntegerField()
+    numero_documento = models.IntegerField()
     ano_documento = models.SmallIntegerField()
     data_documento = models.DateField()
-    num_protocolo = models.IntegerField(blank=True, null=True)
+    numero_protocolo = models.IntegerField(blank=True, null=True)
     txt_interessado = models.CharField(max_length=50, blank=True, null=True)
     autor = models.ForeignKey(Autor, blank=True, null=True)
-    num_dias_prazo = models.IntegerField(blank=True, null=True)
+    numero_dias_prazo = models.IntegerField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)
     ind_tramitacao = models.IntegerField()
     txt_assunto = models.TextField()
@@ -35,7 +35,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
 
 
 class Protocolo(models.Model):
-    num_protocolo = models.IntegerField(blank=True, null=True)
+    numero_protocolo = models.IntegerField(blank=True, null=True)
     ano_protocolo = models.SmallIntegerField()
     data_protocolo = models.DateField()
     hora_protocolo = models.TimeField()
@@ -47,7 +47,7 @@ class Protocolo(models.Model):
     txt_assunto_ementa = models.TextField(blank=True, null=True)
     tipo_documento = models.ForeignKey(TipoDocumentoAdministrativo, blank=True, null=True)
     tipo_materia = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True)
-    num_paginas = models.IntegerField(blank=True, null=True)
+    numero_paginas = models.IntegerField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
     ind_anulado = models.IntegerField()
     txt_user_anulacao = models.CharField(max_length=20, blank=True, null=True)

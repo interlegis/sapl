@@ -22,20 +22,20 @@ class Origem(models.Model):
 
 class MateriaLegislativa(models.Model):
     tipo_id_basica = models.ForeignKey(TipoMateriaLegislativa)
-    num_protocolo = models.IntegerField(blank=True, null=True)
-    num_ident_basica = models.IntegerField()
+    numero_protocolo = models.IntegerField(blank=True, null=True)
+    numero_ident_basica = models.IntegerField()
     ano_ident_basica = models.SmallIntegerField()
     data_apresentacao = models.DateField(blank=True, null=True)
     tipo_apresentacao = models.CharField(max_length=1, blank=True, null=True)
     regime_tramitacao = models.ForeignKey(RegimeTramitacao)
     data_publicacao = models.DateField(blank=True, null=True)
     tipo_origem_externa = models.ForeignKey(TipoMateriaLegislativa, blank=True, null=True, related_name='+')
-    num_origem_externa = models.CharField(max_length=5, blank=True, null=True)
+    numero_origem_externa = models.CharField(max_length=5, blank=True, null=True)
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
     data_origem_externa = models.DateField(blank=True, null=True)
     local_origem_externa = models.ForeignKey(Origem, blank=True, null=True)
     nome_apelido = models.CharField(max_length=50, blank=True, null=True)
-    num_dias_prazo = models.IntegerField(blank=True, null=True)
+    numero_dias_prazo = models.IntegerField(blank=True, null=True)
     data_fim_prazo = models.DateField(blank=True, null=True)
     ind_tramitacao = models.IntegerField()
     ind_polemica = models.IntegerField(blank=True, null=True)
@@ -91,7 +91,7 @@ class Autoria(models.Model):
 
 class DespachoInicial(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
-    num_ordem = models.IntegerField()
+    numero_ordem = models.IntegerField()
     comissao = models.ForeignKey(Comissao)
 
 
@@ -116,9 +116,9 @@ class MateriaAssunto(models.Model):
 
 class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
-    num_ordem = models.IntegerField()
+    numero_ordem = models.IntegerField()
     tipo_materia = models.ForeignKey(TipoMateriaLegislativa)
-    num_materia = models.CharField(max_length=5)
+    numero_materia = models.CharField(max_length=5)
     ano_materia = models.SmallIntegerField()
     data_materia = models.DateField(blank=True, null=True)
 
@@ -128,7 +128,7 @@ class Orgao(models.Model):
     sigla_orgao = models.CharField(max_length=10)
     ind_unid_deliberativa = models.IntegerField()
     endereco_orgao = models.CharField(max_length=100, blank=True, null=True)
-    num_tel_orgao = models.CharField(max_length=50, blank=True, null=True)
+    numero_tel_orgao = models.CharField(max_length=50, blank=True, null=True)
 
 
 class TipoFimRelatoria(models.Model):
@@ -169,7 +169,7 @@ class Proposicao(models.Model):
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)
     data_devolucao = models.DateTimeField(blank=True, null=True)
     txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)
-    num_proposicao = models.IntegerField(blank=True, null=True)
+    numero_proposicao = models.IntegerField(blank=True, null=True)
 
 
 class StatusTramitacao(models.Model):

@@ -6,7 +6,7 @@ from parlamentares.models import CargoMesa, Parlamentar, SessaoLegislativa, Legi
 
 class TipoSessaoPlenaria(models.Model):
     nome_sessao = models.CharField(max_length=30)
-    num_minimo = models.IntegerField()
+    numero_minimo = models.IntegerField()
 
 
 class SessaoPlenaria(models.Model):
@@ -20,7 +20,7 @@ class SessaoPlenaria(models.Model):
     dia_sessao = models.CharField(max_length=15)
     hr_inicio_sessao = models.CharField(max_length=5)
     hr_fim_sessao = models.CharField(max_length=5, blank=True, null=True)
-    num_sessao_plen = models.IntegerField()
+    numero_sessao_plen = models.IntegerField()
     data_fim_sessao = models.DateField(blank=True, null=True)
     url_audio = models.CharField(max_length=150, blank=True, null=True)
     url_video = models.CharField(max_length=150, blank=True, null=True)
@@ -31,7 +31,7 @@ class ExpedienteMateria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     data_ordem = models.DateField()
     txt_observacao = models.TextField(blank=True, null=True)
-    num_ordem = models.IntegerField()
+    numero_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
     tipo_votacao = models.IntegerField()
 
@@ -57,14 +57,14 @@ class MesaSessaoPlenaria(models.Model):
 class Oradores(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
-    num_ordem = models.IntegerField()
+    numero_ordem = models.IntegerField()
     url_discurso = models.CharField(max_length=150, blank=True, null=True)
 
 
 class OradoresExpediente(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
-    num_ordem = models.IntegerField()
+    numero_ordem = models.IntegerField()
     url_discurso = models.CharField(max_length=150, blank=True, null=True)
 
 
@@ -73,7 +73,7 @@ class OrdemDia(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     data_ordem = models.DateField()
     txt_observacao = models.TextField(blank=True, null=True)
-    num_ordem = models.IntegerField()
+    numero_ordem = models.IntegerField()
     txt_resultado = models.TextField(blank=True, null=True)
     tipo_votacao = models.IntegerField()
 
@@ -92,9 +92,9 @@ class RegistroVotacao(models.Model):
     tipo_resultado_votacao = models.ForeignKey(TipoResultadoVotacao)
     materia = models.ForeignKey(MateriaLegislativa)
     ordem = models.ForeignKey(OrdemDia)
-    num_votos_sim = models.IntegerField()
-    num_votos_nao = models.IntegerField()
-    num_abstencao = models.IntegerField()
+    numero_votos_sim = models.IntegerField()
+    numero_votos_nao = models.IntegerField()
+    numero_abstencao = models.IntegerField()
     txt_observacao = models.TextField(blank=True, null=True)
 
 

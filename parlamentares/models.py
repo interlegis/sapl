@@ -20,7 +20,7 @@ class SessaoLegislativa(models.Model):
 class Coligacao(models.Model):
     legislatura = models.ForeignKey(Legislatura)
     nome_coligacao = models.CharField(max_length=50)
-    num_votos_coligacao = models.IntegerField(blank=True, null=True)
+    numero_votos_coligacao = models.IntegerField(blank=True, null=True)
 
 
 class Partido(models.Model):
@@ -58,18 +58,18 @@ class Parlamentar(models.Model):
     nome_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     sexo = models.CharField(max_length=1)
     data_nascimento = models.DateField(blank=True, null=True)
-    num_cpf = models.CharField(max_length=14, blank=True, null=True)
-    num_rg = models.CharField(max_length=15, blank=True, null=True)
-    num_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
+    numero_cpf = models.CharField(max_length=14, blank=True, null=True)
+    numero_rg = models.CharField(max_length=15, blank=True, null=True)
+    numero_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
     cod_casa = models.IntegerField()
-    num_gab_parlamentar = models.CharField(max_length=10, blank=True, null=True)
-    num_tel_parlamentar = models.CharField(max_length=50, blank=True, null=True)
-    num_fax_parlamentar = models.CharField(max_length=50, blank=True, null=True)
+    numero_gab_parlamentar = models.CharField(max_length=10, blank=True, null=True)
+    numero_tel_parlamentar = models.CharField(max_length=50, blank=True, null=True)
+    numero_fax_parlamentar = models.CharField(max_length=50, blank=True, null=True)
     endereco_residencial = models.CharField(max_length=100, blank=True, null=True)
     localidade_resid = models.ForeignKey(Localidade, blank=True, null=True)
-    num_cep_resid = models.CharField(max_length=9, blank=True, null=True)
-    num_tel_resid = models.CharField(max_length=50, blank=True, null=True)
-    num_fax_resid = models.CharField(max_length=50, blank=True, null=True)
+    numero_cep_resid = models.CharField(max_length=9, blank=True, null=True)
+    numero_tel_resid = models.CharField(max_length=50, blank=True, null=True)
+    numero_fax_resid = models.CharField(max_length=50, blank=True, null=True)
     endereco_web = models.CharField(max_length=100, blank=True, null=True)
     nome_profissao = models.CharField(max_length=50, blank=True, null=True)
     endereco_email = models.CharField(max_length=100, blank=True, null=True)
@@ -89,9 +89,9 @@ class Dependente(models.Model):
     nome_dependente = models.CharField(max_length=50)
     sexo = models.CharField(max_length=1)
     data_nascimento = models.DateField(blank=True, null=True)
-    num_cpf = models.CharField(max_length=14, blank=True, null=True)
-    num_rg = models.CharField(max_length=15, blank=True, null=True)
-    num_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
+    numero_cpf = models.CharField(max_length=14, blank=True, null=True)
+    numero_rg = models.CharField(max_length=15, blank=True, null=True)
+    numero_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
 
 
 class Filiacao(models.Model):
@@ -115,7 +115,7 @@ class Mandato(models.Model):
     coligacao = models.ForeignKey(Coligacao, blank=True, null=True)
     tipo_causa_fim_mandato = models.IntegerField(blank=True, null=True)
     data_fim_mandato = models.DateField(blank=True, null=True)
-    num_votos_recebidos = models.IntegerField(blank=True, null=True)
+    numero_votos_recebidos = models.IntegerField(blank=True, null=True)
     data_expedicao_diploma = models.DateField(blank=True, null=True)
     txt_observacao = models.TextField(blank=True, null=True)
 
