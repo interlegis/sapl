@@ -5,7 +5,7 @@ from materia.models import Autor, TipoMateriaLegislativa
 
 class TipoDocumentoAdministrativo(models.Model):
     sgl_tipo_documento = models.CharField(max_length=5)
-    des_tipo_documento = models.CharField(max_length=50)
+    descricao_tipo_documento = models.CharField(max_length=50)
 
 
 class DocumentoAdministrativo(models.Model):
@@ -58,7 +58,7 @@ class Protocolo(models.Model):
 
 class StatusTramitacaoAdministrativo(models.Model):
     sgl_status = models.CharField(max_length=10)
-    des_status = models.CharField(max_length=60)
+    descricao_status = models.CharField(max_length=60)
     ind_fim_tramitacao = models.IntegerField()
     ind_retorno_tramitacao = models.IntegerField()
 

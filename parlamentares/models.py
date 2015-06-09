@@ -48,7 +48,7 @@ class NivelInstrucao(models.Model):
 
 
 class SituacaoMilitar(models.Model):
-    des_tipo_situacao = models.CharField(max_length=50)
+    descricao_tipo_situacao = models.CharField(max_length=50)
 
 
 class Parlamentar(models.Model):
@@ -73,14 +73,14 @@ class Parlamentar(models.Model):
     endereco_web = models.CharField(max_length=100, blank=True, null=True)
     nome_profissao = models.CharField(max_length=50, blank=True, null=True)
     endereco_email = models.CharField(max_length=100, blank=True, null=True)
-    des_local_atuacao = models.CharField(max_length=100, blank=True, null=True)
+    descricao_local_atuacao = models.CharField(max_length=100, blank=True, null=True)
     ind_ativo = models.IntegerField()
     txt_biografia = models.TextField(blank=True, null=True)
     ind_unid_deliberativa = models.IntegerField()
 
 
 class TipoDependente(models.Model):
-    des_tipo_dependente = models.CharField(max_length=50)
+    descricao_tipo_dependente = models.CharField(max_length=50)
 
 
 class Dependente(models.Model):
@@ -102,10 +102,10 @@ class Filiacao(models.Model):
 
 
 class TipoAfastamento(models.Model):
-    des_afastamento = models.CharField(max_length=50)
+    descricao_afastamento = models.CharField(max_length=50)
     ind_afastamento = models.IntegerField()
     ind_fim_mandato = models.IntegerField()
-    des_dispositivo = models.CharField(max_length=50, blank=True, null=True)
+    descricao_dispositivo = models.CharField(max_length=50, blank=True, null=True)
 
 
 class Mandato(models.Model):

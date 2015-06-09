@@ -7,7 +7,7 @@ class TipoComissao(models.Model):
     nome_tipo_comissao = models.CharField(max_length=50)
     sgl_natureza_comissao = models.CharField(max_length=1)
     sgl_tipo_comissao = models.CharField(max_length=10)
-    des_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
+    descricao_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
 
 
 class Comissao(models.Model):
@@ -26,7 +26,7 @@ class Comissao(models.Model):
     endereco_secretaria = models.CharField(max_length=100, blank=True, null=True)
     num_tel_secretaria = models.CharField(max_length=15, blank=True, null=True)
     num_fax_secretaria = models.CharField(max_length=15, blank=True, null=True)
-    des_agenda_reuniao = models.CharField(max_length=100, blank=True, null=True)
+    descricao_agenda_reuniao = models.CharField(max_length=100, blank=True, null=True)
     loc_reuniao = models.CharField(max_length=100, blank=True, null=True)
     txt_finalidade = models.TextField(blank=True, null=True)
     endereco_email = models.CharField(max_length=100, blank=True, null=True)
@@ -51,5 +51,5 @@ class ComposicaoComissao(models.Model):
     ind_titular = models.IntegerField()
     data_designacao = models.DateField()
     data_desligamento = models.DateField(blank=True, null=True)
-    des_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
+    descricao_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
     obs_composicao = models.CharField(max_length=150, blank=True, null=True)

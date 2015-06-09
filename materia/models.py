@@ -6,13 +6,13 @@ from parlamentares.models import Parlamentar, Partido
 
 class TipoMateriaLegislativa(models.Model):
     sgl_tipo_materia = models.CharField(max_length=5)
-    des_tipo_materia = models.CharField(max_length=50)
+    descricao_tipo_materia = models.CharField(max_length=50)
     ind_num_automatica = models.IntegerField()
     quorum_minimo_votacao = models.IntegerField()
 
 
 class RegimeTramitacao(models.Model):
-    des_regime_tramitacao = models.CharField(max_length=50)
+    descricao_regime_tramitacao = models.CharField(max_length=50)
 
 
 class Origem(models.Model):
@@ -39,7 +39,7 @@ class MateriaLegislativa(models.Model):
     data_fim_prazo = models.DateField(blank=True, null=True)
     ind_tramitacao = models.IntegerField()
     ind_polemica = models.IntegerField(blank=True, null=True)
-    des_objeto = models.CharField(max_length=150, blank=True, null=True)
+    descricao_objeto = models.CharField(max_length=150, blank=True, null=True)
     ind_complementar = models.IntegerField(blank=True, null=True)
     txt_ementa = models.TextField()
     txt_indexacao = models.TextField(blank=True, null=True)
@@ -65,12 +65,12 @@ class Anexada(models.Model):
 
 
 class AssuntoMateria(models.Model):
-    des_assunto = models.CharField(max_length=200)
-    des_dispositivo = models.CharField(max_length=50)
+    descricao_assunto = models.CharField(max_length=200)
+    descricao_dispositivo = models.CharField(max_length=50)
 
 
 class TipoAutor(models.Model):
-    des_tipo_autor = models.CharField(max_length=50)
+    descricao_tipo_autor = models.CharField(max_length=50)
 
 
 class Autor(models.Model):
@@ -79,7 +79,7 @@ class Autor(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
     tipo = models.ForeignKey(TipoAutor)
     nome_autor = models.CharField(max_length=50, blank=True, null=True)
-    des_cargo = models.CharField(max_length=50, blank=True, null=True)
+    descricao_cargo = models.CharField(max_length=50, blank=True, null=True)
     col_username = models.CharField(max_length=50, blank=True, null=True)
 
 
@@ -96,7 +96,7 @@ class DespachoInicial(models.Model):
 
 
 class TipoDocumento(models.Model):
-    des_tipo_documento = models.CharField(max_length=50)
+    descricao_tipo_documento = models.CharField(max_length=50)
 
 
 class DocumentoAcessorio(models.Model):
@@ -132,7 +132,7 @@ class Orgao(models.Model):
 
 
 class TipoFimRelatoria(models.Model):
-    des_fim_relatoria = models.CharField(max_length=50)
+    descricao_fim_relatoria = models.CharField(max_length=50)
 
 
 class Relatoria(models.Model):
@@ -153,7 +153,7 @@ class Parecer(models.Model):
 
 
 class TipoProposicao(models.Model):
-    des_tipo_proposicao = models.CharField(max_length=50)
+    descricao_tipo_proposicao = models.CharField(max_length=50)
     ind_mat_ou_doc = models.CharField(max_length=1)
     tipo_mat_ou_doc = models.IntegerField()
     nome_modelo = models.CharField(max_length=50)
@@ -174,7 +174,7 @@ class Proposicao(models.Model):
 
 class StatusTramitacao(models.Model):
     sgl_status = models.CharField(max_length=10)
-    des_status = models.CharField(max_length=60)
+    descricao_status = models.CharField(max_length=60)
     ind_fim_tramitacao = models.IntegerField()
     ind_retorno_tramitacao = models.IntegerField()
 
