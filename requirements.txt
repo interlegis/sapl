@@ -1,6 +1,7 @@
 Django
 MySQL-python
 psycopg2
+beautifulsoup4
 
 ipdb
 django-extensions
