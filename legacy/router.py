@@ -16,6 +16,6 @@ class LegacyRouter(object):
         return None
 
     def allow_migrate(self, db, model):
-        if model._meta.app_label == 'legacy':
+        if model._meta.app_label in ['legacy', 'pglegacy']:
             return False
         return None

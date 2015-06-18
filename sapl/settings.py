@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     # legacy reversed model definitions (temporary)
     'legacy',
     'pglegacy',
+
     'base',
 
     # sapl modules
@@ -110,7 +111,7 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = ['sapl.legacyrouter.LegacyRouter', ]
+DATABASE_ROUTERS = ['legacy.router.LegacyRouter', ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
