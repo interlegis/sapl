@@ -994,7 +994,7 @@ class TipoSessaoPlenaria(models.Model):
         db_table = 'tipo_sessao_plenaria'
 
 
-class TipoSituacaoMilitar(models.Model):
+class SituacaoMilitar(models.Model):
     tip_situacao_militar = models.IntegerField(primary_key=True)
     des_tipo_situacao = models.CharField(max_length=50)
     ind_excluido = models.IntegerField()
