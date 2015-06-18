@@ -1,8 +1,9 @@
 from collections import defaultdict
 from difflib import SequenceMatcher
 from inspect import getsourcelines
+from collections import OrderedDict
 
-from migration_base import *
+from migration_base import appconfs, legacy_app
 
 
 def is_field_line(line):
@@ -28,25 +29,34 @@ def print_commented_source(model):
     return new_to_old
 
 
+field_mappings = OrderedDict()
+for app in appconfs:
+    for model in app.models.values():
+        new_to_old = OrderedDict()
+        lines = getsourcelines(model)[0]
+        for line in lines:
+            if is_field_line(line):
+                new = get_field(line)
+                old = line.split('#')[-1].strip()
+                new_to_old[new] = old
+        field_mappings[model] = new_to_old
+
+
 def check_similarity():
 
     def similar(a, b):
         return SequenceMatcher(None, a, b).ratio()
 
     different_pairs = defaultdict(list)
-    for app in appconfs:
-        for model in app.models.values():
-            lines = getsourcelines(model)[0]
-            for line in lines:
-                if is_field_line(line):
-                    new = get_field(line)
-                    old = line.split('#')[-1].strip()
-                    if similar(new, old) < .7:
-                        different_pairs['%s (%s)' % (model.__name__, app.name)].append((new, old))
+    for model, new_to_old in field_mappings.items():
+        for new, old in new_to_old.items():
+            if similar(new, old) < 0.7:
+                different_pairs[model].append((new, old))
 
     if different_pairs:
         print '\n\n######## Different Pairs #########'
-        for name, pairs in different_pairs.items():
-            print name
+        for model, pairs in different_pairs.items():
+            print '%s (%s)' % (model.__name__, app.name)
             for a, b in pairs:
                 print ' ', a, b
+    return different_pairs
