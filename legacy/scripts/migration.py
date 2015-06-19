@@ -1,3 +1,5 @@
+from django.apps.config import AppConfig
+from django.db.models.base import ModelBase
 from django.db import connection, models
 
 from field_mappings import field_mappings
@@ -7,20 +9,41 @@ from parlamentares.models import Parlamentar
 from django.core.exceptions import ObjectDoesNotExist
 
 
-def migrate_all(count_limit=None):
-    for app in appconfs:
-        for model in app.models.values():
-            migrate(model, count_limit)
+def warn(msg):
+    print 'WARNING! ' + msg
+
+special_transforms = {}
 
 
-special_transforms = {
+def special(model, fieldname):
+    def wrap(function):
+        special_transforms[model._meta.get_field(fieldname)] = function
+        return function
+    return wrap
+
+
+@special(Parlamentar, 'unid_deliberativa')
+def none_to_false(value):
     # Field is defined as not null in legacy db, but data includes null values
     #  => transform None to False
-    Parlamentar._meta.get_field('unid_deliberativa'): bool,
-}
+    if value is None:
+        warn('null converted to False')
+    return bool(value)
 
 
-def migrate(model, count_limit=None):
+def migrate(obj, count_limit=None):
+    if isinstance(obj, AppConfig):
+        migrate(obj.models.values(), count_limit)
+    elif isinstance(obj, ModelBase):
+        migrate_model(obj, count_limit)
+    elif hasattr(obj, '__iter__'):
+        for item in obj:
+            migrate(item, count_limit)
+    else:
+        raise TypeError('Parameter must be a Model, AppConfig or a sequence of them')
+
+
+def migrate_model(model, count_limit=None):
 
     print 'Migrating %s...' % model.__name__
 
@@ -56,10 +79,15 @@ def migrate(model, count_limit=None):
                         try:
                             value = model_field.related_model.objects.get(id=value)
                         except ObjectDoesNotExist:
-                            print 'WARNING! FK [%s : %s] not found for value %s (in pk = %s)' % (model.__name__, model_field.name, value, old_pk)
+                            warn('FK [%s : %s] not found for value %s (in pk = %s)' % (
+                                model.__name__, model_field.name, value, old_pk))
                             value = None
                         else:
                             assert value
                 setattr(new, new_field, value)
             new.save()
             assert new.id == old_pk, 'New id is different from old pk!'
+            # exclude logically deleted in legacy base
+            # its is important to *save* and then exclude to keep history!
+            if getattr(old, 'ind_excluido', False):
+                new.delete()
