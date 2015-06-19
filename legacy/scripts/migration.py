@@ -1,12 +1,15 @@
 from django.apps.config import AppConfig
-from django.db.models.base import ModelBase
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models
+from django.db.models.base import ModelBase
 
 from field_mappings import field_mappings
-from migration_base import appconfs, legacy_app
-
+from migration_base import legacy_app
 from parlamentares.models import Parlamentar
-from django.core.exceptions import ObjectDoesNotExist
+
+
+def info(msg):
+    print 'INFO: ' + msg
 
 
 def warn(msg):
@@ -32,18 +35,27 @@ def none_to_false(value):
 
 
 def migrate(obj, count_limit=None):
+    to_delete = []
+    _do_migrate(obj, to_delete, count_limit)
+    # exclude logically deleted in legacy base
+    info('Deleting models with ind_excluido...')
+    for obj in to_delete:
+        obj.delete()
+
+
+def _do_migrate(obj, to_delete, count_limit=None):
     if isinstance(obj, AppConfig):
-        migrate(obj.models.values(), count_limit)
+        _do_migrate(obj.models.values(), to_delete, count_limit)
     elif isinstance(obj, ModelBase):
-        migrate_model(obj, count_limit)
+        migrate_model(obj, to_delete, count_limit)
     elif hasattr(obj, '__iter__'):
         for item in obj:
-            migrate(item, count_limit)
+            _do_migrate(item, to_delete, count_limit)
     else:
         raise TypeError('Parameter must be a Model, AppConfig or a sequence of them')
 
 
-def migrate_model(model, count_limit=None):
+def migrate_model(model, to_delete, count_limit=None):
 
     print 'Migrating %s...' % model.__name__
 
@@ -87,7 +99,16 @@ def migrate_model(model, count_limit=None):
                 setattr(new, new_field, value)
             new.save()
             assert new.id == old_pk, 'New id is different from old pk!'
-            # exclude logically deleted in legacy base
-            # its is important to *save* and then exclude to keep history!
             if getattr(old, 'ind_excluido', False):
-                new.delete()
+                to_delete.append(new)
+
+
+def get_ind_excluido(obj):
+    legacy_model = legacy_app.get_model(type(obj).__name__)
+    return getattr(legacy_model.objects.get(**{legacy_model._meta.pk.name: obj.id}), 'ind_excluido', False)
+
+
+def check_app_no_ind_excluido(app):
+    for model in app.models.values():
+        assert not any(get_ind_excluido(obj) for obj in model.objects.all())
+    print 'OK!'
