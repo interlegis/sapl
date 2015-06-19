@@ -7,6 +7,8 @@ from field_mappings import field_mappings
 from migration_base import legacy_app
 from parlamentares.models import Parlamentar
 
+from model_mommy import mommy
+
 
 def info(msg):
     print 'INFO: ' + msg
@@ -35,6 +37,8 @@ def none_to_false(value):
 
 
 def migrate(obj, count_limit=None):
+    # warning: model/app migration order is of utmost importance
+
     to_delete = []
     _do_migrate(obj, to_delete, count_limit)
     # exclude logically deleted in legacy base
@@ -55,6 +59,31 @@ def _do_migrate(obj, to_delete, count_limit=None):
         raise TypeError('Parameter must be a Model, AppConfig or a sequence of them')
 
 
+def exec_sql(sql):
+    cursor = connection.cursor()
+    cursor.execute(sql)
+    return cursor
+
+
+def save_with_id(new, id):
+    sequence_name = '%s_id_seq' % type(new)._meta.db_table
+    cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
+    (last_value,) = cursor.fetchone()
+    if last_value == 1 or id != last_value + 1:
+        # we explicitly set the next id if last_value == 1
+        # because last_value == 1 for a table containing either 0 or 1 records
+        # (we would have trouble for id == 2 and a missing id == 1)
+        exec_sql('ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+    new.save()
+    assert new.id == id, 'New id is different from provided!'
+
+
+def make_stub(model, id):
+    new = mommy.prepare(model)
+    save_with_id(new, id)
+    return new
+
+
 def migrate_model(model, to_delete, count_limit=None):
 
     print 'Migrating %s...' % model.__name__
@@ -62,25 +91,16 @@ def migrate_model(model, to_delete, count_limit=None):
     # clear all model entries
     model.objects.all().delete()
 
-    def reset_seq(id):
-        # resets id sequence
-        if id > reset_seq.last_id + 1:
-            sql_reset_seq = 'ALTER SEQUENCE %s_id_seq RESTART WITH %s;' % (model._meta.db_table, id)
-            cursor = connection.cursor()
-            cursor.execute(sql_reset_seq)
-        reset_seq.last_id = id
-    reset_seq.last_id = -1
-
     legacy_model = legacy_app.get_model(model.__name__)
     old_pk_name = legacy_model._meta.pk.name
     if old_pk_name == 'id':
         # There is no pk in the legacy table
-        reset_seq(1)
+        pass
+        # ...
         # ...
     else:
         for old in legacy_model.objects.all().order_by(old_pk_name)[:count_limit]:
             old_pk = getattr(old, old_pk_name)
-            reset_seq(old_pk)
             new = model()
             for new_field, old_field in field_mappings[model].items():
                 value = getattr(old, old_field)
@@ -94,14 +114,19 @@ def migrate_model(model, to_delete, count_limit=None):
                         try:
                             value = model_field.related_model.objects.get(id=value)
                         except ObjectDoesNotExist:
-                            warn('FK [%s : %s] not found for value %s (in pk = %s)' % (
-                                model.__name__, model_field.name, value, old_pk))
-                            value = None
+                            msg = 'FK [%s (%s) : %s] not found for value %s' % (
+                                model.__name__, old_pk, model_field.name, value)
+                            if value == 0:
+                                # we interpret FK == 0 as actually FK == NONE
+                                value = None
+                                warn(msg + ' => NONE for zero value')
+                            else:
+                                value = make_stub(model_field.related_model, value)
+                                warn(msg + ' => STUB CREATED')
                         else:
                             assert value
                 setattr(new, new_field, value)
-            new.save()
-            assert new.id == old_pk, 'New id is different from old pk!'
+            save_with_id(new, old_pk)
             if getattr(old, 'ind_excluido', False):
                 to_delete.append(new)
 
