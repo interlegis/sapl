@@ -163,7 +163,8 @@ class Proposicao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)          # cod_materia
     autor = models.ForeignKey(Autor)                                                # cod_autor
     tipo = models.ForeignKey(TipoProposicao)                                        # tip_proposicao
-    data_envio = models.DateTimeField()                                             # dat_envio
+    # XXX data_envio was not null, but actual data said otherwise!!!
+    data_envio = models.DateTimeField(null=True)                                    # dat_envio
     data_recebimento = models.DateTimeField(blank=True, null=True)                  # dat_recebimento
     txt_descricao = models.CharField(max_length=100)                                # txt_descricao
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)                     # cod_mat_ou_doc
