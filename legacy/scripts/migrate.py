@@ -1,33 +1,16 @@
 from django.db import connection, models
 
-import legacy
-from parlamentares.models import *
+from field_mappings import field_mappings
+from migration_base import appconfs, legacy_app
 
 
-mappings = (
-    (Legislatura, 'num_legislatura', [
-        ('dat_inicio', 'data_inicio'),
-        ('dat_fim', 'data_fim'),
-        ('dat_eleicao', 'data_eleicao'), ]
-     ),
-    (SessaoLegislativa, 'cod_sessao_leg', [
-        ('num_legislatura', 'legislatura'),
-        ('num_sessao_leg', 'numero'),
-        ('tip_sessao_leg', 'tipo'),
-        ('dat_inicio', 'data_inicio'),
-        ('dat_fim', 'data_fim'),
-        ('dat_inicio_intervalo', 'data_inicio_intervalo'),
-        ('dat_fim_intervalo', 'data_fim_intervalo'), ]
-     ),
-    (NivelInstrucao, 'cod_nivel_instrucao', [
-        ('des_nivel_instrucao', 'nivel_instrucao')]
-     ),
-)
+def migrate_all():
+    for app in appconfs:
+        for model in app.models.values():
+            migrate(model)
 
 
-def migrate():
-
-    for model, pk, field_pairs in mappings:
+def migrate(model):
 
         print 'Migrating %s...' % model.__name__
 
@@ -38,23 +21,28 @@ def migrate():
         cursor = connection.cursor()
         cursor.execute(sql_reset_seq)
 
-        legacy_model = getattr(legacy.models, model.__name__)
-        for old in legacy_model.objects.all().order_by(pk):
-            old_id = getattr(old, pk)
-            new = model()
-            while not new.id:
-                for old_field, new_field in field_pairs:
-                    value = getattr(old, old_field)
-                    # check for a relation
-                    model_field = model._meta.get_field(new_field)
-
-                    # TODO ... test for special transformations first (e.g. Parlamentar.localidade_residencia)
-                    # elfi ...
-                    if isinstance(model_field, models.ForeignKey):
-                        value = model_field.related_model.objects.get(id=value)
-                    setattr(new, new_field, value)
-                new.save()
-                assert new.id <= old_id, 'New id exceeds old one. Be sure your new table was just created!'
-                if new.id < old_id:
-                    new.delete()
-                    new = model()
+        legacy_model = legacy_app.get_model(model.__name__)
+        old_pk_name = legacy_model._meta.pk.name
+        if old_pk_name == 'id':
+            # There is no pk in the legacy table
+            pass
+        else:
+            for old in legacy_model.objects.all().order_by(old_pk_name):
+                old_pk = getattr(old, old_pk_name)
+                new = model()
+                while not new.id:
+                    for new_field, old_field in field_mappings[model].items():
+                        value = getattr(old, old_field)
+                        # check for a relation
+                        model_field = model._meta.get_field(new_field)
+                        # TODO ... test for special transformations first (e.g. Parlamentar.localidade_residencia)
+                        # elfi ...
+                        if isinstance(model_field, models.ForeignKey):
+                            value = model_field.related_model.objects.get(id=value)
+                            assert value
+                        setattr(new, new_field, value)
+                    new.save()
+                    assert new.id <= old_pk, 'New id exceeds old pk!'
+                    if new.id < old_pk:
+                        new.delete()
+                        new = model()

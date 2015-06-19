@@ -1,12 +1,13 @@
 from django.apps import apps
 
 
+# this order is important for the migration
 appconfs = [apps.get_app_config(n) for n in [
     'parlamentares',
     'comissoes',
-    'sessao',
     'materia',
     'norma',
+    'sessao',
     'lexml',
     'protocoloadm', ]]
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
