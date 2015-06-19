@@ -63,10 +63,13 @@ def migrate_model(model, to_delete, count_limit=None):
     model.objects.all().delete()
 
     def reset_seq(id):
-            # resets id sequence
-        sql_reset_seq = 'ALTER SEQUENCE %s_id_seq RESTART WITH %s;' % (model._meta.db_table, id)
-        cursor = connection.cursor()
-        cursor.execute(sql_reset_seq)
+        # resets id sequence
+        if id > reset_seq.last_id + 1:
+            sql_reset_seq = 'ALTER SEQUENCE %s_id_seq RESTART WITH %s;' % (model._meta.db_table, id)
+            cursor = connection.cursor()
+            cursor.execute(sql_reset_seq)
+        reset_seq.last_id = id
+    reset_seq.last_id = -1
 
     legacy_model = legacy_app.get_model(model.__name__)
     old_pk_name = legacy_model._meta.pk.name
