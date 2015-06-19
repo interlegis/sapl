@@ -7,7 +7,7 @@ from migration_base import appconfs, legacy_app
 
 
 def is_field_line(line):
-    return not line.strip().startswith('#') and ' = ' in line
+    return not line.strip().startswith('#') and ' = ' in line and ' # ' in line
 
 
 def get_field(line):
