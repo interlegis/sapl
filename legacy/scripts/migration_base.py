@@ -21,10 +21,9 @@ for s1 in name_sets:
 # apps include all legacy models
 legacy_app = apps.get_app_config('legacy')
 legacy_model_names = set(m.__name__ for m in legacy_app.get_models())
-all_names = set()
-for s1 in name_sets:
-    all_names = all_names.union(s1)
-assert all_names == legacy_model_names
+
+model_dict = {m.__name__: m for ac in appconfs for m in ac.get_models()}
+assert legacy_model_names == set(model_dict.keys())
 
 
 def has_primary_key(model):
