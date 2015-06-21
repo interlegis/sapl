@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = (
+    'django_admin_bootstrapped',  # must come before django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,6 +56,7 @@ INSTALLED_APPS = (
 
     # more
     'django_extensions',
+    'bootstrap3',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -131,3 +133,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+DAB_FIELD_RENDERER = 'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
