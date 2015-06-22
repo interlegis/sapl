@@ -6,6 +6,10 @@ from collections import OrderedDict
 from migration_base import appconfs, legacy_app
 
 
+def is_unannotated_field_line(line):
+    return not line.strip().startswith('#') and ' = ' in line and ' # ' not in line
+
+
 def is_field_line(line):
     return not line.strip().startswith('#') and ' = ' in line and ' # ' in line
 
@@ -22,7 +26,7 @@ def print_commented_source(model):
     cols = max(map(len, [line for line in lines if is_field_line(line)]))
     print '\n'
     for line in lines:
-        if not is_field_line(line):
+        if not is_unannotated_field_line(line):
             print line.rstrip()
         else:
             print '%s # %s' % (line.rstrip().ljust(cols), new_to_old[get_field(line)])
