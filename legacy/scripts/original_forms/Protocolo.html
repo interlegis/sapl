@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                                    
+                                                                <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/mesa_diretora'>Mesa Diretora</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/comissao'>Comiss&otilde;es</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/bancada'>Bancadas</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/parlamentar'>Parlamentares</a>
+                            </li>
+                                                </ul>
+                </li>
+                                    <li class="sub"><a>Protocolo</a>
+                        <ul>
+                            <li><a href='http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_legislativo_form'>Protocolo Legislativo</a>
+                            </li>
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_administrativo_form'>Protocolo Administrativo</a></li>-->
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_anular_form'>Anular Protocolo</a></li>-->
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao'>Receber Proposi&ccedil;&otilde;es</a>
+                            </li>
+                        </ul>
+                    </li>
+                
+                <!---->
+                <!--<li class="sub"><a>Administrativo</a>-->
+                <!--<ul>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1'>Documentos</a></li>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/instituicao/instituicao_pesquisar_form?incluir=1'>Entidades / Institui&ccedil;&otilde;es</a></li>-->
+                <!--</ul>-->
+                <!--</li>-->
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Proposi&ccedil;&otilde;es</a>
+                            </li>
+                                                                            <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1'>Mat&eacute;rias Legislativas</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form'>Tramita&ccedil;&atilde;o em Lote</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/generico/impressos/materia_impresso_form'>Impressos</a>
+                            </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                                    <li class="sub"><a>Sistema</a>
+                        <ul>
+                                                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/auxiliares'>Tabelas Auxiliares</a>
+                                </li>
+                                                                                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/zopeedit-win32-1.0.0.exe'>ZopeEdit Windows</a>
+                                </li>
+                                <!--<li><a href='http://sapl3.interlegis.leg.br/generico/collective.zopeedit_1.0.0_all.deb'>ZopeEdit Linux</a></li>-->
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/senha_trocar_form'>Troca de Senha</a>
+                            </li>
+                        </ul>
+                    </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                        <li class="usuario toggle">
+                            <a><img src="http://sapl3.interlegis.leg.br/imagens/user.png"></a>
+                            <ul>
+                                <li><span>Usuário</span></li>
+                            </ul>
+                            <div>
+                            <ul>
+                                <li><span>saploper</span></li>
+                                <li><a class="sair" href="http://sapl3.interlegis.leg.br/generico/log_out_proc">Sair</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                            </ul>
+            <ul class="nav acesso-rapido">
+                                            
+                                                                    
+                                            <li><a>Acesso Rápido</a>
+                                <ul>
+                                    
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/mesa_diretora">Mesa Diretora</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/comissao">Comissões</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/bancada">Bancadas</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/parlamentar">Parlamentares</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                                        
+                                                                                                                
+                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/votacao_parlamentar/">Vota&ccedil;&atilde;o</a></li>
+                                                                            
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas da Sessões</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao">Recebimento de Proposições</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Elaboração de Proposições</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1">Matérias Legislativas</a></li>
+                                                                                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form">Tramitação em Lote</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jurídicas</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
+                                        
+                                    
+                                                                    </ul>
+                            </li>
+
+                            </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+
+<script type="text/javascript" language="Javascript" src="javascript/data_validar_jvsc"></script>
+<script type="text/javascript" language="Javascript">
+
+    function campos_criticar(){
+        var form = document.protocolo_legislativo_form;
+        var regexp_digitos = /\D+/;
+
+        if (form.lst_tip_protocolo.selectedIndex==0){
+            alert("Selecione o tipo de Protocolo!");
+            form.lst_tip_protocolo.focus();
+            return false;
+        }
+
+        if (form.lst_tip_documento.selectedIndex==0){
+            alert("Selecione o tipo de documento!");
+            form.lst_tip_documento.focus();
+            return false;
+        }
+
+        if (form.txt_assunto.value==""){
+            alert("Informe o assunto do protocolo!");
+            form.txt_assunto.focus();
+            return false;
+        }
+
+        if (form.lst_origem.selectedIndex==0){
+            alert("Selecione a origem do protocolo!");
+            form.lst_origem.focus();
+            return false;
+        }
+
+        if (form.lst_destino.selectedIndex==0){
+            alert("Selecione o destino do protocolo!");
+            form.lst_destino.focus();
+            return false;
+        }
+
+        if (form.lst_tip_materia.selectedIndex==0){
+            alert("Selecione um tipo de materia legislativa!");
+            form.lst_tip_materia.focus();
+            return false;
+        }
+
+        if (form.txt_num_paginas.value == "") {
+            alert("O numero de paginas deve ser preenchido!");
+            form.txt_num_paginas.focus();
+            return false;
+        }
+
+        if (form.txa_txt_ementa.value == "") {
+            alert("A ementa deve ser preenchida!");
+            form.txa_txt_ementa.focus();
+            return false;
+        }
+
+        if (form.txt_autor.value == "") {
+            alert("O autor deve ser selecionado!");
+            form.txt_autor.focus();
+            return false;
+        }
+
+        if (form.lst_tip_autor.selectedIndex==0) {
+            alert("O tipo de autor deve ser selecionado!");
+            form.lst_tip_autor.focus();
+            return false;
+        }
+
+        if (regexp_digitos.test(form.txt_num_paginas.value)) {
+            alert("O numero de paginas deve ser um numero natural!");
+            form.txt_num_paginas.focus();
+            return false;
+        }
+
+        form.submit();
+    }
+
+    function tipo_autor_trocar(form) {
+        form.txt_autor.value = "";
+        form.hdn_txt_autor.value = "";
+        form.hdn_cod_autor.value = "";
+        return;
+    }
+</script>
+
+<script type="text/javascript">
+    $(function() {
+        $('#txt_dat_documento').datepick();
+    });
+</script>
+
+<a id="ajuda" href="http://sapl3.interlegis.leg.br/ajuda/protocolo_legislativo">Ajuda</a>
+
+    
+    
+    
+<h1> Protocolo Mat&eacute;ria Legislativa </h1>
+
+<form action="http://sapl3.interlegis.leg.br/pysc/spdo_protocolo_add_salvar_pysc" name="protocolo_legislativo_form" method="post" enctype="multipart/form-data">
+<input type="hidden" name="hdn_num_protocolo" value="" />
+<input type="hidden" name="hdn_tip_protocolo" value="0" />
+<input type="hidden" name="hdn_tip_processo" value="1" />
+<input type="hidden" name="hdn_url" value="http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1" />
+<fieldset>
+    <legend>Op&ccedil;&atilde;o de Numera&ccedil;&atilde;o (para controle do SAPL)</legend>
+    <table>
+        <tr>
+            <td align="left" class="campoRadio">
+                            <input type="radio" name="rd_opcao_num_protocolo" value="1"
+                 id="rd_opcao_num_protocolo1"
+                checked="1" />
+                <label for="rd_opcao_num_protocolo_t1">Sequencial por Ano</label>
+                            <input type="radio" name="rd_opcao_num_protocolo" value="2"
+                 id="rd_opcao_num_protocolo2"
+                 />
+                <label for="rd_opcao_num_protocolo_t2">Sequencial &Uacute;nico</label>
+                        </td>
+        </tr>
+    </table>
+</fieldset>
+<fieldset>
+    <legend>Identifica&ccedil;&atilde;o da Mat&eacute;ria a ser protocolada no SPDO</legend>
+    <table>
+        <tr>
+            <td align="left" width="50%">
+                <label for="lst_tip_protocolo">Tipo de Protocolo</label><span class="campoObrigatorio">&nbsp;</span><br />
+                <select id="lst_tip_protocolo" name="lst_tip_protocolo">
+                    <option>Selecione</option>
+                                        <option value="R">
+                        Recebido
+                    </option>
+                                        <option value="E">
+                        Expedido
+                    </option>
+                                        <option value="I">
+                        Interno
+                    </option>
+                                      </select>
+            </td>
+            <td>
+                <label for="lst_tip_documento">Tipo de documento</label><span class="campoObrigatorio">&nbsp;</span><br/>
+                <select id="lst_tip_documento" name="lst_tip_documento">
+                    <option>Selecione</option>
+                                        <option value="Projeto">
+                        Projeto
+                    </option>
+                                        <option value="Parecer">
+                        Parecer
+                    </option>
+                                        <option value="Carta">
+                        Carta
+                    </option>
+                                        <option value="Matéria">
+                        Matéria
+                    </option>
+                                        <option value="Memorando">
+                        Memorando
+                    </option>
+                                        <option value="Nota de Empenho">
+                        Nota de Empenho
+                    </option>
+                                    </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="txt_num_documento">Número do documento</label><br/ >
+                <input type="text" id="txt_num_documento" name="txt_num_documento"  />
+            </td>
+            <td>
+                <label for="lst_situacao">Situação</label><span class="campoObrigatorio">&nbsp;</span><br/>
+                <select id="lst_situacao" name="lst_situacao">
+                    <option>Selecione</option>
+                                                            <option value="Tramitando">
+                        Tramitando
+                    </option>
+                                                                                                                                        </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="txt_dat_documento">Data Emissão do Documento</label><br />
+                
+                <input type="text" id="txt_dat_documento"
+                       name="txt_dat_documento"
+                       value="25/06/2015"
+                       size="10" maxlength="10" onBlur="formata_data(form.txt_dat_documento)" />
+            </td>
+            <td>
+                <label for="txt_assunto">Assunto</label><span class="campoObrigatorio">&nbsp;</span><br />
+                <input type="text" id="txt_assunto" name="txt_assunto" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="lst_origem">Origem</label><span class="campoObrigatorio">&nbsp;</span><br/>
+                <select id="lst_origem" name="lst_origem">
+                    <option>Selecione</option>
+                                        <option value="aluno1spdo@mailinator.com;aluno1">
+                        aluno1
+                    </option>
+                                        <option value="aluno10spdo@mailinator.com;aluno10">
+                        aluno10
+                    </option>
+                                        <option value="aluno11spdo@mailinator.com;aluno11">
+                        aluno11
+                    </option>
+                                        <option value="aluno12spdo@mailinator.com;aluno12">
+                        aluno12
+                    </option>
+                                        <option value="aluno13spdo@mailinator.com;aluno13">
+                        aluno13
+                    </option>
+                                        <option value="aluno14spdo@mailinator.com;aluno14">
+                        aluno14
+                    </option>
+                                        <option value="aluno15spdo@mailinator.com;aluno15">
+                        aluno15
+                    </option>
+                                        <option value="aluno16spdo@mailinator.com;aluno16">
+                        aluno16
+                    </option>
+                                        <option value="aluno2spdo@mailinator.com;aluno2">
+                        aluno2
+                    </option>
+                                        <option value="aluno3spdo@mailinator.com;aluno3">
+                        aluno3
+                    </option>
+                                        <option value="aluno4spdo@mailinator.com;aluno4">
+                        aluno4
+                    </option>
+                                        <option value="aluno5spdo@mailinator.com;aluno5">
+                        aluno5
+                    </option>
+                                        <option value="aluno6spdo@mailinator.com;aluno6">
+                        aluno6
+                    </option>
+                                        <option value="aluno7spdo@mailinator.com;aluno7">
+                        aluno7
+                    </option>
+                                        <option value="aluno8spdo@mailinator.com;aluno8">
+                        aluno8
+                    </option>
+                                        <option value="aluno9spdo@mailinator.com;aluno9">
+                        aluno9
+                    </option>
+                                        <option value="cpt.nascimento@bope.gov.br;BOPE">
+                        BOPE
+                    </option>
+                                        <option value="eribeiro@interlegis.leg.br;Edward">
+                        Edward
+                    </option>
+                                        <option value="edwardr@senado.gov.br;edward2">
+                        edward2
+                    </option>
+                                        <option value="edwardr@interlegis.leg.br;Edward2">
+                        Edward2
+                    </option>
+                                        <option value="xirumacanudo@gmail.com;Fabiano Weimar">
+                        Fabiano Weimar
+                    </option>
+                                        <option value="gustavolepri@gmail.com;Gustavo Lepri">
+                        Gustavo Lepri
+                    </option>
+                                        <option value="gouveia@interlegis.leg.br;Joao Henrique Gouveia">
+                        Joao Henrique Gouveia
+                    </option>
+                                        <option value="email@destino.net;Nome da Pessoa de Destino">
+                        Nome da Pessoa de Destino
+                    </option>
+                                        <option value="email@origem.net;Nome da Pessoa de Origem">
+                        Nome da Pessoa de Origem
+                    </option>
+                                        <option value="tiao@macale.net;Tião Macalé">
+                        Tião Macalé
+                    </option>
+                                        <option value="john@small.org;ZÉ Pequeno">
+                        ZÉ Pequeno
+                    </option>
+                                    </select>
+            </td>
+            <td>
+                <label for="lst_destino">Destino</label><span class="campoObrigatorio">&nbsp;</span><br/>
+                <select id="lst_destino" name="lst_destino">
+                    <option>Selecione</option>
+                                        <option value="aluno1spdo@mailinator.com;aluno1">
+                        aluno1
+                    </option>
+                                        <option value="aluno10spdo@mailinator.com;aluno10">
+                        aluno10
+                    </option>
+                                        <option value="aluno11spdo@mailinator.com;aluno11">
+                        aluno11
+                    </option>
+                                        <option value="aluno12spdo@mailinator.com;aluno12">
+                        aluno12
+                    </option>
+                                        <option value="aluno13spdo@mailinator.com;aluno13">
+                        aluno13
+                    </option>
+                                        <option value="aluno14spdo@mailinator.com;aluno14">
+                        aluno14
+                    </option>
+                                        <option value="aluno15spdo@mailinator.com;aluno15">
+                        aluno15
+                    </option>
+                                        <option value="aluno16spdo@mailinator.com;aluno16">
+                        aluno16
+                    </option>
+                                        <option value="aluno2spdo@mailinator.com;aluno2">
+                        aluno2
+                    </option>
+                                        <option value="aluno3spdo@mailinator.com;aluno3">
+                        aluno3
+                    </option>
+                                        <option value="aluno4spdo@mailinator.com;aluno4">
+                        aluno4
+                    </option>
+                                        <option value="aluno5spdo@mailinator.com;aluno5">
+                        aluno5
+                    </option>
+                                        <option value="aluno6spdo@mailinator.com;aluno6">
+                        aluno6
+                    </option>
+                                        <option value="aluno7spdo@mailinator.com;aluno7">
+                        aluno7
+                    </option>
+                                        <option value="aluno8spdo@mailinator.com;aluno8">
+                        aluno8
+                    </option>
+                                        <option value="aluno9spdo@mailinator.com;aluno9">
+                        aluno9
+                    </option>
+                                        <option value="cpt.nascimento@bope.gov.br;BOPE">
+                        BOPE
+                    </option>
+                                        <option value="eribeiro@interlegis.leg.br;Edward">
+                        Edward
+                    </option>
+                                        <option value="edwardr@senado.gov.br;edward2">
+                        edward2
+                    </option>
+                                        <option value="edwardr@interlegis.leg.br;Edward2">
+                        Edward2
+                    </option>
+                                        <option value="xirumacanudo@gmail.com;Fabiano Weimar">
+                        Fabiano Weimar
+                    </option>
+                                        <option value="gustavolepri@gmail.com;Gustavo Lepri">
+                        Gustavo Lepri
+                    </option>
+                                        <option value="gouveia@interlegis.leg.br;Joao Henrique Gouveia">
+                        Joao Henrique Gouveia
+                    </option>
+                                        <option value="email@destino.net;Nome da Pessoa de Destino">
+                        Nome da Pessoa de Destino
+                    </option>
+                                        <option value="email@origem.net;Nome da Pessoa de Origem">
+                        Nome da Pessoa de Origem
+                    </option>
+                                        <option value="tiao@macale.net;Tião Macalé">
+                        Tião Macalé
+                    </option>
+                                        <option value="john@small.org;ZÉ Pequeno">
+                        ZÉ Pequeno
+                    </option>
+                                    </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="lst_tip_materia">Tipo Mat&eacute;ria </label> <span class="campoObrigatorio">&nbsp;</span> <br />
+                <select id="lst_tip_materia" name="lst_tip_materia">
+                    <option>Selecione</option>
+                                        <option value="12">
+                        EM - Emenda
+                    </option>
+                                        <option value="9">
+                        IND - Indicação
+                    </option>
+                                        <option value="8">
+                        MOÇ - Moção
+                    </option>
+                                        <option value="16">
+                        PAR - Parecer
+                    </option>
+                                        <option value="11">
+                        PI - Pedido de Informações
+                    </option>
+                                        <option value="10">
+                        PP - Pedido de Providências
+                    </option>
+                                        <option value="7">
+                        PDL - Projeto de Decreto Legislativo
+                    </option>
+                                        <option value="2">
+                        PELO - Projeto de Emenda à Lei Orgânica
+                    </option>
+                                        <option value="1">
+                        PL - Projeto de Lei
+                    </option>
+                                        <option value="6">
+                        PLC - Projeto de Lei Complementar
+                    </option>
+                                        <option value="3">
+                        PR - Projeto de Resolução
+                    </option>
+                                        <option value="14">
+                        REC - Recurso
+                    </option>
+                                        <option value="4">
+                        REQ - Requerimento
+                    </option>
+                                        <option value="13">
+                        SEM - Subemenda
+                    </option>
+                                        <option value="15">
+                        SUBST - Substitutivo
+                    </option>
+                                    </select>
+            </td>
+            <td align="center">
+                <label for="txt_num_paginas">N&uacute;m. P&aacute;ginas </label> <span class="campoObrigatorio">&nbsp;</span> <br />
+                <input type="text" id="txt_num_paginas" name="txt_num_paginas" size="6 maxlength="3" value=""/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <label for="txa_txt_ementa">Ementa </label> <span class="campoObrigatorio">&nbsp;</span>
+                <textarea id="txa_txt_ementa" name="txa_txt_ementa"
+                          cols="67" rows="4"
+                          onBlur="form.txa_txt_ementa.value = form.txa_txt_ementa.value.toUpperCase()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="txt_autor">Autor </label> <span class="campoObrigatorio">&nbsp;</span><br />
+                <input id="txt_autor" type="text" name="txt_autor" null="" size="40" maxlength="50" disabled onFocus="javascript:this.blur()" />
+                <input type="hidden" name="hdn_txt_autor" value="" />
+                <input class="botaoSelecionar" type="button" value="Selecionar" onClick="javascript:window.open('autor_pesquisar_form?hdn_tipo_pesquisa=protocolo_legislativo' , 'AutorWin', 'width=420,height=250,resizable=0');" />
+                <input type="hidden" name="hdn_cod_autor" value="" />
+            <td>
+                <label for="lst_tip_autor">Tipo Autor </label> <br />
+                <select id="lst_tip_autor" name="lst_tip_autor" onChange="tipo_autor_trocar(document.protocolo_legislativo_form)" disabled >
+                    <option>Todos</option>
+                                        <option value="2">
+                        Comissao
+                    </option>
+                                        <option value="4">
+                        Externo
+                    </option>
+                                        <option value="8">
+                        Mesa Diretora
+                    </option>
+                                        <option value="1">
+                        Parlamentar
+                    </option>
+                                        <option value="9">
+                        Secretaria
+                    </option>
+                                    </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <label for="txa_txt_observacao">Observação</label>
+                <textarea id="txa_txt_observacao" name="txa_txt_observacao" cols="67" rows="4"
+                          onBlur="form.txa_txt_observacao.value = form.txa_txt_observacao.value.toUpperCase()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <label for="files">Anexos</label><br />
+                <input type="file" name="files" id="files" multiple>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" colspan="2" style="text-align: center;">
+                <input type="button" class="botao" name="button" value="Protocolar Mat&eacute;ria" onClick="campos_criticar()" />
+                    &nbsp;
+                <input class="botaoExtra" type="reset" name="btn_protocolo_limpar" value="Limpar" />
+            </td>
+        </tr>
+
+    </table>
+</fieldset>
+
+
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

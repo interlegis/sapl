@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                                    
+                                                                <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/mesa_diretora'>Mesa Diretora</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/comissao'>Comiss&otilde;es</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/bancada'>Bancadas</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/parlamentar'>Parlamentares</a>
+                            </li>
+                                                </ul>
+                </li>
+                                    <li class="sub"><a>Protocolo</a>
+                        <ul>
+                            <li><a href='http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_legislativo_form'>Protocolo Legislativo</a>
+                            </li>
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_administrativo_form'>Protocolo Administrativo</a></li>-->
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_anular_form'>Anular Protocolo</a></li>-->
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao'>Receber Proposi&ccedil;&otilde;es</a>
+                            </li>
+                        </ul>
+                    </li>
+                
+                <!---->
+                <!--<li class="sub"><a>Administrativo</a>-->
+                <!--<ul>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1'>Documentos</a></li>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/instituicao/instituicao_pesquisar_form?incluir=1'>Entidades / Institui&ccedil;&otilde;es</a></li>-->
+                <!--</ul>-->
+                <!--</li>-->
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Proposi&ccedil;&otilde;es</a>
+                            </li>
+                                                                            <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1'>Mat&eacute;rias Legislativas</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form'>Tramita&ccedil;&atilde;o em Lote</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/generico/impressos/materia_impresso_form'>Impressos</a>
+                            </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                                    <li class="sub"><a>Sistema</a>
+                        <ul>
+                                                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/auxiliares'>Tabelas Auxiliares</a>
+                                </li>
+                                                                                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/zopeedit-win32-1.0.0.exe'>ZopeEdit Windows</a>
+                                </li>
+                                <!--<li><a href='http://sapl3.interlegis.leg.br/generico/collective.zopeedit_1.0.0_all.deb'>ZopeEdit Linux</a></li>-->
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/senha_trocar_form'>Troca de Senha</a>
+                            </li>
+                        </ul>
+                    </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                        <li class="usuario toggle">
+                            <a><img src="http://sapl3.interlegis.leg.br/imagens/user.png"></a>
+                            <ul>
+                                <li><span>Usuário</span></li>
+                            </ul>
+                            <div>
+                            <ul>
+                                <li><span>saploper</span></li>
+                                <li><a class="sair" href="http://sapl3.interlegis.leg.br/generico/log_out_proc">Sair</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                            </ul>
+            <ul class="nav acesso-rapido">
+                                            
+                                                                    
+                                            <li><a>Acesso Rápido</a>
+                                <ul>
+                                    
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/mesa_diretora">Mesa Diretora</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/comissao">Comissões</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/bancada">Bancadas</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/parlamentar">Parlamentares</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                                        
+                                                                                                                
+                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/votacao_parlamentar/">Vota&ccedil;&atilde;o</a></li>
+                                                                            
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas da Sessões</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao">Recebimento de Proposições</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Elaboração de Proposições</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1">Matérias Legislativas</a></li>
+                                                                                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form">Tramitação em Lote</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jurídicas</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
+                                        
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
+                                        
+                                    
+                                                                    </ul>
+                            </li>
+
+                            </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+
+<script type="text/javascript" src="javascript/data_validar_jvsc"></script>
+
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery(".content").hide();
+        jQuery(".heading1").click(function()
+        {
+            jQuery(this).next(".content").slideToggle(500);
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(function() {
+        $('#popupDatepicker').datepick();
+        $('#popupDatepicker1').datepick();
+    });
+</script>
+
+<script type="text/javascript">
+
+    function campos_criticar(form){
+
+        var regexp_digitos = /\D+/;
+
+        if (form.lst_tip_norma.selectedIndex==0){
+            alert("O tipo de norma deve ser selecionado!");
+            form.lst_tip_norma.focus();
+            return false;
+        }
+
+        if (form.txt_num_norma.value == "") {
+            alert("O número da norma deve ser preenchido!");
+            form.txt_num_norma.focus();
+            return false;
+        }
+
+        if (regexp_digitos.test(form.txt_num_norma.value)) {
+            alert("O número da norma deve ser um número natural!");
+            form.txt_num_norma.focus();
+            return false;
+        }
+
+        if (form.txt_ano_norma.value == "") {
+            alert("O ano da norma deve ser preenchido!");
+            form.txt_ano_norma.focus();
+            return false;
+        }
+
+        if (regexp_digitos.test(form.txt_ano_norma.value)) {
+            alert("O ano da norma deve ser um número natural!");
+            form.txt_ano_norma.focus();
+            return false;
+        }
+
+        if (form.txt_dat_norma.value == "") {
+            alert ("A data da norma deve ser preenchida!")
+            form.txt_dat_norma.focus();
+            form.txt_dat_norma.select();
+            return false;
+        }
+
+        if (!IsValidDate(form.txt_dat_norma.value)) {
+            alert("Digite uma data válida!");
+            form.txt_dat_norma.focus();
+            form.txt_dat_norma.select();
+            return false;
+        }
+
+        if (form.txt_dat_publicacao.value != "") {
+            if (!IsValidDate(form.txt_dat_publicacao.value)) {
+                alert("Digite uma data válida!");
+                form.txt_dat_publicacao.focus();
+                return false;
+            }
+        }
+
+        if (regexp_digitos.test(form.txt_num_pag_inicio_publ.value)) {
+            alert("O número da página inicial deve ser um número natural!");
+            form.txt_num_pag_inicio_publ.focus();
+            return false;
+        }
+
+        if (regexp_digitos.test(form.txt_num_pag_fim_publ.value)) {
+            alert("O número da página final deve ser um número natural!");
+            form.txt_num_pag_fim_publ.focus();
+            return false;
+        }
+
+        var npag_i = parseInt(form.txt_num_pag_inicio_publ.value);
+        var npag_f = parseInt(form.txt_num_pag_fim_publ.value);
+        if (npag_i > npag_f) {
+            alert("A página inicial deve ser menor ou igual que a página final!");
+            form.txt_num_pag_fim_publ.focus();
+            form.txt_num_pag_fim_publ.selec();
+            return false;
+        }
+
+        if (form.txa_txt_ementa.value == "") {
+            alert("A ementa deve ser preenchida!");
+            form.txa_txt_ementa.focus();
+            return false;
+        }
+
+        if (form.file_nom_arquivo.value != "") {
+            form.hdn_file.value = 1;
+        }
+
+        form.submit();
+    }
+
+    function norma_juridica_excluir() {
+        if (confirm("Deseja realmente excluir?")) {
+            location.href = "norma_juridica_excluir_proc?cod_norma=";
+        }
+    }
+
+    function ativa_desativa_file_field(form) {
+        form.file_nom_arquivo.disabled = !(form.radTI[2].checked);
+    }
+
+    function ementa_buscar(form){
+        if ((form.lst_tip_id_basica.selectedIndex != 0) &&
+                (form.txt_num_ident_basica.value!="") &&
+                (form.txt_ano_ident_basica.value!="")){
+            location.href="ementa_buscar_proc?tip_ident_basica="+form.lst_tip_id_basica[form.lst_tip_id_basica.selectedIndex].value+"&num_ident_basica="+form.txt_num_ident_basica.value+"&ano_ident_basica="+form.txt_ano_ident_basica.value+"&tip_norma="+form.lst_tip_norma[form.lst_tip_norma.selectedIndex].value+"&tip_norma="+form.lst_tip_norma.value+"&num_norma="+form.txt_num_norma.value+"&ano_norma="+form.txt_ano_norma.value+"&dat_norma="+form.txt_dat_norma.value+"&tip_esfera_federacao="+form.lst_tip_esfera_federacao[form.lst_tip_esfera_federacao.selectedIndex].value+"&tip_materia="+form.lst_tip_id_basica[form.lst_tip_id_basica.selectedIndex].value+"&ind_complemento="+form.rad_ind_complemento.value;
+        }
+    }
+
+    function texto_odt_gerar(){
+        lst_modelo = document.getElementById("lst_modelo");
+        lst_modelo.options[lst_modelo.selectedIndex].value;
+
+        if (lst_modelo.selectedIndex == 0) {
+            alert("É necessário selecionar um modelo!");
+        }
+
+        if ((lst_modelo.selectedIndex != 0) && confirm("Confirma a geração do arquivo ODT?")) {
+            location.href="http://sapl3.interlegis.leg.br/modelo_proposicao/norma?cod_norma=&modelo_norma="+lst_modelo.options[lst_modelo.selectedIndex].value;
+            setTimeout(function(){window.location.reload(true)},2500);
+            return true;
+        }
+        return;
+    }
+
+    function texto_integral_odt_excluir(){
+        if (confirm("Deseja realmente excluir o arquivo ODT?")) {
+            location.href="texto_odt_norma_excluir_proc?cod_norma=";
+        }
+        return;
+    }
+
+    function texto_consolidado_gerar(){
+        if (confirm("Confirma a geração do texto consolidado?")) {
+            location.href="http://sapl3.interlegis.leg.br/documentos/gerar_norma_pdf?cod_norma=";
+            setTimeout(function(){window.location.reload(true)},2500);
+            return true;
+        }
+        return;
+    }
+
+    function texto_consolidado_excluir(){
+        if (confirm("Deseja realmente excluir o texto consolidado?")) {
+            location.href="texto_consolidado_excluir_proc?cod_norma=";
+        }
+        return;
+    }
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $(".popup1").fancybox({
+            maxWidth	: 1024,
+            maxHeight	: 800,
+            fitToView	: false,
+            width		: '95%',
+            height		: '93%',
+            autoSize	: false,
+            closeClick	: false,
+            scrolling       : 'auto',
+            preload         : true,
+            openEffect	: 'fade',
+            closeEffect	: 'fade'
+        });
+    });
+</script>
+
+<a id="ajuda" href="http://sapl3.interlegis.leg.br/ajuda/norma_juridica">Ajuda</a>
+
+<h1 class="firstHeading"> Norma Jurídica </h1>
+
+    
+    
+
+<form name="norma_juridica_form" method="post" action="norma_juridica_salvar_proc" enctype="multipart/form-data">
+
+<fieldset>
+    <legend>Identificação Básica</legend>
+    <table>
+        <tr>
+            <td colspan="2"><label for="lst_tip_norma">Tipo</label> <span class="campoObrigatorio">&nbsp;</span><br/>
+                <select name="lst_tip_norma">
+                    <option value ="0">Selecione</option>
+                                            <option
+                                                value="12">
+                    ATM - Ato da Mesa</option>
+                                            <option
+                                                value="10">
+                    DEC - Decreto</option>
+                                            <option
+                                                value="5">
+                    DL - Decreto Legislativo</option>
+                                            <option
+                                                value="4">
+                    ELO - Emenda à Lei Orgânica</option>
+                                            <option
+                                                value="1">
+                    LEI - Lei</option>
+                                            <option
+                                                value="2">
+                    LC - Lei Complementar</option>
+                                            <option
+                                                value="11">
+                    LOM - Lei Orgânica Municipal</option>
+                                            <option
+                                                value="8">
+                    POR - Portaria</option>
+                                            <option
+                                                value="6">
+                    RES - Resolução</option>
+                                            <option
+                                                value="7">
+                    REM - Resolução da Mesa</option>
+                                    </select>
+            </td>
+            <td><label for="txt_num_norma">Número</label> <span class="campoObrigatorio">&nbsp;</span><br/>
+                <input type="text" name="txt_num_norma" size="6" maxlength="6" value=""/>
+            </td>
+            <td><label for="txt_ano_norma">Ano</label> <span class="campoObrigatorio">&nbsp;</span><br/>
+                                    
+                                <input type="text" name="txt_ano_norma" size="4" maxlength="4" value="2015"/>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="txt_dat_norma">Data</label> <span class="campoObrigatorio">&nbsp;</span></b><br/>
+                <input type="text" name="txt_dat_norma" id="popupDatepicker" value="" size="10" maxlength="10" onBlur="formata_data(form.txt_dat_norma)" />
+            </td>
+            <td><label for="lst_tip_esfera_federacao">Esfera Federação</label> <span class="campoObrigatorio">&nbsp;</span><br/>
+                <select name="lst_tip_esfera_federacao">
+                    <option>Selecione</option>
+                                            <option
+                                                selected                        value="M">
+                    Municipal</option>
+                                            <option
+                                                                        value="E">
+                    Estadual</option>
+                                            <option
+                                                                        value="F">
+                    Federal</option>
+                                    </select>
+            </td>
+            <td colspan="2"><label for="rad_ind_complemento">Complementar ?</label><br/>
+                                    <input type="radio" name="rad_ind_complemento" value="1"
+                     />
+                    <span class="texto">Sim</span>
+                                    <input type="radio" name="rad_ind_complemento" value="0"
+                     />
+                    <span class="texto">Não</span>
+                            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><label for="lst_tip_id_basica">Matéria Legislativa</label><br>
+                <select name="lst_tip_id_basica" onChange="ementa_buscar(document.norma_juridica_form)">
+                <option>
+                                            <option
+                                                value="12"> EM - Emenda
+                </option>
+                                        <option
+                                                value="9"> IND - Indicação
+                </option>
+                                        <option
+                                                value="8"> MOÇ - Moção
+                </option>
+                                        <option
+                                                value="16"> PAR - Parecer
+                </option>
+                                        <option
+                                                value="11"> PI - Pedido de Informações
+                </option>
+                                        <option
+                                                value="10"> PP - Pedido de Providências
+                </option>
+                                        <option
+                                                value="7"> PDL - Projeto de Decreto Legislativo
+                </option>
+                                        <option
+                                                value="2"> PELO - Projeto de Emenda à Lei Orgânica
+                </option>
+                                        <option
+                                                value="1"> PL - Projeto de Lei
+                </option>
+                                        <option
+                                                value="6"> PLC - Projeto de Lei Complementar
+                </option>
+                                        <option
+                                                value="3"> PR - Projeto de Resolução
+                </option>
+                                        <option
+                                                value="14"> REC - Recurso
+                </option>
+                                        <option
+                                                value="4"> REQ - Requerimento
+                </option>
+                                        <option
+                                                value="13"> SEM - Subemenda
+                </option>
+                                        <option
+                                                value="15"> SUBST - Substitutivo
+                </option>
+                                </select></td>
+            <td>
+                <label for="txt_num_ident_basica">Número</label><br>
+                <input type="text" name="txt_num_ident_basica" size="5" value="" maxlength="5" onChange="ementa_buscar(document.norma_juridica_form)">
+            </td>
+            <td>
+                <label for="txt_ano_ident_basica">Ano</label><br>
+                <input type="text" name="txt_ano_ident_basica" size="4" value="" maxlength="4" onChange="ementa_buscar(document.norma_juridica_form)">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="txt_dat_publicacao">Data Publicação</label><br/>
+                <input type="text" name="txt_dat_publicacao" id="popupDatepicker1" size="10" value="" maxlength="10" onBlur="formata_data(form.txt_dat_publicacao)"/>
+            </td>
+            <td>
+                <label for="txt_des_veiculo_publicacao">Veículo Publicação</label><br/>
+                <input type="text" name="txt_des_veiculo_publicacao" size="25" value="" maxlength="30"/>
+            </td>
+            <td>
+                <label for="txt_num_pag_inicio_publ">Pg. Início</label><br/>
+                <input type="text" name="txt_num_pag_inicio_publ" size="5" value="" maxlength="5"/>
+            </td>
+            <td>
+                <label for="txt_num_pag_fim_publ">Pg. Fim</label><br/>
+                <input type="text" name="txt_num_pag_fim_publ" size="5" value="" maxlength="5"/>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" width="55%"><label>Texto original (PDF)</label><br/>
+                <input type="hidden" name="hdn_file" value="0"/>
+                                <input type="file" id="file_nom_arquivo" name="file_nom_arquivo" accept="application/pdf" size="45" maxlength="100" />
+                <input type="hidden" name="radTI" value="I"/>
+                            </td>
+            <td colspan="2" valign="top">
+                <label for="lst_tip_situacao_norma">Situação de Vigência</label><br/>
+                <select name="lst_tip_situacao_norma">
+                    <option value ="0">Selecione</option>
+                                            <option
+                                                value="16">
+                    Declarada inconstitucional pelo TJ</option>
+                                            <option
+                                                value="1">
+                    Em vigor</option>
+                                            <option
+                                                value="14">
+                    Em vigor (execução suspensa parcial)</option>
+                                            <option
+                                                value="13">
+                    Em vigor (sub judice parcial)</option>
+                                            <option
+                                                value="18">
+                    Em vigor 45 dias após a publicação</option>
+                                            <option
+                                                value="12">
+                    Em vigor, com revogação parcial</option>
+                                            <option
+                                                value="17">
+                    Em vigor, parte declarada inconstitucional</option>
+                                            <option
+                                                value="5">
+                    Execução suspensa</option>
+                                            <option
+                                                value="8">
+                    Execução suspensa de dispositivos</option>
+                                            <option
+                                                value="10">
+                    Insubsistente</option>
+                                            <option
+                                                value="9">
+                    Nula</option>
+                                            <option
+                                                value="6">
+                    Prejudicada</option>
+                                            <option
+                                                value="15">
+                    Revogação sub judice</option>
+                                            <option
+                                                value="2">
+                    Revogada</option>
+                                            <option
+                                                value="3">
+                    Revogada parcialmente</option>
+                                            <option
+                                                value="4">
+                    Revogada tacitamente</option>
+                                            <option
+                                                value="19">
+                    Sem efeito</option>
+                                            <option
+                                                value="7">
+                    Sub Judice</option>
+                                            <option
+                                                value="11">
+                    Sub Judice (sem liminar)</option>
+                                    </select>
+            </td>
+        </tr>
+                <tr>
+            <td colspan="4"><label for="txa_txt_ementa">Ementa</label> <span class="campoObrigatorio">&nbsp;</span><br/>
+                <textarea name="txa_txt_ementa" cols="65" rows="4" onBlur="form.txa_txt_ementa.value = form.txa_txt_ementa.value.toUpperCase()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4"><label for="txa_txt_indexacao">Indexação</label><br/>
+                <textarea name="txa_txt_indexacao" cols="65" rows="4" onBlur="form.txa_txt_indexacao.value = form.txa_txt_indexacao.value.toUpperCase()"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4"><label for="txa_txt_observacao">Observação</label><br/>
+                <textarea name="txa_txt_observacao" cols="65" rows="4"></textarea>
+            </td>
+        </tr>
+    </table>
+</fieldset>
+
+    <div class="layer1">
+        <fieldset>
+            <legend class="heading1">Assuntos (Classificação) [+] </legend>
+            <div class="content">
+                <table>
+                    <tr style="display:none;">
+                        <td>
+                            <label for "check_hide">
+                            <input type="checkbox" id="check_hide" name="chk_assunto_norma" value="1" checked="checked">
+                            </label>
+                        </td>
+                    </tr>
+                                            <tr>
+                            <td>
+                                <label for "chk_assunto_norma-2">
+                            <input type="checkbox" id="chk_assunto_norma-2" name="chk_assunto_norma" value="2">
+                            Educação
+                            </label>
+                            </td>
+                        </tr>
+                                            <tr>
+                            <td>
+                                <label for "chk_assunto_norma-3">
+                            <input type="checkbox" id="chk_assunto_norma-3" name="chk_assunto_norma" value="3">
+                            Finanças
+                            </label>
+                            </td>
+                        </tr>
+                                    </table>
+            </div>
+        </fieldset>
+    </div>
+
+
+<p align="center">
+    <input type="button" class="botao" name="btn_norma_juridica_salvar" value="Salvar" onClick="campos_criticar(document.norma_juridica_form)"/>
+
+    </p>
+
+<input type="hidden" name="hdn_tip_norma_ant" value=""/>
+<input type="hidden" name="hdn_num_norma_ant" value=""/>
+<input type="hidden" name="hdn_ano_norma_ant" value=""/>
+<input type="hidden" name="hdn_cod_norma" value=""/>
+
+</form>
+
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+
+                                                                <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/mesa_diretora'>Mesa Diretora</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/comissao'>Comiss&otilde;es</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/bancada'>Bancadas</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/parlamentar'>Parlamentares</a>
+                            </li>
+                                                </ul>
+                </li>
+                                    <li class="sub"><a>Protocolo</a>
+                        <ul>
+                            <li><a href='http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_legislativo_form'>Protocolo Legislativo</a>
+                            </li>
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_administrativo_form'>Protocolo Administrativo</a></li>-->
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_anular_form'>Anular Protocolo</a></li>-->
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao'>Receber Proposi&ccedil;&otilde;es</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                <!---->
+                <!--<li class="sub"><a>Administrativo</a>-->
+                <!--<ul>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1'>Documentos</a></li>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/instituicao/instituicao_pesquisar_form?incluir=1'>Entidades / Institui&ccedil;&otilde;es</a></li>-->
+                <!--</ul>-->
+                <!--</li>-->
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Proposi&ccedil;&otilde;es</a>
+                            </li>
+                                                                            <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1'>Mat&eacute;rias Legislativas</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form'>Tramita&ccedil;&atilde;o em Lote</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/generico/impressos/materia_impresso_form'>Impressos</a>
+                            </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                                    <li class="sub"><a>Sistema</a>
+                        <ul>
+                                                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/auxiliares'>Tabelas Auxiliares</a>
+                                </li>
+                                                                                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/zopeedit-win32-1.0.0.exe'>ZopeEdit Windows</a>
+                                </li>
+                                <!--<li><a href='http://sapl3.interlegis.leg.br/generico/collective.zopeedit_1.0.0_all.deb'>ZopeEdit Linux</a></li>-->
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/senha_trocar_form'>Troca de Senha</a>
+                            </li>
+                        </ul>
+                    </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                        <li class="usuario toggle">
+                            <a><img src="http://sapl3.interlegis.leg.br/imagens/user.png"></a>
+                            <ul>
+                                <li><span>Usuário</span></li>
+                            </ul>
+                            <div>
+                            <ul>
+                                <li><span>saploper</span></li>
+                                <li><a class="sair" href="http://sapl3.interlegis.leg.br/generico/log_out_proc">Sair</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                            </ul>
+            <ul class="nav acesso-rapido">
+
+
+                                            <li><a>Acesso Rápido</a>
+                                <ul>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/mesa_diretora">Mesa Diretora</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/comissao">Comissões</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/bancada">Bancadas</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/parlamentar">Parlamentares</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+
+
+                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/votacao_parlamentar/">Vota&ccedil;&atilde;o</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas da Sessões</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao">Recebimento de Proposições</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Elaboração de Proposições</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1">Matérias Legislativas</a></li>
+                                                                                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form">Tramitação em Lote</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jurídicas</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
+
+
+                                                                    </ul>
+                            </li>
+
+                            </ul>
+        </div>
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+
+
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+
+            <div id="conteudo">
+
+
+    <form name="painel_eletronico_form" method="post" action="painel_eletronico_salvar_proc"  enctype="multipart/form-data">
+        <input type="hidden" name="hdn_url" value="painel_eletronico_form" />
+
+        <script type= "text/javascript">
+            <!--
+              function campos_criticar(form){
+                   var regexp_digitos = /\D+/;
+
+                   if (form.txt_fonte.value==""){
+                      alert("A fonte do painel deve ser preenchido!");
+                      form.txt_fonte.focus();
+                      form.txt_fonte.select();
+                      return false;
+                   }
+
+                   if (form.txt_painel_cor_fonte.value==""){
+                      alert("A cor da fonte do painel deve ser preenchido!");
+                      form.txt_painel_cor_fonte.focus();
+                      form.txt_painel_cor_fonte.select();
+                      return false;
+                   }
+
+                   if (form.txt_painel_cor_fundo.value==""){
+                      alert("A cor do fundo do painel ser preenchido!");
+                      form.txt_painel_cor_fundo.focus();
+                      form.txt_painel_cor_fundo.select();
+                      return false;
+                   }
+
+                  return form.submit();
+                }
+            //-->
+        </script>
+        <div class="helpsapl"> <a id="ajuda" href="http://sapl3.interlegis.leg.br/ajuda/painel_eletronico">Ajuda</a> </div>
+        <h1 class="firstHeading">Tabelas Auxiliares </h1>
+
+        <fieldset>
+                        <legend>Propriedades do Painel Eletr&ocirc;nico</legend>
+            <table>
+                <tr>
+                    <td>
+                        <label>Fonte do Painel<span class="campoObrigatorio"></span></label><br />
+                        <input type="text" name="txt_fonte" value="Verdana" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte do Painel<span class="campoObrigatorio"></span></label><br />
+                        <input type="text" name="txt_painel_cor_fonte" value="#FFFFFF" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_painel_cor_fonte','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Cor do Fundo do Painel<span class="campoObrigatorio"></span></label><br />
+                        <input type="text" name="txt_painel_cor_fundo" value="#000000" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_painel_cor_fundo','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte do Aparte</label><br />
+                        <input type="text" name="txt_apartante_cor" value="#33FF00" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_apartante_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tempo do Aparte da Ordem do Dia</label><br />
+                        <input type="text" name="txt_apartante_ord_tempo" value="09:00" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Aparte</label><br />
+                        <input type="text" name="txt_apartante_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte da Questão de Ordem</label><br />
+                        <input type="text" name="txt_questao_ordem_cor" value="#FF0000" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da Fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_questao_ordem_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tempo da Questão de Ordem da Ordem do Dia</label><br />
+                        <input type="text" name="txt_questao_ordem_ord_tempo" value="04:00" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte da Questão de Ordem</label><br />
+                        <input type="text" name="txt_questao_ordem_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte do Oradora</label><br />
+                        <input type="text" name="txt_orador_cor" value="#FFFF33" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_orador_ord_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tempo do Orador da Ordem do Dia</label><br />
+                        <input type="text" name="txt_orador_ord_tempo" value="02:00" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Orador</label><br />
+                        <input type="text" name="txt_orador_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Tempo do Aparte do Expediente</label><br />
+                        <input type="text" name="txt_apartante_exp_tempo" value="03:00" size="15" maxlength="15" />
+                    </td>
+
+                    <td>
+                        <label>Tempo da Questão de Ordem do Expediente</label><br />
+                        <input type="text" name="txt_questao_ordem_exp_tempo" value="02:00" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Tempo do Orador do Expediente</label><br />
+                        <input type="text" name="txt_orador_exp_tempo" value="05:00" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte da Mesa</label><br />
+                        <input type="text" name="txt_mesa_cor" value="#33CCFF" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_mesa_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte da Mesa</label><br />
+                        <input type="text" name="txt_mesa_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte da Presença</label><br />
+                        <input type="text" name="txt_presenca_cor" value="#66CC33" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_presenca_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Tamanho da Fonte da Presença</label><br />
+                        <input type="text" name="txt_presenca_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte da Presença Total</label><br />
+                        <input type="text" name="txt_presenca_total_cor" value="#00CCFF" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_presenca_total_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte da Presença Total</label><br />
+                        <input type="text" name="txt_presenca_total_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte da Ausência</label><br />
+                        <input type="text" name="txt_ausencia_cor" value="#FF0000" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_ausencia_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte da Ausência</label><br />
+                        <input type="text" name="txt_ausencia_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte da Ausência Total</label><br />
+                        <input type="text" name="txt_ausencia_total_cor" value="#FF0000" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_ausencia_total_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Tamanho da Fonte da Ausência Total</label><br />
+                        <input type="text" name="txt_ausencia_total_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte do Total de Votos Sim</label><br />
+                        <input type="text" name="txt_total_sim_cor" value="#3366FF" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_sim_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Votos Sim</label><br />
+                        <input type="text" name="txt_total_sim_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte do Total de Votos Não</label><br />
+                        <input type="text" name="txt_total_nao_cor" value="#FF0000" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_nao_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Votos Não</label><br />
+                        <input type="text" name="txt_total_nao_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte do Total de Abstenções</label><br />
+                        <input type="text" name="txt_total_abstencao_cor" value="#FFFF33" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_abstencao_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Abstenções</label><br />
+                        <input type="text" name="txt_total_abstencao_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte de Total de Não Votantes</label><br />
+                        <input type="text" name="txt_total_nao_votou_cor" value="#FFFF33" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_nao_votou_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Não Votantes</label><br />
+                        <input type="text" name="txt_total_nao_votou_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor da Fonte do Total de Votos</label><br />
+                        <input type="text" name="txt_total_votos_cor" value="#33FF00" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_votos_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Votos</label><br />
+                        <input type="text" name="txt_total_votos_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte do Total de Presentes</label><br />
+                        <input type="text" name="txt_total_presentes_cor" value="#33FF33" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_presentes_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Presentes</label><br />
+                        <input type="text" name="txt_total_presentes_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Cor da Fonte do Total de Ausentes</label><br />
+                        <input type="text" name="txt_total_ausentes_cor" value="#FF0000" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_total_ausentes_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Total de Ausentes</label><br />
+                        <input type="text" name="txt_total_ausentes_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Cor do Jornal</label><br />
+                        <input type="text" name="txt_jornal_cor" value="#FF9900" size="15" maxlength="15" />
+                        <img src="sapl/imagens/cor.gif"
+                             alt="cor da fonte do painel"
+                             border='0'
+                             onclick=" window.open('sapl/javascript/pick_color?col=txt_jornal_cor','ColorPicker','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=220,height=220')" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte do Jornal</label><br />
+                        <input type="text" name="txt_jornal_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+                    <td>
+                        <label>Tamanho da Fonte da Mensagem</label><br />
+                        <input type="text" name="txt_mensagem_fonte" value="100%" size="15" maxlength="15" />
+                    </td>
+
+                </tr>
+                <tr>
+                                                            <td>
+                        <label>Arquivo existente da Campainha</label><br />
+                        <a href="http://sapl3.interlegis.leg.br/sapl_documentos/painel/ring.mp3" target="_blank">
+                            <img align="middle" src="sapl/imagens/ico_sound.png" alt="Texto Integral"><span class="texto">Abrir arquivo de som</span>
+                        </a>
+                        <br />
+                    </td>
+                                        <td colspan="2">
+                        <label>Novo Arquivo da Campainha</label><br />
+                        <input type="file" id="file_nom_arquivo_ring" name="file_nom_arquivo_ring" accept=".mp3,audio/*" size="40" maxlength="100" />
+                    </td>
+                                    </tr>
+
+                <tr>
+                    <td colspan="3">
+                        <label>Texto do Jornal</label><br />
+                        <textarea name="txt_jornal" cols="110" rows="10">INICIAR A SESSÃO EM 10 MINUTOS. !!!!!!</textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <label>Texto da Mensagem da Sess&atilde;o Plen&aacute;ria</label><br />
+                        <textarea name="txt_mensagem" cols="110" rows="10"></textarea>
+                    </td>
+                </tr>
+            </table>
+            <p align="center">
+                <input type="button" class="botao" name="btn_painel_salvar" value="Salvar" onClick="campos_criticar(document.painel_eletronico_form)" />
+                &nbsp;&nbsp;</p>
+                    </fieldset>
+    </form>
+    </div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ |
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

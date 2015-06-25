@@ -1,0 +1,6 @@
+CasaLegislativa
+Bancada
+PainelEletronico
+
+TipoSituacaoNorma
+PeriodoCompMesa
