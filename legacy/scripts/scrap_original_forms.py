@@ -19,8 +19,12 @@ def _read_line(tr):
 def extract_title_and_fieldsets(model):
     filename = os.path.join(os.path.dirname(__file__),
                             'original_forms/%s.html' % model.__name__)
-    with open(filename, 'r') as f:
-        cont = f.read()
+    try:
+        with open(filename, 'r') as f:
+            cont = f.read()
+    except IOError:
+        return None, []
+
     html_doc = cont.decode('utf-8')
     soup = BeautifulSoup(html_doc, 'html.parser')
     forms = soup.find_all('form')
@@ -33,7 +37,7 @@ def extract_title_and_fieldsets(model):
     title = soup.find('h1', {'class': 'firstHeading'})
     title = title.text if title else None
     fieldsets = [dict(
-        legend=fieldset.find('legend').text,
+        legend=fieldset.find('legend').text if fieldset.find('legend') else '',
         lines=[list(_read_line(tr)) for tr in fieldset.find_all('tr')])
         for fieldset in form.find_all('fieldset')]
 
