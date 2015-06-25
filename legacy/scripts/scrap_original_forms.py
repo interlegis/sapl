@@ -1,10 +1,13 @@
 import os
+import re
 import string
+from inspect import getsourcelines
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
 from field_mappings import field_mappings
+from utils import listify
 
 
 def _read_line(tr):
@@ -35,7 +38,7 @@ def extract_title_and_fieldsets(model):
     assert all(not c.strip() for c in form.children if isinstance(c, NavigableString))
 
     title = soup.find('h1', {'class': 'firstHeading'})
-    title = title.text if title else None
+    title = title.text.strip() if title else None
     fieldsets = [dict(
         legend=fieldset.find('legend').text if fieldset.find('legend') else '',
         lines=[list(_read_line(tr)) for tr in fieldset.find_all('tr')])
@@ -66,15 +69,59 @@ def extract_verbose_names(model):
 
     field_names = [f.name for f in model._meta.fields if f.name != 'id']
 
-    matches = {}
+    labels = {}
     field_names_to_old = field_mappings[model]
     for name in field_names:
         old_name = field_names_to_old[name]
         label = names_to_labels.get(old_name, None)
         if label:
-            matches[name] = label
+            labels[name] = label
             del names_to_labels[old_name]
-    for name, label in matches.items():
+    for name, label in labels.items():
         field_names.remove(name)
     non_matched = field_names, names_to_labels
-    return title, matches, non_matched
+    return title, labels, non_matched
+
+
+@listify
+def source_with_verbose_names(model):
+    source = getsourcelines(model)[0]
+    title, labels, non_matched = extract_verbose_names(model)
+
+    field_regex = ' *(.+) = (models\..*)\((.*)\)'
+    new_lines = []
+    for line in source[1:]:
+        for regex, split in [
+                (field_regex + ' *# (.+)', lambda groups: groups),
+                (field_regex, lambda groups: groups + [''])]:
+            match = re.match(regex, line)
+            if match:
+                name, path, args, legacy_name = split(match.groups())
+                if name in labels:
+                    args = [args] if args.strip() else []
+                    args.append("verbose_name=_(u'%s')" % labels[name])
+                    args = ', '.join(args)
+                new_lines.append(
+                    ('    %s = %s(%s)' % (name, path, args), legacy_name))
+                break
+        else:
+            new_lines.append((line, ''))
+    yield source[0].rstrip()
+    cols = max(map(len, [line for line, _ in new_lines]))
+    for line, legacy_name in new_lines:
+        line = line.rstrip().ljust(cols)
+        if legacy_name:
+            yield line + ' # ' + legacy_name
+        else:
+            yield line
+    if title:
+        if title.endswith('s'):
+            title_singular, title_plural = '', title
+        else:
+            title_singular, title_plural = title, ''
+        yield """
+    class Meta:
+        verbose_name = _(u'%s')
+        verbose_name_plural = _(u'%s')
+""" % (title_singular, title_plural)
+
