@@ -13,6 +13,8 @@ from utils import listify
 def _read_line(tr):
     for td in tr.find_all('td'):
         label = td.text.strip().split('\n')[0].strip(u'\xa0' + string.whitespace)
+        if label.endswith('(*)'):
+            label = label[:-3].strip()
         names = [c.attrs['name'] for c in td.children if isinstance(c, Tag) and 'name' in c.attrs]
         if names:
             name = names[0].split('_', 1)[-1]
@@ -97,7 +99,7 @@ def source_with_verbose_names(model):
             match = re.match(regex, line)
             if match:
                 name, path, args, legacy_name = split(match.groups())
-                if name in labels:
+                if name in labels and 'verbose_name' not in args:
                     args = [args] if args.strip() else []
                     args.append("verbose_name=_(u'%s')" % labels[name])
                     args = ', '.join(args)
@@ -122,6 +124,25 @@ def source_with_verbose_names(model):
         yield """
     class Meta:
         verbose_name = _(u'%s')
-        verbose_name_plural = _(u'%s')
-""" % (title_singular, title_plural)
+        verbose_name_plural = _(u'%s')""" % (title_singular, title_plural)
 
+
+def print_app_with_verbose_names(app):
+    print '##################################################################'
+    header = '# -*- coding: utf-8 -*-\n'
+    for line in getsourcelines(app.models_module)[0][:10]:
+        if line.startswith('# -*- coding:'):
+            continue
+        elif line == 'from django.db import models\n':
+            header += '''from django.db import models
+from django.utils.translation import ugettext as _
+'''
+        elif 'class' in line:
+            break
+        else:
+            header += line
+    print header.strip()
+    for model in app.models.values():
+        print '\n'
+        for p in source_with_verbose_names(model):
+            print p
