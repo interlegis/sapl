@@ -4,7 +4,7 @@
 
 
 <head>
-    <meta charset=utf-85 />
+    <meta charset="utf-8" />
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
     <meta name="author" content="Interlegis">
@@ -34,7 +34,7 @@
 <body class="fadeIn">
                 <div class="barraSuperior">
         <div class="centroWrapper">
-                                    
+
                                                                 <div></div>
             <div class="menu-mobile"></div>
             <ul class="nav principal">
@@ -62,7 +62,7 @@
                             </li>
                         </ul>
                     </li>
-                
+
                 <!---->
                 <!--<li class="sub"><a>Administrativo</a>-->
                 <!--<ul>-->
@@ -140,7 +140,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                 </li>
                 <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
                     <ul>
@@ -167,45 +167,45 @@
                         </li>
                             </ul>
             <ul class="nav acesso-rapido">
-                                            
-                                                                    
+
+
                                             <li><a>Acesso Rápido</a>
                                 <ul>
-                                    
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/mesa_diretora">Mesa Diretora</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/comissao">Comissões</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/bancada">Bancadas</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/parlamentar">Parlamentares</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
-                                        
-                                                                                                                
+
+
                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/votacao_parlamentar/">Vota&ccedil;&atilde;o</a></li>
-                                                                            
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas da Sessões</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao">Recebimento de Proposições</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Elaboração de Proposições</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1">Matérias Legislativas</a></li>
                                                                                                                     <li><a href="http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form">Tramitação em Lote</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jurídicas</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
-                                        
+
                                                                             <li><a href="http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
-                                        
-                                    
+
+
                                                                     </ul>
                             </li>
 
                             </ul>
-        </div>  
+        </div>
     </div>
 <script type="text/javascript">
 
@@ -243,8 +243,8 @@ $(function() {
 </script>
         <div id="pagina">
             <div id="topo">
-    
-    
+
+
         <div id="logo">
         <a href="http://sapl3.interlegis.leg.br">
                             <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
@@ -253,16 +253,16 @@ $(function() {
     <div id="identidade">
         <h2>
             Câmara Municipal de Piraí
-            
+
                             - RJ
                     </h2>
         <h3>Sistema de Apoio ao Processo Legislativo</h3>
     </div>
 </div>
             <div id="corpo">
-            
+
             <div id="conteudo">
-    
+
 
 <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/cpf_validar_jvsc"></SCRIPT>
 <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/email_validar_jvsc"></SCRIPT>
@@ -281,9 +281,9 @@ $(function() {
    function submeter(endereco){
       var form = document.parlamentar_form;
 
-      endereco += '?&cod_parlamentar=' + form.hdn_cod_parlamentar.value; 
+      endereco += '?&cod_parlamentar=' + form.hdn_cod_parlamentar.value;
 
-      if (form.hdn_alterou.value == 1) {  
+      if (form.hdn_alterou.value == 1) {
          if (confirm("Deseja salvar os dados?")){
             form.hdn_url.value = endereco;
             campos_criticar(form);
@@ -294,15 +294,15 @@ $(function() {
       if (form.hdn_cod_parlamentar.value != ""){
          location.href = endereco;
       }
-      return;           
-   }  
+      return;
+   }
   function setar_hdn_file(form){
       if (form.file_nom_imagem.value != "") {
          form.hdn_file.value = 1;
       }
   }
   function campos_criticar(form){
-           
+
       if (form.txt_nom_parlamentar.value==""){
           alert("O nome do Parlamentar deve ser preenchido!");
           form.txt_nom_parlamentar.focus();
@@ -314,12 +314,12 @@ $(function() {
           form.txt_login.focus();
           return false;
       }
-        
+
       if (form.txt_nom_completo.value == "") {
          alert("O nome completo deve ser preenchido!");
          form.txt_nom_completo.focus();
          return false;
-      } 
+      }
 
       if (!(form.rad_sex_parlamentar[0].checked ||
             form.rad_sex_parlamentar[1].checked)){
@@ -332,7 +332,7 @@ $(function() {
          alert("Digite um cpf válido!");
          form.txt_num_cpf.focus();
          form.txt_num_cpf.select();
-         return false;       
+         return false;
       }
 
       if (form.txt_end_email.value != "" &&
@@ -347,30 +347,30 @@ $(function() {
          alert("O campo Município deve ser preenchido uma vez que UF está preenchido!");
          form.txt_municipio.focus();
          return false;
-      } 
+      }
 
       /*--- acrescentada pela Man Qi em 16/11/02 ---*/
       if (form.txt_municipio.value != "" && form.lst_sgl_uf.selectedIndex == 0) {
          alert("O campo UF deve ser preenchido uma vez que Município está preenchido!");
          form.lst_sgl_uf.focus();
          return false;
-      } 
+      }
 
-      if (!(form.rad_ind_ativo[0].checked || 
+      if (!(form.rad_ind_ativo[0].checked ||
             form.rad_ind_ativo[1].checked)){
-         alert("A opção 'Ativo na Casa' deve ser preenchida!"); 
+         alert("A opção 'Ativo na Casa' deve ser preenchida!");
          return false;
       }
       return form.submit();
     }
 
   function parlamentar_excluir(){
-       
+
        if (confirm("Deseja realmente excluir?")) {
           location.href="parlamentar_excluir_proc?cod_parlamentar=";
        }
-       return; 
-  } 
+       return;
+  }
 
 function fotografia_excluir(){
 
@@ -393,13 +393,13 @@ function fotografia_excluir(){
         form.lst_sgl_uf.focus();
         return false;
      }
-     
+
      var municipio = form.txt_municipio.value;
      var sgl_uf = form.lst_sgl_uf[form.lst_sgl_uf.selectedIndex].value;
 
      var municipio_pesq = municipio.toUpperCase();
      municipio_pesq = municipio_pesq.replace(/Ã|Â|Á|À/g, 'A');
-     municipio_pesq = municipio_pesq.replace(/É|Ê|È/g,'E');   
+     municipio_pesq = municipio_pesq.replace(/É|Ê|È/g,'E');
      municipio_pesq = municipio_pesq.replace(/Í|Ì|Î|Ï/g, 'I');
      municipio_pesq = municipio_pesq.replace(/Õ|Ô|Ó|Ò/g, 'O');
      municipio_pesq = municipio_pesq.replace(/Ú|Ù|Û|Ü/g, 'U');
@@ -409,7 +409,7 @@ function fotografia_excluir(){
               "&municipio_pesq=" + municipio_pesq + "&sgl_uf=" + sgl_uf;
      MunicipioWin = window.open(url , "MunicipioWin", "width=350,height=250,resizable=0");
      return;
-  } 
+  }
 
 </script>
 <script type="text/javascript">
@@ -424,7 +424,7 @@ function fotografia_excluir(){
 
 <form name="parlamentar_form" method="post"
       action="parlamentar_salvar_proc"
-      enctype="multipart/form-data" />
+      enctype="multipart/form-data" >
     <input type="hidden" name="hdn_cod_parlamentar" value="" />
     <input type="hidden" name="nom_parlamentar"  value="" />
     <input type="hidden" name="hdn_cod_casa" value="0" />
@@ -527,14 +527,14 @@ function fotografia_excluir(){
 	    maxlength="15"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr> 
+        <tr>
           <td class="form-element">Situa&ccedil;&atilde;o Militar<br />
             <select name="lst_tip_situacao_militar" size="1" onChange="javascript:form.hdn_alterou.value=1">
                  <option>Selecione</option>
-                               <option 
+                               <option
                                         value="1">Reservista
                  </option>
-                               <option 
+                               <option
                                         value="2">Excesso de Contingente
                  </option>
                           </select></td>
@@ -544,17 +544,17 @@ function fotografia_excluir(){
 	    maxlength="50"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr align="left"> 
+        <tr align="left">
           <td colspan="3" class="form-element">HomePage<br />
             <input type="text" name="txt_end_web" value="" size="60" maxlength="100"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr>   
+        <tr>
           <td colspan="3" class="form-element">Correio Eletr&ocirc;nico<br />
             <input type="text" name="txt_end_email" value="" size="60" maxlength="100"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr> 
+        <tr>
           <td class="form-element">N&ordm; Gabinete<br />
             <input type="text" name="txt_num_gab_parlamentar"
 	    value="" size="10"
@@ -571,7 +571,7 @@ function fotografia_excluir(){
 	    maxlength="50"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr> 
+        <tr>
           <td colspan="2" valign="top" class="form-element">Endere&ccedil;o Residencial<br />
             <input type="text" name="txt_end_residencial"
 	    value="" size="35"
@@ -583,7 +583,7 @@ function fotografia_excluir(){
 	    maxlength="9"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr> 
+        <tr>
           <td colspan="2" class="form-element">Munic&iacute;pio<br />
             <input type="text" name="txt_municipio" value="" size="35" maxlength="50"
 	    onChange="javascript:form.hdn_alterou.value=1" />
@@ -592,90 +592,90 @@ function fotografia_excluir(){
           <td class="form-element">UF<br />
             <select name="lst_sgl_uf" size="1" onChange="javascript:form.hdn_alterou.value=1">
                 <option>Selecione</option>
-                              <option 
+                              <option
                                     value="AC">AC
                 </option>
-                              <option 
+                              <option
                                     value="AL">AL
                 </option>
-                              <option 
+                              <option
                                     value="AM">AM
                 </option>
-                              <option 
+                              <option
                                     value="AP">AP
                 </option>
-                              <option 
+                              <option
                                     value="BA">BA
                 </option>
-                              <option 
+                              <option
                                     value="CE">CE
                 </option>
-                              <option 
+                              <option
                                     value="DF">DF
                 </option>
-                              <option 
+                              <option
                                     value="ES">ES
                 </option>
-                              <option 
+                              <option
                                     value="GO">GO
                 </option>
-                              <option 
+                              <option
                                     value="MA">MA
                 </option>
-                              <option 
+                              <option
                                     value="MG">MG
                 </option>
-                              <option 
+                              <option
                                     value="MS">MS
                 </option>
-                              <option 
+                              <option
                                     value="MT">MT
                 </option>
-                              <option 
+                              <option
                                     value="PA">PA
                 </option>
-                              <option 
+                              <option
                                     value="PB">PB
                 </option>
-                              <option 
+                              <option
                                     value="PE">PE
                 </option>
-                              <option 
+                              <option
                                     value="PI">PI
                 </option>
-                              <option 
+                              <option
                                     value="PR">PR
                 </option>
-                              <option 
+                              <option
                                     value="RJ">RJ
                 </option>
-                              <option 
+                              <option
                                     value="RN">RN
                 </option>
-                              <option 
+                              <option
                                     value="RO">RO
                 </option>
-                              <option 
+                              <option
                                     value="RR">RR
                 </option>
-                              <option 
+                              <option
                                     value="RS">RS
                 </option>
-                              <option 
+                              <option
                                     value="SC">SC
                 </option>
-                              <option 
+                              <option
                                     value="SE">SE
                 </option>
-                              <option 
+                              <option
                                     value="SP">SP
                 </option>
-                              <option 
+                              <option
                                     value="TO">TO
                 </option>
                           </select></td>
         </tr>
-        <tr> 
+        <tr>
           <td colspan="2" class="form-element">Telefone Residencial<br />
             <input type="text" name="txt_num_tel_resid"
 	    value="" size="15"
@@ -687,7 +687,7 @@ function fotografia_excluir(){
 	    maxlength="50"
 	    onChange="javascript:form.hdn_alterou.value=1" /></td>
         </tr>
-        <tr> 
+        <tr>
           <td colspan="3" class="form-element">Locais de Atua&ccedil;&atilde;o<br />
             <input type="text" name="txt_des_local_atuacao"
 	    value="" size="60"
@@ -703,7 +703,7 @@ function fotografia_excluir(){
                  <input type="file" name="file_nom_imagem" size="40"
 		 maxlength="100" onChange="setar_hdn_file(form)" />
                         </td></tr>
-        <tr> 
+        <tr>
           <td colspan="3" valign="top" class="form-element" align="left">Biografia<br />
 		<textarea name="txa_txt_biografia" id="txa_txt_biografia" cols="60" onChange="javascript:form.hdn_alterou.value=1"></textarea>
           </td>
@@ -729,7 +729,7 @@ function fotografia_excluir(){
 <div class="centroWrapper">
     <footer>
         <div class="logos">
-        
+
             <div>
                 <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
                 <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
@@ -751,7 +751,7 @@ function fotografia_excluir(){
                                                                 Fone: (34) 3239-1000
                                 <br />
                     <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
- | 
+ |
 <a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
         </footer>
         </address>
