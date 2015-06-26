@@ -1,13 +1,12 @@
 import os
 import re
 import string
-from inspect import getsourcelines
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
 from field_mappings import field_mappings
-from utils import listify
+from utils import listify, getsourcelines
 
 
 def _read_line(tr):
@@ -87,7 +86,7 @@ def extract_verbose_names(model):
 
 @listify
 def source_with_verbose_names(model):
-    source = getsourcelines(model)[0]
+    source = getsourcelines(model)
     title, labels, non_matched = extract_verbose_names(model)
 
     field_regex = ' *(.+) = (models\.[^\(]*)\((.*verbose_name=_\(.*\)|.*)\)'
@@ -138,10 +137,11 @@ def source_with_verbose_names(model):
 def print_app_with_verbose_names(app):
     print '##################################################################'
     header = '# -*- coding: utf-8 -*-\n'
-    for line in getsourcelines(app.models_module)[0][:10]:
-        if line.startswith('# -*- coding:'):
+    for line in getsourcelines(app.models_module):
+        if line in ['# -*- coding: utf-8 -*-',
+                    'from django.utils.translation import ugettext as _', ]:
             continue
-        elif line == 'from django.db import models\n':
+        elif line == 'from django.db import models':
             header += '''from django.db import models
 from django.utils.translation import ugettext as _
 '''
