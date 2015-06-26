@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import re
 import string
@@ -123,11 +124,30 @@ def source_with_verbose_names(model):
     if class_meta_already_exists:
         return
 
+    if title == 'Tabelas Auxiliares':
+        title = ''
     title = title if title else ''
-    if title.endswith('s'):
-        title_singular, title_plural = '', title
+
+    def add_s(name):
+        return ' '.join(p if p.endswith('s') else p + 's' for p in name.split())
+
+    def remove_s(name):
+        return ' '.join(p[:-1] if p.endswith('s') else p for p in name.split())
+
+    if not title:
+        # default title from model name
+        title_singular = u' '.join(re.findall('[A-Z][^A-Z]*', model.__name__))
+        title_singular = re.sub('cao\\b', u'ção', title_singular)
+        title_singular = re.sub('ao\\b', u'ão', title_singular)
+        title_plural = add_s(title_singular.replace(u'ção', u'ções').replace(u'ão', u'ões'))
+
+    elif title.endswith('s'):
+        title_singular = remove_s(title.replace(u'ções', u'ção').replace(u'ões', u'ão'))
+        title_plural = title
     else:
-        title_singular, title_plural = title, ''
+        title_singular = title
+        title_plural = add_s(title.replace(u'ção', u'ções').replace(u'ão', u'ões'))
+
     yield """
     class Meta:
         verbose_name = _(u'%s')
