@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+
+                                                                <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/mesa_diretora'>Mesa Diretora</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/comissao'>Comiss&otilde;es</a>
+                            </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/cadastros/bancada'>Bancadas</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/parlamentar'>Parlamentares</a>
+                            </li>
+                                                </ul>
+                </li>
+                                    <li class="sub"><a>Protocolo</a>
+                        <ul>
+                            <li><a href='http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_legislativo_form'>Protocolo Legislativo</a>
+                            </li>
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_administrativo_form'>Protocolo Administrativo</a></li>-->
+                            <!--<li><a href='http://sapl3.interlegis.leg.br/cadastros/protocolo/protocolo_anular_form'>Anular Protocolo</a></li>-->
+                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao'>Receber Proposi&ccedil;&otilde;es</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                <!---->
+                <!--<li class="sub"><a>Administrativo</a>-->
+                <!--<ul>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1'>Documentos</a></li>-->
+                <!--<li><a href='http://sapl3.interlegis.leg.br/consultas/instituicao/instituicao_pesquisar_form?incluir=1'>Entidades / Institui&ccedil;&otilde;es</a></li>-->
+                <!--</ul>-->
+                <!--</li>-->
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Proposi&ccedil;&otilde;es</a>
+                            </li>
+                                                                            <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1'>Mat&eacute;rias Legislativas</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form'>Tramita&ccedil;&atilde;o em Lote</a>
+                            </li>
+                            <li><a href='http://sapl3.interlegis.leg.br/generico/impressos/materia_impresso_form'>Impressos</a>
+                            </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1'>Pesquisar</a>
+                            </li>
+                                                    <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                                    <li class="sub"><a>Sistema</a>
+                        <ul>
+                                                            <li><a href='http://sapl3.interlegis.leg.br/cadastros/auxiliares'>Tabelas Auxiliares</a>
+                                </li>
+                                                                                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/zopeedit-win32-1.0.0.exe'>ZopeEdit Windows</a>
+                                </li>
+                                <!--<li><a href='http://sapl3.interlegis.leg.br/generico/collective.zopeedit_1.0.0_all.deb'>ZopeEdit Linux</a></li>-->
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/senha_trocar_form'>Troca de Senha</a>
+                            </li>
+                        </ul>
+                    </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                        <li class="usuario toggle">
+                            <a><img src="http://sapl3.interlegis.leg.br/imagens/user.png"></a>
+                            <ul>
+                                <li><span>Usuário</span></li>
+                            </ul>
+                            <div>
+                            <ul>
+                                <li><span>saploper</span></li>
+                                <li><a class="sair" href="http://sapl3.interlegis.leg.br/generico/log_out_proc">Sair</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                            </ul>
+            <ul class="nav acesso-rapido">
+
+
+                                            <li><a>Acesso Rápido</a>
+                                <ul>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/mesa_diretora">Mesa Diretora</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/comissao">Comissões</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/bancada">Bancadas</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/parlamentar">Parlamentares</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+
+
+                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/votacao_parlamentar/">Vota&ccedil;&atilde;o</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas da Sessões</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/recebimento_proposicao">Recebimento de Proposições</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/cadastros/proposicao">Elaboração de Proposições</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=1">Matérias Legislativas</a></li>
+                                                                                                                    <li><a href="http://sapl3.interlegis.leg.br/cadastros/materia/tramitacao/tramitacao_lote_form">Tramitação em Lote</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jurídicas</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
+
+                                                                            <li><a href="http://sapl3.interlegis.leg.br/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
+
+
+                                                                    </ul>
+                            </li>
+
+                            </ul>
+        </div>
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+
+
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+
+            <div id="conteudo">
+
+
+<script type="text/javascript" language="Javascript">
+
+    function atualizar(cod_sessao_plen,cod_parlamentar,campo_num,form_arq) {
+        if (campo_num.value == "") {
+        alert("O campo não pode ficar vazio!");
+        campo_num.focus();
+        return;
+        }
+
+        var form = document.oradores_form;
+        var txt_num_ordem = campo_num.value;
+        location.href = "oradores_expediente_salvar_proc?hdn_cod_sessao_plen=" + cod_sessao_plen + "&lst_cod_parlamentar=" + cod_parlamentar + '&txt_num_ordem=' + txt_num_ordem + '&hdn_cod_sessao_leg='+ form.hdn_cod_sessao_leg.value + '&hdn_num_legislatura=' + form.hdn_num_legislatura.value + '&hdn_dat_sessao=' + form.hdn_dat_sessao.value + '&hdn_tip_sessao=' + form.hdn_tip_sessao.value + '&flag_atualizar=1';
+    }
+
+    function excluir(cod_sessao_plen,cod_parlamentar){
+        var form = document.oradores_form;
+        if (confirm("Deseja realmente excluir o orador?")) {
+            location.href = "oradores_expediente_excluir_proc?cod_sessao_plen=264&cod_parlamentar=" + cod_parlamentar + '&cod_sessao_leg='+ form.hdn_cod_sessao_leg.value + '&cod_num_legislatura=' + form.hdn_num_legislatura.value + '&dat_sessao=' + form.hdn_dat_sessao.value + '&tip_sessao=' + form.hdn_tip_sessao.value;
+        }
+        return;
+    }
+
+    function discurso_excluir(cod_parlamentar){
+        var form =  document.oradores_form;
+        if (confirm("Deseja realmente excluir o discurso?")) {
+            location.href="discurso_expediente_excluir_proc?cod_sessao_plen=264&cod_parlamentar=" + cod_parlamentar + '&cod_sessao_leg='+ form.hdn_cod_sessao_leg.value + '&cod_num_legislatura=' + form.hdn_num_legislatura.value + '&dat_sessao=' + form.hdn_dat_sessao.value + '&tip_sessao=' + form.hdn_tip_sessao.value;
+        }
+        return;
+    }
+
+function submeter(endereco){
+
+        var form = document.oradores_form;
+        endereco += '?cod_sessao_plen=' + form.hdn_cod_sessao_plen.value;
+        endereco += '&cod_sessao_leg=' + form.hdn_cod_sessao_leg.value;
+        endereco += '&cod_num_legislatura=' + form.hdn_num_legislatura.value;
+        endereco += '&dat_sessao=' + form.hdn_dat_sessao.value;
+        endereco += '&tip_sessao=' + form.hdn_tip_sessao.value;
+
+        if (form.hdn_cod_sessao_plen.value!=""){
+            location.href = endereco;
+        }
+        return;
+    }
+</script>
+<a id="ajuda" href="http://sapl3.interlegis.leg.br/ajuda/sessao_plenaria_oradores">Ajuda</a>
+<h1 class="firstHeading"> Oradores do Expediente </h1>
+<h3 align="center">                  2&ordf; Reuni&atilde;o Ordinária da 3&ordf; Sess&atilde;o Legislativa da 14&ordf; Legislatura <br />14 de Abril de 2015 (Terça-feira)
+
+</h3>
+
+<form name="oradores_form" action="oradores_expediente_salvar_proc" enctype="multipart/form-data">
+                            <div id="barra-conteudo">
+                <ul id="menu-sessao">
+                    <li class="sub"><a href="#"><b>Abertura</b></a>
+                        <ul>
+                            <li>
+                                <a
+                                                                href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/sessao_plenaria_mostrar_proc?cod_sessao_plen=264">Dados Básicos</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/mesa_diretora_sessao/index_html')">Mesa da Sessão</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/presenca_sessao/index_html')">Presença</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/oradores/index_html')">Explicações Pessoais</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/recomposicao_presencas_sessao/index_html')">Recomposição de Presença</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sub"><a href="#"><b>Expedientes</b></a>
+                        <ul>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/expedientes/index_html')">Expedientes Diversos</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/materia_expediente_sessao/index_html')">Matérias</a>
+                            </li>
+                            <li>
+                                <a
+                                                                    class="selecionado"
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/oradores_expediente/index_html')">Oradores</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sub"><a href="#"><b>Ordem do Dia</b></a>
+                        <ul>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/ordem_dia_sessao/index_html')">Matérias</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/presenca_ordem_dia/index_html')">Presença</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/recomposicao_presencas_ordem/index_html')">Recomposição de Presença</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sub"><a href="#"><b>Documentos</b></a>
+                        <ul>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/modelo_proposicao/ata_gerar?cod_sessao_plen=264">Ata - ODT</a>
+                            </li>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/modelo_proposicao/iom_gerar?cod_sessao_plen=264">Imprensa Oficial - ODT</a>
+                            </li>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/modelo_proposicao/ordem_dia?cod_sessao_plen=264" target="_blank">Ordem do Dia - ODT</a>
+                            </li>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/modelo_proposicao/resumo_gerar?cod_sessao_plen=264" target="_blank">Resumo - ODT</a>
+                            </li>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/relatorios/pdf_sessao_plenaria_preparar_pysc?data=14/04/2015&cod_sessao_plen=264" target="_blank">Resumo - PDF</a>
+                            </li>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/modelo_proposicao/oficio_ind_gerar?cod_sessao_plen=264">Remessa Indicações - ODT</a>
+                            </li>
+                            <li>
+                                <a href="http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/anexo_sessao/index_html?cod_sessao_plen=264">Anexos</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sub"><a href="#"><b>Painel Eletrônico</b></a>
+                        <ul>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/painel_eletronico/index_html')">Painel</a>
+                            </li>
+                            <li>
+                                <a
+                                                                href="javascript:submeter('http://sapl3.interlegis.leg.br/cadastros/sessao_plenaria/logs/index_html')">Logs da Sess&atilde;o</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <input type="hidden" name="hdn_url" value="index_html?cod_sessao_plen=264&cod_num_legislatura=14&cod_sessao_leg=59&dat_sessao=14/04/2015&tip_sessao=1&ind_iniciada=0" />
+            <input type="hidden" name="hdn_cod_sessao_plen" value="264" />
+            <input type="hidden" name="hdn_cod_sessao_leg" value="59"/>
+            <input type="hidden" name="hdn_dat_sessao" value="14/04/2015"/>
+            <input type="hidden" name="hdn_num_legislatura" value="14"/>
+            <input type="hidden" name="hdn_tip_sessao" value="1"/>
+            <input type="hidden" name="dat_sessao" value="" />
+            <input type="hidden" name="dat_inicio_sessao" value="" />
+            <input type="hidden" name="iniciada" value="0" />
+
+
+            <table width="100%">
+            <tr>
+                <td class="form-text">Nenhum orador cadastrado.</td>
+            </tr>
+       </table>
+    </form>
+<form name="oradores_cadastro_form" method="post" action="oradores_expediente_salvar_proc" enctype="multipart/form-data">
+<fieldset>
+<legend>Cadastro de Oradores do Expediente</legend>
+<table width="100%">
+    <tr>
+        <td>
+            <label class="form-label">&nbsp;Ordem de pronunciamento</label>
+            <input type="text" name="txt_num_ordem" size="3" maxlength="3" />
+        </td>
+        <td>
+            <label class="form-label">&nbsp;Parlamentar</label>
+            <select name="lst_cod_parlamentar" size="1">
+                                    <option
+                        value="125">
+                        Alexandre Neu/DEM
+                    </option>
+                                        <option
+                        value="124">
+                        Aliceu Klein/PMDB
+                    </option>
+                                        <option
+                        value="19">
+                        Carlito Schiefelbein/PP
+                    </option>
+                                        <option
+                        value="126">
+                        Cleber  Cassel/PMDB
+                    </option>
+                                        <option
+                        value="40">
+                        Gerson Halberstadt/PSDB
+                    </option>
+                                        <option
+                        value="120">
+                        Itamar Puntel/PMDB
+                    </option>
+                                        <option
+                        value="127">
+                        Izabel Lamaison/PP
+                    </option>
+                                        <option
+                        value="117">
+                        João de Deus/PSDB
+                    </option>
+                                        <option
+                        value="21">
+                        Paulo Unfer/PDT
+                    </option>
+                                        <option
+                        value="23">
+                        Vilson Dias/PSDB
+                    </option>
+                                </select>
+        </td>
+        <td>
+         <label class="form-label">&nbsp;URL V&iacute;deo</label>
+         <input type="text" id="txt_url_discurso" name="txt_url_discurso" size="48" maxlength="150" value="" />
+        </td>
+    </tr>
+    <tr>
+        <td align="center" colspan="3">
+            <input class="botao" type="submit" size="10" name="btn_oradores" value="Incluir Orador" />
+        </td>
+    </tr>
+    <input type="hidden" name="hdn_cod_sessao_plen" value="264" />
+    <input type="hidden" name="hdn_cod_sessao_leg" value="59"/>
+    <input type="hidden" name="hdn_dat_sessao" value="14/04/2015"/>
+    <input type="hidden" name="hdn_num_legislatura" value="14"/>
+    <input type="hidden" name="hdn_tip_sessao" value="1"/>
+</table>
+</fieldset>
+<fieldset>
+<legend>Cadastro de Discurso</legend>
+<table width="100%">
+    <tr>
+        <td>
+            <label class="form-label">&nbsp;Parlamentar</label>
+            <select name="lst_cod_parlamentar" size="1">
+                            </select>
+        </td>
+        <td>
+            <label class="form-label">&nbsp;Discurso</label>
+            <input type="file" name="file_nom_arquivo" size="40" maxlength="100" />
+        </td>
+    </tr>
+    <tr>
+        <td align="center" colspan="0">
+            <input class="botao" type="submit" size="10" name="btn_oradores" value="Incluir Discurso" />
+            <input type="hidden" name="flag_discurso" value="1"/>
+            <input type="hidden" name="hdn_cod_sessao_plen" value="264" />
+            <input type="hidden" name="hdn_cod_sessao_leg" value="59"/>
+            <input type="hidden" name="hdn_dat_sessao" value="14/04/2015"/>
+            <input type="hidden" name="hdn_num_legislatura" value="14"/>
+            <input type="hidden" name="hdn_tip_sessao" value="1"/>
+        </td>
+    </tr>
+</table>
+</fieldset>
+
+</form>
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ |
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>
