@@ -1,0 +1,289 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
+  <title>Sistema de Apoio ao Processo Legislativo</title>
+  <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+
+  <style type="text/css"><!-- @import url(http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/manage_page_style); --></style>
+  <style type="text/css"><!-- @import url(http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/estilos.css); --></style>
+  <link rel="shortcut icon" type="image/x-icon" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/favicon.ico" />
+
+  <script type='text/javascript' src='http://devsapl25.interlegis.leg.br:8080/curso/sapl01/javascript/geral.js'></script>
+
+  </head>
+<body>
+      <div id="pagina">
+      <div id="topo">
+
+
+    <h1 id="logo">
+          <img src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+      </h1>
+  <div id="identidade">
+    <h2>Camara Municipal de Demonstracao</h2>
+    <h3>Sistema de Apoio ao Processo Legislativo</h3>
+  </div>
+  <div id="busca">
+    <form name="top_bar_form" action="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/palavra_chave_buscar_proc">
+    <fieldset>
+      <legend>Busca por palavra-chave</legend>
+      <input id="campoBusca" type="text" name="txt_palavra_chave" size="20" />
+      <input class="botaoBusca" type="submit" value="buscar" />
+    </fieldset>
+    </form>
+  </div>
+  <br clear="all" />
+</div>
+
+<div id="funcoes">
+      <span>usu&aacute;rio: <strong>saploper</strong></span>
+    <ul>
+    <li> <a class="inicio" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01">in&iacute;cio</a></li>
+
+    <li> <a class="voltar" href="javascript:history.back();">voltar</a></li>
+
+
+    <li><a class="impressao" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/anexada/anexada_form?impressao=1&amp;cod_materia=1&incluir_anexada=1&btn_incluir=Incluir+Mat%E9ria+Anexada">impress&atilde;o</a></li>
+    <li><a class="manual" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/ajuda">manual</a></li>
+          <li><a class="sair" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/log_out_proc">sair</a></li>
+      </ul>
+  <br clear="all" />
+</div>
+
+      <div id="corpo">
+        <div id="menu">
+  <h5>Menu</h5>
+
+            <ul>
+
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/mesa_diretora">Mesa Diretora</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/comissao">Comiss&otilde;es</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/parlamentar">Parlamentares</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/recebimento_proposicao">Recebimento de Proposi&ccedil;&otilde;es</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/consultas/pauta_sessao">Pauta da Sess&atilde;o</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/materia_pesquisar_form?incluir=1">Mat&eacute;rias Legislativas</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/tramitacao/tramitacao_lote_form">Tramita&ccedil;&atilde;o em Lote</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/documento_acessorio/documento_acessorio_lote_form">Acess&oacute;rio em Lote</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/sessao_plenaria">Sess&atilde;o Plen&aacute;ria</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jur&iacute;dicas</a></li>
+
+      	<li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/impressos/materia_impresso_form">Impressos</a></li>
+
+             <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/relatorios_administrativos">Relat&oacute;rios</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/auxiliares">Tabelas Auxiliares</a></li>
+
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/senha_trocar_form">Troca de Senha</a></li>
+
+
+           </ul>
+  <br />
+  <fieldset>
+    <legend>Pesquisar no <a href="http://www.lexml.gov.br/" title="Rede de Informa&ccedil;&atilde;o Legislativa e Jur&iacute;dica">LexML</a></legend>
+    <form method="get" action="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/lexml_pesquisar">
+      <input class="buscaLexml" type="text" name="keyword" title="Busca por palavra-chave" value="" />
+      <input type="image" value="Buscar" alt="Buscar" src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/lexml.gif" />
+    </form>
+  </fieldset>
+<br />
+</div>
+
+        <div id="conteudo">
+
+
+
+<script type="text/javascript" src="javascript/data_validar_jvsc"></script>
+<script type="text/javascript" src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/javascript/prototype.min.js"></script>
+<style  type="text/css"><!-- @import url(http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/datepicker.css); --></style>
+
+<div class="helpsapl"> <a id="ajuda" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/ajuda/materia_anexada">Ajuda</a> </div>
+<h1 class="firstHeading"> Mat&eacute;ria Legislativa </h1>
+
+<form name="anexada_form" method="post" action="anexada_salvar_proc">
+<input type="hidden" name="incluir_anexada" value="1" />
+<input type="hidden" name="hdn_url" value="index_html?cod_materia=1" />
+
+<fieldset><legend>Mat&eacute;ria Legislativa</legend>
+    <div id="barra-conteudo">
+<ul>
+  <li>
+    <a
+             class="selecionado"
+          href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/anexada/index_html?cod_materia=1">Anexada</a>
+  </li>
+  <li>
+    <a
+          href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/autoria/index_html?cod_materia=1&dat_apresentacao=">Autoria</a>
+    </li>
+    <li>
+        <a
+              href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/despacho_inicial/index_html?cod_materia=1">Despacho Inicial</a>
+    </li>
+    <li>
+        <a
+              href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/documento_acessorio/index_html?cod_materia=1">Documento Acess&oacute;rio</a>
+    </li>
+    <li>
+        <a
+              href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/legislacao_citada/index_html?cod_materia=1">Legisla&ccedil;&atilde;o Citada</a>
+    </li>
+    <li>
+        <a
+              href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/numeracao/index_html?cod_materia=1">Numera&ccedil;&atilde;o</a>
+    </li>
+    <li>
+        <a
+              href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/tramitacao/index_html?cod_materia=1">Tramita&ccedil;&atilde;o</a>
+    </li>
+    <li>
+        <a
+              href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/relatoria/index_html?cod_materia=1">Relatoria</a>
+    </li>
+    <li>
+        <a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/materia_mostrar_proc?cod_materia=1">In&iacute;cio</a>
+    </li>
+</ul>
+</div>
+
+    <table>
+  <tr>
+                    <td width="20%" align="left" class="form-text">
+        Tipo: <b> IND</b>
+      </td>
+      <td width="20%" align="left" class="form-text">
+        N&uacute;mero: <b> 1</b>
+      </td>
+      <td width="20%" align="left" class="form-text">
+        Ano: <b> 2015</b>
+      </td>
+        </tr>
+
+  <tr>
+      <td colspan="4" class="form-text">
+                        Ementa: <b> TESTE</b>
+                  </td>
+  </tr>
+</table>
+
+      <fieldset><legend>Mat&eacute;ria Anexada</legend>
+      <table>
+        <tr>
+          <td colspan="2">
+            <label for="lst_tip_id_basica">Tipo </label> <span class="campoObrigatorio">&nbsp;</span><br />
+            <select name="lst_tip_id_basica" size="1" onChange="javascript:form.hdn_alterou.value=1">
+            <option value="">Selecione</option>
+                         <option
+                           value="8">
+             IND - Indicação</option>
+                        <option
+                           value="4">
+             MSG - Mensagem</option>
+                        <option
+                           value="7">
+             MOC - Moção</option>
+                        <option
+                           value="6">
+             PDL - Projeto de Decreto Legislativo</option>
+                        <option
+                           value="5">
+             PLC - Projeto de Lei Complementar</option>
+                        <option
+                           value="1">
+             PLO - Projeto de Lei Ordinária</option>
+                        <option
+                           value="2">
+             PRE - Projeto de Resolução</option>
+                        <option
+                           value="3">
+             REQ - Requerimento</option>
+                       </select>
+          </td>
+          <td>
+           <label for="txt_num_ident_basica">N&uacute;mero </label> <span class="campoObrigatorio">&nbsp;</span><br />
+           <input type="text" name="txt_num_ident_basica" size="5" maxlength="5" onChange="javascript:form.hdn_alterou.value=1"
+              />
+           </td>
+          <td>
+           <label for="txt_ano_ident_basica">Ano </label> <span class="campoObrigatorio">&nbsp;</span><br/>
+           <input type="text" name="txt_ano_ident_basica" size="4" maxlength="4" onChange="javascript:form.hdn_alterou.value=1"
+              />
+           </td>
+        </tr>
+        <tr>
+           <td colspan="2">
+           <label for="txt_dat_anexacao">Data Anexa&ccedil;&atilde;o </label> <span class="campoObrigatorio">&nbsp;</span><br />
+           <input type="text" name="txt_dat_anexacao" id="txt_dat_anexacao" value="" size="10" maxlength="10" onChange="javascript:form.hdn_alterou.value=1" onBlur="formata_data(form.txt_dat_anexacao)" />
+           <script type="text/javascript">
+                /*<[CDATA[*/
+                var dpck = new DatePicker({
+                            relative : 'txt_dat_anexacao',
+                            language : 'pt'
+                            });
+                            /*]]>*/
+            </script>
+           </td>
+           <td colspan="2">
+           <label for="txt_dat_desanexacao">Data Desanexa&ccedil;&atilde;o </label><br />
+           <input type="text" name="txt_dat_desanexacao" id="txt_dat_desanexacao" value="" size="10" maxlength="10" onChange="javascript:form.hdn_alterou.value=1" onBlur="formata_data(form.txt_dat_desanexacao)" />
+           <script type="text/javascript">
+                                /*<[CDATA[*/
+                                var dpck = new DatePicker({
+                                relative : 'txt_dat_desanexacao',
+                                language : 'pt'
+                                });
+                                /*]]>*/
+                              </script>
+            </td>
+        </tr>
+      </table>
+    </fieldset>
+     <p align="center"><input type="button" class="botao" name="btn_anexada_salvar" value="Salvar" onClick="campos_criticar(document.anexada_form)" />
+      &nbsp;&nbsp;
+          </p>
+     <input type="hidden" name="cod_materia_principal" value="1" />
+     <input type="hidden" name="hdn_alterou" value="0" />
+     <p>&nbsp;</p>
+</fieldset>
+</body>
+</form>
+
+      </div>
+      <br clear="all" />
+    </div>
+    <div id="rodape">
+      <address>
+                  Av. George Washington, 3580
+                      -&nbsp;São José da Lagoa Tapada - PB
+                                - CEP: 12345-678 -
+                                                        Telefone: (12)3456-7890
+                      - Fax: (09)8765-4321
+                          <br />
+
+              Portal:&nbsp;<a href="http://www.camaramunicipal.gov.br" target="_blank">http://www.camaramunicipal.gov.br</a>
+ <!--         Portal: <a href="http://www.camaramunicipal.gov.br">http://www.camaramunicipal.gov.br</a> -   -->
+                                              E-mail: <a href="mailto:faleconosco@camaramunicipal.gov.br">faleconosco@camaramunicipal.gov.br</a>
+              </address>
+      <div>
+        <a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/licenca"><img src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/interlegis.gif" width="80" height="15" alt="Desenvolvido pelo Interlegis" /></a>
+        <a href="http://www.zope.org/Credits"><img src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/zope.png" width="80" height="15" alt="Desenvolvido em Zope" /></a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
