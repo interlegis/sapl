@@ -90,7 +90,7 @@ def source_with_verbose_names(model):
     source = getsourcelines(model)[0]
     title, labels, non_matched = extract_verbose_names(model)
 
-    field_regex = ' *(.+) = (models\..*)\((.*)\)'
+    field_regex = ' *(.+) = (models\.[^\(]*)\((.*verbose_name=_\(.*\)|.*)\)'
     new_lines = []
     class_meta_already_exists = False
     for line in source[1:]:
@@ -102,10 +102,10 @@ def source_with_verbose_names(model):
                 name, path, args, legacy_name = split(match.groups())
                 if name in labels and 'verbose_name' not in args:
                     args = [args] if args.strip() else []
-                    args.append("verbose_name=_(u'%s')" % labels[name])
-                    args = ', '.join(args)
+                    args.append(u"verbose_name=_(u'%s')" % labels[name])
+                    args = u', '.join(args)
                 new_lines.append(
-                    ('    %s = %s(%s)' % (name, path, args), legacy_name))
+                    (u'    %s = %s(%s)' % (name, path, args), legacy_name))
                 break
         else:
             if 'class Meta:' in line:
