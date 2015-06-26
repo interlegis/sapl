@@ -168,7 +168,7 @@ from django.utils.translation import ugettext as _
         elif 'class' in line:
             break
         else:
-            header += line
+            header += line + '\n'
     print header.strip()
     for model in app.models.values():
         print '\n'
