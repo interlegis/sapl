@@ -154,3 +154,9 @@ from django.utils.translation import ugettext as _
         print '\n'
         for p in source_with_verbose_names(model):
             print p
+
+
+def list_models_with_no_scrapped_data(app):
+    for model in app.models.values():
+        if not any(extract_verbose_names(model)[:2]):
+            print model.__name__
