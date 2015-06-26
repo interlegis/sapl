@@ -92,6 +92,7 @@ def source_with_verbose_names(model):
 
     field_regex = ' *(.+) = (models\..*)\((.*)\)'
     new_lines = []
+    class_meta_already_exists = False
     for line in source[1:]:
         for regex, split in [
                 (field_regex + ' *# (.+)', lambda groups: groups),
@@ -107,6 +108,8 @@ def source_with_verbose_names(model):
                     ('    %s = %s(%s)' % (name, path, args), legacy_name))
                 break
         else:
+            if 'class Meta:' in line:
+                class_meta_already_exists = True
             new_lines.append((line, ''))
     yield source[0].rstrip()
     cols = max(map(len, [line for line, _ in new_lines]))
@@ -116,12 +119,17 @@ def source_with_verbose_names(model):
             yield line + ' # ' + legacy_name
         else:
             yield line
-    if title:
-        if title.endswith('s'):
-            title_singular, title_plural = '', title
-        else:
-            title_singular, title_plural = title, ''
-        yield """
+
+    # class Meta
+    if class_meta_already_exists:
+        return
+
+    title = title if title else ''
+    if title.endswith('s'):
+        title_singular, title_plural = '', title
+    else:
+        title_singular, title_plural = title, ''
+    yield """
     class Meta:
         verbose_name = _(u'%s')
         verbose_name_plural = _(u'%s')""" % (title_singular, title_plural)
