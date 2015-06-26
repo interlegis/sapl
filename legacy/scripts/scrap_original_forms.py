@@ -100,7 +100,7 @@ def source_with_verbose_names(model):
     for line in source[1:]:
         for regex, split in [
                 (field_regex + ' *# (.+)', lambda groups: groups),
-                (field_regex, lambda groups: groups + [''])]:
+                (field_regex, lambda groups: groups + ('',))]:
             match = re.match(regex, line)
             if match:
                 name, path, args, legacy_name = split(match.groups())
