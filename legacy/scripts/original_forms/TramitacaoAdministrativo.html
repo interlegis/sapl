@@ -1,0 +1,410 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
+  <title>Sistema de Apoio ao Processo Legislativo</title>
+  <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+
+  <style type="text/css"><!-- @import url(http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/manage_page_style); --></style>
+  <style type="text/css"><!-- @import url(http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/estilos.css); --></style>
+  <link rel="shortcut icon" type="image/x-icon" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/favicon.ico" />
+
+  <script type='text/javascript' src='http://devsapl25.interlegis.leg.br:8080/curso/sapl01/javascript/geral.js'></script>
+
+  </head>
+<body>
+      <div id="pagina">
+      <div id="topo">
+
+
+    <h1 id="logo">
+          <img src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+      </h1>
+  <div id="identidade">
+    <h2>Câmara Municipal de Demonstração</h2>
+    <h3>Sistema de Apoio ao Processo Legislativo</h3>
+  </div>
+  <div id="busca">
+    <form name="top_bar_form" action="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/palavra_chave_buscar_proc">
+    <fieldset>
+      <legend>Busca por palavra-chave</legend>
+      <input id="campoBusca" type="text" name="txt_palavra_chave" size="20" />
+      <input class="botaoBusca" type="submit" value="buscar" />
+    </fieldset>
+    </form>
+  </div>
+  <br clear="all" />
+</div>
+
+<div id="funcoes">
+      <span>usu&aacute;rio: <strong>saploper</strong></span>
+    <ul>
+    <li> <a class="inicio" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01">in&iacute;cio</a></li>
+
+    <li> <a class="voltar" href="javascript:history.back();">voltar</a></li>
+
+
+    <li><a class="impressao" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/documento_administrativo/tramitacao/tramitacao_form?impressao=1&amp;cod_documento=1&btn_incluir=Incluir+Tramita%E7%E3o">impress&atilde;o</a></li>
+    <li><a class="manual" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/ajuda">manual</a></li>
+          <li><a class="sair" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/log_out_proc">sair</a></li>
+      </ul>
+  <br clear="all" />
+</div>
+
+      <div id="corpo">
+        <div id="menu">
+  <h5>Menu</h5>
+
+            <ul>
+
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/mesa_diretora">Mesa Diretora</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/comissao">Comiss&otilde;es</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/parlamentar">Parlamentares</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/consultas/protocolo/protocolo_pesquisar_form?incluir=1">Protocolo Geral</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/consultas/documento_administrativo/documento_administrativo_pesquisar_form?incluir=1">Documentos Administrativos</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/recebimento_proposicao">Recebimento de Proposi&ccedil;&otilde;es</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/consultas/pauta_sessao">Pauta da Sess&atilde;o</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/materia_pesquisar_form?incluir=1">Mat&eacute;rias Legislativas</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/tramitacao/tramitacao_lote_form">Tramita&ccedil;&atilde;o em Lote</a></li>
+        <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/materia/documento_acessorio/documento_acessorio_lote_form">Acess&oacute;rio em Lote</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/sessao_plenaria">Sess&atilde;o Plen&aacute;ria</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/norma_juridica_pesquisar_form?incluir=1">Normas Jur&iacute;dicas</a></li>
+
+      	<li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/impressos/materia_impresso_form">Impressos</a></li>
+
+             <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/relatorios_administrativos">Relat&oacute;rios</a></li>
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/auxiliares">Tabelas Auxiliares</a></li>
+
+
+              <li><a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/senha_trocar_form">Troca de Senha</a></li>
+
+
+           </ul>
+  <br />
+  <fieldset>
+    <legend>Pesquisar no <a href="http://www.lexml.gov.br/" title="Rede de Informa&ccedil;&atilde;o Legislativa e Jur&iacute;dica">LexML</a></legend>
+    <form method="get" action="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/lexml_pesquisar">
+      <input class="buscaLexml" type="text" name="keyword" title="Busca por palavra-chave" value="" />
+      <input type="image" value="Buscar" alt="Buscar" src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/lexml.gif" />
+    </form>
+  </fieldset>
+<br />
+</div>
+
+        <div id="conteudo">
+
+
+
+<div class="helpsapl"> <a id="ajuda" href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/ajuda/tramitacao_relatoria">Ajuda</a> </div>
+<h1 class="firstHeading"> Documento Administrativo </h1>
+
+
+
+<script type="text/javascript" src="javascript/data_validar_jvsc"></script>
+<script type="text/javascript" src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/javascript/prototype.min.js"></script>
+<style  type="text/css"><!-- @import url(http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/datepicker.css); --></style>
+<script type="text/javascript">
+<!--
+  function submeter(endereco){
+
+      var form = document.tramitacao_form;
+
+      endereco += '?cod_documento=' + form.hdn_cod_documento.value;
+
+      if (form.hdn_alterou.value=="1"){
+         if (confirm("Deseja salvar os dados?")){
+            form.hdn_url.value = endereco;
+            campos_criticar(form);
+         }else {location.href = endereco}
+      }
+      location.href = endereco;
+  }
+
+  function campos_criticar(form){
+
+      if (form.txt_dat_tramitacao.value == ""){
+         alert("A data de tramitação deve ser preenchida!");
+         form.txt_dat_tramitacao.focus();
+         return false;
+      }
+
+      if (!IsValidDate(form.txt_dat_tramitacao.value)){
+         alert("Digite uma data de tramitação válida!");
+         form.txt_dat_tramitacao.focus();
+         form.txt_dat_tramitacao.select();
+         return false;
+      }
+
+      var dat_tramitacao = form.txt_dat_tramitacao.value.substring(6,10) + form.txt_dat_tramitacao.value.substring(3,5) + form.txt_dat_tramitacao.value.substring(0,2);
+
+      if ((dat_tramitacao > 20150626) || (dat_tramitacao < 10000101)) {
+           alert("Data de tramitação deve ser menor ou igual à data corrente e maior ou igual à data da última tramitação!");
+           form.txt_dat_tramitacao.focus();
+           form.txt_dat_tramitacao.select();
+           return false;
+      }
+
+      if (form.lst_cod_unid_tram_local.selectedIndex == 0){
+          alert("A unidade local deve ser preenchida!");
+          form.lst_cod_unid_tram_local.focus();
+          return false;
+      }
+
+      if (form.lst_cod_status.selectedIndex == 0){
+          alert("O status da matéria deve ser preenchido!");
+          form.lst_cod_status.focus();
+          return false;
+      }
+ /* ----- não eh obrigatório o preenchimento do local de destino ----
+      if (form.lst_cod_unid_tram_dest.selectedIndex == 0){
+          alert("A unidade destino deve ser selecionada!");
+          form.lst_cod_unid_tram_dest.focus();
+          return false;
+      }
+ ------------------------------------------------------------------- */
+/* ------ liberar indicação de mesmo local na origem e no destino a pedido da CM de Agudo/RS -----------
+      if (form.lst_cod_unid_tram_local.value == form.lst_cod_unid_tram_dest.value){
+         alert("As unidades local e destino devem ser diferentes!")
+         form.lst_cod_unid_tram_dest.focus();
+         return false;
+      }
+--------------------------------------------------------------------------- */
+      if (form.lst_cod_ult_tram_dest.value != ""){
+
+         if (form.lst_cod_ult_tram_dest.value != form.lst_cod_unid_tram_local.value){
+            alert("A unidade local deve ser igual a de destino anterior!")
+            form.lst_cod_unid_tram_local.focus();
+            return false;
+         }
+         alert("Ultima Unid="+form.lst.cod_ult_tram_dest.value);
+      }
+      if (form.lst_cod_status.selectedIndex == 0){
+          alert("O status deve ser selecionado!");
+          form.lst_cod_status.focus();
+          return false;
+      }
+
+      if (form.txa_txt_tramitacao.value == "") {
+         alert("O texto da tramitação deve ser preenchido!");
+         form.txa_txt_tramitacao.focus();
+         return false;
+      }
+
+      if (form.txt_dat_encaminha.value!="" ) {
+         if (!IsValidDate(form.txt_dat_encaminha.value)){
+           alert("Digite uma data de encaminhamento válida!");
+           form.txt_dat_encaminha.focus();
+           form.txt_dat_encaminha.select();
+           return false;
+         }
+
+         var dat_encaminha = form.txt_dat_encaminha.value.substring(6,10) + form.txt_dat_encaminha.value.substring(3,5) + form.txt_dat_encaminha.value.substring(0,2);
+         if (dat_encaminha < dat_tramitacao) {
+            alert("A data de encaminhamento deve ser maior ou igual à data de tramitação!");
+            form.txt_dat_encaminha.focus();
+            form.txt_dat_encaminha.select();
+            return false;
+         }
+
+      }
+
+      if (form.txt_dat_fim_prazo.value!="") {
+         if (!IsValidDate(form.txt_dat_fim_prazo.value)){
+           alert("Digite uma data de fim de prazo válida!");
+           form.txt_dat_fim_prazo.focus();
+           form.txt_dat_fim_prazo.select();
+           return false;
+         }
+         var dat_fim_prazo = form.txt_dat_fim_prazo.value.substring(6,10) + form.txt_dat_fim_prazo.value.substring(3,5) + form.txt_dat_fim_prazo.value.substring(0,2);
+
+         if (dat_fim_prazo < dat_tramitacao) {
+           alert("A data de fim de prazo tem que ser maior ou igual à data de tramitação!");
+           form.txt_dat_fim_prazo.focus();
+           form.txt_dat_fim_prazo.select();
+           return false;
+         }
+      }
+
+      form.hdn_dat_tramitacao.value = form.txt_dat_tramitacao.value;
+      form.submit();
+  }
+
+  function tramitacao_excluir(){
+      /*-----------------------------
+         Função: Chama o Método DTML de exclusão da tramitacao
+         Argumentos: ().
+         Retorno: Retorna uma mensagem de exclusão bem sucessida e
+                redireciona à página 'index_html'.
+         Rommel Carvalho e Danilo Custódio em 16/04/2001.
+      ------------------------------*/
+
+       if (confirm("Deseja realmente excluir?")) {
+          location.href="tramitacao_excluir_proc?cod_tramitacao=&cod_documento=1&ind_ult_tramitacao=";
+       }
+  }
+
+//-->
+</script>
+
+<form name="tramitacao_form" method="post" action="tramitacao_salvar_proc">
+
+  <input type="hidden" name="hdn_cod_tramitacao" value="" />
+  <input type="hidden" name="hdn_cod_documento" value="1" />
+  <input type="hidden" name="hdn_url" value="index_html?cod_documento=1" />
+  <input type="hidden" name="hdn_alterou" value="0" />
+  <input type="hidden" name="hdn_dat_tramitacao" value="" />
+
+<fieldset><legend>Documento Administrativo</legend>
+      <ul>
+    <li>
+      <a
+            href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/documento_administrativo/documento_acessorio/index_html?cod_documento=1">Documento Acess&oacute;rio</a>
+    </li>
+    <li>
+      <a
+             class="selecionado"
+
+      href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/documento_administrativo/tramitacao/index_html?cod_documento=1">Tramita&ccedil;&atilde;o</a>
+    </li>
+    <li>
+        <a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/cadastros/documento_administrativo/documento_administrativo_mostrar_proc?cod_documento=1">In&iacute;cio</a>
+    </li>
+</ul>
+
+      <table>
+  <tr>
+        <td class="texto">
+        Tipo: <b>CNV</b>
+      </td>
+      <td class="texto">
+        N&uacute;mero: <b>1</b>
+      </td>
+      <td class="texto">
+        Ano: <b>2015</b>
+      </td>
+    </tr>
+  <tr>
+      <td colspan="3" class="texto">
+                   Assunto: <b> AAAAA</b>
+                  </td>
+  </tr>
+</table>
+
+
+      <fieldset><legend>Tramita&ccedil;&atilde;o</legend>
+      <table>
+          <tr>
+            <td><label for="txt_dat_tramitacao">Data Tramita&ccedil;&atilde;o <span class="campoObrigatorio"></span></label><br />
+            <input type="hidden" name="lst_cod_ult_tram_dest" value="" />
+
+                                       <input type="text" name="txt_dat_tramitacao" id="txt_dat_tramitacao" size="10" maxlength="10" value="26/06/2015"
+                onChange="javascript:form.hdn_alterou.value=1" onBlur="formata_data(form.txt_dat_tramitacao)" />
+                <script type="text/javascript">
+                    /*<[CDATA[*/
+                        var dpck = new DatePicker({
+                            relative : 'txt_dat_tramitacao',
+                            language : 'pt'
+                            });
+                    /*]]>*/
+                </script></td>
+
+                       <td><label for="lst_cod_unid_tram_local">Unidade Local <span class="campoObrigatorio"></span></label><br />
+             <select name="lst_cod_unid_tram_local" onChange="javascript:form.hdn_alterou.value=1">
+             <option>Selecione</option>
+                          </select>
+             </td>
+                       </tr>
+
+          <tr>
+             <td><label for="lst_cod_status">Status <span class="campoObrigatorio"></span></label><br />
+              <select name="lst_cod_status" onChange="javascript:form.hdn_alterou.value=1">
+            <option>Selecione</option>
+                          <option
+                                 value="1">
+            DEF - Deferido</option>
+                          <option
+                                 value="2">
+            IND - Indeferido</option>
+                        </select></td>
+
+             <td><label for="lst_cod_unid_tram_dest">Unidade Destino </label><br />
+              <select name="lst_cod_unid_tram_dest" onChange="javascript:form.hdn_alterou.value=1">
+             <option value="">Selecione</option>
+                          </select></td></tr>
+
+	     <tr>
+	     <td><label for="lst_cod_unid_tram_dest">Data Encaminhamento</label><br />
+             <input type="text" name="txt_dat_encaminha" id="txt_dat_encaminha" size="10" maxlength="10" value=""
+                    onChange="javascript:form.hdn_alterou.value=1" onBlur="formata_data(form.txt_dat_encaminha)" />
+            <script type="text/javascript">
+                /*<[CDATA[*/
+                    var dpck = new DatePicker({
+                        relative : 'txt_dat_encaminha',
+                        language : 'pt'
+                        });
+                /*]]>*/
+            </script></td>
+             <td><label for="lst_cod_unid_tram_dest">Data Fim do Prazo</label><br />
+               <input type="text" name="txt_dat_fim_prazo" id="txt_dat_fim_prazo" size="10" maxlength="10" value=""
+                   onChange="javascript:form.hdn_alterou.value=1" onBlur="formata_data(form.txt_dat_fim_prazo)" />
+                   <script type="text/javascript">
+                        /*<[CDATA[*/
+                            var dpck = new DatePicker({
+                                relative : 'txt_dat_fim_prazo',
+                                language : 'pt'
+                                });
+                        /*]]>*/
+                    </script>
+             </td>
+
+         </tr>
+         <tr>
+            <td colspan="4"><label for="txa_txt_tramitacao">Texto da A&ccedil;&atilde;o <span class="campoObrigatorio"></span></label><br />
+             <textarea name="txa_txt_tramitacao" cols="65"
+                 onChange="javascript:form.hdn_alterou.value=1"></textarea>
+            </td>
+         </tr>
+        </table>
+        </fieldset>
+        <p align="center"><input type="button" class="botao" name="btn_tramitacao_salvar" value="Salvar" onClick="campos_criticar(document.tramitacao_form)" />
+          &nbsp;&nbsp;
+                 </p>
+     </fieldset>
+</form>
+      </div>
+      <br clear="all" />
+    </div>
+    <div id="rodape">
+      <address>
+                  Av. George Washington, 3580
+                      -&nbsp;São José da Lagoa Tapada - PB
+                                - CEP: 12345-678 -
+                                                        Telefone: (12)3456-7890
+                      - Fax: (09)8765-4321
+                          <br />
+
+              Portal:&nbsp;<a href="http://www.camaramunicipal.gov.br" target="_blank">http://www.camaramunicipal.gov.br</a>
+ <!--         Portal: <a href="http://www.camaramunicipal.gov.br">http://www.camaramunicipal.gov.br</a> -   -->
+                                              E-mail: <a href="mailto:faleconosco@camaramunicipal.gov.br">faleconosco@camaramunicipal.gov.br</a>
+              </address>
+      <div>
+        <a href="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/generico/licenca"><img src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/interlegis.gif" width="80" height="15" alt="Desenvolvido pelo Interlegis" /></a>
+        <a href="http://www.zope.org/Credits"><img src="http://devsapl25.interlegis.leg.br:8080/curso/sapl01/imagens/zope.png" width="80" height="15" alt="Desenvolvido em Zope" /></a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
