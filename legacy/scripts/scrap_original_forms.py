@@ -7,7 +7,11 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
 from field_mappings import field_mappings
+from migration import appconfs
 from utils import listify, getsourcelines
+
+
+assert appconfs  # to prevent removal by automatic organize imports on this file
 
 
 def _read_line(tr):
@@ -15,7 +19,7 @@ def _read_line(tr):
         label = td.text.strip().split('\n')[0].strip(u'\xa0' + string.whitespace)
         if label.endswith('(*)'):
             label = label[:-3].strip()
-        names = [c.attrs['name'] for c in td.children if isinstance(c, Tag) and 'name' in c.attrs]
+        names = [c.attrs['name'] for c in td.findAll() if isinstance(c, Tag) and 'name' in c.attrs]
         if names:
             name = names[0].split('_', 1)[-1]
             yield name, label
