@@ -116,7 +116,7 @@ def source_with_verbose_names(model):
     for line, legacy_name in new_lines:
         line = line.rstrip().ljust(cols)
         if legacy_name:
-            yield line + ' # ' + legacy_name
+            yield line + '  # ' + legacy_name
         else:
             yield line
 
