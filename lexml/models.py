@@ -22,7 +22,7 @@ class LexmlRegistroPublicador(models.Model):
     id_publicador = models.IntegerField(verbose_name=_(u'Id do publicador'))                                            # id_publicador
     nome_publicador = models.CharField(max_length=255, verbose_name=_(u'Nome do publicador'))                           # nom_publicador
     adm_email = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'E-mail do responsável'))        # adm_email
-    sigla = models.CharField(max_length=255, blank=True, null=True)                                                     # sigla
+    sigla = models.CharField(max_length=255, blank=True, null=True, verbose_name=_(u'Sigla do Publicador'))                                                     # sigla
     nome_responsavel = models.CharField(max_length=255, blank=True, null=True, verbose_name=_(u'Nome do responsável'))  # nom_responsavel
     tipo = models.CharField(max_length=50)                                                                              # tipo
     id_responsavel = models.IntegerField(verbose_name=_(u'Id do responsável'))                                          # id_responsavel

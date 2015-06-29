@@ -87,7 +87,7 @@ class StatusTramitacaoAdministrativo(models.Model):
 
 class TramitacaoAdministrativo(models.Model):
     documento = models.ForeignKey(DocumentoAdministrativo)                                                        # cod_documento
-    data_tramitacao = models.DateField(blank=True, null=True)                                                     # dat_tramitacao
+    data_tramitacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Tramitação'))                                                     # dat_tramitacao
     cod_unid_tram_local = models.IntegerField(blank=True, null=True, verbose_name=_(u'Unidade Local'))            # cod_unid_tram_local
     data_encaminha = models.DateField(blank=True, null=True, verbose_name=_(u'Data Encaminhamento'))              # dat_encaminha
     cod_unid_tram_dest = models.IntegerField(blank=True, null=True, verbose_name=_(u'Unidade Destino'))           # cod_unid_tram_dest
