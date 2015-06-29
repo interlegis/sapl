@@ -49,14 +49,14 @@ class DocumentoAcessorioAdministrativo(models.Model):
 
 
 class Protocolo(models.Model):
-    numero_protocolo = models.IntegerField(blank=True, null=True)                                                                 # num_protocolo
+    numero_protocolo = models.IntegerField(blank=True, null=True, verbose_name=_(u'Núm. Protocolo'))                              # num_protocolo
     ano_protocolo = models.SmallIntegerField()                                                                                    # ano_protocolo
     data_protocolo = models.DateField()                                                                                           # dat_protocolo
     hora_protocolo = models.TimeField()                                                                                           # hor_protocolo
     data_timestamp = models.DateTimeField()                                                                                       # dat_timestamp
     tipo_protocolo = models.IntegerField(verbose_name=_(u'Tipo de Protocolo'))                                                    # tip_protocolo
     tipo_processo = models.IntegerField()                                                                                         # tip_processo
-    txt_interessado = models.CharField(max_length=60, blank=True, null=True)                                                      # txt_interessado
+    txt_interessado = models.CharField(max_length=60, blank=True, null=True, verbose_name=_(u'Interessado'))                      # txt_interessado
     autor = models.ForeignKey(Autor, blank=True, null=True)                                                                       # cod_autor
     txt_assunto_ementa = models.TextField(blank=True, null=True)                                                                  # txt_assunto_ementa
     tipo_documento = models.ForeignKey(TipoDocumentoAdministrativo, blank=True, null=True, verbose_name=_(u'Tipo de documento'))  # tip_documento
