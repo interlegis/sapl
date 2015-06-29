@@ -25,23 +25,23 @@ class TipoNormaJuridica(models.Model):
 
 
 class NormaJuridica(models.Model):
-    tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_(u'Tipo'))                     # tip_norma
-    materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)                   # cod_materia
-    numero_norma = models.IntegerField(verbose_name=_(u'Número'))                            # num_norma
-    ano_norma = models.SmallIntegerField(verbose_name=_(u'Ano'))                             # ano_norma
-    tipo_esfera_federacao = models.CharField(max_length=1)                                   # tip_esfera_federacao
-    data_norma = models.DateField(blank=True, null=True)                                     # dat_norma
-    data_publicacao = models.DateField(blank=True, null=True)                                # dat_publicacao
-    descricao_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True)    # des_veiculo_publicacao
-    numero_pag_inicio_publ = models.IntegerField(blank=True, null=True)                      # num_pag_inicio_publ
-    numero_pag_fim_publ = models.IntegerField(blank=True, null=True)                         # num_pag_fim_publ
-    txt_ementa = models.TextField()                                                          # txt_ementa
-    txt_indexacao = models.TextField(blank=True, null=True)                                  # txt_indexacao
-    txt_observacao = models.TextField(blank=True, null=True)                                 # txt_observacao
-    complemento = models.NullBooleanField(blank=True)                                        # ind_complemento
-    assunto = models.ForeignKey(AssuntoNorma)  # XXX was a CharField (attention on migrate)  # cod_assunto
-    data_vigencia = models.DateField(blank=True, null=True)                                  # dat_vigencia
-    timestamp = models.DateTimeField()                                                       # timestamp
+    tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_(u'Tipo'))                                                          # tip_norma
+    materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)                                                        # cod_materia
+    numero_norma = models.IntegerField(verbose_name=_(u'Número'))                                                                 # num_norma
+    ano_norma = models.SmallIntegerField(verbose_name=_(u'Ano'))                                                                  # ano_norma
+    tipo_esfera_federacao = models.CharField(max_length=1, verbose_name=_(u'Esfera Federação'))                                   # tip_esfera_federacao
+    data_norma = models.DateField(blank=True, null=True, verbose_name=_(u'Data'))                                                 # dat_norma
+    data_publicacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Publicação'))                                 # dat_publicacao
+    descricao_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True, verbose_name=_(u'Veículo Publicação'))  # des_veiculo_publicacao
+    numero_pag_inicio_publ = models.IntegerField(blank=True, null=True, verbose_name=_(u'Pg. Início'))                            # num_pag_inicio_publ
+    numero_pag_fim_publ = models.IntegerField(blank=True, null=True, verbose_name=_(u'Pg. Fim'))                                  # num_pag_fim_publ
+    txt_ementa = models.TextField(verbose_name=_(u'Ementa'))                                                                      # txt_ementa
+    txt_indexacao = models.TextField(blank=True, null=True, verbose_name=_(u'Indexação'))                                         # txt_indexacao
+    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                                       # txt_observacao
+    complemento = models.NullBooleanField(blank=True, verbose_name=_(u'Complementar ?'))                                          # ind_complemento
+    assunto = models.ForeignKey(AssuntoNorma)  # XXX was a CharField (attention on migrate)                                       # cod_assunto
+    data_vigencia = models.DateField(blank=True, null=True)                                                                       # dat_vigencia
+    timestamp = models.DateTimeField()                                                                                            # timestamp
 
     class Meta:
         verbose_name = _(u'Norma Jurídica')
