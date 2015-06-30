@@ -1,0 +1,71 @@
+-> /sapl/comissoes/models.py
+	#1 - Não encontrei o arquivo html da classe CargoComissao
+	#2 - class ComposicaoComissao: Verificar comissao e periodo_comp.
+
+-> /sapl/lexml/models.py
+	#1 - Na classe LexmlRegistroProvedor 'sigla_provedor' e 'tipo' não tem no html
+	#2 - Na classe LexmlRegistroProvedor falta o campo 'Endereço do provedor OAI'
+	#3 - Na classe LexmlRegistroPublicador 'tipo' não tem no html
+
+-> /sapl/norma/models.py
+	#1 - Na classe LegislacaoCitada falta 'Tipo Norma', 'Número' e 'Ano'
+	#2 - Não encontrei o html de 'VinculoNormaJuridica'
+	#3 - Na classe 'NormaJuridica' falta os campos 'Matéria Legislativa', 'Texto original (PDF)' e 'Situação de Vigência'
+
+-> /sapl/parlamentares/models.py
+	#1 - Classe 'Legislatura' falta 'Nº Legislatura'
+	#2 - Não encontrei o arquivo html da classe 'ComposicaoColigacao'
+	#3 - Não encontrei o arquivo html da classe 'Localidade'
+	     - Não tem html mesmo
+	#4 - Não encontrei o arquivo html da classe 'NivelInstrucao'
+	#5 - Não encontrei o arquivo html da classe 'SituacaoMilitar'
+	#6 - Na classe 'Parlamentar' faltam os campos 'Observação', 'UF' e 'Login'
+	#7 - Não encontrei o arquivo html da classe 'TipoAfastamento'
+	#8 - Na classe 'Mandato' eu não tenho certeza se os campos 'tipo_afastamento' e 'tipo_causa_fim_mandato'
+		 - correspondem aos campos 'Natureza do Mandato' e 'Expedição do Diploma', então naõ adicionei os verbose_name
+	#9 - Não encontrei o arquivo html da classe 'CargoMesa'
+	#10 - Não encontrei o arquivo html da classe 'ComposicaoMesa'
+
+-> /sapl/protocoloadm/models.py
+	#1 - Na classe 'DocumentoAdministrativo' não possui o campo 'Autor' no html por isso está sem verbose_name e falta o
+	     campo 'Texto Integral' na classe.
+	#2 - Na classe 'StatusTramitacaoAdministrativo' falta o campo 'Indicador de Tramitação'
+	#3 - A classe protocolo tá bastante diferente do html
+	     - Ver depois
+
+-> /sapl/materia/models.py
+	#1 - Não encontrei o arquivo html da classe 'TipoMateriaLegislativa'
+	#2 - Não encontrei o arquivo html da classe 'RegimeTramitacao'
+	#3 - Na classe 'MateriaLegislativa' falta o campo 'cep'
+	#4 - Não encontrei o arquivo html da classe 'AcompMateria'
+	#5 - Na classe 'Anexada' faltam os campos 'Tipo', 'Número' e 'Ano'
+	#6 - Não encontrei o arquivo html da classe 'AssuntoMateria'
+	#7 - Na classe 'TipoAutor' falta o campo 'Tipo'
+	#8 - Classe 'Autor' com campos a mais
+	#9 - Na classe 'Autoria' faltam os campos 'Tipo de Autor' e 'Nome Autor'
+	#10 - Não encontrei o arquivo html da classe 'DespachoInicial'
+	#11 - Não encontrei o arquivo html da classe 'TipoDocumento'
+	#12 - Na classe 'DocumentoAcessorio' faltam os campos 'Texto digitalizado (PDF)' e 'Obeservação'
+	#13 - Não encontrei o arquivo html da classe 'MateriaAssunto'
+	#14 - Não encontrei o arquivo html da classe 'TipoFimRelatoria'
+	#15 - Não encontrei o arquivo html da classe 'Parecer'
+	#16 - Verificar nomes na classe 'TipoProposicao'
+	#17 - Classe 'Proposicao' muito diferente do html
+	#18 - Na classe 'StatusTramitacao', 'fim_tramitacao' e 'retorno_tramitacao' não deveriam tá separados
+	#19 - Na classe 'UnidadeTramitacao' falta o campo 'Correspondente SPDO'
+
+-> /sapl/sessao/models.py
+	#1 - Na classe 'SessaoPlenaria' faltam os campos de arquivos indexados
+	#2 - Na classe 'ExpedienteMateria' faltam os campos 'Tipo da Sessão', 'Tipo Matéria', 'Núm. Matéria' e 'Ano Matéria'
+	#3 - Não encontrei o arquivo html da classe 'ExpedienteSessaoPlenaria'
+	#4 - Não encontrei o arquivo html da classe 'MesaSessaoPlenaria'
+	#5 - Na Classe 'Oradores' faltam os campos 'Parlamentar' e 'Discurso'
+	#6 - Na Classe 'OradoresExpediente' faltam os campos 'Parlamentar' e 'Discurso'
+		***** As páginas 'Oradores' e 'OradoresExpediente' são iguas
+	#7 - Na classe 'OrdemDia' faltam os campos 'Tipo da Sessão', 'Tipo Matéria', 'Núm. Matéria' e 'Ano Matéria'
+		***** As páginas 'ExpedienteMateria' e 'OrdemDia' são iguas
+	#8 - Não encontrei o arquivo html da classe 'OrdemDiaPresenca'
+	#9 - Na classe 'RegistroVotacao' faltam os campos 'Não Votou:', 'Anular Votação' e 
+	     'A totalização inclui o voto do Presidente?'
+	#10 - Não encontrei o arquivo html da classe 'RegistroVotacaoParlamentar'
+	#11 - Não encontrei o arquivo html da classe 'SessaoPlenariaPresenca'

@@ -36,7 +36,7 @@ class Origem(models.Model):
 
 class MateriaLegislativa(models.Model):
     tipo_id_basica = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_(u'Tipo'))                                                # tip_id_basica
-    numero_protocolo = models.IntegerField(blank=True, null=True)                                                                      # num_protocolo
+    numero_protocolo = models.IntegerField(blank=True, null=True,verbose_name=_(u'Núm. Protocolo'))                                                                      # num_protocolo
     numero_ident_basica = models.IntegerField(verbose_name=_(u'Número'))                                                               # num_ident_basica
     ano_ident_basica = models.SmallIntegerField(verbose_name=_(u'Ano'))                                                                # ano_ident_basica
     data_apresentacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Apresentação'))                                  # dat_apresentacao
@@ -190,7 +190,7 @@ class Numeracao(models.Model):
 class Orgao(models.Model):
     nome_orgao = models.CharField(max_length=60, verbose_name=_(u'Nome'))                                   # nom_orgao
     sigla_orgao = models.CharField(max_length=10, verbose_name=_(u'Sigla'))                                 # sgl_orgao
-    unid_deliberativa = models.BooleanField()                                                               # ind_unid_deliberativa
+    unid_deliberativa = models.BooleanField(verbose_name=_(u'Unidade Deliberativa'))                                                               # ind_unid_deliberativa
     endereco_orgao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Endereço'))   # end_orgao
     numero_tel_orgao = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Telefone'))  # num_tel_orgao
 
@@ -209,9 +209,9 @@ class TipoFimRelatoria(models.Model):
 
 class Relatoria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)                                                                           # cod_materia
-    parlamentar = models.ForeignKey(Parlamentar)                                                                              # cod_parlamentar
+    parlamentar = models.ForeignKey(Parlamentar, verbose_name=_(u'Parlamentar'))                                                                              # cod_parlamentar
     tipo_fim_relatoria = models.ForeignKey(TipoFimRelatoria, blank=True, null=True, verbose_name=_(u'Motivo Fim Relatoria'))  # tip_fim_relatoria
-    comissao = models.ForeignKey(Comissao, blank=True, null=True)                                                             # cod_comissao
+    comissao = models.ForeignKey(Comissao, blank=True, null=True, verbose_name=_(u'Localização Atual'))                                                             # cod_comissao
     data_desig_relator = models.DateField(verbose_name=_(u'Data Designação'))                                                 # dat_desig_relator
     data_destit_relator = models.DateField(blank=True, null=True, verbose_name=_(u'Data Destituição'))                        # dat_destit_relator
 
@@ -233,10 +233,10 @@ class Parecer(models.Model):
 
 
 class TipoProposicao(models.Model):
-    descricao_tipo_proposicao = models.CharField(max_length=50)  # des_tipo_proposicao
-    mat_ou_doc = models.BooleanField()                           # ind_mat_ou_doc
-    tipo_mat_ou_doc = models.IntegerField()                      # tip_mat_ou_doc
-    nome_modelo = models.CharField(max_length=50)                # nom_modelo
+    descricao_tipo_proposicao = models.CharField(max_length=50, verbose_name=_(u'Descrição'))  # des_tipo_proposicao
+    mat_ou_doc = models.BooleanField(verbose_name=_(u'Gera'))                           # ind_mat_ou_doc
+    tipo_mat_ou_doc = models.IntegerField(verbose_name=_(u'Tipo Matéria'))                      # tip_mat_ou_doc
+    nome_modelo = models.CharField(max_length=50, verbose_name=_(u'Modelo XML'))                # nom_modelo
 
     class Meta:
         verbose_name = _(u'Tipo de Proposição')
@@ -250,7 +250,8 @@ class Proposicao(models.Model):
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(null=True)                                    # dat_envio
     data_recebimento = models.DateTimeField(blank=True, null=True)                  # dat_recebimento
-    txt_descricao = models.CharField(max_length=100)                                # txt_descricao
+    txt_descricao = models.CharField(max_length=100, verbose_name=_(u'Descrição'))               # tip_proposicao
+    # XXX data_envio was not null, but actual data said otherwise!!!)                                # txt_descricao
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)                     # cod_mat_ou_doc
     data_devolucao = models.DateTimeField(blank=True, null=True)                    # dat_devolucao
     txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)  # txt_justif_devolucao
@@ -285,7 +286,7 @@ class UnidadeTramitacao(models.Model):
 class Tramitacao(models.Model):
     status = models.ForeignKey(StatusTramitacao, blank=True, null=True, verbose_name=_(u'Status'))                                      # cod_status
     materia = models.ForeignKey(MateriaLegislativa)                                                                                     # cod_materia
-    data_tramitacao = models.DateField(blank=True, null=True)                                                                           # dat_tramitacao
+    data_tramitacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Tramitação'))                                                                           # dat_tramitacao
     unid_tram_local = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_(u'Unidade Local'))   # cod_unid_tram_local
     data_encaminha = models.DateField(blank=True, null=True, verbose_name=_(u'Data Encaminhamento'))                                    # dat_encaminha
     unid_tram_dest = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_(u'Unidade Destino'))  # cod_unid_tram_dest

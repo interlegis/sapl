@@ -20,14 +20,14 @@ class SessaoPlenaria(models.Model):
     # andamento_sessao = models.ForeignKey(AndamentoSessao, blank=True, null=True)
     cod_andamento_sessao = models.IntegerField(blank=True, null=True)                                                                      # cod_andamento_sessao
 
-    tipo = models.ForeignKey(TipoSessaoPlenaria)                                                                                           # tip_sessao
-    sessao_leg = models.ForeignKey(SessaoLegislativa)                                                                                      # cod_sessao_leg
+    tipo = models.ForeignKey(TipoSessaoPlenaria, verbose_name=_(u'Tipo'))                                                                                           # tip_sessao
+    sessao_leg = models.ForeignKey(SessaoLegislativa, verbose_name=_(u'Sessão Legislativa'))                                                                                      # cod_sessao_leg
     legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))                                                           # num_legislatura
     tipo_expediente = models.CharField(max_length=10)                                                                                      # tip_expediente
     data_inicio_sessao = models.DateField(verbose_name=_(u'Abertura'))                                                                     # dat_inicio_sessao
     dia_sessao = models.CharField(max_length=15)                                                                                           # dia_sessao
-    hr_inicio_sessao = models.CharField(max_length=5)                                                                                      # hr_inicio_sessao
-    hr_fim_sessao = models.CharField(max_length=5, blank=True, null=True)                                                                  # hr_fim_sessao
+    hr_inicio_sessao = models.CharField(max_length=5, verbose_name=_(u'Horário'))                                                                                      # hr_inicio_sessao
+    hr_fim_sessao = models.CharField(max_length=5, blank=True, null=True, verbose_name=_(u'Horário'))                                                                  # hr_fim_sessao
     numero_sessao_plen = models.IntegerField(verbose_name=_(u'Número'))                                                                    # num_sessao_plen
     data_fim_sessao = models.DateField(blank=True, null=True, verbose_name=_(u'Encerramento'))                                             # dat_fim_sessao
     url_audio = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Arquivo Áudio (Formatos MP3 / AAC)'))         # url_audio
