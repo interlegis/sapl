@@ -23,10 +23,3 @@ legacy_app = apps.get_app_config('legacy')
 legacy_model_names = set(m.__name__ for m in legacy_app.get_models())
 
 model_dict = {m.__name__: m for ac in appconfs for m in ac.get_models()}
-assert legacy_model_names == set(model_dict.keys())
-
-
-def has_primary_key(model):
-    return any(field.primary_key for field in model._meta.fields)
-
-assert all(has_primary_key(model) for model in legacy_app.models.values())
