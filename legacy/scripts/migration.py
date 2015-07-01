@@ -4,7 +4,7 @@ from django.db import connections, models
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 
-from field_mappings import field_mappings
+from field_renames import field_renames
 from migration_base import legacy_app, appconfs
 from parlamentares.models import Parlamentar
 
@@ -126,7 +126,7 @@ def migrate_model(model, to_delete, count_limit=None):
     for old in old_records:
         old_pk = get_old_pk(old)
         new = model()
-        for new_field, old_field in field_mappings[model].items():
+        for new_field, old_field in field_renames[model].items():
             value = getattr(old, old_field)
             model_field = model._meta.get_field(new_field)
             transform = special_transforms.get(model_field)

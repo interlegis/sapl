@@ -33,7 +33,7 @@ def print_commented_source(model):
     return new_to_old
 
 
-field_mappings = OrderedDict()
+field_renames = OrderedDict()
 for app in appconfs:
     for model in app.models.values():
         new_to_old = OrderedDict()
@@ -43,7 +43,7 @@ for app in appconfs:
                 new = get_field(line)
                 old = line.split('#')[-1].strip()
                 new_to_old[new] = old
-        field_mappings[model] = new_to_old
+        field_renames[model] = new_to_old
 
 
 def check_similarity():
@@ -52,7 +52,7 @@ def check_similarity():
         return SequenceMatcher(None, a, b).ratio()
 
     different_pairs = defaultdict(list)
-    for model, new_to_old in field_mappings.items():
+    for model, new_to_old in field_renames.items():
         for new, old in new_to_old.items():
             if similar(new, old) < 0.7:
                 different_pairs[model].append((new, old))

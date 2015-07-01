@@ -6,7 +6,7 @@ import string
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
-from field_mappings import field_mappings
+from field_renames import field_renames
 from migration import appconfs
 from utils import listify, getsourcelines
 
@@ -76,7 +76,7 @@ def extract_verbose_names(model):
     field_names = [f.name for f in model._meta.fields if f.name != 'id']
 
     labels = {}
-    field_names_to_old = field_mappings[model]
+    field_names_to_old = field_renames[model]
     for name in field_names:
         old_name = field_names_to_old[name]
         label = names_to_labels.get(old_name, None)
