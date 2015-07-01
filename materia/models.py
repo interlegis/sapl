@@ -7,8 +7,8 @@ from parlamentares.models import Parlamentar, Partido
 
 
 class TipoMateriaLegislativa(models.Model):
-    sigla_tipo_materia = models.CharField(max_length=5)          # sgl_tipo_materia
-    descricao_tipo_materia = models.CharField(max_length=50)     # des_tipo_materia
+    sigla_tipo_materia = models.CharField(max_length=5, verbose_name=_(u'Sigla'))          # sgl_tipo_materia
+    descricao_tipo_materia = models.CharField(max_length=50, verbose_name=_(u'Descrição '))     # des_tipo_materia
     num_automatica = models.BooleanField()                       # ind_num_automatica
     quorum_minimo_votacao = models.IntegerField()                # quorum_minimo_votacao
 
@@ -21,8 +21,8 @@ class RegimeTramitacao(models.Model):
     descricao_regime_tramitacao = models.CharField(max_length=50)  # des_regime_tramitacao
 
     class Meta:
-        verbose_name = _(u'Regime de Tramitação')
-        verbose_name_plural = _(u'Regimes de Tramitação')
+        verbose_name = _(u'Regime Tramitação')
+        verbose_name_plural = _(u'Regimes Tramitação')
 
 
 class Origem(models.Model):
@@ -143,7 +143,7 @@ class DespachoInicial(models.Model):
 
 
 class TipoDocumento(models.Model):
-    descricao_tipo_documento = models.CharField(max_length=50)  # des_tipo_documento
+    descricao_tipo_documento = models.CharField(max_length=50, verbose_name=_(u'Tipo Documento'))  # des_tipo_documento
 
     class Meta:
         verbose_name = _(u'Tipo de Documento')
@@ -200,11 +200,11 @@ class Orgao(models.Model):
 
 
 class TipoFimRelatoria(models.Model):
-    descricao_fim_relatoria = models.CharField(max_length=50)  # des_fim_relatoria
+    descricao_fim_relatoria = models.CharField(max_length=50, verbose_name=_(u'Tipo Fim Relatoria'))  # des_fim_relatoria
 
     class Meta:
-        verbose_name = _(u'Tipo de fim de Relatoria')
-        verbose_name_plural = _(u'Tipos de fim de Relatoria')
+        verbose_name = _(u'Tipo Fim de Relatoria')
+        verbose_name_plural = _(u'Tipos Fim de Relatoria')
 
 
 class Relatoria(models.Model):
@@ -235,7 +235,7 @@ class Parecer(models.Model):
 class TipoProposicao(models.Model):
     descricao_tipo_proposicao = models.CharField(max_length=50, verbose_name=_(u'Descrição'))  # des_tipo_proposicao
     mat_ou_doc = models.BooleanField(verbose_name=_(u'Gera'))                           # ind_mat_ou_doc
-    tipo_mat_ou_doc = models.IntegerField(verbose_name=_(u'Tipo Matéria'))                      # tip_mat_ou_doc
+    tipo_mat_ou_doc = models.IntegerField(verbose_name=_(u'Tipo Documento'))                      # tip_mat_ou_doc
     nome_modelo = models.CharField(max_length=50, verbose_name=_(u'Modelo XML'))                # nom_modelo
 
     class Meta:

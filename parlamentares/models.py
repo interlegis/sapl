@@ -67,22 +67,22 @@ class Localidade(models.Model):
 
 
 class NivelInstrucao(models.Model):
-    nivel_instrucao = models.CharField(max_length=50)  # des_nivel_instrucao
+    nivel_instrucao = models.CharField(max_length=50, verbose_name=_(u'Nível de Instrução'))  # des_nivel_instrucao
 
     class Meta:
-        verbose_name = _(u'Nível de Instrução')
-        verbose_name_plural = _(u'Níveis de Instrução')
+        verbose_name = _(u'Nível Instrução')
+        verbose_name_plural = _(u'Níveis Instrução')
 
     def __unicode__(self):
         return self.nivel_instrucao
 
 
 class SituacaoMilitar(models.Model):
-    descricao_tipo_situacao = models.CharField(max_length=50)  # des_tipo_situacao
+    descricao_tipo_situacao = models.CharField(max_length=50, verbose_name=_(u'Situação Militar'))  # des_tipo_situacao
 
     class Meta:
-        verbose_name = _(u'Situação Militar')
-        verbose_name_plural = _(u'Situações Militares')
+        verbose_name = _(u'Tipo Situação Militar')
+        verbose_name_plural = _(u'Tipos Situações Militares')
 
 
 class Parlamentar(models.Model):
@@ -155,10 +155,10 @@ class Filiacao(models.Model):
 
 
 class TipoAfastamento(models.Model):
-    descricao_afastamento = models.CharField(max_length=50)                         # des_afastamento
-    afastamento = models.BooleanField()                                             # ind_afastamento
-    fim_mandato = models.BooleanField()                                             # ind_fim_mandato
-    descricao_dispositivo = models.CharField(max_length=50, blank=True, null=True)  # des_dispositivo
+    descricao_afastamento = models.CharField(max_length=50, verbose_name=_(u'Descrição'))                         # des_afastamento
+    afastamento = models.BooleanField(verbose_name=_(u'Indicador'))                                             # ind_afastamento
+    fim_mandato = models.BooleanField(verbose_name=_(u'Indicador'))                                             # ind_fim_mandato
+    descricao_dispositivo = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Dispositivo'))  # des_dispositivo
 
     class Meta:
         verbose_name = _(u'Tipo de Afastamento')
@@ -183,12 +183,12 @@ class Mandato(models.Model):
 
 class CargoMesa(models.Model):
     # TODO M2M ????
-    nome = models.CharField(max_length=50)          # des_cargo
-    unico = models.BooleanField()                   # ind_unico
+    nome = models.CharField(max_length=50, verbose_name=_(u'Cargo na Mesa'))          # des_cargo
+    unico = models.BooleanField(verbose_name=_(u'Cargo Único'))                   # ind_unico
 
     class Meta:
-        verbose_name = _(u'Cargo da Mesa')
-        verbose_name_plural = _(u'Cargos da Mesa')
+        verbose_name = _(u'Cargo na Mesa')
+        verbose_name_plural = _(u'Cargos na Mesa')
 
 
 class ComposicaoMesa(models.Model):

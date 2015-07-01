@@ -53,12 +53,12 @@ class PeriodoCompComissao(models.Model):
 
 
 class CargoComissao(models.Model):
-    nome = models.CharField(max_length=50)  # des_cargo
-    unico = models.BooleanField()           # ind_unico
+    nome = models.CharField(max_length=50, verbose_name=_(u'Cargo na Comissão'))  # des_cargo
+    unico = models.BooleanField(verbose_name=_(u'Cargo Único'))           # ind_unico
 
     class Meta:
-        verbose_name = _(u'Cargo em Comissão')
-        verbose_name_plural = _(u'Cargos em Comissão')
+        verbose_name = _(u'Cargo de Comissão')
+        verbose_name_plural = _(u'Cargos de Comissão')
 
 
 class ComposicaoComissao(models.Model):
