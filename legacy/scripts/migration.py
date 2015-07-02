@@ -4,9 +4,11 @@ from django.db import connections, models
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 
-from field_renames import field_renames
+from field_renames import field_renames, model_renames
 from migration_base import legacy_app, appconfs
+
 from parlamentares.models import Parlamentar
+from comissoes.models import Composicao, Participacao
 
 
 def info(msg):
@@ -27,12 +29,30 @@ def special(model, fieldname):
 
 
 @special(Parlamentar, 'unid_deliberativa')
-def none_to_false(value):
+def none_to_false(obj, value):
     # Field is defined as not null in legacy db, but data includes null values
     #  => transform None to False
     if value is None:
         warn('null converted to False')
     return bool(value)
+
+
+@special(Participacao, 'composicao')
+def get_participacao_composicao(obj, value):
+    # value parameter is ignored
+    new = Composicao()
+    for new_field, value in [('comissao', obj.cod_comissao),
+                             ('periodo', obj.cod_periodo_comp)]:
+        model_field = Composicao._meta.get_field(new_field)
+        value = get_related_if_foreignkey(model_field, '???', value)
+        setattr(new, new_field, value)
+    previous = Composicao.objects.filter(comissao=new.comissao, periodo=new.periodo)
+    if previous:
+        assert len(previous) == 1
+        return previous[0]
+    else:
+        new.save()
+        return new
 
 
 def migrate(obj=appconfs, count_limit=None):
@@ -96,12 +116,17 @@ def make_stub(model, id):
 
 def migrate_model(model, to_delete, count_limit=None):
 
+    legacy_model_name = model_renames.get(model, model.__name__)
+    if legacy_model_name.upper() == 'IGNORE':
+        print 'Model ignored: %s' % model.__name__
+        return
+
     print 'Migrating %s...' % model.__name__
 
     # clear all model entries
     model.objects.all().delete()
 
-    legacy_model = legacy_app.get_model(model.__name__)
+    legacy_model = legacy_app.get_model(legacy_model_name)
     old_pk_name = legacy_model._meta.pk.name
 
     # setup migration strategy for tables with or without a pk
@@ -131,28 +156,33 @@ def migrate_model(model, to_delete, count_limit=None):
             model_field = model._meta.get_field(new_field)
             transform = special_transforms.get(model_field)
             if transform:
-                value = transform(value)
+                value = transform(old, value)
             else:
                 # check for a relation
-                if isinstance(model_field, models.ForeignKey) and value is not None:
-                    try:
-                        value = model_field.related_model.objects.get(id=value)
-                    except ObjectDoesNotExist:
-                        msg = 'FK [%s (%s) : %s] not found for value %s' % (
-                            model.__name__, old_pk, model_field.name, value)
-                        if value == 0:
-                            # we interpret FK == 0 as actually FK == NONE
-                            value = None
-                            warn(msg + ' => NONE for zero value')
-                        else:
-                            value = make_stub(model_field.related_model, value)
-                            warn(msg + ' => STUB CREATED')
-                    else:
-                        assert value
+                value = get_related_if_foreignkey(model_field, old_pk, value)
             setattr(new, new_field, value)
         save(new, old_pk)
         if getattr(old, 'ind_excluido', False):
             to_delete.append(new)
+
+
+def get_related_if_foreignkey(model_field, old_pk, value):
+    if isinstance(model_field, models.ForeignKey) and value is not None:
+        try:
+            value = model_field.related_model.objects.get(id=value)
+        except ObjectDoesNotExist:
+            msg = 'FK [%s (%s) : %s] not found for value %s' % (
+                model_field.model.__name__, old_pk, model_field.name, value)
+            if value == 0:
+                # we interpret FK == 0 as actually FK == NONE
+                value = None
+                warn(msg + ' => NONE for zero value')
+            else:
+                value = make_stub(model_field.related_model, value)
+                warn(msg + ' => STUB CREATED')
+        else:
+            assert value
+    return value
 
 
 def get_ind_excluido(obj):

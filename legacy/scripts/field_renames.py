@@ -1,7 +1,7 @@
-from collections import defaultdict
+import re
+from collections import defaultdict, OrderedDict
 from difflib import SequenceMatcher
 from inspect import getsourcelines
-from collections import OrderedDict
 
 from migration_base import appconfs, legacy_app
 
@@ -34,10 +34,19 @@ def print_commented_source(model):
 
 
 field_renames = OrderedDict()
+model_renames = {}
 for app in appconfs:
     for model in app.models.values():
         new_to_old = OrderedDict()
         lines = getsourcelines(model)[0]
+
+        class_line = lines[0].strip()
+        match = re.match('class (.+)\(models\.Model\): *\# *(.*)', class_line)
+        if match:
+            model_name, rename = match.groups()
+            assert model_name == model.__name__
+            model_renames[model] = rename
+
         for line in lines:
             if is_field_line(line):
                 new = get_field(line)

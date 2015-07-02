@@ -53,7 +53,7 @@ class Comissao(models.Model):
         return self.nome
 
 
-class PeriodoCompComissao(models.Model):
+class Periodo(models.Model):  # PeriodoCompComissao
     data_inicio = models.DateField(verbose_name=_(u'Data Início'))                   # dat_inicio_periodo
     data_fim = models.DateField(blank=True, null=True, verbose_name=_(u'Data Fim'))  # dat_fim_periodo
 
@@ -77,20 +77,28 @@ class CargoComissao(models.Model):
         return self.nome
 
 
-class ComposicaoComissao(models.Model):
-    parlamentar = models.ForeignKey(Parlamentar)                                                                                     # cod_parlamentar
-    comissao = models.ForeignKey(Comissao)                                                                                           # cod_comissao
-    periodo_comp = models.ForeignKey(PeriodoCompComissao)                                                                            # cod_periodo_comp
-    cargo = models.ForeignKey(CargoComissao)                                                                                         # cod_cargo
-    titular = models.BooleanField(verbose_name=_(u'Titular'))                                                                        # ind_titular
-    data_designacao = models.DateField(verbose_name=_(u'Data Designação'))                                                           # dat_designacao
-    data_desligamento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Desligamento'))                                # dat_desligamento
-    motivo_desligamento = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Motivo Desligamento'))  # des_motivo_desligamento
-    observacao = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Observação'))                          # obs_composicao
+class Composicao(models.Model):  # IGNORE
+    comissao = models.ForeignKey(Comissao, verbose_name=_(u'Comissão'))  # cod_comissao
+    periodo = models.ForeignKey(Periodo, verbose_name=_(u'Período'))    # cod_periodo_comp
 
     class Meta:
         verbose_name = _(u'Composição de Comissão')
         verbose_name_plural = _(u'Composições de Comissão')
+
+
+class Participacao(models.Model):  # ComposicaoComissao
+    composicao = models.ForeignKey(Composicao)                                                                             # cod_comissao
+    parlamentar = models.ForeignKey(Parlamentar)                                                                           # cod_parlamentar
+    cargo = models.ForeignKey(CargoComissao)                                                                               # cod_cargo
+    titular = models.BooleanField(verbose_name=_(u'Titular'))                                                              # ind_titular
+    data_designacao = models.DateField(verbose_name=_(u'Data Designação'))                                                 # dat_designacao
+    data_desligamento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Desligamento'))                      # dat_desligamento
+    motivo_desligamento = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Motivo Desligamento'))  # des_motivo_desligamento
+    observacao = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Observação'))                    # obs_composicao
+
+    class Meta:
+        verbose_name = _(u'Participação em Comissão')
+        verbose_name_plural = _(u'Participações em Comissão')
 
     def __unicode__(self):
         return 'TODO...'
