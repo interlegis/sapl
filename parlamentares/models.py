@@ -109,7 +109,7 @@ class Parlamentar(models.Model):
     endereco_email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Correio Eletrônico'))          # end_email
     descricao_local_atuacao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Locais de Atuação'))  # des_local_atuacao
     ativo = models.BooleanField(verbose_name=_(u'Ativo na Casa?'))                                                           # ind_ativo
-    txt_biografia = models.TextField(blank=True, null=True, verbose_name=_(u'Biografia'))                                    # txt_biografia
+    biografia = models.TextField(blank=True, null=True, verbose_name=_(u'Biografia'))                                    # txt_biografia
     unid_deliberativa = models.BooleanField()                                                                                # ind_unid_deliberativa
 
     class Meta:
@@ -174,7 +174,7 @@ class Mandato(models.Model):
     data_fim_mandato = models.DateField(blank=True, null=True, verbose_name=_(u'Fim do Mandato'))              # dat_fim_mandato
     numero_votos_recebidos = models.IntegerField(blank=True, null=True, verbose_name=_(u'Votos Recebidos'))    # num_votos_recebidos
     data_expedicao_diploma = models.DateField(blank=True, null=True, verbose_name=_(u'Expedição do Diploma'))  # dat_expedicao_diploma
-    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                    # txt_observacao
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                    # txt_observacao
 
     class Meta:
         verbose_name = _(u'Mandato')

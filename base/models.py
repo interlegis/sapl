@@ -15,7 +15,7 @@ class CasaLegislativa(models.Model):
     sgl_uf = models.CharField(max_length=100, verbose_name=_(u'UF'))                          # sgl_uf
     num_tel = models.CharField(max_length=100, verbose_name=_(u'Telefone'))                   # num_tel
     num_fax = models.CharField(max_length=100, verbose_name=_(u'Fax'))                        # num_fax
-    txt_senha_inicial = models.CharField(max_length=100, verbose_name=_(u'Senha'))            # txt_senha_inicial
+    senha_inicial = models.CharField(max_length=100, verbose_name=_(u'Senha'))            # txt_senha_inicial
     cor_fundo = models.CharField(max_length=100, verbose_name=_(u'Cor de fundo'))             # cor_fundo
     cor_borda = models.CharField(max_length=100, verbose_name=_(u'Cor da borda'))             # cor_borda
     cor_principal = models.CharField(max_length=100, verbose_name=_(u'Cor principal'))        # cor_principal

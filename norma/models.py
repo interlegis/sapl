@@ -35,9 +35,9 @@ class NormaJuridica(models.Model):
     descricao_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True, verbose_name=_(u'Veículo Publicação'))  # des_veiculo_publicacao
     numero_pag_inicio_publ = models.IntegerField(blank=True, null=True, verbose_name=_(u'Pg. Início'))                            # num_pag_inicio_publ
     numero_pag_fim_publ = models.IntegerField(blank=True, null=True, verbose_name=_(u'Pg. Fim'))                                  # num_pag_fim_publ
-    txt_ementa = models.TextField(verbose_name=_(u'Ementa'))                                                                      # txt_ementa
-    txt_indexacao = models.TextField(blank=True, null=True, verbose_name=_(u'Indexação'))                                         # txt_indexacao
-    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                                       # txt_observacao
+    ementa = models.TextField(verbose_name=_(u'Ementa'))                                                                      # txt_ementa
+    indexacao = models.TextField(blank=True, null=True, verbose_name=_(u'Indexação'))                                         # txt_indexacao
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                                       # txt_observacao
     complemento = models.NullBooleanField(blank=True, verbose_name=_(u'Complementar ?'))                                          # ind_complemento
     assunto = models.ForeignKey(AssuntoNorma)  # XXX was a CharField (attention on migrate)                                       # cod_assunto
     data_vigencia = models.DateField(blank=True, null=True)                                                                       # dat_vigencia

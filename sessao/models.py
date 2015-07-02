@@ -42,9 +42,9 @@ class ExpedienteMateria(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)                                      # cod_sessao_plen
     materia = models.ForeignKey(MateriaLegislativa)                                      # cod_materia
     data_ordem = models.DateField(verbose_name=_(u'Data da Sessão'))                     # dat_ordem
-    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))  # txt_observacao
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))  # txt_observacao
     numero_ordem = models.IntegerField(verbose_name=_(u'Nº Ordem'))                      # num_ordem
-    txt_resultado = models.TextField(blank=True, null=True)                              # txt_resultado
+    resultado = models.TextField(blank=True, null=True)                              # txt_resultado
     tipo_votacao = models.IntegerField(verbose_name=_(u'Tipo de votação'))               # tip_votacao
 
     class Meta:
@@ -63,7 +63,7 @@ class TipoExpediente(models.Model):
 class ExpedienteSessaoPlenaria(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)           # cod_sessao_plen
     expediente = models.ForeignKey(TipoExpediente)            # cod_expediente
-    txt_expediente = models.TextField(blank=True, null=True)  # txt_expediente
+    expediente = models.TextField(blank=True, null=True)  # txt_expediente
 
     class Meta:
         verbose_name = _(u'Expediente de Sessão Plenaria')
@@ -107,9 +107,9 @@ class OrdemDia(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)                                      # cod_sessao_plen
     materia = models.ForeignKey(MateriaLegislativa)                                      # cod_materia
     data_ordem = models.DateField(verbose_name=_(u'Data da Sessão'))                     # dat_ordem
-    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))  # txt_observacao
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))  # txt_observacao
     numero_ordem = models.IntegerField(verbose_name=_(u'Nº Ordem'))                      # num_ordem
-    txt_resultado = models.TextField(blank=True, null=True)                              # txt_resultado
+    resultado = models.TextField(blank=True, null=True)                              # txt_resultado
     tipo_votacao = models.IntegerField(verbose_name=_(u'Tipo de votação'))               # tip_votacao
 
     class Meta:
@@ -142,7 +142,7 @@ class RegistroVotacao(models.Model):
     numero_votos_sim = models.IntegerField(verbose_name=_(u'Sim:'))                                            # num_votos_sim
     numero_votos_nao = models.IntegerField(verbose_name=_(u'Não:'))                                            # num_votos_nao
     numero_abstencao = models.IntegerField(verbose_name=_(u'Abstenções:'))                                     # num_abstencao
-    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observações'))                   # txt_observacao
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observações'))                   # txt_observacao
 
     class Meta:
         verbose_name = _(u'Votação')

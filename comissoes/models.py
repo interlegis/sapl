@@ -41,7 +41,7 @@ class Comissao(models.Model):
     numero_fax_secretaria = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Fax Secretaria'))         # num_fax_secretaria
     descricao_agenda_reuniao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Data/Hora Reunião'))  # des_agenda_reuniao
     local_reuniao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Local Reunião'))                 # loc_reuniao
-    txt_finalidade = models.TextField(blank=True, null=True, verbose_name=_(u'Finalidade'))                                   # txt_finalidade
+    finalidade = models.TextField(blank=True, null=True, verbose_name=_(u'Finalidade'))                                   # txt_finalidade
     email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'E-mail'))                                # end_email
     unid_deliberativa = models.BooleanField()                                                                                 # ind_unid_deliberativa
 

@@ -55,10 +55,10 @@ class MateriaLegislativa(models.Model):
     polemica = models.NullBooleanField(blank=True, verbose_name=_(u'Matéria Polêmica?'))                                               # ind_polemica
     descricao_objeto = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Objeto'))                              # des_objeto
     complementar = models.NullBooleanField(blank=True, verbose_name=_(u'É Complementar?'))                                             # ind_complementar
-    txt_ementa = models.TextField(verbose_name=_(u'Ementa'))                                                                           # txt_ementa
-    txt_indexacao = models.TextField(blank=True, null=True, verbose_name=_(u'Indexação'))                                              # txt_indexacao
-    txt_observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                                            # txt_observacao
-    txt_resultado = models.TextField(blank=True, null=True)                                                                            # txt_resultado
+    ementa = models.TextField(verbose_name=_(u'Ementa'))                                                                           # txt_ementa
+    indexacao = models.TextField(blank=True, null=True, verbose_name=_(u'Indexação'))                                              # txt_indexacao
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                                            # txt_observacao
+    resultado = models.TextField(blank=True, null=True)                                                                            # txt_resultado
     # XXX novo
     anexadas = models.ManyToManyField('self', through='Anexada',
                                       symmetrical=False, related_name='anexo_de',
@@ -72,7 +72,7 @@ class MateriaLegislativa(models.Model):
 class AcompMateria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)                                           # cod_materia
     endereco_email = models.CharField(max_length=100, verbose_name=_(u'Endereço de E-mail'))  # end_email
-    txt_hash = models.CharField(max_length=8)                                                 # txt_hash
+    hash = models.CharField(max_length=8)                                                 # txt_hash
 
     class Meta:
         verbose_name = _(u'Acompanhamento de Matéria')
@@ -156,8 +156,8 @@ class DocumentoAcessorio(models.Model):
     nome_documento = models.CharField(max_length=30, verbose_name=_(u'Descrição'))                           # nom_documento
     data_documento = models.DateField(blank=True, null=True, verbose_name=_(u'Data'))                        # dat_documento
     nome_autor_documento = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Autor'))  # nom_autor_documento
-    txt_ementa = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))                          # txt_ementa
-    txt_indexacao = models.TextField(blank=True, null=True)                                                  # txt_indexacao
+    ementa = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))                          # txt_ementa
+    indexacao = models.TextField(blank=True, null=True)                                                  # txt_indexacao
 
     class Meta:
         verbose_name = _(u'Documento Acessório')
@@ -225,7 +225,7 @@ class Parecer(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)                         # cod_materia
     tipo_conclusao = models.CharField(max_length=3, blank=True, null=True)  # tip_conclusao
     tipo_apresentacao = models.CharField(max_length=1)                      # tip_apresentacao
-    txt_parecer = models.TextField(blank=True, null=True)                   # txt_parecer
+    parecer = models.TextField(blank=True, null=True)                   # txt_parecer
 
     class Meta:
         verbose_name = _(u'Parecer')
@@ -250,11 +250,11 @@ class Proposicao(models.Model):
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(null=True)                                    # dat_envio
     data_recebimento = models.DateTimeField(blank=True, null=True)                  # dat_recebimento
-    txt_descricao = models.CharField(max_length=100, verbose_name=_(u'Descrição'))               # tip_proposicao
+    descricao = models.CharField(max_length=100, verbose_name=_(u'Descrição'))               # tip_proposicao
     # XXX data_envio was not null, but actual data said otherwise!!!)                                # txt_descricao
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)                     # cod_mat_ou_doc
     data_devolucao = models.DateTimeField(blank=True, null=True)                    # dat_devolucao
-    txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)  # txt_justif_devolucao
+    justif_devolucao = models.CharField(max_length=200, blank=True, null=True)  # txt_justif_devolucao
     numero_proposicao = models.IntegerField(blank=True, null=True)                  # num_proposicao
 
     class Meta:
@@ -293,7 +293,7 @@ class Tramitacao(models.Model):
     ult_tramitacao = models.BooleanField()                                                                                              # ind_ult_tramitacao
     urgencia = models.BooleanField(verbose_name=_(u'Urgente ?'))                                                                        # ind_urgencia
     sigla_turno = models.CharField(max_length=1, blank=True, null=True, verbose_name=_(u'Turno'))                                       # sgl_turno
-    txt_tramitacao = models.TextField(blank=True, null=True, verbose_name=_(u'Texto da Ação'))                                          # txt_tramitacao
+    tramitacao = models.TextField(blank=True, null=True, verbose_name=_(u'Texto da Ação'))                                          # txt_tramitacao
     data_fim_prazo = models.DateField(blank=True, null=True, verbose_name=_(u'Data Fim Prazo'))                                         # dat_fim_prazo
 
     class Meta:
