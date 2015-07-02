@@ -41,11 +41,9 @@ INSTALLED_APPS = (
 
     # legacy reversed model definitions (temporary)
     'legacy',
-    'pglegacy',
-
-    'base',
 
     # sapl modules
+    'base',
     'parlamentares',
     'comissoes',
     'sessao',
