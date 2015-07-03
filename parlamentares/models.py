@@ -93,7 +93,7 @@ class SituacaoMilitar(models.Model):
 class Parlamentar(models.Model):
     FEMININO = 'F'
     MASCULINO = 'M'
-    SEXO_CHOICE = ((FEMININO, _(u'Feminino'),
+    SEXO_CHOICE = ((FEMININO, _(u'Feminino')),
                    (MASCULINO, _(u'Masculino')))
 
     nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True, verbose_name=_(u'Nível Instrução'))           # cod_nivel_instrucao
@@ -141,7 +141,7 @@ class TipoDependente(models.Model):
 class Dependente(models.Model):
     FEMININO = 'F'
     MASCULINO = 'M'
-    SEXO_CHOICE = ((FEMININO, _(u'Feminino'),
+    SEXO_CHOICE = ((FEMININO, _(u'Feminino')),
                   (MASCULINO, _(u'Masculino')))
 
     tipo_dependente = models.ForeignKey(TipoDependente, verbose_name=_(u'Tipo'))                                       # tip_dependente
