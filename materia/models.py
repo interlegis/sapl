@@ -304,6 +304,23 @@ class UnidadeTramitacao(models.Model):
 
 
 class Tramitacao(models.Model):
+    PRIMEIRO = 'P'
+    SEGUNDO = 'S'
+    UNICO = 'Ú'
+    SUPLEMENTAR = 'L'
+    FINAL = 'F'
+    VOTACAO_UNICA = 'A'
+    PRIMEIRA_VOTACAO = 'B'
+    SEGUNDA_TERCEIRA_VOTACAO = 'C'
+    TURNO_CHOICES = ((PRIMEIRO, _(u'Primeiro')),
+                     (SEGUNDO, _(u'Segundo')),
+                     (UNICO, _(u'Único')),
+                     (SUPLEMENTAR, _(u'Suplementar')),
+                     (FINAL, _(u'Final')),
+                     (VOTACAO_UNICA, _(u'Votação única em Regime de Urgência')),
+                     (PRIMEIRA_VOTACAO, _(u'1ª Votação')),
+                     (SEGUNDA_TERCEIRA_VOTACAO, _(u'2ª e 3ª Votação')))
+
     status = models.ForeignKey(StatusTramitacao, blank=True, null=True, verbose_name=_(u'Status'))                                      # cod_status
     materia = models.ForeignKey(MateriaLegislativa)                                                                                     # cod_materia
     data_tramitacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Tramitação'))                                                                           # dat_tramitacao
@@ -312,7 +329,7 @@ class Tramitacao(models.Model):
     unidade_tramitacao_destino = models.ForeignKey(UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_(u'Unidade Destino'))  # cod_unid_tram_dest
     ultima = models.BooleanField()                                                                                              # ind_ult_tramitacao
     urgente = models.BooleanField(verbose_name=_(u'Urgente ?'))                                                                        # ind_urgencia
-    turno = models.CharField(max_length=1, blank=True, null=True, verbose_name=_(u'Turno'))                                       # sgl_turno
+    turno = models.CharField(max_length=1, blank=True, null=True, verbose_name=_(u'Turno'), choices=TURNO_CHOICES)                                       # sgl_turno
     texto = models.TextField(blank=True, null=True, verbose_name=_(u'Texto da Ação'))                                          # txt_tramitacao
     data_fim_prazo = models.DateField(blank=True, null=True, verbose_name=_(u'Data Fim Prazo'))                                         # dat_fim_prazo
 

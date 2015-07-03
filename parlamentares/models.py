@@ -14,9 +14,14 @@ class Legislatura(models.Model):
 
 
 class SessaoLegislativa(models.Model):
+    ORDINARIA = 'O'
+    EXTRAORDINARIA = 'E'
+    TIPO_SESSAO_CHOICES = ((ORDINARIA, _(u'Ordinária')),
+                          (EXTRAORDINARIA, _(u'Extraordinária')))
+
     legislatura = models.ForeignKey(Legislatura)                                                          # num_legislatura
     numero = models.IntegerField(verbose_name=_(u'Número'))                                               # num_sessao_leg
-    tipo = models.CharField(max_length=1, verbose_name=_(u'Tipo'))                                        # tip_sessao_leg
+    tipo = models.CharField(max_length=1, verbose_name=_(u'Tipo'), choices=TIPO_SESSAO_CHOICES)                                        # tip_sessao_leg
     data_inicio = models.DateField(verbose_name=_(u'Data Início'))                                        # dat_inicio
     data_fim = models.DateField(verbose_name=_(u'Data Fim'))                                              # dat_fim
     data_inicio_intervalo = models.DateField(blank=True, null=True, verbose_name=_(u'Início Intervalo'))  # dat_inicio_intervalo
@@ -86,11 +91,16 @@ class SituacaoMilitar(models.Model):
 
 
 class Parlamentar(models.Model):
+    FEMININO = 'F'
+    MASCULINO = 'M'
+    SEXO_CHOICE = ((FEMININO, _(u'Feminino'),
+                   (MASCULINO, _(u'Masculino')))
+
     nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True, verbose_name=_(u'Nível Instrução'))           # cod_nivel_instrucao
     situacao_militar = models.ForeignKey(SituacaoMilitar, blank=True, null=True, verbose_name=_(u'Situação Militar'))        # tip_situacao_militar
     nome_completo = models.CharField(max_length=50, verbose_name=_(u'Nome Completo'))                                        # nom_completo
     nome_parlamentar = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Nome Parlamentar'))           # nom_parlamentar
-    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'))                                                           # sex_parlamentar
+    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'), choices=SEXO_CHOICE)                                                           # sex_parlamentar
     data_nascimento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Nascimento'))                            # dat_nascimento
     numero_cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name=_(u'C.P.F'))                            # num_cpf
     numero_rg = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'R.G.'))                              # num_rg
@@ -129,10 +139,15 @@ class TipoDependente(models.Model):
 
 
 class Dependente(models.Model):
+    FEMININO = 'F'
+    MASCULINO = 'M'
+    SEXO_CHOICE = ((FEMININO, _(u'Feminino'),
+                  (MASCULINO, _(u'Masculino')))
+
     tipo_dependente = models.ForeignKey(TipoDependente, verbose_name=_(u'Tipo'))                                       # tip_dependente
     parlamentar = models.ForeignKey(Parlamentar)                                                                       # cod_parlamentar
     nome_dependente = models.CharField(max_length=50, verbose_name=_(u'Nome'))                                         # nom_dependente
-    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'))                                                     # sex_dependente
+    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'), choices=SEXO_CHOICE)                                                     # sex_dependente
     data_nascimento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Nascimento'))                      # dat_nascimento
     numero_cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name=_(u'CPF'))                        # num_cpf
     numero_rg = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'RG'))                          # num_rg

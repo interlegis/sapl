@@ -11,7 +11,7 @@ class TipoComissao(models.Model):
     NATUREZA_CHOICES = ((TEMPORARIA, _(u'Temporária')),
                         (PERMANENTE, _(u'Permanente')))
     nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))                                                             # nom_tipo_comissao
-    natureza = models.CharField(max_length=1, verbose_name=_(u'Natureza'), choices=NATUREZA_CHOICES, default=PERMANENTE)        # sgl_natureza_comissao
+    natureza = models.CharField(max_length=1, verbose_name=_(u'Natureza'), choices=NATUREZA_CHOICES)        # sgl_natureza_comissao
     sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))                                                           # sgl_tipo_comissao
     dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Dispositivo Regimental'))  # des_dispositivo_regimental
 

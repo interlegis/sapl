@@ -25,11 +25,18 @@ class TipoNormaJuridica(models.Model):
 
 
 class NormaJuridica(models.Model):
+    MUNICIPAL = 'M'
+    ESTADUAL = 'E'
+    FEDERAL = 'F'
+    ESFERA_FEDERACAO_CHOICES = ((MUNICIPAL, _(u'Municipal')),
+                               (ESTADUAL, _(u'Estadual')),
+                               (FEDERAL, _(u'Federal')))
+
     tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_(u'Tipo'))                                                          # tip_norma
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)                                                        # cod_materia
     numero_norma = models.IntegerField(verbose_name=_(u'Número'))                                                                 # num_norma
     ano_norma = models.SmallIntegerField(verbose_name=_(u'Ano'))                                                                  # ano_norma
-    tipo_esfera_federacao = models.CharField(max_length=1, verbose_name=_(u'Esfera Federação'))                                   # tip_esfera_federacao
+    tipo_esfera_federacao = models.CharField(max_length=1, verbose_name=_(u'Esfera Federação'), choices=ESFERA_FEDERACAO_CHOICES)                                   # tip_esfera_federacao
     data_norma = models.DateField(blank=True, null=True, verbose_name=_(u'Data'))                                                 # dat_norma
     data_publicacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Publicação'))                                 # dat_publicacao
     descricao_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True, verbose_name=_(u'Veículo Publicação'))  # des_veiculo_publicacao
