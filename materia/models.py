@@ -286,6 +286,7 @@ class StatusTramitacao(models.Model):
 
     sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))          # sgl_status
     descricao = models.CharField(max_length=60, verbose_name=_(u'Descrição'))  # des_status
+    # TODO make specific migration considering both ind_fim_tramitacao, ind_retorno_tramitacao
     indicador = models.CharField(max_length=1, verbose_name=_(u'Indicador da Tramitação'), choices=INDICADOR_CHOICES)  # ind_fim_tramitacao
 
     class Meta:
