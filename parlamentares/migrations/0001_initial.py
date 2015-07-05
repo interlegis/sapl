@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='CargoMesa',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome', models.CharField(max_length=50, verbose_name='Cargo na Mesa')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Cargo na Mesa')),
                 ('unico', models.BooleanField(verbose_name='Cargo \xdanico')),
             ],
             options={
@@ -26,8 +26,8 @@ class Migration(migrations.Migration):
             name='Coligacao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_coligacao', models.CharField(max_length=50, verbose_name='Nome')),
-                ('numero_votos_coligacao', models.IntegerField(null=True, verbose_name='N\xba Votos Recebidos', blank=True)),
+                ('nome', models.CharField(max_length=50, verbose_name='Nome')),
+                ('numero_votos', models.IntegerField(null=True, verbose_name='N\xba Votos Recebidos', blank=True)),
             ],
             options={
                 'verbose_name': 'Coliga\xe7\xe3o',
@@ -56,12 +56,12 @@ class Migration(migrations.Migration):
             name='Dependente',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_dependente', models.CharField(max_length=50, verbose_name='Nome')),
-                ('sexo', models.CharField(max_length=1, verbose_name='Sexo')),
+                ('nome', models.CharField(max_length=50, verbose_name='Nome')),
+                ('sexo', models.CharField(max_length=1, verbose_name='Sexo', choices=[(b'F', 'Feminino'), (b'M', 'Masculino')])),
                 ('data_nascimento', models.DateField(null=True, verbose_name='Data Nascimento', blank=True)),
-                ('numero_cpf', models.CharField(max_length=14, null=True, verbose_name='CPF', blank=True)),
-                ('numero_rg', models.CharField(max_length=15, null=True, verbose_name='RG', blank=True)),
-                ('numero_tit_eleitor', models.CharField(max_length=15, null=True, verbose_name='N\xba T\xedtulo Eleitor', blank=True)),
+                ('cpf', models.CharField(max_length=14, null=True, verbose_name='CPF', blank=True)),
+                ('rg', models.CharField(max_length=15, null=True, verbose_name='RG', blank=True)),
+                ('titulo_eleitor', models.CharField(max_length=15, null=True, verbose_name='N\xba T\xedtulo Eleitor', blank=True)),
             ],
             options={
                 'verbose_name': 'Dependente',
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
             name='Filiacao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_filiacao', models.DateField(verbose_name='Data Filia\xe7\xe3o')),
+                ('data', models.DateField(verbose_name='Data Filia\xe7\xe3o')),
                 ('data_desfiliacao', models.DateField(null=True, verbose_name='Data Desfilia\xe7\xe3o', blank=True)),
             ],
             options={
@@ -94,29 +94,14 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Localidade',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_localidade', models.CharField(max_length=50, null=True, blank=True)),
-                ('nome_localidade_pesq', models.CharField(max_length=50, null=True, blank=True)),
-                ('tipo_localidade', models.CharField(max_length=1, null=True, blank=True)),
-                ('sigla_uf', models.CharField(max_length=2, null=True, blank=True)),
-                ('sigla_regiao', models.CharField(max_length=2, null=True, blank=True)),
-            ],
-            options={
-                'verbose_name': 'Munic\xedpio',
-                'verbose_name_plural': 'Munic\xedpios',
-            },
-        ),
-        migrations.CreateModel(
             name='Mandato',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('tipo_causa_fim_mandato', models.IntegerField(null=True, blank=True)),
                 ('data_fim_mandato', models.DateField(null=True, verbose_name='Fim do Mandato', blank=True)),
-                ('numero_votos_recebidos', models.IntegerField(null=True, verbose_name='Votos Recebidos', blank=True)),
+                ('votos_recebidos', models.IntegerField(null=True, verbose_name='Votos Recebidos', blank=True)),
                 ('data_expedicao_diploma', models.DateField(null=True, verbose_name='Expedi\xe7\xe3o do Diploma', blank=True)),
-                ('txt_observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
+                ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
                 ('coligacao', models.ForeignKey(verbose_name='Coliga\xe7\xe3o', blank=True, to='parlamentares.Coligacao', null=True)),
                 ('legislatura', models.ForeignKey(verbose_name='Legislatura', to='parlamentares.Legislatura')),
             ],
@@ -126,10 +111,23 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='Municipio',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('nome', models.CharField(max_length=50, null=True, blank=True)),
+                ('uf', models.CharField(blank=True, max_length=2, null=True, choices=[(b'AC', 'Acre'), (b'AL', 'Alagoas'), (b'AP', 'Amap\xe1'), (b'AM', 'Amazonas'), (b'BA', 'Bahia'), (b'CE', 'Cear\xe1'), (b'DF', 'Distrito Federal'), (b'ES', 'Esp\xedrito Santo'), (b'GO', 'Goi\xe1s'), (b'MA', 'Maranh\xe3o'), (b'MT', 'Mato Grosso'), (b'MS', 'Mato Grosso do Sul'), (b'MG', 'Minas Gerais'), (b'PR', 'Paran\xe1'), (b'PB', 'Para\xedba'), (b'PA', 'Par\xe1'), (b'PE', 'Pernambuco'), (b'PI', 'Piau\xed'), (b'RJ', 'Rio de Janeiro'), (b'RN', 'Rio Grande do Norte'), (b'RS', 'Rio Grande do Sul'), (b'RO', 'Rond\xf4nia'), (b'RR', 'Roraima'), (b'SC', 'Santa Catarina'), (b'SE', 'Sergipe'), (b'SP', 'S\xe3o Paulo'), (b'TO', 'Tocantins'), (b'EX', 'Exterior')])),
+                ('regiao', models.CharField(blank=True, max_length=2, null=True, choices=[(b'CO', 'Centro-Oeste'), (b'NE', 'Nordeste'), (b'NO', 'Norte'), (b'SE', 'Sudeste'), (b'SL', 'Sul'), (b'EX', 'Exterior')])),
+            ],
+            options={
+                'verbose_name': 'Munic\xedpio',
+                'verbose_name_plural': 'Munic\xedpios',
+            },
+        ),
+        migrations.CreateModel(
             name='NivelInstrucao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nivel_instrucao', models.CharField(max_length=50, verbose_name='N\xedvel de Instru\xe7\xe3o')),
+                ('descricao', models.CharField(max_length=50, verbose_name='N\xedvel de Instru\xe7\xe3o')),
             ],
             options={
                 'verbose_name': 'N\xedvel Instru\xe7\xe3o',
@@ -142,27 +140,27 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('nome_completo', models.CharField(max_length=50, verbose_name='Nome Completo')),
                 ('nome_parlamentar', models.CharField(max_length=50, null=True, verbose_name='Nome Parlamentar', blank=True)),
-                ('sexo', models.CharField(max_length=1, verbose_name='Sexo')),
+                ('sexo', models.CharField(max_length=1, verbose_name='Sexo', choices=[(b'F', 'Feminino'), (b'M', 'Masculino')])),
                 ('data_nascimento', models.DateField(null=True, verbose_name='Data Nascimento', blank=True)),
-                ('numero_cpf', models.CharField(max_length=14, null=True, verbose_name='C.P.F', blank=True)),
-                ('numero_rg', models.CharField(max_length=15, null=True, verbose_name='R.G.', blank=True)),
-                ('numero_tit_eleitor', models.CharField(max_length=15, null=True, verbose_name='T\xedtulo de Eleitor', blank=True)),
+                ('cpf', models.CharField(max_length=14, null=True, verbose_name='C.P.F', blank=True)),
+                ('rg', models.CharField(max_length=15, null=True, verbose_name='R.G.', blank=True)),
+                ('titulo_eleitor', models.CharField(max_length=15, null=True, verbose_name='T\xedtulo de Eleitor', blank=True)),
                 ('cod_casa', models.IntegerField()),
                 ('numero_gab_parlamentar', models.CharField(max_length=10, null=True, verbose_name='N\xba Gabinete', blank=True)),
-                ('numero_tel_parlamentar', models.CharField(max_length=50, null=True, verbose_name='Telefone', blank=True)),
-                ('numero_fax_parlamentar', models.CharField(max_length=50, null=True, verbose_name='Fax', blank=True)),
-                ('endereco_residencial', models.CharField(max_length=100, null=True, verbose_name='Endere\xe7o Residencial', blank=True)),
-                ('numero_cep_resid', models.CharField(max_length=9, null=True, verbose_name='CEP', blank=True)),
-                ('numero_tel_resid', models.CharField(max_length=50, null=True, verbose_name='Telefone Residencial', blank=True)),
-                ('numero_fax_resid', models.CharField(max_length=50, null=True, verbose_name='Fax Residencial', blank=True)),
+                ('telefone', models.CharField(max_length=50, null=True, verbose_name='Telefone', blank=True)),
+                ('fax', models.CharField(max_length=50, null=True, verbose_name='Fax', blank=True)),
+                ('endereco_residencia', models.CharField(max_length=100, null=True, verbose_name='Endere\xe7o Residencial', blank=True)),
+                ('cep_residencia', models.CharField(max_length=9, null=True, verbose_name='CEP', blank=True)),
+                ('telefone_residencia', models.CharField(max_length=50, null=True, verbose_name='Telefone Residencial', blank=True)),
+                ('fax_residencia', models.CharField(max_length=50, null=True, verbose_name='Fax Residencial', blank=True)),
                 ('endereco_web', models.CharField(max_length=100, null=True, verbose_name='HomePage', blank=True)),
-                ('nome_profissao', models.CharField(max_length=50, null=True, verbose_name='Profiss\xe3o', blank=True)),
-                ('endereco_email', models.CharField(max_length=100, null=True, verbose_name='Correio Eletr\xf4nico', blank=True)),
-                ('descricao_local_atuacao', models.CharField(max_length=100, null=True, verbose_name='Locais de Atua\xe7\xe3o', blank=True)),
+                ('profissao', models.CharField(max_length=50, null=True, verbose_name='Profiss\xe3o', blank=True)),
+                ('email', models.CharField(max_length=100, null=True, verbose_name='Correio Eletr\xf4nico', blank=True)),
+                ('locais_atuacao', models.CharField(max_length=100, null=True, verbose_name='Locais de Atua\xe7\xe3o', blank=True)),
                 ('ativo', models.BooleanField(verbose_name='Ativo na Casa?')),
-                ('txt_biografia', models.TextField(null=True, verbose_name='Biografia', blank=True)),
-                ('unid_deliberativa', models.BooleanField()),
-                ('localidade_resid', models.ForeignKey(verbose_name='Munic\xedpio', blank=True, to='parlamentares.Localidade', null=True)),
+                ('biografia', models.TextField(null=True, verbose_name='Biografia', blank=True)),
+                ('unidade_deliberativa', models.BooleanField()),
+                ('municipio_residencia', models.ForeignKey(verbose_name='Munic\xedpio', blank=True, to='parlamentares.Municipio', null=True)),
                 ('nivel_instrucao', models.ForeignKey(verbose_name='N\xedvel Instru\xe7\xe3o', blank=True, to='parlamentares.NivelInstrucao', null=True)),
             ],
             options={
@@ -174,8 +172,8 @@ class Migration(migrations.Migration):
             name='Partido',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('sigla_partido', models.CharField(max_length=9, verbose_name='Sigla')),
-                ('nome_partido', models.CharField(max_length=50, verbose_name='Nome')),
+                ('sigla', models.CharField(max_length=9, verbose_name='Sigla')),
+                ('nome', models.CharField(max_length=50, verbose_name='Nome')),
                 ('data_criacao', models.DateField(null=True, verbose_name='Data Cria\xe7\xe3o', blank=True)),
                 ('data_extincao', models.DateField(null=True, verbose_name='Data Extin\xe7\xe3o', blank=True)),
             ],
@@ -189,7 +187,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('numero', models.IntegerField(verbose_name='N\xfamero')),
-                ('tipo', models.CharField(max_length=1, verbose_name='Tipo')),
+                ('tipo', models.CharField(max_length=1, verbose_name='Tipo', choices=[(b'O', 'Ordin\xe1ria'), (b'E', 'Extraordin\xe1ria')])),
                 ('data_inicio', models.DateField(verbose_name='Data In\xedcio')),
                 ('data_fim', models.DateField(verbose_name='Data Fim')),
                 ('data_inicio_intervalo', models.DateField(null=True, verbose_name='In\xedcio Intervalo', blank=True)),
@@ -205,7 +203,7 @@ class Migration(migrations.Migration):
             name='SituacaoMilitar',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_tipo_situacao', models.CharField(max_length=50, verbose_name='Situa\xe7\xe3o Militar')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Situa\xe7\xe3o Militar')),
             ],
             options={
                 'verbose_name': 'Tipo Situa\xe7\xe3o Militar',
@@ -216,10 +214,10 @@ class Migration(migrations.Migration):
             name='TipoAfastamento',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_afastamento', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
                 ('afastamento', models.BooleanField(verbose_name='Indicador')),
                 ('fim_mandato', models.BooleanField(verbose_name='Indicador')),
-                ('descricao_dispositivo', models.CharField(max_length=50, null=True, verbose_name='Dispositivo', blank=True)),
+                ('dispositivo', models.CharField(max_length=50, null=True, verbose_name='Dispositivo', blank=True)),
             ],
             options={
                 'verbose_name': 'Tipo de Afastamento',
@@ -230,7 +228,7 @@ class Migration(migrations.Migration):
             name='TipoDependente',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_tipo_dependente', models.CharField(max_length=50)),
+                ('descricao', models.CharField(max_length=50)),
             ],
             options={
                 'verbose_name': 'Tipo de Dependente',
@@ -269,7 +267,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='dependente',
-            name='tipo_dependente',
+            name='tipo',
             field=models.ForeignKey(verbose_name='Tipo', to='parlamentares.TipoDependente'),
         ),
         migrations.AddField(

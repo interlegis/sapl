@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AcompMateria',
+            name='AcompanhamentoMateria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('endereco_email', models.CharField(max_length=100, verbose_name='Endere\xe7o de E-mail')),
-                ('txt_hash', models.CharField(max_length=8)),
+                ('email', models.CharField(max_length=100, verbose_name='Endere\xe7o de E-mail')),
+                ('hash', models.CharField(max_length=8)),
             ],
             options={
                 'verbose_name': 'Acompanhamento de Mat\xe9ria',
@@ -40,8 +40,8 @@ class Migration(migrations.Migration):
             name='AssuntoMateria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_assunto', models.CharField(max_length=200)),
-                ('descricao_dispositivo', models.CharField(max_length=50)),
+                ('assunto', models.CharField(max_length=200)),
+                ('dispositivo', models.CharField(max_length=50)),
             ],
             options={
                 'verbose_name': 'Assunto de Mat\xe9ria',
@@ -52,9 +52,9 @@ class Migration(migrations.Migration):
             name='Autor',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_autor', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
-                ('descricao_cargo', models.CharField(max_length=50, null=True, blank=True)),
-                ('col_username', models.CharField(max_length=50, null=True, blank=True)),
+                ('nome', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
+                ('cargo', models.CharField(max_length=50, null=True, blank=True)),
+                ('username', models.CharField(max_length=50, null=True, blank=True)),
                 ('comissao', models.ForeignKey(blank=True, to='comissoes.Comissao', null=True)),
                 ('parlamentar', models.ForeignKey(blank=True, to='parlamentares.Parlamentar', null=True)),
                 ('partido', models.ForeignKey(blank=True, to='parlamentares.Partido', null=True)),
@@ -92,11 +92,11 @@ class Migration(migrations.Migration):
             name='DocumentoAcessorio',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_documento', models.CharField(max_length=30, verbose_name='Descri\xe7\xe3o')),
-                ('data_documento', models.DateField(null=True, verbose_name='Data', blank=True)),
-                ('nome_autor_documento', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
-                ('txt_ementa', models.TextField(null=True, verbose_name='Ementa', blank=True)),
-                ('txt_indexacao', models.TextField(null=True, blank=True)),
+                ('nome', models.CharField(max_length=30, verbose_name='Descri\xe7\xe3o')),
+                ('data', models.DateField(null=True, verbose_name='Data', blank=True)),
+                ('autor', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
+                ('ementa', models.TextField(null=True, verbose_name='Ementa', blank=True)),
+                ('indexacao', models.TextField(null=True, blank=True)),
             ],
             options={
                 'verbose_name': 'Documento Acess\xf3rio',
@@ -122,22 +122,22 @@ class Migration(migrations.Migration):
                 ('numero_ident_basica', models.IntegerField(verbose_name='N\xfamero')),
                 ('ano_ident_basica', models.SmallIntegerField(verbose_name='Ano')),
                 ('data_apresentacao', models.DateField(null=True, verbose_name='Data Apresenta\xe7\xe3o', blank=True)),
-                ('tipo_apresentacao', models.CharField(max_length=1, null=True, verbose_name='Tipo de Apresenta\xe7\xe3o', blank=True)),
+                ('tipo_apresentacao', models.CharField(blank=True, max_length=1, null=True, verbose_name='Tipo de Apresenta\xe7\xe3o', choices=[(b'O', 'Oral'), (b'E', 'Escrita')])),
                 ('data_publicacao', models.DateField(null=True, verbose_name='Data Publica\xe7\xe3o', blank=True)),
                 ('numero_origem_externa', models.CharField(max_length=5, null=True, verbose_name='N\xfamero', blank=True)),
                 ('ano_origem_externa', models.SmallIntegerField(null=True, verbose_name='Ano', blank=True)),
                 ('data_origem_externa', models.DateField(null=True, verbose_name='Data', blank=True)),
-                ('nome_apelido', models.CharField(max_length=50, null=True, verbose_name='Apelido', blank=True)),
-                ('numero_dias_prazo', models.IntegerField(null=True, verbose_name='Dias Prazo', blank=True)),
+                ('apelido', models.CharField(max_length=50, null=True, verbose_name='Apelido', blank=True)),
+                ('dias_prazo', models.IntegerField(null=True, verbose_name='Dias Prazo', blank=True)),
                 ('data_fim_prazo', models.DateField(null=True, verbose_name='Data Fim Prazo', blank=True)),
-                ('indicador_tramitacao', models.BooleanField(verbose_name='Em Tramita\xe7\xe3o?')),
+                ('em_tramitacao', models.BooleanField(verbose_name='Em Tramita\xe7\xe3o?')),
                 ('polemica', models.NullBooleanField(verbose_name='Mat\xe9ria Pol\xeamica?')),
-                ('descricao_objeto', models.CharField(max_length=150, null=True, verbose_name='Objeto', blank=True)),
+                ('objeto', models.CharField(max_length=150, null=True, verbose_name='Objeto', blank=True)),
                 ('complementar', models.NullBooleanField(verbose_name='\xc9 Complementar?')),
-                ('txt_ementa', models.TextField(verbose_name='Ementa')),
-                ('txt_indexacao', models.TextField(null=True, verbose_name='Indexa\xe7\xe3o', blank=True)),
-                ('txt_observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
-                ('txt_resultado', models.TextField(null=True, blank=True)),
+                ('ementa', models.TextField(verbose_name='Ementa')),
+                ('indexacao', models.TextField(null=True, verbose_name='Indexa\xe7\xe3o', blank=True)),
+                ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
+                ('resultado', models.TextField(null=True, blank=True)),
                 ('anexadas', models.ManyToManyField(related_name='anexo_de', through='materia.Anexada', to='materia.MateriaLegislativa')),
             ],
             options={
@@ -164,11 +164,11 @@ class Migration(migrations.Migration):
             name='Orgao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_orgao', models.CharField(max_length=60, verbose_name='Nome')),
-                ('sigla_orgao', models.CharField(max_length=10, verbose_name='Sigla')),
-                ('unid_deliberativa', models.BooleanField(verbose_name='Unidade Deliberativa')),
-                ('endereco_orgao', models.CharField(max_length=100, null=True, verbose_name='Endere\xe7o', blank=True)),
-                ('numero_tel_orgao', models.CharField(max_length=50, null=True, verbose_name='Telefone', blank=True)),
+                ('nome', models.CharField(max_length=60, verbose_name='Nome')),
+                ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
+                ('unidade_deliberativa', models.BooleanField(verbose_name='Unidade Deliberativa')),
+                ('endereco', models.CharField(max_length=100, null=True, verbose_name='Endere\xe7o', blank=True)),
+                ('telefone', models.CharField(max_length=50, null=True, verbose_name='Telefone', blank=True)),
             ],
             options={
                 'verbose_name': '\xd3rg\xe3o',
@@ -179,8 +179,8 @@ class Migration(migrations.Migration):
             name='Origem',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('sigla_origem', models.CharField(max_length=10, verbose_name='Sigla')),
-                ('nome_origem', models.CharField(max_length=50, verbose_name='Nome')),
+                ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
+                ('nome', models.CharField(max_length=50, verbose_name='Nome')),
             ],
             options={
                 'verbose_name': 'Origem',
@@ -193,7 +193,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('tipo_conclusao', models.CharField(max_length=3, null=True, blank=True)),
                 ('tipo_apresentacao', models.CharField(max_length=1)),
-                ('txt_parecer', models.TextField(null=True, blank=True)),
+                ('parecer', models.TextField(null=True, blank=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
             options={
@@ -205,15 +205,15 @@ class Migration(migrations.Migration):
             name='Proposicao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_envio', models.DateTimeField(null=True)),
-                ('data_recebimento', models.DateTimeField(null=True, blank=True)),
-                ('txt_descricao', models.CharField(max_length=100, verbose_name='Descri\xe7\xe3o')),
-                ('cod_mat_ou_doc', models.IntegerField(null=True, blank=True)),
-                ('data_devolucao', models.DateTimeField(null=True, blank=True)),
-                ('txt_justif_devolucao', models.CharField(max_length=200, null=True, blank=True)),
-                ('numero_proposicao', models.IntegerField(null=True, blank=True)),
+                ('data_envio', models.DateTimeField(null=True, verbose_name='Data de Envio')),
+                ('data_recebimento', models.DateTimeField(null=True, verbose_name='Data de Incorpora\xe7\xe3o', blank=True)),
+                ('descricao', models.CharField(max_length=100, verbose_name='Descri\xe7\xe3o')),
+                ('data_devolucao', models.DateTimeField(null=True, verbose_name='Data de devolu\xe7\xe3o', blank=True)),
+                ('justificativa_devolucao', models.CharField(max_length=200, null=True, verbose_name='Justificativa da Devolu\xe7\xe3o', blank=True)),
+                ('numero_proposicao', models.IntegerField(null=True, verbose_name='', blank=True)),
                 ('autor', models.ForeignKey(to='materia.Autor')),
-                ('materia', models.ForeignKey(blank=True, to='materia.MateriaLegislativa', null=True)),
+                ('documento', models.ForeignKey(verbose_name='Documento', blank=True, to='materia.DocumentoAcessorio', null=True)),
+                ('materia', models.ForeignKey(verbose_name='Mat\xe9ria', blank=True, to='materia.MateriaLegislativa', null=True)),
             ],
             options={
                 'verbose_name': 'Proposi\xe7\xe3o',
@@ -224,7 +224,7 @@ class Migration(migrations.Migration):
             name='RegimeTramitacao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_regime_tramitacao', models.CharField(max_length=50)),
+                ('descricao', models.CharField(max_length=50)),
             ],
             options={
                 'verbose_name': 'Regime Tramita\xe7\xe3o',
@@ -235,8 +235,8 @@ class Migration(migrations.Migration):
             name='Relatoria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_desig_relator', models.DateField(verbose_name='Data Designa\xe7\xe3o')),
-                ('data_destit_relator', models.DateField(null=True, verbose_name='Data Destitui\xe7\xe3o', blank=True)),
+                ('data_designacao_relator', models.DateField(verbose_name='Data Designa\xe7\xe3o')),
+                ('data_destituicao_relator', models.DateField(null=True, verbose_name='Data Destitui\xe7\xe3o', blank=True)),
                 ('comissao', models.ForeignKey(verbose_name='Localiza\xe7\xe3o Atual', blank=True, to='comissoes.Comissao', null=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
                 ('parlamentar', models.ForeignKey(verbose_name='Parlamentar', to='parlamentares.Parlamentar')),
@@ -250,10 +250,9 @@ class Migration(migrations.Migration):
             name='StatusTramitacao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('sigla_status', models.CharField(max_length=10, verbose_name='Sigla')),
-                ('descricao_status', models.CharField(max_length=60, verbose_name='Descri\xe7\xe3o')),
-                ('fim_tramitacao', models.BooleanField()),
-                ('retorno_tramitacao', models.BooleanField()),
+                ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
+                ('descricao', models.CharField(max_length=60, verbose_name='Descri\xe7\xe3o')),
+                ('indicador', models.CharField(max_length=1, verbose_name='Indicador da Tramita\xe7\xe3o', choices=[(b'F', 'Fim'), (b'R', 'Retorno')])),
             ],
             options={
                 'verbose_name': 'Status de Tramita\xe7\xe3o',
@@ -264,7 +263,7 @@ class Migration(migrations.Migration):
             name='TipoAutor',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_tipo_autor', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
             ],
             options={
                 'verbose_name': 'Tipo de Autor',
@@ -275,7 +274,7 @@ class Migration(migrations.Migration):
             name='TipoDocumento',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_tipo_documento', models.CharField(max_length=50, verbose_name='Tipo Documento')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Tipo Documento')),
             ],
             options={
                 'verbose_name': 'Tipo de Documento',
@@ -286,7 +285,7 @@ class Migration(migrations.Migration):
             name='TipoFimRelatoria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_fim_relatoria', models.CharField(max_length=50, verbose_name='Tipo Fim Relatoria')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Tipo Fim Relatoria')),
             ],
             options={
                 'verbose_name': 'Tipo Fim de Relatoria',
@@ -297,8 +296,8 @@ class Migration(migrations.Migration):
             name='TipoMateriaLegislativa',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('sigla_tipo_materia', models.CharField(max_length=5, verbose_name='Sigla')),
-                ('descricao_tipo_materia', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o ')),
+                ('sigla', models.CharField(max_length=5, verbose_name='Sigla')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o ')),
                 ('num_automatica', models.BooleanField()),
                 ('quorum_minimo_votacao', models.IntegerField()),
             ],
@@ -311,10 +310,11 @@ class Migration(migrations.Migration):
             name='TipoProposicao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao_tipo_proposicao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
-                ('mat_ou_doc', models.BooleanField(verbose_name='Gera')),
-                ('tipo_mat_ou_doc', models.IntegerField(verbose_name='Tipo Documento')),
-                ('nome_modelo', models.CharField(max_length=50, verbose_name='Modelo XML')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
+                ('materia_ou_documento', models.CharField(max_length=1, verbose_name='Gera', choices=[(b'M', 'Mat\xe9ria'), (b'D', 'Documento')])),
+                ('modelo', models.CharField(max_length=50, verbose_name='Modelo XML')),
+                ('tipo_documento', models.ForeignKey(verbose_name='Tipo Documento', blank=True, to='materia.TipoDocumento', null=True)),
+                ('tipo_materia', models.ForeignKey(verbose_name='Tipo Mat\xe9ria', blank=True, to='materia.TipoMateriaLegislativa', null=True)),
             ],
             options={
                 'verbose_name': 'Tipo de Proposi\xe7\xe3o',
@@ -326,11 +326,11 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data_tramitacao', models.DateField(null=True, verbose_name='Data Tramita\xe7\xe3o', blank=True)),
-                ('data_encaminha', models.DateField(null=True, verbose_name='Data Encaminhamento', blank=True)),
-                ('ult_tramitacao', models.BooleanField()),
-                ('urgencia', models.BooleanField(verbose_name='Urgente ?')),
-                ('sigla_turno', models.CharField(max_length=1, null=True, verbose_name='Turno', blank=True)),
-                ('txt_tramitacao', models.TextField(null=True, verbose_name='Texto da A\xe7\xe3o', blank=True)),
+                ('data_encaminhamento', models.DateField(null=True, verbose_name='Data Encaminhamento', blank=True)),
+                ('ultima', models.BooleanField()),
+                ('urgente', models.BooleanField(verbose_name='Urgente ?')),
+                ('turno', models.CharField(blank=True, max_length=1, null=True, verbose_name='Turno', choices=[(b'P', 'Primeiro'), (b'S', 'Segundo'), (b'\xc3\x9a', '\xdanico'), (b'L', 'Suplementar'), (b'F', 'Final'), (b'A', 'Vota\xe7\xe3o \xfanica em Regime de Urg\xeancia'), (b'B', '1\xaa Vota\xe7\xe3o'), (b'C', '2\xaa e 3\xaa Vota\xe7\xe3o')])),
+                ('texto', models.TextField(null=True, verbose_name='Texto da A\xe7\xe3o', blank=True)),
                 ('data_fim_prazo', models.DateField(null=True, verbose_name='Data Fim Prazo', blank=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
                 ('status', models.ForeignKey(verbose_name='Status', blank=True, to='materia.StatusTramitacao', null=True)),
@@ -355,12 +355,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='tramitacao',
-            name='unid_tram_dest',
+            name='unidade_tramitacao_destino',
             field=models.ForeignKey(related_name='+', verbose_name='Unidade Destino', blank=True, to='materia.UnidadeTramitacao', null=True),
         ),
         migrations.AddField(
             model_name='tramitacao',
-            name='unid_tram_local',
+            name='unidade_tramitacao_local',
             field=models.ForeignKey(related_name='+', verbose_name='Unidade Local', blank=True, to='materia.UnidadeTramitacao', null=True),
         ),
         migrations.AddField(
@@ -444,7 +444,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(related_name='+', to='materia.MateriaLegislativa'),
         ),
         migrations.AddField(
-            model_name='acompmateria',
+            model_name='acompanhamentomateria',
             name='materia',
             field=models.ForeignKey(to='materia.MateriaLegislativa'),
         ),

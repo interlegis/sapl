@@ -17,9 +17,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data_ordem', models.DateField(verbose_name='Data da Sess\xe3o')),
-                ('txt_observacao', models.TextField(null=True, verbose_name='Ementa', blank=True)),
+                ('observacao', models.TextField(null=True, verbose_name='Ementa', blank=True)),
                 ('numero_ordem', models.IntegerField(verbose_name='N\xba Ordem')),
-                ('txt_resultado', models.TextField(null=True, blank=True)),
+                ('resultado', models.TextField(null=True, blank=True)),
                 ('tipo_votacao', models.IntegerField(verbose_name='Tipo de vota\xe7\xe3o')),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             name='ExpedienteSessaoPlenaria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('txt_expediente', models.TextField(null=True, blank=True)),
+                ('expediente', models.TextField(null=True, blank=True)),
             ],
             options={
                 'verbose_name': 'Expediente de Sess\xe3o Plenaria',
@@ -83,9 +83,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data_ordem', models.DateField(verbose_name='Data da Sess\xe3o')),
-                ('txt_observacao', models.TextField(null=True, verbose_name='Ementa', blank=True)),
+                ('observacao', models.TextField(null=True, verbose_name='Ementa', blank=True)),
                 ('numero_ordem', models.IntegerField(verbose_name='N\xba Ordem')),
-                ('txt_resultado', models.TextField(null=True, blank=True)),
+                ('resultado', models.TextField(null=True, blank=True)),
                 ('tipo_votacao', models.IntegerField(verbose_name='Tipo de vota\xe7\xe3o')),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
@@ -113,7 +113,7 @@ class Migration(migrations.Migration):
                 ('numero_votos_sim', models.IntegerField(verbose_name='Sim:')),
                 ('numero_votos_nao', models.IntegerField(verbose_name='N\xe3o:')),
                 ('numero_abstencao', models.IntegerField(verbose_name='Absten\xe7\xf5es:')),
-                ('txt_observacao', models.TextField(null=True, verbose_name='Observa\xe7\xf5es', blank=True)),
+                ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xf5es', blank=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
                 ('ordem', models.ForeignKey(to='sessao.OrdemDia')),
             ],
@@ -238,11 +238,6 @@ class Migration(migrations.Migration):
             model_name='mesasessaoplenaria',
             name='sessao_plen',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
-        ),
-        migrations.AddField(
-            model_name='expedientesessaoplenaria',
-            name='expediente',
-            field=models.ForeignKey(to='sessao.TipoExpediente'),
         ),
         migrations.AddField(
             model_name='expedientesessaoplenaria',
