@@ -28,7 +28,7 @@ def special(model, fieldname):
     return wrap
 
 
-@special(Parlamentar, 'unid_deliberativa')
+@special(Parlamentar, 'unidade_deliberativa')
 def none_to_false(obj, value):
     # Field is defined as not null in legacy db, but data includes null values
     #  => transform None to False
