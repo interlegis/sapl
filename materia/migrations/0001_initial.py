@@ -192,7 +192,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('tipo_conclusao', models.CharField(max_length=3, null=True, blank=True)),
-                ('tipo_apresentacao', models.CharField(max_length=1)),
+                ('tipo_apresentacao', models.CharField(max_length=1, choices=[(b'O', 'Oral'), (b'E', 'Escrita')])),
                 ('parecer', models.TextField(null=True, blank=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],

@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('observacao', models.TextField(null=True, verbose_name='Ementa', blank=True)),
                 ('numero_ordem', models.IntegerField(verbose_name='N\xba Ordem')),
                 ('resultado', models.TextField(null=True, blank=True)),
-                ('tipo_votacao', models.IntegerField(verbose_name='Tipo de vota\xe7\xe3o')),
+                ('tipo_votacao', models.IntegerField(verbose_name='Tipo de vota\xe7\xe3o', choices=[(1, 'Simb\xf3lica'), (2, 'Nominal'), (3, 'Secreta')])),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
             options={
@@ -29,10 +29,10 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='ExpedienteSessaoPlenaria',
+            name='ExpedienteSessao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('expediente', models.TextField(null=True, blank=True)),
+                ('conteudo', models.TextField(null=True, verbose_name='Conte\xfado do expediente', blank=True)),
             ],
             options={
                 'verbose_name': 'Expediente de Sess\xe3o Plenaria',
@@ -40,20 +40,19 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='MesaSessaoPlenaria',
+            name='IntegranteMesa',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('cargo', models.ForeignKey(to='parlamentares.CargoMesa')),
                 ('parlamentar', models.ForeignKey(to='parlamentares.Parlamentar')),
-                ('sessao_leg', models.ForeignKey(to='parlamentares.SessaoLegislativa')),
             ],
             options={
-                'verbose_name': 'Mesa de Sess\xe3o Plenaria',
-                'verbose_name_plural': 'Mesas de Sess\xe3o Plenaria',
+                'verbose_name': 'Participa\xe7\xe3o em Mesa de Sess\xe3o Plenaria',
+                'verbose_name_plural': 'Participa\xe7\xf5es em Mesas de Sess\xe3o Plenaria',
             },
         ),
         migrations.CreateModel(
-            name='Oradores',
+            name='Orador',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('numero_ordem', models.IntegerField(verbose_name='Ordem de pronunciamento')),
@@ -66,7 +65,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='OradoresExpediente',
+            name='OradorExpediente',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('numero_ordem', models.IntegerField(verbose_name='Ordem de pronunciamento')),
@@ -86,7 +85,7 @@ class Migration(migrations.Migration):
                 ('observacao', models.TextField(null=True, verbose_name='Ementa', blank=True)),
                 ('numero_ordem', models.IntegerField(verbose_name='N\xba Ordem')),
                 ('resultado', models.TextField(null=True, blank=True)),
-                ('tipo_votacao', models.IntegerField(verbose_name='Tipo de vota\xe7\xe3o')),
+                ('tipo_votacao', models.IntegerField(verbose_name='Tipo de vota\xe7\xe3o', choices=[(1, 'Simb\xf3lica'), (2, 'Nominal'), (3, 'Secreta')])),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
             options={
@@ -95,7 +94,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='OrdemDiaPresenca',
+            name='PresencaOrdemDia',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data_ordem', models.DateField()),
@@ -110,9 +109,9 @@ class Migration(migrations.Migration):
             name='RegistroVotacao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('numero_votos_sim', models.IntegerField(verbose_name='Sim:')),
-                ('numero_votos_nao', models.IntegerField(verbose_name='N\xe3o:')),
-                ('numero_abstencao', models.IntegerField(verbose_name='Absten\xe7\xf5es:')),
+                ('numero_votos_sim', models.IntegerField(verbose_name='Sim')),
+                ('numero_votos_nao', models.IntegerField(verbose_name='N\xe3o')),
+                ('numero_abstencoes', models.IntegerField(verbose_name='Absten\xe7\xf5es')),
                 ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xf5es', blank=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
                 ('ordem', models.ForeignKey(to='sessao.OrdemDia')),
@@ -123,34 +122,21 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='RegistroVotacaoParlamentar',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('vot_parlamentar', models.CharField(max_length=10)),
-                ('parlamentar', models.ForeignKey(to='parlamentares.Parlamentar')),
-                ('votacao', models.ForeignKey(to='sessao.RegistroVotacao')),
-            ],
-            options={
-                'verbose_name': 'Registro de Vota\xe7\xe3o de Parlamentar',
-                'verbose_name_plural': 'Registros de Vota\xe7\xf5es de Parlamentares',
-            },
-        ),
-        migrations.CreateModel(
             name='SessaoPlenaria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('cod_andamento_sessao', models.IntegerField(null=True, blank=True)),
                 ('tipo_expediente', models.CharField(max_length=10)),
-                ('data_inicio_sessao', models.DateField(verbose_name='Abertura')),
-                ('dia_sessao', models.CharField(max_length=15)),
-                ('hr_inicio_sessao', models.CharField(max_length=5, verbose_name='Hor\xe1rio')),
-                ('hr_fim_sessao', models.CharField(max_length=5, null=True, verbose_name='Hor\xe1rio', blank=True)),
-                ('numero_sessao_plen', models.IntegerField(verbose_name='N\xfamero')),
-                ('data_fim_sessao', models.DateField(null=True, verbose_name='Encerramento', blank=True)),
+                ('data_inicio', models.DateField(verbose_name='Abertura')),
+                ('dia', models.CharField(max_length=15)),
+                ('hora_inicio', models.CharField(max_length=5, verbose_name='Hor\xe1rio')),
+                ('hora_fim', models.CharField(max_length=5, null=True, verbose_name='Hor\xe1rio', blank=True)),
+                ('numero', models.IntegerField(verbose_name='N\xfamero')),
+                ('data_fim', models.DateField(null=True, verbose_name='Encerramento', blank=True)),
                 ('url_audio', models.CharField(max_length=150, null=True, verbose_name='URL Arquivo \xc1udio (Formatos MP3 / AAC)', blank=True)),
                 ('url_video', models.CharField(max_length=150, null=True, verbose_name='URL Arquivo V\xeddeo (Formatos MP4 / FLV / WebM)', blank=True)),
                 ('legislatura', models.ForeignKey(verbose_name='Legislatura', to='parlamentares.Legislatura')),
-                ('sessao_leg', models.ForeignKey(verbose_name='Sess\xe3o Legislativa', to='parlamentares.SessaoLegislativa')),
+                ('sessao_legislativa', models.ForeignKey(verbose_name='Sess\xe3o Legislativa', to='parlamentares.SessaoLegislativa')),
             ],
             options={
                 'verbose_name': 'Sess\xe3o Plen\xe1ria',
@@ -174,7 +160,7 @@ class Migration(migrations.Migration):
             name='TipoExpediente',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_expediente', models.CharField(max_length=100, verbose_name='Tipo')),
+                ('nome', models.CharField(max_length=100, verbose_name='Tipo')),
             ],
             options={
                 'verbose_name': 'Tipo de Expediente',
@@ -185,7 +171,7 @@ class Migration(migrations.Migration):
             name='TipoResultadoVotacao',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_resultado', models.CharField(max_length=100, verbose_name='Tipo')),
+                ('nome', models.CharField(max_length=100, verbose_name='Tipo')),
             ],
             options={
                 'verbose_name': 'Tipo de Resultado de Vota\xe7\xe3o',
@@ -196,12 +182,25 @@ class Migration(migrations.Migration):
             name='TipoSessaoPlenaria',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome_sessao', models.CharField(max_length=30, verbose_name='Tipo')),
-                ('numero_minimo', models.IntegerField(verbose_name='Qu\xf3rum m\xednimo')),
+                ('nome', models.CharField(max_length=30, verbose_name='Tipo')),
+                ('quorum_minimo', models.IntegerField(verbose_name='Qu\xf3rum m\xednimo')),
             ],
             options={
                 'verbose_name': 'Tipo de Sess\xe3o Plen\xe1ria',
                 'verbose_name_plural': 'Tipos de Sess\xe3o Plen\xe1ria',
+            },
+        ),
+        migrations.CreateModel(
+            name='VotoParlamentar',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('voto', models.CharField(max_length=10)),
+                ('parlamentar', models.ForeignKey(to='parlamentares.Parlamentar')),
+                ('votacao', models.ForeignKey(to='sessao.RegistroVotacao')),
+            ],
+            options={
+                'verbose_name': 'Registro de Vota\xe7\xe3o de Parlamentar',
+                'verbose_name_plural': 'Registros de Vota\xe7\xf5es de Parlamentares',
             },
         ),
         migrations.AddField(
@@ -215,38 +214,43 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(verbose_name='Resultado da Vota\xe7\xe3o', to='sessao.TipoResultadoVotacao'),
         ),
         migrations.AddField(
-            model_name='ordemdiapresenca',
-            name='sessao_plen',
+            model_name='presencaordemdia',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
         ),
         migrations.AddField(
             model_name='ordemdia',
-            name='sessao_plen',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
         ),
         migrations.AddField(
-            model_name='oradoresexpediente',
-            name='sessao_plen',
+            model_name='oradorexpediente',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
         ),
         migrations.AddField(
-            model_name='oradores',
-            name='sessao_plen',
+            model_name='orador',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
         ),
         migrations.AddField(
-            model_name='mesasessaoplenaria',
-            name='sessao_plen',
+            model_name='integrantemesa',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
         ),
         migrations.AddField(
-            model_name='expedientesessaoplenaria',
-            name='sessao_plen',
+            model_name='expedientesessao',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
+        ),
+        migrations.AddField(
+            model_name='expedientesessao',
+            name='tipo',
+            field=models.ForeignKey(to='sessao.TipoExpediente'),
         ),
         migrations.AddField(
             model_name='expedientemateria',
-            name='sessao_plen',
+            name='sessao_plenaria',
             field=models.ForeignKey(to='sessao.SessaoPlenaria'),
         ),
     ]
