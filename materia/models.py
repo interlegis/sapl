@@ -227,10 +227,15 @@ class Relatoria(models.Model):
 
 
 class Parecer(models.Model):
+    ORAL = 'O'
+    ESCRITA = 'E'
+    APRESENTACAO_CHOICES = ((ORAL, _(u'Oral')),
+                            (ESCRITA, _(u'Escrita')))
+
     relatoria = models.ForeignKey(Relatoria)                                # cod_relatoria
     materia = models.ForeignKey(MateriaLegislativa)                         # cod_materia
     tipo_conclusao = models.CharField(max_length=3, blank=True, null=True)  # tip_conclusao
-    tipo_apresentacao = models.CharField(max_length=1)                      # tip_apresentacao
+    tipo_apresentacao = models.CharField(max_length=1, choices=APRESENTACAO_CHOICES)                      # tip_apresentacao
     parecer = models.TextField(blank=True, null=True)                       # txt_parecer
 
     class Meta:
