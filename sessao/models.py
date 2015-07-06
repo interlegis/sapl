@@ -16,7 +16,8 @@ class TipoSessaoPlenaria(models.Model):
         verbose_name_plural = _(u'Tipos de Sessão Plenária')
 
     def __unicode__(self):
-        return self.nome_sessao
+        return self.nome
+
 
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
@@ -43,7 +44,12 @@ class SessaoPlenaria(models.Model):
         verbose_name_plural = _(u'Sessões Plenárias')
 
     def __unicode__(self):
-        return u'%s - %s - %s' % (self.numero_sessao_plen, self.sessao_plen, self.legislatura)
+        return _(u'%sª Sessão %s da %sª Sessão Legislativa da %sª Legislatura') % (
+            self.numero,
+            self.tipo.nome,
+            self.sessao_legislativa.numero,
+            self.legislatura.id)  # XXX check if it shouldn't be legislatura.numero
+
 
 class AbstractOrdemDia(models.Model):
     TIPO_VOTACAO_CHOICES, SIMBOLICA, NOMINAL, SECRETA = make_choices(
@@ -64,7 +70,7 @@ class AbstractOrdemDia(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return u'%s - %s' % (self.numero_ordem, self.sessao_plen)
+        return u'%s - %s' % (self.numero_ordem, self.sessao_plenaria)
 
 
 class ExpedienteMateria(AbstractOrdemDia):
@@ -84,6 +90,7 @@ class TipoExpediente(models.Model):
     def __unicode__(self):
         return self.nome
 
+
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)           # cod_sessao_plen
     tipo = models.ForeignKey(TipoExpediente)            # cod_expediente
@@ -94,7 +101,8 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
         verbose_name_plural = _(u'Expedientes de Sessão Plenaria')
 
     def __unicode__(self):
-        return u'%s - %s' % (self.cod_expediente, self.sessao_plen)
+        return u'%s - %s' % (self.tipo, self.sessao_plenaria)
+
 
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)    # cod_sessao_plen
@@ -106,7 +114,8 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
         verbose_name_plural = _(u'Participações em Mesas de Sessão Plenaria')
 
     def __unicode__(self):
-        return self.parlamentar
+        return u'%s - %s' % (self.cargo, self.parlamentar)
+
 
 class AbstractOrador(models.Model):  # Oradores
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)                                                       # cod_sessao_plen
@@ -117,6 +126,11 @@ class AbstractOrador(models.Model):  # Oradores
     class Meta:
         abstract = True
 
+    def __unicode__(self):
+        return _(u'%(nome)s (%(numero)sº orador)') % {
+            'nome': self.parlamentar,
+            'numero': self.numero_ordem}
+
 
 class Orador(AbstractOrador):  # Oradores
 
@@ -124,8 +138,6 @@ class Orador(AbstractOrador):  # Oradores
         verbose_name = _(u'Orador das Explicações Pessoais')
         verbose_name_plural = _(u'Oradores das Explicações Pessoais')
 
-    def __unicode__(self):
-        return self.parlamentar
 
 class OradorExpediente(AbstractOrador):  # OradoresExpediente
 
@@ -133,8 +145,6 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
         verbose_name = _(u'Orador do Expediente')
         verbose_name_plural = _(u'Oradores do Expediente')
 
-    def __unicode__(self):
-        return self.parlamentar
 
 class OrdemDia(AbstractOrdemDia):
 
@@ -142,8 +152,6 @@ class OrdemDia(AbstractOrdemDia):
         verbose_name = _(u'Matéria da Ordem do Dia')
         verbose_name_plural = _(u'Matérias da Ordem do Dia')
 
-    def __unicode__(self):
-        return self.numero_ordem
 
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)  # cod_sessao_plen
@@ -157,6 +165,7 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     def __unicode__(self):
         return self.parlamentar
 
+
 class TipoResultadoVotacao(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_(u'Tipo'))  # nom_resultado
 
@@ -165,7 +174,8 @@ class TipoResultadoVotacao(models.Model):
         verbose_name_plural = _(u'Tipos de Resultado de Votação')
 
     def __unicode__(self):
-        return self.nome_resultado
+        return self.nome
+
 
 class RegistroVotacao(models.Model):
     tipo_resultado_votacao = models.ForeignKey(TipoResultadoVotacao, verbose_name=_(u'Resultado da Votação'))  # tip_resultado_votacao
@@ -181,7 +191,8 @@ class RegistroVotacao(models.Model):
         verbose_name_plural = _(u'Votações')
 
     def __unicode__(self):
-        return self.materia
+        return self.materia  # XXX ?
+
 
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     votacao = models.ForeignKey(RegistroVotacao)       # cod_votacao
@@ -194,7 +205,8 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name_plural = _(u'Registros de Votações de Parlamentares')
 
     def __unicode__(self):
-        return self.parlamentar
+        return self.parlamentar  # XXX ?
+
 
 class SessaoPlenariaPresenca(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)        # cod_sessao_plen
@@ -206,4 +218,4 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name_plural = _(u'Presenças em Sessões Plenárias')
 
     def __unicode__(self):
-        return self.parlamentar
+        return self.parlamentar  # XXX ?
