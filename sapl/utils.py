@@ -11,3 +11,12 @@ def register_all_models_in_admin(module_name):
 
         if not admin.site.is_registered(model):
             admin.site.register(model, CustomModelAdmin)
+
+
+def make_choices(*choice_pairs):
+    assert len(choice_pairs) % 2 == 0
+    choice_pairs = iter(choice_pairs)
+    choices = zip(choice_pairs, choice_pairs)
+    yield choices
+    for key, value in choices:
+        yield key
