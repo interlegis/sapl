@@ -1,0 +1,7 @@
+-r test-requirements.txt
+beautifulsoup4
+django-debug-toolbar
+django-extensions
+ipdb
+pygraphviz
+pytest-ipdb==0.1-prerelease2

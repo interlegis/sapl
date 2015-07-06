@@ -1,0 +1,10 @@
+-r requirements.txt
+clonedigger
+coverage
+django-webtest
+model_mommy
+pep8
+pytest
+pytest-cov
+pytest-django
+WebTest
