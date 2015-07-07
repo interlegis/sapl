@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 class NormaAppConfig(AppConfig):
     name = 'norma'
-    verbose_name = u'Norma Jurídica'
+    verbose_name = 'Norma Jurídica'

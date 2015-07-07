@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 class ComissoesAppConfig(AppConfig):
     name = 'comissoes'
-    verbose_name = u'Comissões'
+    verbose_name = 'Comissões'

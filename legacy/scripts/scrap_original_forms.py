@@ -16,7 +16,7 @@ assert appconfs  # to prevent removal by automatic organize imports on this file
 
 def _read_line(tr):
     for td in tr.find_all('td'):
-        label = td.text.strip().split('\n')[0].strip(u'\xa0' + string.whitespace)
+        label = td.text.strip().split('\n')[0].strip('\xa0' + string.whitespace)
         if label.endswith('(*)'):
             label = label[:-3].strip()
         names = [c.attrs['name'] for c in td.findAll() if isinstance(c, Tag) and 'name' in c.attrs]
@@ -37,7 +37,7 @@ def extract_title_and_fieldsets(model):
     html_doc = cont.decode('utf-8')
     soup = BeautifulSoup(html_doc, 'html.parser')
     forms = soup.find_all('form')
-    [form] = [f for f in forms if (u'method', u'post') in f.attrs.items()]
+    [form] = [f for f in forms if ('method', 'post') in f.attrs.items()]
     # children are either tags or strings...
     assert set(type(c) for c in form.children) == {Tag, NavigableString}
     # ... and all strings are empty
@@ -106,10 +106,10 @@ def source_with_verbose_names(model):
                 name, path, args, legacy_name = split(match.groups())
                 if name in labels and 'verbose_name' not in args:
                     args = [args] if args.strip() else []
-                    args.append(u"verbose_name=_(u'%s')" % labels[name])
-                    args = u', '.join(args)
+                    args.append("verbose_name=_(u'%s')" % labels[name])
+                    args = ', '.join(args)
                 new_lines.append(
-                    (u'    %s = %s(%s)' % (name, path, args), legacy_name))
+                    ('    %s = %s(%s)' % (name, path, args), legacy_name))
                 break
         else:
             if 'class Meta:' in line:
@@ -140,17 +140,17 @@ def source_with_verbose_names(model):
 
     if not title:
         # default title from model name
-        title_singular = u' '.join(re.findall('[A-Z][^A-Z]*', model.__name__))
-        title_singular = re.sub('cao\\b', u'ção', title_singular)
-        title_singular = re.sub('ao\\b', u'ão', title_singular)
-        title_plural = add_s(title_singular.replace(u'ção', u'ções').replace(u'ão', u'ões'))
+        title_singular = ' '.join(re.findall('[A-Z][^A-Z]*', model.__name__))
+        title_singular = re.sub('cao\\b', 'ção', title_singular)
+        title_singular = re.sub('ao\\b', 'ão', title_singular)
+        title_plural = add_s(title_singular.replace('ção', 'ções').replace('ão', 'ões'))
 
     elif title.endswith('s'):
-        title_singular = remove_s(title.replace(u'ções', u'ção').replace(u'ões', u'ão'))
+        title_singular = remove_s(title.replace('ções', 'ção').replace('ões', 'ão'))
         title_plural = title
     else:
         title_singular = title
-        title_plural = add_s(title.replace(u'ção', u'ções').replace(u'ão', u'ões'))
+        title_plural = add_s(title.replace('ção', 'ções').replace('ão', 'ões'))
 
     yield """
     class Meta:

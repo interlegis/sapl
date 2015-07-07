@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 class LexmlAppConfig(AppConfig):
     name = 'lexml'
-    verbose_name = u'LexML'
+    verbose_name = 'LexML'
