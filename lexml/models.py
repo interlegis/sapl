@@ -18,7 +18,7 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
         verbose_name_plural = _(u'Provedores Lexml')
 
 
-class LexmlRegistroPublicador(models.Model):
+class LexmlPublicador(models.Model):
     id_publicador = models.IntegerField(verbose_name=_(u'Id do publicador'))                                            # id_publicador
     nome = models.CharField(max_length=255, verbose_name=_(u'Nome do publicador'))                           # nom_publicador
     email_responsavel = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'E-mail do responsável'))        # adm_email
