@@ -15,7 +15,7 @@ class TipoSessaoPlenaria(models.Model):
         verbose_name = _('Tipo de Sessão Plenária')
         verbose_name_plural = _('Tipos de Sessão Plenária')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -43,7 +43,7 @@ class SessaoPlenaria(models.Model):
         verbose_name = _('Sessão Plenária')
         verbose_name_plural = _('Sessões Plenárias')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%sª Sessão %s da %sª Sessão Legislativa da %sª Legislatura') % (
             self.numero,
             self.tipo.nome,
@@ -69,7 +69,7 @@ class AbstractOrdemDia(models.Model):
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s' % (self.numero_ordem, self.sessao_plenaria)
 
 
@@ -87,7 +87,7 @@ class TipoExpediente(models.Model):
         verbose_name = _('Tipo de Expediente')
         verbose_name_plural = _('Tipos de Expediente')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -100,7 +100,7 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
         verbose_name = _('Expediente de Sessão Plenaria')
         verbose_name_plural = _('Expedientes de Sessão Plenaria')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s' % (self.tipo, self.sessao_plenaria)
 
 
@@ -113,7 +113,7 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
         verbose_name = _('Participação em Mesa de Sessão Plenaria')
         verbose_name_plural = _('Participações em Mesas de Sessão Plenaria')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s' % (self.cargo, self.parlamentar)
 
 
@@ -126,7 +126,7 @@ class AbstractOrador(models.Model):  # Oradores
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%(nome)s (%(numero)sº orador)') % {
             'nome': self.parlamentar,
             'numero': self.numero_ordem}
@@ -162,7 +162,7 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name = _('Presença da Ordem do Dia')
         verbose_name_plural = _('Presenças da Ordem do Dia')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.parlamentar
 
 
@@ -173,7 +173,7 @@ class TipoResultadoVotacao(models.Model):
         verbose_name = _('Tipo de Resultado de Votação')
         verbose_name_plural = _('Tipos de Resultado de Votação')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -190,7 +190,7 @@ class RegistroVotacao(models.Model):
         verbose_name = _('Votação')
         verbose_name_plural = _('Votações')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.materia  # XXX ?
 
 
@@ -204,7 +204,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.parlamentar  # XXX ?
 
 
@@ -217,5 +217,5 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.parlamentar  # XXX ?

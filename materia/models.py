@@ -18,7 +18,7 @@ class TipoMateriaLegislativa(models.Model):
         verbose_name = _('Tipo de Matéria Legislativa')
         verbose_name_plural = _('Tipos de Matérias Legislativas')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.descricao
 
 
@@ -29,7 +29,7 @@ class RegimeTramitacao(models.Model):
         verbose_name = _('Regime Tramitação')
         verbose_name_plural = _('Regimes Tramitação')
 
-    def __unicode__(self):  
+    def __str__(self):
         return self.descricao
 
 
@@ -41,7 +41,7 @@ class Origem(models.Model):
         verbose_name = _('Origem')
         verbose_name_plural = _('Origens')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -83,7 +83,7 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
 
@@ -97,7 +97,7 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
         verbose_name = _('Acompanhamento de Matéria')
         verbose_name_plural = _('Acompanhamentos de Matéria')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return self.materia
 
 class Anexada(models.Model):
@@ -110,7 +110,7 @@ class Anexada(models.Model):
         verbose_name = _('Anexada')
         verbose_name_plural = _('Anexadas')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('Principal: %(materia_principal)s - Anexada: %(materia_anexada)s') % {
             'materia_principal': self.materia_principal, 'materia_anexada': self.materia_anexada}
 
@@ -123,7 +123,7 @@ class AssuntoMateria(models.Model):
         verbose_name = _('Assunto de Matéria')
         verbose_name_plural = _('Assuntos de Matéria')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.assunto
 
 
@@ -134,7 +134,7 @@ class TipoAutor(models.Model):
         verbose_name = _('Tipo de Autor')
         verbose_name_plural = _('Tipos de Autor')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.descricao
 
 
@@ -151,7 +151,7 @@ class Autor(models.Model):
         verbose_name = _('Autor')
         verbose_name_plural = _('Autores')
 
-    def __unicode__(self):
+    def __str__(self):
         if str(self.tipo) == 'Parlamentar':
             return str(self.parlamentar)
         elif str(self.tipo) == 'Comissao':
@@ -174,7 +174,7 @@ class Autoria(models.Model):
         verbose_name = _('Autoria')
         verbose_name_plural = _('Autorias')
 
-    def __unicode__(self):
+    def __str__(self):
         return  _('%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
 
 class DespachoInicial(models.Model):
@@ -187,7 +187,7 @@ class DespachoInicial(models.Model):
         verbose_name = _('Despacho Inicial')
         verbose_name_plural = _('Despachos Iniciais')
 
-    def __unicode__(self):
+    def __str__(self):
         return  _('Nº %(numero)s - %(materia)s - %(comissao)s') % {'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
 
 class TipoDocumento(models.Model):
@@ -197,7 +197,7 @@ class TipoDocumento(models.Model):
         verbose_name = _('Tipo de Documento')
         verbose_name_plural = _('Tipos de Documento')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return self.descricao
 
 
@@ -214,9 +214,9 @@ class DocumentoAcessorio(models.Model):
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
-            'tipo': self.tipo, 'nome': self.nome, 'ano': self.data, 'autor': self.autor} 
+            'tipo': self.tipo, 'nome': self.nome, 'ano': self.data, 'autor': self.autor}
 
 
 class MateriaAssunto(models.Model):
@@ -228,7 +228,7 @@ class MateriaAssunto(models.Model):
         verbose_name = _('Relação Matéria - Assunto')
         verbose_name_plural = _('Relações Matéria - Assunto')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%(materia)s - %(assunto)s') % { 'materia': self.materia, 'assunto': self.assunto}
 
 
@@ -245,7 +245,7 @@ class Numeracao(models.Model):
         verbose_name_plural = _('Numerações')
 
     def __unicode_ (self):
-        return _('Nº%(numero)s %(tipo)s - %(data)s') % { 
+        return _('Nº%(numero)s %(tipo)s - %(data)s') % {
              'numero': self.numero_materia, 'tipo': self.tipo_materia, 'data': self.data_materia }
 
 
@@ -260,7 +260,7 @@ class Orgao(models.Model):
         verbose_name = _('Órgão')
         verbose_name_plural = _('Órgãos')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%(nome)s - %(sigla)s') % { 'nome': self.nome, 'sigla':self.sigla }
 
 
@@ -271,7 +271,7 @@ class TipoFimRelatoria(models.Model):
         verbose_name = _('Tipo Fim de Relatoria')
         verbose_name_plural = _('Tipos Fim de Relatoria')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.descricao
 
 class Relatoria(models.Model):
@@ -286,7 +286,7 @@ class Relatoria(models.Model):
         verbose_name = _('Relatoria')
         verbose_name_plural = _('Relatorias')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return _('%(materia)s - %(tipo)s - %(data)s') % {
            'materia': self.materia, 'tipo': self.tipo_fim_relatoria, 'data': self.data_designacao_relator
         }
@@ -308,7 +308,7 @@ class Parecer(models.Model):
         verbose_name = _('Parecer')
         verbose_name_plural = _('Pareceres')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return _('%(relatoria)s - %(tipo)s') % {
             'relatoria': self.relatoria, 'tipo': self.tipo_apresentacao
         }
@@ -332,7 +332,7 @@ class TipoProposicao(models.Model):
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return self.descricao
 
 
@@ -356,7 +356,7 @@ class Proposicao(models.Model):
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return self.descricao
 
 
@@ -375,7 +375,7 @@ class StatusTramitacao(models.Model):
         verbose_name = _('Status de Tramitação')
         verbose_name_plural = _('Status de Tramitação')
 
-    def __unicode__(self):
+    def __str__(self):
         return _('%(sigla)s - %(descricao)s - %(indicador)s') % {
             'sigla': self.sigla, 'descricao': self.descricao, 'indicador': self.indicador
         }
@@ -390,7 +390,7 @@ class UnidadeTramitacao(models.Model):
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return _('%(orgao)s %(comissao)s') % {
             'orgao': self.orgao, 'comissao': self.comissao
         }
@@ -430,7 +430,7 @@ class Tramitacao(models.Model):
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
 
-    def __unicode__ (self):
+    def __str__ (self):
         return _('%(materia)s | %(status)s | %(data)s') % {
             'materia': self.materia, 'status': self.status, 'data': self.data_tramitacao
         }

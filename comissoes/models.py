@@ -19,7 +19,7 @@ class TipoComissao(models.Model):
         verbose_name = _('Tipo de Comissão')
         verbose_name_plural = _('Tipos de Comissão')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -49,7 +49,7 @@ class Comissao(models.Model):
         verbose_name = _('Comissão')
         verbose_name_plural = _('Comissões')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -61,7 +61,7 @@ class Periodo(models.Model):  # PeriodoCompComissao
         verbose_name = _('Período de composição de Comissão')
         verbose_name_plural = _('Períodos de composição de Comissão')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s' % (self.data_inicio, self.data_fim)
 
 
@@ -73,7 +73,7 @@ class CargoComissao(models.Model):
         verbose_name = _('Cargo de Comissão')
         verbose_name_plural = _('Cargos de Comissão')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome
 
 
@@ -85,7 +85,7 @@ class Composicao(models.Model):  # IGNORE
         verbose_name = _('Composição de Comissão')
         verbose_name_plural = _('Composições de Comissão')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.comissao.sigla, self.periodo)
 
 
@@ -103,6 +103,6 @@ class Participacao(models.Model):  # ComposicaoComissao
         verbose_name = _('Participação em Comissão')
         verbose_name_plural = _('Participações em Comissão')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s : %s' % (self.cargo, self.parlamentar)
 

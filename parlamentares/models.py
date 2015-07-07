@@ -118,7 +118,7 @@ class NivelInstrucao(models.Model):
         verbose_name = _('Nível Instrução')
         verbose_name_plural = _('Níveis Instrução')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nivel_instrucao
 
 
@@ -166,7 +166,7 @@ class Parlamentar(models.Model):
         verbose_name = _('Parlamentar')
         verbose_name_plural = _('Parlamentares')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nome_completo
 
 
