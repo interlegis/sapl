@@ -10,10 +10,10 @@ class TipoComissao(models.Model):
     PERMANENTE = 'P'
     NATUREZA_CHOICES = ((TEMPORARIA, _(u'Temporária')),
                         (PERMANENTE, _(u'Permanente')))
-    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))                                                             # nom_tipo_comissao
-    natureza = models.CharField(max_length=1, verbose_name=_(u'Natureza'), choices=NATUREZA_CHOICES)        # sgl_natureza_comissao
-    sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))                                                           # sgl_tipo_comissao
-    dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Dispositivo Regimental'))  # des_dispositivo_regimental
+    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))
+    natureza = models.CharField(max_length=1, verbose_name=_(u'Natureza'), choices=NATUREZA_CHOICES)
+    sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))
+    dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Dispositivo Regimental'))
 
     class Meta:
         verbose_name = _(u'Tipo de Comissão')
@@ -24,26 +24,26 @@ class TipoComissao(models.Model):
 
 
 class Comissao(models.Model):
-    tipo = models.ForeignKey(TipoComissao, verbose_name=_(u'Tipo'))                                                        # tip_comissao
-    nome = models.CharField(max_length=60, verbose_name=_(u'Nome'))                                                        # nom_comissao
-    sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))                                                      # sgl_comissao
-    data_criacao = models.DateField(verbose_name=_(u'Data de Criação'))                                                    # dat_criacao
-    data_extincao = models.DateField(blank=True, null=True, verbose_name=_(u'Data de Extinção'))                           # dat_extincao
-    apelido_temp = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Apelido'))                     # nom_apelido_temp
-    data_instalacao_temp = models.DateField(blank=True, null=True, verbose_name=_(u'Data Instalação'))                     # dat_instalacao_temp
-    data_final_prevista_temp = models.DateField(blank=True, null=True, verbose_name=_(u'Data Prevista Término'))           # dat_final_prevista_temp
-    data_prorrogada_temp = models.DateField(blank=True, null=True, verbose_name=_(u'Novo Prazo'))                          # dat_prorrogada_temp
-    data_fim_comissao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Término'))                           # dat_fim_comissao
-    secretario = models.CharField(max_length=30, blank=True, null=True, verbose_name=_(u'Secretário'))                     # nom_secretario
-    telefone_reuniao = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Tel. Sala Reunião'))        # num_tel_reuniao
-    endereco_secretaria = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Endereço Secretaria'))  # end_secretaria
-    telefone_secretaria = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Tel. Secretaria'))       # num_tel_secretaria
-    fax_secretaria = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Fax Secretaria'))             # num_fax_secretaria
-    agenda_reuniao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Data/Hora Reunião'))         # des_agenda_reuniao
-    local_reuniao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Local Reunião'))              # loc_reuniao
-    finalidade = models.TextField(blank=True, null=True, verbose_name=_(u'Finalidade'))                                    # txt_finalidade
-    email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'E-mail'))                             # end_email
-    unidade_deliberativa = models.BooleanField()                                                                           # ind_unid_deliberativa
+    tipo = models.ForeignKey(TipoComissao, verbose_name=_(u'Tipo'))
+    nome = models.CharField(max_length=60, verbose_name=_(u'Nome'))
+    sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))
+    data_criacao = models.DateField(verbose_name=_(u'Data de Criação'))
+    data_extincao = models.DateField(blank=True, null=True, verbose_name=_(u'Data de Extinção'))
+    apelido_temp = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Apelido'))
+    data_instalacao_temp = models.DateField(blank=True, null=True, verbose_name=_(u'Data Instalação'))
+    data_final_prevista_temp = models.DateField(blank=True, null=True, verbose_name=_(u'Data Prevista Término'))
+    data_prorrogada_temp = models.DateField(blank=True, null=True, verbose_name=_(u'Novo Prazo'))
+    data_fim_comissao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Término'))
+    secretario = models.CharField(max_length=30, blank=True, null=True, verbose_name=_(u'Secretário'))
+    telefone_reuniao = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Tel. Sala Reunião'))
+    endereco_secretaria = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Endereço Secretaria'))
+    telefone_secretaria = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Tel. Secretaria'))
+    fax_secretaria = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Fax Secretaria'))
+    agenda_reuniao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Data/Hora Reunião'))
+    local_reuniao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Local Reunião'))
+    finalidade = models.TextField(blank=True, null=True, verbose_name=_(u'Finalidade'))
+    email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'E-mail'))
+    unidade_deliberativa = models.BooleanField()
 
     class Meta:
         verbose_name = _(u'Comissão')
@@ -54,8 +54,8 @@ class Comissao(models.Model):
 
 
 class Periodo(models.Model):  # PeriodoCompComissao
-    data_inicio = models.DateField(verbose_name=_(u'Data Início'))                   # dat_inicio_periodo
-    data_fim = models.DateField(blank=True, null=True, verbose_name=_(u'Data Fim'))  # dat_fim_periodo
+    data_inicio = models.DateField(verbose_name=_(u'Data Início'))
+    data_fim = models.DateField(blank=True, null=True, verbose_name=_(u'Data Fim'))
 
     class Meta:
         verbose_name = _(u'Período de composição de Comissão')
@@ -66,8 +66,8 @@ class Periodo(models.Model):  # PeriodoCompComissao
 
 
 class CargoComissao(models.Model):
-    nome = models.CharField(max_length=50, verbose_name=_(u'Cargo'))  # des_cargo
-    unico = models.BooleanField(verbose_name=_(u'Único'))             # ind_unico
+    nome = models.CharField(max_length=50, verbose_name=_(u'Cargo'))
+    unico = models.BooleanField(verbose_name=_(u'Único'))
 
     class Meta:
         verbose_name = _(u'Cargo de Comissão')
@@ -78,8 +78,8 @@ class CargoComissao(models.Model):
 
 
 class Composicao(models.Model):  # IGNORE
-    comissao = models.ForeignKey(Comissao, verbose_name=_(u'Comissão'))  # cod_comissao
-    periodo = models.ForeignKey(Periodo, verbose_name=_(u'Período'))     # cod_periodo_comp
+    comissao = models.ForeignKey(Comissao, verbose_name=_(u'Comissão'))
+    periodo = models.ForeignKey(Periodo, verbose_name=_(u'Período'))
 
     class Meta:
         verbose_name = _(u'Composição de Comissão')
@@ -90,14 +90,14 @@ class Composicao(models.Model):  # IGNORE
 
 
 class Participacao(models.Model):  # ComposicaoComissao
-    composicao = models.ForeignKey(Composicao)                                                                             # cod_comissao
-    parlamentar = models.ForeignKey(Parlamentar)                                                                           # cod_parlamentar
-    cargo = models.ForeignKey(CargoComissao)                                                                               # cod_cargo
-    titular = models.BooleanField(verbose_name=_(u'Titular'))                                                              # ind_titular
-    data_designacao = models.DateField(verbose_name=_(u'Data Designação'))                                                 # dat_designacao
-    data_desligamento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Desligamento'))                      # dat_desligamento
-    motivo_desligamento = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Motivo Desligamento'))  # des_motivo_desligamento
-    observacao = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Observação'))                    # obs_composicao
+    composicao = models.ForeignKey(Composicao)
+    parlamentar = models.ForeignKey(Parlamentar)
+    cargo = models.ForeignKey(CargoComissao)
+    titular = models.BooleanField(verbose_name=_(u'Titular'))
+    data_designacao = models.DateField(verbose_name=_(u'Data Designação'))
+    data_desligamento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Desligamento'))
+    motivo_desligamento = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Motivo Desligamento'))
+    observacao = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'Observação'))
 
     class Meta:
         verbose_name = _(u'Participação em Comissão')

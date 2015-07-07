@@ -1,0 +1,164 @@
+TipoMateriaLegislativa:
+  descricao: des_tipo_materia
+  num_automatica: ind_num_automatica
+  quorum_minimo_votacao: quorum_minimo_votacao
+  sigla: sgl_tipo_materia
+
+RegimeTramitacao:
+  descricao: des_regime_tramitacao
+
+Origem:
+  nome: nom_origem
+  sigla: sgl_origem
+
+MateriaLegislativa:
+  ano_ident_basica: ano_ident_basica
+  ano_origem_externa: ano_origem_externa
+  apelido: nom_apelido
+  complementar: ind_complementar
+  data_apresentacao: dat_apresentacao
+  data_fim_prazo: dat_fim_prazo
+  data_origem_externa: dat_origem_externa
+  data_publicacao: dat_publicacao
+  dias_prazo: num_dias_prazo
+  em_tramitacao: ind_tramitacao
+  ementa: txt_ementa
+  indexacao: txt_indexacao
+  local_origem_externa: cod_local_origem_externa
+  numero_ident_basica: num_ident_basica
+  numero_origem_externa: num_origem_externa
+  numero_protocolo: num_protocolo
+  objeto: des_objeto
+  observacao: txt_observacao
+  polemica: ind_polemica
+  regime_tramitacao: cod_regime_tramitacao
+  resultado: txt_resultado
+  tipo_apresentacao: tip_apresentacao
+  tipo_id_basica: tip_id_basica
+  tipo_origem_externa: tip_origem_externa
+
+AcompanhamentoMateria (AcompMateria):
+  email: end_email
+  hash: txt_hash
+  materia: cod_materia
+
+Anexada:
+  data_anexacao: dat_anexacao
+  data_desanexacao: dat_desanexacao
+  materia_anexada: cod_materia_anexada
+  materia_principal: cod_materia_principal
+
+AssuntoMateria:
+  assunto: des_assunto
+  dispositivo: des_dispositivo
+
+TipoAutor:
+  descricao: des_tipo_autor
+
+Autor:
+  cargo: des_cargo
+  comissao: cod_comissao
+  nome: nom_autor
+  parlamentar: cod_parlamentar
+  partido: cod_partido
+  tipo: tip_autor
+  username: col_username
+
+Autoria:
+  autor: cod_autor
+  materia: cod_materia
+  primeiro_autor: ind_primeiro_autor
+
+DespachoInicial:
+  comissao: cod_comissao
+  materia: cod_materia
+  numero_ordem: num_ordem
+
+TipoDocumento:
+  descricao: des_tipo_documento
+
+DocumentoAcessorio:
+  autor: nom_autor_documento
+  data: dat_documento
+  ementa: txt_ementa
+  indexacao: txt_indexacao
+  materia: cod_materia
+  nome: nom_documento
+  tipo: tip_documento
+
+MateriaAssunto:
+  assunto: cod_assunto
+  materia: cod_materia
+
+Numeracao:
+  ano_materia: ano_materia
+  data_materia: dat_materia
+  materia: cod_materia
+  numero_materia: num_materia
+  numero_ordem: num_ordem
+  tipo_materia: tip_materia
+
+Orgao:
+  endereco: end_orgao
+  nome: nom_orgao
+  sigla: sgl_orgao
+  telefone: num_tel_orgao
+  unidade_deliberativa: ind_unid_deliberativa
+
+TipoFimRelatoria:
+  descricao: des_fim_relatoria
+
+Relatoria:
+  comissao: cod_comissao
+  data_designacao_relator: dat_desig_relator
+  data_destituicao_relator: dat_destit_relator
+  materia: cod_materia
+  parlamentar: cod_parlamentar
+  tipo_fim_relatoria: tip_fim_relatoria
+
+Parecer:
+  materia: cod_materia
+  parecer: txt_parecer
+  relatoria: cod_relatoria
+  tipo_apresentacao: tip_apresentacao
+  tipo_conclusao: tip_conclusao
+
+TipoProposicao:
+  descricao: des_tipo_proposicao
+  materia_ou_documento: ind_mat_ou_doc
+  modelo: nom_modelo
+  tipo_materia: tip_mat_ou_doc
+
+Proposicao:
+  autor: cod_autor
+  data_devolucao: dat_devolucao
+  data_envio: dat_envio
+  data_recebimento: dat_recebimento
+  descricao: txt_descricao
+  justificativa_devolucao: txt_justif_devolucao
+  materia: cod_mat_ou_doc
+  numero_proposicao: num_proposicao
+  tipo: tip_proposicao
+
+StatusTramitacao:
+  descricao: des_status
+  indicador: ind_fim_tramitacao
+  sigla: sgl_status
+
+UnidadeTramitacao:
+  comissao: cod_comissao
+  orgao: cod_orgao
+  parlamentar: cod_parlamentar
+
+Tramitacao:
+  data_encaminhamento: dat_encaminha
+  data_fim_prazo: dat_fim_prazo
+  data_tramitacao: dat_tramitacao
+  materia: cod_materia
+  status: cod_status
+  texto: txt_tramitacao
+  turno: sgl_turno
+  ultima: ind_ult_tramitacao
+  unidade_tramitacao_destino: cod_unid_tram_dest
+  unidade_tramitacao_local: cod_unid_tram_local
+  urgente: ind_urgencia

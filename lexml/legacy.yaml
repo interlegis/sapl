@@ -1,0 +1,18 @@
+LexmlProvedor (LexmlRegistroProvedor):
+  email_responsavel: adm_email
+  id_provedor: id_provedor
+  id_responsavel: id_responsavel
+  nome: nom_provedor
+  nome_responsavel: nom_responsavel
+  sigla: sgl_provedor
+  tipo: tipo
+  xml: xml_provedor
+
+LexmlPublicador (LexmlRegistroPublicador):
+  email_responsavel: adm_email
+  id_publicador: id_publicador
+  id_responsavel: id_responsavel
+  nome: nom_publicador
+  nome_responsavel: nom_responsavel
+  sigla: sigla
+  tipo: tipo

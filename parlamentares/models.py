@@ -4,9 +4,9 @@ from django.utils.translation import ugettext as _
 
 
 class Legislatura(models.Model):
-    data_inicio = models.DateField(verbose_name=_(u'Data Início'))    # dat_inicio
-    data_fim = models.DateField(verbose_name=_(u'Data Fim'))          # dat_fim
-    data_eleicao = models.DateField(verbose_name=_(u'Data Eleição'))  # dat_eleicao
+    data_inicio = models.DateField(verbose_name=_(u'Data Início'))
+    data_fim = models.DateField(verbose_name=_(u'Data Fim'))
+    data_eleicao = models.DateField(verbose_name=_(u'Data Eleição'))
 
     class Meta:
         verbose_name = _(u'Legislatura')
@@ -19,13 +19,13 @@ class SessaoLegislativa(models.Model):
     TIPO_SESSAO_CHOICES = ((ORDINARIA, _(u'Ordinária')),
                            (EXTRAORDINARIA, _(u'Extraordinária')))
 
-    legislatura = models.ForeignKey(Legislatura)                                                          # num_legislatura
-    numero = models.IntegerField(verbose_name=_(u'Número'))                                               # num_sessao_leg
-    tipo = models.CharField(max_length=1, verbose_name=_(u'Tipo'), choices=TIPO_SESSAO_CHOICES)                                        # tip_sessao_leg
-    data_inicio = models.DateField(verbose_name=_(u'Data Início'))                                        # dat_inicio
-    data_fim = models.DateField(verbose_name=_(u'Data Fim'))                                              # dat_fim
-    data_inicio_intervalo = models.DateField(blank=True, null=True, verbose_name=_(u'Início Intervalo'))  # dat_inicio_intervalo
-    data_fim_intervalo = models.DateField(blank=True, null=True, verbose_name=_(u'Fim Intervalo'))        # dat_fim_intervalo
+    legislatura = models.ForeignKey(Legislatura)
+    numero = models.IntegerField(verbose_name=_(u'Número'))
+    tipo = models.CharField(max_length=1, verbose_name=_(u'Tipo'), choices=TIPO_SESSAO_CHOICES)
+    data_inicio = models.DateField(verbose_name=_(u'Data Início'))
+    data_fim = models.DateField(verbose_name=_(u'Data Fim'))
+    data_inicio_intervalo = models.DateField(blank=True, null=True, verbose_name=_(u'Início Intervalo'))
+    data_fim_intervalo = models.DateField(blank=True, null=True, verbose_name=_(u'Fim Intervalo'))
 
     class Meta:
         verbose_name = _(u'Sessão Legislativa')
@@ -33,9 +33,9 @@ class SessaoLegislativa(models.Model):
 
 
 class Coligacao(models.Model):
-    legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))                                # num_legislatura
-    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))                                   # nom_coligacao
-    numero_votos = models.IntegerField(blank=True, null=True, verbose_name=_(u'Nº Votos Recebidos'))  # num_votos_coligacao
+    legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))
+    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))
+    numero_votos = models.IntegerField(blank=True, null=True, verbose_name=_(u'Nº Votos Recebidos'))
 
     class Meta:
         verbose_name = _(u'Coligação')
@@ -43,10 +43,10 @@ class Coligacao(models.Model):
 
 
 class Partido(models.Model):
-    sigla = models.CharField(max_length=9, verbose_name=_(u'Sigla'))                   # sgl_partido
-    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))                    # nom_partido
-    data_criacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Criação'))    # dat_criacao
-    data_extincao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Extinção'))  # dat_extincao
+    sigla = models.CharField(max_length=9, verbose_name=_(u'Sigla'))
+    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))
+    data_criacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Criação'))
+    data_extincao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Extinção'))
 
     class Meta:
         verbose_name = _(u'Partido')
@@ -55,8 +55,8 @@ class Partido(models.Model):
 
 class ComposicaoColigacao(models.Model):
     # TODO M2M
-    partido = models.ForeignKey(Partido)      # cod_partido
-    coligacao = models.ForeignKey(Coligacao)  # cod_coligacao
+    partido = models.ForeignKey(Partido)
+    coligacao = models.ForeignKey(Coligacao)
 
 
 class Municipio(models.Model):  # Localidade
@@ -102,9 +102,9 @@ class Municipio(models.Model):  # Localidade
         ('EX', u'Exterior'),
     )
 
-    nome = models.CharField(max_length=50, blank=True, null=True)       # nom_localidade
-    uf = models.CharField(max_length=2, blank=True, null=True, choices=UF_CHOICES)               # sgl_uf
-    regiao = models.CharField(max_length=2, blank=True, null=True, choices=REGIAO_CHOICES)           # sgl_regiao
+    nome = models.CharField(max_length=50, blank=True, null=True)
+    uf = models.CharField(max_length=2, blank=True, null=True, choices=UF_CHOICES)
+    regiao = models.CharField(max_length=2, blank=True, null=True, choices=REGIAO_CHOICES)
 
     class Meta:
         verbose_name = _(u'Município')
@@ -112,7 +112,7 @@ class Municipio(models.Model):  # Localidade
 
 
 class NivelInstrucao(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_(u'Nível de Instrução'))  # des_nivel_instrucao
+    descricao = models.CharField(max_length=50, verbose_name=_(u'Nível de Instrução'))
 
     class Meta:
         verbose_name = _(u'Nível Instrução')
@@ -123,7 +123,7 @@ class NivelInstrucao(models.Model):
 
 
 class SituacaoMilitar(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_(u'Situação Militar'))  # des_tipo_situacao
+    descricao = models.CharField(max_length=50, verbose_name=_(u'Situação Militar'))
 
     class Meta:
         verbose_name = _(u'Tipo Situação Militar')
@@ -136,31 +136,31 @@ class Parlamentar(models.Model):
     SEXO_CHOICE = ((FEMININO, _(u'Feminino')),
                    (MASCULINO, _(u'Masculino')))
 
-    nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True, verbose_name=_(u'Nível Instrução'))           # cod_nivel_instrucao
-    situacao_militar = models.ForeignKey(SituacaoMilitar, blank=True, null=True, verbose_name=_(u'Situação Militar'))        # tip_situacao_militar
-    nome_completo = models.CharField(max_length=50, verbose_name=_(u'Nome Completo'))                                        # nom_completo
-    nome_parlamentar = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Nome Parlamentar'))           # nom_parlamentar
-    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'), choices=SEXO_CHOICE)                                                           # sex_parlamentar
-    data_nascimento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Nascimento'))                            # dat_nascimento
-    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name=_(u'C.P.F'))                            # num_cpf
-    rg = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'R.G.'))                              # num_rg
-    titulo_eleitor = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Título de Eleitor'))        # num_tit_eleitor
-    cod_casa = models.IntegerField()                                                                                         # cod_casa
-    numero_gab_parlamentar = models.CharField(max_length=10, blank=True, null=True, verbose_name=_(u'Nº Gabinete'))          # num_gab_parlamentar
-    telefone = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Telefone'))             # num_tel_parlamentar
-    fax = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Fax'))                  # num_fax_parlamentar
-    endereco_residencia = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Endereço Residencial'))  # end_residencial
-    municipio_residencia = models.ForeignKey(Municipio, blank=True, null=True, verbose_name=_(u'Município'))                    # cod_localidade_resid
-    cep_residencia = models.CharField(max_length=9, blank=True, null=True, verbose_name=_(u'CEP'))                         # num_cep_resid
-    telefone_residencia = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Telefone Residencial'))       # num_tel_resid
-    fax_residencia = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Fax Residencial'))            # num_fax_resid
-    endereco_web = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'HomePage'))                      # end_web
-    profissao = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Profissão'))                    # nom_profissao
-    email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Correio Eletrônico'))          # end_email
-    locais_atuacao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Locais de Atuação'))  # des_local_atuacao
-    ativo = models.BooleanField(verbose_name=_(u'Ativo na Casa?'))                                                           # ind_ativo
-    biografia = models.TextField(blank=True, null=True, verbose_name=_(u'Biografia'))                                    # txt_biografia
-    unidade_deliberativa = models.BooleanField()                                                                                # ind_unid_deliberativa
+    nivel_instrucao = models.ForeignKey(NivelInstrucao, blank=True, null=True, verbose_name=_(u'Nível Instrução'))
+    situacao_militar = models.ForeignKey(SituacaoMilitar, blank=True, null=True, verbose_name=_(u'Situação Militar'))
+    nome_completo = models.CharField(max_length=50, verbose_name=_(u'Nome Completo'))
+    nome_parlamentar = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Nome Parlamentar'))
+    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'), choices=SEXO_CHOICE)
+    data_nascimento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Nascimento'))
+    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name=_(u'C.P.F'))
+    rg = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'R.G.'))
+    titulo_eleitor = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Título de Eleitor'))
+    cod_casa = models.IntegerField()
+    numero_gab_parlamentar = models.CharField(max_length=10, blank=True, null=True, verbose_name=_(u'Nº Gabinete'))
+    telefone = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Telefone'))
+    fax = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Fax'))
+    endereco_residencia = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Endereço Residencial'))
+    municipio_residencia = models.ForeignKey(Municipio, blank=True, null=True, verbose_name=_(u'Município'))
+    cep_residencia = models.CharField(max_length=9, blank=True, null=True, verbose_name=_(u'CEP'))
+    telefone_residencia = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Telefone Residencial'))
+    fax_residencia = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Fax Residencial'))
+    endereco_web = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'HomePage'))
+    profissao = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Profissão'))
+    email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Correio Eletrônico'))
+    locais_atuacao = models.CharField(max_length=100, blank=True, null=True, verbose_name=_(u'Locais de Atuação'))
+    ativo = models.BooleanField(verbose_name=_(u'Ativo na Casa?'))
+    biografia = models.TextField(blank=True, null=True, verbose_name=_(u'Biografia'))
+    unidade_deliberativa = models.BooleanField()
 
     class Meta:
         verbose_name = _(u'Parlamentar')
@@ -171,7 +171,7 @@ class Parlamentar(models.Model):
 
 
 class TipoDependente(models.Model):
-    descricao = models.CharField(max_length=50)  # des_tipo_dependente
+    descricao = models.CharField(max_length=50)
 
     class Meta:
         verbose_name = _(u'Tipo de Dependente')
@@ -184,14 +184,14 @@ class Dependente(models.Model):
     SEXO_CHOICE = ((FEMININO, _(u'Feminino')),
                   (MASCULINO, _(u'Masculino')))
 
-    tipo = models.ForeignKey(TipoDependente, verbose_name=_(u'Tipo'))                                       # tip_dependente
-    parlamentar = models.ForeignKey(Parlamentar)                                                                       # cod_parlamentar
-    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))                                         # nom_dependente
-    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'), choices=SEXO_CHOICE)                                                     # sex_dependente
-    data_nascimento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Nascimento'))                      # dat_nascimento
-    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name=_(u'CPF'))                        # num_cpf
-    rg = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'RG'))                          # num_rg
-    titulo_eleitor = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Nº Título Eleitor'))  # num_tit_eleitor
+    tipo = models.ForeignKey(TipoDependente, verbose_name=_(u'Tipo'))
+    parlamentar = models.ForeignKey(Parlamentar)
+    nome = models.CharField(max_length=50, verbose_name=_(u'Nome'))
+    sexo = models.CharField(max_length=1, verbose_name=_(u'Sexo'), choices=SEXO_CHOICE)
+    data_nascimento = models.DateField(blank=True, null=True, verbose_name=_(u'Data Nascimento'))
+    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name=_(u'CPF'))
+    rg = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'RG'))
+    titulo_eleitor = models.CharField(max_length=15, blank=True, null=True, verbose_name=_(u'Nº Título Eleitor'))
 
     class Meta:
         verbose_name = _(u'Dependente')
@@ -199,10 +199,10 @@ class Dependente(models.Model):
 
 
 class Filiacao(models.Model):
-    data = models.DateField(verbose_name=_(u'Data Filiação'))                               # dat_filiacao
-    parlamentar = models.ForeignKey(Parlamentar)                                                     # cod_parlamentar
-    partido = models.ForeignKey(Partido, verbose_name=_(u'Partido'))                                 # cod_partido
-    data_desfiliacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Desfiliação'))  # dat_desfiliacao
+    data = models.DateField(verbose_name=_(u'Data Filiação'))
+    parlamentar = models.ForeignKey(Parlamentar)
+    partido = models.ForeignKey(Partido, verbose_name=_(u'Partido'))
+    data_desfiliacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Desfiliação'))
 
     class Meta:
         verbose_name = _(u'Filiação')
@@ -210,10 +210,10 @@ class Filiacao(models.Model):
 
 
 class TipoAfastamento(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_(u'Descrição'))                         # des_afastamento
-    afastamento = models.BooleanField(verbose_name=_(u'Indicador'))                                             # ind_afastamento
-    fim_mandato = models.BooleanField(verbose_name=_(u'Indicador'))                                             # ind_fim_mandato
-    dispositivo = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Dispositivo'))  # des_dispositivo
+    descricao = models.CharField(max_length=50, verbose_name=_(u'Descrição'))
+    afastamento = models.BooleanField(verbose_name=_(u'Indicador'))
+    fim_mandato = models.BooleanField(verbose_name=_(u'Indicador'))
+    dispositivo = models.CharField(max_length=50, blank=True, null=True, verbose_name=_(u'Dispositivo'))
 
     class Meta:
         verbose_name = _(u'Tipo de Afastamento')
@@ -221,16 +221,16 @@ class TipoAfastamento(models.Model):
 
 
 class Mandato(models.Model):
-    parlamentar = models.ForeignKey(Parlamentar)                                                               # cod_parlamentar
-    tipo_afastamento = models.ForeignKey(TipoAfastamento, blank=True, null=True)                               # tip_afastamento
-    legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))                               # num_legislatura
-    coligacao = models.ForeignKey(Coligacao, blank=True, null=True, verbose_name=_(u'Coligação'))              # cod_coligacao
+    parlamentar = models.ForeignKey(Parlamentar)
+    tipo_afastamento = models.ForeignKey(TipoAfastamento, blank=True, null=True)
+    legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))
+    coligacao = models.ForeignKey(Coligacao, blank=True, null=True, verbose_name=_(u'Coligação'))
     # TODO what is this field??????
-    tipo_causa_fim_mandato = models.IntegerField(blank=True, null=True)                                        # tip_causa_fim_mandato
-    data_fim_mandato = models.DateField(blank=True, null=True, verbose_name=_(u'Fim do Mandato'))              # dat_fim_mandato
-    votos_recebidos = models.IntegerField(blank=True, null=True, verbose_name=_(u'Votos Recebidos'))    # num_votos_recebidos
-    data_expedicao_diploma = models.DateField(blank=True, null=True, verbose_name=_(u'Expedição do Diploma'))  # dat_expedicao_diploma
-    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))                    # txt_observacao
+    tipo_causa_fim_mandato = models.IntegerField(blank=True, null=True)
+    data_fim_mandato = models.DateField(blank=True, null=True, verbose_name=_(u'Fim do Mandato'))
+    votos_recebidos = models.IntegerField(blank=True, null=True, verbose_name=_(u'Votos Recebidos'))
+    data_expedicao_diploma = models.DateField(blank=True, null=True, verbose_name=_(u'Expedição do Diploma'))
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observação'))
 
     class Meta:
         verbose_name = _(u'Mandato')
@@ -239,8 +239,8 @@ class Mandato(models.Model):
 
 class CargoMesa(models.Model):
     # TODO M2M ????
-    descricao = models.CharField(max_length=50, verbose_name=_(u'Cargo na Mesa'))          # des_cargo
-    unico = models.BooleanField(verbose_name=_(u'Cargo Único'))                   # ind_unico
+    descricao = models.CharField(max_length=50, verbose_name=_(u'Cargo na Mesa'))
+    unico = models.BooleanField(verbose_name=_(u'Cargo Único'))
 
     class Meta:
         verbose_name = _(u'Cargo na Mesa')
@@ -249,9 +249,9 @@ class CargoMesa(models.Model):
 
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
-    parlamentar = models.ForeignKey(Parlamentar)               # cod_parlamentar
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa)  # cod_sessao_leg
-    cargo = models.ForeignKey(CargoMesa)                       # cod_cargo
+    parlamentar = models.ForeignKey(Parlamentar)
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa)
+    cargo = models.ForeignKey(CargoMesa)
 
     class Meta:
         verbose_name = _(u'Ocupação de cargo na Mesa')

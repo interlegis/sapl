@@ -1,0 +1,45 @@
+TipoComissao:
+  dispositivo_regimental: des_dispositivo_regimental
+  natureza: sgl_natureza_comissao
+  nome: nom_tipo_comissao
+  sigla: sgl_tipo_comissao
+
+Comissao:
+  agenda_reuniao: des_agenda_reuniao
+  apelido_temp: nom_apelido_temp
+  data_criacao: dat_criacao
+  data_extincao: dat_extincao
+  data_fim_comissao: dat_fim_comissao
+  data_final_prevista_temp: dat_final_prevista_temp
+  data_instalacao_temp: dat_instalacao_temp
+  data_prorrogada_temp: dat_prorrogada_temp
+  email: end_email
+  endereco_secretaria: end_secretaria
+  fax_secretaria: num_fax_secretaria
+  finalidade: txt_finalidade
+  local_reuniao: loc_reuniao
+  nome: nom_comissao
+  secretario: nom_secretario
+  sigla: sgl_comissao
+  telefone_reuniao: num_tel_reuniao
+  telefone_secretaria: num_tel_secretaria
+  tipo: tip_comissao
+  unidade_deliberativa: ind_unid_deliberativa
+
+Periodo (PeriodoCompComissao):
+  data_fim: dat_fim_periodo
+  data_inicio: dat_inicio_periodo
+
+CargoComissao:
+  nome: des_cargo
+  unico: ind_unico
+
+Participacao (ComposicaoComissao):
+  cargo: cod_cargo
+  composicao: cod_comissao
+  data_designacao: dat_designacao
+  data_desligamento: dat_desligamento
+  motivo_desligamento: des_motivo_desligamento
+  observacao: obs_composicao
+  parlamentar: cod_parlamentar
+  titular: ind_titular

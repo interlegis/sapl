@@ -8,8 +8,8 @@ from sapl.utils import make_choices
 
 
 class TipoSessaoPlenaria(models.Model):
-    nome = models.CharField(max_length=30, verbose_name=_(u'Tipo'))  # nom_sessao
-    quorum_minimo = models.IntegerField(verbose_name=_(u'Quórum mínimo'))   # num_minimo
+    nome = models.CharField(max_length=30, verbose_name=_(u'Tipo'))
+    quorum_minimo = models.IntegerField(verbose_name=_(u'Quórum mínimo'))
 
     class Meta:
         verbose_name = _(u'Tipo de Sessão Plenária')
@@ -23,21 +23,21 @@ class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
     # andamento_sessao = models.ForeignKey(AndamentoSessao, blank=True, null=True)
     # TODO analyze querying all hosted databases !
-    cod_andamento_sessao = models.IntegerField(blank=True, null=True)                                                                      # cod_andamento_sessao
+    cod_andamento_sessao = models.IntegerField(blank=True, null=True)
 
-    tipo = models.ForeignKey(TipoSessaoPlenaria, verbose_name=_(u'Tipo'))                                                                                           # tip_sessao
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa, verbose_name=_(u'Sessão Legislativa'))                                                                                      # cod_sessao_leg
-    legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))                                                           # num_legislatura
+    tipo = models.ForeignKey(TipoSessaoPlenaria, verbose_name=_(u'Tipo'))
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa, verbose_name=_(u'Sessão Legislativa'))
+    legislatura = models.ForeignKey(Legislatura, verbose_name=_(u'Legislatura'))
     # XXX seems to be empty
-    tipo_expediente = models.CharField(max_length=10)                                                                                      # tip_expediente
-    data_inicio = models.DateField(verbose_name=_(u'Abertura'))                                                                     # dat_inicio_sessao
-    dia = models.CharField(max_length=15)                                                                                           # dia_sessao
-    hora_inicio = models.CharField(max_length=5, verbose_name=_(u'Horário'))                                                                                      # hr_inicio_sessao
-    hora_fim = models.CharField(max_length=5, blank=True, null=True, verbose_name=_(u'Horário'))                                                                  # hr_fim_sessao
-    numero = models.IntegerField(verbose_name=_(u'Número'))                                                                    # num_sessao_plen
-    data_fim = models.DateField(blank=True, null=True, verbose_name=_(u'Encerramento'))                                             # dat_fim_sessao
-    url_audio = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Arquivo Áudio (Formatos MP3 / AAC)'))         # url_audio
-    url_video = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))  # url_video
+    tipo_expediente = models.CharField(max_length=10)
+    data_inicio = models.DateField(verbose_name=_(u'Abertura'))
+    dia = models.CharField(max_length=15)
+    hora_inicio = models.CharField(max_length=5, verbose_name=_(u'Horário'))
+    hora_fim = models.CharField(max_length=5, blank=True, null=True, verbose_name=_(u'Horário'))
+    numero = models.IntegerField(verbose_name=_(u'Número'))
+    data_fim = models.DateField(blank=True, null=True, verbose_name=_(u'Encerramento'))
+    url_audio = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Arquivo Áudio (Formatos MP3 / AAC)'))
+    url_video = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
 
     class Meta:
         verbose_name = _(u'Sessão Plenária')
@@ -58,13 +58,13 @@ class AbstractOrdemDia(models.Model):
         3, _(u'Secreta'),
     )
 
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria)                                      # cod_sessao_plen
-    materia = models.ForeignKey(MateriaLegislativa)                                      # cod_materia
-    data_ordem = models.DateField(verbose_name=_(u'Data da Sessão'))                     # dat_ordem
-    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))  # txt_observacao
-    numero_ordem = models.IntegerField(verbose_name=_(u'Nº Ordem'))                      # num_ordem
-    resultado = models.TextField(blank=True, null=True)                              # txt_resultado
-    tipo_votacao = models.IntegerField(verbose_name=_(u'Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)  # tip_votacao
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria)
+    materia = models.ForeignKey(MateriaLegislativa)
+    data_ordem = models.DateField(verbose_name=_(u'Data da Sessão'))
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Ementa'))
+    numero_ordem = models.IntegerField(verbose_name=_(u'Nº Ordem'))
+    resultado = models.TextField(blank=True, null=True)
+    tipo_votacao = models.IntegerField(verbose_name=_(u'Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
 
     class Meta:
         abstract = True
@@ -81,7 +81,7 @@ class ExpedienteMateria(AbstractOrdemDia):
 
 
 class TipoExpediente(models.Model):
-    nome = models.CharField(max_length=100, verbose_name=_(u'Tipo'))  # nom_expediente
+    nome = models.CharField(max_length=100, verbose_name=_(u'Tipo'))
 
     class Meta:
         verbose_name = _(u'Tipo de Expediente')
@@ -92,9 +92,9 @@ class TipoExpediente(models.Model):
 
 
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria)           # cod_sessao_plen
-    tipo = models.ForeignKey(TipoExpediente)            # cod_expediente
-    conteudo = models.TextField(blank=True, null=True, verbose_name=_(u'Conteúdo do expediente'))  # txt_expediente
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria)
+    tipo = models.ForeignKey(TipoExpediente)
+    conteudo = models.TextField(blank=True, null=True, verbose_name=_(u'Conteúdo do expediente'))
 
     class Meta:
         verbose_name = _(u'Expediente de Sessão Plenaria')
@@ -105,9 +105,9 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
 
 
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria)    # cod_sessao_plen
-    cargo = models.ForeignKey(CargoMesa)               # cod_cargo
-    parlamentar = models.ForeignKey(Parlamentar)       # cod_parlamentar
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria)
+    cargo = models.ForeignKey(CargoMesa)
+    parlamentar = models.ForeignKey(Parlamentar)
 
     class Meta:
         verbose_name = _(u'Participação em Mesa de Sessão Plenaria')
@@ -118,10 +118,10 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
 
 
 class AbstractOrador(models.Model):  # Oradores
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria)                                                       # cod_sessao_plen
-    parlamentar = models.ForeignKey(Parlamentar, verbose_name=_(u'Parlamentar'))                          # cod_parlamentar
-    numero_ordem = models.IntegerField(verbose_name=_(u'Ordem de pronunciamento'))                        # num_ordem
-    url_discurso = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Vídeo'))  # url_discurso
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria)
+    parlamentar = models.ForeignKey(Parlamentar, verbose_name=_(u'Parlamentar'))
+    numero_ordem = models.IntegerField(verbose_name=_(u'Ordem de pronunciamento'))
+    url_discurso = models.CharField(max_length=150, blank=True, null=True, verbose_name=_(u'URL Vídeo'))
 
     class Meta:
         abstract = True
@@ -154,9 +154,9 @@ class OrdemDia(AbstractOrdemDia):
 
 
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria)  # cod_sessao_plen
-    parlamentar = models.ForeignKey(Parlamentar)     # cod_parlamentar
-    data_ordem = models.DateField()                  # dat_ordem
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria)
+    parlamentar = models.ForeignKey(Parlamentar)
+    data_ordem = models.DateField()
 
     class Meta:
         verbose_name = _(u'Presença da Ordem do Dia')
@@ -167,7 +167,7 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
 
 
 class TipoResultadoVotacao(models.Model):
-    nome = models.CharField(max_length=100, verbose_name=_(u'Tipo'))  # nom_resultado
+    nome = models.CharField(max_length=100, verbose_name=_(u'Tipo'))
 
     class Meta:
         verbose_name = _(u'Tipo de Resultado de Votação')
@@ -178,13 +178,13 @@ class TipoResultadoVotacao(models.Model):
 
 
 class RegistroVotacao(models.Model):
-    tipo_resultado_votacao = models.ForeignKey(TipoResultadoVotacao, verbose_name=_(u'Resultado da Votação'))  # tip_resultado_votacao
-    materia = models.ForeignKey(MateriaLegislativa)                                                            # cod_materia
-    ordem = models.ForeignKey(OrdemDia)                                                                        # cod_ordem
-    numero_votos_sim = models.IntegerField(verbose_name=_(u'Sim'))                                            # num_votos_sim
-    numero_votos_nao = models.IntegerField(verbose_name=_(u'Não'))                                            # num_votos_nao
-    numero_abstencoes = models.IntegerField(verbose_name=_(u'Abstenções'))                                     # num_abstencao
-    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observações'))                   # txt_observacao
+    tipo_resultado_votacao = models.ForeignKey(TipoResultadoVotacao, verbose_name=_(u'Resultado da Votação'))
+    materia = models.ForeignKey(MateriaLegislativa)
+    ordem = models.ForeignKey(OrdemDia)
+    numero_votos_sim = models.IntegerField(verbose_name=_(u'Sim'))
+    numero_votos_nao = models.IntegerField(verbose_name=_(u'Não'))
+    numero_abstencoes = models.IntegerField(verbose_name=_(u'Abstenções'))
+    observacao = models.TextField(blank=True, null=True, verbose_name=_(u'Observações'))
 
     class Meta:
         verbose_name = _(u'Votação')
@@ -195,10 +195,10 @@ class RegistroVotacao(models.Model):
 
 
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
-    votacao = models.ForeignKey(RegistroVotacao)       # cod_votacao
-    parlamentar = models.ForeignKey(Parlamentar)       # cod_parlamentar
+    votacao = models.ForeignKey(RegistroVotacao)
+    parlamentar = models.ForeignKey(Parlamentar)
     # XXX change to restricted choices
-    voto = models.CharField(max_length=10)  # vot_parlamentar
+    voto = models.CharField(max_length=10)
 
     class Meta:
         verbose_name = _(u'Registro de Votação de Parlamentar')
@@ -209,9 +209,9 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
 
 
 class SessaoPlenariaPresenca(models.Model):
-    sessao_plen = models.ForeignKey(SessaoPlenaria)        # cod_sessao_plen
-    parlamentar = models.ForeignKey(Parlamentar)           # cod_parlamentar
-    data_sessao = models.DateField(blank=True, null=True)  # dat_sessao
+    sessao_plen = models.ForeignKey(SessaoPlenaria)
+    parlamentar = models.ForeignKey(Parlamentar)
+    data_sessao = models.DateField(blank=True, null=True)
 
     class Meta:
         verbose_name = _(u'Presença em Sessão Plenária')

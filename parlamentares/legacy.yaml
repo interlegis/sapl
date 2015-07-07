@@ -1,0 +1,111 @@
+Legislatura:
+  data_eleicao: dat_eleicao
+  data_fim: dat_fim
+  data_inicio: dat_inicio
+
+SessaoLegislativa:
+  data_fim: dat_fim
+  data_fim_intervalo: dat_fim_intervalo
+  data_inicio: dat_inicio
+  data_inicio_intervalo: dat_inicio_intervalo
+  legislatura: num_legislatura
+  numero: num_sessao_leg
+  tipo: tip_sessao_leg
+
+Coligacao:
+  legislatura: num_legislatura
+  nome: nom_coligacao
+  numero_votos: num_votos_coligacao
+
+Partido:
+  data_criacao: dat_criacao
+  data_extincao: dat_extincao
+  nome: nom_partido
+  sigla: sgl_partido
+
+ComposicaoColigacao:
+  coligacao: cod_coligacao
+  partido: cod_partido
+
+Municipio (Localidade):
+  nome: nom_localidade
+  regiao: sgl_regiao
+  uf: sgl_uf
+
+NivelInstrucao:
+  descricao: des_nivel_instrucao
+
+SituacaoMilitar:
+  descricao: des_tipo_situacao
+
+Parlamentar:
+  ativo: ind_ativo
+  biografia: txt_biografia
+  cep_residencia: num_cep_resid
+  cod_casa: cod_casa
+  cpf: num_cpf
+  data_nascimento: dat_nascimento
+  email: end_email
+  endereco_residencia: end_residencial
+  endereco_web: end_web
+  fax: num_fax_parlamentar
+  fax_residencia: num_fax_resid
+  locais_atuacao: des_local_atuacao
+  municipio_residencia: cod_localidade_resid
+  nivel_instrucao: cod_nivel_instrucao
+  nome_completo: nom_completo
+  nome_parlamentar: nom_parlamentar
+  numero_gab_parlamentar: num_gab_parlamentar
+  profissao: nom_profissao
+  rg: num_rg
+  sexo: sex_parlamentar
+  situacao_militar: tip_situacao_militar
+  telefone: num_tel_parlamentar
+  telefone_residencia: num_tel_resid
+  titulo_eleitor: num_tit_eleitor
+  unidade_deliberativa: ind_unid_deliberativa
+
+TipoDependente:
+  descricao: des_tipo_dependente
+
+Dependente:
+  cpf: num_cpf
+  data_nascimento: dat_nascimento
+  nome: nom_dependente
+  parlamentar: cod_parlamentar
+  rg: num_rg
+  sexo: sex_dependente
+  tipo: tip_dependente
+  titulo_eleitor: num_tit_eleitor
+
+Filiacao:
+  data: dat_filiacao
+  data_desfiliacao: dat_desfiliacao
+  parlamentar: cod_parlamentar
+  partido: cod_partido
+
+TipoAfastamento:
+  afastamento: ind_afastamento
+  descricao: des_afastamento
+  dispositivo: des_dispositivo
+  fim_mandato: ind_fim_mandato
+
+Mandato:
+  coligacao: cod_coligacao
+  data_expedicao_diploma: dat_expedicao_diploma
+  data_fim_mandato: dat_fim_mandato
+  legislatura: num_legislatura
+  observacao: txt_observacao
+  parlamentar: cod_parlamentar
+  tipo_afastamento: tip_afastamento
+  tipo_causa_fim_mandato: tip_causa_fim_mandato
+  votos_recebidos: num_votos_recebidos
+
+CargoMesa:
+  descricao: des_cargo
+  unico: ind_unico
+
+ComposicaoMesa:
+  cargo: cod_cargo
+  parlamentar: cod_parlamentar
+  sessao_legislativa: cod_sessao_leg

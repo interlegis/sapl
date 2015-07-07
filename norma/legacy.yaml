@@ -1,0 +1,48 @@
+AssuntoNorma:
+  assunto: des_assunto
+  descricao: des_estendida
+
+TipoNormaJuridica:
+  descricao: des_tipo_norma
+  equivalente_lexml: voc_lexml
+  sigla: sgl_tipo_norma
+
+NormaJuridica:
+  ano: ano_norma
+  assunto: cod_assunto
+  complemento: ind_complemento
+  data: dat_norma
+  data_publicacao: dat_publicacao
+  data_vigencia: dat_vigencia
+  ementa: txt_ementa
+  esfera_federacao: tip_esfera_federacao
+  indexacao: txt_indexacao
+  materia: cod_materia
+  numero: num_norma
+  observacao: txt_observacao
+  pagina_fim_publicacao: num_pag_fim_publ
+  pagina_inicio_publicacao: num_pag_inicio_publ
+  timestamp: timestamp
+  tipo: tip_norma
+  veiculo_publicacao: des_veiculo_publicacao
+
+LegislacaoCitada:
+  alinea: des_alinea
+  artigo: des_artigo
+  capitulo: des_capitulo
+  disposicoes: des_disposicoes
+  inciso: des_inciso
+  item: des_item
+  livro: des_livro
+  materia: cod_materia
+  norma: cod_norma
+  paragrafo: des_paragrafo
+  parte: des_parte
+  secao: des_secao
+  subsecao: des_subsecao
+  titulo: des_titulo
+
+VinculoNormaJuridica:
+  norma_referente: cod_norma_referente
+  norma_referida: cod_norma_referida
+  tipo_vinculo: tip_vinculo

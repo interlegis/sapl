@@ -1,0 +1,64 @@
+TipoDocumentoAdministrativo:
+  descricao: des_tipo_documento
+  sigla: sgl_tipo_documento
+
+DocumentoAdministrativo:
+  ano: ano_documento
+  assunto: txt_assunto
+  autor: cod_autor
+  data: dat_documento
+  data_fim_prazo: dat_fim_prazo
+  dias_prazo: num_dias_prazo
+  interessado: txt_interessado
+  numero: num_documento
+  numero_protocolo: num_protocolo
+  observacao: txt_observacao
+  tipo: tip_documento
+  tramitacao: ind_tramitacao
+
+DocumentoAcessorioAdministrativo:
+  arquivo: nom_arquivo
+  assunto: txt_assunto
+  autor: nom_autor_documento
+  data: dat_documento
+  documento: cod_documento
+  indexacao: txt_indexacao
+  nome: nom_documento
+  tipo: tip_documento
+
+Protocolo:
+  ano: ano_protocolo
+  anulado: ind_anulado
+  assunto_ementa: txt_assunto_ementa
+  autor: cod_autor
+  data: dat_protocolo
+  hora: hor_protocolo
+  interessado: txt_interessado
+  ip_anulacao: txt_ip_anulacao
+  justificativa_anulacao: txt_just_anulacao
+  numero: num_protocolo
+  numero_paginas: num_paginas
+  observacao: txt_observacao
+  timestamp: dat_timestamp
+  timestamp_anulacao: timestamp_anulacao
+  tipo_documento: tip_documento
+  tipo_materia: tip_materia
+  tipo_processo: tip_processo
+  tipo_protocolo: tip_protocolo
+  user_anulacao: txt_user_anulacao
+
+StatusTramitacaoAdministrativo:
+  descricao: des_status
+  indicador: ind_fim_tramitacao
+  sigla: sgl_status
+
+TramitacaoAdministrativo:
+  data_encaminhamento: dat_encaminha
+  data_fim_prazo: dat_fim_prazo
+  data_tramitacao: dat_tramitacao
+  documento: cod_documento
+  status: cod_status
+  texto: txt_tramitacao
+  ultima: ind_ult_tramitacao
+  unidade_tramitacao_destino: cod_unid_tram_dest
+  unidade_tramitacao_local: cod_unid_tram_local

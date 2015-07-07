@@ -1,0 +1,81 @@
+TipoSessaoPlenaria:
+  nome: nom_sessao
+  quorum_minimo: num_minimo
+
+SessaoPlenaria:
+  cod_andamento_sessao: cod_andamento_sessao
+  data_fim: dat_fim_sessao
+  data_inicio: dat_inicio_sessao
+  dia: dia_sessao
+  hora_fim: hr_fim_sessao
+  hora_inicio: hr_inicio_sessao
+  legislatura: num_legislatura
+  numero: num_sessao_plen
+  sessao_legislativa: cod_sessao_leg
+  tipo: tip_sessao
+  tipo_expediente: tip_expediente
+  url_audio: url_audio
+  url_video: url_video
+
+AbstractOrdemDia:
+  data_ordem: dat_ordem
+  materia: cod_materia
+  numero_ordem: num_ordem
+  observacao: txt_observacao
+  resultado: txt_resultado
+  sessao_plenaria: cod_sessao_plen
+  tipo_votacao: tip_votacao
+
+ExpedienteMateria: {}
+
+TipoExpediente:
+  nome: nom_expediente
+
+ExpedienteSessao (ExpedienteSessaoPlenaria):
+  conteudo: txt_expediente
+  sessao_plenaria: cod_sessao_plen
+  tipo: cod_expediente
+
+IntegranteMesa (MesaSessaoPlenaria):
+  cargo: cod_cargo
+  parlamentar: cod_parlamentar
+  sessao_plenaria: cod_sessao_plen
+
+AbstractOrador:
+  numero_ordem: num_ordem
+  parlamentar: cod_parlamentar
+  sessao_plenaria: cod_sessao_plen
+  url_discurso: url_discurso
+
+Orador (Oradores): {}
+
+OradorExpediente (OradoresExpediente): {}
+
+OrdemDia: {}
+
+PresencaOrdemDia (OrdemDiaPresenca):
+  data_ordem: dat_ordem
+  parlamentar: cod_parlamentar
+  sessao_plenaria: cod_sessao_plen
+
+TipoResultadoVotacao:
+  nome: nom_resultado
+
+RegistroVotacao:
+  materia: cod_materia
+  numero_abstencoes: num_abstencao
+  numero_votos_nao: num_votos_nao
+  numero_votos_sim: num_votos_sim
+  observacao: txt_observacao
+  ordem: cod_ordem
+  tipo_resultado_votacao: tip_resultado_votacao
+
+VotoParlamentar (RegistroVotacaoParlamentar):
+  parlamentar: cod_parlamentar
+  votacao: cod_votacao
+  voto: vot_parlamentar
+
+SessaoPlenariaPresenca:
+  data_sessao: dat_sessao
+  parlamentar: cod_parlamentar
+  sessao_plen: cod_sessao_plen
