@@ -15,8 +15,8 @@ def register_all_models_in_admin(module_name):
 
 def make_choices(*choice_pairs):
     assert len(choice_pairs) % 2 == 0
-    choice_pairs = iter(choice_pairs)
-    choices = zip(choice_pairs, choice_pairs)
+    ipairs = iter(choice_pairs)
+    choices = list(zip(ipairs, ipairs))
     yield choices
     for key, value in choices:
         yield key

@@ -1,6 +1,6 @@
 from django.apps import apps
 
-from migration_base import legacy_app
+from .migration_base import legacy_app
 
 
 for model in apps.get_app_config('legacy').get_models():

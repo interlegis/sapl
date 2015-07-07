@@ -1,5 +1,5 @@
 from pytest import mark
-from utils import make_choices
+from .utils import make_choices
 
 
 @mark.parametrize("choice_pairs, result", [

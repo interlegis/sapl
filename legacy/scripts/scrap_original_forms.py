@@ -6,9 +6,9 @@ import string
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
-from field_renames import field_renames
-from migration import appconfs
-from utils import listify, getsourcelines
+from .field_renames import field_renames
+from .migration import appconfs
+from .utils import listify, getsourcelines
 
 
 assert appconfs  # to prevent removal by automatic organize imports on this file
