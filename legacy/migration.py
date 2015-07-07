@@ -80,11 +80,11 @@ def get_renames():
 # MIGRATION #################################################################
 
 def info(msg):
-    print 'INFO: ' + msg
+    print('INFO: ' + msg)
 
 
 def warn(msg):
-    print 'WARNING! ' + msg
+    print('WARNING! ' + msg)
 
 special_transforms = {}
 
@@ -186,10 +186,10 @@ def migrate_model(model, to_delete, count_limit=None):
 
     legacy_model_name = model_renames.get(model, model.__name__)
     if legacy_model_name.upper() == 'IGNORE':
-        print 'Model ignored: %s' % model.__name__
+        print('Model ignored: %s' % model.__name__)
         return
 
-    print 'Migrating %s...' % model.__name__
+    print('Migrating %s...' % model.__name__)
 
     # clear all model entries
     model.objects.all().delete()
@@ -261,4 +261,4 @@ def get_ind_excluido(obj):
 def check_app_no_ind_excluido(app):
     for model in app.models.values():
         assert not any(get_ind_excluido(obj) for obj in model.objects.all())
-    print 'OK!'
+    print('OK!')

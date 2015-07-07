@@ -62,11 +62,11 @@ def get_names_labels(fieldsets):
 
 def print_title_and_fieldsets(model):
     title, fieldsets = extract_title_and_fieldsets(model)
-    print '#### %s ####\n' % title
+    print('#### %s ####\n' % title)
     for fieldset in fieldsets:
-        print fieldset['legend']
+        print(fieldset['legend'])
         for line in fieldset['lines']:
-            print '  ' + ' | '.join('%s : %s' % (id, label) for id, label in line)
+            print('  ' + ' | '.join('%s : %s' % (id, label) for id, label in line))
 
 
 def extract_verbose_names(model):
@@ -159,7 +159,7 @@ def source_with_verbose_names(model):
 
 
 def print_app_with_verbose_names(app):
-    print '##################################################################'
+    print('##################################################################')
     header = '# -*- coding: utf-8 -*-\n'
     for line in getsourcelines(app.models_module):
         if line in ['# -*- coding: utf-8 -*-',
@@ -173,14 +173,14 @@ from django.utils.translation import ugettext as _
             break
         else:
             header += line + '\n'
-    print header.strip()
+    print(header.strip())
     for model in app.models.values():
-        print '\n'
+        print('\n')
         for p in source_with_verbose_names(model):
-            print p
+            print(p)
 
 
 def list_models_with_no_scrapped_data(app):
     for model in app.models.values():
         if not any(extract_verbose_names(model)[:2]):
-            print model.__name__
+            print(model.__name__)
