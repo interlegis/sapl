@@ -18,6 +18,9 @@ class TipoMateriaLegislativa(models.Model):
         verbose_name = _(u'Tipo de Matéria Legislativa')
         verbose_name_plural = _(u'Tipos de Matérias Legislativas')
 
+    def __unicode__(self):
+        return self.descricao
+
 
 class RegimeTramitacao(models.Model):
     descricao = models.CharField(max_length=50)
@@ -41,10 +44,10 @@ class MateriaLegislativa(models.Model):
     TIPO_APRESENTACAO_CHOICES = ((ORAL, _(u'Oral')),
                                  (ESCRITA, _(u'Escrita')))
 
-    tipo_id_basica = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_(u'Tipo'))
-    numero_protocolo = models.IntegerField(blank=True, null=True,verbose_name=_(u'Núm. Protocolo'))
-    numero_ident_basica = models.IntegerField(verbose_name=_(u'Número'))
-    ano_ident_basica = models.SmallIntegerField(verbose_name=_(u'Ano'))
+    tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_(u'Tipo'))
+    numero = models.IntegerField(verbose_name=_(u'Número'))
+    ano = models.SmallIntegerField(verbose_name=_(u'Ano'))
+    numero_protocolo = models.IntegerField(blank=True, null=True, verbose_name=_(u'Núm. Protocolo'))
     data_apresentacao = models.DateField(blank=True, null=True, verbose_name=_(u'Data Apresentação'))
     tipo_apresentacao = models.CharField(max_length=1, blank=True, null=True, verbose_name=_(u'Tipo de Apresentação'), choices=TIPO_APRESENTACAO_CHOICES)
     regime_tramitacao = models.ForeignKey(RegimeTramitacao, verbose_name=_(u'Regime Tramitação'))
@@ -73,6 +76,10 @@ class MateriaLegislativa(models.Model):
     class Meta:
         verbose_name = _(u'Matéria Legislativa')
         verbose_name_plural = _(u'Matérias Legislativas')
+
+    def __unicode__(self):
+        return _(u'%(tipo)s nº %(numero)s de %(ano)s') % {
+            'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
 
 
 class AcompanhamentoMateria(models.Model):  # AcompMateria

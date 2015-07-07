@@ -12,7 +12,7 @@ Origem:
   sigla: sgl_origem
 
 MateriaLegislativa:
-  ano_ident_basica: ano_ident_basica
+  ano: ano_ident_basica
   ano_origem_externa: ano_origem_externa
   apelido: nom_apelido
   complementar: ind_complementar
@@ -25,7 +25,7 @@ MateriaLegislativa:
   ementa: txt_ementa
   indexacao: txt_indexacao
   local_origem_externa: cod_local_origem_externa
-  numero_ident_basica: num_ident_basica
+  numero: num_ident_basica
   numero_origem_externa: num_origem_externa
   numero_protocolo: num_protocolo
   objeto: des_objeto
@@ -34,7 +34,7 @@ MateriaLegislativa:
   regime_tramitacao: cod_regime_tramitacao
   resultado: txt_resultado
   tipo_apresentacao: tip_apresentacao
-  tipo_id_basica: tip_id_basica
+  tipo: tip_id_basica
   tipo_origem_externa: tip_origem_externa
 
 AcompanhamentoMateria (AcompMateria):
