@@ -1,15 +1,83 @@
+import re
+
+import pkg_resources
+import yaml
+from django.apps import apps
 from django.apps.config import AppConfig
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 
-from field_renames import field_renames, model_renames
-from migration_base import legacy_app, appconfs
-
-from parlamentares.models import Parlamentar
 from comissoes.models import Composicao, Participacao
+from parlamentares.models import Parlamentar
 
+
+# BASE ######################################################################
+
+# this order is important for the migration
+appconfs = [apps.get_app_config(n) for n in [
+    'parlamentares',
+    'comissoes',
+    'materia',
+    'norma',
+    'sessao',
+    'lexml',
+    'protocoloadm', ]]
+name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
+
+# apps do not overlap
+for s1 in name_sets:
+    for s2 in name_sets:
+        if s1 is not s2:
+            assert not s1.intersection(s2)
+
+# apps include all legacy models
+legacy_app = apps.get_app_config('legacy')
+legacy_model_names = set(m.__name__ for m in legacy_app.get_models())
+
+model_dict = {m.__name__: m for ac in appconfs for m in ac.get_models()}
+
+
+# RENAMES ###################################################################
+
+MODEL_RENAME_PATTERN = re.compile('(.+) \((.+)\)')
+
+
+def get_renames():
+    field_renames = {}
+    model_renames = {}
+    for app in appconfs:
+        app_rename_data = yaml.load(pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'))
+        for model_name, renames in app_rename_data.items():
+            match = MODEL_RENAME_PATTERN.match(model_name)
+            if match:
+                model_name, old_name = match.groups()
+            else:
+                old_name = None
+            model = getattr(app.models_module, model_name)
+            if old_name:
+                model_renames[model] = old_name
+            field_renames[model] = renames
+
+    # collect renames from parent classes
+    for model, renames in field_renames.items():
+        if any(parent in field_renames for parent in model.__mro__[1:]):
+            renames = {}
+            for parent in reversed(model.__mro__):
+                if parent in field_renames:
+                    renames.update(field_renames[parent])
+            field_renames[model] = renames
+
+    # remove abstract classes
+    for model in field_renames:
+        if model._meta.abstract:
+            del field_renames[model]
+
+    return field_renames, model_renames
+
+
+# MIGRATION #################################################################
 
 def info(msg):
     print 'INFO: ' + msg
