@@ -1,5 +1,4 @@
 -r requirements.txt
-clonedigger
 coverage
 django-webtest
 model_mommy

@@ -1,6 +1,6 @@
 Django
 django-admin-bootstrapped
 django-bootstrap3
-MySQL-python
+mysqlclient
 psycopg2
 pytz
