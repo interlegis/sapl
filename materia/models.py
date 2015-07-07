@@ -29,6 +29,9 @@ class RegimeTramitacao(models.Model):
         verbose_name = _(u'Regime Tramitação')
         verbose_name_plural = _(u'Regimes Tramitação')
 
+    def __unicode__(self):  
+        return self.descricao
+
 
 class Origem(models.Model):
     sigla = models.CharField(max_length=10, verbose_name=_(u'Sigla'))
@@ -37,6 +40,9 @@ class Origem(models.Model):
     class Meta:
         verbose_name = _(u'Origem')
         verbose_name_plural = _(u'Origens')
+
+    def __unicode__(self):
+        return self.nome
 
 
 class MateriaLegislativa(models.Model):
@@ -91,6 +97,8 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
         verbose_name = _(u'Acompanhamento de Matéria')
         verbose_name_plural = _(u'Acompanhamentos de Matéria')
 
+    def __unicode__ (self):
+        return self.materia
 
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(MateriaLegislativa, related_name='+')
@@ -102,6 +110,10 @@ class Anexada(models.Model):
         verbose_name = _(u'Anexada')
         verbose_name_plural = _(u'Anexadas')
 
+    def __unicode__(self):
+        return _(u'Principal: %(materia_principal)s - Anexada: %(materia_anexada)s') % {
+            'materia_principal': self.materia_principal, 'materia_anexada': self.materia_anexada}
+
 
 class AssuntoMateria(models.Model):
     assunto = models.CharField(max_length=200)
@@ -111,6 +123,9 @@ class AssuntoMateria(models.Model):
         verbose_name = _(u'Assunto de Matéria')
         verbose_name_plural = _(u'Assuntos de Matéria')
 
+    def __unicode__(self):
+        return self.assunto
+
 
 class TipoAutor(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_(u'Descrição'))
@@ -118,6 +133,9 @@ class TipoAutor(models.Model):
     class Meta:
         verbose_name = _(u'Tipo de Autor')
         verbose_name_plural = _(u'Tipos de Autor')
+
+    def __unicode__(self):
+        return self.descricao
 
 
 class Autor(models.Model):
@@ -133,6 +151,19 @@ class Autor(models.Model):
         verbose_name = _(u'Autor')
         verbose_name_plural = _(u'Autores')
 
+    def __unicode__(self):
+        if unicode(self.tipo) == 'Parlamentar':
+            return unicode(self.parlamentar)
+        elif unicode(self.tipo) == 'Comissao':
+            return unicode(self.comissao)
+        elif unicode(self.tipo) == 'Partido':
+            return unicode(self.partido)
+        else:
+            if unicode(self.cargo):
+                return  _(u'%(nome)s - %(cargo)s') % {'nome': self.nome, 'cargo': self.cargo}
+            else:
+                return unicode(self.nome)
+
 
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor)
@@ -143,6 +174,8 @@ class Autoria(models.Model):
         verbose_name = _(u'Autoria')
         verbose_name_plural = _(u'Autorias')
 
+    def __unicode__(self):
+        return  _(u'%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
 
 class DespachoInicial(models.Model):
     # TODO M2M?
@@ -154,6 +187,8 @@ class DespachoInicial(models.Model):
         verbose_name = _(u'Despacho Inicial')
         verbose_name_plural = _(u'Despachos Iniciais')
 
+    def __unicode__(self):
+        return  _(u'Nº %(numero)s - %(materia)s - %(comissao)s') % {'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
 
 class TipoDocumento(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_(u'Tipo Documento'))
@@ -161,6 +196,9 @@ class TipoDocumento(models.Model):
     class Meta:
         verbose_name = _(u'Tipo de Documento')
         verbose_name_plural = _(u'Tipos de Documento')
+
+    def __unicode__ (self):
+        return self.descricao
 
 
 class DocumentoAcessorio(models.Model):
@@ -176,6 +214,10 @@ class DocumentoAcessorio(models.Model):
         verbose_name = _(u'Documento Acessório')
         verbose_name_plural = _(u'Documentos Acessórios')
 
+    def __unicode__(self):
+        return _(u'%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
+            'tipo': self.tipo, 'nome': self.nome, 'ano': self.data, 'autor': self.autor} 
+
 
 class MateriaAssunto(models.Model):
     # TODO M2M ??
@@ -185,6 +227,9 @@ class MateriaAssunto(models.Model):
     class Meta:
         verbose_name = _(u'Relação Matéria - Assunto')
         verbose_name_plural = _(u'Relações Matéria - Assunto')
+
+    def __unicode__(self):
+        return _(u'%(materia)s - %(assunto)s') % { 'materia': self.materia, 'assunto': self.assunto}
 
 
 class Numeracao(models.Model):
@@ -199,6 +244,10 @@ class Numeracao(models.Model):
         verbose_name = _(u'Numeração')
         verbose_name_plural = _(u'Numerações')
 
+    def __unicode_ (self):
+        return _(u'Nº%(numero)s %(tipo)s - %(data)s') % { 
+             'numero': self.numero_materia, 'tipo': self.tipo_materia, 'data': self.data_materia }
+
 
 class Orgao(models.Model):
     nome = models.CharField(max_length=60, verbose_name=_(u'Nome'))
@@ -211,6 +260,9 @@ class Orgao(models.Model):
         verbose_name = _(u'Órgão')
         verbose_name_plural = _(u'Órgãos')
 
+    def __unicode__(self):
+        return _(u'%(nome)s - %(sigla)s') % { 'nome': self.nome, 'sigla':self.sigla }
+
 
 class TipoFimRelatoria(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_(u'Tipo Fim Relatoria'))
@@ -219,6 +271,8 @@ class TipoFimRelatoria(models.Model):
         verbose_name = _(u'Tipo Fim de Relatoria')
         verbose_name_plural = _(u'Tipos Fim de Relatoria')
 
+    def __unicode__(self):
+        return self.descricao
 
 class Relatoria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
@@ -231,6 +285,11 @@ class Relatoria(models.Model):
     class Meta:
         verbose_name = _(u'Relatoria')
         verbose_name_plural = _(u'Relatorias')
+
+    def __unicode__ (self):
+        return _(u'%(materia)s - %(tipo)s - %(data)s') % {
+           'materia': self.materia, 'tipo': self.tipo_fim_relatoria, 'data': self.data_designacao_relator
+        }
 
 
 class Parecer(models.Model):
@@ -248,6 +307,11 @@ class Parecer(models.Model):
     class Meta:
         verbose_name = _(u'Parecer')
         verbose_name_plural = _(u'Pareceres')
+
+    def __unicode__ (self):
+        return _(u'%(relatoria)s - %(tipo)s') % {
+            'relatoria': self.relatoria, 'tipo': self.tipo_apresentacao
+        }
 
 
 class TipoProposicao(models.Model):
@@ -267,6 +331,9 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _(u'Tipo de Proposição')
         verbose_name_plural = _(u'Tipos de Proposições')
+
+    def __unicode__ (self):
+        return self.descricao
 
 
 class Proposicao(models.Model):
@@ -289,6 +356,9 @@ class Proposicao(models.Model):
         verbose_name = _(u'Proposição')
         verbose_name_plural = _(u'Proposições')
 
+    def __unicode__ (self):
+        return self.descricao
+
 
 class StatusTramitacao(models.Model):
     FIM = 'F'
@@ -305,6 +375,11 @@ class StatusTramitacao(models.Model):
         verbose_name = _(u'Status de Tramitação')
         verbose_name_plural = _(u'Status de Tramitação')
 
+    def __unicode__(self):
+        return _(u'%(sigla)s - %(descricao)s - %(indicador)s') % {
+            'sigla': self.sigla, 'descricao': self.descricao, 'indicador': self.indicador
+        }
+
 
 class UnidadeTramitacao(models.Model):
     comissao = models.ForeignKey(Comissao, blank=True, null=True, verbose_name=_(u'Comissão'))
@@ -314,6 +389,11 @@ class UnidadeTramitacao(models.Model):
     class Meta:
         verbose_name = _(u'Unidade de Tramitação')
         verbose_name_plural = _(u'Unidades de Tramitação')
+
+    def __unicode__ (self):
+        return _(u'%(orgao)s %(comissao)s') % {
+            'orgao': self.orgao, 'comissao': self.comissao
+        }
 
 
 class Tramitacao(models.Model):
@@ -349,3 +429,8 @@ class Tramitacao(models.Model):
     class Meta:
         verbose_name = _(u'Tramitação')
         verbose_name_plural = _(u'Tramitações')
+
+    def __unicode__ (self):
+        return _(u'%(materia)s | %(status)s | %(data)s') % {
+            'materia': self.materia, 'status': self.status, 'data': self.data_tramitacao
+        }
