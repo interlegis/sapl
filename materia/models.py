@@ -97,7 +97,7 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
         verbose_name = _('Acompanhamento de Matéria')
         verbose_name_plural = _('Acompanhamentos de Matéria')
 
-    def __str__ (self):
+    def __str__(self):
         return self.materia
 
 class Anexada(models.Model):
@@ -197,7 +197,7 @@ class TipoDocumento(models.Model):
         verbose_name = _('Tipo de Documento')
         verbose_name_plural = _('Tipos de Documento')
 
-    def __str__ (self):
+    def __str__(self):
         return self.descricao
 
 
@@ -286,7 +286,7 @@ class Relatoria(models.Model):
         verbose_name = _('Relatoria')
         verbose_name_plural = _('Relatorias')
 
-    def __str__ (self):
+    def __str__(self):
         return _('%(materia)s - %(tipo)s - %(data)s') % {
            'materia': self.materia, 'tipo': self.tipo_fim_relatoria, 'data': self.data_designacao_relator
         }
@@ -308,7 +308,7 @@ class Parecer(models.Model):
         verbose_name = _('Parecer')
         verbose_name_plural = _('Pareceres')
 
-    def __str__ (self):
+    def __str__(self):
         return _('%(relatoria)s - %(tipo)s') % {
             'relatoria': self.relatoria, 'tipo': self.tipo_apresentacao
         }
@@ -332,7 +332,7 @@ class TipoProposicao(models.Model):
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
 
-    def __str__ (self):
+    def __str__(self):
         return self.descricao
 
 
@@ -356,7 +356,7 @@ class Proposicao(models.Model):
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
 
-    def __str__ (self):
+    def __str__(self):
         return self.descricao
 
 
@@ -390,7 +390,7 @@ class UnidadeTramitacao(models.Model):
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
 
-    def __str__ (self):
+    def __str__(self):
         return _('%(orgao)s %(comissao)s') % {
             'orgao': self.orgao, 'comissao': self.comissao
         }
@@ -430,7 +430,7 @@ class Tramitacao(models.Model):
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
 
-    def __str__ (self):
+    def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {
             'materia': self.materia, 'status': self.status, 'data': self.data_tramitacao
         }
