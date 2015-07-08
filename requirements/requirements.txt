@@ -4,3 +4,4 @@ django-bootstrap3
 mysqlclient
 psycopg2
 pytz
+PyYAML
