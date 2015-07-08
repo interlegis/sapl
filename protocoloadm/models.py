@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from materia.models import Autor, TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.utils import make_choices
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -75,10 +76,10 @@ class Protocolo(models.Model):
 
 
 class StatusTramitacaoAdministrativo(models.Model):
-    FIM = 'F'
-    RETORNO = 'R'
-    INDICADOR_CHOICES = ((FIM, _('Fim')),
-                         (RETORNO, _('Retorno')))
+    INDICADOR_CHOICES, FIM, RETORNO = make_choices(
+        'F', _('Fim'),
+        'R', _('Retorno'),
+    )
 
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=60, verbose_name=_('Descrição'))

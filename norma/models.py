@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from materia.models import MateriaLegislativa
+from sapl.utils import make_choices
 
 
 class AssuntoNorma(models.Model):
@@ -41,12 +42,11 @@ class TipoNormaJuridica(models.Model):
 
 
 class NormaJuridica(models.Model):
-    MUNICIPAL = 'M'
-    ESTADUAL = 'E'
-    FEDERAL = 'F'
-    ESFERA_FEDERACAO_CHOICES = ((MUNICIPAL, _('Municipal')),
-                                (ESTADUAL, _('Estadual')),
-                                (FEDERAL, _('Federal')))
+    ESFERA_FEDERACAO_CHOICES, ESTADUAL, FEDERAL, MUNICIPAL = make_choices(
+        'E', _('Estadual'),
+        'F', _('Federal'),
+        'M', _('Municipal'),
+    )
 
     tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_('Tipo'))
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)

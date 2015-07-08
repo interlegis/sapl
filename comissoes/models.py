@@ -3,13 +3,14 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from parlamentares.models import Parlamentar
+from sapl.utils import make_choices
 
 
 class TipoComissao(models.Model):
-    TEMPORARIA = 'T'
-    PERMANENTE = 'P'
-    NATUREZA_CHOICES = ((TEMPORARIA, _('Temporária')),
-                        (PERMANENTE, _('Permanente')))
+    NATUREZA_CHOICES, TEMPORARIA, PERMANENTE = make_choices(
+        'T', _('Temporária'),
+        'P', _('Permanente'),
+    )
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     natureza = models.CharField(max_length=1, verbose_name=_('Natureza'), choices=NATUREZA_CHOICES)
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
@@ -105,4 +106,3 @@ class Participacao(models.Model):  # ComposicaoComissao
 
     def __str__(self):
         return '%s : %s' % (self.cargo, self.parlamentar)
-

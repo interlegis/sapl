@@ -2,6 +2,8 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 
+from sapl.utils import make_choices
+
 
 class Legislatura(models.Model):
     data_inicio = models.DateField(verbose_name=_('Data Início'))
@@ -14,10 +16,10 @@ class Legislatura(models.Model):
 
 
 class SessaoLegislativa(models.Model):
-    ORDINARIA = 'O'
-    EXTRAORDINARIA = 'E'
-    TIPO_SESSAO_CHOICES = ((ORDINARIA, _('Ordinária')),
-                           (EXTRAORDINARIA, _('Extraordinária')))
+    TIPO_SESSAO_CHOICES, ORDINARIA, EXTRAORDINARIA = make_choices(
+        'O', _('Ordinária'),
+        'E', _('Extraordinária'),
+    )
 
     legislatura = models.ForeignKey(Legislatura)
     numero = models.IntegerField(verbose_name=_('Número'))

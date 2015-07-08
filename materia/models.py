@@ -4,6 +4,7 @@ from django.utils.translation import ugettext as _
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
+from sapl.utils import make_choices
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -46,9 +47,10 @@ class Origem(models.Model):
 
 
 class MateriaLegislativa(models.Model):
-    ORAL, ESCRITA = 'O', 'E'
-    TIPO_APRESENTACAO_CHOICES = ((ORAL, _('Oral')),
-                                 (ESCRITA, _('Escrita')))
+    TIPO_APRESENTACAO_CHOICES, ORAL, ESCRITA = make_choices(
+        'O', _('Oral'),
+        'E', _('Escrita'),
+    )
 
     tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_('Tipo'))
     numero = models.IntegerField(verbose_name=_('Número'))
@@ -99,6 +101,7 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
 
     def __str__(self):
         return self.materia
+
 
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(MateriaLegislativa, related_name='+')
@@ -160,7 +163,7 @@ class Autor(models.Model):
             return str(self.partido)
         else:
             if str(self.cargo):
-                return  _('%(nome)s - %(cargo)s') % {'nome': self.nome, 'cargo': self.cargo}
+                return _('%(nome)s - %(cargo)s') % {'nome': self.nome, 'cargo': self.cargo}
             else:
                 return str(self.nome)
 
@@ -175,7 +178,8 @@ class Autoria(models.Model):
         verbose_name_plural = _('Autorias')
 
     def __str__(self):
-        return  _('%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
+        return _('%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
+
 
 class DespachoInicial(models.Model):
     # TODO M2M?
@@ -188,7 +192,8 @@ class DespachoInicial(models.Model):
         verbose_name_plural = _('Despachos Iniciais')
 
     def __str__(self):
-        return  _('Nº %(numero)s - %(materia)s - %(comissao)s') % {'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
+        return _('Nº %(numero)s - %(materia)s - %(comissao)s') % {'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
+
 
 class TipoDocumento(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Tipo Documento'))
@@ -229,7 +234,7 @@ class MateriaAssunto(models.Model):
         verbose_name_plural = _('Relações Matéria - Assunto')
 
     def __str__(self):
-        return _('%(materia)s - %(assunto)s') % { 'materia': self.materia, 'assunto': self.assunto}
+        return _('%(materia)s - %(assunto)s') % {'materia': self.materia, 'assunto': self.assunto}
 
 
 class Numeracao(models.Model):
@@ -244,9 +249,9 @@ class Numeracao(models.Model):
         verbose_name = _('Numeração')
         verbose_name_plural = _('Numerações')
 
-    def __unicode_ (self):
+    def __unicode_(self):
         return _('Nº%(numero)s %(tipo)s - %(data)s') % {
-             'numero': self.numero_materia, 'tipo': self.tipo_materia, 'data': self.data_materia }
+            'numero': self.numero_materia, 'tipo': self.tipo_materia, 'data': self.data_materia}
 
 
 class Orgao(models.Model):
@@ -261,7 +266,7 @@ class Orgao(models.Model):
         verbose_name_plural = _('Órgãos')
 
     def __str__(self):
-        return _('%(nome)s - %(sigla)s') % { 'nome': self.nome, 'sigla':self.sigla }
+        return _('%(nome)s - %(sigla)s') % {'nome': self.nome, 'sigla': self.sigla}
 
 
 class TipoFimRelatoria(models.Model):
@@ -273,6 +278,7 @@ class TipoFimRelatoria(models.Model):
 
     def __str__(self):
         return self.descricao
+
 
 class Relatoria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
@@ -288,15 +294,15 @@ class Relatoria(models.Model):
 
     def __str__(self):
         return _('%(materia)s - %(tipo)s - %(data)s') % {
-           'materia': self.materia, 'tipo': self.tipo_fim_relatoria, 'data': self.data_designacao_relator
+            'materia': self.materia, 'tipo': self.tipo_fim_relatoria, 'data': self.data_designacao_relator
         }
 
 
 class Parecer(models.Model):
-    ORAL = 'O'
-    ESCRITA = 'E'
-    APRESENTACAO_CHOICES = ((ORAL, _('Oral')),
-                            (ESCRITA, _('Escrita')))
+    APRESENTACAO_CHOICES, ORAL, ESCRITA = make_choices(
+        'O', _('Oral'),
+        'E', _('Escrita'),
+    )
 
     relatoria = models.ForeignKey(Relatoria)
     materia = models.ForeignKey(MateriaLegislativa)
@@ -315,10 +321,10 @@ class Parecer(models.Model):
 
 
 class TipoProposicao(models.Model):
-    MATERIA = 'M'
-    DOCUMENTO = 'D'
-    MAT_OU_DOC_CHOICES = ((MATERIA, _('Matéria')),
-                          (DOCUMENTO, _('Documento')))
+    MAT_OU_DOC_CHOICES, MATERIA, DOCUMENTO = make_choices(
+        'M', _('Matéria'),
+        'D', _('Documento'),
+    )
 
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
     materia_ou_documento = models.CharField(max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
@@ -361,10 +367,10 @@ class Proposicao(models.Model):
 
 
 class StatusTramitacao(models.Model):
-    FIM = 'F'
-    RETORNO = 'R'
-    INDICADOR_CHOICES = ((FIM, _('Fim')),
-                         (RETORNO, _('Retorno')))
+    INDICADOR_CHOICES, FIM, RETORNO = make_choices(
+        'F', _('Fim'),
+        'R', _('Retorno'),
+    )
 
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=60, verbose_name=_('Descrição'))
@@ -397,22 +403,18 @@ class UnidadeTramitacao(models.Model):
 
 
 class Tramitacao(models.Model):
-    PRIMEIRO = 'P'
-    SEGUNDO = 'S'
-    UNICO = 'Ú'
-    SUPLEMENTAR = 'L'
-    FINAL = 'F'
-    VOTACAO_UNICA = 'A'
-    PRIMEIRA_VOTACAO = 'B'
-    SEGUNDA_TERCEIRA_VOTACAO = 'C'
-    TURNO_CHOICES = ((PRIMEIRO, _('Primeiro')),
-                     (SEGUNDO, _('Segundo')),
-                     (UNICO, _('Único')),
-                     (SUPLEMENTAR, _('Suplementar')),
-                     (FINAL, _('Final')),
-                     (VOTACAO_UNICA, _('Votação única em Regime de Urgência')),
-                     (PRIMEIRA_VOTACAO, _('1ª Votação')),
-                     (SEGUNDA_TERCEIRA_VOTACAO, _('2ª e 3ª Votação')))
+    TURNO_CHOICES, \
+    PRIMEIRO, SEGUNDO, UNICO, SUPLEMENTAR, FINAL, \
+    VOTACAO_UNICA, PRIMEIRA_VOTACAO, SEGUNDA_TERCEIRA_VOTACAO = make_choices(
+        'P', _('Primeiro'),
+        'S', _('Segundo'),
+        'Ú', _('Único'),
+        'L', _('Suplementar'),
+        'F', _('Final'),
+        'A', _('Votação única em Regime de Urgência'),
+        'B', _('1ª Votação'),
+        'C', _('2ª e 3ª Votação'),
+    )
 
     status = models.ForeignKey(StatusTramitacao, blank=True, null=True, verbose_name=_('Status'))
     materia = models.ForeignKey(MateriaLegislativa)
