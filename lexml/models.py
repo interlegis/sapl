@@ -17,6 +17,9 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
         verbose_name = _('Provedor Lexml')
         verbose_name_plural = _('Provedores Lexml')
 
+    def __str__(self):
+        return self.nome
+
 
 class LexmlPublicador(models.Model):
     id_publicador = models.IntegerField(verbose_name=_('Id do publicador'))
@@ -30,3 +33,6 @@ class LexmlPublicador(models.Model):
     class Meta:
         verbose_name = _('Publicador Lexml')
         verbose_name_plural = _('Publicadores Lexml')
+    
+    def __str__(self):
+        return self.nome

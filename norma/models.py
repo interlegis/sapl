@@ -14,6 +14,9 @@ class AssuntoNorma(models.Model):
         verbose_name = _('Assunto de Norma')
         verbose_name_plural = _('Assuntos de Norma')
 
+    def __str__(self):
+        return self.assunto
+
 
 class TipoNormaJuridica(models.Model):
     # TODO transform into Domain Model and use an FK for the field
@@ -39,6 +42,9 @@ class TipoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Tipo de Norma Jurídica')
         verbose_name_plural = _('Tipos de Norma Jurídica')
+
+    def __str__(self):
+        return self.descricao
 
 
 class NormaJuridica(models.Model):
@@ -69,6 +75,11 @@ class NormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')
+
+    def __str__(self):
+        return _(u'%(tipo)s nº %(numero)s - %(materia)s - %(ano)s') % {
+            'tipo': self.tipo, 'numero': self.numero, 'materia': self.materia, 'ano': self.ano
+        }
 
 
 class LegislacaoCitada(models.Model):
@@ -111,3 +122,7 @@ class VinculoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Vínculo entre Normas Jurídicas')
         verbose_name_plural = _('Vínculos entre Normas Jurídicas')
+
+    def __str__(self):
+        return _(u'Referente: %(referente)s \nReferida: %(referida)s \nVínculo: %(vinculo)s') % {
+            'referente': self.norma_referente, 'referida': self.norma_referida, 'vinculo': self.tipo_vinculo}

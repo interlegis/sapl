@@ -14,6 +14,11 @@ class Legislatura(models.Model):
         verbose_name = _('Legislatura')
         verbose_name_plural = _('Legislaturas')
 
+    def __str__(self):
+        return _(u'Eleição: %(eleicao)s - Início: %(inicio)s | Fim: %(fim)s') % {
+            'eleicao': self.data_eleicao, 'inicio': self.data_inicio, 'fim': self.data_fim
+        }
+
 
 class SessaoLegislativa(models.Model):
     TIPO_SESSAO_CHOICES, ORDINARIA, EXTRAORDINARIA = make_choices(
@@ -33,6 +38,9 @@ class SessaoLegislativa(models.Model):
         verbose_name = _('Sessão Legislativa')
         verbose_name_plural = _('Sessões Legislativas')
 
+    def __str__(self):
+        return self.tipo
+
 
 class Coligacao(models.Model):
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
@@ -42,6 +50,9 @@ class Coligacao(models.Model):
     class Meta:
         verbose_name = _('Coligação')
         verbose_name_plural = _('Coligações')
+    
+    def __str__(self):
+        return self.nome
 
 
 class Partido(models.Model):
@@ -54,11 +65,23 @@ class Partido(models.Model):
         verbose_name = _('Partido')
         verbose_name_plural = _('Partidos')
 
+    def __str__(self):
+        return _(u'%(sigla)s - %(nome)s') % {
+            'sigla': self.sigla, 'nome': self.nome
+        }
+
 
 class ComposicaoColigacao(models.Model):
     # TODO M2M
     partido = models.ForeignKey(Partido)
     coligacao = models.ForeignKey(Coligacao)
+
+    class Meta:
+        verbose_name = ('Composição Coligação')
+        verbose_name_plural = ('Composição Coligações')
+
+    def __str__ (self):
+        return self.coligacao
 
 
 class Municipio(models.Model):  # Localidade
@@ -112,6 +135,10 @@ class Municipio(models.Model):  # Localidade
         verbose_name = _('Município')
         verbose_name_plural = _('Municípios')
 
+    def __str__(self):
+        return _(u'%(nome)s - %(uf)s (%(regiao)s)') % {
+            'nome': self.nome, 'uf': self.uf, 'regiao': self.regiao
+        }
 
 class NivelInstrucao(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Nível de Instrução'))
@@ -121,7 +148,7 @@ class NivelInstrucao(models.Model):
         verbose_name_plural = _('Níveis Instrução')
 
     def __str__(self):
-        return self.nivel_instrucao
+        return self.descricao
 
 
 class SituacaoMilitar(models.Model):
@@ -130,6 +157,9 @@ class SituacaoMilitar(models.Model):
     class Meta:
         verbose_name = _('Tipo Situação Militar')
         verbose_name_plural = _('Tipos Situações Militares')
+
+    def __str__(self):
+        return self.descricao
 
 
 class Parlamentar(models.Model):
@@ -179,6 +209,8 @@ class TipoDependente(models.Model):
         verbose_name = _('Tipo de Dependente')
         verbose_name_plural = _('Tipos de Dependente')
 
+    def __str__ (self):
+        return self.descricao
 
 class Dependente(models.Model):
     FEMININO = 'F'
@@ -199,6 +231,9 @@ class Dependente(models.Model):
         verbose_name = _('Dependente')
         verbose_name_plural = _('Dependentes')
 
+    def __str__(self):
+        return self.nome
+
 
 class Filiacao(models.Model):
     data = models.DateField(verbose_name=_('Data Filiação'))
@@ -209,6 +244,11 @@ class Filiacao(models.Model):
     class Meta:
         verbose_name = _('Filiação')
         verbose_name_plural = _('Filiações')
+
+    def __str__(self):
+        return _(u'%(parlamentar)s - %(partido)s') % {
+            'parlamentar': self.parlamentar, 'partido': self.partido
+        }
 
 
 class TipoAfastamento(models.Model):
@@ -221,6 +261,8 @@ class TipoAfastamento(models.Model):
         verbose_name = _('Tipo de Afastamento')
         verbose_name_plural = _('Tipos de Afastamento')
 
+    def __str__(self):
+        return self.descricao
 
 class Mandato(models.Model):
     parlamentar = models.ForeignKey(Parlamentar)
@@ -238,6 +280,11 @@ class Mandato(models.Model):
         verbose_name = _('Mandato')
         verbose_name_plural = _('Mandatos')
 
+    def __str__ (self):
+        return _(u'%(parlamentar)s %(legislatura)s') % {
+            'parlamentar': self.parlamentar, 'legislatura': self.legislatura
+        } 
+
 
 class CargoMesa(models.Model):
     # TODO M2M ????
@@ -247,6 +294,9 @@ class CargoMesa(models.Model):
     class Meta:
         verbose_name = _('Cargo na Mesa')
         verbose_name_plural = _('Cargos na Mesa')
+
+    def __str__(self):
+        return self.descricao
 
 
 class ComposicaoMesa(models.Model):
@@ -258,3 +308,8 @@ class ComposicaoMesa(models.Model):
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
+
+    def __str__(self):
+        return _(u'%(parlamentar)s - %(cargo)s') % {
+            'parlamentar': self.parlamentar, 'cargo': self.cargo
+        }

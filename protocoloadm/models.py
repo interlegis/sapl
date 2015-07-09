@@ -14,6 +14,9 @@ class TipoDocumentoAdministrativo(models.Model):
         verbose_name = _('Tipo de Documento Administrativo')
         verbose_name_plural = _('Tipos de Documento Administrativo')
 
+    def __str__(self):
+        return self.descricao
+
 
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
@@ -33,6 +36,11 @@ class DocumentoAdministrativo(models.Model):
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
 
+    def __str__(self):
+        return _(u'%(tipo)s - %(assunto)s') % {
+            'tipo': self.tipo, 'assunto': self.assunto
+        }
+
 
 class DocumentoAcessorioAdministrativo(models.Model):
     documento = models.ForeignKey(DocumentoAdministrativo)
@@ -48,6 +56,8 @@ class DocumentoAcessorioAdministrativo(models.Model):
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
 
+    def __str__(self):
+        return self.nome
 
 class Protocolo(models.Model):
     numero = models.IntegerField(blank=True, null=True, verbose_name=_('Número do Protocolo'))
@@ -90,6 +100,9 @@ class StatusTramitacaoAdministrativo(models.Model):
         verbose_name = _('Status de Tramitação')
         verbose_name_plural = _('Status de Tramitação')
 
+    def __str__(self):
+        return self.descricao
+
 
 class TramitacaoAdministrativo(models.Model):
     status = models.ForeignKey(StatusTramitacaoAdministrativo, blank=True, null=True, verbose_name=_('Status'))
@@ -105,3 +118,8 @@ class TramitacaoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')
         verbose_name_plural = _('Tramitações de Documento Administrativo')
+
+    def __str__(self):
+        return _(u'%(documento)s - %(status)s') % {
+            'documento': self.documento, 'status': self.status
+        }

@@ -249,7 +249,7 @@ class Numeracao(models.Model):
         verbose_name = _('Numeração')
         verbose_name_plural = _('Numerações')
 
-    def __unicode_(self):
+    def __str__(self):
         return _('Nº%(numero)s %(tipo)s - %(data)s') % {
             'numero': self.numero_materia, 'tipo': self.tipo_materia, 'data': self.data_materia}
 
