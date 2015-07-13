@@ -24,14 +24,22 @@ def test_get_renames():
         else:
             renamed = set(field_renames[model].keys())
 
-            # all renamed field references correspond to an actual field
-            assert renamed <= field_names
+            match_msg_template = 'All %s field names mentioned in renames ' \
+                'must match a %s field'
 
-            # check ignored fields in renaming
+            # all renamed field references correspond to a current field
+            assert renamed <= field_names, \
+                match_msg_template % ('new', 'current')
+
+            # ignored fields are explicitly listed
             missing_in_renames = field_names - renamed
             if missing_in_renames:
-                assert (model, missing_in_renames) in RENAMING_IGNORED_FIELDS
+                assert (model, missing_in_renames) in RENAMING_IGNORED_FIELDS, \
+                    'Field(s) missing in renames but not explicitly listed'
 
-            # all old names correspond to a legacy model field
-            legacy_model = legacy_app.get_model(model_renames.get(model, model.__name__))
-            assert set(field_renames[model].values()) <= {f.name for f in legacy_model._meta.fields}
+            # all old names correspond to a legacy field
+            legacy_model = legacy_app.get_model(
+                model_renames.get(model, model.__name__))
+            legacy_field_names = {f.name for f in legacy_model._meta.fields}
+            assert set(field_renames[model].values()) <= legacy_field_names, \
+                match_msg_template % ('old', 'legacy')
