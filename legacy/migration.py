@@ -1,4 +1,3 @@
-
 import re
 
 import pkg_resources
@@ -71,9 +70,8 @@ def get_renames():
             field_renames[model] = renames
 
     # remove abstract classes
-    for model in field_renames:
-        if model._meta.abstract:
-            del field_renames[model]
+    field_renames = {m: r for m, r in field_renames.items()
+                     if not m._meta.abstract}
 
     return field_renames, model_renames
 
