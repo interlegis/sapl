@@ -100,7 +100,7 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
         verbose_name_plural = _('Acompanhamentos de Matéria')
 
     def __str__(self):
-        return self.materia
+        return str(self.materia)  #FIXME
 
 
 class Anexada(models.Model):
@@ -221,7 +221,7 @@ class DocumentoAcessorio(models.Model):
 
     def __str__(self):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
-            'tipo': self.tipo, 'nome': self.nome, 'ano': self.data, 'autor': self.autor}
+            'tipo': self.tipo, 'nome': self.nome, 'data': self.data, 'autor': self.autor}
 
 
 class MateriaAssunto(models.Model):

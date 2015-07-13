@@ -163,7 +163,7 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name_plural = _('Presenças da Ordem do Dia')
 
     def __str__(self):
-        return self.parlamentar
+        return str(self.parlamentar)  # FIXME
 
 
 class TipoResultadoVotacao(models.Model):
@@ -191,7 +191,7 @@ class RegistroVotacao(models.Model):
         verbose_name_plural = _('Votações')
 
     def __str__(self):
-        return self.materia  # XXX ?
+        return str(self.materia)  # FIXME
 
 
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
@@ -205,7 +205,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name_plural = _('Registros de Votações de Parlamentares')
 
     def __str__(self):
-        return self.parlamentar  # XXX ?
+        return str(self.parlamentar)  # FIXME
 
 
 class SessaoPlenariaPresenca(models.Model):
@@ -218,4 +218,4 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name_plural = _('Presenças em Sessões Plenárias')
 
     def __str__(self):
-        return self.parlamentar  # XXX ?
+        return str(self.parlamentar)  # FIXME

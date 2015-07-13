@@ -50,7 +50,7 @@ class Coligacao(models.Model):
     class Meta:
         verbose_name = _('Coligação')
         verbose_name_plural = _('Coligações')
-    
+
     def __str__(self):
         return self.nome
 
@@ -81,7 +81,7 @@ class ComposicaoColigacao(models.Model):
         verbose_name_plural = ('Composição Coligações')
 
     def __str__ (self):
-        return self.coligacao
+        return str(self.coligacao)  # FIXME
 
 
 class Municipio(models.Model):  # Localidade
@@ -283,7 +283,7 @@ class Mandato(models.Model):
     def __str__ (self):
         return _(u'%(parlamentar)s %(legislatura)s') % {
             'parlamentar': self.parlamentar, 'legislatura': self.legislatura
-        } 
+        }
 
 
 class CargoMesa(models.Model):
