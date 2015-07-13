@@ -1,0 +1,11 @@
+[run]
+omit =
+    sapl/wsgi.py
+    manage.py
+    setup.py
+    test_*.py
+    ipython_log.py*
+    **/migrations/*.py
+
+[report]
+ignore_errors = True
