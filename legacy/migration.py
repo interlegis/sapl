@@ -85,33 +85,38 @@ def info(msg):
 def warn(msg):
     print('WARNING! ' + msg)
 
-special_transforms = {}
+
+def get_fk_related(field, value, label=None):
+    if value is not None:
+        try:
+            value = field.related_model.objects.get(id=value)
+        except ObjectDoesNotExist:
+            msg = 'FK [%s] not found for value %s ' \
+                '(in %s %s)' % (
+                    field.name, value,
+                    field.model.__name__, label or '---')
+            if value == 0:
+                # we interpret FK == 0 as actually FK == NONE
+                value = None
+                warn(msg + ' => using NONE for zero value')
+            else:
+                value = make_stub(field.related_model, value)
+                warn(msg + ' => STUB CREATED')
+        else:
+            assert value
+    return value
 
 
-def special(model, fieldname):
-    def wrap(function):
-        special_transforms[model._meta.get_field(fieldname)] = function
-        return function
-    return wrap
+def get_field(model, fieldname):
+    return model._meta.get_field(fieldname)
 
 
-@special(Parlamentar, 'unidade_deliberativa')
-def none_to_false(obj, value):
-    # Field is defined as not null in legacy db, but data includes null values
-    #  => transform None to False
-    if value is None:
-        warn('null converted to False')
-    return bool(value)
-
-
-@special(Participacao, 'composicao')
-def get_participacao_composicao(obj, value):
-    # value parameter is ignored
+def get_participacao_composicao(obj):
     new = Composicao()
     for new_field, value in [('comissao', obj.cod_comissao),
                              ('periodo', obj.cod_periodo_comp)]:
         model_field = Composicao._meta.get_field(new_field)
-        value = get_related_if_foreignkey(model_field, '???', value)
+        value = get_fk_related(model_field, value)
         setattr(new, new_field, value)
     previous = Composicao.objects.filter(comissao=new.comissao, periodo=new.periodo)
     if previous:
@@ -122,27 +127,25 @@ def get_participacao_composicao(obj, value):
         return new
 
 
-def migrate(obj=appconfs, count_limit=None):
-    # warning: model/app migration order is of utmost importance
-
-    to_delete = []
-    _do_migrate(obj, to_delete, count_limit)
-    # exclude logically deleted in legacy base
-    info('Deleting models with ind_excluido...')
-    for obj in to_delete:
-        obj.delete()
+SPECIAL_FIELD_MIGRATIONS = {
+    get_field(Participacao, 'composicao'): get_participacao_composicao}
 
 
-def _do_migrate(obj, to_delete, count_limit=None):
-    if isinstance(obj, AppConfig):
-        _do_migrate(obj.models.values(), to_delete, count_limit)
-    elif isinstance(obj, ModelBase):
-        migrate_model(obj, to_delete, count_limit)
-    elif hasattr(obj, '__iter__'):
-        for item in obj:
-            _do_migrate(item, to_delete, count_limit)
-    else:
-        raise TypeError('Parameter must be a Model, AppConfig or a sequence of them')
+def build_special_field_migration(field, get_old_field_value):
+
+    if field == get_field(Parlamentar, 'unidade_deliberativa'):
+
+        def none_to_false(obj):
+            value = get_old_field_value(obj)
+            # Field is defined as not null in legacy db, but data includes null values
+            #  => transform None to False
+            if value is None:
+                warn('null converted to False')
+            return bool(value)
+        return none_to_false
+
+    elif field in SPECIAL_FIELD_MIGRATIONS:
+        return SPECIAL_FIELD_MIGRATIONS[field]
 
 
 def exec_sql(sql, db='default'):
@@ -181,76 +184,99 @@ def make_stub(model, id):
     return new
 
 
-def migrate_model(model, to_delete, count_limit=None):
+class DataMigrator(object):
 
-    legacy_model_name = model_renames.get(model, model.__name__)
-    if legacy_model_name.upper() == 'IGNORE':
-        print('Model ignored: %s' % model.__name__)
-        return
+    def __init__(self):
+        self.field_renames, self.model_renames = get_renames()
 
-    print('Migrating %s...' % model.__name__)
+    def field_migrations(self, model):
+        renames = self.field_renames[model]
 
-    # clear all model entries
-    model.objects.all().delete()
+        for field in model._meta.fields:
+            old_field_name = renames.get(field.name)
 
-    legacy_model = legacy_app.get_model(legacy_model_name)
-    old_pk_name = legacy_model._meta.pk.name
+            def get_old_field_value(old):
+                return getattr(old, old_field_name)
 
-    # setup migration strategy for tables with or without a pk
-    if old_pk_name == 'id':
-        # There is no pk in the legacy table
+            special = build_special_field_migration(field, get_old_field_value)
+            if special:
+                yield field, special
+            elif field.name in renames:
 
-        def get_old_pk(old):
-            return '-- WITHOUT PK --'
+                def get_fk_value(old):
+                    old_value = get_old_field_value(old)
+                    old_type = type(old)  # not necessarily a model
+                    if hasattr(old_type, '_meta') and \
+                            old_type._meta.pk.name != 'id':
+                        label = old.pk
+                    else:
+                        label = '-- WITHOUT PK --'
+                    return get_fk_related(field, old_value, label)
 
-        def save(new, id):
-            new.save()
+                if isinstance(field, models.ForeignKey):
+                    yield field, get_fk_value
+                else:
+                    yield field, get_old_field_value
 
-        old_records = iter_sql_records(
-            'select * from ' + legacy_model._meta.db_table, 'legacy')
-    else:
-        def get_old_pk(old):
-            return getattr(old, old_pk_name)
-        save = save_with_id
-        old_records = legacy_model.objects.all().order_by(old_pk_name)[:count_limit]
+    def migrate(self, obj=appconfs):
+        # warning: model/app migration order is of utmost importance
 
-    # convert old records to new ones
-    for old in old_records:
-        old_pk = get_old_pk(old)
-        new = model()
-        for new_field, old_field in field_renames[model].items():
-            value = getattr(old, old_field)
-            model_field = model._meta.get_field(new_field)
-            transform = special_transforms.get(model_field)
-            if transform:
-                value = transform(old, value)
-            else:
-                # check for a relation
-                value = get_related_if_foreignkey(model_field, old_pk, value)
-            setattr(new, new_field, value)
-        save(new, old_pk)
-        if getattr(old, 'ind_excluido', False):
-            to_delete.append(new)
+        self.to_delete = []
+        info('Starting %s migration...' % obj)
+        self._do_migrate(obj)
+        # exclude logically deleted in legacy base
+        info('Deleting models with ind_excluido...')
+        for obj in self.to_delete:
+            obj.delete()
 
-
-def get_related_if_foreignkey(model_field, old_pk, value):
-    if isinstance(model_field, models.ForeignKey) and value is not None:
-        try:
-            value = model_field.related_model.objects.get(id=value)
-        except ObjectDoesNotExist:
-            msg = 'FK [%s (%s) : %s] not found for value %s' % (
-                model_field.model.__name__, old_pk, model_field.name, value)
-            if value == 0:
-                # we interpret FK == 0 as actually FK == NONE
-                value = None
-                warn(msg + ' => NONE for zero value')
-            else:
-                value = make_stub(model_field.related_model, value)
-                warn(msg + ' => STUB CREATED')
+    def _do_migrate(self, obj):
+        if isinstance(obj, AppConfig):
+            models_to_migrate = (model for model in obj.models.values()
+                                 if model in self.field_renames)
+            self._do_migrate(models_to_migrate)
+        elif isinstance(obj, ModelBase):
+            self.migrate_model(obj)
+        elif hasattr(obj, '__iter__'):
+            for item in obj:
+                self._do_migrate(item)
         else:
-            assert value
-    return value
+            raise TypeError('Parameter must be a Model, AppConfig or a sequence of them')
 
+    def migrate_model(self, model):
+        print('Migrating %s...' % model.__name__)
+
+        legacy_model_name = self.model_renames.get(model, model.__name__)
+        legacy_model = legacy_app.get_model(legacy_model_name)
+        legacy_pk_name = legacy_model._meta.pk.name
+
+        # clear all model entries
+        model.objects.all().delete()
+
+        # setup migration strategy for tables with or without a pk
+        if legacy_pk_name == 'id':
+            # There is no pk in the legacy table
+            def save(new, old):
+                new.save()
+
+            old_records = iter_sql_records(
+                'select * from ' + legacy_model._meta.db_table, 'legacy')
+        else:
+            def save(new, old):
+                save_with_id(new, getattr(old, legacy_pk_name))
+
+            old_records = legacy_model.objects.all().order_by(legacy_pk_name)
+
+        # convert old records to new ones
+        for old in old_records:
+            new = model()
+            for new_field, get_value in self.field_migrations(model):
+                setattr(new, new_field.name, get_value(old))
+            save(new, old)
+            if getattr(old, 'ind_excluido', False):
+                self.to_delete.append(new)
+
+
+# CHECKS #####################################################################
 
 def get_ind_excluido(obj):
     legacy_model = legacy_app.get_model(type(obj).__name__)
