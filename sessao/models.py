@@ -26,18 +26,25 @@ class SessaoPlenaria(models.Model):
     cod_andamento_sessao = models.IntegerField(blank=True, null=True)
 
     tipo = models.ForeignKey(TipoSessaoPlenaria, verbose_name=_('Tipo'))
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa, verbose_name=_('Sessão Legislativa'))
+    sessao_legislativa = models.ForeignKey(
+        SessaoLegislativa, verbose_name=_('Sessão Legislativa'))
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     # XXX seems to be empty
     tipo_expediente = models.CharField(max_length=10)
     data_inicio = models.DateField(verbose_name=_('Abertura'))
     dia = models.CharField(max_length=15)
     hora_inicio = models.CharField(max_length=5, verbose_name=_('Horário'))
-    hora_fim = models.CharField(max_length=5, blank=True, null=True, verbose_name=_('Horário'))
+    hora_fim = models.CharField(
+        max_length=5, blank=True, null=True, verbose_name=_('Horário'))
     numero = models.IntegerField(verbose_name=_('Número'))
-    data_fim = models.DateField(blank=True, null=True, verbose_name=_('Encerramento'))
-    url_audio = models.CharField(max_length=150, blank=True, null=True, verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
-    url_video = models.CharField(max_length=150, blank=True, null=True, verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
+    data_fim = models.DateField(
+        blank=True, null=True, verbose_name=_('Encerramento'))
+    url_audio = models.CharField(
+        max_length=150, blank=True, null=True,
+        verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
+    url_video = models.CharField(
+        max_length=150, blank=True, null=True,
+        verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
 
     class Meta:
         verbose_name = _('Sessão Plenária')
@@ -61,10 +68,12 @@ class AbstractOrdemDia(models.Model):
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     materia = models.ForeignKey(MateriaLegislativa)
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
-    observacao = models.TextField(blank=True, null=True, verbose_name=_('Ementa'))
+    observacao = models.TextField(
+        blank=True, null=True, verbose_name=_('Ementa'))
     numero_ordem = models.IntegerField(verbose_name=_('Nº Ordem'))
     resultado = models.TextField(blank=True, null=True)
-    tipo_votacao = models.IntegerField(verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
+    tipo_votacao = models.IntegerField(
+        verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
 
     class Meta:
         abstract = True
@@ -94,7 +103,8 @@ class TipoExpediente(models.Model):
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     tipo = models.ForeignKey(TipoExpediente)
-    conteudo = models.TextField(blank=True, null=True, verbose_name=_('Conteúdo do expediente'))
+    conteudo = models.TextField(
+        blank=True, null=True, verbose_name=_('Conteúdo do expediente'))
 
     class Meta:
         verbose_name = _('Expediente de Sessão Plenaria')
@@ -120,8 +130,10 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
 class AbstractOrador(models.Model):  # Oradores
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
-    numero_ordem = models.IntegerField(verbose_name=_('Ordem de pronunciamento'))
-    url_discurso = models.CharField(max_length=150, blank=True, null=True, verbose_name=_('URL Vídeo'))
+    numero_ordem = models.IntegerField(
+        verbose_name=_('Ordem de pronunciamento'))
+    url_discurso = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name=_('URL Vídeo'))
 
     class Meta:
         abstract = True
@@ -178,13 +190,15 @@ class TipoResultadoVotacao(models.Model):
 
 
 class RegistroVotacao(models.Model):
-    tipo_resultado_votacao = models.ForeignKey(TipoResultadoVotacao, verbose_name=_('Resultado da Votação'))
+    tipo_resultado_votacao = models.ForeignKey(
+        TipoResultadoVotacao, verbose_name=_('Resultado da Votação'))
     materia = models.ForeignKey(MateriaLegislativa)
     ordem = models.ForeignKey(OrdemDia)
     numero_votos_sim = models.IntegerField(verbose_name=_('Sim'))
     numero_votos_nao = models.IntegerField(verbose_name=_('Não'))
     numero_abstencoes = models.IntegerField(verbose_name=_('Abstenções'))
-    observacao = models.TextField(blank=True, null=True, verbose_name=_('Observações'))
+    observacao = models.TextField(
+        blank=True, null=True, verbose_name=_('Observações'))
 
     class Meta:
         verbose_name = _('Votação')

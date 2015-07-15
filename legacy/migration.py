@@ -48,7 +48,8 @@ def get_renames():
     field_renames = {}
     model_renames = {}
     for app in appconfs:
-        app_rename_data = yaml.load(pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'))
+        app_rename_data = yaml.load(
+            pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'))
         for model_name, renames in app_rename_data.items():
             match = MODEL_RENAME_PATTERN.match(model_name)
             if match:
@@ -118,7 +119,8 @@ def get_participacao_composicao(obj):
         model_field = Composicao._meta.get_field(new_field)
         value = get_fk_related(model_field, value)
         setattr(new, new_field, value)
-    previous = Composicao.objects.filter(comissao=new.comissao, periodo=new.periodo)
+    previous = Composicao.objects.filter(
+        comissao=new.comissao, periodo=new.periodo)
     if previous:
         assert len(previous) == 1
         return previous[0]
@@ -240,7 +242,8 @@ class DataMigrator(object):
             for item in obj:
                 self._do_migrate(item)
         else:
-            raise TypeError('Parameter must be a Model, AppConfig or a sequence of them')
+            raise TypeError(
+                'Parameter must be a Model, AppConfig or a sequence of them')
 
     def migrate_model(self, model):
         print('Migrating %s...' % model.__name__)

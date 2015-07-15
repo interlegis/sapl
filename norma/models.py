@@ -8,7 +8,8 @@ from sapl.utils import make_choices
 
 class AssuntoNorma(models.Model):
     assunto = models.CharField(max_length=50, verbose_name=_('Assunto'))
-    descricao = models.CharField(max_length=250, blank=True, null=True, verbose_name=_('Descrição'))
+    descricao = models.CharField(
+        max_length=250, blank=True, null=True, verbose_name=_('Descrição'))
 
     class Meta:
         verbose_name = _('Assunto de Norma')
@@ -35,7 +36,8 @@ class TipoNormaJuridica(models.Model):
                                   'resolucao',
                                   'regimento.interno',
                                   ))
-    equivalente_lexml = models.CharField(max_length=50, blank=True, null=True, verbose_name=_('Equivalente LexML'), choices=EQUIVALENTE_LEXML_CHOICES)
+    equivalente_lexml = models.CharField(max_length=50, blank=True, null=True, 
+        verbose_name=_('Equivalente LexML'), choices=EQUIVALENTE_LEXML_CHOICES)
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -58,17 +60,26 @@ class NormaJuridica(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     numero = models.IntegerField(verbose_name=_('Número'))
     ano = models.SmallIntegerField(verbose_name=_('Ano'))
-    esfera_federacao = models.CharField(max_length=1, verbose_name=_('Esfera Federação'), choices=ESFERA_FEDERACAO_CHOICES)
+    esfera_federacao = models.CharField(max_length=1,
+        verbose_name=_('Esfera Federação'), choices=ESFERA_FEDERACAO_CHOICES)
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
-    data_publicacao = models.DateField(blank=True, null=True, verbose_name=_('Data Publicação'))
-    veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True, verbose_name=_('Veículo Publicação'))
-    pagina_inicio_publicacao = models.IntegerField(blank=True, null=True, verbose_name=_('Pg. Início'))
-    pagina_fim_publicacao = models.IntegerField(blank=True, null=True, verbose_name=_('Pg. Fim'))
+    data_publicacao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Publicação'))
+    veiculo_publicacao = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name=_('Veículo Publicação'))
+    pagina_inicio_publicacao = models.IntegerField(
+        blank=True, null=True, verbose_name=_('Pg. Início'))
+    pagina_fim_publicacao = models.IntegerField(
+        blank=True, null=True, verbose_name=_('Pg. Fim'))
     ementa = models.TextField(verbose_name=_('Ementa'))
-    indexacao = models.TextField(blank=True, null=True, verbose_name=_('Indexação'))
-    observacao = models.TextField(blank=True, null=True, verbose_name=_('Observação'))
-    complemento = models.NullBooleanField(blank=True, verbose_name=_('Complementar ?'))
-    assunto = models.ForeignKey(AssuntoNorma)  # XXX was a CharField (attention on migrate)
+    indexacao = models.TextField(
+        blank=True, null=True, verbose_name=_('Indexação'))
+    observacao = models.TextField(
+        blank=True, null=True, verbose_name=_('Observação'))
+    complemento = models.NullBooleanField(
+        blank=True, verbose_name=_('Complementar ?'))
+    # XXX was a CharField (attention on migrate)
+    assunto = models.ForeignKey(AssuntoNorma)
     data_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
 
@@ -85,18 +96,30 @@ class NormaJuridica(models.Model):
 class LegislacaoCitada(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     norma = models.ForeignKey(NormaJuridica)
-    disposicoes = models.CharField(max_length=15, blank=True, null=True, verbose_name=_('Disposição'))
-    parte = models.CharField(max_length=8, blank=True, null=True, verbose_name=_('Parte'))
-    livro = models.CharField(max_length=7, blank=True, null=True, verbose_name=_('Livro'))
-    titulo = models.CharField(max_length=7, blank=True, null=True, verbose_name=_('Título'))
-    capitulo = models.CharField(max_length=7, blank=True, null=True, verbose_name=_('Capítulo'))
-    secao = models.CharField(max_length=7, blank=True, null=True, verbose_name=_('Seção'))
-    subsecao = models.CharField(max_length=7, blank=True, null=True, verbose_name=_('Subseção'))
-    artigo = models.CharField(max_length=4, blank=True, null=True, verbose_name=_('Artigo'))
-    paragrafo = models.CharField(max_length=3, blank=True, null=True, verbose_name=_('Parágrafo'))
-    inciso = models.CharField(max_length=10, blank=True, null=True, verbose_name=_('Inciso'))
-    alinea = models.CharField(max_length=3, blank=True, null=True, verbose_name=_('Alínea'))
-    item = models.CharField(max_length=3, blank=True, null=True, verbose_name=_('Item'))
+    disposicoes = models.CharField(
+        max_length=15, blank=True, null=True, verbose_name=_('Disposição'))
+    parte = models.CharField(
+        max_length=8, blank=True, null=True, verbose_name=_('Parte'))
+    livro = models.CharField(
+        max_length=7, blank=True, null=True, verbose_name=_('Livro'))
+    titulo = models.CharField(
+        max_length=7, blank=True, null=True, verbose_name=_('Título'))
+    capitulo = models.CharField(
+        max_length=7, blank=True, null=True, verbose_name=_('Capítulo'))
+    secao = models.CharField(
+        max_length=7, blank=True, null=True, verbose_name=_('Seção'))
+    subsecao = models.CharField(
+        max_length=7, blank=True, null=True, verbose_name=_('Subseção'))
+    artigo = models.CharField(
+        max_length=4, blank=True, null=True, verbose_name=_('Artigo'))
+    paragrafo = models.CharField(
+        max_length=3, blank=True, null=True, verbose_name=_('Parágrafo'))
+    inciso = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_('Inciso'))
+    alinea = models.CharField(
+        max_length=3, blank=True, null=True, verbose_name=_('Alínea'))
+    item = models.CharField(
+        max_length=3, blank=True, null=True, verbose_name=_('Item'))
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
@@ -117,7 +140,8 @@ class VinculoNormaJuridica(models.Model):
     # TODO M2M ???
     norma_referente = models.ForeignKey(NormaJuridica, related_name='+')
     norma_referida = models.ForeignKey(NormaJuridica, related_name='+')
-    tipo_vinculo = models.CharField(max_length=1, blank=True, null=True, choices=TIPO_VINCULO_CHOICES)
+    tipo_vinculo = models.CharField(
+        max_length=1, blank=True, null=True, choices=TIPO_VINCULO_CHOICES)
 
     class Meta:
         verbose_name = _('Vínculo entre Normas Jurídicas')

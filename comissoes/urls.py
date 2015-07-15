@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 
 from comissoes.views import (ListaComissoes,
-							 CriarComissao)
+                             CriarComissao)
 
 urlpatterns = patterns(
     'comissoes.views',

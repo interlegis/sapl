@@ -139,7 +139,8 @@ class Comissao(models.Model):
     end_secretaria = models.CharField(max_length=100, blank=True, null=True)
     num_tel_secretaria = models.CharField(max_length=15, blank=True, null=True)
     num_fax_secretaria = models.CharField(max_length=15, blank=True, null=True)
-    des_agenda_reuniao = models.CharField(max_length=100, blank=True, null=True)
+    des_agenda_reuniao = models.CharField(
+        max_length=100, blank=True, null=True)
     loc_reuniao = models.CharField(max_length=100, blank=True, null=True)
     txt_finalidade = models.TextField(blank=True, null=True)
     end_email = models.CharField(max_length=100, blank=True, null=True)
@@ -171,7 +172,8 @@ class ComposicaoComissao(models.Model):
     ind_titular = models.IntegerField()
     dat_designacao = models.DateField()
     dat_desligamento = models.DateField(blank=True, null=True)
-    des_motivo_desligamento = models.CharField(max_length=150, blank=True, null=True)
+    des_motivo_desligamento = models.CharField(
+        max_length=150, blank=True, null=True)
     obs_composicao = models.CharField(max_length=150, blank=True, null=True)
     ind_excluido = models.IntegerField()
 
@@ -227,7 +229,8 @@ class DocumentoAcessorio(models.Model):
     tip_documento = models.IntegerField()
     nom_documento = models.CharField(max_length=30)
     dat_documento = models.DateField(blank=True, null=True)
-    nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
+    nom_autor_documento = models.CharField(
+        max_length=50, blank=True, null=True)
     txt_ementa = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
     ind_excluido = models.IntegerField()
@@ -244,7 +247,8 @@ class DocumentoAcessorioAdministrativo(models.Model):
     nom_documento = models.CharField(max_length=30)
     nom_arquivo = models.CharField(max_length=100)
     dat_documento = models.DateField(blank=True, null=True)
-    nom_autor_documento = models.CharField(max_length=50, blank=True, null=True)
+    nom_autor_documento = models.CharField(
+        max_length=50, blank=True, null=True)
     txt_assunto = models.TextField(blank=True, null=True)
     txt_indexacao = models.TextField(blank=True, null=True)
     ind_excluido = models.IntegerField()
@@ -385,7 +389,8 @@ class LexmlRegistroPublicador(models.Model):
 class Localidade(models.Model):
     cod_localidade = models.IntegerField(primary_key=True)
     nom_localidade = models.CharField(max_length=50, blank=True, null=True)
-    nom_localidade_pesq = models.CharField(max_length=50, blank=True, null=True)
+    nom_localidade_pesq = models.CharField(
+        max_length=50, blank=True, null=True)
     tip_localidade = models.CharField(max_length=1, blank=True, null=True)
     sgl_uf = models.CharField(max_length=2, blank=True, null=True)
     sgl_regiao = models.CharField(max_length=2, blank=True, null=True)
@@ -468,7 +473,8 @@ class MesaSessaoPlenaria(models.Model):
     class Meta:
         managed = False
         db_table = 'mesa_sessao_plenaria'
-        unique_together = (('cod_cargo', 'cod_sessao_leg', 'cod_parlamentar', 'cod_sessao_plen'),)
+        unique_together = (
+            ('cod_cargo', 'cod_sessao_leg', 'cod_parlamentar', 'cod_sessao_plen'),)
 
 
 class NivelInstrucao(models.Model):
@@ -490,7 +496,8 @@ class NormaJuridica(models.Model):
     tip_esfera_federacao = models.CharField(max_length=1)
     dat_norma = models.DateField(blank=True, null=True)
     dat_publicacao = models.DateField(blank=True, null=True)
-    des_veiculo_publicacao = models.CharField(max_length=30, blank=True, null=True)
+    des_veiculo_publicacao = models.CharField(
+        max_length=30, blank=True, null=True)
     num_pag_inicio_publ = models.IntegerField(blank=True, null=True)
     num_pag_fim_publ = models.IntegerField(blank=True, null=True)
     txt_ementa = models.TextField()
@@ -627,9 +634,12 @@ class Parlamentar(models.Model):
     num_rg = models.CharField(max_length=15, blank=True, null=True)
     num_tit_eleitor = models.CharField(max_length=15, blank=True, null=True)
     cod_casa = models.IntegerField()
-    num_gab_parlamentar = models.CharField(max_length=10, blank=True, null=True)
-    num_tel_parlamentar = models.CharField(max_length=50, blank=True, null=True)
-    num_fax_parlamentar = models.CharField(max_length=50, blank=True, null=True)
+    num_gab_parlamentar = models.CharField(
+        max_length=10, blank=True, null=True)
+    num_tel_parlamentar = models.CharField(
+        max_length=50, blank=True, null=True)
+    num_fax_parlamentar = models.CharField(
+        max_length=50, blank=True, null=True)
     end_residencial = models.CharField(max_length=100, blank=True, null=True)
     cod_localidade_resid = models.IntegerField(blank=True, null=True)
     num_cep_resid = models.CharField(max_length=9, blank=True, null=True)
@@ -683,7 +693,8 @@ class Proposicao(models.Model):
     txt_descricao = models.CharField(max_length=100)
     cod_mat_ou_doc = models.IntegerField(blank=True, null=True)
     dat_devolucao = models.DateTimeField(blank=True, null=True)
-    txt_justif_devolucao = models.CharField(max_length=200, blank=True, null=True)
+    txt_justif_devolucao = models.CharField(
+        max_length=200, blank=True, null=True)
     num_proposicao = models.IntegerField(blank=True, null=True)
     ind_excluido = models.IntegerField()
 
@@ -876,7 +887,8 @@ class TipoComissao(models.Model):
     nom_tipo_comissao = models.CharField(max_length=50)
     sgl_natureza_comissao = models.CharField(max_length=1)
     sgl_tipo_comissao = models.CharField(max_length=10)
-    des_dispositivo_regimental = models.CharField(max_length=50, blank=True, null=True)
+    des_dispositivo_regimental = models.CharField(
+        max_length=50, blank=True, null=True)
     ind_excluido = models.IntegerField()
 
     class Meta:

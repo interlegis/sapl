@@ -14,13 +14,17 @@ class CasaLegislativa(models.Model):
     uf = models.CharField(max_length=100, verbose_name=_('UF'))
     telefone = models.CharField(max_length=100, verbose_name=_('Telefone'))
     fax = models.CharField(max_length=100, verbose_name=_('Fax'))
-    cor_fundo = models.CharField(max_length=100, verbose_name=_('Cor de fundo'))
-    cor_borda = models.CharField(max_length=100, verbose_name=_('Cor da borda'))
-    cor_principal = models.CharField(max_length=100, verbose_name=_('Cor principal'))
+    cor_fundo = models.CharField(
+        max_length=100, verbose_name=_('Cor de fundo'))
+    cor_borda = models.CharField(
+        max_length=100, verbose_name=_('Cor da borda'))
+    cor_principal = models.CharField(
+        max_length=100, verbose_name=_('Cor principal'))
     logotipo = models.CharField(max_length=100, verbose_name=_('Logotipo'))
     endereco_web = models.CharField(max_length=100, verbose_name=_('HomePage'))
     email = models.CharField(max_length=100, verbose_name=_('E-mail'))
-    informacao_geral = models.CharField(max_length=100, verbose_name=_('Informação Geral'))
+    informacao_geral = models.CharField(
+        max_length=100, verbose_name=_('Informação Geral'))
 
     class Meta:
         verbose_name = _('Casa Legislativa')

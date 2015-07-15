@@ -11,15 +11,18 @@ from .migration import appconfs
 from .utils import listify, getsourcelines
 
 
-assert appconfs  # to prevent removal by automatic organize imports on this file
+# to prevent removal by automatic organize imports on this file
+assert appconfs
 
 
 def _read_line(tr):
     for td in tr.find_all('td'):
-        label = td.text.strip().split('\n')[0].strip('\xa0' + string.whitespace)
+        label = td.text.strip().split('\n')[0].strip(
+            '\xa0' + string.whitespace)
         if label.endswith('(*)'):
             label = label[:-3].strip()
-        names = [c.attrs['name'] for c in td.findAll() if isinstance(c, Tag) and 'name' in c.attrs]
+        names = [c.attrs['name']
+                 for c in td.findAll() if isinstance(c, Tag) and 'name' in c.attrs]
         if names:
             name = names[0].split('_', 1)[-1]
             yield name, label
@@ -41,7 +44,8 @@ def extract_title_and_fieldsets(model):
     # children are either tags or strings...
     assert set(type(c) for c in form.children) == {Tag, NavigableString}
     # ... and all strings are empty
-    assert all(not c.strip() for c in form.children if isinstance(c, NavigableString))
+    assert all(not c.strip()
+               for c in form.children if isinstance(c, NavigableString))
 
     title = soup.find('h1', {'class': 'firstHeading'})
     title = title.text.strip() if title else None
@@ -66,7 +70,8 @@ def print_title_and_fieldsets(model):
     for fieldset in fieldsets:
         print(fieldset['legend'])
         for line in fieldset['lines']:
-            print('  ' + ' | '.join('%s : %s' % (id, label) for id, label in line))
+            print('  ' + ' | '.join('%s : %s' % (id, label)
+                                    for id, label in line))
 
 
 def extract_verbose_names(model):
@@ -143,10 +148,12 @@ def source_with_verbose_names(model):
         title_singular = ' '.join(re.findall('[A-Z][^A-Z]*', model.__name__))
         title_singular = re.sub('cao\\b', 'ção', title_singular)
         title_singular = re.sub('ao\\b', 'ão', title_singular)
-        title_plural = add_s(title_singular.replace('ção', 'ções').replace('ão', 'ões'))
+        title_plural = add_s(
+            title_singular.replace('ção', 'ções').replace('ão', 'ões'))
 
     elif title.endswith('s'):
-        title_singular = remove_s(title.replace('ções', 'ção').replace('ões', 'ão'))
+        title_singular = remove_s(
+            title.replace('ções', 'ção').replace('ões', 'ão'))
         title_plural = title
     else:
         title_singular = title
