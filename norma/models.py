@@ -36,8 +36,8 @@ class TipoNormaJuridica(models.Model):
                                   'resolucao',
                                   'regimento.interno',
                                   ))
-    equivalente_lexml = models.CharField(max_length=50, blank=True, null=True, 
-        verbose_name=_('Equivalente LexML'), choices=EQUIVALENTE_LEXML_CHOICES)
+    equivalente_lexml = models.CharField(max_length=50, blank=True, null=True,
+                                         verbose_name=_('Equivalente LexML'), choices=EQUIVALENTE_LEXML_CHOICES)
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -61,7 +61,7 @@ class NormaJuridica(models.Model):
     numero = models.IntegerField(verbose_name=_('Número'))
     ano = models.SmallIntegerField(verbose_name=_('Ano'))
     esfera_federacao = models.CharField(max_length=1,
-        verbose_name=_('Esfera Federação'), choices=ESFERA_FEDERACAO_CHOICES)
+                                        verbose_name=_('Esfera Federação'), choices=ESFERA_FEDERACAO_CHOICES)
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Publicação'))

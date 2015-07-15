@@ -138,7 +138,8 @@ def source_with_verbose_names(model):
     title = title if title else ''
 
     def add_s(name):
-        return ' '.join(p if p.endswith('s') else p + 's' for p in name.split())
+        return ' '.join(
+            p if p.endswith('s') else p + 's' for p in name.split())
 
     def remove_s(name):
         return ' '.join(p[:-1] if p.endswith('s') else p for p in name.split())

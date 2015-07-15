@@ -283,7 +283,8 @@ class DataMigrator(object):
 
 def get_ind_excluido(obj):
     legacy_model = legacy_app.get_model(type(obj).__name__)
-    return getattr(legacy_model.objects.get(**{legacy_model._meta.pk.name: obj.id}), 'ind_excluido', False)
+    return getattr(legacy_model.objects.get(
+        **{legacy_model._meta.pk.name: obj.id}), 'ind_excluido', False)
 
 
 def check_app_no_ind_excluido(app):

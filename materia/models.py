@@ -186,7 +186,8 @@ class Autor(models.Model):
             return str(self.partido)
         else:
             if str(self.cargo):
-                return _('%(nome)s - %(cargo)s') % {'nome': self.nome, 'cargo': self.cargo}
+                return _(
+                    '%(nome)s - %(cargo)s') % {'nome': self.nome, 'cargo': self.cargo}
             else:
                 return str(self.nome)
 
@@ -201,7 +202,8 @@ class Autoria(models.Model):
         verbose_name_plural = _('Autorias')
 
     def __str__(self):
-        return _('%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
+        return _(
+            '%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
 
 
 class DespachoInicial(models.Model):
@@ -215,7 +217,8 @@ class DespachoInicial(models.Model):
         verbose_name_plural = _('Despachos Iniciais')
 
     def __str__(self):
-        return _('Nº %(numero)s - %(materia)s - %(comissao)s') % {'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
+        return _('Nº %(numero)s - %(materia)s - %(comissao)s') % {
+            'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
 
 
 class TipoDocumento(models.Model):
@@ -259,7 +262,8 @@ class MateriaAssunto(models.Model):
         verbose_name_plural = _('Relações Matéria - Assunto')
 
     def __str__(self):
-        return _('%(materia)s - %(assunto)s') % {'materia': self.materia, 'assunto': self.assunto}
+        return _(
+            '%(materia)s - %(assunto)s') % {'materia': self.materia, 'assunto': self.assunto}
 
 
 class Numeracao(models.Model):
@@ -296,7 +300,8 @@ class Orgao(models.Model):
         verbose_name_plural = _('Órgãos')
 
     def __str__(self):
-        return _('%(nome)s - %(sigla)s') % {'nome': self.nome, 'sigla': self.sigla}
+        return _(
+            '%(nome)s - %(sigla)s') % {'nome': self.nome, 'sigla': self.sigla}
 
 
 class TipoFimRelatoria(models.Model):
