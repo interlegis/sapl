@@ -1,0 +1,67 @@
+{% load bootstrap3 %}
+{% load i18n %}
+{% load static from staticfiles %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+    <title>{% block title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="Content-Type" content="text/xhtml; charset=UTF-8" />
+
+    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet"/>
+    <style type="text/css">
+      body {
+        padding: 10px 20px 40px;
+      }
+    </style>
+    <link href="{% static "bootstrap/css/bootstrap-theme.min.css" %}" rel="stylesheet"/>
+
+    {# TODO review these js dependencies #}
+    <script src="{% static "admin/js/jquery-1.9.1.min.js" %}"></script>
+    <script src="{% static "admin/js/jquery-migrate-1.2.1.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+
+    <script type="text/javascript">
+    //<![CDATA[
+            (function($) {
+                $(document).ready(function() {
+                    $('input[type="submit"]').addClass('btn');
+                    $('[title]').tooltip();
+                });
+            }(jQuery));
+    //]]>
+    </script>
+
+    {% block extrahead %}{% endblock %}
+</head>
+
+<body>
+
+<!-- Container -->
+<div class="container-fluid">
+
+    <header>
+        ... header ...
+        <hr/>
+    </header>
+
+    <!-- Content -->
+    <div id="content" class="{% block coltype %}colM{% endblock %}">
+
+        {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+
+        {% bootstrap_messages %}
+
+        {% block content %}{% endblock %}
+    </div>
+    <!-- END Content -->
+
+    <footer id="footer">
+        <hr/>
+        ... footer...
+    </footer>
+</div>
+<!-- END Container -->
+
+</body>
+</html>
