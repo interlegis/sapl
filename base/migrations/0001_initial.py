@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 
 from django.db import models, migrations
 
@@ -13,12 +13,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CasaLegislativa',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('nome', models.CharField(max_length=100, verbose_name='Nome')),
                 ('sigla', models.CharField(max_length=100, verbose_name='Sigla')),
-                ('endereco', models.CharField(max_length=100, verbose_name='Endere\xe7o')),
+                ('endereco', models.CharField(max_length=100, verbose_name='Endereço')),
                 ('cep', models.CharField(max_length=100, verbose_name='CEP')),
-                ('municipio', models.CharField(max_length=100, verbose_name='Munic\xedpio')),
+                ('municipio', models.CharField(max_length=100, verbose_name='Município')),
                 ('uf', models.CharField(max_length=100, verbose_name='UF')),
                 ('telefone', models.CharField(max_length=100, verbose_name='Telefone')),
                 ('fax', models.CharField(max_length=100, verbose_name='Fax')),
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('logotipo', models.CharField(max_length=100, verbose_name='Logotipo')),
                 ('endereco_web', models.CharField(max_length=100, verbose_name='HomePage')),
                 ('email', models.CharField(max_length=100, verbose_name='E-mail')),
-                ('informacao_geral', models.CharField(max_length=100, verbose_name='Informa\xe7\xe3o Geral')),
+                ('informacao_geral', models.CharField(max_length=100, verbose_name='Informação Geral')),
             ],
             options={
                 'verbose_name': 'Casa Legislativa',

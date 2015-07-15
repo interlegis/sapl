@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 
 from django.db import models, migrations
 
@@ -15,21 +15,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AcompanhamentoMateria',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('email', models.CharField(max_length=100, verbose_name='Endere\xe7o de E-mail')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('email', models.CharField(max_length=100, verbose_name='Endereço de E-mail')),
                 ('hash', models.CharField(max_length=8)),
             ],
             options={
-                'verbose_name': 'Acompanhamento de Mat\xe9ria',
-                'verbose_name_plural': 'Acompanhamentos de Mat\xe9ria',
+                'verbose_name': 'Acompanhamento de Matéria',
+                'verbose_name_plural': 'Acompanhamentos de Matéria',
             },
         ),
         migrations.CreateModel(
             name='Anexada',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_anexacao', models.DateField(verbose_name='Data Anexa\xe7\xe3o')),
-                ('data_desanexacao', models.DateField(null=True, verbose_name='Data Desanexa\xe7\xe3o', blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('data_anexacao', models.DateField(verbose_name='Data Anexação')),
+                ('data_desanexacao', models.DateField(blank=True, verbose_name='Data Desanexação', null=True)),
             ],
             options={
                 'verbose_name': 'Anexada',
@@ -39,25 +39,25 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AssuntoMateria',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('assunto', models.CharField(max_length=200)),
                 ('dispositivo', models.CharField(max_length=50)),
             ],
             options={
-                'verbose_name': 'Assunto de Mat\xe9ria',
-                'verbose_name_plural': 'Assuntos de Mat\xe9ria',
+                'verbose_name': 'Assunto de Matéria',
+                'verbose_name_plural': 'Assuntos de Matéria',
             },
         ),
         migrations.CreateModel(
             name='Autor',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
-                ('cargo', models.CharField(max_length=50, null=True, blank=True)),
-                ('username', models.CharField(max_length=50, null=True, blank=True)),
-                ('comissao', models.ForeignKey(blank=True, to='comissoes.Comissao', null=True)),
-                ('parlamentar', models.ForeignKey(blank=True, to='parlamentares.Parlamentar', null=True)),
-                ('partido', models.ForeignKey(blank=True, to='parlamentares.Partido', null=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('nome', models.CharField(max_length=50, blank=True, verbose_name='Autor', null=True)),
+                ('cargo', models.CharField(max_length=50, blank=True, null=True)),
+                ('username', models.CharField(max_length=50, blank=True, null=True)),
+                ('comissao', models.ForeignKey(to='comissoes.Comissao', blank=True, null=True)),
+                ('parlamentar', models.ForeignKey(to='parlamentares.Parlamentar', blank=True, null=True)),
+                ('partido', models.ForeignKey(to='parlamentares.Partido', blank=True, null=True)),
             ],
             options={
                 'verbose_name': 'Autor',
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Autoria',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('primeiro_autor', models.BooleanField(verbose_name='Primeiro Autor')),
                 ('autor', models.ForeignKey(to='materia.Autor')),
             ],
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DespachoInicial',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('numero_ordem', models.IntegerField()),
                 ('comissao', models.ForeignKey(to='comissoes.Comissao')),
             ],
@@ -91,94 +91,94 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DocumentoAcessorio',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('nome', models.CharField(max_length=30, verbose_name='Descri\xe7\xe3o')),
-                ('data', models.DateField(null=True, verbose_name='Data', blank=True)),
-                ('autor', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
-                ('ementa', models.TextField(null=True, verbose_name='Ementa', blank=True)),
-                ('indexacao', models.TextField(null=True, blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('nome', models.CharField(max_length=30, verbose_name='Descrição')),
+                ('data', models.DateField(blank=True, verbose_name='Data', null=True)),
+                ('autor', models.CharField(max_length=50, blank=True, verbose_name='Autor', null=True)),
+                ('ementa', models.TextField(blank=True, verbose_name='Ementa', null=True)),
+                ('indexacao', models.TextField(blank=True, null=True)),
             ],
             options={
-                'verbose_name': 'Documento Acess\xf3rio',
-                'verbose_name_plural': 'Documentos Acess\xf3rios',
+                'verbose_name': 'Documento Acessório',
+                'verbose_name_plural': 'Documentos Acessórios',
             },
         ),
         migrations.CreateModel(
             name='MateriaAssunto',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('assunto', models.ForeignKey(to='materia.AssuntoMateria')),
             ],
             options={
-                'verbose_name': 'Rela\xe7\xe3o Mat\xe9ria - Assunto',
-                'verbose_name_plural': 'Rela\xe7\xf5es Mat\xe9ria - Assunto',
+                'verbose_name': 'Relação Matéria - Assunto',
+                'verbose_name_plural': 'Relações Matéria - Assunto',
             },
         ),
         migrations.CreateModel(
             name='MateriaLegislativa',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('numero_protocolo', models.IntegerField(null=True, verbose_name='N\xfam. Protocolo', blank=True)),
-                ('numero_ident_basica', models.IntegerField(verbose_name='N\xfamero')),
-                ('ano_ident_basica', models.SmallIntegerField(verbose_name='Ano')),
-                ('data_apresentacao', models.DateField(null=True, verbose_name='Data Apresenta\xe7\xe3o', blank=True)),
-                ('tipo_apresentacao', models.CharField(blank=True, max_length=1, null=True, verbose_name='Tipo de Apresenta\xe7\xe3o', choices=[(b'O', 'Oral'), (b'E', 'Escrita')])),
-                ('data_publicacao', models.DateField(null=True, verbose_name='Data Publica\xe7\xe3o', blank=True)),
-                ('numero_origem_externa', models.CharField(max_length=5, null=True, verbose_name='N\xfamero', blank=True)),
-                ('ano_origem_externa', models.SmallIntegerField(null=True, verbose_name='Ano', blank=True)),
-                ('data_origem_externa', models.DateField(null=True, verbose_name='Data', blank=True)),
-                ('apelido', models.CharField(max_length=50, null=True, verbose_name='Apelido', blank=True)),
-                ('dias_prazo', models.IntegerField(null=True, verbose_name='Dias Prazo', blank=True)),
-                ('data_fim_prazo', models.DateField(null=True, verbose_name='Data Fim Prazo', blank=True)),
-                ('em_tramitacao', models.BooleanField(verbose_name='Em Tramita\xe7\xe3o?')),
-                ('polemica', models.NullBooleanField(verbose_name='Mat\xe9ria Pol\xeamica?')),
-                ('objeto', models.CharField(max_length=150, null=True, verbose_name='Objeto', blank=True)),
-                ('complementar', models.NullBooleanField(verbose_name='\xc9 Complementar?')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('numero', models.IntegerField(verbose_name='Número')),
+                ('ano', models.SmallIntegerField(verbose_name='Ano')),
+                ('numero_protocolo', models.IntegerField(blank=True, verbose_name='Núm. Protocolo', null=True)),
+                ('data_apresentacao', models.DateField(blank=True, verbose_name='Data Apresentação', null=True)),
+                ('tipo_apresentacao', models.CharField(max_length=1, choices=[('O', 'Oral'), ('E', 'Escrita')], blank=True, verbose_name='Tipo de Apresentação', null=True)),
+                ('data_publicacao', models.DateField(blank=True, verbose_name='Data Publicação', null=True)),
+                ('numero_origem_externa', models.CharField(max_length=5, blank=True, verbose_name='Número', null=True)),
+                ('ano_origem_externa', models.SmallIntegerField(blank=True, verbose_name='Ano', null=True)),
+                ('data_origem_externa', models.DateField(blank=True, verbose_name='Data', null=True)),
+                ('apelido', models.CharField(max_length=50, blank=True, verbose_name='Apelido', null=True)),
+                ('dias_prazo', models.IntegerField(blank=True, verbose_name='Dias Prazo', null=True)),
+                ('data_fim_prazo', models.DateField(blank=True, verbose_name='Data Fim Prazo', null=True)),
+                ('em_tramitacao', models.BooleanField(verbose_name='Em Tramitação?')),
+                ('polemica', models.NullBooleanField(verbose_name='Matéria Polêmica?')),
+                ('objeto', models.CharField(max_length=150, blank=True, verbose_name='Objeto', null=True)),
+                ('complementar', models.NullBooleanField(verbose_name='É Complementar?')),
                 ('ementa', models.TextField(verbose_name='Ementa')),
-                ('indexacao', models.TextField(null=True, verbose_name='Indexa\xe7\xe3o', blank=True)),
-                ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
-                ('resultado', models.TextField(null=True, blank=True)),
-                ('anexadas', models.ManyToManyField(related_name='anexo_de', through='materia.Anexada', to='materia.MateriaLegislativa')),
+                ('indexacao', models.TextField(blank=True, verbose_name='Indexação', null=True)),
+                ('observacao', models.TextField(blank=True, verbose_name='Observação', null=True)),
+                ('resultado', models.TextField(blank=True, null=True)),
+                ('anexadas', models.ManyToManyField(to='materia.MateriaLegislativa', through='materia.Anexada', related_name='anexo_de')),
             ],
             options={
-                'verbose_name': 'Mat\xe9ria Legislativa',
-                'verbose_name_plural': 'Mat\xe9rias Legislativas',
+                'verbose_name': 'Matéria Legislativa',
+                'verbose_name_plural': 'Matérias Legislativas',
             },
         ),
         migrations.CreateModel(
             name='Numeracao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('numero_ordem', models.IntegerField()),
-                ('numero_materia', models.CharField(max_length=5, verbose_name='N\xfamero')),
+                ('numero_materia', models.CharField(max_length=5, verbose_name='Número')),
                 ('ano_materia', models.SmallIntegerField(verbose_name='Ano')),
-                ('data_materia', models.DateField(null=True, verbose_name='Data', blank=True)),
+                ('data_materia', models.DateField(blank=True, verbose_name='Data', null=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
             options={
-                'verbose_name': 'Numera\xe7\xe3o',
-                'verbose_name_plural': 'Numera\xe7\xf5es',
+                'verbose_name': 'Numeração',
+                'verbose_name_plural': 'Numerações',
             },
         ),
         migrations.CreateModel(
             name='Orgao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('nome', models.CharField(max_length=60, verbose_name='Nome')),
                 ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
                 ('unidade_deliberativa', models.BooleanField(verbose_name='Unidade Deliberativa')),
-                ('endereco', models.CharField(max_length=100, null=True, verbose_name='Endere\xe7o', blank=True)),
-                ('telefone', models.CharField(max_length=50, null=True, verbose_name='Telefone', blank=True)),
+                ('endereco', models.CharField(max_length=100, blank=True, verbose_name='Endereço', null=True)),
+                ('telefone', models.CharField(max_length=50, blank=True, verbose_name='Telefone', null=True)),
             ],
             options={
-                'verbose_name': '\xd3rg\xe3o',
-                'verbose_name_plural': '\xd3rg\xe3os',
+                'verbose_name': 'Órgão',
+                'verbose_name_plural': 'Órgãos',
             },
         ),
         migrations.CreateModel(
             name='Origem',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
                 ('nome', models.CharField(max_length=50, verbose_name='Nome')),
             ],
@@ -190,10 +190,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Parecer',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('tipo_conclusao', models.CharField(max_length=3, null=True, blank=True)),
-                ('tipo_apresentacao', models.CharField(max_length=1, choices=[(b'O', 'Oral'), (b'E', 'Escrita')])),
-                ('parecer', models.TextField(null=True, blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('tipo_conclusao', models.CharField(max_length=3, blank=True, null=True)),
+                ('tipo_apresentacao', models.CharField(max_length=1, choices=[('O', 'Oral'), ('E', 'Escrita')])),
+                ('parecer', models.TextField(blank=True, null=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
             ],
             options={
@@ -204,42 +204,42 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Proposicao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_envio', models.DateTimeField(null=True, verbose_name='Data de Envio')),
-                ('data_recebimento', models.DateTimeField(null=True, verbose_name='Data de Incorpora\xe7\xe3o', blank=True)),
-                ('descricao', models.CharField(max_length=100, verbose_name='Descri\xe7\xe3o')),
-                ('data_devolucao', models.DateTimeField(null=True, verbose_name='Data de devolu\xe7\xe3o', blank=True)),
-                ('justificativa_devolucao', models.CharField(max_length=200, null=True, verbose_name='Justificativa da Devolu\xe7\xe3o', blank=True)),
-                ('numero_proposicao', models.IntegerField(null=True, verbose_name='', blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('data_envio', models.DateTimeField(verbose_name='Data de Envio', null=True)),
+                ('data_recebimento', models.DateTimeField(blank=True, verbose_name='Data de Incorporação', null=True)),
+                ('descricao', models.CharField(max_length=100, verbose_name='Descrição')),
+                ('data_devolucao', models.DateTimeField(blank=True, verbose_name='Data de devolução', null=True)),
+                ('justificativa_devolucao', models.CharField(max_length=200, blank=True, verbose_name='Justificativa da Devolução', null=True)),
+                ('numero_proposicao', models.IntegerField(blank=True, verbose_name='', null=True)),
                 ('autor', models.ForeignKey(to='materia.Autor')),
-                ('documento', models.ForeignKey(verbose_name='Documento', blank=True, to='materia.DocumentoAcessorio', null=True)),
-                ('materia', models.ForeignKey(verbose_name='Mat\xe9ria', blank=True, to='materia.MateriaLegislativa', null=True)),
+                ('documento', models.ForeignKey(to='materia.DocumentoAcessorio', blank=True, null=True, verbose_name='Documento')),
+                ('materia', models.ForeignKey(to='materia.MateriaLegislativa', blank=True, null=True, verbose_name='Matéria')),
             ],
             options={
-                'verbose_name': 'Proposi\xe7\xe3o',
-                'verbose_name_plural': 'Proposi\xe7\xf5es',
+                'verbose_name': 'Proposição',
+                'verbose_name_plural': 'Proposições',
             },
         ),
         migrations.CreateModel(
             name='RegimeTramitacao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('descricao', models.CharField(max_length=50)),
             ],
             options={
-                'verbose_name': 'Regime Tramita\xe7\xe3o',
-                'verbose_name_plural': 'Regimes Tramita\xe7\xe3o',
+                'verbose_name': 'Regime Tramitação',
+                'verbose_name_plural': 'Regimes Tramitação',
             },
         ),
         migrations.CreateModel(
             name='Relatoria',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_designacao_relator', models.DateField(verbose_name='Data Designa\xe7\xe3o')),
-                ('data_destituicao_relator', models.DateField(null=True, verbose_name='Data Destitui\xe7\xe3o', blank=True)),
-                ('comissao', models.ForeignKey(verbose_name='Localiza\xe7\xe3o Atual', blank=True, to='comissoes.Comissao', null=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('data_designacao_relator', models.DateField(verbose_name='Data Designação')),
+                ('data_destituicao_relator', models.DateField(blank=True, verbose_name='Data Destituição', null=True)),
+                ('comissao', models.ForeignKey(to='comissoes.Comissao', blank=True, null=True, verbose_name='Localização Atual')),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
-                ('parlamentar', models.ForeignKey(verbose_name='Parlamentar', to='parlamentares.Parlamentar')),
+                ('parlamentar', models.ForeignKey(to='parlamentares.Parlamentar', verbose_name='Parlamentar')),
             ],
             options={
                 'verbose_name': 'Relatoria',
@@ -249,21 +249,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StatusTramitacao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
-                ('descricao', models.CharField(max_length=60, verbose_name='Descri\xe7\xe3o')),
-                ('indicador', models.CharField(max_length=1, verbose_name='Indicador da Tramita\xe7\xe3o', choices=[(b'F', 'Fim'), (b'R', 'Retorno')])),
+                ('descricao', models.CharField(max_length=60, verbose_name='Descrição')),
+                ('indicador', models.CharField(max_length=1, choices=[('F', 'Fim'), ('R', 'Retorno')], verbose_name='Indicador da Tramitação')),
             ],
             options={
-                'verbose_name': 'Status de Tramita\xe7\xe3o',
-                'verbose_name_plural': 'Status de Tramita\xe7\xe3o',
+                'verbose_name': 'Status de Tramitação',
+                'verbose_name_plural': 'Status de Tramitação',
             },
         ),
         migrations.CreateModel(
             name='TipoAutor',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descrição')),
             ],
             options={
                 'verbose_name': 'Tipo de Autor',
@@ -273,7 +273,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TipoDocumento',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('descricao', models.CharField(max_length=50, verbose_name='Tipo Documento')),
             ],
             options={
@@ -284,7 +284,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TipoFimRelatoria',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('descricao', models.CharField(max_length=50, verbose_name='Tipo Fim Relatoria')),
             ],
             options={
@@ -295,83 +295,83 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TipoMateriaLegislativa',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('sigla', models.CharField(max_length=5, verbose_name='Sigla')),
-                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o ')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descrição ')),
                 ('num_automatica', models.BooleanField()),
                 ('quorum_minimo_votacao', models.IntegerField()),
             ],
             options={
-                'verbose_name': 'Tipo de Mat\xe9ria Legislativa',
-                'verbose_name_plural': 'Tipos de Mat\xe9rias Legislativas',
+                'verbose_name': 'Tipo de Matéria Legislativa',
+                'verbose_name_plural': 'Tipos de Matérias Legislativas',
             },
         ),
         migrations.CreateModel(
             name='TipoProposicao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
-                ('materia_ou_documento', models.CharField(max_length=1, verbose_name='Gera', choices=[(b'M', 'Mat\xe9ria'), (b'D', 'Documento')])),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descrição')),
+                ('materia_ou_documento', models.CharField(max_length=1, choices=[('M', 'Matéria'), ('D', 'Documento')], verbose_name='Gera')),
                 ('modelo', models.CharField(max_length=50, verbose_name='Modelo XML')),
-                ('tipo_documento', models.ForeignKey(verbose_name='Tipo Documento', blank=True, to='materia.TipoDocumento', null=True)),
-                ('tipo_materia', models.ForeignKey(verbose_name='Tipo Mat\xe9ria', blank=True, to='materia.TipoMateriaLegislativa', null=True)),
+                ('tipo_documento', models.ForeignKey(to='materia.TipoDocumento', blank=True, null=True, verbose_name='Tipo Documento')),
+                ('tipo_materia', models.ForeignKey(to='materia.TipoMateriaLegislativa', blank=True, null=True, verbose_name='Tipo Matéria')),
             ],
             options={
-                'verbose_name': 'Tipo de Proposi\xe7\xe3o',
-                'verbose_name_plural': 'Tipos de Proposi\xe7\xf5es',
+                'verbose_name': 'Tipo de Proposição',
+                'verbose_name_plural': 'Tipos de Proposições',
             },
         ),
         migrations.CreateModel(
             name='Tramitacao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_tramitacao', models.DateField(null=True, verbose_name='Data Tramita\xe7\xe3o', blank=True)),
-                ('data_encaminhamento', models.DateField(null=True, verbose_name='Data Encaminhamento', blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('data_tramitacao', models.DateField(blank=True, verbose_name='Data Tramitação', null=True)),
+                ('data_encaminhamento', models.DateField(blank=True, verbose_name='Data Encaminhamento', null=True)),
                 ('ultima', models.BooleanField()),
                 ('urgente', models.BooleanField(verbose_name='Urgente ?')),
-                ('turno', models.CharField(blank=True, max_length=1, null=True, verbose_name='Turno', choices=[(b'P', 'Primeiro'), (b'S', 'Segundo'), (b'\xc3\x9a', '\xdanico'), (b'L', 'Suplementar'), (b'F', 'Final'), (b'A', 'Vota\xe7\xe3o \xfanica em Regime de Urg\xeancia'), (b'B', '1\xaa Vota\xe7\xe3o'), (b'C', '2\xaa e 3\xaa Vota\xe7\xe3o')])),
-                ('texto', models.TextField(null=True, verbose_name='Texto da A\xe7\xe3o', blank=True)),
-                ('data_fim_prazo', models.DateField(null=True, verbose_name='Data Fim Prazo', blank=True)),
+                ('turno', models.CharField(max_length=1, choices=[('P', 'Primeiro'), ('S', 'Segundo'), ('Ú', 'Único'), ('L', 'Suplementar'), ('F', 'Final'), ('A', 'Votação única em Regime de Urgência'), ('B', '1ª Votação'), ('C', '2ª e 3ª Votação')], blank=True, verbose_name='Turno', null=True)),
+                ('texto', models.TextField(blank=True, verbose_name='Texto da Ação', null=True)),
+                ('data_fim_prazo', models.DateField(blank=True, verbose_name='Data Fim Prazo', null=True)),
                 ('materia', models.ForeignKey(to='materia.MateriaLegislativa')),
-                ('status', models.ForeignKey(verbose_name='Status', blank=True, to='materia.StatusTramitacao', null=True)),
+                ('status', models.ForeignKey(to='materia.StatusTramitacao', blank=True, null=True, verbose_name='Status')),
             ],
             options={
-                'verbose_name': 'Tramita\xe7\xe3o',
-                'verbose_name_plural': 'Tramita\xe7\xf5es',
+                'verbose_name': 'Tramitação',
+                'verbose_name_plural': 'Tramitações',
             },
         ),
         migrations.CreateModel(
             name='UnidadeTramitacao',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('comissao', models.ForeignKey(verbose_name='Comiss\xe3o', blank=True, to='comissoes.Comissao', null=True)),
-                ('orgao', models.ForeignKey(verbose_name='\xd3rg\xe3o', blank=True, to='materia.Orgao', null=True)),
-                ('parlamentar', models.ForeignKey(verbose_name='Parlamentar', blank=True, to='parlamentares.Parlamentar', null=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('comissao', models.ForeignKey(to='comissoes.Comissao', blank=True, null=True, verbose_name='Comissão')),
+                ('orgao', models.ForeignKey(to='materia.Orgao', blank=True, null=True, verbose_name='Órgão')),
+                ('parlamentar', models.ForeignKey(to='parlamentares.Parlamentar', blank=True, null=True, verbose_name='Parlamentar')),
             ],
             options={
-                'verbose_name': 'Unidade de Tramita\xe7\xe3o',
-                'verbose_name_plural': 'Unidades de Tramita\xe7\xe3o',
+                'verbose_name': 'Unidade de Tramitação',
+                'verbose_name_plural': 'Unidades de Tramitação',
             },
         ),
         migrations.AddField(
             model_name='tramitacao',
             name='unidade_tramitacao_destino',
-            field=models.ForeignKey(related_name='+', verbose_name='Unidade Destino', blank=True, to='materia.UnidadeTramitacao', null=True),
+            field=models.ForeignKey(to='materia.UnidadeTramitacao', blank=True, null=True, related_name='+', verbose_name='Unidade Destino'),
         ),
         migrations.AddField(
             model_name='tramitacao',
             name='unidade_tramitacao_local',
-            field=models.ForeignKey(related_name='+', verbose_name='Unidade Local', blank=True, to='materia.UnidadeTramitacao', null=True),
+            field=models.ForeignKey(to='materia.UnidadeTramitacao', blank=True, null=True, related_name='+', verbose_name='Unidade Local'),
         ),
         migrations.AddField(
             model_name='relatoria',
             name='tipo_fim_relatoria',
-            field=models.ForeignKey(verbose_name='Motivo Fim Relatoria', blank=True, to='materia.TipoFimRelatoria', null=True),
+            field=models.ForeignKey(to='materia.TipoFimRelatoria', blank=True, null=True, verbose_name='Motivo Fim Relatoria'),
         ),
         migrations.AddField(
             model_name='proposicao',
             name='tipo',
-            field=models.ForeignKey(verbose_name='Tipo', to='materia.TipoProposicao'),
+            field=models.ForeignKey(to='materia.TipoProposicao', verbose_name='Tipo'),
         ),
         migrations.AddField(
             model_name='parecer',
@@ -381,27 +381,27 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='numeracao',
             name='tipo_materia',
-            field=models.ForeignKey(verbose_name='Tipo de Mat\xe9ria', to='materia.TipoMateriaLegislativa'),
+            field=models.ForeignKey(to='materia.TipoMateriaLegislativa', verbose_name='Tipo de Matéria'),
         ),
         migrations.AddField(
             model_name='materialegislativa',
             name='local_origem_externa',
-            field=models.ForeignKey(verbose_name='Local Origem', blank=True, to='materia.Origem', null=True),
+            field=models.ForeignKey(to='materia.Origem', blank=True, null=True, verbose_name='Local Origem'),
         ),
         migrations.AddField(
             model_name='materialegislativa',
             name='regime_tramitacao',
-            field=models.ForeignKey(verbose_name='Regime Tramita\xe7\xe3o', to='materia.RegimeTramitacao'),
+            field=models.ForeignKey(to='materia.RegimeTramitacao', verbose_name='Regime Tramitação'),
         ),
         migrations.AddField(
             model_name='materialegislativa',
-            name='tipo_id_basica',
-            field=models.ForeignKey(verbose_name='Tipo', to='materia.TipoMateriaLegislativa'),
+            name='tipo',
+            field=models.ForeignKey(to='materia.TipoMateriaLegislativa', verbose_name='Tipo'),
         ),
         migrations.AddField(
             model_name='materialegislativa',
             name='tipo_origem_externa',
-            field=models.ForeignKey(related_name='+', verbose_name='Tipo', blank=True, to='materia.TipoMateriaLegislativa', null=True),
+            field=models.ForeignKey(to='materia.TipoMateriaLegislativa', blank=True, null=True, related_name='+', verbose_name='Tipo'),
         ),
         migrations.AddField(
             model_name='materiaassunto',
@@ -416,7 +416,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='documentoacessorio',
             name='tipo',
-            field=models.ForeignKey(verbose_name='Tipo', to='materia.TipoDocumento'),
+            field=models.ForeignKey(to='materia.TipoDocumento', verbose_name='Tipo'),
         ),
         migrations.AddField(
             model_name='despachoinicial',
@@ -431,7 +431,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='autor',
             name='tipo',
-            field=models.ForeignKey(verbose_name='Tipo', to='materia.TipoAutor'),
+            field=models.ForeignKey(to='materia.TipoAutor', verbose_name='Tipo'),
         ),
         migrations.AddField(
             model_name='anexada',

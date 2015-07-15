@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 
 from django.db import models, migrations
 
@@ -13,15 +13,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LexmlProvedor',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('id_provedor', models.IntegerField(verbose_name='Id do provedor')),
                 ('nome', models.CharField(max_length=255, verbose_name='Nome do provedor')),
                 ('sigla', models.CharField(max_length=15)),
-                ('email_responsavel', models.CharField(max_length=50, null=True, verbose_name='E-mail do respons\xe1vel', blank=True)),
-                ('nome_responsavel', models.CharField(max_length=255, null=True, verbose_name='Nome do respons\xe1vel', blank=True)),
+                ('email_responsavel', models.CharField(max_length=50, blank=True, verbose_name='E-mail do responsável', null=True)),
+                ('nome_responsavel', models.CharField(max_length=255, blank=True, verbose_name='Nome do responsável', null=True)),
                 ('tipo', models.CharField(max_length=50)),
-                ('id_responsavel', models.IntegerField(null=True, verbose_name='Id do respons\xe1vel', blank=True)),
-                ('xml', models.TextField(null=True, verbose_name='XML fornecido pela equipe do LexML:', blank=True)),
+                ('id_responsavel', models.IntegerField(blank=True, verbose_name='Id do responsável', null=True)),
+                ('xml', models.TextField(blank=True, verbose_name='XML fornecido pela equipe do LexML:', null=True)),
             ],
             options={
                 'verbose_name': 'Provedor Lexml',
@@ -31,14 +31,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LexmlPublicador',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('id_publicador', models.IntegerField(verbose_name='Id do publicador')),
                 ('nome', models.CharField(max_length=255, verbose_name='Nome do publicador')),
-                ('email_responsavel', models.CharField(max_length=50, null=True, verbose_name='E-mail do respons\xe1vel', blank=True)),
-                ('sigla', models.CharField(max_length=255, null=True, verbose_name='Sigla do Publicador', blank=True)),
-                ('nome_responsavel', models.CharField(max_length=255, null=True, verbose_name='Nome do respons\xe1vel', blank=True)),
+                ('email_responsavel', models.CharField(max_length=50, blank=True, verbose_name='E-mail do responsável', null=True)),
+                ('sigla', models.CharField(max_length=255, blank=True, verbose_name='Sigla do Publicador', null=True)),
+                ('nome_responsavel', models.CharField(max_length=255, blank=True, verbose_name='Nome do responsável', null=True)),
                 ('tipo', models.CharField(max_length=50)),
-                ('id_responsavel', models.IntegerField(verbose_name='Id do respons\xe1vel')),
+                ('id_responsavel', models.IntegerField(verbose_name='Id do responsável')),
             ],
             options={
                 'verbose_name': 'Publicador Lexml',

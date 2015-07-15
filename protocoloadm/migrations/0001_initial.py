@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 
 from django.db import models, migrations
 
@@ -14,34 +14,34 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DocumentoAcessorioAdministrativo',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('nome', models.CharField(max_length=30, verbose_name='Nome')),
                 ('arquivo', models.CharField(max_length=100, verbose_name='Arquivo')),
-                ('data', models.DateField(null=True, verbose_name='Data', blank=True)),
-                ('autor', models.CharField(max_length=50, null=True, verbose_name='Autor', blank=True)),
-                ('assunto', models.TextField(null=True, verbose_name='Assunto', blank=True)),
-                ('indexacao', models.TextField(null=True, blank=True)),
+                ('data', models.DateField(blank=True, verbose_name='Data', null=True)),
+                ('autor', models.CharField(max_length=50, blank=True, verbose_name='Autor', null=True)),
+                ('assunto', models.TextField(blank=True, verbose_name='Assunto', null=True)),
+                ('indexacao', models.TextField(blank=True, null=True)),
             ],
             options={
-                'verbose_name': 'Documento Acess\xf3rio',
-                'verbose_name_plural': 'Documentos Acess\xf3rios',
+                'verbose_name': 'Documento Acessório',
+                'verbose_name_plural': 'Documentos Acessórios',
             },
         ),
         migrations.CreateModel(
             name='DocumentoAdministrativo',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('numero', models.IntegerField(verbose_name='N\xfamero')),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('numero', models.IntegerField(verbose_name='Número')),
                 ('ano', models.SmallIntegerField(verbose_name='Ano')),
                 ('data', models.DateField(verbose_name='Data')),
-                ('numero_protocolo', models.IntegerField(null=True, verbose_name='N\xfam. Protocolo', blank=True)),
-                ('interessado', models.CharField(max_length=50, null=True, verbose_name='Interessado', blank=True)),
-                ('dias_prazo', models.IntegerField(null=True, verbose_name='Dias Prazo', blank=True)),
-                ('data_fim_prazo', models.DateField(null=True, verbose_name='Data Fim Prazo', blank=True)),
-                ('tramitacao', models.BooleanField(verbose_name='Em Tramita\xe7\xe3o?')),
+                ('numero_protocolo', models.IntegerField(blank=True, verbose_name='Núm. Protocolo', null=True)),
+                ('interessado', models.CharField(max_length=50, blank=True, verbose_name='Interessado', null=True)),
+                ('dias_prazo', models.IntegerField(blank=True, verbose_name='Dias Prazo', null=True)),
+                ('data_fim_prazo', models.DateField(blank=True, verbose_name='Data Fim Prazo', null=True)),
+                ('tramitacao', models.BooleanField(verbose_name='Em Tramitação?')),
                 ('assunto', models.TextField(verbose_name='Assunto')),
-                ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
-                ('autor', models.ForeignKey(blank=True, to='materia.Autor', null=True)),
+                ('observacao', models.TextField(blank=True, verbose_name='Observação', null=True)),
+                ('autor', models.ForeignKey(to='materia.Autor', blank=True, null=True)),
             ],
             options={
                 'verbose_name': 'Documento Administrativo',
@@ -51,24 +51,24 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Protocolo',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('numero', models.IntegerField(null=True, verbose_name='N\xfamero do Protocolo', blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('numero', models.IntegerField(blank=True, verbose_name='Número do Protocolo', null=True)),
                 ('ano', models.SmallIntegerField()),
                 ('data', models.DateField()),
                 ('hora', models.TimeField()),
                 ('timestamp', models.DateTimeField()),
                 ('tipo_protocolo', models.IntegerField(verbose_name='Tipo de Protocolo')),
                 ('tipo_processo', models.IntegerField()),
-                ('interessado', models.CharField(max_length=60, null=True, verbose_name='Interessado', blank=True)),
-                ('assunto_ementa', models.TextField(null=True, blank=True)),
-                ('numero_paginas', models.IntegerField(null=True, verbose_name='N\xfamero de P\xe1ginas', blank=True)),
-                ('observacao', models.TextField(null=True, verbose_name='Observa\xe7\xe3o', blank=True)),
+                ('interessado', models.CharField(max_length=60, blank=True, verbose_name='Interessado', null=True)),
+                ('assunto_ementa', models.TextField(blank=True, null=True)),
+                ('numero_paginas', models.IntegerField(blank=True, verbose_name='Número de Páginas', null=True)),
+                ('observacao', models.TextField(blank=True, verbose_name='Observação', null=True)),
                 ('anulado', models.BooleanField()),
-                ('user_anulacao', models.CharField(max_length=20, null=True, blank=True)),
-                ('ip_anulacao', models.CharField(max_length=15, null=True, blank=True)),
-                ('justificativa_anulacao', models.CharField(max_length=60, null=True, blank=True)),
-                ('timestamp_anulacao', models.DateTimeField(null=True, blank=True)),
-                ('autor', models.ForeignKey(blank=True, to='materia.Autor', null=True)),
+                ('user_anulacao', models.CharField(max_length=20, blank=True, null=True)),
+                ('ip_anulacao', models.CharField(max_length=15, blank=True, null=True)),
+                ('justificativa_anulacao', models.CharField(max_length=60, blank=True, null=True)),
+                ('timestamp_anulacao', models.DateTimeField(blank=True, null=True)),
+                ('autor', models.ForeignKey(to='materia.Autor', blank=True, null=True)),
             ],
             options={
                 'verbose_name': 'Protocolo',
@@ -78,22 +78,22 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StatusTramitacaoAdministrativo',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('sigla', models.CharField(max_length=10, verbose_name='Sigla')),
-                ('descricao', models.CharField(max_length=60, verbose_name='Descri\xe7\xe3o')),
-                ('indicador', models.CharField(max_length=1, verbose_name='Indicador da Tramita\xe7\xe3o', choices=[(b'F', 'Fim'), (b'R', 'Retorno')])),
+                ('descricao', models.CharField(max_length=60, verbose_name='Descrição')),
+                ('indicador', models.CharField(max_length=1, choices=[('F', 'Fim'), ('R', 'Retorno')], verbose_name='Indicador da Tramitação')),
             ],
             options={
-                'verbose_name': 'Status de Tramita\xe7\xe3o',
-                'verbose_name_plural': 'Status de Tramita\xe7\xe3o',
+                'verbose_name': 'Status de Tramitação',
+                'verbose_name_plural': 'Status de Tramitação',
             },
         ),
         migrations.CreateModel(
             name='TipoDocumentoAdministrativo',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('sigla', models.CharField(max_length=5, verbose_name='Sigla')),
-                ('descricao', models.CharField(max_length=50, verbose_name='Descri\xe7\xe3o')),
+                ('descricao', models.CharField(max_length=50, verbose_name='Descrição')),
             ],
             options={
                 'verbose_name': 'Tipo de Documento Administrativo',
@@ -103,36 +103,36 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TramitacaoAdministrativo',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data_tramitacao', models.DateField(null=True, verbose_name='Data Tramita\xe7\xe3o', blank=True)),
-                ('data_encaminhamento', models.DateField(null=True, verbose_name='Data Encaminhamento', blank=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('data_tramitacao', models.DateField(blank=True, verbose_name='Data Tramitação', null=True)),
+                ('data_encaminhamento', models.DateField(blank=True, verbose_name='Data Encaminhamento', null=True)),
                 ('ultima', models.BooleanField()),
-                ('texto', models.TextField(null=True, verbose_name='Texto da A\xe7\xe3o', blank=True)),
-                ('data_fim_prazo', models.DateField(null=True, verbose_name='Data Fim do Prazo', blank=True)),
+                ('texto', models.TextField(blank=True, verbose_name='Texto da Ação', null=True)),
+                ('data_fim_prazo', models.DateField(blank=True, verbose_name='Data Fim do Prazo', null=True)),
                 ('documento', models.ForeignKey(to='protocoloadm.DocumentoAdministrativo')),
-                ('status', models.ForeignKey(verbose_name='Status', blank=True, to='protocoloadm.StatusTramitacaoAdministrativo', null=True)),
-                ('unidade_tramitacao_destino', models.ForeignKey(related_name='+', verbose_name='Unidade Destino', blank=True, to='materia.UnidadeTramitacao', null=True)),
-                ('unidade_tramitacao_local', models.ForeignKey(related_name='+', verbose_name='Unidade Local', blank=True, to='materia.UnidadeTramitacao', null=True)),
+                ('status', models.ForeignKey(to='protocoloadm.StatusTramitacaoAdministrativo', blank=True, null=True, verbose_name='Status')),
+                ('unidade_tramitacao_destino', models.ForeignKey(to='materia.UnidadeTramitacao', blank=True, null=True, related_name='+', verbose_name='Unidade Destino')),
+                ('unidade_tramitacao_local', models.ForeignKey(to='materia.UnidadeTramitacao', blank=True, null=True, related_name='+', verbose_name='Unidade Local')),
             ],
             options={
-                'verbose_name': 'Tramita\xe7\xe3o de Documento Administrativo',
-                'verbose_name_plural': 'Tramita\xe7\xf5es de Documento Administrativo',
+                'verbose_name': 'Tramitação de Documento Administrativo',
+                'verbose_name_plural': 'Tramitações de Documento Administrativo',
             },
         ),
         migrations.AddField(
             model_name='protocolo',
             name='tipo_documento',
-            field=models.ForeignKey(verbose_name='Tipo de documento', blank=True, to='protocoloadm.TipoDocumentoAdministrativo', null=True),
+            field=models.ForeignKey(to='protocoloadm.TipoDocumentoAdministrativo', blank=True, null=True, verbose_name='Tipo de documento'),
         ),
         migrations.AddField(
             model_name='protocolo',
             name='tipo_materia',
-            field=models.ForeignKey(verbose_name='Tipo Mat\xe9ria', blank=True, to='materia.TipoMateriaLegislativa', null=True),
+            field=models.ForeignKey(to='materia.TipoMateriaLegislativa', blank=True, null=True, verbose_name='Tipo Matéria'),
         ),
         migrations.AddField(
             model_name='documentoadministrativo',
             name='tipo',
-            field=models.ForeignKey(verbose_name='Tipo Documento', to='protocoloadm.TipoDocumentoAdministrativo'),
+            field=models.ForeignKey(to='protocoloadm.TipoDocumentoAdministrativo', verbose_name='Tipo Documento'),
         ),
         migrations.AddField(
             model_name='documentoacessorioadministrativo',
@@ -142,6 +142,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='documentoacessorioadministrativo',
             name='tipo',
-            field=models.ForeignKey(verbose_name='Tipo', to='protocoloadm.TipoDocumentoAdministrativo'),
+            field=models.ForeignKey(to='protocoloadm.TipoDocumentoAdministrativo', verbose_name='Tipo'),
         ),
     ]
