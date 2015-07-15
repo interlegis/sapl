@@ -36,8 +36,12 @@ class TipoNormaJuridica(models.Model):
                                   'resolucao',
                                   'regimento.interno',
                                   ))
-    equivalente_lexml = models.CharField(max_length=50, blank=True, null=True,
-                                         verbose_name=_('Equivalente LexML'), choices=EQUIVALENTE_LEXML_CHOICES)
+    equivalente_lexml = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('Equivalente LexML'),
+        choices=EQUIVALENTE_LEXML_CHOICES)
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -60,13 +64,18 @@ class NormaJuridica(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     numero = models.IntegerField(verbose_name=_('Número'))
     ano = models.SmallIntegerField(verbose_name=_('Ano'))
-    esfera_federacao = models.CharField(max_length=1,
-                                        verbose_name=_('Esfera Federação'), choices=ESFERA_FEDERACAO_CHOICES)
+    esfera_federacao = models.CharField(
+        max_length=1,
+        verbose_name=_('Esfera Federação'),
+        choices=ESFERA_FEDERACAO_CHOICES)
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Publicação'))
     veiculo_publicacao = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name=_('Veículo Publicação'))
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name=_('Veículo Publicação'))
     pagina_inicio_publicacao = models.IntegerField(
         blank=True, null=True, verbose_name=_('Pg. Início'))
     pagina_fim_publicacao = models.IntegerField(
@@ -89,8 +98,10 @@ class NormaJuridica(models.Model):
 
     def __str__(self):
         return _(u'%(tipo)s nº %(numero)s - %(materia)s - %(ano)s') % {
-            'tipo': self.tipo, 'numero': self.numero, 'materia': self.materia, 'ano': self.ano
-        }
+            'tipo': self.tipo,
+            'numero': self.numero,
+            'materia': self.materia,
+            'ano': self.ano}
 
 
 class LegislacaoCitada(models.Model):
@@ -149,4 +160,6 @@ class VinculoNormaJuridica(models.Model):
 
     def __str__(self):
         return _(u'Referente: %(referente)s \nReferida: %(referida)s \nVínculo: %(vinculo)s') % {
-            'referente': self.norma_referente, 'referida': self.norma_referida, 'vinculo': self.tipo_vinculo}
+            'referente': self.norma_referente,
+            'referida': self.norma_referida,
+            'vinculo': self.tipo_vinculo}

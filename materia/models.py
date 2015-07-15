@@ -68,7 +68,11 @@ class MateriaLegislativa(models.Model):
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Publicação'))
     tipo_origem_externa = models.ForeignKey(
-        TipoMateriaLegislativa, blank=True, null=True, related_name='+', verbose_name=_('Tipo'))
+        TipoMateriaLegislativa,
+        blank=True,
+        null=True,
+        related_name='+',
+        verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
         max_length=5, blank=True, null=True, verbose_name=_('Número'))
     ano_origem_externa = models.SmallIntegerField(
@@ -97,9 +101,14 @@ class MateriaLegislativa(models.Model):
         blank=True, null=True, verbose_name=_('Observação'))
     resultado = models.TextField(blank=True, null=True)
     # XXX novo
-    anexadas = models.ManyToManyField('self', through='Anexada',
-                                      symmetrical=False, related_name='anexo_de',
-                                      through_fields=('materia_principal', 'materia_anexada'))
+    anexadas = models.ManyToManyField(
+        'self',
+        through='Anexada',
+        symmetrical=False,
+        related_name='anexo_de',
+        through_fields=(
+            'materia_principal',
+            'materia_anexada'))
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
@@ -137,7 +146,8 @@ class Anexada(models.Model):
 
     def __str__(self):
         return _('Principal: %(materia_principal)s - Anexada: %(materia_anexada)s') % {
-            'materia_principal': self.materia_principal, 'materia_anexada': self.materia_anexada}
+            'materia_principal': self.materia_principal,
+            'materia_anexada': self.materia_anexada}
 
 
 class AssuntoMateria(models.Model):
@@ -218,7 +228,9 @@ class DespachoInicial(models.Model):
 
     def __str__(self):
         return _('Nº %(numero)s - %(materia)s - %(comissao)s') % {
-            'numero': self.numero_ordem, 'materia': self.materia, 'comissao': self.comissao}
+            'numero': self.numero_ordem,
+            'materia': self.materia,
+            'comissao': self.comissao}
 
 
 class TipoDocumento(models.Model):
@@ -249,7 +261,10 @@ class DocumentoAcessorio(models.Model):
 
     def __str__(self):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
-            'tipo': self.tipo, 'nome': self.nome, 'data': self.data, 'autor': self.autor}
+            'tipo': self.tipo,
+            'nome': self.nome,
+            'data': self.data,
+            'autor': self.autor}
 
 
 class MateriaAssunto(models.Model):
@@ -282,7 +297,9 @@ class Numeracao(models.Model):
 
     def __str__(self):
         return _('Nº%(numero)s %(tipo)s - %(data)s') % {
-            'numero': self.numero_materia, 'tipo': self.tipo_materia, 'data': self.data_materia}
+            'numero': self.numero_materia,
+            'tipo': self.tipo_materia,
+            'data': self.data_materia}
 
 
 class Orgao(models.Model):
@@ -320,7 +337,10 @@ class Relatoria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
     tipo_fim_relatoria = models.ForeignKey(
-        TipoFimRelatoria, blank=True, null=True, verbose_name=_('Motivo Fim Relatoria'))
+        TipoFimRelatoria,
+        blank=True,
+        null=True,
+        verbose_name=_('Motivo Fim Relatoria'))
     comissao = models.ForeignKey(
         Comissao, blank=True, null=True, verbose_name=_('Localização Atual'))
     data_designacao_relator = models.DateField(
@@ -334,8 +354,9 @@ class Relatoria(models.Model):
 
     def __str__(self):
         return _('%(materia)s - %(tipo)s - %(data)s') % {
-            'materia': self.materia, 'tipo': self.tipo_fim_relatoria, 'data': self.data_designacao_relator
-        }
+            'materia': self.materia,
+            'tipo': self.tipo_fim_relatoria,
+            'data': self.data_designacao_relator}
 
 
 class Parecer(models.Model):
@@ -374,7 +395,10 @@ class TipoProposicao(models.Model):
 
     # mutually exclusive (depend on materia_ou_documento)
     tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa, blank=True, null=True, verbose_name=_('Tipo Matéria'))
+        TipoMateriaLegislativa,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo Matéria'))
     tipo_documento = models.ForeignKey(
         TipoDocumento, blank=True, null=True, verbose_name=_('Tipo Documento'))
 
@@ -399,7 +423,10 @@ class Proposicao(models.Model):
     data_devolucao = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de devolução'))
     justificativa_devolucao = models.CharField(
-        max_length=200, blank=True, null=True, verbose_name=_('Justificativa da Devolução'))
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name=_('Justificativa da Devolução'))
     numero_proposicao = models.IntegerField(
         blank=True, null=True, verbose_name=_(''))
 
@@ -437,8 +464,9 @@ class StatusTramitacao(models.Model):
 
     def __str__(self):
         return _('%(sigla)s - %(descricao)s - %(indicador)s') % {
-            'sigla': self.sigla, 'descricao': self.descricao, 'indicador': self.indicador
-        }
+            'sigla': self.sigla,
+            'descricao': self.descricao,
+            'indicador': self.indicador}
 
 
 class UnidadeTramitacao(models.Model):
@@ -479,11 +507,19 @@ class Tramitacao(models.Model):
     data_tramitacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
-        UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_('Unidade Local'))
+        UnidadeTramitacao,
+        blank=True,
+        null=True,
+        related_name='+',
+        verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
-        UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_('Unidade Destino'))
+        UnidadeTramitacao,
+        blank=True,
+        null=True,
+        related_name='+',
+        verbose_name=_('Unidade Destino'))
     ultima = models.BooleanField()
     urgente = models.BooleanField(verbose_name=_('Urgente ?'))
     turno = models.CharField(
@@ -500,5 +536,6 @@ class Tramitacao(models.Model):
 
     def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {
-            'materia': self.materia, 'status': self.status, 'data': self.data_tramitacao
-        }
+            'materia': self.materia,
+            'status': self.status,
+            'data': self.data_tramitacao}

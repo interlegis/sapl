@@ -8,14 +8,22 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
     nome = models.CharField(max_length=255, verbose_name=_('Nome do provedor'))
     sigla = models.CharField(max_length=15)
     email_responsavel = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('E-mail do responsável'))
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('E-mail do responsável'))
     nome_responsavel = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name=_('Nome do responsável'))
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('Nome do responsável'))
     tipo = models.CharField(max_length=50)
     id_responsavel = models.IntegerField(
         blank=True, null=True, verbose_name=_('Id do responsável'))
     xml = models.TextField(
-        blank=True, null=True, verbose_name=_('XML fornecido pela equipe do LexML:'))
+        blank=True,
+        null=True,
+        verbose_name=_('XML fornecido pela equipe do LexML:'))
 
     class Meta:
         verbose_name = _('Provedor Lexml')
@@ -30,11 +38,20 @@ class LexmlPublicador(models.Model):
     nome = models.CharField(
         max_length=255, verbose_name=_('Nome do publicador'))
     email_responsavel = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('E-mail do responsável'))
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('E-mail do responsável'))
     sigla = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name=_('Sigla do Publicador'))
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('Sigla do Publicador'))
     nome_responsavel = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name=_('Nome do responsável'))
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('Nome do responsável'))
     tipo = models.CharField(max_length=50)
     id_responsavel = models.IntegerField(verbose_name=_('Id do responsável'))
 

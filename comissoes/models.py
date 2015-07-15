@@ -16,7 +16,10 @@ class TipoComissao(models.Model):
         max_length=1, verbose_name=_('Natureza'), choices=NATUREZA_CHOICES)
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     dispositivo_regimental = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Dispositivo Regimental'))
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('Dispositivo Regimental'))
 
     class Meta:
         verbose_name = _('Tipo de Comissão')
@@ -46,15 +49,27 @@ class Comissao(models.Model):
     secretario = models.CharField(
         max_length=30, blank=True, null=True, verbose_name=_('Secretário'))
     telefone_reuniao = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('Tel. Sala Reunião'))
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name=_('Tel. Sala Reunião'))
     endereco_secretaria = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Endereço Secretaria'))
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_('Endereço Secretaria'))
     telefone_secretaria = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('Tel. Secretaria'))
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name=_('Tel. Secretaria'))
     fax_secretaria = models.CharField(
         max_length=15, blank=True, null=True, verbose_name=_('Fax Secretaria'))
     agenda_reuniao = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Data/Hora Reunião'))
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_('Data/Hora Reunião'))
     local_reuniao = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_('Local Reunião'))
     finalidade = models.TextField(
@@ -117,7 +132,10 @@ class Participacao(models.Model):  # ComposicaoComissao
     data_desligamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Desligamento'))
     motivo_desligamento = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name=_('Motivo Desligamento'))
+        max_length=150,
+        blank=True,
+        null=True,
+        verbose_name=_('Motivo Desligamento'))
     observacao = models.CharField(
         max_length=150, blank=True, null=True, verbose_name=_('Observação'))
 

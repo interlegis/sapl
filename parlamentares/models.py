@@ -16,8 +16,9 @@ class Legislatura(models.Model):
 
     def __str__(self):
         return _(u'Eleição: %(eleicao)s - Início: %(inicio)s | Fim: %(fim)s') % {
-            'eleicao': self.data_eleicao, 'inicio': self.data_inicio, 'fim': self.data_fim
-        }
+            'eleicao': self.data_eleicao,
+            'inicio': self.data_inicio,
+            'fim': self.data_fim}
 
 
 class SessaoLegislativa(models.Model):
@@ -180,13 +181,22 @@ class Parlamentar(models.Model):
                    (MASCULINO, _('Masculino')))
 
     nivel_instrucao = models.ForeignKey(
-        NivelInstrucao, blank=True, null=True, verbose_name=_('Nível Instrução'))
+        NivelInstrucao,
+        blank=True,
+        null=True,
+        verbose_name=_('Nível Instrução'))
     situacao_militar = models.ForeignKey(
-        SituacaoMilitar, blank=True, null=True, verbose_name=_('Situação Militar'))
+        SituacaoMilitar,
+        blank=True,
+        null=True,
+        verbose_name=_('Situação Militar'))
     nome_completo = models.CharField(
         max_length=50, verbose_name=_('Nome Completo'))
     nome_parlamentar = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Nome Parlamentar'))
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('Nome Parlamentar'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
     data_nascimento = models.DateField(
@@ -196,7 +206,10 @@ class Parlamentar(models.Model):
     rg = models.CharField(
         max_length=15, blank=True, null=True, verbose_name=_('R.G.'))
     titulo_eleitor = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('Título de Eleitor'))
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name=_('Título de Eleitor'))
     cod_casa = models.IntegerField()
     numero_gab_parlamentar = models.CharField(
         max_length=10, blank=True, null=True, verbose_name=_('Nº Gabinete'))
@@ -205,23 +218,38 @@ class Parlamentar(models.Model):
     fax = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_('Fax'))
     endereco_residencia = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Endereço Residencial'))
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_('Endereço Residencial'))
     municipio_residencia = models.ForeignKey(
         Municipio, blank=True, null=True, verbose_name=_('Município'))
     cep_residencia = models.CharField(
         max_length=9, blank=True, null=True, verbose_name=_('CEP'))
     telefone_residencia = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Telefone Residencial'))
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('Telefone Residencial'))
     fax_residencia = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Fax Residencial'))
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name=_('Fax Residencial'))
     endereco_web = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_('HomePage'))
     profissao = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_('Profissão'))
     email = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Correio Eletrônico'))
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_('Correio Eletrônico'))
     locais_atuacao = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Locais de Atuação'))
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name=_('Locais de Atuação'))
     ativo = models.BooleanField(verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
         blank=True, null=True, verbose_name=_('Biografia'))
@@ -264,7 +292,10 @@ class Dependente(models.Model):
     rg = models.CharField(
         max_length=15, blank=True, null=True, verbose_name=_('RG'))
     titulo_eleitor = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('Nº Título Eleitor'))
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name=_('Nº Título Eleitor'))
 
     class Meta:
         verbose_name = _('Dependente')

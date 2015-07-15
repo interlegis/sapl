@@ -83,9 +83,15 @@ class Protocolo(models.Model):
     autor = models.ForeignKey(Autor, blank=True, null=True)
     assunto_ementa = models.TextField(blank=True, null=True)
     tipo_documento = models.ForeignKey(
-        TipoDocumentoAdministrativo, blank=True, null=True, verbose_name=_('Tipo de documento'))
+        TipoDocumentoAdministrativo,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo de documento'))
     tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa, blank=True, null=True, verbose_name=_('Tipo Matéria'))
+        TipoMateriaLegislativa,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo Matéria'))
     numero_paginas = models.IntegerField(
         blank=True, null=True, verbose_name=_('Número de Páginas'))
     observacao = models.TextField(
@@ -126,16 +132,27 @@ class StatusTramitacaoAdministrativo(models.Model):
 
 class TramitacaoAdministrativo(models.Model):
     status = models.ForeignKey(
-        StatusTramitacaoAdministrativo, blank=True, null=True, verbose_name=_('Status'))
+        StatusTramitacaoAdministrativo,
+        blank=True,
+        null=True,
+        verbose_name=_('Status'))
     documento = models.ForeignKey(DocumentoAdministrativo)
     data_tramitacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
-        UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_('Unidade Local'))
+        UnidadeTramitacao,
+        blank=True,
+        null=True,
+        related_name='+',
+        verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
-        UnidadeTramitacao, blank=True, null=True, related_name='+', verbose_name=_('Unidade Destino'))
+        UnidadeTramitacao,
+        blank=True,
+        null=True,
+        related_name='+',
+        verbose_name=_('Unidade Destino'))
     ultima = models.BooleanField()
     texto = models.TextField(
         blank=True, null=True, verbose_name=_('Texto da Ação'))

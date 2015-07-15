@@ -22,7 +22,8 @@ def _read_line(tr):
         if label.endswith('(*)'):
             label = label[:-3].strip()
         names = [c.attrs['name']
-                 for c in td.findAll() if isinstance(c, Tag) and 'name' in c.attrs]
+                 for c in td.findAll()
+                 if isinstance(c, Tag) and 'name' in c.attrs]
         if names:
             name = names[0].split('_', 1)[-1]
             yield name, label

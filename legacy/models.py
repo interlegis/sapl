@@ -474,7 +474,11 @@ class MesaSessaoPlenaria(models.Model):
         managed = False
         db_table = 'mesa_sessao_plenaria'
         unique_together = (
-            ('cod_cargo', 'cod_sessao_leg', 'cod_parlamentar', 'cod_sessao_plen'),)
+            ('cod_cargo',
+             'cod_sessao_leg',
+             'cod_parlamentar',
+             'cod_sessao_plen'),
+        )
 
 
 class NivelInstrucao(models.Model):
