@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n bootstrap3 %}
+
+{% block title %}SAPL{% endblock %}
+
+{% block content %}
+  <div id="content-main">
+    {# Display a form #}
+    <form method="post" class="form">
+      {% csrf_token %}
+
+      {% bootstrap_form form %}
+
+      {% buttons %}
+        <button type="submit" class="btn btn-primary">
+          {% bootstrap_icon "star" %} Submit
+        </button>
+      {% endbuttons %}
+    </form>
+  </div>
+{% endblock %}
+

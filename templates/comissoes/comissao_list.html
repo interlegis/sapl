@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n bootstrap3 %}
+
+{% block title %}SAPL{% endblock %}
+
+{% block content %}
+  <div id="content-main">
+    <p>Comissões</p>
+    <a href="/admin/comissoes/comissao/add/">Incluir Comissão</a>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>{% trans 'Nome' %}</th>
+                <th>{% trans 'Sigla' %}</th>
+                <th>{% trans 'Tipo' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comissao in object_list %}
+                <td>{{ comissao.nome }}</td>
+                <td>{{ comissao.sigla }}</td>
+                <td>{{ comissao.tipo }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+  </div>
+{% endblock %}
+

@@ -1,20 +1,35 @@
+from braces.views import FormMessagesMixin
 from django.core.urlresolvers import reverse_lazy
-from vanilla import CreateView, ListView
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView, DetailView
 
 from comissoes.models import Comissao
 
 
-class ListaComissoes(ListView):
+class ComissaoListView(ListView):
     model = Comissao
-    context_object_name = 'comissoes'
-    template_name = 'comissoes/lista_comissao.html'
 
 
-class CriarComissao(CreateView):
+class ComissaoDetailView(DetailView):
     model = Comissao
-    success_url = reverse_lazy('ListaComissoes')
 
 
-class DetalheComissao(ListView):
+class ComissaoCreateView(CreateView):
     model = Comissao
-    context_object_name = 'comissoes'
+    success_url = reverse_lazy('comissao_list')
+
+
+class ComissaoUpdateView(FormMessagesMixin, UpdateView):
+    model = Comissao
+    fields = [f.name for f in Comissao._meta.fields]
+
+    success_url = reverse_lazy('comissao_list')
+
+    form_invalid_message = u"Something went wrong, post was not saved"
+
+    def get_form_valid_message(self):
+        return u"{0} updated successfully!".format(self.object)
+
+
+class ComissaoDeleteView(DeleteView):
+    model = Comissao
+    success_url = reverse_lazy('comissao_list')
