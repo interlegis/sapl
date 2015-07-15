@@ -159,7 +159,8 @@ class VinculoNormaJuridica(models.Model):
         verbose_name_plural = _('Vínculos entre Normas Jurídicas')
 
     def __str__(self):
-        return _(u'Referente: %(referente)s \nReferida: %(referida)s \nVínculo: %(vinculo)s') % {
+        return _(u'Referente: %(referente)s \n'
+                 'Referida: %(referida)s \nVínculo: %(vinculo)s') % {
             'referente': self.norma_referente,
             'referida': self.norma_referida,
             'vinculo': self.tipo_vinculo}

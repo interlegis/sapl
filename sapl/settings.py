@@ -127,4 +127,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-DAB_FIELD_RENDERER = 'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
+DAB_FIELD_RENDERER = \
+    'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'

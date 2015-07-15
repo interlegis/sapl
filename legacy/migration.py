@@ -139,7 +139,8 @@ def build_special_field_migration(field, get_old_field_value):
 
         def none_to_false(obj):
             value = get_old_field_value(obj)
-            # Field is defined as not null in legacy db, but data includes null values
+            # Field is defined as not null in legacy db,
+            # but data includes null values
             #  => transform None to False
             if value is None:
                 warn('null converted to False')

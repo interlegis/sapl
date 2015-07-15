@@ -145,7 +145,8 @@ class Anexada(models.Model):
         verbose_name_plural = _('Anexadas')
 
     def __str__(self):
-        return _('Principal: %(materia_principal)s - Anexada: %(materia_anexada)s') % {
+        return _('Principal: %(materia_principal)s'
+                 ' - Anexada: %(materia_anexada)s') % {
             'materia_principal': self.materia_principal,
             'materia_anexada': self.materia_anexada}
 
@@ -196,8 +197,8 @@ class Autor(models.Model):
             return str(self.partido)
         else:
             if str(self.cargo):
-                return _(
-                    '%(nome)s - %(cargo)s') % {'nome': self.nome, 'cargo': self.cargo}
+                return _('%(nome)s - %(cargo)s') % {
+                    'nome': self.nome, 'cargo': self.cargo}
             else:
                 return str(self.nome)
 
@@ -212,8 +213,8 @@ class Autoria(models.Model):
         verbose_name_plural = _('Autorias')
 
     def __str__(self):
-        return _(
-            '%(autor)s - %(materia)s') % {'autor': self.autor, 'materia': self.materia}
+        return _('%(autor)s - %(materia)s') % {
+            'autor': self.autor, 'materia': self.materia}
 
 
 class DespachoInicial(models.Model):
@@ -277,8 +278,8 @@ class MateriaAssunto(models.Model):
         verbose_name_plural = _('Relações Matéria - Assunto')
 
     def __str__(self):
-        return _(
-            '%(materia)s - %(assunto)s') % {'materia': self.materia, 'assunto': self.assunto}
+        return _('%(materia)s - %(assunto)s') % {
+            'materia': self.materia, 'assunto': self.assunto}
 
 
 class Numeracao(models.Model):
@@ -490,7 +491,8 @@ class UnidadeTramitacao(models.Model):
 class Tramitacao(models.Model):
     TURNO_CHOICES, \
         PRIMEIRO, SEGUNDO, UNICO, SUPLEMENTAR, FINAL, \
-        VOTACAO_UNICA, PRIMEIRA_VOTACAO, SEGUNDA_TERCEIRA_VOTACAO = make_choices(
+        VOTACAO_UNICA, PRIMEIRA_VOTACAO, \
+        SEGUNDA_TERCEIRA_VOTACAO = make_choices(
             'P', _('Primeiro'),
             'S', _('Segundo'),
             'Ú', _('Único'),

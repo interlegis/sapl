@@ -11,7 +11,8 @@ class LegacyRouter(object):
         return None
 
     def allow_relation(self, obj1, obj2, **hints):
-        if obj1._meta.app_label == 'legacy' and obj2._meta.app_label == 'legacy':
+        if obj1._meta.app_label == 'legacy' \
+                and obj2._meta.app_label == 'legacy':
             return True
         return None
 

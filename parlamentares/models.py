@@ -15,7 +15,8 @@ class Legislatura(models.Model):
         verbose_name_plural = _('Legislaturas')
 
     def __str__(self):
-        return _(u'Eleição: %(eleicao)s - Início: %(inicio)s | Fim: %(fim)s') % {
+        return _(u'Eleição: %(eleicao)s'
+                 ' - Início: %(inicio)s | Fim: %(fim)s') % {
             'eleicao': self.data_eleicao,
             'inicio': self.data_inicio,
             'fim': self.data_fim}

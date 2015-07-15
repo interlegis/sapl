@@ -1,6 +1,5 @@
-from vanilla import CreateView, DeleteView, ListView, UpdateView
 from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import render, get_object_or_404
+from vanilla import CreateView, ListView
 
 from comissoes.models import Comissao
 
@@ -14,8 +13,6 @@ class ListaComissoes(ListView):
 class CriarComissao(CreateView):
     model = Comissao
     success_url = reverse_lazy('ListaComissoes')
-    #template_name = 'comissoes/criar_comissao.html'
-    #fields = ['']
 
 
 class DetalheComissao(ListView):

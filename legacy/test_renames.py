@@ -34,7 +34,8 @@ def test_get_renames():
             # ignored fields are explicitly listed
             missing_in_renames = field_names - renamed
             if missing_in_renames:
-                assert (model, missing_in_renames) in RENAMING_IGNORED_FIELDS, \
+                assert (model, missing_in_renames) in \
+                    RENAMING_IGNORED_FIELDS, \
                     'Field(s) missing in renames but not explicitly listed'
 
             # all old names correspond to a legacy field

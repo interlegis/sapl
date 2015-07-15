@@ -3,7 +3,8 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from materia.models import MateriaLegislativa
-from parlamentares.models import CargoMesa, Parlamentar, SessaoLegislativa, Legislatura
+from parlamentares.models import (CargoMesa, Parlamentar, SessaoLegislativa,
+                                  Legislatura)
 from sapl.utils import make_choices
 
 
@@ -21,7 +22,8 @@ class TipoSessaoPlenaria(models.Model):
 
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
-    # andamento_sessao = models.ForeignKey(AndamentoSessao, blank=True, null=True)
+    # andamento_sessao = models.ForeignKey(
+    #    AndamentoSessao, blank=True, null=True)
     # TODO analyze querying all hosted databases !
     cod_andamento_sessao = models.IntegerField(blank=True, null=True)
 
@@ -51,11 +53,13 @@ class SessaoPlenaria(models.Model):
         verbose_name_plural = _('Sessões Plenárias')
 
     def __str__(self):
-        return _('%sª Sessão %s da %sª Sessão Legislativa da %sª Legislatura') % (
+        return _('%sª Sessão %s da %sª Sessão Legislativa'
+                 ' da %sª Legislatura') % (
             self.numero,
             self.tipo.nome,
             self.sessao_legislativa.numero,
-            self.legislatura.id)  # XXX check if it shouldn't be legislatura.numero
+            # XXX check if it shouldn't be legislatura.numero
+            self.legislatura.id)
 
 
 class AbstractOrdemDia(models.Model):
