@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, DetailView
 
 from comissoes.models import Comissao
+from .forms import ComissaoForm
 
 
 class ComissaoListView(ListView):
@@ -20,10 +21,8 @@ class ComissaoCreateView(CreateView):
 
 class ComissaoUpdateView(FormMessagesMixin, UpdateView):
     model = Comissao
-    fields = [f.name for f in Comissao._meta.fields]
-
+    form_class = ComissaoForm
     success_url = reverse_lazy('comissao_list')
-
     form_invalid_message = u"Something went wrong, post was not saved"
 
     def get_form_valid_message(self):
