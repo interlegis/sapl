@@ -10,7 +10,7 @@ class ComissaoForm(forms.ModelForm):
 
     class Meta:
         model = Comissao
-        fields = [f.name for f in Comissao._meta.fields]
+        exclude = []
 
     def __init__(self, *args, **kwargs):
         super(ComissaoForm, self).__init__(*args, **kwargs)

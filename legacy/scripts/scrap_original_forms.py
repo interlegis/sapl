@@ -1,3 +1,4 @@
+import pprint
 import os
 import re
 import string
@@ -214,11 +215,55 @@ old_names_adjustments = yaml.load(pkg_resources.resource_string(
 
 @listify
 def extract_fieldsets_for_current(model):
+    __, fieldsets = extract_title_and_fieldsets(model)
+    if not fieldsets:
+        return
+
     reverse_field_renames = {v: k for k, v in field_renames[model].items()}
     adjustments = old_names_adjustments.get(model.__name__)
-    for adjusted_key, key in adjustments.items():
-        reverse_field_renames[adjusted_key] = reverse_field_renames[key]
-    __, fieldsets = extract_title_and_fieldsets(model)
+    if adjustments:
+        for adjusted_key, key in adjustments.items():
+            reverse_field_renames[adjusted_key] = reverse_field_renames[key]
+
     for fieldset in fieldsets:
         rows = [colsplit([reverse_field_renames[name] for name, __ in line]) for line in fieldset['lines']]
         yield [fieldset['legend']] + rows
+
+
+class Under(object):
+
+    def __init__(self, arg):
+        self.arg = arg
+
+    def __repr__(self):
+        return "_('%s')" % self.arg
+
+
+GAP = 12
+pretty_printer = pprint.PrettyPrinter(width=80 - GAP)
+
+
+def print_crispy_form(model):
+    fieldsets = extract_fieldsets_for_current(model)
+    if fieldsets:
+        print("""
+class %(name)sForm(forms.ModelForm):
+
+    class Meta:
+        model = %(name)s
+        exclude = []
+
+    def __init__(self, *args, **kwargs):
+        super(ComissaoForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+""" % {'name': model.__name__})
+
+        for legend, *rows in fieldsets:
+            lines = pretty_printer.pformat([Under(legend)] + rows) + ',\n\n'
+            for line in lines.splitlines():
+                print(' ' * GAP + line if line.strip() else '')
+
+        print("""
+        )
+""".strip('\n'))
