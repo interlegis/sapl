@@ -2,16 +2,19 @@ import os
 import re
 import string
 
+import pkg_resources
+import yaml
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
-from .field_renames import field_renames
-from .migration import appconfs
-from .utils import listify, getsourcelines
+from legacy.migration import appconfs, get_renames
+from legacy.scripts.utils import listify, getsourcelines
 
 
 # to prevent removal by automatic organize imports on this file
 assert appconfs
+
+field_renames, model_renames = get_renames()
 
 
 def _read_line(tr):
@@ -33,11 +36,10 @@ def extract_title_and_fieldsets(model):
                             'original_forms/%s.html' % model.__name__)
     try:
         with open(filename, 'r') as f:
-            cont = f.read()
+            html_doc = f.read()
     except IOError:
         return None, []
 
-    html_doc = cont.decode('utf-8')
     soup = BeautifulSoup(html_doc, 'html.parser')
     forms = soup.find_all('form')
     [form] = [f for f in forms if ('method', 'post') in f.attrs.items()]
@@ -192,3 +194,31 @@ def list_models_with_no_scrapped_data(app):
     for model in app.models.values():
         if not any(extract_verbose_names(model)[:2]):
             print(model.__name__)
+
+
+@listify
+def colsplit(names):
+    n = len(names)
+    d, r = 12 // n, 12 % n
+    spans = [d + 1] * r + [d] * (n - r)
+    return zip(names, spans)
+
+
+def model_name_as_snake(model):
+    return re.sub('([A-Z]+)', r'_\1', model.__name__).lower().strip('_')
+
+
+old_names_adjustments = yaml.load(pkg_resources.resource_string(
+    __name__, 'old_names_adjustments.yaml'))
+
+
+@listify
+def extract_fieldsets_for_current(model):
+    reverse_field_renames = {v: k for k, v in field_renames[model].items()}
+    adjustments = old_names_adjustments.get(model.__name__)
+    for adjusted_key, key in adjustments.items():
+        reverse_field_renames[adjusted_key] = reverse_field_renames[key]
+    __, fieldsets = extract_title_and_fieldsets(model)
+    for fieldset in fieldsets:
+        rows = [colsplit([reverse_field_renames[name] for name, __ in line]) for line in fieldset['lines']]
+        yield [fieldset['legend']] + rows
