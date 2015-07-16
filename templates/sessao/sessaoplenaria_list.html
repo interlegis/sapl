@@ -6,8 +6,8 @@
 {% block content %}
   <div id="content-main">
     <p>Sessão Legislativa</p>
-    <a href="add">Incluir Sessão</a>
-
+    <a href="{% url 'sessao_create' %}" class="btn btn-default">Incluir Sessão</a>
+    <hr/>
     <table class="table table-hover">
         <thead>
             <tr>

@@ -16,6 +16,9 @@ class SessaoPlenariaDetailView(DetailView):
 class SessaoPlenariaCreateView(CreateView):
     model = SessaoPlenaria
     fields = [f.name for f in SessaoPlenaria._meta.fields]
+
+    form_invalid_message = u"Something went wrong, post was not saved"
+    
     success_url = reverse_lazy('sessao_list')
 
 
