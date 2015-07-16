@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     # more
     'django_extensions',
     'bootstrap3',
+    'crispy_forms',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -129,3 +130,6 @@ STATIC_URL = '/static/'
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_FAIL_SILENTLY = not DEBUG
