@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^comissoes/', include('comissoes.urls')),
+    url(r'^sessao/', include('sessao.urls')),
 ]
