@@ -5,20 +5,21 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, D
 from sessao.models import SessaoPlenaria
 
 
-class SessaoListView(ListView):
+class SessaoPlenariaListView(ListView):
     model = SessaoPlenaria
 
 
-class SessaoDetailView(DetailView):
+class SessaoPlenariaDetailView(DetailView):
     model = SessaoPlenaria
 
 
-class SessaoCreateView(CreateView):
+class SessaoPlenariaCreateView(CreateView):
     model = SessaoPlenaria
+    fields = [f.name for f in SessaoPlenaria._meta.fields]
     success_url = reverse_lazy('sessao_list')
 
 
-class SessaoUpdateView(FormMessagesMixin, UpdateView):
+class SessaoPlenariaUpdateView(FormMessagesMixin, UpdateView):
     model = SessaoPlenaria
     fields = [f.name for f in SessaoPlenaria._meta.fields]
 
@@ -30,6 +31,6 @@ class SessaoUpdateView(FormMessagesMixin, UpdateView):
         return u"{0} updated successfully!".format(self.object)
 
 
-class SessaoDeleteView(DeleteView):
+class SessaoPlenariaDeleteView(DeleteView):
     model = SessaoPlenaria
     success_url = reverse_lazy('sessao_list')

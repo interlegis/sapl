@@ -1,11 +1,12 @@
 from django.conf.urls import patterns, url
 
-from sessao.views import SessaoListView, SessaoDetailView, SessaoUpdateView
+from sessao.views import SessaoPlenariaListView, SessaoPlenariaDetailView, SessaoPlenariaCreateView, SessaoPlenariaUpdateView
 
 
 urlpatterns = patterns(
     'comissoes.views',
-    url(r'^$', SessaoListView.as_view(), name='sessao_list'),
-    url(r'^(?P<pk>\d+)$', SessaoDetailView.as_view(), name='sessao_detail'),
-    url(r'^(?P<pk>\d+)/edit$', SessaoUpdateView.as_view(), name='sessao_update'),
+    url(r'^$', SessaoPlenariaListView.as_view(), name='sessaoplenaria_list'),
+    url(r'^(?P<pk>\d+)$', SessaoPlenariaDetailView.as_view(), name='sessaoplenaria_detail'),
+    url(r'^add$', SessaoPlenariaCreateView.as_view(), name='sessaoplenaria_update'),
+    url(r'^(?P<pk>\d+)/edit$', SessaoPlenariaUpdateView.as_view(), name='sessaoplenaria_update'),
 )
