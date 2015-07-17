@@ -1,26 +1,11 @@
 {% extends "base.html" %}
-{% load i18n bootstrap3 %}
+
+{% load i18n bootstrap3 crispy_forms_tags %}
 
 {% block title %}SAPL{% endblock %}
 
 {% block content %}
-  <div id="content-main">
-
-    <p>Sessão Legislativa</p>
-    <a href="{% url 'sessao_list' %}" class="btn btn-default">Voltar</a>
-
-    {# Display a form #}
-    <form method="post" class="form">
-      {% csrf_token %}
-
-      {% bootstrap_form form %}
-
-      {% buttons %}
-        <button type="submit" class="btn btn-primary">
-          {% bootstrap_icon "star" %} Submit
-        </button>
-      {% endbuttons %}
-    </form>
+   <div id="content-main">
+      {% crispy form %}
   </div>
 {% endblock %}
-
