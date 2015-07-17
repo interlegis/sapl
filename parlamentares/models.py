@@ -43,7 +43,7 @@ class SessaoLegislativa(models.Model):
         verbose_name_plural = _('Sessões Legislativas')
 
     def __str__(self):
-        return self.tipo
+        return self.get_tipo_display()
 
 
 class Coligacao(models.Model):
