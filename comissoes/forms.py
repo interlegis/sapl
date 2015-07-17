@@ -25,7 +25,6 @@ class TipoComissaoForm(forms.ModelForm):
               ('natureza', 2)],
              [('nome', 6), ('sigla', 6)],
              [('dispositivo_regimental', 6), ('natureza', 6)]],
-
         )
 
 

@@ -8,6 +8,8 @@ import yaml
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
+from django.apps.config import AppConfig
+
 from legacy.migration import appconfs, get_renames
 from legacy.scripts.utils import listify, getsourcelines
 
@@ -219,15 +221,20 @@ def extract_fieldsets_for_current(model):
     if not fieldsets:
         return
 
-    reverse_field_renames = {v: k for k, v in field_renames[model].items()}
-    adjustments = old_names_adjustments.get(model.__name__)
-    if adjustments:
-        for adjusted_key, key in adjustments.items():
-            reverse_field_renames[adjusted_key] = reverse_field_renames[key]
+    try:
+        reverse_field_renames = {v: k for k, v in field_renames[model].items()}
+        adjustments = old_names_adjustments.get(model.__name__)
+        if adjustments:
+            reverse_field_renames.update(adjustments)
 
-    for fieldset in fieldsets:
-        rows = [colsplit([reverse_field_renames[name] for name, __ in line]) for line in fieldset['lines']]
-        yield [fieldset['legend']] + rows
+        for fieldset in fieldsets:
+            rows = [colsplit([reverse_field_renames.get(name, '%s_FIXME' % name)
+                              for name, __ in line])
+                    for line in fieldset['lines'] if line]
+            yield [fieldset['legend']] + rows
+    except Exception as e:
+        print_title_and_fieldsets(model)
+        raise Exception(e, model)
 
 
 class Under(object):
@@ -243,7 +250,13 @@ GAP = 12
 pretty_printer = pprint.PrettyPrinter(width=80 - GAP)
 
 
-def print_crispy_form(model):
+def print_crispy_form(model_or_app):
+    if isinstance(model_or_app, AppConfig):
+        for model in model_or_app.models.values():
+            print_crispy_form(model)
+    else:
+        model = model_or_app
+
     fieldsets = extract_fieldsets_for_current(model)
     if fieldsets:
         print("""
@@ -254,7 +267,7 @@ class %(name)sForm(forms.ModelForm):
         exclude = []
 
     def __init__(self, *args, **kwargs):
-        super(ComissaoForm, self).__init__(*args, **kwargs)
+        super(%(name)sForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
 """ % {'name': model.__name__})
@@ -264,6 +277,4 @@ class %(name)sForm(forms.ModelForm):
             for line in lines.splitlines():
                 print(' ' * GAP + line if line.strip() else '')
 
-        print("""
-        )
-""".strip('\n'))
+        print("        )")
