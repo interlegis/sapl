@@ -38,17 +38,17 @@ class SessaoPlenariaForm(forms.ModelForm):
 
             [_('Dados Básicos'),
              [('numero', 3),
-              ('tip_sessao_plen_FIXME', 3),
+              ('tipo', 3),
               ('legislatura', 3),
-              ('sessao_leg_FIXME', 3)],
+              ('sessao_legislativa', 3)],
              [('data_inicio', 12)],
              [('data_fim', 12)],
-             [('file_pauta_FIXME', 3),
-              ('file_ata_FIXME', 3),
-              ('url_audio', 3),
-              ('url_video', 3)],
-             [('url_audio', 6), ('url_video', 6)],
+             [('dia',2),
+              ('hora_inicio',2),
+              ('hora_fim',2),
+              ('tipo_expediente',6)],
              [('url_audio', 6), ('url_video', 6)]],
+             
         )
 
 
