@@ -262,7 +262,7 @@ class ProposicaoForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
 
-            [_(''),
+            [_('Proposição'),
              [('tipo', 4), ('dat_criacao_FIXME', 4), ('data_recebimento', 4)],
              [('descricao_FIXME', 12)],
              [('tip_id_basica_FIXME', 4),

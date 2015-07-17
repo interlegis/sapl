@@ -52,13 +52,14 @@ class SessaoPlenaria(models.Model):
         verbose_name_plural = _('Sessões Plenárias')
 
     def __str__(self):
-        return _('%sª Sessão %s da %sª Sessão Legislativa'
-                 ' da %sª Legislatura') % (
-            self.numero,
-            self.tipo.nome,
-            self.sessao_legislativa.numero,
+        return _('%(numero)sª Sessão %(tipo_nome)s da %(sessao_legislativa_numero)sª Sessão Legislativa'
+                 ' da %(legislatura_id)sª Legislatura') % {
+
+            'numero': self.numero,
+            'tipo_nome': self.tipo.nome,
+            'sessao_legislativa_numero': self.sessao_legislativa.numero,
             # XXX check if it shouldn't be legislatura.numero
-            self.legislatura.id)
+            'legislatura_id': self.legislatura.id}
 
 
 class AbstractOrdemDia(models.Model):

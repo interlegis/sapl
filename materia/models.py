@@ -428,7 +428,7 @@ class Proposicao(models.Model):
         null=True,
         verbose_name=_('Justificativa da Devolução'))
     numero_proposicao = models.IntegerField(
-        blank=True, null=True, verbose_name=_(''))
+        blank=True, null=True, verbose_name=_('Número'))
 
     # mutually exclusive (depend on tipo.materia_ou_documento)
     materia = models.ForeignKey(
