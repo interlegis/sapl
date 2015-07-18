@@ -3,7 +3,6 @@ django-admin-bootstrapped
 django-bootstrap3
 django-braces
 django-crispy-forms
-django-vanilla-views
 mysqlclient
 psycopg2
 pytz
