@@ -1,0 +1,1676 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# johnfelipe <ingenierofelipeurrego@gmail.com>, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: SAPL\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-07-17 10:28-0300\n"
+"PO-Revision-Date: 2015-07-18 21:32+0000\n"
+"Last-Translator: johnfelipe <ingenierofelipeurrego@gmail.com>\n"
+"Language-Team: Spanish (http://www.transifex.com/p/sapl-sistema-de-apoio-ao-processo-legislativo/language/es/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: base/models.py:8 comissoes/models.py:13 comissoes/models.py:33
+#: materia/models.py:38 materia/models.py:306 parlamentares/models.py:51
+#: parlamentares/models.py:65 parlamentares/models.py:285
+#: protocoloadm/models.py:54 templates/comissoes/comissao_list.html:14
+msgid "Nome"
+msgstr "Nombre"
+
+#: base/models.py:9 comissoes/models.py:16 comissoes/models.py:34
+#: materia/models.py:10 materia/models.py:37 materia/models.py:307
+#: materia/models.py:453 norma/models.py:44 parlamentares/models.py:64
+#: protocoloadm/models.py:9 protocoloadm/models.py:116
+#: templates/comissoes/comissao_list.html:15
+msgid "Sigla"
+msgstr "Símbolo"
+
+#: base/models.py:10 materia/models.py:311
+msgid "Endereço"
+msgstr "Dirección"
+
+#: base/models.py:11 parlamentares/models.py:228
+msgid "CEP"
+msgstr "Código postal"
+
+#: base/models.py:12 parlamentares/models.py:144 parlamentares/models.py:226
+msgid "Município"
+msgstr "Municipio"
+
+#: base/models.py:13
+msgid "UF"
+msgstr "UF"
+
+#: base/models.py:14 materia/models.py:313 parlamentares/models.py:217
+msgid "Telefone"
+msgstr "Teléfono"
+
+#: base/models.py:15 parlamentares/models.py:219
+msgid "Fax"
+msgstr "Fax"
+
+#: base/models.py:17
+msgid "Cor de fundo"
+msgstr "Color de fondo"
+
+#: base/models.py:19
+msgid "Cor da borda"
+msgstr "Color del borde"
+
+#: base/models.py:21
+msgid "Cor principal"
+msgstr "Color principal"
+
+#: base/models.py:22
+msgid "Logotipo"
+msgstr "Logotipo"
+
+#: base/models.py:23 parlamentares/models.py:240
+msgid "HomePage"
+msgstr "Página principal"
+
+#: base/models.py:24 comissoes/models.py:77
+msgid "E-mail"
+msgstr "E-mail"
+
+#: base/models.py:26
+msgid "Informação Geral"
+msgstr "Información General"
+
+#: base/models.py:29
+msgid "Casa Legislativa"
+msgstr "Casa Legislativa"
+
+#: base/models.py:30
+msgid "Casas Legislativas"
+msgstr "Casas Legislativas"
+
+#: comissoes/forms.py:20
+msgid "Tipo Comissão"
+msgstr "Tipo Comisión"
+
+#: comissoes/forms.py:42 sessao/forms.py:39
+msgid "Dados Básicos"
+msgstr "Datos básicos"
+
+#: comissoes/forms.py:49
+msgid "Dados Complementares"
+msgstr "Datos adicionales"
+
+#: comissoes/forms.py:59 comissoes/models.py:10
+msgid "Temporária"
+msgstr "Temporal"
+
+#: comissoes/models.py:11
+msgid "Permanente"
+msgstr "Permanente"
+
+#: comissoes/models.py:15
+msgid "Natureza"
+msgstr "Naturaleza"
+
+#: comissoes/models.py:21
+msgid "Dispositivo Regimental"
+msgstr "Dispositivo de procedimiento"
+
+#: comissoes/models.py:24
+msgid "Tipo de Comissão"
+msgstr "Tipo de comisión"
+
+#: comissoes/models.py:25
+msgid "Tipos de Comissão"
+msgstr "Tipos de comisión"
+
+#: comissoes/models.py:32 materia/models.py:54 materia/models.py:74
+#: materia/models.py:180 materia/models.py:250 materia/models.py:416
+#: norma/models.py:62 parlamentares/models.py:33 parlamentares/models.py:283
+#: protocoloadm/models.py:53 sessao/models.py:11 sessao/models.py:29
+#: sessao/models.py:97 sessao/models.py:186
+#: templates/comissoes/comissao_list.html:16
+#: templates/sessao/sessaoplenaria_list.html:16
+msgid "Tipo"
+msgstr "Tipo"
+
+#: comissoes/models.py:35
+msgid "Data de Criação"
+msgstr "Fecha de creación"
+
+#: comissoes/models.py:37
+msgid "Data de Extinção"
+msgstr "Fecha de extinción"
+
+#: comissoes/models.py:39 materia/models.py:84
+msgid "Apelido"
+msgstr "Apellido"
+
+#: comissoes/models.py:41
+msgid "Data Instalação"
+msgstr "Fecha Instalación"
+
+#: comissoes/models.py:43
+msgid "Data Prevista Término"
+msgstr "Fecha de finalización"
+
+#: comissoes/models.py:45
+msgid "Novo Prazo"
+msgstr "Nuevo término"
+
+#: comissoes/models.py:47
+msgid "Data Término"
+msgstr "Fecha de finalización"
+
+#: comissoes/models.py:49
+msgid "Secretário"
+msgstr "Secretario"
+
+#: comissoes/models.py:54
+msgid "Tel. Sala Reunião"
+msgstr "Tel. Sala de Reuniones"
+
+#: comissoes/models.py:59
+msgid "Endereço Secretaria"
+msgstr "Secretaría Dirección"
+
+#: comissoes/models.py:64
+msgid "Tel. Secretaria"
+msgstr "Tel. La Secretaría"
+
+#: comissoes/models.py:66
+msgid "Fax Secretaria"
+msgstr "Fax Secretaría"
+
+#: comissoes/models.py:71
+msgid "Data/Hora Reunião"
+msgstr "Fecha/Hora Reunión"
+
+#: comissoes/models.py:73
+msgid "Local Reunião"
+msgstr "Reunión Local"
+
+#: comissoes/models.py:75
+msgid "Finalidade"
+msgstr "Fin"
+
+#: comissoes/models.py:81 comissoes/models.py:114 materia/models.py:474
+msgid "Comissão"
+msgstr "Comisión"
+
+#: comissoes/models.py:82
+msgid "Comissões"
+msgstr "Comités"
+
+#: comissoes/models.py:89 parlamentares/models.py:8 parlamentares/models.py:34
+msgid "Data Início"
+msgstr "Fecha de inicio "
+
+#: comissoes/models.py:91 parlamentares/models.py:9 parlamentares/models.py:35
+msgid "Data Fim"
+msgstr "Fecha Final"
+
+#: comissoes/models.py:94
+msgid "Período de composição de Comissão"
+msgstr "Período de la composición de la Comisión"
+
+#: comissoes/models.py:95
+msgid "Períodos de composição de Comissão"
+msgstr "Los períodos de composición de la Comisión"
+
+#: comissoes/models.py:102
+msgid "Cargo"
+msgstr "Oficina"
+
+#: comissoes/models.py:103 materia/models.py:497
+msgid "Único"
+msgstr "Solo"
+
+#: comissoes/models.py:106
+msgid "Cargo de Comissão"
+msgstr "Posición de la Comisión"
+
+#: comissoes/models.py:107
+msgid "Cargos de Comissão"
+msgstr "Las posiciones de la Comisión"
+
+#: comissoes/models.py:115
+msgid "Período"
+msgstr "Período"
+
+#: comissoes/models.py:118
+msgid "Composição de Comissão"
+msgstr "Composición de la Comisión"
+
+#: comissoes/models.py:119
+msgid "Composições de Comissão"
+msgstr "Composición de la Comisión"
+
+#: comissoes/models.py:129
+msgid "Titular"
+msgstr "Titular"
+
+#: comissoes/models.py:130 materia/models.py:347
+msgid "Data Designação"
+msgstr "Fecha Descripción"
+
+#: comissoes/models.py:132
+msgid "Data Desligamento"
+msgstr "Fecha Cierre"
+
+#: comissoes/models.py:137
+msgid "Motivo Desligamento"
+msgstr "Motivo Cierre"
+
+#: comissoes/models.py:139 materia/models.py:100 norma/models.py:86
+#: parlamentares/models.py:356 protocoloadm/models.py:38
+#: protocoloadm/models.py:97
+msgid "Observação"
+msgstr "Nota"
+
+#: comissoes/models.py:142
+msgid "Participação em Comissão"
+msgstr "Participación en la Comisión"
+
+#: comissoes/models.py:143
+msgid "Participações em Comissão"
+msgstr "Participación en la Comisión"
+
+#: ipython_log.py:129 ipython_log.py:142 ipython_log.py:151 ipython_log.py:167
+msgid "Add pictures"
+msgstr "Agregar imágenes"
+
+#: ipython_log.py:132 ipython_log.py:145 ipython_log.py:154 ipython_log.py:170
+msgid "second"
+msgstr "Segundo"
+
+#: ipython_log.py:134 ipython_log.py:147 ipython_log.py:156 ipython_log.py:172
+#: ipython_log.py:252 sapl/layout.py:34
+msgid "Save"
+msgstr "Guardar"
+
+#: ipython_log.py:135 ipython_log.py:148 ipython_log.py:157 ipython_log.py:173
+#: ipython_log.py:253 sapl/layout.py:35
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: lexml/models.py:6
+msgid "Id do provedor"
+msgstr "Id Proveedor"
+
+#: lexml/models.py:7
+msgid "Nome do provedor"
+msgstr "Nombre del proveedor"
+
+#: lexml/models.py:13 lexml/models.py:43
+msgid "E-mail do responsável"
+msgstr "Correo electrónico"
+
+#: lexml/models.py:18 lexml/models.py:53
+msgid "Nome do responsável"
+msgstr "Nombre del responsable"
+
+#: lexml/models.py:21 lexml/models.py:55
+msgid "Id do responsável"
+msgstr "Id responsable"
+
+#: lexml/models.py:25
+msgid "XML fornecido pela equipe do LexML:"
+msgstr "XML proporcionados por el personal de la LexML:"
+
+#: lexml/models.py:28
+msgid "Provedor Lexml"
+msgstr "Lexml Proveedor"
+
+#: lexml/models.py:29
+msgid "Provedores Lexml"
+msgstr "Lexml Proveedores"
+
+#: lexml/models.py:36
+msgid "Id do publicador"
+msgstr "Editor Id."
+
+#: lexml/models.py:38
+msgid "Nome do publicador"
+msgstr "Nombre del editor"
+
+#: lexml/models.py:48
+msgid "Sigla do Publicador"
+msgstr "Símbolo de la Editorial"
+
+#: lexml/models.py:58
+msgid "Publicador Lexml"
+msgstr "Lexml Editor"
+
+#: lexml/models.py:59
+msgid "Publicadores Lexml"
+msgstr "Lexml editores"
+
+#: materia/forms.py:22 materia/models.py:41
+msgid "Origem"
+msgstr "Origen"
+
+#: materia/forms.py:39 norma/forms.py:59
+msgid "Identificação Básica"
+msgstr "Identificación Básica"
+
+#: materia/forms.py:46
+msgid "Proposição Eletrônica"
+msgstr "Propuesta electrónica"
+
+#: materia/forms.py:48 protocoloadm/forms.py:55 protocoloadm/forms.py:119
+msgid "Outras Informações"
+msgstr "Otra información"
+
+#: materia/forms.py:56
+msgid "Origem Externa"
+msgstr "Fuente externa"
+
+#: materia/forms.py:62
+msgid "Dados Textuais"
+msgstr "Datos de texto "
+
+#: materia/forms.py:80 materia/models.py:113 norma/models.py:135
+msgid "Matéria Legislativa"
+msgstr "Asuntos Legislativos"
+
+#: materia/forms.py:86
+msgid "Matéria Anexada"
+msgstr "El documento adjunto"
+
+#: materia/forms.py:105
+msgid "Tipo Autor"
+msgstr "Autor del tipo"
+
+#: materia/forms.py:122 materia/models.py:182 materia/models.py:187
+#: materia/models.py:254 protocoloadm/models.py:58
+msgid "Autor"
+msgstr "Autor"
+
+#: materia/forms.py:127
+msgid "Acesso ao SAPL"
+msgstr "Acceso a SAPL"
+
+#: materia/forms.py:144 materia/models.py:211
+msgid "Autoria"
+msgstr "Autoría"
+
+#: materia/forms.py:162 materia/models.py:259 protocoloadm/forms.py:78
+#: protocoloadm/models.py:64
+msgid "Documento Acessório"
+msgstr "Documento adjunto"
+
+#: materia/forms.py:182 materia/models.py:295
+msgid "Numeração"
+msgstr "Numeración"
+
+#: materia/forms.py:199 materia/models.py:316 materia/models.py:476
+msgid "Órgão"
+msgstr "Componente"
+
+#: materia/forms.py:224 materia/models.py:352
+msgid "Relatoria"
+msgstr "Relatoría"
+
+#: materia/forms.py:242
+msgid "Tipo Proposição"
+msgstr "Escriba la Proposición"
+
+#: materia/forms.py:265 materia/models.py:440
+msgid "Proposição"
+msgstr "La Proposición"
+
+#: materia/forms.py:286
+msgid "Status Tramitação"
+msgstr "Procedimiento de estado"
+
+#: materia/forms.py:307
+msgid "Unidade Tramitação"
+msgstr "Unidad de procesamiento"
+
+#: materia/forms.py:325 materia/models.py:535 protocoloadm/forms.py:165
+msgid "Tramitação"
+msgstr "Procedimiento"
+
+#: materia/models.py:11
+msgid "Descrição "
+msgstr "Descripción"
+
+#: materia/models.py:18
+msgid "Tipo de Matéria Legislativa"
+msgstr "Tipo de Legislación"
+
+#: materia/models.py:19
+msgid "Tipos de Matérias Legislativas"
+msgstr "Tipos de Asuntos Legislativos "
+
+#: materia/models.py:29 materia/models.py:66
+msgid "Regime Tramitação"
+msgstr "Procedimiento Régimen"
+
+#: materia/models.py:30
+msgid "Regimes Tramitação"
+msgstr "Los sistemas de procesamiento"
+
+#: materia/models.py:42
+msgid "Origens"
+msgstr "Orígenes"
+
+#: materia/models.py:50 materia/models.py:364
+msgid "Oral"
+msgstr "Oral"
+
+#: materia/models.py:51 materia/models.py:365
+msgid "Escrita"
+msgstr "Escrita"
+
+#: materia/models.py:55 materia/models.py:76 materia/models.py:289
+#: materia/models.py:431 norma/models.py:64 parlamentares/models.py:31
+#: protocoloadm/models.py:23 sessao/models.py:40
+msgid "Número"
+msgstr "Número"
+
+#: materia/models.py:56 materia/models.py:78 materia/models.py:290
+#: norma/models.py:65 protocoloadm/models.py:24
+msgid "Ano"
+msgstr "Año"
+
+#: materia/models.py:58 protocoloadm/models.py:27
+msgid "Núm. Protocolo"
+msgstr "Num. Protocolo"
+
+#: materia/models.py:60
+msgid "Data Apresentação"
+msgstr "Fecha Presentación"
+
+#: materia/models.py:63
+msgid "Tipo de Apresentação"
+msgstr "Tipo de presentación"
+
+#: materia/models.py:68 norma/models.py:72
+msgid "Data Publicação"
+msgstr "Fecha de publicación "
+
+#: materia/models.py:80 materia/models.py:252 materia/models.py:292
+#: norma/models.py:70 protocoloadm/models.py:25 protocoloadm/models.py:56
+msgid "Data"
+msgstr "Fecha"
+
+#: materia/models.py:82
+msgid "Local Origem"
+msgstr "Origen Local"
+
+#: materia/models.py:86 protocoloadm/models.py:32
+msgid "Dias Prazo"
+msgstr "Días Plazo"
+
+#: materia/models.py:88 materia/models.py:532 protocoloadm/models.py:34
+msgid "Data Fim Prazo"
+msgstr "Fecha de finalización"
+
+#: materia/models.py:89 protocoloadm/models.py:35
+msgid "Em Tramitação?"
+msgstr "En el procedimiento?"
+
+#: materia/models.py:91
+msgid "Matéria Polêmica?"
+msgstr "Cuestión controvertida?"
+
+#: materia/models.py:93
+msgid "Objeto"
+msgstr "Objeto"
+
+#: materia/models.py:95
+msgid "É Complementar?"
+msgstr "ES complementario?"
+
+#: materia/models.py:96 materia/models.py:255 norma/models.py:82
+#: sessao/models.py:76
+msgid "Ementa"
+msgstr "Menú"
+
+#: materia/models.py:98 norma/models.py:84
+msgid "Indexação"
+msgstr "Indexación"
+
+#: materia/models.py:114 norma/models.py:136
+msgid "Matérias Legislativas"
+msgstr "Asuntos Legislativos"
+
+#: materia/models.py:117
+#, python-format
+msgid "%(tipo)s nº %(numero)s de %(ano)s"
+msgstr "%(tipo)s nº %(numero)s de %(ano)s"
+
+#: materia/models.py:124
+msgid "Endereço de E-mail"
+msgstr "Dirección de correo electrónico"
+
+#: materia/models.py:128
+msgid "Acompanhamento de Matéria"
+msgstr "Seguimiento de la materia"
+
+#: materia/models.py:129
+msgid "Acompanhamentos de Matéria"
+msgstr "Seguimiento de la materia"
+
+#: materia/models.py:138
+msgid "Data Anexação"
+msgstr "Fecha Anexión"
+
+#: materia/models.py:140
+msgid "Data Desanexação"
+msgstr "Fecha Separación"
+
+#: materia/models.py:143
+msgid "Anexada"
+msgstr "Conectado"
+
+#: materia/models.py:144
+msgid "Anexadas"
+msgstr "Conectados"
+
+#: materia/models.py:147
+#, python-format
+msgid "Principal: %(materia_principal)s - Anexada: %(materia_anexada)s"
+msgstr "Principal: %(materia_principal)s - Anexada: %(materia_anexada)s"
+
+#: materia/models.py:158
+msgid "Assunto de Matéria"
+msgstr "Asunto"
+
+#: materia/models.py:159
+msgid "Assuntos de Matéria"
+msgstr "Asuntos"
+
+#: materia/models.py:166 materia/models.py:251 materia/models.py:391
+#: materia/models.py:422 materia/models.py:454 norma/models.py:11
+#: norma/models.py:45 parlamentares/models.py:326 protocoloadm/models.py:10
+#: protocoloadm/models.py:117
+msgid "Descrição"
+msgstr "Descripción"
+
+#: materia/models.py:169
+msgid "Tipo de Autor"
+msgstr "Tipo de autor"
+
+#: materia/models.py:170
+msgid "Tipos de Autor"
+msgstr "Tipos de autor"
+
+#: materia/models.py:188
+msgid "Autores"
+msgstr "Autores"
+
+#: materia/models.py:199
+#, python-format
+msgid "%(nome)s - %(cargo)s"
+msgstr "%(nome)s - %(cargo)s"
+
+#: materia/models.py:208
+msgid "Primeiro Autor"
+msgstr "Primer Autor"
+
+#: materia/models.py:212
+msgid "Autorias"
+msgstr "Autoría"
+
+#: materia/models.py:215
+#, python-format
+msgid "%(autor)s - %(materia)s"
+msgstr "%(autor)s - %(materia)s"
+
+#: materia/models.py:226
+msgid "Despacho Inicial"
+msgstr "Envío inicial"
+
+#: materia/models.py:227
+msgid "Despachos Iniciais"
+msgstr "Los envíos Iniciales"
+
+#: materia/models.py:230
+#, python-format
+msgid "Nº %(numero)s - %(materia)s - %(comissao)s"
+msgstr "Nº %(numero)s - %(materia)s - %(comissao)s"
+
+#: materia/models.py:238 materia/models.py:403 protocoloadm/models.py:22
+msgid "Tipo Documento"
+msgstr "Tipo Documento"
+
+#: materia/models.py:241
+msgid "Tipo de Documento"
+msgstr "Tipo de Documento"
+
+#: materia/models.py:242
+msgid "Tipos de Documento"
+msgstr "Tipos de Documentos"
+
+#: materia/models.py:260 protocoloadm/models.py:65
+msgid "Documentos Acessórios"
+msgstr "Documentos Accesorios"
+
+#: materia/models.py:263
+#, python-format
+msgid "%(tipo)s - %(nome)s de %(data)s por %(autor)s"
+msgstr ""
+
+#: materia/models.py:276
+msgid "Relação Matéria - Assunto"
+msgstr "Relación materia - Asunto"
+
+#: materia/models.py:277
+msgid "Relações Matéria - Assunto"
+msgstr "Relaciones materia - Asunto"
+
+#: materia/models.py:280
+#, python-format
+msgid "%(materia)s - %(assunto)s"
+msgstr "%(materia)s - %(assunto)s"
+
+#: materia/models.py:288
+msgid "Tipo de Matéria"
+msgstr "Tipo de material "
+
+#: materia/models.py:296
+msgid "Numerações"
+msgstr "Numeración"
+
+#: materia/models.py:299
+#, python-format
+msgid "Nº%(numero)s %(tipo)s - %(data)s"
+msgstr "Nº%(numero)s %(tipo)s - %(data)s"
+
+#: materia/models.py:309
+msgid "Unidade Deliberativa"
+msgstr "Unidad Deliberante"
+
+#: materia/models.py:317
+msgid "Órgãos"
+msgstr "Agencias"
+
+#: materia/models.py:321
+#, python-format
+msgid "%(nome)s - %(sigla)s"
+msgstr "%(nome)s - %(sigla)s"
+
+#: materia/models.py:326
+msgid "Tipo Fim Relatoria"
+msgstr "Orden de tipo Relatoría"
+
+#: materia/models.py:329
+msgid "Tipo Fim de Relatoria"
+msgstr "Informes de orden Tipo "
+
+#: materia/models.py:330
+msgid "Tipos Fim de Relatoria"
+msgstr "Tipos Informes de orden "
+
+#: materia/models.py:338 materia/models.py:478 parlamentares/models.py:259
+#: sessao/models.py:136
+msgid "Parlamentar"
+msgstr "Parlamentario"
+
+#: materia/models.py:343
+msgid "Motivo Fim Relatoria"
+msgstr "Razón por la que el orden Relatoría"
+
+#: materia/models.py:345
+msgid "Localização Atual"
+msgstr "Ubicación actual"
+
+#: materia/models.py:349
+msgid "Data Destituição"
+msgstr "Fecha Despido"
+
+#: materia/models.py:353
+msgid "Relatorias"
+msgstr "Relatorías"
+
+#: materia/models.py:356
+#, python-format
+msgid "%(materia)s - %(tipo)s - %(data)s"
+msgstr ""
+
+#: materia/models.py:376
+msgid "Parecer"
+msgstr "Opinión"
+
+#: materia/models.py:377
+msgid "Pareceres"
+msgstr "Opiniones"
+
+#: materia/models.py:380
+#, python-format
+msgid "%(relatoria)s - %(tipo)s"
+msgstr "%(relatoria)s - %(tipo)s"
+
+#: materia/models.py:387 materia/models.py:435
+msgid "Matéria"
+msgstr "Asunto"
+
+#: materia/models.py:388 materia/models.py:437
+msgid "Documento"
+msgstr "Documento"
+
+#: materia/models.py:393
+msgid "Gera"
+msgstr "Genera"
+
+#: materia/models.py:394
+msgid "Modelo XML"
+msgstr "Modelo XML"
+
+#: materia/models.py:401 protocoloadm/models.py:93
+msgid "Tipo Matéria"
+msgstr "Escriba Materia"
+
+#: materia/models.py:406
+msgid "Tipo de Proposição"
+msgstr "Tipo de propuesta"
+
+#: materia/models.py:407
+msgid "Tipos de Proposições"
+msgstr "Tipos de proposiciones"
+
+#: materia/models.py:419
+msgid "Data de Envio"
+msgstr "Fecha de envío "
+
+#: materia/models.py:421
+msgid "Data de Incorporação"
+msgstr "Fecha de incorporación"
+
+#: materia/models.py:424
+msgid "Data de devolução"
+msgstr "Fecha de regreso "
+
+#: materia/models.py:429
+msgid "Justificativa da Devolução"
+msgstr "Retorno de la justificación"
+
+#: materia/models.py:441
+msgid "Proposições"
+msgstr "Propuestas"
+
+#: materia/models.py:449 protocoloadm/models.py:112
+msgid "Fim"
+msgstr "Fin"
+
+#: materia/models.py:450 protocoloadm/models.py:113
+msgid "Retorno"
+msgstr "Volver"
+
+#: materia/models.py:458 protocoloadm/models.py:121
+msgid "Indicador da Tramitação"
+msgstr "Indicador de conducta"
+
+#: materia/models.py:462 materia/models.py:463 protocoloadm/models.py:125
+#: protocoloadm/models.py:126
+msgid "Status de Tramitação"
+msgstr "Estado del procedimiento"
+
+#: materia/models.py:466
+#, python-format
+msgid "%(sigla)s - %(descricao)s - %(indicador)s"
+msgstr "%(sigla)s - %(descricao)s - %(indicador)s"
+
+#: materia/models.py:481
+msgid "Unidade de Tramitação"
+msgstr "Unidad de conducta"
+
+#: materia/models.py:482
+msgid "Unidades de Tramitação"
+msgstr "Las unidades de conducta"
+
+#: materia/models.py:485
+#, python-format
+msgid "%(orgao)s %(comissao)s"
+msgstr "%(orgao)s %(comissao)s"
+
+#: materia/models.py:495
+msgid "Primeiro"
+msgstr "En primer lugar"
+
+#: materia/models.py:496
+msgid "Segundo"
+msgstr "Segundo"
+
+#: materia/models.py:498
+msgid "Suplementar"
+msgstr "Adicional"
+
+#: materia/models.py:499
+msgid "Final"
+msgstr "Final"
+
+#: materia/models.py:500
+msgid "Votação única em Regime de Urgência"
+msgstr "Voto único régimen de Urgencia "
+
+#: materia/models.py:501
+msgid "1ª Votação"
+msgstr "1ª Votación"
+
+#: materia/models.py:502
+msgid "2ª e 3ª Votação"
+msgstr "2ª y 3ª Votación"
+
+#: materia/models.py:506 protocoloadm/models.py:137
+msgid "Status"
+msgstr "Estado"
+
+#: materia/models.py:509 protocoloadm/models.py:140
+msgid "Data Tramitação"
+msgstr "Tratamiento de Datos"
+
+#: materia/models.py:515 protocoloadm/models.py:146
+msgid "Unidade Local"
+msgstr "Unidad Local"
+
+#: materia/models.py:517 protocoloadm/models.py:148
+msgid "Data Encaminhamento"
+msgstr "Fecha Envío"
+
+#: materia/models.py:523 protocoloadm/models.py:154
+msgid "Unidade Destino"
+msgstr "Unidad de destino"
+
+#: materia/models.py:525
+msgid "Urgente ?"
+msgstr "Urgente ?"
+
+#: materia/models.py:527
+msgid "Turno"
+msgstr "Gire"
+
+#: materia/models.py:530 protocoloadm/models.py:157
+msgid "Texto da Ação"
+msgstr "Texto de la acción"
+
+#: materia/models.py:536
+msgid "Tramitações"
+msgstr "trámites"
+
+#: materia/models.py:539
+#, python-format
+msgid "%(materia)s | %(status)s | %(data)s"
+msgstr "%(materia)s | %(status)s | %(data)s"
+
+#: norma/forms.py:21
+msgid "Assunto Norma Jurídica"
+msgstr "Tema Norma Legal"
+
+#: norma/forms.py:39
+msgid "Tipo Norma Jurídica"
+msgstr "Tipo Norma Legal"
+
+#: norma/forms.py:74
+msgid "Assuntos (Classificação) [+] "
+msgstr "Asuntos (Rating) [+]"
+
+#: norma/forms.py:92
+msgid "Legislação Citada"
+msgstr "Legislación citada"
+
+#: norma/models.py:9 protocoloadm/models.py:36 protocoloadm/models.py:60
+msgid "Assunto"
+msgstr "Tema"
+
+#: norma/models.py:14
+msgid "Assunto de Norma"
+msgstr "Sujeto a la norma"
+
+#: norma/models.py:15
+msgid "Assuntos de Norma"
+msgstr "Las cuestiones de la Norma"
+
+#: norma/models.py:42
+msgid "Equivalente LexML"
+msgstr "LexML equivalente"
+
+#: norma/models.py:48
+msgid "Tipo de Norma Jurídica"
+msgstr "Tipo de norma legal"
+
+#: norma/models.py:49
+msgid "Tipos de Norma Jurídica"
+msgstr "Tipos de norma legal"
+
+#: norma/models.py:57
+msgid "Estadual"
+msgstr "Estado"
+
+#: norma/models.py:58
+msgid "Federal"
+msgstr "Federal"
+
+#: norma/models.py:59
+msgid "Municipal"
+msgstr "Municipal"
+
+#: norma/models.py:68
+msgid "Esfera Federação"
+msgstr "Federación Esfera"
+
+#: norma/models.py:77
+msgid "Veículo Publicação"
+msgstr "Publicación de un vehículo"
+
+#: norma/models.py:79
+msgid "Pg. Início"
+msgstr "Pág. Comienzo"
+
+#: norma/models.py:81
+msgid "Pg. Fim"
+msgstr "Pág. Fin"
+
+#: norma/models.py:88
+msgid "Complementar ?"
+msgstr "Complementarios ?"
+
+#: norma/models.py:95
+msgid "Norma Jurídica"
+msgstr "Norma legal"
+
+#: norma/models.py:96
+msgid "Normas Jurídicas"
+msgstr "Las normas jurídicas"
+
+#: norma/models.py:99
+#, python-format
+msgid "%(tipo)s nº %(numero)s - %(materia)s - %(ano)s"
+msgstr "%(tipo)s nº %(numero)s - %(materia)s - %(ano)s"
+
+#: norma/models.py:110
+msgid "Disposição"
+msgstr "Disposición"
+
+#: norma/models.py:112
+msgid "Parte"
+msgstr "Parte"
+
+#: norma/models.py:114
+msgid "Livro"
+msgstr "Libro"
+
+#: norma/models.py:116
+msgid "Título"
+msgstr "Título"
+
+#: norma/models.py:118
+msgid "Capítulo"
+msgstr "Capítulo"
+
+#: norma/models.py:120
+msgid "Seção"
+msgstr "Sección"
+
+#: norma/models.py:122
+msgid "Subseção"
+msgstr "Subsección"
+
+#: norma/models.py:124
+msgid "Artigo"
+msgstr "El artículo"
+
+#: norma/models.py:126
+msgid "Parágrafo"
+msgstr "El párrafo"
+
+#: norma/models.py:128
+msgid "Inciso"
+msgstr "Inciso"
+
+#: norma/models.py:130
+msgid "Alínea"
+msgstr "parágrafo"
+
+#: norma/models.py:132
+msgid "Item"
+msgstr "Tema"
+
+#: norma/models.py:157
+msgid "Vínculo entre Normas Jurídicas"
+msgstr "Relación entre las normas jurídicas"
+
+#: norma/models.py:158
+msgid "Vínculos entre Normas Jurídicas"
+msgstr "Los vínculos entre las normas jurídicas"
+
+#: norma/models.py:161
+#, python-format
+msgid ""
+"Referente: %(referente)s \n"
+"Referida: %(referida)s \n"
+"Vínculo: %(vinculo)s"
+msgstr "Referente: %(referente)s \nReferida: %(referida)s \nVínculo: %(vinculo)s"
+
+#: parlamentares/forms.py:21 parlamentares/models.py:13
+#: parlamentares/models.py:50 parlamentares/models.py:344 sessao/models.py:32
+#: templates/sessao/sessaoplenaria_list.html:15
+msgid "Legislatura"
+msgstr "Poder Legislativo"
+
+#: parlamentares/forms.py:43 parlamentares/models.py:42 sessao/models.py:31
+#: templates/sessao/sessaoplenaria_list.html:14
+msgid "Sessão Legislativa"
+msgstr "Sesión Legislativa"
+
+#: parlamentares/forms.py:67 parlamentares/models.py:56
+#: parlamentares/models.py:346
+msgid "Coligação"
+msgstr "Coalición"
+
+#: parlamentares/forms.py:87
+msgid "Partido Político"
+msgstr "Partido Político"
+
+#: parlamentares/forms.py:109
+msgid "Cadastro do Parlamentar"
+msgstr "Parlamentarios de registro"
+
+#: parlamentares/forms.py:140 parlamentares/models.py:302
+msgid "Dependentes"
+msgstr "Dependiente"
+
+#: parlamentares/forms.py:158
+msgid "Filiações Partidárias "
+msgstr "Afiliaciones a partidos"
+
+#: parlamentares/forms.py:174 parlamentares/models.py:359
+msgid "Mandato"
+msgstr "Mandato"
+
+#: parlamentares/models.py:10
+msgid "Data Eleição"
+msgstr "Fecha Elección"
+
+#: parlamentares/models.py:14
+msgid "Legislaturas"
+msgstr "Las Legislaturas"
+
+#: parlamentares/models.py:17
+#, python-format
+msgid "Eleição: %(eleicao)s - Início: %(inicio)s | Fim: %(fim)s"
+msgstr "Elección: %(eleicao)s - Início: %(inicio)s | Fin: %(fim)s"
+
+#: parlamentares/models.py:26
+msgid "Ordinária"
+msgstr "Ordinarias"
+
+#: parlamentares/models.py:27
+msgid "Extraordinária"
+msgstr "Extraordinaria"
+
+#: parlamentares/models.py:37
+msgid "Início Intervalo"
+msgstr "Inicio del intervalo"
+
+#: parlamentares/models.py:39
+msgid "Fim Intervalo"
+msgstr "Fin Intervalo"
+
+#: parlamentares/models.py:43
+msgid "Sessões Legislativas"
+msgstr "Las sesiones legislativas"
+
+#: parlamentares/models.py:53
+msgid "Nº Votos Recebidos"
+msgstr "Nº votos recibidos"
+
+#: parlamentares/models.py:57
+msgid "Coligações"
+msgstr "Las coaliciones"
+
+#: parlamentares/models.py:67
+msgid "Data Criação"
+msgstr "Fecha de creación "
+
+#: parlamentares/models.py:69
+msgid "Data Extinção"
+msgstr "Fecha Extinción"
+
+#: parlamentares/models.py:72 parlamentares/models.py:311
+msgid "Partido"
+msgstr "Partido"
+
+#: parlamentares/models.py:73
+msgid "Partidos"
+msgstr "Partidos"
+
+#: parlamentares/models.py:76
+#, python-format
+msgid "%(sigla)s - %(nome)s"
+msgstr "%(sigla)s - %(nome)s"
+
+#: parlamentares/models.py:145
+msgid "Municípios"
+msgstr "Municipios"
+
+#: parlamentares/models.py:148
+#, python-format
+msgid "%(nome)s - %(uf)s (%(regiao)s)"
+msgstr "%(nome)s - %(uf)s (%(regiao)s)"
+
+#: parlamentares/models.py:155
+msgid "Nível de Instrução"
+msgstr "Nivel de instrucción"
+
+#: parlamentares/models.py:158 parlamentares/models.py:187
+msgid "Nível Instrução"
+msgstr "Nivel de instrucción"
+
+#: parlamentares/models.py:159
+msgid "Níveis Instrução"
+msgstr "Los niveles Instrucciones"
+
+#: parlamentares/models.py:167 parlamentares/models.py:192
+msgid "Situação Militar"
+msgstr "Situación Militar"
+
+#: parlamentares/models.py:170
+msgid "Tipo Situação Militar"
+msgstr "Tipo Situación Militar"
+
+#: parlamentares/models.py:171
+msgid "Tipos Situações Militares"
+msgstr "Tipos situaciones militares"
+
+#: parlamentares/models.py:180 parlamentares/models.py:280
+msgid "Feminino"
+msgstr "Mujeres"
+
+#: parlamentares/models.py:181 parlamentares/models.py:281
+msgid "Masculino"
+msgstr "Masculino"
+
+#: parlamentares/models.py:194
+msgid "Nome Completo"
+msgstr "Nombre completo"
+
+#: parlamentares/models.py:199
+msgid "Nome Parlamentar"
+msgstr "Nombre Parlamentario"
+
+#: parlamentares/models.py:201 parlamentares/models.py:287
+msgid "Sexo"
+msgstr "Sexo"
+
+#: parlamentares/models.py:203 parlamentares/models.py:289
+msgid "Data Nascimento"
+msgstr "Fecha de nacimiento"
+
+#: parlamentares/models.py:205
+msgid "C.P.F"
+msgstr "C. P. F"
+
+#: parlamentares/models.py:207
+msgid "R.G."
+msgstr "R. G."
+
+#: parlamentares/models.py:212
+msgid "Título de Eleitor"
+msgstr "Título de Elector"
+
+#: parlamentares/models.py:215
+msgid "Nº Gabinete"
+msgstr "No gabinete"
+
+#: parlamentares/models.py:224
+msgid "Endereço Residencial"
+msgstr "Dirección de su casa"
+
+#: parlamentares/models.py:233
+msgid "Telefone Residencial"
+msgstr "Teléfono de casa"
+
+#: parlamentares/models.py:238
+msgid "Fax Residencial"
+msgstr "Fax Residencial"
+
+#: parlamentares/models.py:242
+msgid "Profissão"
+msgstr "Profesión"
+
+#: parlamentares/models.py:247
+msgid "Correio Eletrônico"
+msgstr "E-Mail"
+
+#: parlamentares/models.py:252
+msgid "Locais de Atuação"
+msgstr "Ubicaciones "
+
+#: parlamentares/models.py:253
+msgid "Ativo na Casa?"
+msgstr "Activo en la casa?"
+
+#: parlamentares/models.py:255
+msgid "Biografia"
+msgstr "Biografía"
+
+#: parlamentares/models.py:260
+msgid "Parlamentares"
+msgstr "Parlamentario"
+
+#: parlamentares/models.py:270
+msgid "Tipo de Dependente"
+msgstr "Tipo de función"
+
+#: parlamentares/models.py:271
+msgid "Tipos de Dependente"
+msgstr "Tipos de dependencia"
+
+#: parlamentares/models.py:291
+msgid "CPF"
+msgstr "CPF"
+
+#: parlamentares/models.py:293
+msgid "RG"
+msgstr "RG"
+
+#: parlamentares/models.py:298
+msgid "Nº Título Eleitor"
+msgstr "No. Título del Votante"
+
+#: parlamentares/models.py:301
+msgid "Dependente"
+msgstr "Dependiente"
+
+#: parlamentares/models.py:309
+msgid "Data Filiação"
+msgstr ""
+
+#: parlamentares/models.py:313
+msgid "Data Desfiliação"
+msgstr ""
+
+#: parlamentares/models.py:316
+msgid "Filiação"
+msgstr ""
+
+#: parlamentares/models.py:317
+msgid "Filiações"
+msgstr ""
+
+#: parlamentares/models.py:320
+#, python-format
+msgid "%(parlamentar)s - %(partido)s"
+msgstr ""
+
+#: parlamentares/models.py:327 parlamentares/models.py:328
+msgid "Indicador"
+msgstr ""
+
+#: parlamentares/models.py:330
+msgid "Dispositivo"
+msgstr ""
+
+#: parlamentares/models.py:333
+msgid "Tipo de Afastamento"
+msgstr ""
+
+#: parlamentares/models.py:334
+msgid "Tipos de Afastamento"
+msgstr ""
+
+#: parlamentares/models.py:350
+msgid "Fim do Mandato"
+msgstr ""
+
+#: parlamentares/models.py:352
+msgid "Votos Recebidos"
+msgstr ""
+
+#: parlamentares/models.py:354
+msgid "Expedição do Diploma"
+msgstr ""
+
+#: parlamentares/models.py:360
+msgid "Mandatos"
+msgstr ""
+
+#: parlamentares/models.py:363
+#, python-format
+msgid "%(parlamentar)s %(legislatura)s"
+msgstr ""
+
+#: parlamentares/models.py:371 parlamentares/models.py:375
+msgid "Cargo na Mesa"
+msgstr ""
+
+#: parlamentares/models.py:372
+msgid "Cargo Único"
+msgstr ""
+
+#: parlamentares/models.py:376
+msgid "Cargos na Mesa"
+msgstr ""
+
+#: parlamentares/models.py:389
+msgid "Ocupação de cargo na Mesa"
+msgstr ""
+
+#: parlamentares/models.py:390
+msgid "Ocupações de cargo na Mesa"
+msgstr ""
+
+#: parlamentares/models.py:393
+#, python-format
+msgid "%(parlamentar)s - %(cargo)s"
+msgstr ""
+
+#: protocoloadm/forms.py:22
+msgid "Tipo Documento Administrativo"
+msgstr ""
+
+#: protocoloadm/forms.py:39 protocoloadm/forms.py:97
+msgid "Formulário de Cadastro"
+msgstr ""
+
+#: protocoloadm/forms.py:48 protocoloadm/forms.py:110
+msgid "Indentificação Básica"
+msgstr ""
+
+#: protocoloadm/forms.py:72 protocoloadm/forms.py:159
+#: protocoloadm/models.py:41
+msgid "Documento Administrativo"
+msgstr ""
+
+#: protocoloadm/forms.py:138
+msgid "Status Tramitação Administrativo"
+msgstr ""
+
+#: protocoloadm/models.py:13
+msgid "Tipo de Documento Administrativo"
+msgstr ""
+
+#: protocoloadm/models.py:14
+msgid "Tipos de Documento Administrativo"
+msgstr ""
+
+#: protocoloadm/models.py:29 protocoloadm/models.py:81
+msgid "Interessado"
+msgstr ""
+
+#: protocoloadm/models.py:42
+msgid "Documentos Administrativos"
+msgstr ""
+
+#: protocoloadm/models.py:45
+#, python-format
+msgid "%(tipo)s - %(assunto)s"
+msgstr ""
+
+#: protocoloadm/models.py:55
+msgid "Arquivo"
+msgstr ""
+
+#: protocoloadm/models.py:73
+msgid "Número do Protocolo"
+msgstr ""
+
+#: protocoloadm/models.py:78
+msgid "Tipo de Protocolo"
+msgstr ""
+
+#: protocoloadm/models.py:88
+msgid "Tipo de documento"
+msgstr ""
+
+#: protocoloadm/models.py:95
+msgid "Número de Páginas"
+msgstr ""
+
+#: protocoloadm/models.py:106
+msgid "Protocolo"
+msgstr ""
+
+#: protocoloadm/models.py:107
+msgid "Protocolos"
+msgstr ""
+
+#: protocoloadm/models.py:159
+msgid "Data Fim do Prazo"
+msgstr ""
+
+#: protocoloadm/models.py:162
+msgid "Tramitação de Documento Administrativo"
+msgstr ""
+
+#: protocoloadm/models.py:163
+msgid "Tramitações de Documento Administrativo"
+msgstr ""
+
+#: protocoloadm/models.py:166
+#, python-format
+msgid "%(documento)s - %(status)s"
+msgstr ""
+
+#: sessao/forms.py:22 sessao/models.py:15
+msgid "Tipo de Sessão Plenária"
+msgstr ""
+
+#: sessao/forms.py:66
+msgid "Cadastro de Matérias do Expediente"
+msgstr ""
+
+#: sessao/forms.py:87 sessao/models.py:100
+msgid "Tipo de Expediente"
+msgstr ""
+
+#: sessao/forms.py:104
+msgid "Cadastro de Matérias da Ordem do Dia"
+msgstr ""
+
+#: sessao/forms.py:125
+msgid "Tipo de Resultado da Votação"
+msgstr ""
+
+#: sessao/forms.py:142
+msgid "Votação Simbólica"
+msgstr ""
+
+#: sessao/models.py:12
+msgid "Quórum mínimo"
+msgstr ""
+
+#: sessao/models.py:16
+msgid "Tipos de Sessão Plenária"
+msgstr ""
+
+#: sessao/models.py:35
+msgid "Abertura"
+msgstr ""
+
+#: sessao/models.py:37 sessao/models.py:39
+msgid "Horário"
+msgstr ""
+
+#: sessao/models.py:42
+msgid "Encerramento"
+msgstr ""
+
+#: sessao/models.py:45
+msgid "URL Arquivo Áudio (Formatos MP3 / AAC)"
+msgstr ""
+
+#: sessao/models.py:48
+msgid "URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)"
+msgstr ""
+
+#: sessao/models.py:51
+msgid "Sessão Plenária"
+msgstr ""
+
+#: sessao/models.py:52
+msgid "Sessões Plenárias"
+msgstr ""
+
+#: sessao/models.py:55
+#, python-format
+msgid ""
+"%(numero)sª Sessão %(tipo_nome)s da %(sessao_legislativa_numero)sª Sessão "
+"Legislativa da %(legislatura_id)sª Legislatura"
+msgstr ""
+
+#: sessao/models.py:67
+msgid "Simbólica"
+msgstr ""
+
+#: sessao/models.py:68
+msgid "Nominal"
+msgstr ""
+
+#: sessao/models.py:69
+msgid "Secreta"
+msgstr ""
+
+#: sessao/models.py:74
+msgid "Data da Sessão"
+msgstr ""
+
+#: sessao/models.py:77
+msgid "Nº Ordem"
+msgstr ""
+
+#: sessao/models.py:80
+msgid "Tipo de votação"
+msgstr ""
+
+#: sessao/models.py:92
+msgid "Matéria do Expediente"
+msgstr ""
+
+#: sessao/models.py:93
+msgid "Matérias do Expediente"
+msgstr ""
+
+#: sessao/models.py:101
+msgid "Tipos de Expediente"
+msgstr ""
+
+#: sessao/models.py:111
+msgid "Conteúdo do expediente"
+msgstr ""
+
+#: sessao/models.py:114
+msgid "Expediente de Sessão Plenaria"
+msgstr ""
+
+#: sessao/models.py:115
+msgid "Expedientes de Sessão Plenaria"
+msgstr ""
+
+#: sessao/models.py:127
+msgid "Participação em Mesa de Sessão Plenaria"
+msgstr ""
+
+#: sessao/models.py:128
+msgid "Participações em Mesas de Sessão Plenaria"
+msgstr ""
+
+#: sessao/models.py:138
+msgid "Ordem de pronunciamento"
+msgstr ""
+
+#: sessao/models.py:140
+msgid "URL Vídeo"
+msgstr ""
+
+#: sessao/models.py:146
+#, python-format
+msgid "%(nome)s (%(numero)sº orador)"
+msgstr ""
+
+#: sessao/models.py:154
+msgid "Orador das Explicações Pessoais"
+msgstr ""
+
+#: sessao/models.py:155
+msgid "Oradores das Explicações Pessoais"
+msgstr ""
+
+#: sessao/models.py:161
+msgid "Orador do Expediente"
+msgstr ""
+
+#: sessao/models.py:162
+msgid "Oradores do Expediente"
+msgstr ""
+
+#: sessao/models.py:168
+msgid "Matéria da Ordem do Dia"
+msgstr ""
+
+#: sessao/models.py:169
+msgid "Matérias da Ordem do Dia"
+msgstr ""
+
+#: sessao/models.py:178
+msgid "Presença da Ordem do Dia"
+msgstr ""
+
+#: sessao/models.py:179
+msgid "Presenças da Ordem do Dia"
+msgstr ""
+
+#: sessao/models.py:189
+msgid "Tipo de Resultado de Votação"
+msgstr ""
+
+#: sessao/models.py:190
+msgid "Tipos de Resultado de Votação"
+msgstr ""
+
+#: sessao/models.py:198
+msgid "Resultado da Votação"
+msgstr ""
+
+#: sessao/models.py:201
+msgid "Sim"
+msgstr ""
+
+#: sessao/models.py:202
+msgid "Não"
+msgstr ""
+
+#: sessao/models.py:203
+msgid "Abstenções"
+msgstr ""
+
+#: sessao/models.py:205
+msgid "Observações"
+msgstr ""
+
+#: sessao/models.py:208
+msgid "Votação"
+msgstr ""
+
+#: sessao/models.py:209
+msgid "Votações"
+msgstr ""
+
+#: sessao/models.py:222
+msgid "Registro de Votação de Parlamentar"
+msgstr ""
+
+#: sessao/models.py:223
+msgid "Registros de Votações de Parlamentares"
+msgstr ""
+
+#: sessao/models.py:235
+msgid "Presença em Sessão Plenária"
+msgstr ""
+
+#: sessao/models.py:236
+msgid "Presenças em Sessões Plenárias"
+msgstr ""
+
+#: templates/base.html:7
+msgid "SAPL - Sistema de Apoio ao Processo Legislativo"
+msgstr ""
