@@ -179,8 +179,9 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name_plural = _('Presenças da Ordem do Dia')
 
     def __str__(self):
-        return str(self.parlamentar)  # FIXME
-
+        return _('Sessão: %(sessao)s Parlamentar: %(parlamentar)s') % {
+            'sessao': self.sessao,
+            'parlamentar': self.parlamentar}
 
 class TipoResultadoVotacao(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
@@ -209,7 +210,9 @@ class RegistroVotacao(models.Model):
         verbose_name_plural = _('Votações')
 
     def __str__(self):
-        return str(self.materia)  # FIXME
+         return _('Ordem: %(ordem)s - Votação: %(votacao)s - Matéria: %(materia)s') % {
+            'ordem': self.ordem, 'votacao': self.tipo_resultado_votacao, 'materia': self.materia}
+
 
 
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
@@ -223,7 +226,8 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name_plural = _('Registros de Votações de Parlamentares')
 
     def __str__(self):
-        return str(self.parlamentar)  # FIXME
+        return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
+            'votacao': self.votacao, 'parlamentar': self.parlamentar}
 
 
 class SessaoPlenariaPresenca(models.Model):
@@ -236,4 +240,5 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name_plural = _('Presenças em Sessões Plenárias')
 
     def __str__(self):
-        return str(self.parlamentar)  # FIXME
+        return _('Sessão: %(sessao_plen)s Data: %(data)s') % {
+            'sessao_plen': self.sessao_plen, 'data': self.data}

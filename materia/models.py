@@ -129,7 +129,8 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
         verbose_name_plural = _('Acompanhamentos de Matéria')
 
     def __str__(self):
-        return str(self.materia)  # FIXME
+        return _('%(materia)s - #%(hash)s') % {
+            'materia': self.materia, 'hash': self.hash}
 
 
 class Anexada(models.Model):

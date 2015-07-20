@@ -88,7 +88,9 @@ class ComposicaoColigacao(models.Model):
         verbose_name_plural = ('Composição Coligações')
 
     def __str__(self):
-        return str(self.coligacao)  # FIXME
+        return _(u'%(partido)s - %(coligacao)s') % {
+            'partido': self.partido, 'coligacao': self.coligacao
+        }
 
 
 class Municipio(models.Model):  # Localidade
