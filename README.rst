@@ -64,7 +64,10 @@ To integrate the last translations on a working instance follow these steps:
 
 * `Pull translations <http://docs.transifex.com/client/pull/>`_  or `push translations <http://docs.transifex.com/client/push/>`_  using the client. Pull only on a clean repo, i.e. commit your changes before pulling new translations.
 
-* Run the program with ``.manage.py runserver`` and browse the system to see the translations into effect.
+* Run the program with ``.manage.py runserver`` and check the system to see the translations into effect.
+
+.. note::
+  The browser language preference is used to choose the translations to display.
 
 
 General implementation guidelines
