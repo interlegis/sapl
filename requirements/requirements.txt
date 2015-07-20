@@ -1,8 +1,10 @@
+crispy-forms-foundation
 Django
 django-admin-bootstrapped
 django-bootstrap3
 django-braces
 django-crispy-forms
+django-zurb-foundation
 psycopg2
 pytz
 PyYAML

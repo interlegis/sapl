@@ -54,6 +54,10 @@ INSTALLED_APPS = (
     'django_extensions',
     'bootstrap3',
     'crispy_forms',
+
+    # zurb foundation
+    'foundation',
+    'crispy_forms_foundation',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -118,9 +122,12 @@ LOCALE_PATHS = (
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
+)
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_TEMPLATE_PACK = 'foundation-5'
 CRISPY_FAIL_SILENTLY = not DEBUG

@@ -1,5 +1,5 @@
-from crispy_forms.bootstrap import FormActions
-from crispy_forms.layout import Submit, Reset, Layout, Div, Fieldset
+from crispy_forms_foundation.layout import (
+    Layout, Fieldset, Row, Column, ButtonGroup, Button, Submit)
 from django.utils.translation import ugettext as _
 
 
@@ -9,11 +9,11 @@ def to_column(name_span):
     except:
         return name_span
     else:
-        return Div(fieldname, css_class='col-xs-%d' % span)
+        return Column(fieldname, css_class='large-%d' % span)
 
 
 def to_row(names_spans):
-    return Div(*list(map(to_column, names_spans)), css_class='row-fluid')
+    return Row(*list(map(to_column, names_spans)))
 
 
 def to_fieldsets(fields):
@@ -29,9 +29,21 @@ def to_fieldsets(fields):
 class SaplFormLayout(Layout):
 
     def __init__(self, *fields):
-        _fields = list(to_fieldsets(fields)) + [
-            FormActions(
-                Submit('save', _('Save'), css_class='btn btn-primary '),
-                Reset('reset', _('Cancel'), css_class='btn'))
-        ]
+        _fields = list(to_fieldsets(fields)) + buttons_crispies()
         super(SaplFormLayout, self).__init__(*_fields)
+
+
+def buttons_crispies():
+    return [
+        Row(
+            Column(
+                ButtonGroup(
+                    Submit('submit', _('Submit'), css_class='success'),
+                    Button('cancel', _('Cancel')),
+                    Button('dummy', _('Delete'), css_class='alert'),
+                    css_class='radius right'
+                ),
+                css_class='clearfix'
+            ),
+        ),
+    ]
