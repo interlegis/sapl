@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido

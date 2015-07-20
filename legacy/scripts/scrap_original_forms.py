@@ -180,7 +180,7 @@ def print_app_with_verbose_names(app):
             continue
         elif line == 'from django.db import models':
             header += '''from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 '''
         elif 'class' in line:
             break

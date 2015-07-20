@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Parlamentar, SessaoLegislativa,
