@@ -71,3 +71,4 @@ target/
 .settings
 .vagrant
 
+static
