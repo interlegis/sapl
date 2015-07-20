@@ -179,9 +179,11 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name_plural = _('Presenças da Ordem do Dia')
 
     def __str__(self):
+        # FIXME ambigous
         return _('Sessão: %(sessao)s Parlamentar: %(parlamentar)s') % {
-            'sessao': self.sessao,
+            'sessao': self.sessao_plenaria,
             'parlamentar': self.parlamentar}
+
 
 class TipoResultadoVotacao(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
@@ -241,4 +243,4 @@ class SessaoPlenariaPresenca(models.Model):
 
     def __str__(self):
         return _('Sessão: %(sessao_plen)s Data: %(data)s') % {
-            'sessao_plen': self.sessao_plen, 'data': self.data}
+            'sessao_plen': self.sessao_plen, 'data': self.data_sessao}

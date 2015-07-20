@@ -129,6 +129,7 @@ class AcompanhamentoMateria(models.Model):  # AcompMateria
         verbose_name_plural = _('Acompanhamentos de Matéria')
 
     def __str__(self):
+        # FIXME str should be human readable, using hash is very strange
         return _('%(materia)s - #%(hash)s') % {
             'materia': self.materia, 'hash': self.hash}
 
