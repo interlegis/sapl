@@ -1,9 +1,11 @@
 from braces.views import FormMessagesMixin
 from django.core.urlresolvers import reverse_lazy
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView, DetailView
+from django.views.generic import (
+    CreateView, DeleteView, ListView, UpdateView, DetailView)
 
 from sessao.models import SessaoPlenaria
 from .forms import SessaoPlenariaForm
+
 
 class SessaoPlenariaListView(ListView):
     model = SessaoPlenaria

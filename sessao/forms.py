@@ -43,12 +43,12 @@ class SessaoPlenariaForm(forms.ModelForm):
               ('sessao_legislativa', 3)],
              [('data_inicio', 12)],
              [('data_fim', 12)],
-             [('dia',2),
-              ('hora_inicio',2),
-              ('hora_fim',2),
-              ('tipo_expediente',6)],
+             [('dia', 2),
+              ('hora_inicio', 2),
+              ('hora_fim', 2),
+              ('tipo_expediente', 6)],
              [('url_audio', 6), ('url_video', 6)]],
-             
+
         )
 
 

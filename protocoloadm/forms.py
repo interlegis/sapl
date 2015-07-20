@@ -65,7 +65,8 @@ class DocumentoAcessorioAdministrativoForm(forms.ModelForm):
         exclude = []
 
     def __init__(self, *args, **kwargs):
-        super(DocumentoAcessorioAdministrativoForm, self).__init__(*args, **kwargs)
+        super(DocumentoAcessorioAdministrativoForm, self).__init__(
+            *args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
 
@@ -131,7 +132,8 @@ class StatusTramitacaoAdministrativoForm(forms.ModelForm):
         exclude = []
 
     def __init__(self, *args, **kwargs):
-        super(StatusTramitacaoAdministrativoForm, self).__init__(*args, **kwargs)
+        super(StatusTramitacaoAdministrativoForm, self).__init__(
+            *args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
 

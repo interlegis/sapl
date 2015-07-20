@@ -52,7 +52,8 @@ class SessaoPlenaria(models.Model):
         verbose_name_plural = _('Sessões Plenárias')
 
     def __str__(self):
-        return _('%(numero)sª Sessão %(tipo_nome)s da %(sessao_legislativa_numero)sª Sessão Legislativa'
+        return _('%(numero)sª Sessão %(tipo_nome)s'
+                 ' da %(sessao_legislativa_numero)sª Sessão Legislativa'
                  ' da %(legislatura_id)sª Legislatura') % {
 
             'numero': self.numero,
@@ -212,9 +213,11 @@ class RegistroVotacao(models.Model):
         verbose_name_plural = _('Votações')
 
     def __str__(self):
-         return _('Ordem: %(ordem)s - Votação: %(votacao)s - Matéria: %(materia)s') % {
-            'ordem': self.ordem, 'votacao': self.tipo_resultado_votacao, 'materia': self.materia}
-
+        return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
+                 'Matéria: %(materia)s') % {
+            'ordem': self.ordem,
+            'votacao': self.tipo_resultado_votacao,
+            'materia': self.materia}
 
 
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar

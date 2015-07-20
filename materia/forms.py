@@ -2,9 +2,10 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.utils.translation import ugettext as _
 
-from .models import (Origem, MateriaLegislativa, Anexada, TipoAutor, Autor,
-                     Autoria, DocumentoAcessorio, Numeracao, Orgao, Relatoria,
-                     TipoProposicao, Proposicao, StatusTramitacao, UnidadeTramitacao, Tramitacao, )
+from .models import (
+    Origem, MateriaLegislativa, Anexada, TipoAutor, Autor, Autoria,
+    DocumentoAcessorio, Numeracao, Orgao, Relatoria, TipoProposicao,
+    Proposicao, StatusTramitacao, UnidadeTramitacao, Tramitacao)
 from sapl.layout import SaplFormLayout
 
 

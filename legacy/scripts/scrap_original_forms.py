@@ -228,9 +228,12 @@ def extract_fieldsets_for_current(model):
             reverse_field_renames.update(adjustments)
 
         for fieldset in fieldsets:
-            rows = [colsplit([reverse_field_renames.get(name, '%s_FIXME' % name)
-                              for name, __ in line])
-                    for line in fieldset['lines'] if line]
+            rows = [
+                colsplit(
+                    [reverse_field_renames.get(name, '%s_FIXME' % name)
+                     for name, __ in line])
+                for line in fieldset['lines'] if line
+            ]
             yield [fieldset['legend']] + rows
     except Exception as e:
         print_title_and_fieldsets(model)
