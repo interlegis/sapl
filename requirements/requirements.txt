@@ -3,7 +3,6 @@ django-admin-bootstrapped
 django-bootstrap3
 django-braces
 django-crispy-forms
-mysqlclient
 psycopg2
 pytz
 PyYAML

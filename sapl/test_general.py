@@ -1,7 +1,7 @@
 import pytest
 from model_mommy import mommy
 
-from legacy.migration import appconfs
+from .utils import appconfs
 
 
 pytestmark = pytest.mark.django_db

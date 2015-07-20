@@ -39,9 +39,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # legacy reversed model definitions (temporary)
-    'legacy',
-
     # sapl modules
     'base',
     'parlamentares',
@@ -89,7 +86,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
@@ -101,18 +97,8 @@ DATABASES = {
         'PASSWORD': 'sapl',
         'HOST': 'localhost',
         'PORT': '5432',
-    },
-    'legacy': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sapl25',
-        'USER': 'root',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-        'PORT': '3306',
     }
 }
-
-DATABASE_ROUTERS = ['legacy.router.LegacyRouter', ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

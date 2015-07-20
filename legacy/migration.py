@@ -11,19 +11,11 @@ from model_mommy import mommy
 
 from comissoes.models import Composicao, Participacao
 from parlamentares.models import Parlamentar
+from sapl.utils import appconfs
 
 
 # BASE ######################################################################
 
-# this order is important for the migration
-appconfs = [apps.get_app_config(n) for n in [
-    'parlamentares',
-    'comissoes',
-    'materia',
-    'norma',
-    'sessao',
-    'lexml',
-    'protocoloadm', ]]
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
 # apps do not overlap

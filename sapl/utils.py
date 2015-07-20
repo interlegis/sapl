@@ -2,6 +2,19 @@ from django.apps import apps
 from django.contrib import admin
 
 
+# SAPL business apps
+#  This is a dependency order: each entry depends only on previous ones
+#  The order is important for migration code
+appconfs = [apps.get_app_config(n) for n in [
+    'parlamentares',
+    'comissoes',
+    'materia',
+    'norma',
+    'sessao',
+    'lexml',
+    'protocoloadm', ]]
+
+
 def register_all_models_in_admin(module_name):
     appname = module_name.split('.')[0]
     app = apps.get_app_config(appname)
