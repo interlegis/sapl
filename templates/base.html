@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% block header_content %}
+  {% block head_content %}
   <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
   <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
   <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
@@ -34,6 +34,15 @@
           <a href="#" class="close">&times;</a>
         </div>
       {% endfor %}
+
+      {% block base_header %}
+      <div class="clearfix">
+        {% block help %}
+          {% if view.help_url %}<a class="contextual-help right" href="{{ view.help_url }}">{% trans 'Ajuda' %}</a>{% endif %}
+        {% endblock %}
+        {% block title %}{% if view.title %}<h1>{{ view.title }}</h1>{% endif %}{% endblock %}
+      </div>
+      {% endblock %}
 
       {% block base_content %}{% endblock %}
     </div>
