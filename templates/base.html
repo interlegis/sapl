@@ -4,22 +4,22 @@
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
 <head>
-    <meta charset="utf-8">
-    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% block header_content %}
-    <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-    {% endblock %}
+  <meta charset="utf-8">
+  <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% block header_content %}
+  <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
+  <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
+  <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+  <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
+  <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
+  {% endblock %}
 </head>
 
 <body>
     <header>
-        ... header ...
-        <hr/>
+      ... header ...
+      <hr/>
     </header>
 
     <!-- Content -->
@@ -35,23 +35,21 @@
         </div>
       {% endfor %}
 
-      {% block content %}{% endblock %}
+      {% block base_content %}{% endblock %}
     </div>
     {% endblock %}
     <!-- END Content -->
 
     <footer id="footer">
-        <hr/>
-        ... footer...
+      <hr/>
+      ... footer...
     </footer>
 
-    {% block foot_more_js %}{% endblock %}
+    {% block foot_js %}{% endblock %}
 
     {# Init Foundation #}
     {% block foundation_js_init %}
-    <script>
-        $(document).foundation();
-    </script>
+    <script> $(document).foundation(); </script>
     {% endblock foundation_js_init %}
 </body>
 </html>

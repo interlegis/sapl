@@ -3,9 +3,7 @@
 
 {% block title %}SAPL{% endblock %}
 
-{% block content %}
-  <div id="content-main">
-      {% crispy form %}
-  </div>
+{% block base_content %}
+  {% crispy form %}
 {% endblock %}
 

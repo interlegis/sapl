@@ -3,28 +3,26 @@
 
 {% block title %}SAPL{% endblock %}
 
-{% block content %}
-  <div id="content-main">
-    <p>Sessão Legislativa</p>
-    <a href="{% url 'sessao_create' %}" class="btn btn-default">Incluir Sessão</a>
-    <hr/>
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>{% trans 'Sessão Legislativa' %}</th>
-                <th>{% trans 'Legislatura' %}</th>
-                <th>{% trans 'Tipo' %}</th>                
-            </tr>
-        </thead>
-        <tbody>
-            {% for sessao in object_list %}
-                <td>{{ sessao.sessao_legislativa }}</td>
-                <td>{{ sessao.legislatura }}</td>
-                <td>{{ sessao.tipo }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-  </div>
+{% block base_content %}
+  <p>Sessão Plenária</p>
+  <a href="{% url 'sessao_create' %}" class="btn btn-default">Incluir Sessão</a>
+  <hr/>
+  <table class="table table-hover">
+      <thead>
+          <tr>
+              <th>{% trans 'Sessão Legislativa' %}</th>
+              <th>{% trans 'Legislatura' %}</th>
+              <th>{% trans 'Tipo' %}</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for sessao in object_list %}
+              <td>{{ sessao.sessao_legislativa }}</td>
+              <td>{{ sessao.legislatura }}</td>
+              <td>{{ sessao.tipo }}</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
 {% endblock %}
 
