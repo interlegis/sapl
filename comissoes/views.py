@@ -3,8 +3,8 @@ from django.core.urlresolvers import reverse_lazy
 from django.views.generic import (
     CreateView, DeleteView, ListView, UpdateView, DetailView)
 
-from comissoes.models import Comissao
 from .forms import ComissaoForm
+from .models import Comissao
 
 
 class ComissaoListView(ListView):
