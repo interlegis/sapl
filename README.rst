@@ -112,13 +112,6 @@ Tests
 
 * To run all tests activate your virtualenv and issue these commands
   **at the root of the repository**:
-
-  - When you run the tests for the first time::
-
-     py.test --create-db
-
-  - And afterwards simply::
-
      py.test
 
 * To run the tests with coverage issue the command::
