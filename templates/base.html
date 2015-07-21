@@ -26,7 +26,16 @@
     {% block content_container %}
     {# FIXME: row class is not for that: replace it keeping the layout (notice width) #}
     <div id="body_content" class="row">
-        {% block content %}{% endblock %}
+
+      {# Feedback messages #}
+      {% for message in messages %}
+        <div data-alert class="alert-box {% if message.tags == 'error' %}alert{% else %}{{ message.tags }}{% endif %} radius">
+          {{ message|safe }}
+          <a href="#" class="close">&times;</a>
+        </div>
+      {% endfor %}
+
+      {% block content %}{% endblock %}
     </div>
     {% endblock %}
     <!-- END Content -->
