@@ -38,9 +38,9 @@ def buttons_crispies():
         Row(
             Column(
                 Div(
-                    Submit('submit', _('Submit'),
+                    Submit('submit', _('Enviar'),
                            css_class='button radius success right'),
-                    Button('cancel', _('Cancel'),
+                    Button('cancel', _('Cancelar'),
                            css_class='button radius alert left'),
                     css_class='radius clearfix'
                 ),
