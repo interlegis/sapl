@@ -1,5 +1,5 @@
 from crispy_forms_foundation.layout import (
-    Layout, Fieldset, Row, Column, ButtonGroup, Button, Submit)
+    Div, Layout, Fieldset, Row, Column, Button, Submit)
 from django.utils.translation import ugettext as _
 
 
@@ -37,11 +37,12 @@ def buttons_crispies():
     return [
         Row(
             Column(
-                ButtonGroup(
-                    Submit('submit', _('Submit'), css_class='success'),
-                    Button('cancel', _('Cancel')),
-                    Button('dummy', _('Delete'), css_class='alert'),
-                    css_class='radius right'
+                Div(
+                    Submit('submit', _('Submit'),
+                           css_class='button radius success right'),
+                    Button('cancel', _('Cancel'),
+                           css_class='button radius alert left'),
+                    css_class='radius clearfix'
                 ),
                 css_class='clearfix'
             ),
