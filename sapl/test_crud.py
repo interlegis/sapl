@@ -59,3 +59,13 @@ def test_flux_list_create_detail(app):
     # on detail page
     assert 'Registro criado com sucesso!' in res
     assert_h1(res, stub_name)
+
+
+def test_flux_detail_update_detail(app):
+
+    stub_name = 'Comissão Stub'
+    stub = mommy.make(Comissao, nome=stub_name)
+    res = app.get('/comissoes/%s' % stub.id)
+    assert_h1(res, stub_name)
+    assert not res.forms
+    res = res.click('Editar Comissão')

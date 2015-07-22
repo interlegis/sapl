@@ -2,6 +2,14 @@
 {% load i18n crispy_forms_tags %}
 
 {% block base_content %}
+
+  {# FIXME is this the best markup to use? #}
+  <dl class="sub-nav">
+    <dd><a href="{{ view.update_url }}">
+      {% blocktrans with verbose_name=view.verbose_name %} Editar {{ verbose_name }} {% endblocktrans %}
+    </a></dd>
+  </dl>
+
   TODO ...
 {% endblock %}
 
