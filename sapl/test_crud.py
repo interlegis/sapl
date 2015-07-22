@@ -31,6 +31,7 @@ def test_flux_list_create_detail(app):
     # on list page
     assert_h1(res, 'Comissões')
     res = res.click('Adicionar Comissão')
+    previous_objects = set(Comissao.objects.all())
 
     # on create page
     assert_h1(res, 'Adicionar Comissão')
@@ -41,6 +42,7 @@ def test_flux_list_create_detail(app):
     # some fields are required => validation error
     res = res.form.submit()
     'Formulário inválido. O registro não foi criado.' in res
+    assert previous_objects == set(Comissao.objects.all())
 
     # now fill out some fields
     form = res.form
@@ -59,15 +61,16 @@ def test_flux_list_create_detail(app):
     # on detail page
     assert 'Registro criado com sucesso!' in res
     assert_h1(res, stub_name)
+    [new_obj] = list(set(Comissao.objects.all()) - previous_objects)
+    assert new_obj.nome == stub_name
 
 
 def get_detail_page(app):
-    stub_name = 'Comissão Stub'
-    stub = mommy.make(Comissao, nome=stub_name)
+    stub = mommy.make(Comissao, nome='Comissão Stub')
     res = app.get('/comissoes/%s' % stub.id)
 
     # on detail page
-    assert_h1(res, stub_name)
+    assert_h1(res, stub.nome)
     assert not res.forms
     assert 'Editar Comissão' in res
     assert 'Excluir Comissão' in res
@@ -92,6 +95,7 @@ def test_flux_detail_update_detail(app):
     # back to detail page
     assert 'Registro alterado com sucesso!' in res
     assert_h1(res, new_name)
+    assert Comissao.objects.get(pk=stub.pk).nome == new_name
 
 
 @pytest.mark.parametrize("cancel", [True, False])
@@ -109,6 +113,7 @@ def test_flux_detail_delete_list(app, cancel):
 
         # back to detail page
         assert_h1(res, stub.nome)
+        assert Comissao.objects.filter(pk=stub.pk)
     else:
         res = res.form.submit()
 
@@ -119,3 +124,4 @@ def test_flux_detail_delete_list(app, cancel):
         # on list page
         assert 'Registro excluído com sucesso!' in res
         assert_h1(res, 'Comissões')
+        assert not Comissao.objects.filter(pk=stub.pk)
