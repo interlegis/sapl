@@ -61,8 +61,7 @@ def test_flux_list_create_detail(app):
     assert_h1(res, stub_name)
 
 
-def test_flux_detail_update_detail(app):
-
+def get_detail_page(app):
     stub_name = 'Comissão Stub'
     stub = mommy.make(Comissao, nome=stub_name)
     res = app.get('/comissoes/%s' % stub.id)
@@ -70,10 +69,17 @@ def test_flux_detail_update_detail(app):
     # on detail page
     assert_h1(res, stub_name)
     assert not res.forms
+    assert 'Editar Comissão' in res
+    assert 'Excluir Comissão' in res
+    return stub, res
+
+
+def test_flux_detail_update_detail(app):
+    stub, res = get_detail_page(app)
     res = res.click('Editar Comissão')
 
     # on update page
-    assert_h1(res, stub_name)
+    assert_h1(res, stub.nome)
     form = res.form
     new_name = '### New Name ###'
     form['nome'] = new_name
@@ -90,24 +96,19 @@ def test_flux_detail_update_detail(app):
 
 @pytest.mark.parametrize("cancel", [True, False])
 def test_flux_detail_delete_list(app, cancel):
-    stub_name = 'Comissão Stub'
-    stub = mommy.make(Comissao, nome=stub_name)
-    res = app.get('/comissoes/%s' % stub.id)
-
-    # on detail page
-    assert_h1(res, stub_name)
+    stub, res = get_detail_page(app)
     res = res.click('Excluir Comissão')
 
     # on delete page
     assert 'Tem certeza que deseja apagar' in res
-    assert stub_name in res
+    assert stub.nome in res
 
     # test bifurcation !
     if cancel:
         res = res.click('Cancelar')
 
         # back to detail page
-        assert_h1(res, stub_name)
+        assert_h1(res, stub.nome)
     else:
         res = res.form.submit()
 
