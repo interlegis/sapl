@@ -73,6 +73,7 @@ def build_crud(model, *layout):
         form_valid_message = _('Registro criado com sucesso!')
         form_invalid_message = make_form_invalid_message(
             _('O registro não foi criado.'))
+        cancel_url = BaseMixin.list_url
 
         def get_success_url(self):
             return self.detail_url
@@ -94,6 +95,9 @@ def build_crud(model, *layout):
             return self.get_object()
 
         def get_success_url(self):
+            return self.detail_url
+
+        def cancel_url(self):
             return self.detail_url
 
     class CrudDeleteView(BaseMixin, FormMessagesMixin, DeleteView):
