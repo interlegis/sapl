@@ -24,17 +24,14 @@ class Crud(object):
             return '%s %s' % (_('Formulário inválido.'), msg)
 
         class BaseMixin(object):
+            model = self.model
 
-            @property
-            def title(self):
-                return self.get_object()
+            verbose_name = self.model._meta.verbose_name
+            verbose_name_plural = self.model._meta.verbose_name_plural
 
             list_url = reverse_lazy(in_namespace('list'))
             create_url = reverse_lazy(in_namespace('create'))
             help_url = '/comissoes/ajuda'  # FIXME
-
-            create_title = _('Adicionar %(model_name)s') % {
-                'model_name': self.model._meta.verbose_name}
 
             def get_url_for_this_object(self, url_name):
                 return reverse(in_namespace(url_name), args=(self.object.id,))
@@ -45,20 +42,19 @@ class Crud(object):
 
             @property
             def update_url(self):
-                return self.get_url_for_this_object('detail')
+                return self.get_url_for_this_object('update')
 
             @property
             def delete_url(self):
-                return self.get_url_for_this_object('detail')
+                return self.get_url_for_this_object('delete')
 
         class CrudListView(BaseMixin, ListView):
-            model = self.model
-            title = model._meta.verbose_name_plural
+            title = BaseMixin.verbose_name_plural
 
         class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
-            model = self.model
             form_class = model_form
-            title = BaseMixin.create_title
+            title = _('Adicionar %(verbose_name)s') % {
+                'verbose_name': BaseMixin.verbose_name}
             form_valid_message = _('Registro criado com sucesso!')
             form_invalid_message = make_form_invalid_message(
                 _('O registro não foi criado.'))
@@ -67,20 +63,25 @@ class Crud(object):
                 return self.detail_url
 
         class CrudDetailView(BaseMixin, DetailView):
-            model = self.model
+
+            @property
+            def title(self):
+                return self.get_object()
 
         class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
-            model = self.model
             form_class = model_form
             form_valid_message = _('Mudanças salvas com sucesso!')
             form_invalid_message = make_form_invalid_message(
                 _('Suas mudanças não foram salvas.'))
 
+            @property
+            def title(self):
+                return self.get_object()
+
             def get_success_url(self):
                 return self.detail_url
 
         class CrudDeleteView(BaseMixin, FormMessagesMixin, DeleteView):
-            model = self.model
             form_valid_message = _('Registro excluído com sucesso!')
             form_invalid_message = make_form_invalid_message(
                 _('O registro não foi excluído.'))

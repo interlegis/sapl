@@ -5,7 +5,9 @@
 
   {# FIXME is this the best markup to use? #}
   <dl class="sub-nav">
-    <dd><a href="{{ view.create_url }}">{{ view.create_title }}</a></dd>
+    <dd><a href="{{ view.create_url }}">
+      {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+    </a></dd>
   </dl>
 
   <table class="table table-hover">
