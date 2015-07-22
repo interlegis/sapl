@@ -21,7 +21,22 @@ def assert_h1(res, title):
     assert res.html.find('h1').text == title
 
 
-def test_flux_list_create_detail(app):
+def assert_on_create_page(res):
+    assert_h1(res, 'Adicionar Comissão')
+    form = res.form
+    assert not any(
+        form[k].value for k in form.fields if k != 'csrfmiddlewaretoken')
+
+
+def assert_on_detail_page(res, stub_name):
+    assert_h1(res, stub_name)
+    assert not res.forms
+    assert 'Editar Comissão' in res
+    assert 'Excluir Comissão' in res
+
+
+@pytest.mark.parametrize("make_invalid_submit", [True, False])
+def test_flux_list_create_detail(app, make_invalid_submit):
 
     # to have a couple an option for tipo field
     stub_tipo = mommy.make(TipoComissao)
@@ -34,15 +49,15 @@ def test_flux_list_create_detail(app):
     previous_objects = set(Comissao.objects.all())
 
     # on create page
-    assert_h1(res, 'Adicionar Comissão')
-    form = res.form
-    assert not any(
-        form[k].value for k in form.fields if k != 'csrfmiddlewaretoken')
+    assert_on_create_page(res)
 
-    # some fields are required => validation error
-    res = res.form.submit()
-    'Formulário inválido. O registro não foi criado.' in res
-    assert previous_objects == set(Comissao.objects.all())
+    # test bifurcation !
+    if make_invalid_submit:
+        # some fields are required => validation error
+        res = res.form.submit()
+        'Formulário inválido. O registro não foi criado.' in res
+        assert_on_create_page(res)
+        assert previous_objects == set(Comissao.objects.all())
 
     # now fill out some fields
     form = res.form
@@ -60,7 +75,7 @@ def test_flux_list_create_detail(app):
 
     # on detail page
     assert 'Registro criado com sucesso!' in res
-    assert_h1(res, stub_name)
+    assert_on_detail_page(res, stub_name)
     [new_obj] = list(set(Comissao.objects.all()) - previous_objects)
     assert new_obj.nome == stub_name
 
@@ -68,12 +83,8 @@ def test_flux_list_create_detail(app):
 def get_detail_page(app):
     stub = mommy.make(Comissao, nome='Comissão Stub')
     res = app.get('/comissoes/%s' % stub.id)
-
     # on detail page
-    assert_h1(res, stub.nome)
-    assert not res.forms
-    assert 'Editar Comissão' in res
-    assert 'Excluir Comissão' in res
+    assert_on_detail_page(res, stub.nome)
     return stub, res
 
 
