@@ -1,16 +1,16 @@
 from braces.views import FormMessagesMixin
 from django.conf.urls import url
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
     CreateView, DeleteView, ListView, UpdateView, DetailView)
 
 
 class Crud(object):
 
-    def __init__(self, model_form, create_title):
+    def __init__(self, model_form):
 
         self.model_form = model_form
-        self.create_title = create_title
 
         self.model = model_form._meta.model
 
@@ -20,25 +20,49 @@ class Crud(object):
         def in_namespace(url_name):
             return '%s:%s' % (self.namespace, url_name)
 
+        def make_form_invalid_message(msg):
+            return '%s %s' % (_('Formulário inválido.'), msg)
+
         class BaseMixin(object):
 
             @property
             def title(self):
                 return self.get_object()
 
+            list_url = reverse_lazy(in_namespace('list'))
+            create_url = reverse_lazy(in_namespace('create'))
             help_url = '/comissoes/ajuda'  # FIXME
+
+            def get_url_for_this_object(self, url_name):
+                return reverse(in_namespace(url_name), args=(self.object.id,))
+
+            @property
+            def detail_url(self):
+                return self.get_url_for_this_object('detail')
+
+            @property
+            def update_url(self):
+                return self.get_url_for_this_object('detail')
+
+            @property
+            def delete_url(self):
+                return self.get_url_for_this_object('detail')
 
         class CrudListView(BaseMixin, ListView):
             model = self.model
             title = model._meta.verbose_name_plural
 
-        class CrudCreateView(BaseMixin, CreateView):
+        class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
             model = self.model
             form_class = model_form
-            title = self.create_title
+            title = _('Adicionar %(model_name)s') % {
+                'model_name': self.model._meta.verbose_name}
+            form_valid_message = _('Registro criado com sucesso!')
+            form_invalid_message = make_form_invalid_message(
+                _('O registro não foi criado.'))
 
             def get_success_url(self):
-                return reverse(in_namespace('detail'), args=(self.object.id,))
+                return self.detail_url
 
         class CrudDetailView(BaseMixin, DetailView):
             model = self.model
@@ -46,15 +70,21 @@ class Crud(object):
         class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
             model = self.model
             form_class = model_form
-            success_url = reverse_lazy('comissao_list')
-            form_invalid_message = u"Something went wrong, post was not saved"
+            form_valid_message = _('Mudanças salvas com sucesso!')
+            form_invalid_message = make_form_invalid_message(
+                _('Suas mudanças não foram salvas.'))
 
-            def get_form_valid_message(self):
-                return u"{0} updated successfully!".format(self.object)
+            def get_success_url(self):
+                return self.detail_url
 
-        class CrudDeleteView(BaseMixin, DeleteView):
+        class CrudDeleteView(BaseMixin, FormMessagesMixin, DeleteView):
             model = self.model
-            success_url = reverse_lazy('comissao_list')
+            form_valid_message = _('Registro excluído com sucesso!')
+            form_invalid_message = make_form_invalid_message(
+                _('O registro não foi excluído.'))
+
+            def get_success_url(self):
+                return self.list_url
 
         self.CrudListView = CrudListView
         self.CrudCreateView = CrudCreateView
