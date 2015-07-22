@@ -8,6 +8,9 @@
     <dd><a href="{{ view.update_url }}">
       {% blocktrans with verbose_name=view.verbose_name %} Editar {{ verbose_name }} {% endblocktrans %}
     </a></dd>
+    <dd><a href="{{ view.delete_url }}">
+      {% blocktrans with verbose_name=view.verbose_name %} Excluir {{ verbose_name }} {% endblocktrans %}
+    </a></dd>
   </dl>
 
   TODO ...

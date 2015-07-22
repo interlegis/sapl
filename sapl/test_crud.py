@@ -1,6 +1,9 @@
+import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
+
 from comissoes.models import Comissao, TipoComissao
+
 
 # XXX These tests are based on comissoes app
 #     but could be done with a stub one
@@ -24,12 +27,10 @@ def test_flux_list_create_detail(app):
     stub_tipo = mommy.make(TipoComissao)
 
     res = app.get('/comissoes/')
-    print(res.url)
 
     # on list page
     assert_h1(res, 'Comissões')
     res = res.click('Adicionar Comissão')
-    print(res.url)
 
     # on create page
     assert_h1(res, 'Adicionar Comissão')
@@ -39,7 +40,6 @@ def test_flux_list_create_detail(app):
 
     # some fields are required => validation error
     res = res.form.submit()
-    print(res.url)
     'Formulário inválido. O registro não foi criado.' in res
 
     # now fill out some fields
@@ -53,7 +53,7 @@ def test_flux_list_create_detail(app):
 
     # on redirect to detail page
     created = Comissao.objects.get(nome=stub_name)
-    assert res.url.endswith('comissoes/%s' % created.id)
+    assert res.url.endswith('/comissoes/%s' % created.id)
     res = res.follow()
 
     # on detail page
@@ -80,9 +80,41 @@ def test_flux_detail_update_detail(app):
     res = form.submit()
 
     # on redirect to detail page
-    assert res.url.endswith('comissoes/%s' % stub.id)
+    assert res.url.endswith('/comissoes/%s' % stub.id)
     res = res.follow()
 
     # back to detail page
     assert 'Registro alterado com sucesso!' in res
     assert_h1(res, new_name)
+
+
+@pytest.mark.parametrize("cancel", [True, False])
+def test_flux_detail_delete_list(app, cancel):
+    stub_name = 'Comissão Stub'
+    stub = mommy.make(Comissao, nome=stub_name)
+    res = app.get('/comissoes/%s' % stub.id)
+
+    # on detail page
+    assert_h1(res, stub_name)
+    res = res.click('Excluir Comissão')
+
+    # on delete page
+    assert 'Tem certeza que deseja apagar' in res
+    assert stub_name in res
+
+    # test bifurcation !
+    if cancel:
+        res = res.click('Cancelar')
+
+        # back to detail page
+        assert_h1(res, stub_name)
+    else:
+        res = res.form.submit()
+
+        # on redirect to list page
+        assert res.url.endswith('/comissoes/')
+        res = res.follow()
+
+        # on list page
+        assert 'Registro excluído com sucesso!' in res
+        assert_h1(res, 'Comissões')
