@@ -33,6 +33,9 @@ class Crud(object):
             create_url = reverse_lazy(in_namespace('create'))
             help_url = '/comissoes/ajuda'  # FIXME
 
+            create_title = _('Adicionar %(model_name)s') % {
+                'model_name': self.model._meta.verbose_name}
+
             def get_url_for_this_object(self, url_name):
                 return reverse(in_namespace(url_name), args=(self.object.id,))
 
@@ -55,8 +58,7 @@ class Crud(object):
         class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
             model = self.model
             form_class = model_form
-            title = _('Adicionar %(model_name)s') % {
-                'model_name': self.model._meta.verbose_name}
+            title = BaseMixin.create_title
             form_valid_message = _('Registro criado com sucesso!')
             form_invalid_message = make_form_invalid_message(
                 _('O registro não foi criado.'))

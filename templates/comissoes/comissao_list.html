@@ -2,7 +2,11 @@
 {% load i18n %}
 
 {% block base_content %}
-  <a href="/admin/comissoes/comissao/add/">Incluir Comissão</a>
+
+  {# FIXME is this the best markup to use? #}
+  <dl class="sub-nav">
+    <dd><a href="{{ view.create_url }}">{{ view.create_title }}</a></dd>
+  </dl>
 
   <table class="table table-hover">
       <thead>
