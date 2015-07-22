@@ -72,3 +72,6 @@ target/
 .vagrant
 
 static
+
+components
+bower_components

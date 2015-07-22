@@ -58,6 +58,9 @@ INSTALLED_APPS = (
     # zurb foundation
     'foundation',
     'crispy_forms_foundation',
+
+    # bower
+    'djangobower',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -131,3 +134,19 @@ DAB_FIELD_RENDERER = \
 
 CRISPY_TEMPLATE_PACK = 'foundation-5'
 CRISPY_FAIL_SILENTLY = not DEBUG
+
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, "bower_components")
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'djangobower.finders.BowerFinder',
+)
+
+BOWER_INSTALLED_APPS = (
+    'jquery#1.9',
+    'underscore',
+    'foundation-datepicker',
+    'components-font-awesome',
+    'foundation-icon-fonts',
+)
