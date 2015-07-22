@@ -66,6 +66,23 @@ def test_flux_detail_update_detail(app):
     stub_name = 'Comissão Stub'
     stub = mommy.make(Comissao, nome=stub_name)
     res = app.get('/comissoes/%s' % stub.id)
+
+    # on detail page
     assert_h1(res, stub_name)
     assert not res.forms
     res = res.click('Editar Comissão')
+
+    # on update page
+    assert_h1(res, stub_name)
+    form = res.form
+    new_name = '### New Name ###'
+    form['nome'] = new_name
+    res = form.submit()
+
+    # on redirect to detail page
+    assert res.url.endswith('comissoes/%s' % stub.id)
+    res = res.follow()
+
+    # back to detail page
+    assert 'Registro alterado com sucesso!' in res
+    assert_h1(res, new_name)

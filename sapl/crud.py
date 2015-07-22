@@ -70,9 +70,9 @@ class Crud(object):
 
         class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
             form_class = model_form
-            form_valid_message = _('Mudanças salvas com sucesso!')
+            form_valid_message = _('Registro alterado com sucesso!')
             form_invalid_message = make_form_invalid_message(
-                _('Suas mudanças não foram salvas.'))
+                _('Suas alterações não foram salvas.'))
 
             @property
             def title(self):
