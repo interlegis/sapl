@@ -7,100 +7,100 @@ from django.views.generic import (
 
 
 class Crud(object):
+    pass
 
-    def __init__(self, model_form):
 
-        self.model_form = model_form
+def build_crud(model_form):
+    crud = Crud()
+    crud.model = model_form._meta.model
+    crud.namespace = crud.model._meta.model_name
 
-        self.model = model_form._meta.model
+    def in_namespace(url_name):
+        return '%s:%s' % (crud.namespace, url_name)
 
-        # urls names
-        self.namespace = self.model._meta.model_name
+    def make_form_invalid_message(msg):
+        return '%s %s' % (_('Formulário inválido.'), msg)
 
-        def in_namespace(url_name):
-            return '%s:%s' % (self.namespace, url_name)
+    class BaseMixin(object):
+        model = crud.model
 
-        def make_form_invalid_message(msg):
-            return '%s %s' % (_('Formulário inválido.'), msg)
+        verbose_name = crud.model._meta.verbose_name
+        verbose_name_plural = crud.model._meta.verbose_name_plural
 
-        class BaseMixin(object):
-            model = self.model
+        list_url = reverse_lazy(in_namespace('list'))
+        create_url = reverse_lazy(in_namespace('create'))
+        help_url = '/comissoes/ajuda'  # FIXME
 
-            verbose_name = self.model._meta.verbose_name
-            verbose_name_plural = self.model._meta.verbose_name_plural
+        def get_url_for_this_object(self, url_name):
+            return reverse(in_namespace(url_name), args=(self.object.id,))
 
-            list_url = reverse_lazy(in_namespace('list'))
-            create_url = reverse_lazy(in_namespace('create'))
-            help_url = '/comissoes/ajuda'  # FIXME
+        @property
+        def detail_url(self):
+            return self.get_url_for_this_object('detail')
 
-            def get_url_for_this_object(self, url_name):
-                return reverse(in_namespace(url_name), args=(self.object.id,))
+        @property
+        def update_url(self):
+            return self.get_url_for_this_object('update')
 
-            @property
-            def detail_url(self):
-                return self.get_url_for_this_object('detail')
+        @property
+        def delete_url(self):
+            return self.get_url_for_this_object('delete')
 
-            @property
-            def update_url(self):
-                return self.get_url_for_this_object('update')
+    class CrudListView(BaseMixin, ListView):
+        title = BaseMixin.verbose_name_plural
 
-            @property
-            def delete_url(self):
-                return self.get_url_for_this_object('delete')
+    class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
+        form_class = model_form
+        title = _('Adicionar %(verbose_name)s') % {
+            'verbose_name': BaseMixin.verbose_name}
+        form_valid_message = _('Registro criado com sucesso!')
+        form_invalid_message = make_form_invalid_message(
+            _('O registro não foi criado.'))
 
-        class CrudListView(BaseMixin, ListView):
-            title = BaseMixin.verbose_name_plural
+        def get_success_url(self):
+            return self.detail_url
 
-        class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
-            form_class = model_form
-            title = _('Adicionar %(verbose_name)s') % {
-                'verbose_name': BaseMixin.verbose_name}
-            form_valid_message = _('Registro criado com sucesso!')
-            form_invalid_message = make_form_invalid_message(
-                _('O registro não foi criado.'))
+    class CrudDetailView(BaseMixin, DetailView):
 
-            def get_success_url(self):
-                return self.detail_url
+        @property
+        def title(self):
+            return self.get_object()
 
-        class CrudDetailView(BaseMixin, DetailView):
+    class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
+        form_class = model_form
+        form_valid_message = _('Registro alterado com sucesso!')
+        form_invalid_message = make_form_invalid_message(
+            _('Suas alterações não foram salvas.'))
 
-            @property
-            def title(self):
-                return self.get_object()
+        @property
+        def title(self):
+            return self.get_object()
 
-        class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
-            form_class = model_form
-            form_valid_message = _('Registro alterado com sucesso!')
-            form_invalid_message = make_form_invalid_message(
-                _('Suas alterações não foram salvas.'))
+        def get_success_url(self):
+            return self.detail_url
 
-            @property
-            def title(self):
-                return self.get_object()
+    class CrudDeleteView(BaseMixin, FormMessagesMixin, DeleteView):
+        form_valid_message = _('Registro excluído com sucesso!')
+        form_invalid_message = make_form_invalid_message(
+            _('O registro não foi excluído.'))
 
-            def get_success_url(self):
-                return self.detail_url
+        def get_success_url(self):
+            return self.list_url
 
-        class CrudDeleteView(BaseMixin, FormMessagesMixin, DeleteView):
-            form_valid_message = _('Registro excluído com sucesso!')
-            form_invalid_message = make_form_invalid_message(
-                _('O registro não foi excluído.'))
+    crud.CrudListView = CrudListView
+    crud.CrudCreateView = CrudCreateView
+    crud.CrudDetailView = CrudDetailView
+    crud.CrudUpdateView = CrudUpdateView
+    crud.CrudDeleteView = CrudDeleteView
 
-            def get_success_url(self):
-                return self.list_url
+    crud.urls = [
+        url(r'^$', CrudListView.as_view(), name='list'),
+        url(r'^create$', CrudCreateView.as_view(), name='create'),
+        url(r'^(?P<pk>\d+)$', CrudDetailView.as_view(), name='detail'),
+        url(r'^(?P<pk>\d+)/edit$',
+            CrudUpdateView.as_view(), name='update'),
+        url(r'^(?P<pk>\d+)/delete$',
+            CrudDeleteView.as_view(), name='delete'),
+    ], crud.namespace, crud.namespace
 
-        self.CrudListView = CrudListView
-        self.CrudCreateView = CrudCreateView
-        self.CrudDetailView = CrudDetailView
-        self.CrudUpdateView = CrudUpdateView
-        self.CrudDeleteView = CrudDeleteView
-
-        self.urls = [
-            url(r'^$', CrudListView.as_view(), name='list'),
-            url(r'^create$', CrudCreateView.as_view(), name='create'),
-            url(r'^(?P<pk>\d+)$', CrudDetailView.as_view(), name='detail'),
-            url(r'^(?P<pk>\d+)/edit$',
-                CrudUpdateView.as_view(), name='update'),
-            url(r'^(?P<pk>\d+)/delete$',
-                CrudDeleteView.as_view(), name='delete'),
-        ], self.namespace, self.namespace
+    return crud

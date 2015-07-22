@@ -1,5 +1,5 @@
 from .forms import ComissaoForm
-from sapl.crud import Crud
+from sapl.crud import build_crud
 
 
-comissao_crud = Crud(ComissaoForm)
+comissao_crud = build_crud(ComissaoForm)
