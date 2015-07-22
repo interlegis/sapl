@@ -1,19 +1,36 @@
 from braces.views import FormMessagesMixin
+from crispy_forms.helper import FormHelper
+from django import forms
 from django.conf.urls import url
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 from django.views.generic import (
     CreateView, DeleteView, ListView, UpdateView, DetailView)
+
+from sapl.layout import SaplFormLayout
 
 
 class Crud(object):
     pass
 
 
-def build_crud(model_form):
+def build_crud(model, *layout):
     crud = Crud()
-    crud.model = model_form._meta.model
-    crud.namespace = crud.model._meta.model_name
+    crud.model = model
+    crud.namespace = model._meta.model_name
+
+    class CrispyForm(forms.ModelForm):
+
+        class Meta:
+            model = crud.model
+            exclude = []
+
+        def __init__(self, *args, **kwargs):
+            super(CrispyForm, self).__init__(*args, **kwargs)
+            self.helper = FormHelper()
+            self.helper.layout = SaplFormLayout(*layout)
+
+    crud.model_form = CrispyForm
 
     def in_namespace(url_name):
         return '%s:%s' % (crud.namespace, url_name)
@@ -50,7 +67,7 @@ def build_crud(model_form):
         title = BaseMixin.verbose_name_plural
 
     class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
-        form_class = model_form
+        form_class = crud.model_form
         title = _('Adicionar %(verbose_name)s') % {
             'verbose_name': BaseMixin.verbose_name}
         form_valid_message = _('Registro criado com sucesso!')
@@ -67,7 +84,7 @@ def build_crud(model_form):
             return self.get_object()
 
     class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
-        form_class = model_form
+        form_class = crud.model_form
         form_valid_message = _('Registro alterado com sucesso!')
         form_invalid_message = make_form_invalid_message(
             _('Suas alterações não foram salvas.'))
@@ -93,6 +110,7 @@ def build_crud(model_form):
     crud.CrudUpdateView = CrudUpdateView
     crud.CrudDeleteView = CrudDeleteView
 
+    # XXX transform into a property of Crud to enable override
     crud.urls = [
         url(r'^$', CrudListView.as_view(), name='list'),
         url(r'^create$', CrudCreateView.as_view(), name='create'),
