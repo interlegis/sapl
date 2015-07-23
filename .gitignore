@@ -77,4 +77,4 @@ target/
 
 # specific to this project
 static
-bower_components
+bower
