@@ -29,6 +29,11 @@ class TipoComissao(models.Model):
 
 
 class Comissao(models.Model):
+    UNIDADE_DELIBERATIVA_CHOICES, SIM, NAO = make_choices(
+        True, _('Sim'),
+        False, _('Não'),
+    )
+
     tipo = models.ForeignKey(TipoComissao, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=60, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
@@ -75,7 +80,8 @@ class Comissao(models.Model):
         blank=True, null=True, verbose_name=_('Finalidade'))
     email = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_('E-mail'))
-    unidade_deliberativa = models.BooleanField()
+    unidade_deliberativa = models.BooleanField(
+        choices=UNIDADE_DELIBERATIVA_CHOICES)
 
     class Meta:
         verbose_name = _('Comissão')
