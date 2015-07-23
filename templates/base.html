@@ -8,16 +8,13 @@
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head_content %}
-    <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
-    <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
-    <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-    <link rel="stylesheet" href="{% static 'foundation-icon-fonts/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
+      <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
+      <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% static 'foundation-icon-fonts/font-awesome.css' %}">
 
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.min.js' %}"></script>
+      {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
     {% endblock %}
 </head>
 
@@ -59,11 +56,14 @@
       ... footer...
     </footer>
 
-    {% block foot_js %}{% endblock %}
-
-    {# Init Foundation #}
-    {% block foundation_js_init %}
-    <script> $(document).foundation(); </script>
-    {% endblock foundation_js_init %}
+    {% block foot_js %}
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.min.js' %}"></script>
+      <script>
+        $(document).foundation();
+      </script>
+    {% endblock %}
 </body>
 </html>
