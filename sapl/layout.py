@@ -4,12 +4,8 @@ from django.utils.translation import ugettext as _
 
 
 def to_column(name_span):
-    try:
-        fieldname, span = name_span
-    except:
-        return name_span
-    else:
-        return Column(fieldname, css_class='large-%d' % span)
+    fieldname, span = name_span
+    return Column(fieldname, css_class='large-%d' % span)
 
 
 def to_row(names_spans):
