@@ -78,6 +78,14 @@ def build_crud(model, *layout):
         title = BaseMixin.verbose_name_plural
         paginate_by = 10
 
+        def get_context_data(self, **kwargs):
+            context_data = super(CrudListView, self).get_context_data(**kwargs)
+            paginator = context_data['paginator']
+            # TODO set custom_page_range to something like
+            #   [1, 2, None, 10, 11, 12, None, 29, 30]
+            context_data['custom_page_range'] = paginator.page_range
+            return context_data
+
     class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
         form_class = crud.model_form
         title = _('Adicionar %(verbose_name)s') % {

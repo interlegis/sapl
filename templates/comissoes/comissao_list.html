@@ -43,9 +43,9 @@
         <li class="arrow unavailable"><a href="">&laquo;</a></li>
       {% endif %}
 
-      {% for page in paginator.page_range %}
+      {% for page in custom_page_range %}
         <li {% if page == page_obj.number %}class="active current"{% endif %}>
-          <a href="?page={{ page }}">{{ page }}</a>
+          <a href="?page={{ page }}">{% if page %}{{ page }}{% else %}&hellip;{% endif %}</a>
         </li>
       {% endfor %}
 
