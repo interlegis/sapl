@@ -3,10 +3,85 @@ from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
 from comissoes.models import Comissao, TipoComissao
+from .crud import get_field_display, build_crud
 
+pytestmark = pytest.mark.django_db
 
 # XXX These tests are based on comissoes app
 #     but could be done with a stub one
+
+
+def test_get_field_display():
+    stub = mommy.prepare(Comissao, unidade_deliberativa=True)
+    assert get_field_display(stub, 'nome')[1] == stub.nome
+    assert get_field_display(stub, 'tipo')[1] == str(stub.tipo)
+    # must return choice display, not the value
+    assert stub.unidade_deliberativa is True
+    assert get_field_display(stub, 'unidade_deliberativa')[1] == 'Sim'
+
+    # None is displayed as empty string
+    assert stub.finalidade is None
+    assert get_field_display(stub, 'finalidade')[1] == ''
+
+
+def test_crud_detail_view_fieldsets(monkeypatch):
+
+    crud = build_crud(
+        Comissao,
+
+        ['Dados Básicos',
+         [('nome', 9), ('sigla', 3)],
+         [('tipo', 3), ('data_criacao', 3), ('unidade_deliberativa', 3), ]
+         ],
+
+        ['Dados Complementares',
+         [('finalidade', 12)]
+         ],
+    )
+
+    view = crud.CrudDetailView()
+    stub = mommy.make(Comissao,
+                      nome='nome!!!',
+                      tipo__nome='tipo!!!',
+                      sigla='sigla!!!',
+                      data_criacao='2011-01-01',
+                      unidade_deliberativa=True)
+
+    # to test None displayed as empty string
+    assert stub.finalidade is None
+
+    def get_object():
+        return stub
+    monkeypatch.setattr(view, 'get_object', get_object)
+
+    assert view.fieldsets == [
+        {'legend': 'Dados Básicos',
+         'rows': [[{'id': 'nome',
+                    'span': 9,
+                    'text': 'nome!!!',
+                    'verbose_name': 'Nome'},
+                   {'id': 'sigla',
+                    'span': 3,
+                    'text': 'sigla!!!',
+                    'verbose_name': 'Sigla'}],
+
+                  [{'id': 'tipo',
+                    'span': 3,
+                    'text': 'tipo!!!',
+                    'verbose_name': 'Tipo'},
+                   {'id': 'data_criacao',
+                    'span': 3,
+                    'text': '2011-01-01',
+                    'verbose_name': 'Data de Criação'},
+                   {'id': 'unidade_deliberativa',
+                    'span': 3,
+                    'text': 'Sim',
+                    'verbose_name': 'unidade deliberativa'}]]},
+        {'legend': 'Dados Complementares',
+         'rows': [[{'id': 'finalidade',
+                    'span': 12,
+                    'text': '',
+                    'verbose_name': 'Finalidade'}]]}]
 
 
 def test_reverse():

@@ -13,6 +13,24 @@
     </a></dd>
   </dl>
 
-  TODO ...
+  {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
+  {% for fieldset in view.fieldsets %}
+  <fieldset>
+    <legend>{{ fieldset.legend }}</legend>
+    {% for row in fieldset.rows %}
+    <div class="row">
+        {% for column in row %}
+        <div class="columns large-{{ column.span }}">
+            <div id="div_id_{{ column.id }}" class="holder">
+                <label>{{ column.verbose_name }}</label> {# TODO replace labels, probably (are they correct here?) #}
+                <p>{{ column.text }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+
 {% endblock %}
 

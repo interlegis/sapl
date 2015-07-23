@@ -10,6 +10,17 @@ from django.views.generic import (
 from sapl.layout import SaplFormLayout
 
 
+def get_field_display(obj, fieldname):
+    field = obj._meta.get_field(fieldname)
+    verbose_name = str(field.verbose_name)
+    if field.choices:
+        value = getattr(obj, 'get_%s_display' % fieldname)()
+    else:
+        value = getattr(obj, fieldname)
+    display = '' if value is None else str(value)
+    return verbose_name, display
+
+
 class Crud(object):
     pass
 
@@ -84,6 +95,25 @@ def build_crud(model, *layout):
         @property
         def title(self):
             return self.get_object()
+
+        def get_column(self, fieldname, span):
+            obj = self.get_object()
+            verbose_name, text = get_field_display(obj, fieldname)
+            return {
+                'id': fieldname,
+                'span': span,
+                'verbose_name': verbose_name,
+                'text': text,
+            }
+
+        @property
+        def fieldsets(self):
+            return [
+                {'legend': legend,
+                 'rows': [[self.get_column(fieldname, span)
+                           for fieldname, span in row]
+                          for row in rows]
+                 } for legend, *rows in layout]
 
     class CrudUpdateView(BaseMixin, FormMessagesMixin, UpdateView):
         form_class = crud.model_form
