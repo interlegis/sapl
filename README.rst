@@ -30,6 +30,10 @@ Development Environment Installation
 
     pip install requirements -r / dev-requirements.txt
 
+* Install bower dependencies::
+
+    ./manage.py bower install
+
 * Install `PostgreSQL <https://help.ubuntu.com/community/PostgreSQL>`_ if you haven't already.
 
 * Create a ``sapl`` role with:
@@ -112,7 +116,7 @@ Tests
 
 * To run all tests activate your virtualenv and issue these commands
   **at the root of the repository**:
-     py.test
+    py.test
 
 * To run the tests with coverage issue the command::
 
