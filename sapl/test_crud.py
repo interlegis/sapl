@@ -3,12 +3,23 @@ from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
 from comissoes.models import Comissao, TipoComissao
-from .crud import get_field_display, build_crud
+from .crud import get_field_display, build_crud, makePagination
 
 pytestmark = pytest.mark.django_db
 
 # XXX These tests are based on comissoes app
 #     but could be done with a stub one
+
+
+def test_pagination():
+    assert makePagination(1, 1) == [1]
+    assert makePagination(1, 10) == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    assert makePagination(3, 5) == [1, 2, 3, 4, 5]
+    assert makePagination(9, 11) == [1, 2, None, 7, 8, 9, 10, 11]
+    assert makePagination(8, 22) == [1, 2, None, 7, 8, 9, None, 21, 22]
+    assert makePagination(2, 5) == [1, 2, 3, 4, 5]
+    assert makePagination(1, 17) == [1, 2, 3, 4, 5, None, 16, 17]
+    assert makePagination(22, 25) == [1, 2, None, 21, 22, 23, 24, 25]
 
 
 def test_get_field_display():

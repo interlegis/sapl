@@ -78,3 +78,4 @@ target/
 # specific to this project
 static
 bower
+bower_components
