@@ -18,8 +18,9 @@ Development Environment Installation
 * Install the following system dependencies (command bellow for Ubuntu)::
 
     sudo apt-get install python3-dev libpq-dev graphviz-dev graphviz \
-    postgresql postgresql-contrib pgadmin3 python-psycopg2
+    postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
 
+    sudo npm install -g bower
 
 * Create a virtualenv using python 3 for the project and activate it.
   If you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_::
@@ -115,7 +116,8 @@ Tests
 * Keep the test coverage near 100%.
 
 * To run all tests activate your virtualenv and issue these commands
-  **at the root of the repository**:
+  **at the root of the repository**::
+
     py.test
 
 * To run the tests with coverage issue the command::
