@@ -65,6 +65,7 @@ def build_crud(model, *layout):
 
     class CrudListView(BaseMixin, ListView):
         title = BaseMixin.verbose_name_plural
+        paginate_by = 10
 
     class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
         form_class = crud.model_form
