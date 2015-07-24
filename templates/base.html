@@ -11,10 +11,13 @@
       <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
       <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
       <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-      <link rel="stylesheet" href="{% static 'foundation-icon-fonts/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% static 'foundation-icon-fonts/foundation-icons.css' %}">
 
       {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
     {% endblock %}
 </head>
 
@@ -57,10 +60,8 @@
     </footer>
 
     {% block foot_js %}
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
       <script>
         $(document).foundation();
       </script>

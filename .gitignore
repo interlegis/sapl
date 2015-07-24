@@ -65,7 +65,7 @@ target/
 # Others
 .env
 .bak
-
+sapl.sublime-project
 *~
 
 # Dev tools configuration files
