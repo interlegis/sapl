@@ -38,8 +38,8 @@ def extract_title_and_fieldsets(model):
     filename = os.path.join(os.path.dirname(__file__),
                             'original_forms/%s.html' % model.__name__)
     try:
-        with open(filename, 'r') as f:
-            html_doc = f.read()
+        with open(filename, 'r') as file:
+            html_doc = file.read()
     except IOError:
         return None, []
 
@@ -116,7 +116,7 @@ def source_with_verbose_names(model):
                 name, path, args, legacy_name = split(match.groups())
                 if name in labels and 'verbose_name' not in args:
                     args = [args] if args.strip() else []
-                    args.append("verbose_name=_(u'%s')" % labels[name])
+                    args.append("verbose_name=_('%s')" % labels[name])
                     args = ', '.join(args)
                 new_lines.append(
                     ('    %s = %s(%s)' % (name, path, args), legacy_name))
@@ -167,8 +167,8 @@ def source_with_verbose_names(model):
 
     yield """
     class Meta:
-        verbose_name = _(u'%s')
-        verbose_name_plural = _(u'%s')""" % (title_singular, title_plural)
+        verbose_name = _('%s')
+        verbose_name_plural = _('%s')""" % (title_singular, title_plural)
 
 
 def print_app_with_verbose_names(app):
@@ -231,7 +231,7 @@ def extract_fieldsets_for_current(model):
             rows = [
                 colsplit(
                     [reverse_field_renames.get(name, '%s_FIXME' % name)
-                     for name, __ in line])
+                     for name, ___ in line])
                 for line in fieldset['lines'] if line
             ]
             yield [fieldset['legend']] + rows

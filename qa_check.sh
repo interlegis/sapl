@@ -4,4 +4,4 @@
 
 ./manage.py check
 py.test
-pep8 --exclude='ipython_log.py*,migrations' .
+flake8 --exclude='ipython_log.py*,migrations' .

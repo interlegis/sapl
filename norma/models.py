@@ -96,7 +96,7 @@ class NormaJuridica(models.Model):
         verbose_name_plural = _('Normas Jurídicas')
 
     def __str__(self):
-        return _(u'%(tipo)s nº %(numero)s - %(materia)s - %(ano)s') % {
+        return _('%(tipo)s nº %(numero)s - %(materia)s - %(ano)s') % {
             'tipo': self.tipo,
             'numero': self.numero,
             'materia': self.materia,
@@ -158,7 +158,7 @@ class VinculoNormaJuridica(models.Model):
         verbose_name_plural = _('Vínculos entre Normas Jurídicas')
 
     def __str__(self):
-        return _(u'Referente: %(referente)s \n'
+        return _('Referente: %(referente)s \n'
                  'Referida: %(referida)s \nVínculo: %(vinculo)s') % {
             'referente': self.norma_referente,
             'referida': self.norma_referida,

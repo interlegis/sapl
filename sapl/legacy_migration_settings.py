@@ -1,6 +1,6 @@
 # Settings for data migration from mysql legacy to new postgres database
 
-from .settings import *
+from .settings import *  # flake8: noqa
 
 INSTALLED_APPS += (
     'legacy',  # legacy reversed model definitions

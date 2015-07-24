@@ -42,7 +42,7 @@ class DocumentoAdministrativo(models.Model):
         verbose_name_plural = _('Documentos Administrativos')
 
     def __str__(self):
-        return _(u'%(tipo)s - %(assunto)s') % {
+        return _('%(tipo)s - %(assunto)s') % {
             'tipo': self.tipo, 'assunto': self.assunto
         }
 
@@ -163,6 +163,6 @@ class TramitacaoAdministrativo(models.Model):
         verbose_name_plural = _('Tramitações de Documento Administrativo')
 
     def __str__(self):
-        return _(u'%(documento)s - %(status)s') % {
+        return _('%(documento)s - %(status)s') % {
             'documento': self.documento, 'status': self.status
         }

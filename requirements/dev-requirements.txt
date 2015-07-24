@@ -2,6 +2,7 @@
 beautifulsoup4
 django-debug-toolbar
 django-extensions
+flake8
 ipdb
 pygraphviz==1.3rc2
 pytest-ipdb==0.1-prerelease2

@@ -1,5 +1,5 @@
 from crispy_forms_foundation.layout import (
-    Div, Layout, Fieldset, Row, Column, Button, Submit, HTML)
+    Div, Layout, Fieldset, Row, Column, Submit, HTML)
 from django.utils.translation import ugettext as _
 
 

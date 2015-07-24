@@ -14,7 +14,7 @@ class Legislatura(models.Model):
         verbose_name_plural = _('Legislaturas')
 
     def __str__(self):
-        return _(u'Eleição: %(eleicao)s'
+        return _('Eleição: %(eleicao)s'
                  ' - Início: %(inicio)s | Fim: %(fim)s') % {
             'eleicao': self.data_eleicao,
             'inicio': self.data_inicio,
@@ -73,7 +73,7 @@ class Partido(models.Model):
         verbose_name_plural = _('Partidos')
 
     def __str__(self):
-        return _(u'%(sigla)s - %(nome)s') % {
+        return _('%(sigla)s - %(nome)s') % {
             'sigla': self.sigla, 'nome': self.nome
         }
 
@@ -88,7 +88,7 @@ class ComposicaoColigacao(models.Model):
         verbose_name_plural = ('Composição Coligações')
 
     def __str__(self):
-        return _(u'%(partido)s - %(coligacao)s') % {
+        return _('%(partido)s - %(coligacao)s') % {
             'partido': self.partido, 'coligacao': self.coligacao
         }
 
@@ -147,7 +147,7 @@ class Municipio(models.Model):  # Localidade
         verbose_name_plural = _('Municípios')
 
     def __str__(self):
-        return _(u'%(nome)s - %(uf)s (%(regiao)s)') % {
+        return _('%(nome)s - %(uf)s (%(regiao)s)') % {
             'nome': self.nome, 'uf': self.uf, 'regiao': self.regiao
         }
 
@@ -319,7 +319,7 @@ class Filiacao(models.Model):
         verbose_name_plural = _('Filiações')
 
     def __str__(self):
-        return _(u'%(parlamentar)s - %(partido)s') % {
+        return _('%(parlamentar)s - %(partido)s') % {
             'parlamentar': self.parlamentar, 'partido': self.partido
         }
 
@@ -362,7 +362,7 @@ class Mandato(models.Model):
         verbose_name_plural = _('Mandatos')
 
     def __str__(self):
-        return _(u'%(parlamentar)s %(legislatura)s') % {
+        return _('%(parlamentar)s %(legislatura)s') % {
             'parlamentar': self.parlamentar, 'legislatura': self.legislatura
         }
 
@@ -392,6 +392,6 @@ class ComposicaoMesa(models.Model):
         verbose_name_plural = _('Ocupações de cargo na Mesa')
 
     def __str__(self):
-        return _(u'%(parlamentar)s - %(cargo)s') % {
+        return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
