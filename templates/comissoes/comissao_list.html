@@ -44,9 +44,13 @@
       {% endif %}
 
       {% for page in custom_page_range %}
-        <li {% if page == page_obj.number %}class="active current"{% endif %}>
-          <a href="?page={{ page }}">{% if page %}{{ page }}{% else %}&hellip;{% endif %}</a>
+        {% if page %}
+        <li {% if page == page_obj.number %}class="current"{% endif %}>
+          <a href="?page={{ page }}">{{ page }}</a>
         </li>
+        {% else %}
+        <li class="unavailable"><a href="">&hellip;</a></li>
+        {% endif %}
       {% endfor %}
 
       {% if page_obj.has_next %}
