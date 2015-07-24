@@ -96,6 +96,12 @@ def build_crud(model, *layout):
         def delete_url(self):
             return self.get_url_for_this_object('delete')
 
+        def get_template_names(self):
+            names = super(BaseMixin, self).get_template_names()
+            names.append("crud/%s.html" %
+                         self.template_name_suffix.lstrip('_'))
+            return names
+
     class CrudListView(BaseMixin, ListView):
         title = BaseMixin.verbose_name_plural
         paginate_by = 10
