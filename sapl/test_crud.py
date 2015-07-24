@@ -10,6 +10,23 @@ pytestmark = pytest.mark.django_db
 # XXX These tests are based on comissoes app
 #     but could be done with a stub one
 
+
+@pytest.mark.parametrize("layout, result", [
+    ([['Dados Complementares']], []),  # missing rows definition
+    ([
+        ['Dados Básicos',
+         [('nome', 9), ('sigla', 3)],
+         [('tipo', 3), ('data_criacao', 3), ('unidade_deliberativa', 3), ]
+         ],
+        ['Dados Complementares', [('finalidade', 12)]], ],
+     ['nome', 'sigla', 'tipo', 'data_criacao', 'unidade_deliberativa']),
+])
+def test_listview_get_fieldnames(layout, result):
+    crud = build_crud(Comissao, *layout)
+    view = crud.CrudListView()
+    assert view.get_fieldnames() == result
+
+
 __ = None  # for test readability
 
 
@@ -49,7 +66,7 @@ __ = None  # for test readability
         (1, 17, [(1), 2, 3, 4, 5, 6, 7, __, 16, 17]),
         (22, 25, [1, 2, 3, 4, __, 21, (22), 23, 24, 25]),
     ])
-def test_pagination(index, num_pages, result):
+def test_make_pagination(index, num_pages, result):
     assert num_pages < 10 or len(result) == 10
     assert make_pagination(index, num_pages) == result
 

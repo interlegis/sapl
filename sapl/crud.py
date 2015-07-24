@@ -115,6 +115,15 @@ def build_crud(model, *layout):
         title = BaseMixin.verbose_name_plural
         paginate_by = 10
 
+        def get_fieldnames(self):
+            '''The list of field names to display on table
+
+            This base implementation returns the field names
+            in the first fieldset of the layout.
+            '''
+            rows = layout[0][1:]
+            return [fieldname for row in rows for fieldname, __ in row]
+
         def get_context_data(self, **kwargs):
             context_data = super(CrudListView, self).get_context_data(**kwargs)
             paginator = context_data['paginator']
