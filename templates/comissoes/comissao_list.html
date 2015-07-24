@@ -31,7 +31,7 @@
   </table>
 
   {% if is_paginated %}
-  <nav class="pagination-centered">
+  <div class="pagination-centered">
     <ul class="pagination" role="menubar" aria-label="Pagination">
       {% if page_obj.has_previous %}
         <li>
@@ -63,6 +63,6 @@
         <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
       {% endif %}
     </ul>
-  </nav>
+  </div>
 {% endif %}
 {% endblock %}
