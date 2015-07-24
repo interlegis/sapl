@@ -65,7 +65,6 @@ target/
 # Others
 .env
 .bak
-sapl.sublime-project
 *~
 
 # Dev tools configuration files
@@ -74,6 +73,8 @@ sapl.sublime-project
 .pydevproject
 .settings
 .vagrant
+*.sublime-project
+*.sublime-workspace
 
 # specific to this project
 static
