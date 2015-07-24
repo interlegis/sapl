@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 
-from comissoes.models import TipoComissao, Comissao
+from .models import TipoComissao, Comissao
 from sapl.crud import build_crud
 
 
