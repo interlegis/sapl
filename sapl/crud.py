@@ -15,6 +15,15 @@ def from_to(start, end):
 
 
 def make_pagination(index, num_pages):
+    '''Make a list of adjacent page ranges interspersed with "None"s
+
+    The list starts with [1, 2] and end with [num_pages-1, num_pages].
+    The list includes [index-1, index, index+1]
+    "None"s separate those ranges and mean ellipsis (...)
+
+    Example:  [1, 2, None, 10, 11, 12, None, 29, 30]
+    '''
+
     PAGINATION_LENGTH = 10
     if num_pages <= PAGINATION_LENGTH:
         return from_to(1, num_pages)
@@ -110,8 +119,6 @@ def build_crud(model, *layout):
             context_data = super(CrudListView, self).get_context_data(**kwargs)
             paginator = context_data['paginator']
             current_page = context_data['page_obj']
-            # TODO set custom_page_range to something like
-            #   [1, 2, None, 10, 11, 12, None, 29, 30]
             context_data['custom_page_range'] = make_pagination(
                 current_page.number, paginator.num_pages)
             return context_data
