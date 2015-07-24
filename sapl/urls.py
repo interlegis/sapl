@@ -17,12 +17,17 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
-from comissoes.views import comissao_crud
+from comissoes.views import tipo_comissao_crud, comissao_crud
 
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
+
+    # main apps
     url(r'^comissoes/', include(comissao_crud.urls)),
     url(r'^sessao/', include('sessao.urls')),
+
+    # system data
+    url(r'^sistema/comissoes/tipo/', include(tipo_comissao_crud.urls)),
 ]
