@@ -3,23 +3,55 @@ from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
 from comissoes.models import Comissao, TipoComissao
-from .crud import get_field_display, build_crud, makePagination
+from .crud import get_field_display, build_crud, make_pagination, from_to
 
 pytestmark = pytest.mark.django_db
 
 # XXX These tests are based on comissoes app
 #     but could be done with a stub one
 
+__ = None  # for test readability
 
-def test_pagination():
-    assert makePagination(1, 1) == [1]
-    assert makePagination(1, 10) == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    assert makePagination(3, 5) == [1, 2, 3, 4, 5]
-    assert makePagination(9, 11) == [1, 2, None, 7, 8, 9, 10, 11]
-    assert makePagination(8, 22) == [1, 2, None, 7, 8, 9, None, 21, 22]
-    assert makePagination(2, 5) == [1, 2, 3, 4, 5]
-    assert makePagination(1, 17) == [1, 2, 3, 4, 5, None, 16, 17]
-    assert makePagination(22, 25) == [1, 2, None, 21, 22, 23, 24, 25]
+
+@pytest.mark.parametrize(
+    "index, num_pages, result",
+    [(i, k, from_to(1, k))
+     for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+     for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+     ] + [
+        (11, 11, [1, 2, 3, 4, 5, 6, 7, __, 10, (11)]),
+        (10, 11, [1, 2, 3, 4, 5, 6, __, 9, (10), 11]),
+        (9, 11, [1, 2, 3, 4, 5, __, 8, (9), 10, 11]),
+        (8, 11, [1, 2, 3, 4, __, 7, (8), 9, 10, 11]),
+        (7, 11, [1, 2, 3, __, 6, (7), 8, 9, 10, 11]),
+        (6, 11, [1, 2, 3, 4, 5, (6), 7, __, 10, 11]),
+        (5, 11, [1, 2, 3, 4, (5), 6, 7, __, 10, 11]),
+        (4, 11, [1, 2, 3, (4), 5, 6, 7, __, 10, 11]),
+        (3, 11, [1, 2, (3), 4, 5, 6, 7, __, 10, 11]),
+        (2, 11, [1, (2), 3, 4, 5, 6, 7, __, 10, 11]),
+        (1, 11, [(1), 2, 3, 4, 5, 6, 7, __, 10, 11]),
+
+        (12, 12, [1, 2, 3, 4, 5, 6, 7, __, 11, (12)]),
+        (11, 12, [1, 2, 3, 4, 5, 6, __, 10, (11), 12]),
+        (10, 12, [1, 2, 3, 4, 5, __, 9, (10), 11, 12]),
+        (9, 12, [1, 2, 3, 4, __, 8, (9), 10, 11, 12]),
+        (8, 12, [1, 2, 3, __, 7, (8), 9, 10, 11, 12]),
+        (7, 12, [1, 2, 3, __, 6, (7), 8, __, 11, 12]),
+        (6, 12, [1, 2, 3, 4, 5, (6), 7, __, 11, 12]),
+        (5, 12, [1, 2, 3, 4, (5), 6, 7, __, 11, 12]),
+        (4, 12, [1, 2, 3, (4), 5, 6, 7, __, 11, 12]),
+        (3, 12, [1, 2, (3), 4, 5, 6, 7, __, 11, 12]),
+        (2, 12, [1, (2), 3, 4, 5, 6, 7, __, 11, 12]),
+        (1, 12, [(1), 2, 3, 4, 5, 6, 7, __, 11, 12]),
+
+        # some random entries
+        (8, 22, [1, 2, 3, __, 7, (8), 9, __, 21, 22]),
+        (1, 17, [(1), 2, 3, 4, 5, 6, 7, __, 16, 17]),
+        (22, 25, [1, 2, 3, 4, __, 21, (22), 23, 24, 25]),
+    ])
+def test_pagination(index, num_pages, result):
+    assert num_pages < 10 or len(result) == 10
+    assert make_pagination(index, num_pages) == result
 
 
 def test_get_field_display():

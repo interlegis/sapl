@@ -10,28 +10,26 @@ from django.views.generic import (
 from sapl.layout import SaplFormLayout
 
 
-def makePagination(current_page, total_pages):
-    current = current_page
-    total = total_pages
+def from_to(start, end):
+    return list(range(start, end + 1))
 
-    if total_pages > 10:
 
-        if current <= 3:
-            return [1, 2, 3, 4, 5, None, total - 1, total]
-        elif current >= total - 3:
-            return [1, 2, None, total - 4, total - 3,
-                    total - 2, total - 1, total]
-        else:
-            return [1, 2, None, current - 1, current, current + 1,
-                    None, total - 1, total]
-
+def make_pagination(index, num_pages):
+    PAGINATION_LENGTH = 10
+    if num_pages <= PAGINATION_LENGTH:
+        return from_to(1, num_pages)
     else:
-        pages = []
-        i = 1
-        while i <= total:
-            pages.append(i)
-            i = i + 1
-        return pages
+        if index - 1 <= 5:
+            tail = [num_pages - 1, num_pages]
+            head = from_to(1, PAGINATION_LENGTH - 3)
+        else:
+            if index + 1 >= num_pages - 3:
+                tail = from_to(index - 1, num_pages)
+            else:
+                tail = [index - 1, index, index + 1,
+                        None, num_pages - 1, num_pages]
+            head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
+        return head + [None] + tail
 
 
 def get_field_display(obj, fieldname):
@@ -108,7 +106,7 @@ def build_crud(model, *layout):
             current_page = context_data['page_obj']
             # TODO set custom_page_range to something like
             #   [1, 2, None, 10, 11, 12, None, 29, 30]
-            context_data['custom_page_range'] = makePagination(
+            context_data['custom_page_range'] = make_pagination(
                 current_page.number, paginator.num_pages)
             return context_data
 
