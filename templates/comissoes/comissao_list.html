@@ -32,7 +32,7 @@
 
   {% if is_paginated %}
   <nav class="pagination-centered">
-    <ul class="pagination">
+    <ul class="pagination" role="menubar" aria-label="Pagination">
       {% if page_obj.has_previous %}
         <li>
           <a href="?page={{ page_obj.previous_page_number }}">
@@ -40,7 +40,7 @@
           </a>
         </li>
       {% else %}
-        <li class="arrow unavailable"><a href="">&laquo;</a></li>
+        <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
       {% endif %}
 
       {% for page in custom_page_range %}
@@ -49,7 +49,7 @@
           <a href="?page={{ page }}">{{ page }}</a>
         </li>
         {% else %}
-        <li class="unavailable"><a href="">&hellip;</a></li>
+        <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
         {% endif %}
       {% endfor %}
 
@@ -60,7 +60,7 @@
           </a>
         </li>
       {% else %}
-        <li class="arrow unavailable"><a href="">&raquo;</a></li>
+        <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
       {% endif %}
     </ul>
   </nav>
