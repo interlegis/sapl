@@ -3,66 +3,76 @@
 
 {% block base_content %}
 
-  {# FIXME is this the best markup to use? #}
-  <dl class="sub-nav">
-    <dd><a href="{{ view.create_url }}">
-      {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
-    </a></dd>
-  </dl>
+{# FIXME is this the best markup to use? #}
+<dl class="sub-nav">
+  <dd><a href="{{ view.create_url }}">
+    {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+  </a></dd>
+</dl>
 
+{% if not field_values %}
+  <p>{{ NO_ENTRIES_MSG }}</p>
+{% else %}
   <table class="table table-hover">
-      <thead>
-          <tr>
-              <th>{% trans 'Id' %}</th>
-              <th>{% trans 'Nome' %}</th>
-              <th>{% trans 'Sigla' %}</th>
-              <th>{% trans 'Tipo' %}</th>
-          </tr>
-      </thead>
-      <tbody>
-          {% for comissao in object_list %}
-              <td>{{ comissao.id }}</td>
-              <td>{{ comissao.nome }}</td>
-              <td>{{ comissao.sigla }}</td>
-              <td>{{ comissao.tipo }}</td>
-          </tr>
-          {% endfor %}
-      </tbody>
-  </table>
-
-  {% if is_paginated %}
-  <div class="pagination-centered">
-    <ul class="pagination" role="menubar" aria-label="Pagination">
-      {% if page_obj.has_previous %}
-        <li>
-          <a href="?page={{ page_obj.previous_page_number }}">
-            <span class="arrow">&laquo;</span>
-          </a>
-        </li>
-      {% else %}
-        <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
-      {% endif %}
-
-      {% for page in custom_page_range %}
-        {% if page %}
-        <li {% if page == page_obj.number %}class="current"{% endif %}>
-          <a href="?page={{ page }}">{{ page }}</a>
-        </li>
+    <thead>
+      <tr>
+        {% for name in field_names %}
+        <th>{{ name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+    {% for value_list in field_values %}
+    <tr>
+      {% for value, href in value_list %}
+      <td>
+        {% if href %}
+        <a href="{{ href }}">{{ value }}</a>
         {% else %}
-        <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
+          {{ value }}
         {% endif %}
+      </td>
       {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+{% endif %}
 
-      {% if page_obj.has_next %}
-        <li>
-          <a href="?page={{ page_obj.next_page_number }}">
-            <span class="arrow">&raquo;</span>
-          </a>
-        </li>
-      {% else %}
-        <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
-      {% endif %}
-    </ul>
-  </div>
+
+{% if is_paginated %}
+<div class="pagination-centered">
+  <ul class="pagination" role="menubar" aria-label="Pagination">
+    {% if page_obj.has_previous %}
+    <li>
+      <a href="?page={{ page_obj.previous_page_number }}">
+        <span class="arrow">&laquo;</span>
+      </a>
+    </li>
+    {% else %}
+    <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
+    {% endif %}
+
+    {% for page in page_range %}
+    {% if page %}
+    <li {% if page == page_obj.number %}class="current"{% endif %}>
+      <a href="?page={{ page }}">{{ page }}</a>
+    </li>
+    {% else %}
+    <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
+    {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <li>
+      <a href="?page={{ page_obj.next_page_number }}">
+        <span class="arrow">&raquo;</span>
+      </a>
+    </li>
+    {% else %}
+    <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
+    {% endif %}
+  </ul>
+</div>
 {% endif %}
 {% endblock %}

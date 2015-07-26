@@ -3,11 +3,15 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.conf.urls import url
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
     CreateView, DeleteView, ListView, UpdateView, DetailView)
 
 from sapl.layout import SaplFormLayout
+from django.utils.functional import cached_property
+
+
+NO_ENTRIES_MSG = _('Não existem registros')
 
 
 def from_to(start, end):
@@ -114,8 +118,10 @@ def build_crud(model, *layout):
     class CrudListView(BaseMixin, ListView):
         title = BaseMixin.verbose_name_plural
         paginate_by = 10
+        no_entries_msg = NO_ENTRIES_MSG
 
-        def get_fieldnames(self):
+        @cached_property
+        def field_names(self):
             '''The list of field names to display on table
 
             This base implementation returns the field names
@@ -124,13 +130,24 @@ def build_crud(model, *layout):
             rows = layout[0][1:]
             return [fieldname for row in rows for fieldname, __ in row]
 
+        def get_field_values(self, object_list):
+            return [[(get_field_display(obj, name)[1],
+                      obj.pk if i == 0 else None)
+                     for i, name in enumerate(self.field_names)]
+                    for obj in object_list
+                    ]
+
         def get_context_data(self, **kwargs):
-            context_data = super(CrudListView, self).get_context_data(**kwargs)
-            paginator = context_data['paginator']
-            current_page = context_data['page_obj']
-            context_data['custom_page_range'] = make_pagination(
-                current_page.number, paginator.num_pages)
-            return context_data
+            context = super(CrudListView, self).get_context_data(**kwargs)
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+            object_list = context['object_list']
+            context['field_names'] = self.field_names
+            context['field_values'] = self.get_field_values(object_list)
+            context['NO_ENTRIES_MSG'] = NO_ENTRIES_MSG
+            return context
 
     class CrudCreateView(BaseMixin, FormMessagesMixin, CreateView):
         form_class = crud.model_form
