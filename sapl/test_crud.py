@@ -2,10 +2,10 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from comissoes.models import Comissao, TipoComissao
 from .crud import (get_field_display, build_crud, make_pagination, from_to,
                    NO_ENTRIES_MSG)
-from comissoes.views import comissao_crud
+from comissoes.models import Comissao, TipoComissao
+
 
 pytestmark = pytest.mark.django_db
 
@@ -185,7 +185,7 @@ def assert_on_detail_page(res, stub_name):
 @pytest.mark.urls('sapl.teststubs.urls_for_list_test')
 @pytest.mark.parametrize("num_entries, page_size, ranges, page_list", [
     (0, 6, [], []),
-    (5, 5, [], []),
+    (5, 5, [(0, 5)], []),
     (10, 5, [(0, 5), (5, 10)], ['«', '1', '2', '»']),
     (9, 4, [(0, 4), (4, 8), (8, 9)], ['«', '1', '2', '3', '»']),
 ])
@@ -194,7 +194,8 @@ def test_flux_list_paginate_detail(
 
     entries_labels = []
     for i in range(num_entries):
-        nome, sigla, tipo = 'nome %s' % i, 'sigla %s' % i, 'tipo %s' % i,
+        # letter = next(letters)
+        nome, sigla, tipo = 'nome %s' % i, 'sigla %s' % i, 'tipo %s' % i
         entries_labels.append([nome, sigla, tipo])
         mommy.make(Comissao, nome=nome, sigla=sigla, tipo__nome=tipo)
 
@@ -202,31 +203,40 @@ def test_flux_list_paginate_detail(
     crud.CrudListView.paginate_by = page_size
 
     res = app.get('/comissoes/')
-    assert_on_list_page(res)
-
-    table = res.html.find('table')
-    paginator = res.html.find('ul', {'class': 'pagination'})
 
     if num_entries == 0:
+        assert_on_list_page(res)
         assert NO_ENTRIES_MSG in res
-        assert not table
-        assert not paginator
+        # no table
+        assert not res.html.find('table')
+        # no pagination
+        assert not res.html.find('ul', {'class': 'pagination'})
     else:
-        def rows():
-            header, *rows = table.findAll('tr')
+        def assert_at_page(res, i):
+            assert_on_list_page(res)
+            table = res.html.find('table')
+            assert table
+            header, *trs = table.findAll('tr')
             assert header.text.strip().split() == ['nome', 'sigla', 'tipo']
-            return [[td.text.strip() for td in tr.findAll('td')]
-                    for tr in rows]
+            rows = [[td.text.strip() for td in tr.findAll('td')]
+                    for tr in trs]
 
-        if page_list:
-            assert paginator
-            assert paginator.text.strip().split() == page_list
+            start, end = ranges[i - 1]
+            assert entries_labels[start:end] == rows
 
-        assert entries_labels[:page_size] == rows()
+            paginator = res.html.find('ul', {'class': 'pagination'})
+            if page_list:
+                assert paginator
+                assert paginator.text.strip().split() == page_list
 
-        # TODO... go to the second page and back
+        assert_at_page(res, 1)
+        if len(ranges) > 1:
+            res = res.click('2', href='page=2')
+            assert_at_page(res, 2)
+            res = res.click('1', href='page=1')
+            assert_at_page(res, 1)
+
         # TODO... go to detail page
-
 
 
 @pytest.mark.parametrize("cancel, make_invalid_submit", [
