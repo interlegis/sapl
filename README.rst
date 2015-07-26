@@ -25,7 +25,7 @@ Development Environment Installation
 * Create a virtualenv using python 3 for the project and activate it.
   If you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_::
 
-    mkvirtualenv -p /usr/bin/python3 SAPL
+    mkvirtualenv -p /usr/bin/python3 sapl
 
 * Install python dependencies::
 
