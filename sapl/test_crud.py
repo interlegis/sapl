@@ -230,13 +230,22 @@ def test_flux_list_paginate_detail(
                 assert paginator.text.strip().split() == page_list
 
         assert_at_page(res, 1)
+        res_detail = res.click('nome 1')
+        assert_on_detail_page(res_detail, 'nome 1')
+
         if len(ranges) > 1:
             res = res.click('2', href='page=2')
             assert_at_page(res, 2)
+
+            fist_entry_on_2nd_page = 'nome %s' % page_size
+            res_detail = res.click(fist_entry_on_2nd_page)
+            assert_on_detail_page(res_detail, fist_entry_on_2nd_page)
+
             res = res.click('1', href='page=1')
             assert_at_page(res, 1)
 
-        # TODO... go to detail page
+        res_detail = res.click('nome 1')
+        assert_on_detail_page(res_detail, 'nome 1')
 
 
 @pytest.mark.parametrize("cancel, make_invalid_submit", [
