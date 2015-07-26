@@ -106,16 +106,16 @@ def get_field(model, fieldname):
 
 def get_participacao_composicao(obj):
     new = Composicao()
-    for new_field, value in [('comissao', obj.cod_comissao),
-                             ('periodo', obj.cod_periodo_comp)]:
-        model_field = Composicao._meta.get_field(new_field)
-        value = get_fk_related(model_field, value)
-        setattr(new, new_field, value)
-    previous = Composicao.objects.filter(
+    new.comissao, new.periodo = [
+        get_fk_related(Composicao._meta.get_field(name), value)
+        for name, value in (('comissao', obj.cod_comissao),
+                            ('periodo', obj.cod_periodo_comp))]
+    # check if there is already an "equal" one in the db
+    already_created = Composicao.objects.filter(
         comissao=new.comissao, periodo=new.periodo)
-    if previous:
-        assert len(previous) == 1
-        return previous[0]
+    if already_created:
+        assert len(already_created) == 1  # we must never have made 2 copies
+        return already_created[0]
     else:
         new.save()
         return new
