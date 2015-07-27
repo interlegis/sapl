@@ -27,11 +27,11 @@ Development Environment Installation
 
     mkvirtualenv -p /usr/bin/python3 sapl
 
-* Install python dependencies::
+* Install python dependencies (run on the project root)::
 
-    pip install requirements -r / dev-requirements.txt
+    pip install -r requirements/dev-requirements.txt
 
-* Install bower dependencies::
+* Install bower dependencies (run on the project root)::
 
     ./manage.py bower install
 
