@@ -17,8 +17,8 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
-from comissoes.views import (tipo_comissao_crud, comissao_crud,
-                             periodo_composicao_crud, cargo_crud)
+from comissoes.views import (
+    tipo_comissao_crud, periodo_composicao_crud, cargo_crud)
 from parlamentares.views import (legislatura_crud, coligacao_crud,
                                  partido_crud, tipo_dependente_crud,
                                  nivel_instrucao_crud, tipo_afastamento_crud,
@@ -33,16 +33,18 @@ from lexml.views import (lexml_provedor_crud, lexml_publicador_crud)
 from norma.views import (tipo_norma_crud, assunto_norma_crud)
 from sessao.views import (tipo_sessao_crud, tipo_resultado_votacao_crud,
                           tipo_expediente_crud)
+from comissoes.urls import comissoes_urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
 
     # main apps
-    url(r'^comissoes/', include(comissao_crud.urls)),
+    url(r'^comissoes/', include(comissoes_urls)),
     url(r'^sessao/', include('sessao.urls')),
 
-    # system data
+    # SYSTEM DATA
+
     # parlamentares
     url(r'^sistema/parlamentares/legislatura/',
         include(legislatura_crud.urls)),

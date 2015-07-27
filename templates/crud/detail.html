@@ -1,36 +1,37 @@
 {% extends "base.html" %}
-{% load i18n crispy_forms_tags %}
+{% load i18n %}
 
 {% block base_content %}
 
   {# FIXME is this the best markup to use? #}
-  <dl class="sub-nav">
-    <dd><a href="{{ view.update_url }}">
-      {% blocktrans with verbose_name=view.verbose_name %} Editar {{ verbose_name }} {% endblocktrans %}
-    </a></dd>
-    <dd><a href="{{ view.delete_url }}">
-      {% blocktrans with verbose_name=view.verbose_name %} Excluir {{ verbose_name }} {% endblocktrans %}
-    </a></dd>
-  </dl>
+  <div class="clearfix">
+    <dl class="sub-nav right">
+      <dd><a href="{{ view.update_url }}" class="button">{% trans 'Editar' %}</a></dd>
+      <dd><a href="{{ view.delete_url }}" class="button alert">{% trans 'Excluir' %}</a></dd>
+    </dl>
+    {% block sections_nav %}{% endblock %}
+  </div>
 
-  {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
-  {% for fieldset in view.fieldsets %}
-  <fieldset>
-    <legend>{{ fieldset.legend }}</legend>
-    {% for row in fieldset.rows %}
-    <div class="row">
-        {% for column in row %}
-        <div class="columns large-{{ column.span }}">
-            <div id="div_id_{{ column.id }}" class="holder">
-                <label>{{ column.verbose_name }}</label> {# TODO replace labels, probably (are they correct here?) #}
-                <p>{{ column.text }}</p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+  {% block detail_content %}
+    {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
+    {% for fieldset in view.fieldsets %}
+    <fieldset>
+      <legend>{{ fieldset.legend }}</legend>
+      {% for row in fieldset.rows %}
+      <div class="row">
+          {% for column in row %}
+          <div class="columns large-{{ column.span }}">
+              <div id="div_id_{{ column.id }}" class="holder">
+                  <label>{{ column.verbose_name }}</label> {# TODO replace labels, probably (are they correct here?) #}
+                  <p>{{ column.text }}</p>
+              </div>
+          </div>
+          {% endfor %}
+      </div>
+      {% endfor %}
+    </fieldset>
     {% endfor %}
-  </fieldset>
-  {% endfor %}
+  {% endblock detail_content %}
 
 {% endblock %}
 

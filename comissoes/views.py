@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from .models import (TipoComissao, Comissao, Periodo, CargoComissao)
 from sapl.crud import build_crud
 
+
 cargo_crud = build_crud(
     CargoComissao,
 
@@ -52,3 +53,15 @@ comissao_crud = build_crud(
       ('data_prorrogada_temp', 4),
       ('data_fim_comissao', 4)]],
 )
+
+
+class ComposicaoListView(comissao_crud.CrudDetailView):
+    template_name = 'comissoes/composicao.html'
+
+
+class MateriasListView(comissao_crud.CrudDetailView):
+    template_name = 'comissoes/materias.html'
+
+
+class ReunioesListView(comissao_crud.CrudDetailView):
+    template_name = 'comissoes/reunioes.html'

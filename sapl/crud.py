@@ -217,7 +217,7 @@ def build_crud(model, *layout):
     crud.CrudDeleteView = CrudDeleteView
 
     # XXX transform into a property of Crud to enable override
-    crud.urls = [
+    crud.urlpatterns = [
         url(r'^$', CrudListView.as_view(), name='list'),
         url(r'^create$', CrudCreateView.as_view(), name='create'),
         url(r'^(?P<pk>\d+)$', CrudDetailView.as_view(), name='detail'),
@@ -225,6 +225,7 @@ def build_crud(model, *layout):
             CrudUpdateView.as_view(), name='update'),
         url(r'^(?P<pk>\d+)/delete$',
             CrudDeleteView.as_view(), name='delete'),
-    ], crud.namespace, crud.namespace
+    ]
+    crud.urls = crud.urlpatterns, crud.namespace, crud.namespace
 
     return crud
