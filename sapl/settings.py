@@ -22,6 +22,7 @@ SECRET_KEY = '!9g1-#la+#(oft(v-y1qhy$jk-2$24pdk69#b_jfqyv!*%a_)t'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = ['*']
 
@@ -54,6 +55,8 @@ INSTALLED_APPS = (
     'crispy_forms',
     'crispy_forms_foundation',
 )
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -81,6 +84,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'debug': DEBUG
         },
     },
 ]
