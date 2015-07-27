@@ -47,11 +47,11 @@
         {% endblock %}
         {% block title %}{% if view.title %}<h1>{{ view.title }}</h1>{% endif %}{% endblock %}
       </div>
-      {% endblock %}
+      {% endblock base_header %}
 
       {% block base_content %}{% endblock %}
     </div>
-    {% endblock %}
+    {% endblock content_container %}
     <!-- END Content -->
 
     <footer id="footer">
@@ -65,6 +65,6 @@
       <script>
         $(document).foundation();
       </script>
-    {% endblock %}
+    {% endblock foot_js %}
 </body>
 </html>
