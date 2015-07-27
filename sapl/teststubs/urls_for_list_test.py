@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 from sapl.crud import build_crud
 
 from comissoes.models import Comissao
-
+from comissoes.urls import comissoes_urls
 
 crud = build_crud(
     Comissao,
@@ -17,6 +17,10 @@ crud = build_crud(
      ],
 )
 
+patterns, namespace, app_name = comissoes_urls
+
 urlpatterns = [
-    url(r'^comissoes/', include(crud.urls)),
+    url(r'^comissoes/', include((
+        crud.urlpatterns + patterns[len(crud.urlpatterns):],
+        namespace, app_name))),
 ]

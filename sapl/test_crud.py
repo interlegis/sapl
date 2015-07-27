@@ -178,8 +178,8 @@ def assert_on_create_page(res):
 def assert_on_detail_page(res, stub_name):
     assert_h1(res, stub_name)
     assert not res.forms
-    assert 'Editar Comissão' in res
-    assert 'Excluir Comissão' in res
+    assert 'Editar' in res
+    assert 'Excluir' in res
 
 
 @pytest.mark.urls('sapl.teststubs.urls_for_list_test')
@@ -315,7 +315,7 @@ def get_detail_page(app):
 @pytest.mark.parametrize("cancel", [True, False])
 def test_flux_detail_update_detail(app, cancel):
     stub, res = get_detail_page(app)
-    res = res.click('Editar Comissão')
+    res = res.click('Editar')
 
     # on update page
     assert_h1(res, stub.nome)
@@ -346,7 +346,7 @@ def test_flux_detail_update_detail(app, cancel):
 @pytest.mark.parametrize("cancel", [True, False])
 def test_flux_detail_delete_list(app, cancel):
     stub, res = get_detail_page(app)
-    res = res.click('Excluir Comissão')
+    res = res.click('Excluir')
 
     # on delete page
     assert 'Tem certeza que deseja apagar' in res
