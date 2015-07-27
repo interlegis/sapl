@@ -109,4 +109,6 @@ urlpatterns = [
     # lexml
     url(r'^sistema/lexml/provedor/', include(lexml_provedor_crud.urls)),
     url(r'^sistema/lexml/publicador/', include(lexml_publicador_crud.urls)),
+
+    url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),
 ]

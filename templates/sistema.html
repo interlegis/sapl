@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block base_content %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		h5{
+			color: #000080;
+		}
+		ul{
+			color: #2EB82E;
+			font-size: 90%;
+		}
+	</style>
+	<title>SAPL - Sistema de Apoio ao Processo Legislativo</title>
+</head>
+
+<body>
+	<h5>Configuração Inicial</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="#">Casa Legislativa</a></li>
+	</ul>
+
+	<h5>Módulo Parlamentares</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'legislatura:list' %}">Legislatura</a></li>
+  		<li><a href="{% url 'tipoafastamento:list' %}">Tipo de Afastamento</a></li>
+  		<li><a href="{% url 'tipodependente:list' %}">Tipo de Dependente</a></li>
+  		<li><a href="{% url 'situacaomilitar:list' %}">Tipo de Situação Militar</a></li>
+  		<li><a href="{% url 'nivelinstrucao:list' %}">Nível de Intrução</a></li>
+  		<li><a href="{% url 'partido:list' %}">Partido</a></li>
+  		<li><a href="{% url 'coligacao:list' %}">Coligação</a></li>
+	</ul>
+
+	<h5>Módulo Mesa Diretora</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'sessaolegislativa:list' %}">Sessão Legislativa</a></li>
+  		<li><a href="#">Período de Composição</a></li>
+  		<li><a href="{% url 'cargomesa:list' %}">Cargo da Mesa</a></li>
+	</ul>
+
+	<h5>Módulo Comissões</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'cargocomissao:list' %}">Cargo de Comissão</a></li>
+  		<li><a href="{% url 'periodo:list' %}">Período de Composição</a></li>
+  		<li><a href="{% url 'tipocomissao:list' %}">Tipo de Composição</a></li>
+	</ul>
+
+	<h5>Módulo Bancadas</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="#">Bancadas</a></li>
+  		<li><a href="#">Cargo de Bancada</a></li>
+	</ul>
+
+	<h5>Módulo Proposições</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'tipoproposicao:list' %}">Tipo de Proposição</a></li>
+  		<li><a href="{% url 'autor:list' %}">Autor</a></li>
+	</ul>
+
+	<h5>Módulo Matéria Legislativa</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'tipomaterialegislativa:list' %}">Tipo de Matéria Legislativa</a></li>
+  		<li><a href="{% url 'regimetramitacao:list' %}">Regime de Tramitação</a></li>
+  		<li><a href="{% url 'tipoautor:list' %}">Tipo de Autor</a></li>
+  		<li><a href="{% url 'tipodocumento:list' %}">Tipo de Documento</a></li>
+  		<li><a href="{% url 'tipofimrelatoria:list' %}">Tipo de fim de Relatoria</a></li>
+  		<li><a href="{% url 'unidadetramitacao:list' %}">Unidade de Tramitação</a></li>
+  		<li><a href="{% url 'origem:list' %}">Origem</a></li>
+  		<li><a href="{% url 'autor:list' %}">Autor</a></li>
+  		<li><a href="{% url 'statustramitacao:list' %}">Status da Tramitação</a></li>
+  		<li><a href="{% url 'orgao:list' %}">Órgão</a></li>
+	</ul>
+
+	<h5>Módulo Normas Jurídicas</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'tiponormajuridica:list' %}">Tipo de Norma Jurídica</a></li>
+  		<li><a href="{% url 'assuntonorma:list' %}">Assunto de Norma Jurídica</a></li>
+	</ul>
+
+	<h5>Módulo Sessão Plenária</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'tiposessaoplenaria:list' %}">Tipo de Sessão Plenária</a></li>
+  		<li><a href="{% url 'tiporesultadovotacao:list' %}">Tipo de Resultado da Votação</a></li>
+  		<li><a href="#">Cadastro dos endereços dos computadores dos parlamentares</a></li>
+  		<li><a href="{% url 'tipoexpediente:list' %}">Tipo de Expediente</a></li>
+  		<li><a href="#">Propriedades do Painel Eletrônico</a></li>
+	</ul>
+
+	<h5>Módulo LexML</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="{% url 'lexmlprovedor:list' %}">Provedor</a></li>
+  		<li><a href="{% url 'lexmlpublicador:list' %}">Publicador</a></li>
+	</ul>
+
+	<h5>Módulo Administrativo</h5>
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="#">Tipo de Documento</a></li>
+  		<li><a href="#">Tipo de Instituição</a></li>
+  		<li><a href="#">Status de Tramitação</a></li>
+	</ul>
+</body>
+</html>
+
+{% endblock %}
