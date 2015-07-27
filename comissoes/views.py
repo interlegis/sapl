@@ -1,8 +1,21 @@
 from django.utils.translation import ugettext_lazy as _
 
-from .models import TipoComissao, Comissao
+from .models import (TipoComissao, Comissao, Periodo, CargoComissao)
 from sapl.crud import build_crud
 
+cargo_crud = build_crud(
+    CargoComissao,
+
+    [_('Período de composição de Comissão'),
+     [('nome', 8), ('unico', 4)]],
+)
+
+periodo_composicao_crud = build_crud(
+    Periodo,
+
+    [_('Cargo de Comissão'),
+     [('data_inicio', 6), ('data_inicio', 6)]],
+)
 
 tipo_comissao_crud = build_crud(
     TipoComissao,

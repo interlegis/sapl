@@ -5,18 +5,25 @@ from .models import (Legislatura, Coligacao, Partido,
                      Dependente, SessaoLegislativa,
                      Parlamentar, Filiacao, Mandato,
                      TipoDependente, NivelInstrucao,
-                     TipoAfastamento, SituacaoMilitar)
+                     TipoAfastamento, SituacaoMilitar,
+                     CargoMesa)
+
+cargo_mesa_crud = build_crud(
+    CargoMesa,
+
+    [_('Cargo na Mesa'),
+     [('descricao', 8),
+      ('unico', 4)]],
+)
 
 legislatura_crud = build_crud(
     Legislatura,
 
     [_('Legislatura'),
      [('id', 3),
-      ('id', 3),
       ('data_inicio', 2),
       ('data_fim', 2),
       ('data_eleicao', 2)],
-     [('id', 12)],
      [('data_inicio', 4), ('data_fim', 4), ('data_eleicao', 4)]],
 )
 
@@ -25,10 +32,9 @@ coligacao_crud = build_crud(
 
     [_('Coligação'),
      [('nome', 3),
-      ('nome', 3),
       ('legislatura', 3),
       ('numero_votos', 3)],
-     [('nome', 4), ('legislatura', 4), ('numero_votos', 4)]],
+     [('legislatura', 4), ('numero_votos', 4)]],
 )
 
 partido_crud = build_crud(
@@ -36,11 +42,10 @@ partido_crud = build_crud(
 
     [_('Partido Político'),
      [('nome', 3),
-      ('nome', 3),
       ('sigla', 2),
       ('data_criacao', 2),
       ('data_extincao', 2)],
-     [('nome', 6), ('sigla', 6)],
+     [('sigla', 6)],
      [('data_criacao', 6), ('data_extincao', 6)]],
 )
 
@@ -58,14 +63,11 @@ sessao_legislativa_crud = build_crud(
 
     [_('Sessão Legislativa'),
      [('numero', 2),
-      ('numero', 2),
       ('tipo', 2),
       ('data_inicio', 2),
       ('data_fim', 2),
       ('data_inicio_intervalo', 1),
-      ('data_fim_intervalo', 1)],
-     [('numero', 3), ('tipo', 3), ('data_inicio', 3), ('data_fim', 3)],
-     [('data_inicio_intervalo', 6), ('data_fim_intervalo', 6)]],
+      ('data_fim_intervalo', 1)]],
 )
 
 dependente_crud = build_crud(
@@ -109,13 +111,6 @@ mandato_crud = build_crud(
      [('observacao', 12)]],
 )
 
-filiacao_crud = build_crud(
-    Filiacao,
-
-    [_('Filiações Partidárias '),
-     [('partido', 4), ('data', 4), ('data_desfiliacao', 4)]],
-)
-
 tipo_dependente_crud = build_crud(
     TipoDependente,
 
@@ -135,8 +130,7 @@ tipo_afastamento_crud = build_crud(
 
     [_('Tipo de Afastamento'),
      [('descricao', 6), ('dispositivo', 6)],
-     [('afastamento', 6),
-      ('fim_afastamento', 6)]],
+     [('afastamento', 6)]],
 )
 
 tipo_militar_crud = build_crud(
