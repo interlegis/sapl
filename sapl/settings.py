@@ -9,8 +9,6 @@ https://docs.djangoproject.com/en/1.8/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
-
-import os
 from unipath import Path
 
 BASE_DIR = Path(__file__).ancestor(2)
@@ -119,9 +117,7 @@ LOCALE_PATHS = (
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.child("collected_static")
-STATICFILES_DIRS = (
-    BASE_DIR.child("static"),
-)
+STATICFILES_DIRS = (BASE_DIR.child("static"),)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
