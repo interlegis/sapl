@@ -77,7 +77,7 @@ urlpatterns = [
     url(r'^sistema/proposicoes/autor/', include(autor_crud.urls)),
 
     # materia
-    url(r'^sistema/materia/tipo-materia/', include(tipo_materia_crud.urls)),
+    url(r'^sistema/materia/tipo/', include(tipo_materia_crud.urls)),
     url(r'^sistema/materia/regime-tramitacao/',
         include(regime_tramitacao_crud.urls)),
     url(r'^sistema/materia/tipo-autor/', include(tipo_autor_crud.urls)),

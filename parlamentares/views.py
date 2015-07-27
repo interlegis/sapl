@@ -12,8 +12,8 @@ cargo_mesa_crud = build_crud(
     CargoMesa,
 
     [_('Cargo na Mesa'),
-     [('descricao', 8),
-      ('unico', 4)]],
+     [('descricao', 10),
+      ('unico', 2)]],
 )
 
 legislatura_crud = build_crud(
@@ -33,20 +33,17 @@ coligacao_crud = build_crud(
     [_('Coligação'),
      [('nome', 3),
       ('legislatura', 3),
-      ('numero_votos', 3)],
-     [('legislatura', 4), ('numero_votos', 4)]],
+      ('numero_votos', 3)]],
 )
 
 partido_crud = build_crud(
     Partido,
 
     [_('Partido Político'),
-     [('nome', 3),
+     [('nome', 6),
       ('sigla', 2),
       ('data_criacao', 2),
-      ('data_extincao', 2)],
-     [('sigla', 6)],
-     [('data_criacao', 6), ('data_extincao', 6)]],
+      ('data_extincao', 2)]],
 )
 
 dependente_crud = build_crud(
@@ -66,8 +63,8 @@ sessao_legislativa_crud = build_crud(
       ('tipo', 2),
       ('data_inicio', 2),
       ('data_fim', 2),
-      ('data_inicio_intervalo', 1),
-      ('data_fim_intervalo', 1)]],
+      ('data_inicio_intervalo', 2),
+      ('data_fim_intervalo', 2)]],
 )
 
 dependente_crud = build_crud(

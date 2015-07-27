@@ -102,13 +102,8 @@ autor_crud = build_crud(
     Autor,
 
     [_('Autor'),
-     [('tipo', 6), ('nome', 6)],
-     [('autor_eh_usuario_FIXME', 12)],
-     [('login_FIXME', 12)]],
-
-    [_('Acesso ao SAPL'),
-     [('autor_eh_usuario_FIXME', 12)],
-     [('login_FIXME', 12)]],
+     [('tipo', 3), ('nome', 9)],
+     [('username', 12)]],
 )
 
 autoria_crud = build_crud(
@@ -143,16 +138,11 @@ orgao_crud = build_crud(
     Orgao,
 
     [_('Órgão'),
-     [('nome', 2),
-      ('nome', 2),
-      ('sigla', 2),
-      ('ind_unidade_deliberativa_FIXME', 2),
-      ('endereco', 2),
-      ('telefone', 2)],
      [('nome', 4),
-      ('sigla', 4),
-      ('ind_unidade_deliberativa_FIXME', 4)],
-     [('endereco', 6), ('telefone', 6)]],
+      ('sigla', 2),
+      ('telefone', 2),
+      ('endereco', 2),
+      ('unidade_deliberativa', 2)]],
 )
 
 relatoria_crud = build_crud(
@@ -168,14 +158,9 @@ tipo_proposicao_crud = build_crud(
     TipoProposicao,
 
     [_('Tipo Proposição'),
-     [('tipo_proposicao_FIXME', 3),
-      ('tipo_proposicao_FIXME', 3),
-      ('mat_ou_doc_FIXME', 2),
-      ('mat_ou_doc_FIXME', 2),
-      ('modelo_FIXME', 2)],
-     [('tipo_proposicao_FIXME', 12)],
-     [('mat_ou_doc_FIXME', 6), ('mat_ou_doc_FIXME', 6)],
-     [('modelo_FIXME', 12)]],
+     [('descricao', 12)],
+     [('materia_ou_documento', 4), ('tipo_documento', 8)],
+     [('modelo', 12)]],
 )
 
 proposicao_crud = build_crud(
@@ -194,12 +179,9 @@ status_tramitacao_crud = build_crud(
     StatusTramitacao,
 
     [_('Status Tramitação'),
-     [('sigla', 3),
-      ('sigla', 3),
-      ('ind_tramitacao_FIXME', 3),
-      ('descricao', 3)],
-     [('sigla', 6), ('ind_tramitacao_FIXME', 6)],
-     [('descricao', 12)]],
+     [('sigla', 4),
+      ('indicador', 4),
+      ('descricao', 4)]],
 )
 
 unidade_tramitacao_crud = build_crud(

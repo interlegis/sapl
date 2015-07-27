@@ -7,23 +7,22 @@ cargo_crud = build_crud(
     CargoComissao,
 
     [_('Período de composição de Comissão'),
-     [('nome', 8), ('unico', 4)]],
+     [('nome', 10), ('unico', 2)]],
 )
 
 periodo_composicao_crud = build_crud(
     Periodo,
 
     [_('Cargo de Comissão'),
-     [('data_inicio', 6), ('data_inicio', 6)]],
+     [('data_inicio', 6), ('data_fim', 6)]],
 )
 
 tipo_comissao_crud = build_crud(
     TipoComissao,
 
     [_('Tipo Comissão'),
-     [('nome', 3), ('sigla', 2)],
-     [('dispositivo_regimental', 2), ('natureza', 2)],
-     ],
+     [('nome', 9), ('sigla', 3)],
+     [('dispositivo_regimental', 9), ('natureza', 3)]],
 )
 
 comissao_crud = build_crud(
