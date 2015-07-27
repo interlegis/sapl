@@ -5,10 +5,12 @@
 
   {# FIXME is this the best markup to use? #}
   <div class="clearfix">
-    <dl class="sub-nav right">
-      <dd><a href="{{ view.update_url }}" class="button">{% trans 'Editar' %}</a></dd>
-      <dd><a href="{{ view.delete_url }}" class="button alert">{% trans 'Excluir' %}</a></dd>
-    </dl>
+    {% block actions %}
+      <dl class="sub-nav right">
+        <dd><a href="{{ view.update_url }}" class="button">{% trans 'Editar' %}</a></dd>
+        <dd><a href="{{ view.delete_url }}" class="button alert">{% trans 'Excluir' %}</a></dd>
+      </dl>
+    {% endblock actions %}
     {% block sections_nav %}{% endblock %}
   </div>
 
@@ -33,5 +35,5 @@
     {% endfor %}
   {% endblock detail_content %}
 
-{% endblock %}
+{% endblock base_content %}
 
