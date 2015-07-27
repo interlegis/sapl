@@ -77,6 +77,6 @@ target/
 *.sublime-workspace
 
 # specific to this project
-static
+collected_static
 bower
 bower_components
