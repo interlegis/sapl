@@ -32,6 +32,7 @@ from parlamentares.views import (cargo_mesa_crud, coligacao_crud,
                                  partido_crud, sessao_legislativa_crud,
                                  tipo_afastamento_crud, tipo_dependente_crud,
                                  tipo_militar_crud)
+from sessao.urls import sessao_urls
 from sessao.views import (tipo_expediente_crud, tipo_resultado_votacao_crud,
                           tipo_sessao_crud)
 
@@ -41,7 +42,7 @@ urlpatterns = [
 
     # main apps
     url(r'^comissoes/', include(comissoes_urls)),
-    url(r'^sessao/', include('sessao.urls')),
+    url(r'^sessao/', include(sessao_urls)),
 
     # SYSTEM DATA
 

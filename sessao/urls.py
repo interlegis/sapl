@@ -1,15 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-from sessao.views import (SessaoPlenariaCreateView, SessaoPlenariaDetailView,
-                          SessaoPlenariaListView, SessaoPlenariaUpdateView)
+from sessao.views import ExpedienteView, sessao_crud
 
-urlpatterns = patterns(
-    'sessao.views',
-    url(r'^$', SessaoPlenariaListView.as_view(), name='sessao_list'),
-    url(r'^(?P<pk>\d+)$', SessaoPlenariaDetailView.as_view(),
-        name='sessao_detail'),
-    url(r'^create$', SessaoPlenariaCreateView.as_view(),
-        name='sessao_create'),
-    url(r'^(?P<pk>\d+)/edit$', SessaoPlenariaUpdateView.as_view(),
-        name='sessao_update'),
-)
+urlpatterns = sessao_crud.urlpatterns + [
+    url(r'^(?P<pk>\d+)/expediente$',
+        ExpedienteView.as_view(), name='expediente'),
+]
+sessao_urls = urlpatterns, sessao_crud.namespace, sessao_crud.namespace
