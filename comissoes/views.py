@@ -55,13 +55,13 @@ comissao_crud = build_crud(
 )
 
 
-class ComposicaoListView(comissao_crud.CrudDetailView):
+class ComposicaoView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/composicao.html'
 
 
-class MateriasListView(comissao_crud.CrudDetailView):
+class MateriasView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/materias.html'
 
 
-class ReunioesListView(comissao_crud.CrudDetailView):
+class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
