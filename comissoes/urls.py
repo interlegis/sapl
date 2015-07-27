@@ -1,8 +1,7 @@
 from django.conf.urls import url
 
-from comissoes.views import (
-    comissao_crud, ComposicaoView, MateriasView, ReunioesView)
-
+from comissoes.views import (ComposicaoView, MateriasView, ReunioesView,
+                             comissao_crud)
 
 urlpatterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao$',

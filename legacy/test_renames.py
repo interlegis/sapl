@@ -1,7 +1,7 @@
 import comissoes
 import materia
-from .migration import appconfs, get_renames, legacy_app
 
+from .migration import appconfs, get_renames, legacy_app
 
 RENAMING_IGNORED_MODELS = [
     comissoes.models.Composicao,

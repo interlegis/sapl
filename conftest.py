@@ -1,7 +1,6 @@
 import pytest
 from django_webtest import DjangoTestApp, WebTestMixin
 
-
 DEFAULT_MARK = object()
 
 

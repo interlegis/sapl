@@ -1,8 +1,9 @@
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud import build_crud
-from .models import (AssuntoNorma, TipoNormaJuridica,
-                     NormaJuridica, LegislacaoCitada)
+
+from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
+                     TipoNormaJuridica)
 
 assunto_norma_crud = build_crud(
     AssuntoNorma,

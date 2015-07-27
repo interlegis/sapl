@@ -13,7 +13,6 @@ from comissoes.models import Composicao, Participacao
 from parlamentares.models import Parlamentar
 from sapl.utils import appconfs
 
-
 # BASE ######################################################################
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]

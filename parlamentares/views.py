@@ -1,12 +1,11 @@
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud import build_crud
-from .models import (Legislatura, Coligacao, Partido,
-                     Dependente, SessaoLegislativa,
-                     Parlamentar, Filiacao, Mandato,
-                     TipoDependente, NivelInstrucao,
-                     TipoAfastamento, SituacaoMilitar,
-                     CargoMesa)
+
+from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
+                     Mandato, NivelInstrucao, Parlamentar, Partido,
+                     SessaoLegislativa, SituacaoMilitar, TipoAfastamento,
+                     TipoDependente)
 
 cargo_mesa_crud = build_crud(
     CargoMesa,

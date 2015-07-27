@@ -1,8 +1,7 @@
 from django.conf.urls import patterns, url
 
-from sessao.views import (SessaoPlenariaListView, SessaoPlenariaDetailView,
-                          SessaoPlenariaCreateView, SessaoPlenariaUpdateView)
-
+from sessao.views import (SessaoPlenariaCreateView, SessaoPlenariaDetailView,
+                          SessaoPlenariaListView, SessaoPlenariaUpdateView)
 
 urlpatterns = patterns(
     'sessao.views',

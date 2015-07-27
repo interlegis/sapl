@@ -3,7 +3,6 @@ from model_mommy import mommy
 
 from .utils import appconfs
 
-
 pytestmark = pytest.mark.django_db
 
 

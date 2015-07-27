@@ -2,8 +2,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import MateriaLegislativa
-from parlamentares.models import (CargoMesa, Parlamentar, SessaoLegislativa,
-                                  Legislatura)
+from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
+                                  SessaoLegislativa)
 from sapl.utils import make_choices
 
 

@@ -1,10 +1,10 @@
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud import build_crud
-from .models import (TipoDocumentoAdministrativo, DocumentoAdministrativo,
+
+from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
-                     TramitacaoAdministrativo,
-                     DocumentoAcessorioAdministrativo)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 tipo_documento_administrativo_crud = build_crud(
     TipoDocumentoAdministrativo,

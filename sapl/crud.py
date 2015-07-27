@@ -3,13 +3,12 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.conf.urls import url
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (
-    CreateView, DeleteView, ListView, UpdateView, DetailView)
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  UpdateView)
 
 from sapl.layout import SaplFormLayout
-from django.utils.functional import cached_property
-
 
 NO_ENTRIES_MSG = _('Não existem registros')
 

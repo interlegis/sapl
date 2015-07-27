@@ -1,15 +1,14 @@
-from django.utils.translation import ugettext_lazy as _
-
 from braces.views import FormMessagesMixin
 from django.core.urlresolvers import reverse_lazy
-from django.views.generic import (
-    CreateView, DeleteView, ListView, UpdateView, DetailView)
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  UpdateView)
 
 from sapl.crud import build_crud
-from .models import (TipoSessaoPlenaria, SessaoPlenaria,
-                     ExpedienteMateria, OrdemDia, TipoResultadoVotacao,
-                     RegistroVotacao, TipoExpediente)
 
+from .models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
+                     SessaoPlenaria, TipoExpediente, TipoResultadoVotacao,
+                     TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria,

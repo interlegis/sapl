@@ -1,11 +1,12 @@
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud import build_crud
-from .models import (Origem, TipoMateriaLegislativa, RegimeTramitacao,
-                     TipoDocumento, TipoFimRelatoria, MateriaLegislativa,
-                     Anexada, TipoAutor, Autor, Autoria, DocumentoAcessorio,
-                     Numeracao, Orgao, Relatoria, TipoProposicao, Proposicao,
-                     StatusTramitacao, UnidadeTramitacao, Tramitacao)
+
+from .models import (Anexada, Autor, Autoria, DocumentoAcessorio,
+                     MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
+                     RegimeTramitacao, Relatoria, StatusTramitacao, TipoAutor,
+                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
+                     TipoProposicao, Tramitacao, UnidadeTramitacao)
 
 origem_crud = build_crud(
     Origem,

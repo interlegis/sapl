@@ -1,4 +1,5 @@
 from pytest import mark
+
 from .utils import make_choices
 
 

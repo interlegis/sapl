@@ -17,23 +17,23 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
-from comissoes.views import (
-    tipo_comissao_crud, periodo_composicao_crud, cargo_crud)
-from parlamentares.views import (legislatura_crud, coligacao_crud,
-                                 partido_crud, tipo_dependente_crud,
-                                 nivel_instrucao_crud, tipo_afastamento_crud,
-                                 tipo_militar_crud, sessao_legislativa_crud,
-                                 cargo_mesa_crud)
-from materia.views import (tipo_materia_crud, regime_tramitacao_crud,
-                           tipo_autor_crud, tipo_documento_crud,
-                           tipo_fim_relatoria_crud, unidade_tramitacao_crud,
-                           origem_crud, autor_crud, status_tramitacao_crud,
-                           orgao_crud, tipo_proposicao_crud)
-from lexml.views import (lexml_provedor_crud, lexml_publicador_crud)
-from norma.views import (tipo_norma_crud, assunto_norma_crud)
-from sessao.views import (tipo_sessao_crud, tipo_resultado_votacao_crud,
-                          tipo_expediente_crud)
 from comissoes.urls import comissoes_urls
+from comissoes.views import (cargo_crud, periodo_composicao_crud,
+                             tipo_comissao_crud)
+from lexml.views import lexml_provedor_crud, lexml_publicador_crud
+from materia.views import (autor_crud, orgao_crud, origem_crud,
+                           regime_tramitacao_crud, status_tramitacao_crud,
+                           tipo_autor_crud, tipo_documento_crud,
+                           tipo_fim_relatoria_crud, tipo_materia_crud,
+                           tipo_proposicao_crud, unidade_tramitacao_crud)
+from norma.views import assunto_norma_crud, tipo_norma_crud
+from parlamentares.views import (cargo_mesa_crud, coligacao_crud,
+                                 legislatura_crud, nivel_instrucao_crud,
+                                 partido_crud, sessao_legislativa_crud,
+                                 tipo_afastamento_crud, tipo_dependente_crud,
+                                 tipo_militar_crud)
+from sessao.views import (tipo_expediente_crud, tipo_resultado_votacao_crud,
+                          tipo_sessao_crud)
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),

@@ -2,10 +2,10 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from .crud import (get_field_display, build_crud, make_pagination, from_to,
-                   NO_ENTRIES_MSG)
 from comissoes.models import Comissao, TipoComissao
 
+from .crud import (NO_ENTRIES_MSG, build_crud, from_to, get_field_display,
+                   make_pagination)
 
 pytestmark = pytest.mark.django_db
 

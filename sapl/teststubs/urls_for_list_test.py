@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
-from sapl.crud import build_crud
 
 from comissoes.models import Comissao
 from comissoes.urls import comissoes_urls
+from sapl.crud import build_crud
 
 crud = build_crud(
     Comissao,

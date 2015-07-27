@@ -1,5 +1,5 @@
-import pprint
 import os
+import pprint
 import re
 import string
 
@@ -7,12 +7,10 @@ import pkg_resources
 import yaml
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
-
 from django.apps.config import AppConfig
 
 from legacy.migration import appconfs, get_renames
-from legacy.scripts.utils import listify, getsourcelines
-
+from legacy.scripts.utils import getsourcelines, listify
 
 # to prevent removal by automatic organize imports on this file
 assert appconfs

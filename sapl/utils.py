@@ -1,7 +1,6 @@
 from django.apps import apps
 from django.contrib import admin
 
-
 # SAPL business apps
 #  This is a dependency order: each entry depends only on previous ones
 #  The order is important for migration code
