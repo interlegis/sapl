@@ -129,7 +129,7 @@ def build_crud(model, *layout):
             rows = layout[0][1:]
             return [fieldname for row in rows for fieldname, __ in row]
 
-        def get_field_values(self, object_list):
+        def get_rows(self, object_list):
             return [[(get_field_display(obj, name)[1],
                       obj.pk if i == 0 else None)
                      for i, name in enumerate(self.field_names)]
@@ -143,8 +143,10 @@ def build_crud(model, *layout):
             context['page_range'] = make_pagination(
                 page_obj.number, paginator.num_pages)
             object_list = context['object_list']
-            context['field_names'] = self.field_names
-            context['field_values'] = self.get_field_values(object_list)
+            context['headers'] = [
+                self.model._meta.get_field(fieldname).verbose_name
+                for fieldname in self.field_names]
+            context['rows'] = self.get_rows(object_list)
             context['NO_ENTRIES_MSG'] = NO_ENTRIES_MSG
             return context
 

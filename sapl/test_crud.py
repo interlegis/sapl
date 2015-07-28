@@ -138,7 +138,7 @@ def test_crud_detail_view_fieldsets(monkeypatch):
                    {'id': 'unidade_deliberativa',
                     'span': 3,
                     'text': 'Sim',
-                    'verbose_name': 'unidade deliberativa'}]]},
+                    'verbose_name': 'Unidade Deliberativa'}]]},
         {'legend': 'Dados Complementares',
          'rows': [[{'id': 'finalidade',
                     'span': 12,
@@ -217,7 +217,7 @@ def test_flux_list_paginate_detail(
             table = res.html.find('table')
             assert table
             header, *trs = table.findAll('tr')
-            assert header.text.strip().split() == ['nome', 'sigla', 'tipo']
+            assert header.text.strip().split() == ['Nome', 'Sigla', 'Tipo']
             rows = [[td.text.strip() for td in tr.findAll('td')]
                     for tr in trs]
 

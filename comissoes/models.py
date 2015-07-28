@@ -81,7 +81,8 @@ class Comissao(models.Model):
     email = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_('E-mail'))
     unidade_deliberativa = models.BooleanField(
-        choices=UNIDADE_DELIBERATIVA_CHOICES)
+        choices=UNIDADE_DELIBERATIVA_CHOICES,
+        verbose_name=_('Unidade Deliberativa'))
 
     class Meta:
         verbose_name = _('Comissão')

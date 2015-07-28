@@ -10,19 +10,19 @@
   </a></dd>
 </dl>
 
-{% if not field_values %}
+{% if not rows %}
   <p>{{ NO_ENTRIES_MSG }}</p>
 {% else %}
   <table class="table table-hover">
     <thead>
       <tr>
-        {% for name in field_names %}
+        {% for name in headers %}
         <th>{{ name }}</th>
         {% endfor %}
       </tr>
     </thead>
     <tbody>
-    {% for value_list in field_values %}
+    {% for value_list in rows %}
     <tr>
       {% for value, href in value_list %}
       <td>
