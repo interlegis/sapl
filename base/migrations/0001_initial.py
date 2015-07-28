@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import migrations, models
+from django.db import models, migrations
 
 
 class Migration(migrations.Migration):
@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CasaLegislativa',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('nome', models.CharField(max_length=100, verbose_name='Nome')),
                 ('sigla', models.CharField(max_length=100, verbose_name='Sigla')),
                 ('endereco', models.CharField(max_length=100, verbose_name='Endereço')),
@@ -31,8 +31,8 @@ class Migration(migrations.Migration):
                 ('informacao_geral', models.CharField(max_length=100, verbose_name='Informação Geral')),
             ],
             options={
-                'verbose_name': 'Casa Legislativa',
                 'verbose_name_plural': 'Casas Legislativas',
+                'verbose_name': 'Casa Legislativa',
             },
         ),
     ]
