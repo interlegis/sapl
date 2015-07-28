@@ -17,9 +17,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
-from comissoes.urls import comissoes_urls
-from comissoes.views import (cargo_crud, periodo_composicao_crud,
-                             tipo_comissao_crud)
 from lexml.views import lexml_provedor_crud, lexml_publicador_crud
 from materia.views import (autor_crud, orgao_crud, origem_crud,
                            regime_tramitacao_crud, status_tramitacao_crud,
@@ -32,19 +29,13 @@ from parlamentares.views import (cargo_mesa_crud, coligacao_crud,
                                  partido_crud, sessao_legislativa_crud,
                                  tipo_afastamento_crud, tipo_dependente_crud,
                                  tipo_militar_crud)
-from sessao.urls import sessao_urls
-from sessao.views import (tipo_expediente_crud, tipo_resultado_votacao_crud,
-                          tipo_sessao_crud)
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
 
-    # main apps
-    url(r'^comissoes/', include(comissoes_urls)),
-    url(r'^sessao/', include(sessao_urls)),
-
-    # SYSTEM DATA
+    url(r'', include('comissoes.urls')),
+    url(r'', include('sessao.urls')),
 
     # parlamentares
     url(r'^sistema/parlamentares/legislatura/',
@@ -65,12 +56,6 @@ urlpatterns = [
         include(sessao_legislativa_crud.urls)),
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(cargo_mesa_crud.urls)),
-
-    # comissao
-    url(r'^sistema/comissoes/cargo/', include(cargo_crud.urls)),
-    url(r'^sistema/comissoes/periodo-composicao/',
-        include(periodo_composicao_crud.urls)),
-    url(r'^sistema/comissoes/tipo/', include(tipo_comissao_crud.urls)),
 
     # bancada
     # TODO
@@ -99,13 +84,6 @@ urlpatterns = [
     # norma
     url(r'^sistema/norma/tipo/', include(tipo_norma_crud.urls)),
     url(r'^sistema/norma/assunto/', include(assunto_norma_crud.urls)),
-
-    # sessao plenaria
-    url(r'^sistema/sessao-plenaria/tipo/', include(tipo_sessao_crud.urls)),
-    url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
-        include(tipo_resultado_votacao_crud.urls)),
-    url(r'^sistema/sessao-plenaria/tipo-expediente/',
-        include(tipo_expediente_crud.urls)),
 
     # lexml
     url(r'^sistema/lexml/provedor/', include(lexml_provedor_crud.urls)),

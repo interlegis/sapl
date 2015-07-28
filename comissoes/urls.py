@@ -1,9 +1,10 @@
-from django.conf.urls import url
+from django.conf.urls import include, url
 
 from comissoes.views import (ComposicaoView, MateriasView, ReunioesView,
-                             comissao_crud)
+                             cargo_crud, comissao_crud,
+                             periodo_composicao_crud, tipo_comissao_crud)
 
-urlpatterns = comissao_crud.urlpatterns + [
+comissao_url_patterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao$',
         ComposicaoView.as_view(), name='composicao'),
     url(r'^(?P<pk>\d+)/materias$',
@@ -11,4 +12,14 @@ urlpatterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/reunioes$',
         ReunioesView.as_view(), name='reunioes'),
 ]
-comissoes_urls = urlpatterns, comissao_crud.namespace, comissao_crud.namespace
+
+urlpatterns = [
+    url(r'^comissoes/', include(comissao_url_patterns,
+                                comissao_crud.namespace,
+                                comissao_crud.namespace)),
+
+    url(r'^sistema/comissoes/cargo/', include(cargo_crud.urls)),
+    url(r'^sistema/comissoes/periodo-composicao/',
+        include(periodo_composicao_crud.urls)),
+    url(r'^sistema/comissoes/tipo/', include(tipo_comissao_crud.urls)),
+]
