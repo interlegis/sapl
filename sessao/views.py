@@ -7,7 +7,7 @@ from .models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
                      TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
-    TipoSessaoPlenaria, '',
+    TipoSessaoPlenaria, 'tipo_sessao_plenaria',
 
     [_('Tipo de Sessão Plenária'),
      [('nome', 6), ('quorum_minimo', 6)]],
@@ -55,14 +55,14 @@ ordem_dia_crud = build_crud(
 )
 
 tipo_resultado_votacao_crud = build_crud(
-    TipoResultadoVotacao, '',
+    TipoResultadoVotacao, 'tipo_resultado_votacao',
 
     [_('Tipo de Resultado da Votação'),
      [('nome', 12)]],
 )
 
 tipo_expediente_crud = build_crud(
-    TipoExpediente, '',
+    TipoExpediente, 'tipo_expediente',
 
     [_('Tipo de Expediente'),
      [('nome', 12)]],

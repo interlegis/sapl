@@ -5,21 +5,33 @@ from sapl.crud import build_crud
 from .models import CargoComissao, Comissao, Periodo, TipoComissao
 
 cargo_crud = build_crud(
+<<<<<<< Updated upstream
+    CargoComissao, '',
+=======
     CargoComissao, 'cargo_comissao',
+>>>>>>> Stashed changes
 
     [_('Período de composição de Comissão'),
      [('nome', 10), ('unico', 2)]],
 )
 
 periodo_composicao_crud = build_crud(
+<<<<<<< Updated upstream
+    Periodo, '',
+=======
     Periodo, 'periodo_composicao_comissao',
+>>>>>>> Stashed changes
 
     [_('Cargo de Comissão'),
      [('data_inicio', 6), ('data_fim', 6)]],
 )
 
 tipo_comissao_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoComissao, '',
+=======
     TipoComissao, 'tipo_comissao',
+>>>>>>> Stashed changes
 
     [_('Tipo Comissão'),
      [('nome', 9), ('sigla', 3)],
@@ -27,7 +39,7 @@ tipo_comissao_crud = build_crud(
 )
 
 comissao_crud = build_crud(
-    Comissao,
+    Comissao, '',
 
     [_('Dados Básicos'),
      [('nome', 9), ('sigla', 3)],

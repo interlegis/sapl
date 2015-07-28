@@ -6,14 +6,14 @@ from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
 assunto_norma_crud = build_crud(
-    AssuntoNorma, '',
+    AssuntoNorma, 'assunto_norma_juridica',
 
     [_('Assunto Norma Jurídica'),
      [('assunto', 6), ('descricao', 6)]],
 )
 
 tipo_norma_crud = build_crud(
-    TipoNormaJuridica, '',
+    TipoNormaJuridica, 'tipo_norma_juridica',
 
     [_('Tipo Norma Jurídica'),
      [('descricao', 4),

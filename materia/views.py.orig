@@ -9,35 +9,55 @@ from .models import (Anexada, Autor, Autoria, DocumentoAcessorio,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 
 origem_crud = build_crud(
+<<<<<<< Updated upstream
+    Origem, '',
+=======
     Origem, 'origem',
+>>>>>>> Stashed changes
 
     [_('Origem'),
      [('nome', 8), ('sigla', 4)]],
 )
 
 tipo_materia_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoMateriaLegislativa, '',
+=======
     TipoMateriaLegislativa, 'tipo_materia_legislativa',
+>>>>>>> Stashed changes
 
     [_('Tipo Matéria Legislativa'),
      [('sigla', 4), ('descricao', 8)]],
 )
 
 regime_tramitacao_crud = build_crud(
+<<<<<<< Updated upstream
+    RegimeTramitacao, '',
+=======
     RegimeTramitacao, 'regime_tramitacao',
+>>>>>>> Stashed changes
 
     [_('Tipo de Documento'),
      [('descricao', 12)]],
 )
 
 tipo_documento_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoDocumento, '',
+=======
     TipoDocumento, 'tipo_documento',
+>>>>>>> Stashed changes
 
     [_('Regime Tramitação'),
      [('descricao', 12)]],
 )
 
 tipo_fim_relatoria_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoFimRelatoria, '',
+=======
     TipoFimRelatoria, 'fim_relatoria',
+>>>>>>> Stashed changes
 
     [_('Tipo Fim de Relatoria'),
      [('descricao', 12)]],
@@ -92,7 +112,11 @@ Anexada_crud = build_crud(
 )
 
 tipo_autor_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoAutor, '',
+=======
     TipoAutor, 'tipo_autor',
+>>>>>>> Stashed changes
 
     [_('Tipo Autor'),
      [('descricao', 12)]],
@@ -100,7 +124,11 @@ tipo_autor_crud = build_crud(
 
 
 autor_crud = build_crud(
+<<<<<<< Updated upstream
+    Autor, '',
+=======
     Autor, 'autor',
+>>>>>>> Stashed changes
 
     [_('Autor'),
      [('tipo', 3), ('nome', 9)],
@@ -136,7 +164,7 @@ numeracao_crud = build_crud(
 )
 
 orgao_crud = build_crud(
-    Orgao, 'orgao',
+    Orgao, '',
 
     [_('Órgão'),
      [('nome', 4),
@@ -156,7 +184,11 @@ relatoria_crud = build_crud(
 )
 
 tipo_proposicao_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoProposicao, '',
+=======
     TipoProposicao, 'tipo_proposicao',
+>>>>>>> Stashed changes
 
     [_('Tipo Proposição'),
      [('descricao', 12)],
@@ -177,7 +209,7 @@ proposicao_crud = build_crud(
 )
 
 status_tramitacao_crud = build_crud(
-    StatusTramitacao, 'status_tramitacao',
+    StatusTramitacao, '',
 
     [_('Status Tramitação'),
      [('indicador', 3),
@@ -186,7 +218,11 @@ status_tramitacao_crud = build_crud(
 )
 
 unidade_tramitacao_crud = build_crud(
+<<<<<<< Updated upstream
+    UnidadeTramitacao, '',
+=======
     UnidadeTramitacao, 'unidade_tramitacao',
+>>>>>>> Stashed changes
 
     [_('Unidade Tramitação'),
      [('orgao', 12)],

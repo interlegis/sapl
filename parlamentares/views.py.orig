@@ -8,7 +8,11 @@ from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      TipoDependente)
 
 cargo_mesa_crud = build_crud(
+<<<<<<< Updated upstream
+    CargoMesa, '',
+=======
     CargoMesa, 'cargo_mesa',
+>>>>>>> Stashed changes
 
     [_('Cargo na Mesa'),
      [('descricao', 10),
@@ -16,7 +20,11 @@ cargo_mesa_crud = build_crud(
 )
 
 legislatura_crud = build_crud(
+<<<<<<< Updated upstream
+    Legislatura, '',
+=======
     Legislatura, 'tabelas_auxiliares#legislatura',
+>>>>>>> Stashed changes
 
     [_('Legislatura'),
      [('id', 3),
@@ -27,7 +35,11 @@ legislatura_crud = build_crud(
 )
 
 coligacao_crud = build_crud(
+<<<<<<< Updated upstream
+    Coligacao, '',
+=======
     Coligacao, 'coligacao',
+>>>>>>> Stashed changes
 
     [_('Coligação'),
      [('nome', 5),
@@ -36,7 +48,11 @@ coligacao_crud = build_crud(
 )
 
 partido_crud = build_crud(
+<<<<<<< Updated upstream
+    Partido, '',
+=======
     Partido, 'partidos',
+>>>>>>> Stashed changes
 
     [_('Partido Político'),
      [('nome', 6),
@@ -55,7 +71,11 @@ dependente_crud = build_crud(
 )
 
 sessao_legislativa_crud = build_crud(
+<<<<<<< Updated upstream
+    SessaoLegislativa, '',
+=======
     SessaoLegislativa, 'sessao_legislativa',
+>>>>>>> Stashed changes
 
     [_('Sessão Legislativa'),
      [('numero', 2),
@@ -108,28 +128,44 @@ mandato_crud = build_crud(
 )
 
 tipo_dependente_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoDependente, '',
+=======
     TipoDependente, 'tipo_dependente',
+>>>>>>> Stashed changes
 
     [_('Tipo de Dependente'),
      [('descricao', 12)]],
 )
 
 nivel_instrucao_crud = build_crud(
+<<<<<<< Updated upstream
+    NivelInstrucao, '',
+=======
     NivelInstrucao, 'nivel_instrucao',
+>>>>>>> Stashed changes
 
     [_('Nível Instrução'),
      [('descricao', 12)]],
 )
 
 tipo_afastamento_crud = build_crud(
+<<<<<<< Updated upstream
+    TipoAfastamento, '',
+=======
     TipoAfastamento, 'tipo_afastamento',
+>>>>>>> Stashed changes
 
     [_('Tipo de Afastamento'),
      [('descricao', 5), ('dispositivo', 5), ('afastamento', 2)]],
 )
 
 tipo_militar_crud = build_crud(
+<<<<<<< Updated upstream
+    SituacaoMilitar, '',
+=======
     SituacaoMilitar, 'tipo_situa_militar',
+>>>>>>> Stashed changes
 
     [_('Tipo Situação Militar'),
      [('descricao', 12)]],
