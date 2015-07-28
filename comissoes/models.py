@@ -102,7 +102,8 @@ class Periodo(models.Model):  # PeriodoCompComissao
 
 class CargoComissao(models.Model):
     nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
-    unico = models.BooleanField(verbose_name=_('Único'))
+    unico = models.BooleanField(
+        choices=YES_NO_CHOICES, verbose_name=_('Único'))
 
     class Meta:
         verbose_name = _('Cargo de Comissão')

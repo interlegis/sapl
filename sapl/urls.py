@@ -17,77 +17,16 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
-from lexml.views import lexml_provedor_crud, lexml_publicador_crud
-from materia.views import (autor_crud, orgao_crud, origem_crud,
-                           regime_tramitacao_crud, status_tramitacao_crud,
-                           tipo_autor_crud, tipo_documento_crud,
-                           tipo_fim_relatoria_crud, tipo_materia_crud,
-                           tipo_proposicao_crud, unidade_tramitacao_crud)
-from norma.views import assunto_norma_crud, tipo_norma_crud
-from parlamentares.views import (cargo_mesa_crud, coligacao_crud,
-                                 legislatura_crud, nivel_instrucao_crud,
-                                 partido_crud, sessao_legislativa_crud,
-                                 tipo_afastamento_crud, tipo_dependente_crud,
-                                 tipo_militar_crud)
-
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'', include('comissoes.urls')),
     url(r'', include('sessao.urls')),
-
-    # parlamentares
-    url(r'^sistema/parlamentares/legislatura/',
-        include(legislatura_crud.urls)),
-    url(r'^sistema/parlamentares/tipo-dependente/',
-        include(tipo_dependente_crud.urls)),
-    url(r'^sistema/parlamentares/nivel-instrucao/',
-        include(nivel_instrucao_crud.urls)),
-    url(r'^sistema/parlamentares/coligacao/', include(coligacao_crud.urls)),
-    url(r'^sistema/parlamentares/tipo-afastamento/',
-        include(tipo_afastamento_crud.urls)),
-    url(r'^sistema/parlamentares/tipo-militar/',
-        include(tipo_militar_crud.urls)),
-    url(r'^sistema/parlamentares/partido/', include(partido_crud.urls)),
-
-    # mesa diretora
-    url(r'^sistema/mesa-diretora/sessao-legislativa/',
-        include(sessao_legislativa_crud.urls)),
-    url(r'^sistema/mesa-diretora/cargo-mesa/',
-        include(cargo_mesa_crud.urls)),
-
-    # bancada
-    # TODO
-
-    # proposições
-    url(r'^sistema/proposicoes/tipo/', include(tipo_proposicao_crud.urls)),
-    url(r'^sistema/proposicoes/autor/', include(autor_crud.urls)),
-
-    # materia
-    url(r'^sistema/materia/tipo/', include(tipo_materia_crud.urls)),
-    url(r'^sistema/materia/regime-tramitacao/',
-        include(regime_tramitacao_crud.urls)),
-    url(r'^sistema/materia/tipo-autor/', include(tipo_autor_crud.urls)),
-    url(r'^sistema/materia/tipo-documento/',
-        include(tipo_documento_crud.urls)),
-    url(r'^sistema/materia/tipo-fim-relatoria/',
-        include(tipo_fim_relatoria_crud.urls)),
-    url(r'^sistema/materia/unidade-tramitacao/',
-        include(unidade_tramitacao_crud.urls)),
-    url(r'^sistema/materia/origem/', include(origem_crud.urls)),
-    url(r'^sistema/materia/autor/', include(autor_crud.urls)),
-    url(r'^sistema/materia/status-tramitacao/',
-        include(status_tramitacao_crud.urls)),
-    url(r'^sistema/materia/orgao/', include(orgao_crud.urls)),
-
-    # norma
-    url(r'^sistema/norma/tipo/', include(tipo_norma_crud.urls)),
-    url(r'^sistema/norma/assunto/', include(assunto_norma_crud.urls)),
-
-    # lexml
-    url(r'^sistema/lexml/provedor/', include(lexml_provedor_crud.urls)),
-    url(r'^sistema/lexml/publicador/', include(lexml_publicador_crud.urls)),
+    url(r'', include('parlamentares.urls')),
+    url(r'', include('materia.urls')),
+    url(r'', include('norma.urls')),
+    url(r'', include('lexml.urls')),
 
     url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),
 ]

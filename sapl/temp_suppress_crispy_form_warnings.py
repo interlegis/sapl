@@ -18,5 +18,5 @@ class SuppressDeprecated(logging.Filter):
 
     def filter(self, record):
         msg = record.getMessage()
-        return not ('crispy_forms' in msg
-                    and 'RemovedInDjango19Warning' in msg)
+        return not ('crispy_forms' in msg and
+                    'RemovedInDjango19Warning' in msg)

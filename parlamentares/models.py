@@ -326,7 +326,8 @@ class Filiacao(models.Model):
 
 class TipoAfastamento(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
-    afastamento = models.BooleanField(verbose_name=_('Indicador'))
+    afastamento = models.BooleanField(
+        choices=YES_NO_CHOICES, verbose_name=_('Indicador'))
     fim_mandato = models.BooleanField(verbose_name=_('Indicador'))
     dispositivo = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_('Dispositivo'))

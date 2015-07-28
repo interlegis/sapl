@@ -95,7 +95,7 @@ tipo_autor_crud = build_crud(
     TipoAutor,
 
     [_('Tipo Autor'),
-     [('descricao', 4)]],
+     [('descricao', 12)]],
 )
 
 
@@ -160,7 +160,7 @@ tipo_proposicao_crud = build_crud(
 
     [_('Tipo Proposição'),
      [('descricao', 12)],
-     [('materia_ou_documento', 4), ('tipo_documento', 8)],
+     [('materia_ou_documento', 6), ('tipo_documento', 6)],
      [('modelo', 12)]],
 )
 
@@ -180,9 +180,9 @@ status_tramitacao_crud = build_crud(
     StatusTramitacao,
 
     [_('Status Tramitação'),
-     [('sigla', 4),
-      ('indicador', 4),
-      ('descricao', 4)]],
+     [('indicador', 3),
+      ('sigla', 2),
+      ('descricao', 7)]],
 )
 
 unidade_tramitacao_crud = build_crud(

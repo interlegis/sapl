@@ -30,9 +30,9 @@ coligacao_crud = build_crud(
     Coligacao,
 
     [_('Coligação'),
-     [('nome', 3),
-      ('legislatura', 3),
-      ('numero_votos', 3)]],
+     [('nome', 5),
+      ('legislatura', 5),
+      ('numero_votos', 2)]],
 )
 
 partido_crud = build_crud(
@@ -125,8 +125,7 @@ tipo_afastamento_crud = build_crud(
     TipoAfastamento,
 
     [_('Tipo de Afastamento'),
-     [('descricao', 6), ('dispositivo', 6)],
-     [('afastamento', 6)]],
+     [('descricao', 5), ('dispositivo', 5), ('afastamento', 2)]],
 )
 
 tipo_militar_crud = build_crud(

@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
-from sapl.utils import make_choices
+from sapl.utils import YES_NO_CHOICES, make_choices
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -308,7 +308,8 @@ class Orgao(models.Model):
     nome = models.CharField(max_length=60, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     unidade_deliberativa = models.BooleanField(
-        verbose_name=_('Unidade Deliberativa'))
+        choices=YES_NO_CHOICES,
+        verbose_name=('Unidade Deliberativa'))
     endereco = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_('Endereço'))
     telefone = models.CharField(
