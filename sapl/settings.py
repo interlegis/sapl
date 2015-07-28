@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 from unipath import Path
 
+from .temp_suppress_crispy_form_warnings import \
+    SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+
 BASE_DIR = Path(__file__).ancestor(2)
 
 
@@ -142,3 +145,7 @@ BOWER_INSTALLED_APPS = (
     'components-font-awesome',
     'foundation-icon-fonts',
 )
+
+# hack to suppress many annoying warnings from crispy_forms
+# see sapl.temp_suppress_crispy_form_warnings
+LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
