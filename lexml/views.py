@@ -5,7 +5,7 @@ from sapl.crud import build_crud
 from .models import LexmlProvedor, LexmlPublicador
 
 lexml_provedor_crud = build_crud(
-    LexmlProvedor,
+    LexmlProvedor, '',
 
     [_('Provedor Lexml'),
      [('id_provedor', 2),
@@ -17,7 +17,7 @@ lexml_provedor_crud = build_crud(
 )
 
 lexml_publicador_crud = build_crud(
-    LexmlPublicador,
+    LexmlPublicador, '',
 
     [_('Publicador Lexml'),
      [('id_publicador', 2),

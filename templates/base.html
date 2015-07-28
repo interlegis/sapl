@@ -43,7 +43,7 @@
       {% block base_header %}
       <div class="clearfix">
         {% block help %}
-          {% if view.help_url %}<a class="contextual-help right" href="{{ view.help_url }}">{% trans 'Ajuda' %}</a>{% endif %}
+          {% if view.help_path %}<a class="contextual-help right" href="{{ view.help_path }}">{% trans 'Ajuda' %}</a>{% endif %}
         {% endblock %}
         {% block title %}{% if view.title %}<h1>{{ view.title }}</h1>{% endif %}{% endblock %}
       </div>

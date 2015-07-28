@@ -7,14 +7,14 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 tipo_documento_administrativo_crud = build_crud(
-    TipoDocumentoAdministrativo,
+    TipoDocumentoAdministrativo, '',
 
     [_('Tipo Documento Administrativo'),
      [('sigla', 4), ('sigla', 4), ('descricao', 4)]],
 )
 
 documento_administrativo_crud = build_crud(
-    DocumentoAdministrativo,
+    DocumentoAdministrativo, '',
 
     [_('Formulário de Cadastro'),
      [('tipo', 4), ('numero', 4), ('ano', 4)],
@@ -38,7 +38,7 @@ documento_administrativo_crud = build_crud(
 )
 
 documento_acessorio_administrativo_crud = build_crud(
-    DocumentoAcessorioAdministrativo,
+    DocumentoAcessorioAdministrativo, '',
 
     [_('Documento Administrativo'),
      [('tipo', 4), ('nome', 4), ('data', 4)],
@@ -54,7 +54,7 @@ documento_acessorio_administrativo_crud = build_crud(
 )
 
 protocolo_crud = build_crud(
-    Protocolo,
+    Protocolo, '',
 
     [_('Formulário de Cadastro'),
      [('tipo_documento', 4),
@@ -86,7 +86,7 @@ protocolo_crud = build_crud(
 )
 
 status_tramitacao_administrativo_crud = build_crud(
-    StatusTramitacaoAdministrativo,
+    StatusTramitacaoAdministrativo, '',
 
     [_('Status Tramitação Administrativo'),
      [('sigla', 3),
@@ -98,7 +98,7 @@ status_tramitacao_administrativo_crud = build_crud(
 )
 
 tramitacao_administrativo_crud = build_crud(
-    TramitacaoAdministrativo,
+    TramitacaoAdministrativo, '',
 
     [_('Documento Administrativo'),
      [('cod_ult_tram_dest_FIXME', 6), ('unidade_tramitacao_local', 6)],

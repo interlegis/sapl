@@ -9,42 +9,42 @@ from .models import (Anexada, Autor, Autoria, DocumentoAcessorio,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 
 origem_crud = build_crud(
-    Origem,
+    Origem, '',
 
     [_('Origem'),
      [('nome', 8), ('sigla', 4)]],
 )
 
 tipo_materia_crud = build_crud(
-    TipoMateriaLegislativa,
+    TipoMateriaLegislativa, '',
 
     [_('Tipo Matéria Legislativa'),
      [('sigla', 4), ('descricao', 8)]],
 )
 
 regime_tramitacao_crud = build_crud(
-    RegimeTramitacao,
+    RegimeTramitacao, '',
 
     [_('Tipo de Documento'),
      [('descricao', 12)]],
 )
 
 tipo_documento_crud = build_crud(
-    TipoDocumento,
+    TipoDocumento, '',
 
     [_('Regime Tramitação'),
      [('descricao', 12)]],
 )
 
 tipo_fim_relatoria_crud = build_crud(
-    TipoFimRelatoria,
+    TipoFimRelatoria, '',
 
     [_('Tipo Fim de Relatoria'),
      [('descricao', 12)]],
 )
 
 materia_legislativa_crud = build_crud(
-    MateriaLegislativa,
+    MateriaLegislativa, '',
 
     [_('Identificação Básica'),
      [('tipo', 4), ('numero', 4), ('ano', 4)],
@@ -76,7 +76,7 @@ materia_legislativa_crud = build_crud(
 )
 
 Anexada_crud = build_crud(
-    Anexada,
+    Anexada, '',
 
     [_('Matéria Legislativa'),
      [('tip_id_basica_FIXME', 4),
@@ -92,7 +92,7 @@ Anexada_crud = build_crud(
 )
 
 tipo_autor_crud = build_crud(
-    TipoAutor,
+    TipoAutor, '',
 
     [_('Tipo Autor'),
      [('descricao', 12)]],
@@ -100,7 +100,7 @@ tipo_autor_crud = build_crud(
 
 
 autor_crud = build_crud(
-    Autor,
+    Autor, '',
 
     [_('Autor'),
      [('tipo', 3), ('nome', 9)],
@@ -108,7 +108,7 @@ autor_crud = build_crud(
 )
 
 autoria_crud = build_crud(
-    Autoria,
+    Autoria, '',
 
     [_('Autoria'),
      [('tip_autor_FIXME', 4),
@@ -117,7 +117,7 @@ autoria_crud = build_crud(
 )
 
 documento_acessorio_crud = build_crud(
-    DocumentoAcessorio,
+    DocumentoAcessorio, '',
 
     [_('Documento Acessório'),
      [('tipo', 6), ('nome', 6)],
@@ -128,7 +128,7 @@ documento_acessorio_crud = build_crud(
 )
 
 numeracao_crud = build_crud(
-    Numeracao,
+    Numeracao, '',
 
     [_('Numeração'),
      [('tipo_materia', 6), ('numero_materia', 6)],
@@ -136,7 +136,7 @@ numeracao_crud = build_crud(
 )
 
 orgao_crud = build_crud(
-    Orgao,
+    Orgao, '',
 
     [_('Órgão'),
      [('nome', 4),
@@ -147,7 +147,7 @@ orgao_crud = build_crud(
 )
 
 relatoria_crud = build_crud(
-    Relatoria,
+    Relatoria, '',
 
     [_('Relatoria'),
      [('data_designacao_relator', 12)],
@@ -156,7 +156,7 @@ relatoria_crud = build_crud(
 )
 
 tipo_proposicao_crud = build_crud(
-    TipoProposicao,
+    TipoProposicao, '',
 
     [_('Tipo Proposição'),
      [('descricao', 12)],
@@ -165,7 +165,7 @@ tipo_proposicao_crud = build_crud(
 )
 
 proposicao_crud = build_crud(
-    Proposicao,
+    Proposicao, '',
 
     [_('Proposição'),
      [('tipo', 4), ('dat_criacao_FIXME', 4), ('data_recebimento', 4)],
@@ -177,7 +177,7 @@ proposicao_crud = build_crud(
 )
 
 status_tramitacao_crud = build_crud(
-    StatusTramitacao,
+    StatusTramitacao, '',
 
     [_('Status Tramitação'),
      [('indicador', 3),
@@ -186,7 +186,7 @@ status_tramitacao_crud = build_crud(
 )
 
 unidade_tramitacao_crud = build_crud(
-    UnidadeTramitacao,
+    UnidadeTramitacao, '',
 
     [_('Unidade Tramitação'),
      [('orgao', 12)],
@@ -195,7 +195,7 @@ unidade_tramitacao_crud = build_crud(
 )
 
 tramitacao_crud = build_crud(
-    Tramitacao,
+    Tramitacao, '',
 
     [_('Tramitação'),
      [('cod_ult_tram_dest_FIXME', 6), ('unidade_tramitacao_local', 6)],

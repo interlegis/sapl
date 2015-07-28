@@ -5,7 +5,7 @@ from comissoes.urls import comissoes_urls
 from sapl.crud import build_crud
 
 crud = build_crud(
-    Comissao,
+    Comissao, '',
 
     ['Dados Básicos',
      [('nome', 9), ('sigla', 3)],

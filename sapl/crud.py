@@ -59,9 +59,10 @@ class Crud(object):
     pass
 
 
-def build_crud(model, *layout):
+def build_crud(model, help_path, *layout):
     crud = Crud()
     crud.model = model
+    crud.help_path = help_path
     crud.namespace = model._meta.model_name
 
     class CrispyForm(forms.ModelForm):
@@ -91,7 +92,7 @@ def build_crud(model, *layout):
 
         list_url = reverse_lazy(in_namespace('list'))
         create_url = reverse_lazy(in_namespace('create'))
-        help_url = '/comissoes/ajuda'  # FIXME
+        help_path = crud.help_path  # FIXME
 
         def get_url_for_this_object(self, url_name):
             return reverse(in_namespace(url_name), args=(self.object.id,))

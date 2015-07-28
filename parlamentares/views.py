@@ -8,7 +8,7 @@ from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      TipoDependente)
 
 cargo_mesa_crud = build_crud(
-    CargoMesa,
+    CargoMesa, '',
 
     [_('Cargo na Mesa'),
      [('descricao', 10),
@@ -16,7 +16,7 @@ cargo_mesa_crud = build_crud(
 )
 
 legislatura_crud = build_crud(
-    Legislatura,
+    Legislatura, '',
 
     [_('Legislatura'),
      [('id', 3),
@@ -27,7 +27,7 @@ legislatura_crud = build_crud(
 )
 
 coligacao_crud = build_crud(
-    Coligacao,
+    Coligacao, '',
 
     [_('Coligação'),
      [('nome', 5),
@@ -36,7 +36,7 @@ coligacao_crud = build_crud(
 )
 
 partido_crud = build_crud(
-    Partido,
+    Partido, '',
 
     [_('Partido Político'),
      [('nome', 6),
@@ -46,7 +46,7 @@ partido_crud = build_crud(
 )
 
 dependente_crud = build_crud(
-    Dependente,
+    Dependente, '',
 
     [_('Dependentes'),
      [('nome', 12)],
@@ -55,7 +55,7 @@ dependente_crud = build_crud(
 )
 
 sessao_legislativa_crud = build_crud(
-    SessaoLegislativa,
+    SessaoLegislativa, '',
 
     [_('Sessão Legislativa'),
      [('numero', 2),
@@ -67,7 +67,7 @@ sessao_legislativa_crud = build_crud(
 )
 
 dependente_crud = build_crud(
-    Parlamentar,
+    Parlamentar, '',
 
     [_('Cadastro do Parlamentar'),
      [('nome_parlamentar', 4), ('login_FIXME', 4), ('ativo', 4)],
@@ -89,14 +89,14 @@ dependente_crud = build_crud(
 )
 
 filiacao_crud = build_crud(
-    Filiacao,
+    Filiacao, '',
 
     [_('Filiações Partidárias '),
      [('partido', 4), ('data', 4), ('data_desfiliacao', 4)]],
 )
 
 mandato_crud = build_crud(
-    Mandato,
+    Mandato, '',
 
     [_('Mandato'),
      [('legislatura', 4), ('coligacao', 4), ('votos_recebidos', 4)],
@@ -108,28 +108,28 @@ mandato_crud = build_crud(
 )
 
 tipo_dependente_crud = build_crud(
-    TipoDependente,
+    TipoDependente, '',
 
     [_('Tipo de Dependente'),
      [('descricao', 12)]],
 )
 
 nivel_instrucao_crud = build_crud(
-    NivelInstrucao,
+    NivelInstrucao, '',
 
     [_('Nível Instrução'),
      [('descricao', 12)]],
 )
 
 tipo_afastamento_crud = build_crud(
-    TipoAfastamento,
+    TipoAfastamento, '',
 
     [_('Tipo de Afastamento'),
      [('descricao', 5), ('dispositivo', 5), ('afastamento', 2)]],
 )
 
 tipo_militar_crud = build_crud(
-    SituacaoMilitar,
+    SituacaoMilitar, '',
 
     [_('Tipo Situação Militar'),
      [('descricao', 12)]],

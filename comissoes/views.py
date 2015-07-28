@@ -5,21 +5,21 @@ from sapl.crud import build_crud
 from .models import CargoComissao, Comissao, Periodo, TipoComissao
 
 cargo_crud = build_crud(
-    CargoComissao,
+    CargoComissao, '',
 
     [_('Período de composição de Comissão'),
      [('nome', 10), ('unico', 2)]],
 )
 
 periodo_composicao_crud = build_crud(
-    Periodo,
+    Periodo, '',
 
     [_('Cargo de Comissão'),
      [('data_inicio', 6), ('data_fim', 6)]],
 )
 
 tipo_comissao_crud = build_crud(
-    TipoComissao,
+    TipoComissao, '',
 
     [_('Tipo Comissão'),
      [('nome', 9), ('sigla', 3)],
@@ -27,7 +27,7 @@ tipo_comissao_crud = build_crud(
 )
 
 comissao_crud = build_crud(
-    Comissao,
+    Comissao, '',
 
     [_('Dados Básicos'),
      [('nome', 9), ('sigla', 3)],

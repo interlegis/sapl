@@ -7,14 +7,14 @@ from .models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
                      TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
-    TipoSessaoPlenaria,
+    TipoSessaoPlenaria, '',
 
     [_('Tipo de Sessão Plenária'),
      [('nome', 6), ('quorum_minimo', 6)]],
 )
 
 sessao_crud = build_crud(
-    SessaoPlenaria,
+    SessaoPlenaria, '',
 
     [_('Dados Básicos'),
      [('numero', 3),
@@ -31,7 +31,7 @@ sessao_crud = build_crud(
 )
 
 expediente_materia_crud = build_crud(
-    ExpedienteMateria,
+    ExpedienteMateria, '',
 
     [_('Cadastro de Matérias do Expediente'),
      [('data_ordem', 4), ('tip_sessao_FIXME', 4), ('numero_ordem', 4)],
@@ -43,7 +43,7 @@ expediente_materia_crud = build_crud(
 )
 
 ordem_dia_crud = build_crud(
-    OrdemDia,
+    OrdemDia, '',
 
     [_('Cadastro de Matérias da Ordem do Dia'),
      [('data_ordem', 4), ('tip_sessao_FIXME', 4), ('numero_ordem', 4)],
@@ -55,21 +55,21 @@ ordem_dia_crud = build_crud(
 )
 
 tipo_resultado_votacao_crud = build_crud(
-    TipoResultadoVotacao,
+    TipoResultadoVotacao, '',
 
     [_('Tipo de Resultado da Votação'),
      [('nome', 12)]],
 )
 
 tipo_expediente_crud = build_crud(
-    TipoExpediente,
+    TipoExpediente, '',
 
     [_('Tipo de Expediente'),
      [('nome', 12)]],
 )
 
 registro_votacao_crud = build_crud(
-    RegistroVotacao,
+    RegistroVotacao, '',
 
     [_('Votação Simbólica'),
      [('numero_votos_sim', 3),

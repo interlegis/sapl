@@ -89,7 +89,7 @@ def test_get_field_display():
 def test_crud_detail_view_fieldsets(monkeypatch):
 
     crud = build_crud(
-        Comissao,
+        Comissao, '',
 
         ['Dados Básicos',
          [('nome', 9), ('sigla', 3)],
