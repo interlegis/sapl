@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from parlamentares.models import Parlamentar
-from sapl.utils import make_choices
+from sapl.utils import YES_NO_CHOICES, make_choices
 
 
 class TipoComissao(models.Model):
@@ -29,11 +29,6 @@ class TipoComissao(models.Model):
 
 
 class Comissao(models.Model):
-    UNIDADE_DELIBERATIVA_CHOICES, SIM, NAO = make_choices(
-        True, _('Sim'),
-        False, _('Não'),
-    )
-
     tipo = models.ForeignKey(TipoComissao, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=60, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
@@ -81,7 +76,7 @@ class Comissao(models.Model):
     email = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_('E-mail'))
     unidade_deliberativa = models.BooleanField(
-        choices=UNIDADE_DELIBERATIVA_CHOICES,
+        choices=YES_NO_CHOICES,
         verbose_name=_('Unidade Deliberativa'))
 
     class Meta:

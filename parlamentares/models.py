@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.utils import make_choices
+from sapl.utils import YES_NO_CHOICES, make_choices
 
 
 class Legislatura(models.Model):
@@ -371,7 +371,8 @@ class CargoMesa(models.Model):
     # TODO M2M ????
     descricao = models.CharField(
         max_length=50, verbose_name=_('Cargo na Mesa'))
-    unico = models.BooleanField(verbose_name=_('Cargo Único'))
+    unico = models.BooleanField(
+        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'))
 
     class Meta:
         verbose_name = _('Cargo na Mesa')
