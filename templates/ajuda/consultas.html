@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                            
+                                                                        <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/consultas/mesa_diretora'>Mesa Diretora</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/comissao'>Comiss&otilde;es</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/bancada'>Bancadas</a>
+                                </li>
+                                <li><a href='http://sapl3.interlegis.leg.br/consultas/parlamentar'>Parlamentares</a>
+                                </li>
+                                            </ul>
+                </li>
+                
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0'>Mat&eacute;rias Legislativas</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0'>Pesquisar</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                    <li>
+                        <a href="http://sapl3.interlegis.leg.br/login_form"><img src="http://sapl3.interlegis.leg.br/imagens/login.png"></a>
+                        <ul>
+                            <li><span>Login</span></li>
+                        </ul>
+                    </li>
+                                </ul>
+            <ul class="nav acesso-rapido">
+                                    
+                                                                            
+                                    <li><a>Acesso Rápido</a>
+                        <ul>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/mesa_diretora">Mesa Diretora</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/comissao">Comissões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/bancada">Bancadas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/parlamentar">Parlamentares</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas das Sessões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0">Matérias Legislativas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0">Normas Jurídicas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/relatorios_administrativos">Relatórios</a></li>
+                        </ul>
+                                    </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+
+<h1 class="firstHeading"><a NAME="cons_topo">Acessando o Sistema</a></h1>
+<br />
+O sistema pode ser acessado na
+m&aacute;quina Linux pelos browser Firefox, Konqueror ou
+&Oacute;pera, ou em outra m&aacute;quina que esteja na rede via
+Windows com os browsers Firefox ou Internet Explorer 5.5 ou
+superior.&nbsp;&nbsp; &nbsp;<br />
+Na tela inicial voc&ecirc; tem acesso &agrave; pesquisa das
+mat&eacute;rias legislativas, bem como
+informa&ccedil;&otilde;es sobre a mesa diretora,
+comiss&otilde;es,&nbsp; ordem do dia, parlamentares e Normas
+Jur&iacute;dicas.<br />
+Esta pesquisa pode ser feita por &ldquo;busca por
+palavra-chave&rdquo;, ou acessando a op&ccedil;&atilde;o
+desejada.<br />
+<br />
+A <b>pesquisa por busca de palavras-chave</b> recupera as
+informa&ccedil;&otilde;es que foram digitadas nos campos
+&ldquo;Ementa&rdquo; e
+&ldquo;Indexa&ccedil;&atilde;o&rdquo;, do cadastro de
+mat&eacute;rias legislativas.<br />
+A <b>busca por palavra chave</b> s&oacute; pesquisa o cadastro de
+mat&eacute;rias legislativas. N&atilde;o sendo
+poss&iacute;vel recuperar informa&ccedil;&otilde;es de
+outros cadastros como por exemplo Parlamentares.<br />
+<br />
+Voc&ecirc; tem ainda as op&ccedil;&otilde;es de
+&ldquo;Impress&atilde;o&rdquo; e
+&ldquo;Ajuda&rdquo;.<br />
+A op&ccedil;&atilde;o
+&ldquo;Impress&atilde;o&rdquo;, formata na tela o texto
+para a impress&atilde;o, sem as margens laterais e superior. Para
+imprimir o texto desejado utilize a fun&ccedil;&atilde;o
+Impress&atilde;o do browser que estiver usando.<br />
+A op&ccedil;&atilde;o &ldquo;Ajuda&rdquo; contem o
+manual do sistema SAPL.<br />
+As op&ccedil;&otilde;es, Impress&atilde;o, Ajuda e
+Consultas por palavra chave, est&atilde;o presentes em todas as
+telas do sistema.<br />
+O item &ldquo;Copyright Interlegis&rdquo; contem a
+licen&ccedil;a de uso, c&oacute;pia,
+distribui&ccedil;&atilde;o e modifica&ccedil;&atilde;o
+do Sistema de Apoio ao Processo Legislativo.<br />
+<br />
+<h2><a NAME="cons_cons">Consultas</a></h2>
+<br />
+<h2><a NAME="cons_mesadir">Consulta &agrave;  Mesa Diretora</a></h2>
+
+Ao selecionar o item &ldquo;Mesa Diretora&rdquo;
+ser&aacute; exibida uma tela com as op&ccedil;&otilde;es de
+Escolha de Legislatura, (que est&aacute; posicionada na Legislatura
+Atual) e tamb&eacute;m da Sess&atilde;o Legislativa, (que
+est&aacute; posicionada na primeira sess&atilde;o legislativa
+da legislatura atual).<br />
+Logo abaixo aparece a composi&ccedil;&atilde;o da Mesa Diretora
+dos per&iacute;odos escolhidos.<br />
+
+<br />
+<h2><a NAME="cons_comissoes">Consulta &agrave;s Comiss&otilde;es</a></h2>
+Ao selecionar o item Comiss&otilde;es ser&aacute; exibida uma
+tela com a rela&ccedil;&atilde;o das comiss&otilde;es
+cadastradas, sua sigla, tipo e data de cria&ccedil;&atilde;o.<br />
+Para&nbsp; ter acesso as informa&ccedil;&otilde;es da
+comiss&atilde;o, selecione a comiss&atilde;o desejada. Para ter
+acesso a composi&ccedil;&atilde;o da comiss&atilde;o
+selecione a op&ccedil;&atilde;o
+&ldquo;composi&ccedil;&atilde;o&rdquo;.<br />
+Selecione o Per&iacute;odo da composi&ccedil;&atilde;o,
+para ter acesso &agrave;s informa&ccedil;&otilde;es de
+composi&ccedil;&atilde;o no per&iacute;odo desejado.<br />
+
+<br />
+<h2><a NAME="cons_ordem_dia">Consulta &agrave; Ordem do Dia</a></h2>
+Ao selecionar o item Ordem do Dia ser&aacute; exibida uma tela com
+o campo data e a rela&ccedil;&atilde;o das mat&eacute;rias
+cadastradas na ordem do dia da data relacionada.<br />
+Para pesquisa da ordem do dia de outro per&iacute;odo selecione a
+data desejada.<br />
+<br />
+<h2><a NAME="cons_dadosparl">Consulta aos Dados Parlamentares</a></h2>
+Ao ter acesso a este m&oacute;dulo ser&aacute; exibida uma tela
+com um campo para selecionar a legislatura.<br />
+Ao selecionar a legislatura ser&aacute; exibido a
+rela&ccedil;&atilde;o de Parlamentares j&aacute;
+cadastrados na legislatura escolhida.<br />
+Nota: Ao entrar no sistema, este sempre vir&aacute; com a
+legislatura atual posicionada.<br />
+Para ter acesso &agrave;s informa&ccedil;&otilde;es do Parlamentar,
+selecione o parlamentar desejado. As informa&ccedil;&otilde;es
+de Mandatos, Filia&ccedil;&otilde;es Partid&aacute;rias,
+Dependentes, Proposi&ccedil;&otilde;es Legislativas apresentadas pelo parlamentar e relatorias, s&atilde;o acessadas atrav&eacute;s de suas
+respectivas fun&ccedil;&otilde;es.<br />
+A fun&ccedil;&atilde;o &ldquo;In&iacute;cio&rdquo;,
+retorna ao in&iacute;cio das informa&ccedil;&otilde;es do
+Parlamentar.<br />
+<br />
+<h2><a NAME="protocolo">Consulta Protocolo Geral</a></h2> (dispon&iacute;vel somente para usu&aacute;rio autenticado)<br />
+<br />
+Ao selecionar este m&oacute;dulo Protocolo Geral &eacute; exibida uma tela com o seguinte menu de op&ccedil;&otilde;es:<br />
+<br />
+<ul>
+  <li><a href="protocolo_administrativo">Protocolar Documentos</a></li>
+  <li><a href="protocolo_legislativo">Protocolar Mat&eacute;rias</a></li>
+  <li><a href="protocolo_anular">Anular Protocolos</a></li>
+</ul>
+<br />Tamb&eacute;m, apresenta uma tela com campos a serem preenchidos com argumentos de pesquisa sobre registros de protocolo. <br />
+<br />
+<center>
+<table width="648">
+  <thead>
+  <tr valign="top">
+     <td bgcolor="#c7d8eb" width="135"><p align="justify"><font style="font-size: 11pt;" size="3"><b>Nome do Campo</b></font></p></td>
+     <td bgcolor="#c7d8eb" width="490">
+     <p align="justify"><font style="font-size: 11pt;" size="3"><b>Instru&ccedil;&otilde;es para Preenchimento</b></font></p>
+     </td>
+ </tr>
+ </thead><tbody>
+ <tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Tipo Protocolo</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Assinale se a pesquisa refere-se a protocolos do tipo:<b> Recebido</b>,<b> Enviado</b> ou<b> Ambos</b>.</font></p></td>
+ </tr>
+ <tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">N&uacute;mero Protocolo e Ano</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Informe o n&uacute;mero e/ou ano do protocolo da pesquisa. Ano deve ter 4 posi&ccedil;&otilde;es no formato: <i>aaaa</i>.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Per&iacute;odo - Inicial e Final</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Informe o per&iacute;odo de abrang&ecirc;ncia da pesquisa - datas (dia, m&ecirc;s e ano)  inicial e final nos formatos: <i>dd/mm/aaaa</i>.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Natureza Processo</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Assinale a natureza do processo que deseja pesquisar: <b>Administrativa</b>, <b>Legislativa</b> ou <b>Ambos</b>.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Tipo Documento</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Selecione o <b>Tipo de Documento</b> que deseja pesquisar.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Interessado</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Informe o nome da <b>pessoa</b> ou <b>local</b> interessado, para os casos de protocolo de natureza administrativa.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Autor Mat&eacute;ria</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Selecione o autor da(s) mat&eacute;ria(s) legislativa(s) relativa(s) ao(s) protocolo(s) que deseja obter. Para isso, clique no bot&atilde;o <b>selecionar</b> e na tela <i>pop up</i> aberta, escreva um dos nomes do autor para recuperar o nome completo e clique na lupa para realizar a pesquisa do autor. Em seguida, clique sobre o nome desejado, que foi exibido como resultado da busca, para selecion&aacute;-lo. O  <b>Tipo autor</b> ser&aacute; atualizado de acordo com a classifica&ccedil;&atilde;o dada ao autor que foi selecionado para a pesquisa.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Assunto</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">
+
+
+A pesquisa por assunto conta com duas fontes de pesquisa, s&atilde;o elas: <br>
+- Ementa do protocolo; ou<br>
+- Observa&ccedil;&otilde;es.<br><br>
+
+Al&eacute;m disso, podem ser usados v&aacute;rio termos de pesquisa, separados por ponto e v&iacute;rgula(;). <br><br>
+Ex: Para que se possa encontrar protocolos que mencionem a palavra 'asfalto' no 'setor central' ou ainda no 'centro' da cidade.<br>Use em assunto [<i>asfalto; setor central; centr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>]
+</font></p>
+
+</td>
+ </tr>
+ </tbody> 
+</table><br />
+</center>
+<br />
+<h2><a NAME="protocolo_resultado_pesquisa">Protocolo Geral (resultados da pesquisa)</a></h2><br />
+<br />
+Apresenta o resultado da pesquisa feita. Al&eacute;m disso,  exibe o seguinte menu de op&ccedil;&otilde;es:<br />
+<br />
+<ul>
+  <li><a href="protocolo_administrativo">Protocolar Documentos</a></li>
+  <li><a href="protocolo_legislativo">Protocolar Mat&eacute;rias</a></li>
+  <li><a href="protocolo_anular">Anular Protocolos</a></li>
+  <li><a href="protocolo_gerar_etiqueta_protocolo">Gerar Etiquetas de Protocolo</a></li>
+  <li><a href="protocolo_gerar_etiqueta_processo">Gerar Etiquetas de Processo</a></li>
+</ul>
+<br />O conte&uacute;do a seguir &eacute; a lista do resultado da pesquisa feita. <br />
+<br />
+<center>
+<table width="648">
+  <thead>
+  <tr valign="top">
+     <td bgcolor="#c7d8eb" width="135"><p align="justify"><font style="font-size: 11pt;" size="3"><b>Nome do Campo</b></font></p></td>
+     <td bgcolor="#c7d8eb" width="490">
+     <p align="justify"><font style="font-size: 11pt;" size="3"><b>Instru&ccedil;&otilde;es para Preenchimento</b></font></p>
+     </td>
+ </tr>
+ </thead><tbody>
+ <tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Resultado da Pesquisa</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Indica o n&uacute;mero de protocolos encontrados.</b>.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Protocolo</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Link para o protocolo contendo: n&uacute;mero/ano do protocolo. Opcionalmente, a indica&ccedil;&atilde;o de etiqueta de protocolo gerada; ou, indica&ccedil;&atilde;o de <b>nulo</b> quando for o caso.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Ementa</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Cont&eacute;m a ementa do documento protocolado.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135" type="nowrap"><p><font style="font-size: 11pt;" size="3">Data Protocolo/Hor&aacute;rio</font></p></td>
+
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Cont&eacute;m a data e a hora do protocolo.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Interessado</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Nome do Local ou Pessoa interessada.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Natureza Processo</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Indica&ccedil;&atilde;o da natureza do processo - referindo-se se legislativo ou administrativo.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Classifica&ccedil;&atilde;o</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Indica&ccedil;&atilde;o de tipo de documento protocolado em fun&ccedil;&atilde;o da natureza do processo.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Documento vinculado</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Indica&ccedil;&atilde;o do documento vinculado ao protocolo.</font></p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Anulado</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Indica&ccedil;&atilde;o do usu&aacute;rio (login e ip) que tenha anulado o protocolo.</p></td>
+ </tr>
+<tr valign="top">
+    <td width="135"><p><font style="font-size: 11pt;" size="3">Motivo</font></p></td>
+    <td width="490"><p><font style="font-size: 11pt;" size="3">Indica&ccedil;&atilde;o do motivo da anula&ccedil;&atilde;o do protocolo.</font></p></td>
+ </tr>
+ </tbody>
+</table><br />
+</center>
+<br />
+<h2 align="left"><a NAME="cons_materia">Consulta &agrave;s Mat&eacute;rias Legislativas</a></h2>
+Ao selecionar o item Mat&eacute;ria Legislativa ser&aacute;
+exibida uma tela com os seguintes campos para pesquisa das
+informa&ccedil;&otilde;es:<br />
+<br />
+<center>
+<table width="648">
+  <thead>
+  <tr valign="top">
+    <td bgcolor="#c7d8eb" width="135">
+     <p align="justify"><font style="font-size: 11pt;" size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="490">
+     <p align="justify"><font style="font-size: 11pt;" size="3"><b>Instru&ccedil;&otilde;es para Preenchimento</b></font></p>
+    </td>
+  </tr>
+  </thead> <tbody>
+    <tr valign="top">
+      <td width="135">
+       <p><font style="font-size: 11pt;" size="3">Tipo de Mat&eacute;ria</font></p>
+      </td>
+      <td width="490">
+       <p><font style="font-size: 11pt;" size="3">Selecione na caixa tipo de mat&eacute;ria o tipo da mat&eacute;ria que
+deseja pesquisar </font> </p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+       <p><font style="font-size: 11pt;" size="3">N&uacute;mero</font></p>
+      </td>
+      <td width="490">
+       <p><font style="font-size: 11pt;" size="3">Informe o n&uacute;mero da mat&eacute;ria legislativa</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+       <p><font style="font-size: 11pt;" size="3">Ano</font></p>
+      </td>
+      <td width="490">
+       <p><font style="font-size: 11pt;" size="3">Informe o ano da mat&eacute;ria legislativa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+       <p><font style="font-size: 11pt;" size="3">N&uacute;mero do Processo</font></p>
+      </td>
+      <td width="490">
+       <p><font style="font-size: 11pt;" size="3">Informe o n&uacute;mero do processo da mat&eacute;ria legislativa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+       <p><font style="font-size: 11pt;" size="3">Protocolo Prefeitura</font></p>
+      </td>
+      <td width="490">
+       <p><font style="font-size: 11pt;" size="3">Informe o n&uacute;mero do protocolo da mat&eacute;ria legislativa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+       <p><font style="font-size: 11pt;" size="3">Per&iacute;odo de Apresenta&ccedil;&atilde;o - Inicial</font></p>
+      </td>
+      <td width="490">
+       <p><font style="font-size: 11pt;" size="3">Informe a data inicial no formato dd/mm/aaaa relativo ao per&iacute;odo de apresenta&ccedil;&atilde;o da mat&eacute;ria legislativa que deseja pesquisar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Final</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Informe a data final no formato dd/mm/aaaa relativo ao per&iacute;odo de apresenta&ccedil;&atilde;o da mat&eacute;ria legislativa que deseja pesquisar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Per&iacute;odo de Publica&ccedil;&atilde;o - Inicial</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Informe a data inicial no formato dd/mm/aaaa relativo ao per&iacute;odo de publica&ccedil;&atilde;o da mat&eacute;ria legislativa que deseja pesquisar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Final</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Informe a data final no formato dd/mm/aaaa relativo ao per&iacute;odo de publica&ccedil;&oacute;o da mat&eacute;ria legislativa que deseja pesquisar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Autor</font></p>
+      </td>
+      <td width="490">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Para escolher o
+autor siga os seguintes passos: </font> </p>
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">- Acione o
+bot&atilde;o &ldquo;Selecionar&rdquo;.</font></p>
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">- Digite o nome do
+autor no campo autor.</font></p>
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">- Clique na lupa ao
+lado do campo autor.</font></p>
+      <p><font style="font-size: 11pt;" size="3">-
+Selecione o autor e clique no bot&atilde;o &ldquo;OK&rdquo;.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Tipo
+Autor</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Selecione
+na caixa tipo autor qual o tipo do autor que apresentou a
+mat&eacute;ria.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Partido
+(Autor)</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Selecione
+na caixa partido (autor) o partido do autor da mat&eacute;ria.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Relator</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o nome do relator da mat&eacute;ria legislativa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Assunto</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">
+A pesquisa por assunto conta com tr&ecirc;s fontes de pesquisa, s&atilde;o elas: <br>
+- Ementa da mat&eacute;ria; ou<br>
+- Indexa&ccedil;&atilde;o; ou<br>
+- Observa&ccedil;&otilde;es.<br><br>
+
+Al&eacute;m disso, podem ser usados v&aacute;rio termos de pesquisa, separados por ponto e v&iacute;rgula(;). <br><br>
+Ex: Para que se possa encontrar mat&eacute;rias que mencionem a palavra 'asfalto' no 'setor central' ou ainda no 'centro' da cidade.<br>Use em assunto [<i>asfalto; setor central; centr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>]
+
+
+
+</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Tramitando</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Indique
+se a mat&eacute;ria esta em tramita&ccedil;&atilde;o ou
+n&atilde;o.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Localiza&ccedil;&atilde;o Atual</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Selecione
+na caixa, a localiza&ccedil;&atilde;o que deseja pesquisar todas as mat&eacute;rias legislativas que l&aacute; se encontram.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="135">
+      <p><font style="font-size: 11pt;" size="3">Situa&ccedil;&atilde;o
+Atual</font></p>
+      </td>
+      <td width="490">
+      <p><font style="font-size: 11pt;" size="3">Selecione
+na caixa situa&ccedil;&atilde;o atual, qual a
+situa&ccedil;&atilde;o em que se encontra a mat&eacute;ria
+legislativa. (ex. Aprovada, Rejeitada, Em
+tramita&ccedil;&atilde;o etc.)</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<br />
+<br />
+Acione a fun&ccedil;&atilde;o &ldquo;Pesquisar&rdquo;
+para obter o resultado da pesquisa.<br />
+<span style="font-style: italic;">Nota</span>: <span
+ style="font-style: italic;">Para ter acesso a todas as
+mat&eacute;rias cadastradas na base de dados &eacute;
+s&oacute; acionar a fun&ccedil;&atilde;o
+&ldquo;Pesquisar&rdquo; sem preencher nenhuma
+informa&ccedil;&atilde;o, deixando os campos com as
+op&ccedil;&otilde;es &ldquo;TODOS&rdquo; preenchidos.</span><br />
+A fun&ccedil;&atilde;o &ldquo;Limpar&rdquo; limpa todos
+os campos preenchidos para uma nova pesquisa.<br /><br />
+O resultado da pesquisa traz a rela&ccedil;&atilde;o de
+mat&eacute;rias com as seguintes informa&ccedil;&otilde;es:<br />
+&nbsp;&nbsp;&nbsp; Identifica&ccedil;&atilde;o da
+mat&eacute;ria, ementa, autor, localiza&ccedil;&atilde;o
+atual, situa&ccedil;&atilde;o e &uacute;ltima
+a&ccedil;&atilde;o.<br />
+Para ter acesso as informa&ccedil;&otilde;es completas da
+mat&eacute;ria, tecle na mat&eacute;ria e navegue nos&nbsp;
+itens, Anexada, Autoria, Despacho Inicial, Documento
+Acess&oacute;rio, Legisla&ccedil;&atilde;o Citada,
+Numera&ccedil;&atilde;o, Tramita&ccedil;&atilde;o e
+Relatoria.<br />
+A fun&ccedil;&atilde;o &ldquo;In&iacute;cio&rdquo;,
+retorna sempre o in&iacute;cio das
+informa&ccedil;&otilde;es da mat&eacute;ria selecionada.<br />
+<br />
+Para receber e-mail a cada movimenta&ccedil;&atilde;o na
+tramita&ccedil;&atilde;o da mat&eacute;ria, clique em
+<b><i>Acompanhar mat&eacute;ria</i></b> para informar o seu e-mail.<br />
+
+<br />
+<h2 align="left"><a NAME="cons_norma">Consulta &agrave;s Normas Jur&iacute;dicas</a></h2>
+<br />
+Ao selecionar o item Norma Jur&iacute;dica ser&aacute; exibida
+uma tela com os seguintes campos para pesquisa das
+informa&ccedil;&otilde;es:<br />
+<br />
+<center>
+<table width="648">
+  <thead>	
+  <tr valign="top">
+    <td bgcolor="#c7d8eb" width="141">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="485">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+  </thead> <tbody>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Tipo
+da Norma</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Selecione
+na caixa tipo da norma o tipo da norma que deseja pesquisar.</font>
+      </p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">N&uacute;mero</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero da norma jur&iacute;dica.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Ano</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o ano da norma jur&iacute;dica.</font></p>
+      </td>
+    </tr>
+ <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Assunto</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Selecione a palavra relativa ao assunto cujas normas relacionaciodas deseja pesquisar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Data da Norma - Per&iacute;odo: Inicial</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa ao in&iacute;cio do per&iacute;odo de apresenta&ccedil;&atilde;o da Norma Jur&iacute;dica, a partir do qual deseja realizar a consulta.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Final</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa ao final do per&iacute;odo de apresenta&ccedil;&atilde;o da Norma Jur&iacute;dica, do qual deseja realizar a consulta.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Data da Publica&ccedil;&atilde;o - Per&iacute;odo: Inicial</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa ao in&iacute;cio do per&iacute;odo de publica&ccedil;&atilde;o da Norma Jur&iacute;dica, a partir do qual deseja realizar a consulta.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Final</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a data final no formato dd/mm/aaaa relativa ao final do per&iacute;odo de publica&ccedil;&atilde;o da Norma Jur&iacute;dica, do qual deseja realizar a consulta.</font></p>
+      </td>
+    </tr>
+
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Termos</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a(s) palavra(s) que corresponde(am) ao(s) termo(s) a ser(em) pesquisado(s) no texto da EMENTA ou na(s) palavra(s) utilizada(s) para INDEXA&Ccedil;&Atilde;O da Norma Jur&iacute;dica</font></p>
+      </td>
+    </tr>
+ <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Em vig&ecirc;ncia ?  ()Sim   ()N&atilde;o   ()Tanto faz </font></p>
+      </td>
+      <td width="485">
+<p><font style="font-size: 11pt;" size="3">Assinale uma das op&ccedil;&otilde;es desejada para o resultado da consulta. A op&ccedil;&atilde;o <b>N&atilde;o</b> trar&aacute; as normas jur&iacute;dicas que foram atualizadas com uma das situa&ccedil;&otilde;es: "<b>L</b>" - Suspensa integralmente; "<b>R</b>" - Revogada integralmente; e, "<b>T</b>" - Revogada totalmente, e as suas respectivas sucessoras, se houver.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Ordena&ccedil;&atilde;o do Resultado</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a forma de ordena&ccedil;&atilde;o do resultado da pesquisa . A op&ccedil;&atilde;o &ldquo;Relev&acirc;ncia&ldquo; s&oacute; pode ser ativada se for informado algum assunto.</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<br />
+<br />
+<span style="font-style: italic;">Nota:</span> <span
+ style="font-style: italic;">Para ter acesso a todas as
+normas cadastradas na base de dados &eacute; s&oacute; acionar
+a fun&ccedil;&atilde;o &ldquo;Pesquisar&rdquo; sem
+preencher nenhuma informa&ccedil;&atilde;o, deixando o campo
+com a op&ccedil;&atilde;o &ldquo;TODOS&rdquo;
+preenchidos.</span><br /><br />
+A fun&ccedil;&atilde;o &ldquo;Limpar&rdquo; limpa todos
+os campos preenchidos para uma nova pesquisa.<br /><br />
+O resultado da pesquisa traz a rela&ccedil;&atilde;o das normas
+jur&iacute;dicas com as seguintes informa&ccedil;&otilde;es:<br />
+&nbsp;&nbsp;&nbsp; Identifica&ccedil;&atilde;o da
+norma, ementa.<br /><br />
+Para ter acesso as informa&ccedil;&otilde;es completas da norma
+jur&iacute;dica, tecle na norma.<br />
+Para ter acesso ao texto integral da norma jur&iacute;dica tecle na
+imagem ao lado da norma.<br />
+A fun&ccedil;&atilde;o &ldquo;Voltar&rdquo;, volta
+sempre para a &uacute;ltima tela pesquisada.<br />
+<br />
+A partir da vers&atilde;o 2.0, o Sapl realiza pesquisas pelo m&eacute;todo booleano.<br />
+A busca booleana suporta as seguintes opera&ccedil;&otilde;es:<br /><br>
+<font size="3">+</font> <br />
+Um sinal de mais precedente indica que esta palavra deve estar presente no texto. Ex:<br />
+&nbsp;&nbsp;+servidor +vantagens <br />
+&nbsp;&nbsp;... ambas as palavras estar&atilde;o presentes. <br /><br>
+<font size="3">-</font> <br />
+Um sinal de menos precedente indica que esta palavra n&atilde;o deve estar presente em qualquer parte do texto.<br />
+&nbsp;&nbsp;+utilidade +p&uacute;blica -org&atilde;o <br />
+&nbsp;&nbsp;...as palavras &ldquo;utilidade&ldquo; e &ldquo;p&uacute;blica&ldquo; mas n&atilde;o &ldquo;&oacute;rg&atilde;o&ldquo;. <br /><br>
+Por padr&atilde;o (quando nem mais nem menos &eacute; especificado) a palavra &eacute; opcional, mas os textos que a cont&eacute;m ser&atilde;o avaliadas positivamente.<br />
+&nbsp;&nbsp;prefeitura executivo <br />
+&nbsp;&nbsp;encontra registros que contenham pelo menos uma destas palavras <br /><br>
+<font size="3">( )</font> <br />
+Parenteses s&atilde;o usados para agrupar palavras em subexpress&otilde;es. <br />
+&nbsp;&nbsp;+servidor +(f&eacute;rias vencimentos) <br />
+&nbsp;&nbsp;... &ldquo;servidor&ldquo; e &ldquo;f&eacute;rias&ldquo;, ou &ldquo;servidor&ldquo; e &ldquo;vencimentos&ldquo; (em qualquer ordem) <br /><br>
+<font size="3">< ></font> <br />
+Estes dois operadores s&atilde;o usados para alterar a contribui&ccedil;&atilde;o de uma palavra no valor de relev&acirc;ncia que atribu&iacute;do a um registro.<br /> O operador < reduz a contribui&ccedil;&atilde;o e o operador > a aumenta. Veja o exemplo abaixo.<br>
+&nbsp;&nbsp;+servidor +(<f&eacute;rias >vencimentos) <br />
+&nbsp;&nbsp;... &ldquo;servidor&ldquo; e &ldquo;f&eacute;rias&ldquo;, ou &ldquo;servidor&ldquo; e &ldquo;vencimentos&ldquo; (em qualquer ordem), mas avalia &ldquo;servidor&ldquo; e &ldquo;vencimentos&ldquo; melhor que &ldquo;servidor&ldquo; e &ldquo;f&eacute;rias&ldquo;. <br /><br>
+<font size="3">~</font> <br />
+Um til precedente atua como um operador de nega&ccedil;&atilde;o, tornando negativa a contribui&ccedil;&atilde;o da palavra para a relev&acirc;ncia do registro. Ele &eacute; &uacute;til para marcar palavras &ldquo;ruidosas&ldquo;. Registros com tais palavras ter&atilde;o uma avalia&ccedil;&atilde;o mais baixa que outras. <br />
+&nbsp;&nbsp;terrenos ~desincorpora <br />
+&nbsp;&nbsp;...contenham as palavras terrenos ou desincorpora, por&eacute;m se a palavra &ldquo;desincorpora&ldquo; aparecer muito, o registro ter&acute; uma avalia&ccedil;&atilde;o negativa. <br /><br>
+<font size="3">*</font> <br />
+Um asterisco &eacute; um operador de truncamento. Diferente dos outros operadores, ele deve ser inserida ao fim da palavra, n&atilde;o deve ser precedente. <br />
+&nbsp;&nbsp;terrenos -desincorpora* <br />
+&nbsp;&nbsp;...cont&eacute;m a palavra terrenos e n&atilde;o contenha a palavra desincorpora, desincorporado, desincorpora&ccedil;&atilde;o, etc <br />
+<font size="3">&ldquo;</font> <br />
+A frase que &eacute; colocada entre aspas duplas &ldquo;, coincide apenas com registros que contenham esta frase literalmente, como foi digitada. <br />
+&nbsp;&nbsp;&ldquo;desafeta&ccedil;&atilde;o de &aacute;rea p&uacute;blica&ldquo; <br />
+&nbsp;&nbsp;... n&atilde;o apresenta &ldquo;desafeta&ccedil;&atilde;o de &aacute;reas p&uacute;blicas&ldquo; . <br /><br>
+A partir da vers&atilde;o 2.0 do SAPL passou a ser
+poss&iacute;vel tamb&eacute;m a <span
+ style="font-weight: bold;">pesquisa por palavra contida no
+texto da norma jur&iacute;dica</span>. Basta informar a
+palavra desejada no campo &ldquo;Texto&rdquo;, na parte
+inferior da tela de pesquisa. Na lista de resultados
+aparecer&atilde;o todas as normas jur&iacute;dicas que
+contenham o termo pesquisado em qualquer parte do arquivo contendo o
+texto integral, desde que seja um arquivo de formato .doc, .pdf, .txt,
+.html, .htm ou .xml&nbsp; 
+
+<br />
+
+<br />
+
+<h2 align="left"><a NAME="cons_atas">Consulta Atas das Sess&otilde;es Plen&aacute;rias</a></h2>
+<center>
+<table border="1" style="bordercolor:#000000" cellpadding="5"
+ cellspacing="0" width="648">
+  <thead>
+ <tr>
+ <td bgcolor="#c7d8eb" width="141">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="485">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+   <tr valign="top">
+	      <td width="141">
+	      <p><font style="font-size: 11pt;" size="3">Data Inicial</font></p>
+	      </td>
+	      <td width="485">
+	      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa ao in&iacute;cio da(s) Sess&atilde;o, a partir do qual deseja realizar a consulta.</font></p>
+	      </td>
+	    </tr>
+	  <tr valign="top">
+	      <td width="141">
+	      <p><font style="font-size: 11pt;" size="3">Data Final</font></p>
+	      </td>
+	      <td width="485">
+	      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa a ultima Sess&atilde;o, da qual deseja realizar a consulta.</font></p>
+	      </td>
+	    </tr>
+	 <tr valign="top">
+	      <td width="141">
+	      <p><font style="font-size: 11pt;" size="3">Termos</font></p>
+	      </td>
+	      <td width="485">
+	      <p><font style="font-size: 11pt;" size="3">Informe a(s) palavra(s) que corresponde(am) ao(s) termo(s) a ser(em) pesquisado(s) no texto da ATA da Sess&atilde;o.</font></p>
+	      </td>
+	    </tr>
+
+	  </thead>
+	  <tbody>
+	  <tr valign="top">
+	  </tbody>
+	</table>
+	</center>
+
+
+	<br />
+
+  <a href="ajuda_index_html">&Iacute;ndice</a>
+
+  | <a href="acessando_alimenta">Pr&oacute;xima</a>
+
+<br />
+
+
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

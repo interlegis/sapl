@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                            
+                                                                        <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/consultas/mesa_diretora'>Mesa Diretora</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/comissao'>Comiss&otilde;es</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/bancada'>Bancadas</a>
+                                </li>
+                                <li><a href='http://sapl3.interlegis.leg.br/consultas/parlamentar'>Parlamentares</a>
+                                </li>
+                                            </ul>
+                </li>
+                
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0'>Mat&eacute;rias Legislativas</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0'>Pesquisar</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                    <li>
+                        <a href="http://sapl3.interlegis.leg.br/login_form"><img src="http://sapl3.interlegis.leg.br/imagens/login.png"></a>
+                        <ul>
+                            <li><span>Login</span></li>
+                        </ul>
+                    </li>
+                                </ul>
+            <ul class="nav acesso-rapido">
+                                    
+                                                                            
+                                    <li><a>Acesso Rápido</a>
+                        <ul>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/mesa_diretora">Mesa Diretora</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/comissao">Comissões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/bancada">Bancadas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/parlamentar">Parlamentares</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas das Sessões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0">Matérias Legislativas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0">Normas Jurídicas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/relatorios_administrativos">Relatórios</a></li>
+                        </ul>
+                                    </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+
+<h1 class="firstHeading">Cadastro de Parlamentares</h1>
+<br />
+Este M&oacute;dulo tem por objetivo cadastrar os Parlamentares da
+Casa Legislativa.<br />
+Ao ter acesso a este m&oacute;dulo ser&aacute; exibido uma tela
+com um campo para selecionar a legislatura.<br />
+Ao selecionar a legislatura ser&aacute; exibida a
+rela&ccedil;&atilde;o de Parlamentares j&aacute;
+cadastrados na legislatura escolhida<br />
+Nota: Ao entrar no sistema, este sempre vir&aacute; com a
+legislatura atual posicionada.<br />
+Para incluir um parlamentar acione a fun&ccedil;&atilde;o
+&ldquo;Incluir Parlamentar&rdquo;.<br />
+Ser&aacute; enviada a seguinte mensagem: &ldquo;Ao incluir um
+parlamentar, tamb&eacute;m ser&aacute; inclu&iacute;do um
+mandato para ele na Legislatura escolhida (xx legislatura)&rdquo;.<br />
+Acione a fun&ccedil;&atilde;o OK. Caso seja acionada a
+fun&ccedil;&atilde;o cancelar, o sistema n&atilde;o
+abrir&aacute; a tela para cadastramento.<br />
+Isto permite a inclus&atilde;o de parlamentares em legislaturas
+anteriores, pois voc&ecirc; pode escolher a legislatura na qual o
+Parlamentar pertence.<br />
+Ser&aacute; exibida a tela como os seguintes campos a serem
+preenchidos:<br />
+<br />
+<center>
+<table width="653">
+  <col width="145" /> <col width="75" /> <col
+ width="401" /> <thead> <tr valign="top">
+    <td bgcolor="#c7d8eb" width="145">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="75">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Tipo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="401">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+  </thead> <tbody>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Nome
+do Parlamentar</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o nome Parlamentar do Vereador ou Deputado</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Ativo
+na casa </font> </p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="401">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Escolha a
+op&ccedil;&atilde;o Sim ou N&atilde;o para informar se o
+Parlamentar est&aacute; ativo na casa ou n&atilde;o.</font></p>
+      <p><font style="font-size: 11pt;" size="3">Caso
+seja informada a op&ccedil;&atilde;o &ldquo;SIM&rdquo;
+o sistema ir&aacute; inclui-lo automaticamente no Mandato Atual, e
+perguntar&aacute; ao Operador se deseja cadastrar o Parlamentar
+como &ldquo;Autor&rdquo;.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Nome
+Completo</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o nome completo do Vereador ou Deputado</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Partido</font></p>
+      </td>
+      <td width="75">
+      <p><br />
+      </p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Este
+campo n&atilde;o pode ser preenchido. Este campo mostra o partido
+ao qual o parlamentar est&aacute; filiado. A
+informa&ccedil;&atilde;o de filia&ccedil;&atilde;o
+partid&aacute;ria dever ser cadastrada atrav&eacute;s da
+fun&ccedil;&atilde;o &ldquo;Filia&ccedil;&atilde;o
+Partid&aacute;ria&rdquo; que se encontra no fim da
+p&aacute;gina .</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Sexo</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Assinale
+Masculino ou Feminino. Campo de preenchimento obrigat&oacute;rio</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td height="23" width="145">
+      <p><font style="font-size: 11pt;" size="3">Data
+Nascimento</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+a data de Nascimento do Parlamentar no formato dia, m&ecirc;s e ano
+(ano com quatro posi&ccedil;&otilde;es).</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">CPF</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Informe o CPF do
+Parlamentar</font></p>
+      <p><font style="font-size: 11pt;" size="3">O
+n&uacute;mero do CPF ser&aacute; validado com o digito
+verificador, caso o CPF n&atilde;o seja um CPF v&aacute;lido,
+ser&aacute; enviada a mensagem. &ldquo;<i>Digite um CPF
+v&aacute;lido&rdquo;</i>.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">RG</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero do Registro Geral do Parlamentar. </font> </p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">N&ordm;.
+T&iacute;tulo Eleitor</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero do T&iacute;tulo de Eleitor do Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Situa&ccedil;&atilde;o
+Militar</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Escolha
+na caixa de Situa&ccedil;&atilde;o Militar, a
+situa&ccedil;&atilde;o militar do Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">N&iacute;vel
+Instru&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Escolha
+na caixa de N&iacute;vel de Instru&ccedil;&atilde;o, o
+n&iacute;vel de instru&ccedil;&atilde;o do Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Profiss&atilde;o</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+a profiss&atilde;o exercida pelo Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">HomePage</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o endere&ccedil;o da HomePage do Parlamentar no formato </font><font
+ color="#0000ff"><u><a href="http://www.eeeee./"><font
+ style="font-size: 11pt;" size="3">http://www.eeeee.</font></a></u></font><font
+ style="font-size: 11pt;" size="3">. se houver.:</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Correio
+Eletr&ocirc;nico</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o endere&ccedil;o do correio eletr&ocirc;nico do Parlamentar no
+formato </font><font color="#0000ff"><u><a
+ href="mailto:nome@provedor"><font style="font-size: 11pt;"
+ size="3">nome@provedor</font></a></u></font><font
+ style="font-size: 11pt;" size="3"> se houver</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">N.&ordm;
+Gabinete</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero do gabinete do Parlamentar</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Telefone</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero do telefone da casa legislativa para contato com o
+Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Fax</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero do fax para contato com o Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Endere&ccedil;o
+Residencial</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o endere&ccedil;o residencial do Parlamentar &ndash; nome rua,
+n.&ordm; da casa, bairro etc.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">CEP</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o CEP da resid&ecirc;ncia do Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Munic&iacute;pio</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Informe o nome do
+munic&iacute;pio em que o Parlamentar reside.</font></p>
+      <ul>
+        <li>
+          <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Caso queira saber
+os nomes dos munic&iacute;pios cadastrados no estado de
+representa&ccedil;&atilde;o &eacute; s&oacute; informar
+a parte inicial do nome do munic&iacute;pio, a UF e acionar a
+&ldquo;?&rdquo; interroga&ccedil;&atilde;o que se
+encontra a direita do campo. Ao encontrar a Cidade desejada,
+selecione-a e tecla o bot&atilde;o OK. </font> </p>
+        </li>
+        <li>
+          <p><font style="font-size: 11pt;" size="3"><i>O
+cadastro de munic&iacute;pio &eacute; obtido de um arquivo
+interno do sistema. N&atilde;o h&aacute; tabela de
+munic&iacute;pios para alimentar.</i></font></p>
+        </li>
+      </ul>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">UF</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Selecione a sigla
+da UF do Parlamentar.</font></p>
+      <ul>
+        <li value="1">
+          <p><i><font style="font-size: 11pt;"
+ size="3">O cadastro de UF, &eacute; um cadastro interno
+do sistema, n&atilde;o h&aacute; tabela para alimentar</font></i><font
+ style="font-size: 9pt;" size="2">.</font></p>
+        </li>
+      </ul>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Telefone</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o telefone residencial do Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Locais
+de Atua&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+os locais de maior atua&ccedil;&atilde;o do Parlamentar.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="145">
+      <p><font style="font-size: 11pt;" size="3">Fotografia</font></p>
+      </td>
+      <td width="75">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="401">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o caminho, onde se encontra o arquivo com a foto, ou acione a
+fun&ccedil;&atilde;o procurar.</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<br />
+<br />
+Acione a fun&ccedil;&atilde;o&nbsp;
+&ldquo;Salvar&rdquo; para que as
+informa&ccedil;&otilde;es sejam salvas no arquivo.<br />
+Ser&aacute; enviada a mensagem:&nbsp; !Parlamentar salvo com
+sucesso!<br />
+&nbsp;&nbsp;&nbsp; &nbsp;&ldquo;Ser&aacute;
+inclu&iacute;do um mandato para esse parlamentar na (xx)
+legislatura.&rdquo;<br />
+Acione a fun&ccedil;&atilde;o Continuar.<br />
+Ao ser acionado a fun&ccedil;&atilde;o
+&ldquo;Continuar&rdquo; ser&aacute; enviado a seguinte
+Mensagem:<br />
+&ldquo;Foi salvo um mandato para esse parlamentar na (xx)
+legislatura.&rdquo;<br />
+&ldquo;Se deseja cadastrar esse parlamentar como um autor, clique
+abaixo em Incluir como autor.&rdquo;<br />
+&ldquo;Para continuar sem cadastrar esse parlamentar como autor,
+clique em Continuar.&rdquo;<br />
+&nbsp;Incluir como Autor? &nbsp;&nbsp;&nbsp; Caso seja
+acionado a fun&ccedil;&atilde;o &ldquo;Incluir como
+Autor&rdquo; ser&aacute; enviado a seguinte mensagem ao
+Operador:<br />
+&ldquo;Autor salvo com sucesso.&rdquo; <br />
+Continuar<br />
+&nbsp;<br />
+Acione a fun&ccedil;&atilde;o &ldquo;Continuar&rdquo;
+para continuar atualizando os dados do Parlamentar.<br />
+<br />
+A fun&ccedil;&atilde;o &ldquo;Incluir como Autor&rdquo;
+ir&aacute; cadastrar o Parlamentar na tabela de Autor de
+Mat&eacute;rias Legislativas.<br />
+<br />
+Para alterar os dados de um Parlamentar j&aacute; cadastrados,
+selecione o Parlamentar&nbsp; desejado, altere as
+informa&ccedil;&otilde;es e acione a
+fun&ccedil;&atilde;o &ldquo;Salvar&rdquo;.<br />
+<br />
+Para excluir um Parlamentar, selecione o Parlamentar e acione o
+bot&atilde;o &ldquo;Excluir&rdquo;.<br />
+Ser&aacute; enviada a pergunta &ldquo;Deseja realmente
+excluir?&rdquo;<br />
+Acione OK em caso positivo ou Cancelar para o caso de
+desist&ecirc;ncia da exclus&atilde;o.<br />
+Quando for informado OK ser&aacute; enviada a mensagem !Parlamentar
+exclu&iacute;do com sucesso!<br />
+Selecione um Parlamentar j&aacute; cadastrado para continuar
+alimentando outras informa&ccedil;&otilde;es tais como:
+<a href="mandatos_parlamentar"><b>Mandato</b></a>,
+<a href="filiacoes_partidarias"><b>Filiação Partidária</b></a> e <a href="dependentes"><b>Dependente</b></a>. <br />
+
+<br />
+  <a href="coligacao">Anterior</a> |
+
+  <a href="ajuda_index_html">&Iacute;ndice</a>
+
+  | <a href="mandatos_parlamentar">Pr&oacute;xima</a>
+
+<br />
+
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

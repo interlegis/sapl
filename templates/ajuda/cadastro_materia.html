@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                            
+                                                                        <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/consultas/mesa_diretora'>Mesa Diretora</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/comissao'>Comiss&otilde;es</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/bancada'>Bancadas</a>
+                                </li>
+                                <li><a href='http://sapl3.interlegis.leg.br/consultas/parlamentar'>Parlamentares</a>
+                                </li>
+                                            </ul>
+                </li>
+                
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0'>Mat&eacute;rias Legislativas</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0'>Pesquisar</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                    <li>
+                        <a href="http://sapl3.interlegis.leg.br/login_form"><img src="http://sapl3.interlegis.leg.br/imagens/login.png"></a>
+                        <ul>
+                            <li><span>Login</span></li>
+                        </ul>
+                    </li>
+                                </ul>
+            <ul class="nav acesso-rapido">
+                                    
+                                                                            
+                                    <li><a>Acesso Rápido</a>
+                        <ul>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/mesa_diretora">Mesa Diretora</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/comissao">Comissões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/bancada">Bancadas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/parlamentar">Parlamentares</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas das Sessões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0">Matérias Legislativas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0">Normas Jurídicas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/relatorios_administrativos">Relatórios</a></li>
+                        </ul>
+                                    </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+
+<h1 class="firstHeading">Cadastro das Mat&eacute;rias Legislativas</h1>
+<br />
+Ao ter acesso a este&nbsp; m&oacute;dulo ser&aacute;
+exibida uma tela para pesquisa de mat&eacute;rias j&aacute;
+cadastradas e os bot&otilde;es&nbsp; &ldquo;Incluir
+Mat&eacute;ria&rdquo;, &ldquo;Pesquisar&rdquo; e
+&ldquo;Limpar&rdquo;.<br />
+Para fazer altera&ccedil;&otilde;es em Mat&eacute;rias
+j&aacute; cadastradas, fa&ccedil;a a pesquisa da
+mat&eacute;ria que se deseja alterar. (veja Consulta de
+tramita&ccedil;&atilde;o de mat&eacute;rias).<br />
+Na tela seguinte ser&aacute; apresentada a
+rela&ccedil;&atilde;o de mat&eacute;rias que resultou da
+pesquisa.<br />
+Selecione a mat&eacute;ria desejada e efetue as
+altera&ccedil;&otilde;es e acione a
+fun&ccedil;&atilde;o "Salvar".<br />
+Ser&aacute; enviada a mensagem "Mat&eacute;ria salva com
+sucesso"<br />
+Acione a fun&ccedil;&atilde;o "Continuar" para voltar a tela
+com os dados da mat&eacute;ria selecionada.<br />
+<br />
+Para inclus&atilde;o de novas Mat&eacute;rias acione o
+bot&atilde;o "Incluir Mat&eacute;ria".<br />
+Ser&aacute; exibida uma nova tela com os campos a serem preenchidos:<br />
+<br />
+<p style="margin-bottom: 0cm;" align="justify"><font
+ style="font-size: 11pt;" size="3"><i><u>Identifica&ccedil;&atilde;o
+B&aacute;sica;</u></i></font></p>
+<center>
+<table width="85%">
+  <col width="60*" /> <col width="40*" /> <col
+ width="155*" /> <thead> <tr valign="top">
+    <td bgcolor="#c7d8eb" width="24%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="16%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Tipo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="61%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+  </thead> <tbody>
+    <tr valign="top">
+      <td width="24%">
+      <p><font style="font-size: 11pt;" size="3">Tipo</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Escolha
+na caixa de Tipo, o tipo de mat&eacute;ria que ser&aacute;
+inclu&iacute;da (PLC, PL, etc).</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="24%">
+      <p><font style="font-size: 11pt;" size="3">N&uacute;mero</font></p>
+      </td>
+      <td width="16%">
+      <p><br />
+      </p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Esta
+informa&ccedil;&atilde;o &eacute; gerada automaticamente e
+em seq&uuml;&ecirc;ncia conforme o ano.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="24%">
+      <p><font style="font-size: 11pt;" size="3">Ano</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Obrigatório</font></p>
+      </td>
+      <td width="61%">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Informe o ano em
+que a mat&eacute;ria foi submetida &agrave;
+aprecia&ccedil;&atilde;o.</font></p>
+      <p><font style="font-size: 11pt;" size="3">
+      <i>Obs. O ano corrente j&aacute; vem informado na
+tela.</i></font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="24%">
+      <p><font style="font-size: 11pt;" size="3">Data
+Apresenta&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+a data em que a mat&eacute;ria foi submetida &agrave;
+aprecia&ccedil;&atilde;o no formato dia, m&ecirc;s e ano
+(ano com quatro posi&ccedil;&otilde;es). <br><i>Obs.: O ano da data deve ser igual ao ano acima informado.</i></font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="24%">
+      <p><font style="font-size: 11pt;" size="3">Tipo
+Apresenta&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Assinale
+a forma em que a mat&eacute;ria foi submetida &agrave;
+apresenta&ccedil;&atilde;o, se Oral ou Escrita</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="24%">
+      <p><font style="font-size: 11pt;" size="3">Texto
+Integral</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Caso
+deseje anexar &agrave; mat&eacute;ria um arquivo com o seu
+texto integral, clique na op&ccedil;&atilde;o
+&ldquo;Arquivo&rdquo;, e informe o caminho completo, ou clique
+no bot&atilde;o ao lado do campo para selecionar um arquivo em
+disco. Caso o texto integral seja proveniente de uma
+proposi&ccedil;&atilde;o <span
+ style="text-decoration: none;"><span
+ style="font-style: normal;">j&aacute; recebida,</span></span>
+clique em &ldquo;Proposi&ccedil;&atilde;o&rdquo; e
+selecione na lista uma das proposi&ccedil;&otilde;es
+dispon&iacute;veis; observe que, nesse campo, s&oacute;
+aparecem as proposi&ccedil;&otilde;es &agrave;s quais
+j&aacute; foi dado o recebimento no sistema e que ainda
+n&atilde;o foram vinculadas a nenhuma mat&eacute;ria
+legislativa.</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p style="text-indent: 0.75cm; margin-bottom: 0cm;"
+ align="justify"><br />
+</p>
+<p style="margin-bottom: 0cm;" align="justify"><font
+ style="font-size: 11pt;" size="3"><i><u>Outras
+Informa&ccedil;&otilde;es;</u></i></font></p>
+<center>
+<table width="85%">
+  <col width="59*" /> <col width="41*" /> <col
+ width="156*" /> <thead> <tr valign="top">
+    <td bgcolor="#c7d8eb" width="23%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="16%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Tipo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="61%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+  </thead> <tbody>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Apelido</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o apelido da Mat&eacute;ria, se houver.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Dias
+Prazo</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+a quantidade em dias que a mat&eacute;ria tem para tramitar na casa
+legislativa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Mat&eacute;ria
+Pol&ecirc;mica</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Sim
+/ N&atilde;o &ndash; Informe se a mat&eacute;ria
+&eacute; pol&ecirc;mica ou n&atilde;o.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Objeto</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Objeto
+da qual trata a mat&eacute;ria.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Regime
+Tramita&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Escolha
+na caixa de Regime de tramita&ccedil;&atilde;o o regime de
+tramita&ccedil;&atilde;o da mat&eacute;ria na casa
+legislativa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Em
+Tramita&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Sim
+/ N&atilde;o &ndash; Informe se a mat&eacute;ria
+est&aacute; em tramita&ccedil;&atilde;o ou n&atilde;o.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Data
+Fim Prazo</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+a data do prazo que termina a tramita&ccedil;&atilde;o da
+mat&eacute;ria, no formato dia, m&ecirc;s e ano (ano com quatro
+posi&ccedil;&otilde;es)</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Data
+Publica&ccedil;&atilde;o</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+da data em que a mat&eacute;ria foi publicada no formato dia,
+m&ecirc;s e ano (ano com quatro posi&ccedil;&otilde;es).</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">&Eacute;
+Complementar</font></p>
+      </td>
+      <td width="16%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Sim
+/ N&atilde;o &ndash; Informe se a mat&eacute;ria
+&eacute; complementar ou n&atilde;o.</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p style="text-indent: 0.75cm; margin-bottom: 0cm;"
+ align="justify"><br />
+</p>
+<p style="margin-bottom: 0cm;" align="justify"><font
+ style="font-size: 11pt;" size="3"><i><u>Origem
+Externa;</u></i></font></p>
+<center>
+<table width="85%">
+  <col width="59*" /> <col width="40*" /> <col
+ width="157*" /> <thead> <tr valign="top">
+    <td bgcolor="#c7d8eb" width="23%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="15%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Tipo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="61%">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+  </thead> <tbody>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Tipo</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Escolha
+na caixa de Tipo, o tipo de mat&eacute;ria, que a mesma possui na
+origem externa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">N&uacute;mero</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o n&uacute;mero da na origem externa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Ano</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+o ano em que a mat&eacute;ria foi apresentada na origem externa.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Data</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Informe
+a data em que a mat&eacute;ria foi submetida &agrave;
+aprecia&ccedil;&atilde;o na origem externa no formato dia,
+m&ecirc;s e ano (ano com quatro posi&ccedil;&otilde;es)</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Local
+Origem</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Escolha
+na caixa de Local de Origem, o local da origem externa da
+mat&eacute;ria.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Ementa</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Obrigat&oacute;rio</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Digite
+a ementa da mat&eacute;ria que est&aacute; sendo cadastrada. As
+informa&ccedil;&otilde;es colocadas na ementa ser&atilde;o
+usadas na pesquisa de mat&eacute;rias legislativas.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Informe as palavras
+para indexa&ccedil;&atilde;o da mat&eacute;ria. Estas
+palavras ser&atilde;o usadas na pesquisa de mat&eacute;rias
+legislativas.</font></p>
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">A
+indexa&ccedil;&atilde;o deve conter palavras que informe o
+conte&uacute;do da mat&eacute;ria de forma que a pesquisa da
+mesma fique mais r&aacute;pida e objetiva.</font></p>
+      <p style="margin-bottom: 0cm;"><font
+ style="font-size: 11pt;" size="3">Exemplo: Uma
+mat&eacute;ria que trata da prote&ccedil;&atilde;o
+&agrave; crian&ccedil;a, mas que no seu texto n&atilde;o
+esteja escrito termos como, Agress&atilde;o f&iacute;sica,
+Abuso sexual, estes termos, devem aparecer na
+indexa&ccedil;&atilde;o para que a mat&eacute;ria ao ser
+pesquisada por este assunto possa ser encontrada. </font> </p>
+      <p><font style="font-size: 11pt;" size="3">Caso
+tenha interesse em consultar uma base de dados de palavras controladas
+(THESAURUS) para alimenta&ccedil;&atilde;o da
+indexa&ccedil;&atilde;o de Mat&eacute;rias Legislativas,
+acesse o site: </font><font color="#0000ff"><u><a
+ href="http://webthes.senado.gov.br/thes/"><font
+ style="font-size: 11pt;" size="3">http://webthes.senado.gov.br/thes/</font></a></u></font><font
+ style="font-size: 11pt;" size="3"> na
+p&aacute;gina do Senado Federal.</font></p>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td width="23%">
+      <p><font style="font-size: 11pt;" size="3">Observa&ccedil;&otilde;es</font></p>
+      </td>
+      <td width="15%">
+      <p><font style="font-size: 11pt;" size="3">Opcional</font></p>
+      </td>
+      <td width="61%">
+      <p><font style="font-size: 11pt;" size="3">Digite
+as observa&ccedil;&otilde;es que achar necess&aacute;rio
+para documenta&ccedil;&atilde;o da mat&eacute;ria.</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</center>
+<p style="text-indent: 0.75cm; margin-bottom: 0cm;"
+ align="left"><font style="font-size: 9pt;" size="2">*
+Indexa&ccedil;&atilde;o &eacute; um processo de arquivar
+informa&ccedil;&otilde;es e caracter&iacute;sticas de um
+determinado assunto para que pessoas que desejem
+informa&ccedil;&otilde;es sobre este determinado assunto possam
+encontrar de forma f&aacute;cil o que procuram.</font> <font
+ style="font-size: 9pt;" size="2">Ato ou efeito de
+fazer &iacute;ndices para livros ou de p&ocirc;r em ordem
+alfab&eacute;tica, ou outra, qualquer s&eacute;rie de palavras
+ou frases destinada a auxiliar a localiza&ccedil;&atilde;o de
+informa&ccedil;&otilde;es espec&iacute;ficas.
+(Dicion&aacute;rio Aur&eacute;lio)</font>
+<br />
+</p>
+<br />
+Acione a fun&ccedil;&atilde;o "Salvar" para que as
+informa&ccedil;&otilde;es sejam salvas no arquivo.<br />
+Ser&aacute; enviada a mensagem "Mat&eacute;ria salva com
+sucesso"<br />
+Acione a fun&ccedil;&atilde;o "Continuar" para voltar a tela
+inicial do sistema.<br />
+<br />
+Para excluir uma Tramita&ccedil;&atilde;o de
+Mat&eacute;ria, selecione a Tramita&ccedil;&atilde;o de
+Mat&eacute;ria desejada e acione a fun&ccedil;&atilde;o
+"Excluir".<br />
+Ser&aacute; enviada a pergunta "Deseja realmente excluir?"<br />
+Acione OK em caso positivo ou "Cancelar" para o caso de
+desist&ecirc;ncia da exclus&atilde;o.<br />
+Quando for informado OK ser&aacute; enviada a mensagem
+"Mat&eacute;ria exclu&iacute;da com sucesso"<br />
+A fun&ccedil;&atilde;o "Continuar" volta &agrave; tela
+inicial do sistema.<br />
+<br />
+Selecione a Mat&eacute;ria j&aacute; cadastrada para continuar
+alimentando as outras informa&ccedil;&otilde;es sobre a
+mat&eacute;ria tais como: 
+<a href="despacho_autoria"><b> Despacho Inicial</b></a>, <a href="despacho_autoria#autoria"><b>Autoria</b></a>,
+<a href="legislacao_cita_matanexada"><b>Legislação Citada</b></a>, <a href="legislacao_cita_matanexada#matanexada"><b>Anexada</b></a>,
+<a href="tramitacao_relatoria"><b>Tramitação</b></a>, <a href="tramitacao_relatoria#relatoria"><b>Relatoria</b></a>, <a href="numeracao_docsacess"><b>Numeração</b></a> e
+<a href="numeracao_docsacess#docs_assessor"><b> Documentos Acessórios</b></a>.
+<br />
+
+<br />
+  <a href="tipo_documento">Anterior</a> |
+
+  <a href="ajuda_index_html">&Iacute;ndice</a>
+
+  | <a href="despacho_autoria">Pr&oacute;xima</a>
+
+<br />
+
+
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

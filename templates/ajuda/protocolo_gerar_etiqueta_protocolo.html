@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                            
+                                                                        <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/consultas/mesa_diretora'>Mesa Diretora</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/comissao'>Comiss&otilde;es</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/bancada'>Bancadas</a>
+                                </li>
+                                <li><a href='http://sapl3.interlegis.leg.br/consultas/parlamentar'>Parlamentares</a>
+                                </li>
+                                            </ul>
+                </li>
+                
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0'>Mat&eacute;rias Legislativas</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0'>Pesquisar</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                    <li>
+                        <a href="http://sapl3.interlegis.leg.br/login_form"><img src="http://sapl3.interlegis.leg.br/imagens/login.png"></a>
+                        <ul>
+                            <li><span>Login</span></li>
+                        </ul>
+                    </li>
+                                </ul>
+            <ul class="nav acesso-rapido">
+                                    
+                                                                            
+                                    <li><a>Acesso Rápido</a>
+                        <ul>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/mesa_diretora">Mesa Diretora</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/comissao">Comissões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/bancada">Bancadas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/parlamentar">Parlamentares</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas das Sessões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0">Matérias Legislativas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0">Normas Jurídicas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/relatorios_administrativos">Relatórios</a></li>
+                        </ul>
+                                    </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+
+<h1 class="firstHeading">Acessando o modulo de
+alimenta&ccedil;&atilde;o das informa&ccedil;&otilde;es</h1><br />
+Informe seu Login e senha e acione a fun&ccedil;&atilde;o
+&ldquo;Entrar&rdquo;.<br />
+Caso esteja com problemas de acesso, por favor entre em contato com a
+administra&ccedil;&atilde;o do sistema.<br />
+Caso queira, que seu Login fique digitado sempre que voc&ecirc;
+desejar entrar no sistema, marque a op&ccedil;&atilde;o
+&ldquo;Lembrar meu nome.&rdquo;<br />
+No m&oacute;dulo de alimenta&ccedil;&atilde;o das
+informa&ccedil;&otilde;es voc&ecirc; tem acesso
+&agrave; alimenta&ccedil;&atilde;o dos seguintes
+m&oacute;dulos:<br />
+<br />
+<ul>
+  <li><a href="gerenciamento_usuarios">Gerenciamento de Usu&aacute;rio</a></li>
+  <li><a href="troca_senha">Troca de Senha</a></li>
+  <li><a href="modulo_mesa_diretora">Mesa Diretora</a></li>
+  <li><a href="modulo_comissoes">Comiss&otilde;es</a></li>
+  <li><a href="mandatos_parlamentar">Parlamentares</a></li>
+  <li><a href="protocolo_geral">Protocolo Geral</a></li>
+  <li><a href="modulo_documentos_administrativos">Documentos Administrativos</a>
+  <li><a href="modulo_recebimento_proposicoes">Recebimento de Proposi&ccedil;&otilde;es</a></li>
+  <li><a href="modulo_pauta_sessao">Pauta da Sess&atilde;o</a></li></ul><br />
+<ul>
+  <li><a href="modulo_tramitacao_materias">Mat&eacute;rias Legislativas</a></li>
+  <li><a href="modulo_tratamicao_lote">Tramita&ccedil;&atilde;o em Lote</a></li>
+  <li><a href="sessao_plenaria">Sess&atilde;o Plen&aacute;ria</a></li>
+  <li><a href="envio_proposicao">Proposi&ccedil;&otilde;es</a></li>
+  <li><a href="modulo_norma_juridica">Normas Jur&iacute;dicas</a></li>
+  <li><a href="modulo_impressos">Impressos</a></li>
+  <li><a href="modulo_relatorios">Relat&oacute;rios</a></li>
+  <li>Tabelas Auxiliares &nbsp;</li>
+</ul>
+<br />
+Ao acessar o sistema, a primeira tabela a ser preenchida &eacute; a
+tabela de Casa Legislativa, que se encontra no m&oacute;dulo
+Tabelas Auxiliares.<br />
+Esta tabela tem por objetivo cadastrar as
+informa&ccedil;&otilde;es relativas a casa legislativa, para
+personalizar as telas do sistema de Apoio ao Processo Legislativo.<br />
+
+<br />
+  <a href="consultas">Anterior</a> |
+
+  <a href="ajuda_index_html">&Iacute;ndice</a>
+
+  | <a href="casa_legislativa">Pr&oacute;xima</a>
+
+<br />
+
+
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

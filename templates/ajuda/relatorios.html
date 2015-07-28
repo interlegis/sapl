@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+
+<head>
+    <meta charset=utf-85 />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="author" content="Interlegis">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6, minimum-scale=0.4">
+    <link rel="shortcut icon" type="image/x-icon" href="http://sapl3.interlegis.leg.br/imagens/favicon.ico" />
+    <title>Sistema de Apoio ao Processo Legislativo</title>
+    <meta name="generator" content="SAPL - Sistema de Apoio ao Processo Legislativo - http://www.interlegis.leg.br/sapl" />
+    <link href="http://sapl3.interlegis.leg.br/generico/estilos.css" media="all" rel="stylesheet" type="text/css" />
+<link href="http://sapl3.interlegis.leg.br/generico/responsive_grid.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css" media="screen and (max-width: 980px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth980.css)</style>
+<style type="text/css" media="screen and (max-width: 650px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth650.css)</style>
+<style type="text/css" media="screen and (max-width: 480px) ">@import url(http://sapl3.interlegis.leg.br/generico/maxwidth480.css)</style>
+<style type="text/css">@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic)</style>
+<link href="http://sapl3.interlegis.leg.br/generico/pform.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/datepick.css)</style>
+<style type="text/css">@import url(http://sapl3.interlegis.leg.br/generico/jquery.fancybox.css)</style>
+
+
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.min.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.datepick.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.form.min.js'></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/jquery.cookie.js'></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.fancybox.pack.js"></script>
+    <script type="text/javascript" src="http://sapl3.interlegis.leg.br/javascript/jquery.slicknav.min.js"></script>
+    <script type='text/javascript' src='http://sapl3.interlegis.leg.br/javascript/geral.js'></script>
+</head>
+<body class="fadeIn">
+                <div class="barraSuperior">
+        <div class="centroWrapper">
+                            
+                                                                        <div></div>
+            <div class="menu-mobile"></div>
+            <ul class="nav principal">
+                <li class="sub"><a>Institucional</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/consultas/mesa_diretora'>Mesa Diretora</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/comissao'>Comiss&otilde;es</a>
+                                </li>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/bancada'>Bancadas</a>
+                                </li>
+                                <li><a href='http://sapl3.interlegis.leg.br/consultas/parlamentar'>Parlamentares</a>
+                                </li>
+                                            </ul>
+                </li>
+                
+                <!---->
+
+                <li class="sub"><a>Atividade Legislativa</a>
+                    <ul>
+                                                                                <li><a href='http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0'>Mat&eacute;rias Legislativas</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/consultas/sessao_plenaria'>Sess&otilde;es Plen&aacute;rias</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/pauta_sessao'>Pautas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/ata_sessao'>Atas das Sess&otilde;es</a>
+                        </li>
+                        <li><a href='http://sapl3.interlegis.leg.br/consultas/reuniao_comissao'>Reuni&otilde;es das Comiss&otilde;es</a>
+                        </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/relatorios_administrativos'>Relat&oacute;rios</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sub"><a>Normas Jur&iacute;dicas</a>
+                    <ul>
+                                                        <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0'>Pesquisar</a>
+                                </li>
+                                                <li><a href='http://sapl3.interlegis.leg.br/generico/norma_juridica_indice_assunto?incluir=0'>&Iacute;ndice de Assuntos</a>
+                        </li>
+                    </ul>
+                </li>
+                            </ul>
+            <ul class="nav right">
+                <li class="pesquisa toggle">
+                    <a><img src="http://sapl3.interlegis.leg.br/imagens/pesquisa.png"></a>
+                    <ul>
+                        <li><span>Pesquisar</span></li>
+                    </ul>
+                    <div>
+                        <!--Pesquisa SAPL-->
+                        <div id="pesquisa-sapl" class="searchbox">
+                            <form action="http://sapl3.interlegis.leg.br/generico/palavra_chave_buscar_proc" name="search_form" id="search_form">
+                                <input id="search_text" name="txt_palavra_chave" placeholder="Pesquisar Matérias e Normas" type="text">
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                        <!--Pesquisa LexML-->
+                        <div id="pesquisa-lexml" class="searchbox">
+                            <form method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                                <input class="buscaLexml" type="text" placeholder="Pesquisar no LexML" value="" />
+                                <button type="submit">
+                                    <img src="http://sapl3.interlegis.leg.br/imagens/arrow.png">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                </li>
+                <!--<li><a><img src="http://sapl3.interlegis.leg.br/imagens/dots.png"></a>
+                    <ul>
+                        <li><span>Acesso Rápido</span></li>
+                    </ul>
+                </li>-->
+                <li>
+                    <a href="http://sapl3.interlegis.leg.br/ajuda"><img src="http://sapl3.interlegis.leg.br/imagens/manual.png"></a>
+                    <ul>
+                        <li><span>Manual</span></li>
+                    </ul>
+                </li>
+                                    <li>
+                        <a href="http://sapl3.interlegis.leg.br/login_form"><img src="http://sapl3.interlegis.leg.br/imagens/login.png"></a>
+                        <ul>
+                            <li><span>Login</span></li>
+                        </ul>
+                    </li>
+                                </ul>
+            <ul class="nav acesso-rapido">
+                                    
+                                                                            
+                                    <li><a>Acesso Rápido</a>
+                        <ul>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/mesa_diretora">Mesa Diretora</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/comissao">Comissões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/bancada">Bancadas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/parlamentar">Parlamentares</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/pauta_sessao">Pautas das Sessões</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/consultas/sessao_plenaria">Sessões Plenárias</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/materia_pesquisar_form?incluir=0">Matérias Legislativas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/generico/norma_juridica_pesquisar_form?incluir=0">Normas Jurídicas</a></li>
+                            <li><a href="http://sapl3.interlegis.leg.br/relatorios_administrativos">Relatórios</a></li>
+                        </ul>
+                                    </ul>
+        </div>  
+    </div>
+<script type="text/javascript">
+
+$(function() {
+    $('.nav.principal').slicknav({
+        prependTo: '.menu-mobile',
+        duration: 400,
+        closedSymbol: '',
+        openedSymbol: ''
+    });
+
+    $('.slicknav_btn').wrap("<div class='slicknav_btn_wrapper'></div>");
+
+    $('.slicknav_btn').click(function() {
+        $('.slicknav_nav').toggleClass('ativo');
+    });
+
+    $(document).mouseup(function(e) {
+        var subject = $(".barraSuperior .toggle, .searchbox form");
+        if (e.target.id != subject.attr('id')) {
+            subject.removeClass("ativo");
+        }
+    });
+
+    $('.barraSuperior .toggle').click(function() {
+        $(this).toggleClass("ativo");
+
+        $(".searchbox input, .searchbox button").click(function() {
+            $(this).parent().addClass("ativo");
+        });
+    });
+
+});
+
+</script>
+        <div id="pagina">
+            <div id="topo">
+    
+    
+        <div id="logo">
+        <a href="http://sapl3.interlegis.leg.br">
+                            <img src="http://sapl3.interlegis.leg.br/imagens/brasao.gif" alt="Logotipo da Casa Legislativa" />
+                    </a>
+    </div>
+    <div id="identidade">
+        <h2>
+            Câmara Municipal de Piraí
+            
+                            - RJ
+                    </h2>
+        <h3>Sistema de Apoio ao Processo Legislativo</h3>
+    </div>
+</div>
+            <div id="corpo">
+            
+            <div id="conteudo">
+    
+
+<h1><a NAME="rel_topo">Emitindo Relatórios Administrativos</a></h1>
+<br />
+Tanto o usuário autenticado como o não autenticado podem selecionar e gerar qualquer um
+dos relatórios, que são apresentados na tela para visualização ou para impressão. Esses
+relatórios possuem o conteúdo dinâmico em termos de atualização; ou seja, os dados refletem 
+a situação do momento em que foram gerados. <br>
+<br />
+<h1><a NAME="rel_rel">Relatórios</a></h1>
+<br />
+<h1><a NAME="rel_atas">Emitindo Lista das Atas das Sessões</a></h1>
+Para emissão deve ser informada a quantidade de atas que se deseja visualizar. Por padrão, caso nada seja indicado, as últimas 50 (cinquenta) atas serão apresentadas, por ordem descendente de data.<br />
+<br />
+<table border="1" style="bordercolor:#000000" cellpadding="5"
+ cellspacing="0" width="648">
+  <thead>
+ <tr>
+ <td bgcolor="#c7d8eb" width="141">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Nome do Campo</b></font></p>
+    </td>
+    <td bgcolor="#c7d8eb" width="485">
+    <p align="justify"><font style="font-size: 11pt;"
+ size="3"><b>Instru&ccedil;&otilde;es para
+Preenchimento</b></font></p>
+    </td>
+  </tr>
+   <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Data Inicial</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa ao in&iacute;cio da(s) Sess&atilde;o, a partir do qual deseja realizar a consulta.</font></p>
+      </td>
+    </tr>
+  <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Data Final</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a data no formato dd/mm/aaaa relativa a ultima Sess&atilde;o, da qual deseja realizar a consulta.</font></p>
+      </td>
+    </tr>
+ <tr valign="top">
+      <td width="141">
+      <p><font style="font-size: 11pt;" size="3">Termos</font></p>
+      </td>
+      <td width="485">
+      <p><font style="font-size: 11pt;" size="3">Informe a(s) palavra(s) que corresponde(am) ao(s) termo(s) a ser(em) pesquisado(s) no texto da ATA da Sess&atilde;o. </font></p><p><font style="font-size: 11pt;" size="3"> As pesquisas por data ou por termos da Ata da Sess&atilde;o são excludentes.</font></p>
+      </td>
+    </tr>
+<br />
+  </thead>
+  <tbody>
+  <tr valign="top">
+  </tbody>
+</table>
+
+<br />
+A partir da vers&atilde;o 2.0, o Sapl realiza pesquisas pelo m&eacute;todo booleano.<br />
+A busca booleana suporta as seguintes opera&ccedil;&otilde;es:<br /><br>
+<font size="3">+</font> <br />
+Um sinal de mais precedente indica que esta palavra deve estar presente no texto. Ex:<br />
+&nbsp;&nbsp;+servidor +vantagens <br />
+&nbsp;&nbsp;... ambas as palavras estar&atilde;o presentes. <br /><br>
+<font size="3">-</font> <br />
+Um sinal de menos precedente indica que esta palavra n&atilde;o deve estar presente em qualquer parte do texto.<br />
+&nbsp;&nbsp;+utilidade +p&uacute;blica -org&atilde;o <br />
+&nbsp;&nbsp;...as palavras &ldquo;utilidade&ldquo; e &ldquo;p&uacute;blica&ldquo; mas n&atilde;o &ldquo;&oacute;rg&atilde;o&ldquo;. <br /><br>
+Por padr&atilde;o (quando nem mais nem menos &eacute; especificado) a palavra &eacute; opcional, mas os textos que a cont&eacute;m ser&atilde;o avaliadas positivamente.<br />
+&nbsp;&nbsp;prefeitura executivo <br />
+&nbsp;&nbsp;encontra registros que contenham pelo menos uma destas palavras <br /><br>
+<font size="3">( )</font> <br />
+Parenteses s&atilde;o usados para agrupar palavras em subexpress&otilde;es. <br />
+&nbsp;&nbsp;+servidor +(f&eacute;rias vencimentos) <br />
+&nbsp;&nbsp;... &ldquo;servidor&ldquo; e &ldquo;f&eacute;rias&ldquo;, ou &ldquo;servidor&ldquo; e &ldquo;vencimentos&ldquo; (em qualquer ordem) <br /><br>
+<font size="3">< ></font> <br />
+Estes dois operadores s&atilde;o usados para alterar a contribui&ccedil;&atilde;o de uma palavra no valor de relev&acirc;ncia que atribu&iacute;do a um registro.<br /> O operador < reduz a contribui&ccedil;&atilde;o e o operador > a aumenta. Veja o exemplo abaixo.<br>
+&nbsp;&nbsp;+servidor +(<f&eacute;rias >vencimentos) <br />
+&nbsp;&nbsp;... &ldquo;servidor&ldquo; e &ldquo;f&eacute;rias&ldquo;, ou &ldquo;servidor&ldquo; e &ldquo;vencimentos&ldquo; (em qualquer ordem), mas avalia &ldquo;servidor&ldquo; e &ldquo;vencimentos&ldquo; melhor que &ldquo;servidor&ldquo; e &ldquo;f&eacute;rias&ldquo;. <br /><br>
+<font size="3">~</font> <br />
+Um til precedente atua como um operador de nega&ccedil;&atilde;o, tornando negativa a contribui&ccedil;&atilde;o da palavra para a relev&acirc;ncia do registro. Ele &eacute; &uacute;til para marcar palavras &ldquo;ruidosas&ldquo;. Registros com tais palavras ter&atilde;o uma avalia&ccedil;&atilde;o mais baixa que outras. <br />
+&nbsp;&nbsp;terrenos ~desincorpora <br />
+&nbsp;&nbsp;...contenham as palavras terrenos ou desincorpora, por&eacute;m se a palavra &ldquo;desincorpora&ldquo; aparecer muito, o registro ter&acute; uma avalia&ccedil;&atilde;o negativa. <br /><br>
+<font size="3">*</font> <br />
+Um asterisco &eacute; um operador de truncamento. Diferente dos outros operadores, ele deve ser inserida ao fim da palavra, n&atilde;o deve ser precedente. <br />
+&nbsp;&nbsp;terrenos -desincorpora* <br />
+&nbsp;&nbsp;...cont&eacute;m a palavra terrenos e n&atilde;o contenha a palavra desincorpora, desincorporado, desincorpora&ccedil;&atilde;o, etc <br />
+<font size="3">&ldquo;</font> <br />
+A frase que &eacute; colocada entre aspas duplas &ldquo;, coincide apenas com registros que contenham esta frase literalmente, como foi digitada. <br />
+&nbsp;&nbsp;&ldquo;desafeta&ccedil;&atilde;o de &aacute;rea p&uacute;blica&ldquo; <br />
+&nbsp;&nbsp;... n&atilde;o apresenta &ldquo;desafeta&ccedil;&atilde;o de &aacute;reas p&uacute;blicas&ldquo; . <br /><br>
+A partir da vers&atilde;o 2.0 do SAPL passou a ser
+poss&iacute;vel tamb&eacute;m a <span
+ style="font-weight: bold;">pesquisa por palavra contida no
+texto da ATA</span>. Basta informar a
+palavra desejada no campo &ldquo;Texto&rdquo;, na parte
+inferior da tela de pesquisa. Na lista de resultados
+aparecer&atilde;o todas as ATAS que
+contenham o termo pesquisado em qualquer parte do arquivo contendo o
+texto integral, desde que seja um arquivo de formato .doc, .pdf, .txt,
+.html, .htm ou .xml&nbsp;
+
+<br />
+
+<br />
+<h1><a NAME="rel_tipo_autor_ano">Emitindo Relatório de Proposituras por Tipo, Autor e Ano</a></h1>
+
+Para emissão deste relatório deve ser informado o parâmetro ano, ao qual as proposituras selecionadas para contagem se referem. No relatório constarão as quantidades relativadas as proposições elaboradas no ano informado, agrupadas por TIPO e AUTOR. O relatório é gerado para visualização e/ou impressão das quantidades no ano indicado. Os anos disponíveis, para seleção no parâmetro, são aqueles nos quais existem proposições. Portanto, o ano que não tenha proposição é omitido. As quantidades são apresentadas por autor, que estão em ordem alfabética, e, também, separadas por tipo em cada autor. A impressão, efetivamente, deve ser feita utilizando-se essa função do navegador. Antes porém, clique em <b>impressão</b> para eliminar o cabeçalho e o menu lateral da página.<br />
+
+<br />
+<h1><a NAME="rel_autor">Emitindo Relatório de Proposituras por Autor</a></h1>
+Para emissão deste relatório deve ser informado o parâmetro ano, ao qual as proposituras selecionadas se referem. No relatório constarão resumos das proposições elaboradas no ano informado, agrupadas por autor. O relatório é gerado para visualização e/ou impressão da lista resumida por ano e autor. Os autores são listados em ordem alfabética. Somente anos que possuem matérias aparecem para seleção. A impressão deve ser feita utilizando-se a função disponível no navegador. Antes, porém, clique em <b>impressão</b> no menu horizontal acima, para retirar o cabeçalho e o menu lateral.<br />
+
+<br />
+<h1><a NAME="rel_materia">Emitindo Relatório de Matérias em Tramitação</a></h1>
+Para emissão deste relatório, alguns parâmetros devem ser informados como: ano de apresentação, tipo de matéria, localização atual e status da tramitação, sendo que o parâmetro ano é obrigatório e os demais opcionais. No relatório constarão as matérias legislativas por ordem de ano, tipo, local e status, que atendam aos requisitos dos parâmetros informados. Vale observar que este relatório tem a finalidade de auxiliar o processo de gestão e controle da <b>tramitação em andamento</b> de matérias legislativas na Casa. Portanto, somente constarão no resultado as matérias que se encontram em tramitação no momento da geração deste relatório. Para impressão utilize a função do navegador logo após clicar em <b>impressão</b> na barra de menu horizontal acima para a retirada do cabeçalho e do menu lateral. <br />
+<br />
+<h1><a NAME="rel_historico_tramitacoes">Emitindo Relatório de Histórico de Tramitações</a></h1>
+A finalidade deste relatório é informar dados sobre o histórico de tramitações das matérias legislativas havido na casa legislativa de acordo com parâmetros indicados. Alguns parâmetros devem ser informados como: período, localização, tipo de matéria e status da tramitação, preferencialmente nessa ordem, sendo obrigatório apenas o período, que já vem previamente informado com as datas limites - mais antiga e a mais atual - das tramitações existentes. Para alterar o período, basta sobrescreve-lo. Ainda relativo aos parâmetros, vale ressaltar que estão disponíveis somente aqueles que tiveram alguma matéria em tramitação, caso contrário, não constará na lista disponíbilizada para seleção. Por exemplo: suponha que esteja definido um local denominado <i>Comissão Especial</i> e que nunca houve tramitação para lá. Neste caso, na lista de <b>Localizações</b> o local em questão <b>não</b> estará disponível para seleção. Procedimento análogo é dado aos outros parâmetros Tipo Matéria e Status da Tramitação. Em razão da diversidade de informações, o relatório detalha apenas as proposições cujas informações atendam aos parâmetros fornecidos, sendo que para os demais casos, onde o parâmetro permaneceu <i>todos</i> fornece somente as quantidades de tramitações encontradas, sem detalhar quais são as proposições, exceto se a ordem informada localização, tipo matéria e status da tramitação, for respeitada. Isto é, não informar <b>tipo</b> sem informar <b>local</b> e não informar <b>status</b> sem informar <b>tipo</b> e <b>local</b>. Para impressão utilize a função do navegador logo após clicar em impressão na barra de menu horizontal acima para a retirada do cabeçalho e do menu lateral.<br />
+<br />
+</div>
+        </div>
+
+<div id="rodape">
+<div class="centroWrapper">
+    <footer>
+        <div class="logos">
+        
+            <div>
+                <a href="http://www.interlegis.leg.br/"><img src="http://sapl3.interlegis.leg.br/imagens/logo_interlegis.png" alt="Interlegis"></a>
+                <p>Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto sobre o <a href="http://www.zope.org/">Zope</a>.</p>
+            </div>
+
+            <div>
+                <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR"><img src="http://sapl3.interlegis.leg.br/imagens/logo_cc.png" alt="Licença Creative Commons 4.0 - Atribuir Fonte - Compartilhar Igual" /></a>
+                <p>Conteúdo e dados sob licença <a href="https://creativecommons.org/licenses/?lang=pt_BR">Creative Commons</a> 4.0 <a href="http://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">Atribuir Fonte - Compartilhar Igual</a></p>
+            </div>
+
+        </div>
+
+        <div class="address">
+            <address>
+                Câmara Municipal de Piraí                - RJ
+                        <br>
+                                Rua Roberto Anselmo Kaustky |
+                                CEP: 71680-389<br>
+                                                                Fone: (34) 3239-1000
+                                <br />
+                    <a href="http://sapl3.interlegis.leg.br" target="_blank">Site da Câmara</a>
+ | 
+<a href="mailto:claudiomorale@interlegis.leg.br">Fale Conosco</a><br>
+        </footer>
+        </address>
+        </div>
+        </div>
+                </div>
+        </body>
+
+        </html>

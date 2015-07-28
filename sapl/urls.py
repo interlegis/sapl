@@ -21,12 +21,11 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
 
+    url(r'', include('base.urls')),
     url(r'', include('comissoes.urls')),
     url(r'', include('sessao.urls')),
     url(r'', include('parlamentares.urls')),
     url(r'', include('materia.urls')),
     url(r'', include('norma.urls')),
     url(r'', include('lexml.urls')),
-
-    url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),
 ]
