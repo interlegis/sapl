@@ -27,7 +27,7 @@ tipo_comissao_crud = build_crud(
 )
 
 comissao_crud = build_crud(
-    Comissao,
+    Comissao, 'modulo_comissoes',
 
     [_('Dados Básicos'),
      [('nome', 9), ('sigla', 3)],
