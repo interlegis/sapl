@@ -19,15 +19,15 @@ class Legislatura(models.Model):
         current_date = datetime.datetime.now().year
         if(self.data_inicio.year <= current_date
                 and self.data_fim.year >= current_date):
-            return _('%(id)sº (%(inicio)s - %(fim)s) (Atual)') % {
-                'id': self.id,
-                'inicio': self.data_inicio.year,
-                'fim': self.data_fim.year}
+            current = ' (%s)' % _('Atual')
         else:
-            return _('%(id)sº (%(inicio)s - %(fim)s)') % {
-                'id': self.id,
-                'inicio': self.data_inicio.year,
-                'fim': self.data_fim.year}
+            current = ''
+
+        return _('%(id)sº (%(start)s - %(end)s)%(current)s') % {
+            'id': self.id,
+            'start': self.data_inicio.year,
+            'end': self.data_fim.year,
+            'current': current}
 
 
 class SessaoLegislativa(models.Model):

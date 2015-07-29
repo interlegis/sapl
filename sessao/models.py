@@ -19,6 +19,12 @@ class TipoSessaoPlenaria(models.Model):
         return self.nome
 
 
+def build_get_upload_path(subpath):
+    def get_upload_path(instance, filename):
+        return './sessao/%s/%s/%s' % (instance.numero, subpath, filename)
+    return get_upload_path
+
+
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
     # andamento_sessao = models.ForeignKey(
@@ -46,9 +52,15 @@ class SessaoPlenaria(models.Model):
         max_length=150, blank=True, null=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
-        blank=True, null=True, upload_to='', verbose_name=_('Pauta da Sessão'))
+        blank=True,
+        null=True,
+        upload_to=build_get_upload_path('pauta'),
+        verbose_name=_('Pauta da Sessão'))
     upload_ata = models.FileField(
-        blank=True, null=True, upload_to='', verbose_name=_('Ata da Sessão'))
+        blank=True,
+        null=True,
+        upload_to=build_get_upload_path('ata'),
+        verbose_name=_('Ata da Sessão'))
     iniciada = models.NullBooleanField(blank=True,
                                        choices=YES_NO_CHOICES,
                                        verbose_name=_('Sessão iniciada?'))
