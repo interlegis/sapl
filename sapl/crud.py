@@ -59,7 +59,7 @@ class Crud(object):
     pass
 
 
-def build_crud(model, help_path, *layout):
+def build_crud(model, help_path, layout):
     crud = Crud()
     crud.model = model
     crud.help_path = help_path

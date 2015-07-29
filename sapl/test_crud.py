@@ -24,7 +24,7 @@ pytestmark = pytest.mark.django_db
      ['nome', 'sigla', 'tipo', 'data_criacao', 'unidade_deliberativa']),
 ])
 def test_listview_get_fieldnames(layout, result):
-    crud = build_crud(Comissao, *layout)
+    crud = build_crud(Comissao, 'stub_help_path', layout)
     view = crud.CrudListView()
     assert view.field_names == result
 
@@ -89,17 +89,17 @@ def test_get_field_display():
 def test_crud_detail_view_fieldsets(monkeypatch):
 
     crud = build_crud(
-        Comissao, '',
+        Comissao, 'stub_help_path', [
 
-        ['Dados Básicos',
-         [('nome', 9), ('sigla', 3)],
-         [('tipo', 3), ('data_criacao', 3), ('unidade_deliberativa', 3), ]
-         ],
+            ['Dados Básicos',
+             [('nome', 9), ('sigla', 3)],
+             [('tipo', 3), ('data_criacao', 3), ('unidade_deliberativa', 3), ]
+             ],
 
-        ['Dados Complementares',
-         [('finalidade', 12)]
-         ],
-    )
+            ['Dados Complementares',
+             [('finalidade', 12)]
+             ],
+        ])
 
     view = crud.CrudDetailView()
     stub = mommy.make(Comissao,
