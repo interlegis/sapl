@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import YES_NO_CHOICES, make_choices
+import datetime
 
 
 class Legislatura(models.Model):
@@ -14,11 +15,19 @@ class Legislatura(models.Model):
         verbose_name_plural = _('Legislaturas')
 
     def __str__(self):
-        return _('Eleição: %(eleicao)s'
-                 ' - Início: %(inicio)s | Fim: %(fim)s') % {
-            'eleicao': self.data_eleicao,
-            'inicio': self.data_inicio,
-            'fim': self.data_fim}
+        # XXX Usar id mesmo? Ou criar campo para nº legislatura?
+        current_date = datetime.datetime.now().year
+        if(self.data_inicio.year <= current_date
+                and self.data_fim.year >= current_date):
+            return _('%(id)sº (%(inicio)s - %(fim)s) (Atual)') % {
+                'id': self.id,
+                'inicio': self.data_inicio.year,
+                'fim': self.data_fim.year}
+        else:
+            return _('%(id)sº (%(inicio)s - %(fim)s)') % {
+                'id': self.id,
+                'inicio': self.data_inicio.year,
+                'fim': self.data_fim.year}
 
 
 class SessaoLegislativa(models.Model):
@@ -43,7 +52,10 @@ class SessaoLegislativa(models.Model):
         verbose_name_plural = _('Sessões Legislativas')
 
     def __str__(self):
-        return self.get_tipo_display()
+        return _('%(id)sº (%(inicio)s - %(fim)s)') % {
+            'id': self.id,
+            'inicio': self.data_inicio.year,
+            'fim': self.data_fim.year}
 
 
 class Coligacao(models.Model):

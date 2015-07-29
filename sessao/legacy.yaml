@@ -6,7 +6,6 @@ SessaoPlenaria:
   cod_andamento_sessao: cod_andamento_sessao
   data_fim: dat_fim_sessao
   data_inicio: dat_inicio_sessao
-  dia: dia_sessao
   hora_fim: hr_fim_sessao
   hora_inicio: hr_inicio_sessao
   legislatura: num_legislatura
@@ -16,6 +15,9 @@ SessaoPlenaria:
   tipo_expediente: tip_expediente
   url_audio: url_audio
   url_video: url_video
+  upload_pauta : upload_pauta
+  iniciada : iniciada
+  finalizada : finalizada
 
 AbstractOrdemDia:
   data_ordem: dat_ordem

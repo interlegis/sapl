@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
-from sapl.utils import make_choices
+from sapl.utils import make_choices, YES_NO_CHOICES
 
 
 class TipoSessaoPlenaria(models.Model):
@@ -31,12 +31,11 @@ class SessaoPlenaria(models.Model):
         SessaoLegislativa, verbose_name=_('Sessão Legislativa'))
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     # XXX seems to be empty
-    tipo_expediente = models.CharField(max_length=10)
     data_inicio = models.DateField(verbose_name=_('Abertura'))
-    dia = models.CharField(max_length=15)
-    hora_inicio = models.CharField(max_length=5, verbose_name=_('Horário'))
+    hora_inicio = models.CharField(
+        max_length=5, verbose_name=_('Horário (hh:mm)'))
     hora_fim = models.CharField(
-        max_length=5, blank=True, null=True, verbose_name=_('Horário'))
+        max_length=5, blank=True, null=True, verbose_name=_('Horário (hh:mm)'))
     numero = models.IntegerField(verbose_name=_('Número'))
     data_fim = models.DateField(
         blank=True, null=True, verbose_name=_('Encerramento'))
@@ -46,6 +45,16 @@ class SessaoPlenaria(models.Model):
     url_video = models.CharField(
         max_length=150, blank=True, null=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
+    upload_pauta = models.FileField(
+        blank=True, null=True, upload_to='', verbose_name=_('Pauta da Sessão'))
+    upload_ata = models.FileField(
+        blank=True, null=True, upload_to='', verbose_name=_('Ata da Sessão'))
+    iniciada = models.NullBooleanField(blank=True,
+                                       choices=YES_NO_CHOICES,
+                                       verbose_name=_('Sessão iniciada?'))
+    finalizada = models.NullBooleanField(blank=True,
+                                         choices=YES_NO_CHOICES,
+                                         verbose_name=_('Sessão finalizada?'))
 
     class Meta:
         verbose_name = _('Sessão Plenária')

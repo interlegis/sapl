@@ -17,16 +17,13 @@ sessao_crud = build_crud(
     SessaoPlenaria, '', [
 
         [_('Dados Básicos'),
-         [('numero', 3),
+         [('numero', 1),
             ('tipo', 3),
-            ('legislatura', 3),
-            ('sessao_legislativa', 3)],
-            [('data_inicio', 12)],
-            [('data_fim', 12)],
-            [('dia', 2),
-             ('hora_inicio', 2),
-             ('hora_fim', 2),
-             ('tipo_expediente', 6)],
+            ('legislatura', 4),
+            ('sessao_legislativa', 4)],
+            [('data_inicio', 5), ('hora_inicio', 5), ('iniciada', 2)],
+            [('data_fim', 5), ('hora_fim', 5), ('finalizada', 2)],
+            [('upload_pauta', 6), ('upload_ata', 6)],
             [('url_audio', 6), ('url_video', 6)]],
     ])
 
