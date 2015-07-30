@@ -1,10 +1,13 @@
+from django import forms
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic.edit import FormMixin
 
 from sapl.crud import build_crud
 
-from .models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
-                     SessaoPlenaria, TipoExpediente, TipoResultadoVotacao,
-                     TipoSessaoPlenaria)
+from .models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
+                     RegistroVotacao, SessaoPlenaria, TipoExpediente,
+                     TipoResultadoVotacao, TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
@@ -80,6 +83,26 @@ registro_votacao_crud = build_crud(
     ])
 
 
-class ExpedienteView(sessao_crud.CrudDetailView):
+class ExpedienteForm(forms.Form):
+    teste = forms.CharField(widget=forms.Textarea, max_length=100)
+
+
+class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/expediente.html'
-    # TODO ...
+    form_class = ExpedienteForm
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            expediente = ExpedienteSessao()
+            expediente.sessao_plenaria = self.object
+            expediente.tipo = TipoExpediente.objects.first()
+            expediente.conteudo = form.fields['teste']
+            expediente.save()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return self.detail_url

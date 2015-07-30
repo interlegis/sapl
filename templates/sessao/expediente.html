@@ -2,5 +2,10 @@
 {% load i18n %}
 
 {% block detail_content %}
-    TODO ... Expediente
+<form method="Post" action="">
+	{% csrf_token %}
+  <textarea name="teste"></textarea>
+  <input type="submit" name="Salvar" />
+</form>
+
 {% endblock detail_content %}

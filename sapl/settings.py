@@ -144,6 +144,7 @@ BOWER_INSTALLED_APPS = (
     'foundation-datepicker',
     'components-font-awesome',
     'foundation-icon-fonts',
+    'tinymce'
 )
 
 # hack to suppress many annoying warnings from crispy_forms

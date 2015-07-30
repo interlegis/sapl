@@ -65,6 +65,9 @@
     {% block foot_js %}
       <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
+      <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+
+      <script>tinymce.init({selector:'textarea'});</script>
       <script>
         $(document).foundation();
       </script>
