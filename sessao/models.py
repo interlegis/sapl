@@ -9,7 +9,8 @@ from sapl.utils import make_choices, YES_NO_CHOICES
 
 class TipoSessaoPlenaria(models.Model):
     nome = models.CharField(max_length=30, verbose_name=_('Tipo'))
-    quorum_minimo = models.IntegerField(verbose_name=_('Quórum mínimo'))
+    quorum_minimo = models.PositiveIntegerField(
+        verbose_name=_('Quórum mínimo'))
 
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
@@ -30,7 +31,7 @@ class SessaoPlenaria(models.Model):
     # andamento_sessao = models.ForeignKey(
     #    AndamentoSessao, blank=True, null=True)
     # TODO analyze querying all hosted databases !
-    cod_andamento_sessao = models.IntegerField(blank=True, null=True)
+    cod_andamento_sessao = models.PositiveIntegerField(blank=True, null=True)
 
     tipo = models.ForeignKey(TipoSessaoPlenaria, verbose_name=_('Tipo'))
     sessao_legislativa = models.ForeignKey(
@@ -42,7 +43,7 @@ class SessaoPlenaria(models.Model):
         max_length=5, verbose_name=_('Horário (hh:mm)'))
     hora_fim = models.CharField(
         max_length=5, blank=True, null=True, verbose_name=_('Horário (hh:mm)'))
-    numero = models.IntegerField(verbose_name=_('Número'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
     data_fim = models.DateField(
         blank=True, null=True, verbose_name=_('Encerramento'))
     url_audio = models.CharField(
@@ -96,9 +97,9 @@ class AbstractOrdemDia(models.Model):
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
         blank=True, null=True, verbose_name=_('Ementa'))
-    numero_ordem = models.IntegerField(verbose_name=_('Nº Ordem'))
+    numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
     resultado = models.TextField(blank=True, null=True)
-    tipo_votacao = models.IntegerField(
+    tipo_votacao = models.PositiveIntegerField(
         verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
 
     class Meta:
@@ -156,7 +157,7 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
 class AbstractOrador(models.Model):  # Oradores
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
-    numero_ordem = models.IntegerField(
+    numero_ordem = models.PositiveIntegerField(
         verbose_name=_('Ordem de pronunciamento'))
     url_discurso = models.CharField(
         max_length=150, blank=True, null=True, verbose_name=_('URL Vídeo'))
@@ -223,9 +224,10 @@ class RegistroVotacao(models.Model):
         TipoResultadoVotacao, verbose_name=_('Resultado da Votação'))
     materia = models.ForeignKey(MateriaLegislativa)
     ordem = models.ForeignKey(OrdemDia)
-    numero_votos_sim = models.IntegerField(verbose_name=_('Sim'))
-    numero_votos_nao = models.IntegerField(verbose_name=_('Não'))
-    numero_abstencoes = models.IntegerField(verbose_name=_('Abstenções'))
+    numero_votos_sim = models.PositiveIntegerField(verbose_name=_('Sim'))
+    numero_votos_nao = models.PositiveIntegerField(verbose_name=_('Não'))
+    numero_abstencoes = models.PositiveIntegerField(
+        verbose_name=_('Abstenções'))
     observacao = models.TextField(
         blank=True, null=True, verbose_name=_('Observações'))
 

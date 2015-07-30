@@ -61,8 +61,8 @@ class NormaJuridica(models.Model):
 
     tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_('Tipo'))
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
-    numero = models.IntegerField(verbose_name=_('Número'))
-    ano = models.SmallIntegerField(verbose_name=_('Ano'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     esfera_federacao = models.CharField(
         max_length=1,
         verbose_name=_('Esfera Federação'),
@@ -75,9 +75,9 @@ class NormaJuridica(models.Model):
         blank=True,
         null=True,
         verbose_name=_('Veículo Publicação'))
-    pagina_inicio_publicacao = models.IntegerField(
+    pagina_inicio_publicacao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Pg. Início'))
-    pagina_fim_publicacao = models.IntegerField(
+    pagina_fim_publicacao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Pg. Fim'))
     ementa = models.TextField(verbose_name=_('Ementa'))
     indexacao = models.TextField(

@@ -20,15 +20,15 @@ class TipoDocumentoAdministrativo(models.Model):
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
-    numero = models.IntegerField(verbose_name=_('Número'))
-    ano = models.SmallIntegerField(verbose_name=_('Ano'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     data = models.DateField(verbose_name=_('Data'))
-    numero_protocolo = models.IntegerField(
+    numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
     interessado = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor, blank=True, null=True)
-    dias_prazo = models.IntegerField(
+    dias_prazo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
@@ -69,14 +69,15 @@ class DocumentoAcessorioAdministrativo(models.Model):
 
 
 class Protocolo(models.Model):
-    numero = models.IntegerField(
+    numero = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número do Protocolo'))
-    ano = models.SmallIntegerField()
+    ano = models.PositiveSmallIntegerField()
     data = models.DateField()
     hora = models.TimeField()
     timestamp = models.DateTimeField()
-    tipo_protocolo = models.IntegerField(verbose_name=_('Tipo de Protocolo'))
-    tipo_processo = models.IntegerField()
+    tipo_protocolo = models.PositiveIntegerField(
+        verbose_name=_('Tipo de Protocolo'))
+    tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
         max_length=60, blank=True, null=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor, blank=True, null=True)
@@ -91,7 +92,7 @@ class Protocolo(models.Model):
         blank=True,
         null=True,
         verbose_name=_('Tipo Matéria'))
-    numero_paginas = models.IntegerField(
+    numero_paginas = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número de Páginas'))
     observacao = models.TextField(
         blank=True, null=True, verbose_name=_('Observação'))

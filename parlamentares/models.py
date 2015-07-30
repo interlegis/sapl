@@ -37,7 +37,7 @@ class SessaoLegislativa(models.Model):
     )
 
     legislatura = models.ForeignKey(Legislatura)
-    numero = models.IntegerField(verbose_name=_('Número'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
     tipo = models.CharField(
         max_length=1, verbose_name=_('Tipo'), choices=TIPO_SESSAO_CHOICES)
     data_inicio = models.DateField(verbose_name=_('Data Início'))
@@ -61,7 +61,7 @@ class SessaoLegislativa(models.Model):
 class Coligacao(models.Model):
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-    numero_votos = models.IntegerField(
+    numero_votos = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Nº Votos Recebidos'))
 
     class Meta:
@@ -224,7 +224,7 @@ class Parlamentar(models.Model):
         blank=True,
         null=True,
         verbose_name=_('Título de Eleitor'))
-    cod_casa = models.IntegerField()
+    cod_casa = models.PositiveIntegerField()
     numero_gab_parlamentar = models.CharField(
         max_length=10, blank=True, null=True, verbose_name=_('Nº Gabinete'))
     telefone = models.CharField(
@@ -360,10 +360,10 @@ class Mandato(models.Model):
     coligacao = models.ForeignKey(
         Coligacao, blank=True, null=True, verbose_name=_('Coligação'))
     # TODO what is this field??????
-    tipo_causa_fim_mandato = models.IntegerField(blank=True, null=True)
+    tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
     data_fim_mandato = models.DateField(
         blank=True, null=True, verbose_name=_('Fim do Mandato'))
-    votos_recebidos = models.IntegerField(
+    votos_recebidos = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Votos Recebidos'))
     data_expedicao_diploma = models.DateField(
         blank=True, null=True, verbose_name=_('Expedição do Diploma'))
