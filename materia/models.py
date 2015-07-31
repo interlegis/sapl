@@ -12,7 +12,7 @@ class TipoMateriaLegislativa(models.Model):
     # XXX o que é isso ?
     num_automatica = models.BooleanField()
     # XXX o que é isso ?
-    quorum_minimo_votacao = models.IntegerField()
+    quorum_minimo_votacao = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
@@ -52,9 +52,9 @@ class MateriaLegislativa(models.Model):
     )
 
     tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_('Tipo'))
-    numero = models.IntegerField(verbose_name=_('Número'))
-    ano = models.SmallIntegerField(verbose_name=_('Ano'))
-    numero_protocolo = models.IntegerField(
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+    numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
     data_apresentacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Apresentação'))
@@ -74,7 +74,7 @@ class MateriaLegislativa(models.Model):
         verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
         max_length=5, blank=True, null=True, verbose_name=_('Número'))
-    ano_origem_externa = models.SmallIntegerField(
+    ano_origem_externa = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_('Ano'))
     data_origem_externa = models.DateField(
         blank=True, null=True, verbose_name=_('Data'))
@@ -82,7 +82,7 @@ class MateriaLegislativa(models.Model):
         Origem, blank=True, null=True, verbose_name=_('Local Origem'))
     apelido = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_('Apelido'))
-    dias_prazo = models.IntegerField(
+    dias_prazo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
@@ -221,7 +221,7 @@ class Autoria(models.Model):
 class DespachoInicial(models.Model):
     # TODO M2M?
     materia = models.ForeignKey(MateriaLegislativa)
-    numero_ordem = models.IntegerField()
+    numero_ordem = models.PositiveIntegerField()
     comissao = models.ForeignKey(Comissao)
 
     class Meta:
@@ -285,11 +285,11 @@ class MateriaAssunto(models.Model):
 
 class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
-    numero_ordem = models.IntegerField()
+    numero_ordem = models.PositiveIntegerField()
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa, verbose_name=_('Tipo de Matéria'))
     numero_materia = models.CharField(max_length=5, verbose_name=_('Número'))
-    ano_materia = models.SmallIntegerField(verbose_name=_('Ano'))
+    ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     data_materia = models.DateField(
         blank=True, null=True, verbose_name=_('Data'))
 
@@ -430,7 +430,7 @@ class Proposicao(models.Model):
         blank=True,
         null=True,
         verbose_name=_('Justificativa da Devolução'))
-    numero_proposicao = models.IntegerField(
+    numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
 
     # mutually exclusive (depend on tipo.materia_ou_documento)

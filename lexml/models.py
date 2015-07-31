@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
-    id_provedor = models.IntegerField(verbose_name=_('Id do provedor'))
+    id_provedor = models.PositiveIntegerField(verbose_name=_('Id do provedor'))
     nome = models.CharField(max_length=255, verbose_name=_('Nome do provedor'))
     sigla = models.CharField(max_length=15)
     email_responsavel = models.CharField(
@@ -17,7 +17,7 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
         null=True,
         verbose_name=_('Nome do responsável'))
     tipo = models.CharField(max_length=50)
-    id_responsavel = models.IntegerField(
+    id_responsavel = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Id do responsável'))
     xml = models.TextField(
         blank=True,
@@ -33,7 +33,8 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
 
 
 class LexmlPublicador(models.Model):
-    id_publicador = models.IntegerField(verbose_name=_('Id do publicador'))
+    id_publicador = models.PositiveIntegerField(
+        verbose_name=_('Id do publicador'))
     nome = models.CharField(
         max_length=255, verbose_name=_('Nome do publicador'))
     email_responsavel = models.CharField(
@@ -52,7 +53,8 @@ class LexmlPublicador(models.Model):
         null=True,
         verbose_name=_('Nome do responsável'))
     tipo = models.CharField(max_length=50)
-    id_responsavel = models.IntegerField(verbose_name=_('Id do responsável'))
+    id_responsavel = models.PositiveIntegerField(
+        verbose_name=_('Id do responsável'))
 
     class Meta:
         verbose_name = _('Publicador Lexml')

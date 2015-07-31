@@ -2,131 +2,140 @@
 {% load staticfiles %}
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% block head_content %}
-    <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
-    <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
-    <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-    <link rel="stylesheet" href="{% static 'foundation-icon-fonts/foundation-icons.css' %}">
-    <link rel="stylesheet" href="{% static 'styles/style.css' %}">
+<!--[if gt IE 8]><!--> 
+<html class="no-js" lang="en"> 
+<!--<![endif]-->
 
-    {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block head_content %}
+      <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}">
+      <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
+      <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% static 'foundation-icon-fonts/foundation-icons.css' %}">
+      <link rel="stylesheet" href="{% static 'styles/style.css' %}">
 
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
-  {% endblock %}
-</head>
+      {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
 
-<body>
-  <div class="page fadein">
-  
-    {# Navigation #}
-    {% block navigation %}
-      <nav id="navigation" class="navigation">
-        <div class="container">
-          <span>Navigation Placeholder!</span>
-        </div>
-      </nav>
-    {% endblock navigation %}
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
+    {% endblock %}
+  </head>
+
+  <body>
+    <div class="page fadein">
     
-    {# Header #}
-    {% block main_header %}
-      <header id="masthead" class="masthead page__row">
-        <div class="container">
-          <a class="masthead__logo" href="#">
-            <img src="{% static 'img/logo.png' %}" alt="Logo">
-          </a>
-          <div class="masthead__heading">
+      {# Navigation #}
+      {% block navigation %}
+        <nav id="navigation" class="navigation">
+          <div class="container">
+            <span>Navigation Placeholder!</span>
+          </div>
+        </nav>
+      {% endblock navigation %}
+      
+      {# Header #}
+      {% block main_header %}
+        <header id="masthead" class="masthead page__row">
+          <div class="container">
+            <a class="masthead__logo" href="#">
+              <img src="{% static 'img/logo.png' %}" alt="Logo">
+            </a>
+            <div class="masthead__heading">
               <h1>{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}</h1>
               <h2>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</h2>
+            </div>
+          </div>
+        </header>
+      {% endblock main_header %}
+
+      {# Main content #}
+      {% block content_container %}
+        <main id="content" class="content page__row">
+          <div class="container">
+
+            {# Feedback messages #}
+            {% for message in messages %}
+              <div data-alert class="alert-box {% if message.tags == 'error' %}alert{% else %}{{ message.tags }}{% endif %} radius">
+                {{ message|safe }}
+                <a href="#" class="close">&times;</a>
+              </div>
+            {% endfor %}
+
+            {# Content header #}
+            {% block base_header %}
+              <div class="clearfix">
+                
+                {% block help %}
+                  {% if view.help_path %}
+                    <a class="contextual-help right" href="{% url 'help_base' %}{{ view.help_path }}">{% trans 'Ajuda' %}</a>
+                  {% endif %}
+                {% endblock %}
+
+                {% block title %}
+                  {% if view.title %}
+                    <h1>{{ view.title }}</h1>
+                  {% endif %}
+                {% endblock %}
+
+              </div>
+            {% endblock base_header %}
+
+            {# Content per se #}
+            {% block base_content %}
+            {% endblock base_content %}
+
+          </div>
+        </main>
+
+      {% endblock content_container %}
+
+      <footer id="footer" class="footer page__row">
+        <div class="container">
+          <div class="footer__block footer__block--about footer__block--separator">
+            <a class="footer__logo" href="#">
+              <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
+            </a>
+            <small>
+              Desenvolvido pelo <a href="#">Interlegis</a> em software livre e aberto sobre o <a href="#">Zope</a>.
+            </small>
+          </div>
+          <div class="footer__block footer__block--license footer__block--separator">
+            <a class="footer__logo" href="#">
+              <img src="{% static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
+            </a>
+            <small>
+              Conteúdo e dados sob licença <a href="#">Creative Commons</a> 4.0 <a href="#">Atribuir Fonte - Compartilhar Igual</a>
+            </small>
+          </div>
+
+          <div class="footer__block footer__block--parliament-info vcard">
+            <span class="org">{{ parliament_type }}</span> de <span class="locality">{{ city }}</span> - <abbr class="region" title="{{ state }}">{{ state_abbr }}</abbr>
+            <br>
+            <span class="street-address">{{ address }}</span>
+            <br> CEP: <span class="postal-code">{{ postal_code }}</span> | Telefone: <span>{{ phone_number }}</span>
+            <br>
+            <a href="{{url_portal}}" class="url">{% trans 'Site da Câmara' %}</a> | <a href="{{url_email}}" class="email">{% trans 'Fale Conosco' %}</a>
+            <br>
           </div>
         </div>
-      </header>
-    {% endblock main_header %}
+      </footer>
+    </div>
 
-    {# Main content #}
-    {% block content_container %}
-      <main id="content" class="content page__row">
-        <div class="container">
+      {% block foot_js %}
+        <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
+        <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
 
-          {# Feedback messages #}
-          {% for message in messages %}
-            <div data-alert class="alert-box {% if message.tags == 'error' %}alert{% else %}{{ message.tags }}{% endif %} radius">
-              {{ message|safe }}
-              <a href="#" class="close">&times;</a>
-            </div>
-          {% endfor %}
-          
-          {# Content header #}
-          {% block base_header %}
-            <div class="clearfix">
-
-              {% block help %}
-                {% if view.help_path %}
-                  <a class="contextual-help right" href="{% url 'help_base' %}{{ view.help_path }}">{% trans 'Ajuda' %}</a>
-                {% endif %}
-              {% endblock %}
-
-              {% block title %}
-                {% if view.title %}
-                  <h1>{{ view.title }}</h1>
-                {% endif %}
-              {% endblock %}
-
-            </div>
-          {% endblock base_header %}
-          
-          {# Content per se #}
-          {% block base_content %}
-          {% endblock base_content %}
-        </div>
-      </main>
-
-    {% endblock content_container %}
-
-    <footer id="footer" class="footer page__row">
-      <div class="container">
-        <div class="footer__block footer__block--about footer__block--separator">
-          <a class="footer__logo" href="#">
-            <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
-          </a>
-          <small>
-            Desenvolvido pelo <a href="#">Interlegis</a> em software livre e aberto sobre o <a href="#">Zope</a>.
-          </small>
-        </div>
-        <div class="footer__block footer__block--license footer__block--separator">
-          <a class="footer__logo" href="#">
-            <img src="{% static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
-          </a>
-          <small>
-            Conteúdo e dados sob licença <a href="#">Creative Commons</a> 4.0 <a href="#">Atribuir Fonte - Compartilhar Igual</a>
-          </small>
-        </div>
-
-        <div class="footer__block footer__block--parliament-info vcard">
-          <span class="org">{{ parliament_type }}</span> de <span class="locality">{{ city }}</span> - <abbr class="region" title="{{ state }}">{{ state_abbr }}</abbr>
-          <br>
-          <span class="street-address">{{ address }}</span>
-          <br> CEP: <span class="postal-code">{{ postal_code }}</span> | Telefone: <span>{{ phone_number }}</span>
-          <br>
-          <a href="{{url_portal}}" class="url">{% trans 'Site da Câmara' %}</a> | <a href="{{url_email}}" class="email">{% trans 'Fale Conosco' %}</a>
-          <br>
-        </div>
-      </div>
-    </footer>
-  </div>
-
-  {% block foot_js %}
-    <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
-    <script>
-      $(document).foundation();
-    </script>
-  {% endblock foot_js %}
-</body>
+        <script>
+          tinymce.init({selector:'textarea'});
+        </script>
+        <script>
+          $(document).foundation();
+        </script>
+      {% endblock foot_js %}
+  </body>
 </html>

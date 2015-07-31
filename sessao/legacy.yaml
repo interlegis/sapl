@@ -15,9 +15,6 @@ SessaoPlenaria:
   tipo_expediente: tip_expediente
   url_audio: url_audio
   url_video: url_video
-  upload_pauta : upload_pauta
-  iniciada : iniciada
-  finalizada : finalizada
 
 AbstractOrdemDia:
   data_ordem: dat_ordem
