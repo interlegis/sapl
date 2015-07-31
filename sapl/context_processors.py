@@ -1,10 +1,8 @@
-from django.contrib import messages
-
 def parliament_info(request):
 
     return {
         'state': 'Estado',
-    	'state_abbr': 'UF',
+        'state_abbr': 'UF',
         'city': 'Cidade',
         'parliament_type': 'Câmara Municipal',
         'address': 'Rua Lorem Ipsum de Amet, Casa X',
