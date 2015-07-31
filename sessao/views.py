@@ -1,5 +1,4 @@
 from django import forms
-from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 
@@ -83,8 +82,17 @@ registro_votacao_crud = build_crud(
     ])
 
 
+def expediente_form_field(index):
+    return 'ExpedienteForm_%d' % index
+
+
 class ExpedienteForm(forms.Form):
-    teste = forms.CharField(widget=forms.Textarea, max_length=100)
+
+    def __init__(self, *args, **kwargs):
+        super(ExpedienteForm, self).__init__(*args, **kwargs)
+        for i, values in enumerate(TipoExpediente.objects.all()):
+            self.fields[expediente_form_field(i)] = forms.CharField(
+                widget=forms.Textarea, max_length=100, required=False)
 
 
 class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
@@ -95,14 +103,19 @@ class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         form = self.get_form()
         if form.is_valid():
-            expediente = ExpedienteSessao()
-            expediente.sessao_plenaria = self.object
-            expediente.tipo = TipoExpediente.objects.first()
-            expediente.conteudo = form.fields['teste']
-            expediente.save()
+            for i, values in enumerate(TipoExpediente.objects.all()):
+                expediente = ExpedienteSessao()
+                expediente.sessao_plenaria = self.object
+                expediente.tipo = values
+                expediente.conteudo = form.data[expediente_form_field(i)]
+                expediente.save()
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
     def get_success_url(self):
         return self.detail_url
+
+    def get_title_and_fieldnames(self):
+        for i, tipo in enumerate(TipoExpediente.objects.all()):
+            yield tipo.nome, expediente_form_field(i)

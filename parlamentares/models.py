@@ -1,8 +1,9 @@
+import datetime
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import YES_NO_CHOICES, make_choices
-import datetime
 
 
 class Legislatura(models.Model):
@@ -17,8 +18,8 @@ class Legislatura(models.Model):
     def __str__(self):
         # XXX Usar id mesmo? Ou criar campo para nº legislatura?
         current_date = datetime.datetime.now().year
-        if(self.data_inicio.year <= current_date
-                and self.data_fim.year >= current_date):
+        if(self.data_inicio.year <= current_date and
+           self.data_fim.year >= current_date):
             current = ' (%s)' % _('Atual')
         else:
             current = ''

@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
-from sapl.utils import make_choices, YES_NO_CHOICES
+from sapl.utils import YES_NO_CHOICES, make_choices
 
 
 class TipoSessaoPlenaria(models.Model):
