@@ -82,6 +82,11 @@ color: #444444;
     display: table-row;
     box-sizing: content-box;
     }
+        
+        /* XXX find a better way to fix main layout box-sizing */
+        .page__row > .container > *{
+        box-sizing: border-box;
+        }
 
 .navigation {
 position: fixed;
@@ -100,7 +105,7 @@ box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
 
     .navigation > .container {
     padding: 0px;
-    max-width: 1000px;
+    max-width: 960px;
     }
 
 .masthead {
