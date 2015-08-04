@@ -1,0 +1,38 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+	<form method="POST">
+	  {% csrf_token %}
+
+		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+			<li>Presença</li>
+			<li>Parlamentar</li>
+		</ul>
+
+		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+			<li><input type="checkbox" onClick="checkAll(this)" /> Marcar/Desmarcar Todos</li>
+		</ul>
+
+		{% for fieldname in view.get_parlamentares %}
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li><input type="checkbox" name="presenca"/></li>
+				<li><label for="parlamentar">{{ fieldname }}</label></li>
+			</ul>
+		{% endfor %}
+
+		<br />
+		<input type="submit" value="Salvar" />
+	</form>
+{% endblock detail_content %}
+
+{% block foot_js %}
+	<script language="JavaScript">
+		function checkAll(source) {
+		  checkboxes = document.getElementsByName('presenca');
+		  for(var i=0, n=checkboxes.length;i<n;i++) {
+		    checkboxes[i].checked = source.checked;
+		  }
+		}
+	</script>
+{% endblock %}
