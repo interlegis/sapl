@@ -155,7 +155,7 @@ def test_reverse():
 
 
 def assert_h1(res, title):
-    assert res.html.find('h1').text == title
+    assert res.html.find('main').find('h1').text == title
 
 
 NO_ENTRIES_MSG = str(NO_ENTRIES_MSG)  # "unlazy"

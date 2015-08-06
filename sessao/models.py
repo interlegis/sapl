@@ -20,10 +20,16 @@ class TipoSessaoPlenaria(models.Model):
         return self.nome
 
 
-def build_get_upload_path(subpath):
-    def get_upload_path(instance, filename):
-        return './sessao/%s/%s/%s' % (instance.numero, subpath, filename)
-    return get_upload_path
+def get_sessao_media_path(instance, subpath, filename):
+    return './sessao/%s/%s/%s' % (instance.numero, subpath, filename)
+
+
+def pauta_upload_path(instance, filename):
+    return get_sessao_media_path(instance, 'pauta', filename)
+
+
+def ata_upload_path(instance, filename):
+    return get_sessao_media_path(instance, 'ata', filename)
 
 
 class SessaoPlenaria(models.Model):
@@ -55,12 +61,12 @@ class SessaoPlenaria(models.Model):
     upload_pauta = models.FileField(
         blank=True,
         null=True,
-        upload_to=build_get_upload_path('pauta'),
+        upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Sessão'))
     upload_ata = models.FileField(
         blank=True,
         null=True,
-        upload_to=build_get_upload_path('ata'),
+        upload_to=ata_upload_path,
         verbose_name=_('Ata da Sessão'))
     iniciada = models.NullBooleanField(blank=True,
                                        choices=YES_NO_CHOICES,
@@ -238,8 +244,8 @@ class RegistroVotacao(models.Model):
     def __str__(self):
         return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
                  'Matéria: %(materia)s') % {
-            'ordem': self.ordem,
-            'votacao': self.tipo_resultado_votacao,
+                     'ordem': self.ordem,
+                     'votacao': self.tipo_resultado_votacao,
             'materia': self.materia}
 
 
