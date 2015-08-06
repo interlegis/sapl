@@ -64,6 +64,10 @@ target/
 .iml
 .eml
 
+# SASS
+.sass-cache
+*.css.map
+
 # Others
 .env
 .bak
