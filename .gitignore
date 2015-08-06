@@ -66,6 +66,7 @@ target/
 .env
 .bak
 *~
+*.orig
 
 # Dev tools configuration files
 .idea/
