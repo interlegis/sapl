@@ -124,6 +124,10 @@ Tests
 
     py.test --cov . --cov-report term --cov-report html && firefox htmlcov/index.html
 
+* The first time you run the tests after a migration (``./manage.py migrate``) use the db recreation option.
+  This needs to be done only once::
+
+    py.test --create-db
 
 Issues
 ------
