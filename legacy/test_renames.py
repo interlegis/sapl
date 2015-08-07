@@ -9,6 +9,7 @@ RENAMING_IGNORED_MODELS = [
 ]
 
 RENAMING_IGNORED_FIELDS = [
+    (comissoes.models.Participacao, {'composicao'}),
     (materia.models.Proposicao, {'documento'}),
     (materia.models.TipoProposicao, {'tipo_documento'}),
     (sessao.models.SessaoPlenaria, {'finalizada',

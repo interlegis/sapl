@@ -36,7 +36,6 @@ CargoComissao:
 
 Participacao (ComposicaoComissao):
   cargo: cod_cargo
-  composicao: cod_comissao
   data_designacao: dat_designacao
   data_desligamento: dat_desligamento
   motivo_desligamento: des_motivo_desligamento

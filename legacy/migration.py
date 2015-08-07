@@ -103,45 +103,6 @@ def get_field(model, fieldname):
     return model._meta.get_field(fieldname)
 
 
-def get_participacao_composicao(obj):
-    new = Composicao()
-    new.comissao, new.periodo = [
-        get_fk_related(Composicao._meta.get_field(name), value)
-        for name, value in (('comissao', obj.cod_comissao),
-                            ('periodo', obj.cod_periodo_comp))]
-    # check if there is already an "equal" one in the db
-    already_created = Composicao.objects.filter(
-        comissao=new.comissao, periodo=new.periodo)
-    if already_created:
-        assert len(already_created) == 1  # we must never have made 2 copies
-        return already_created[0]
-    else:
-        new.save()
-        return new
-
-
-SPECIAL_FIELD_MIGRATIONS = {
-    get_field(Participacao, 'composicao'): get_participacao_composicao}
-
-
-def build_special_field_migration(field, get_old_field_value):
-
-    if field == get_field(Parlamentar, 'unidade_deliberativa'):
-
-        def none_to_false(obj):
-            value = get_old_field_value(obj)
-            # Field is defined as not null in legacy db,
-            # but data includes null values
-            #  => transform None to False
-            if value is None:
-                warn('null converted to False')
-            return bool(value)
-        return none_to_false
-
-    elif field in SPECIAL_FIELD_MIGRATIONS:
-        return SPECIAL_FIELD_MIGRATIONS[field]
-
-
 def exec_sql(sql, db='default'):
     cursor = connections[db].cursor()
     cursor.execute(sql)
@@ -183,34 +144,24 @@ class DataMigrator(object):
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
 
-    def field_migrations(self, model):
-        renames = self.field_renames[model]
+    def populate_renamed_fields(self, new, old):
+        renames = self.field_renames[type(new)]
 
-        for field in model._meta.fields:
+        for field in new._meta.fields:
             old_field_name = renames.get(field.name)
-
-            def get_old_field_value(old):
-                return getattr(old, old_field_name)
-
-            special = build_special_field_migration(field, get_old_field_value)
-            if special:
-                yield field, special
-            elif field.name in renames:
-
-                def get_fk_value(old):
-                    old_value = get_old_field_value(old)
+            if old_field_name:
+                old_value = getattr(old, old_field_name)
+                if isinstance(field, models.ForeignKey):
                     old_type = type(old)  # not necessarily a model
                     if hasattr(old_type, '_meta') and \
                             old_type._meta.pk.name != 'id':
                         label = old.pk
                     else:
                         label = '-- WITHOUT PK --'
-                    return get_fk_related(field, old_value, label)
-
-                if isinstance(field, models.ForeignKey):
-                    yield field, get_fk_value
+                    value = get_fk_related(field, old_value, label)
                 else:
-                    yield field, get_old_field_value
+                    value = getattr(old, old_field_name)
+                setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs):
         # warning: model/app migration order is of utmost importance
@@ -244,7 +195,8 @@ class DataMigrator(object):
         legacy_model = legacy_app.get_model(legacy_model_name)
         legacy_pk_name = legacy_model._meta.pk.name
 
-        # clear all model entries
+        # Clear all model entries
+        # They may have been created in a previous migration attempt
         model.objects.all().delete()
 
         # setup migration strategy for tables with or without a pk
@@ -261,17 +213,55 @@ class DataMigrator(object):
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
+        adjust = MIGRATION_ADJUSTMENTS.get(model)
+
         # convert old records to new ones
         for old in old_records:
             new = model()
-            for new_field, get_value in self.field_migrations(model):
-                setattr(new, new_field.name, get_value(old))
+            self.populate_renamed_fields(new, old)
+            if adjust:
+                adjust(new, old)
             save(new, old)
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
 
 
-# CHECKS #####################################################################
+# MIGRATION_ADJUSTMENTS #####################################################
+
+def adjust_participacao(new_participacao, old):
+    composicao = Composicao()
+    composicao.comissao, composicao.periodo = [
+        get_fk_related(Composicao._meta.get_field(name), value)
+        for name, value in (('comissao', old.cod_comissao),
+                            ('periodo', old.cod_periodo_comp))]
+    # check if there is already an "equal" one in the db
+    already_created = Composicao.objects.filter(
+        comissao=composicao.comissao, periodo=composicao.periodo)
+    if already_created:
+        assert len(already_created) == 1  # we must never have made 2 copies
+        return already_created[0]
+    else:
+        composicao.save()
+        new_participacao.composicao = composicao
+
+
+def adjust_parlamentar(new_parlamentar, old):
+    value = new_parlamentar.unidade_deliberativa
+    # Field is defined as not null in legacy db,
+    # but data includes null values
+    #  => transform None to False
+    if value is None:
+        warn('null converted to False')
+        new_parlamentar.unidade_deliberativa = False
+
+
+MIGRATION_ADJUSTMENTS = {
+    Participacao: adjust_participacao,
+    Parlamentar: adjust_parlamentar,
+}
+
+# CHECKS ####################################################################
+
 
 def get_ind_excluido(obj):
     legacy_model = legacy_app.get_model(type(obj).__name__)
