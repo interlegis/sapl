@@ -12,7 +12,6 @@ SessaoPlenaria:
   numero: num_sessao_plen
   sessao_legislativa: cod_sessao_leg
   tipo: tip_sessao
-  tipo_expediente: tip_expediente
   url_audio: url_audio
   url_video: url_video
 

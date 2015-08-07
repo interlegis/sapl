@@ -1,5 +1,6 @@
 import comissoes
 import materia
+import sessao
 
 from .migration import appconfs, get_renames, legacy_app
 
@@ -10,6 +11,10 @@ RENAMING_IGNORED_MODELS = [
 RENAMING_IGNORED_FIELDS = [
     (materia.models.Proposicao, {'documento'}),
     (materia.models.TipoProposicao, {'tipo_documento'}),
+    (sessao.models.SessaoPlenaria, {'finalizada',
+                                    'upload_pauta',
+                                    'upload_ata',
+                                    'iniciada'}),
 ]
 
 
