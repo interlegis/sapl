@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'', include('materia.urls')),
     url(r'', include('norma.urls')),
     url(r'', include('lexml.urls')),
+    url(r'', include('painel.urls')),
 
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children

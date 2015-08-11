@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html lang="pt-br">
+    <head>
+      <title>Painel jQuery</title>
+      <meta charset="UTF-8">
+      
+      <script src="js/json2.js"></script>
+      <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+      <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+      <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
+      <STYLE type="text/css">
+        @media screen {
+            body {font-size: medium; color: white; line-height: 1em; background: black;}
+        }
+      </STYLE>
+      
+      <script type="text/javascript">
+         $(document).ready(function() {
+
+        var counter = 1;
+        (function poll() {
+            $.ajax({
+               //url: "http://localhost:8000/sistema/painel/json",
+               url: $("#json_url").val(),
+               type: "GET",
+               success: function(data) {
+                  console.log(data);                                                    
+                  $("#name").text(data.nome + ', call=' + counter);
+                  counter++;
+               },
+               error: function(err) {
+                  console.error(err);
+               },
+               dataType: "json",
+               complete: setTimeout(function() {poll()}, 5000),
+               timeout: 2000
+            })
+          })();
+         });
+      </script>
+    </head>
+    <body>
+        <input id="json_url" type="hidden" value="{% url 'json_view' %}">
+        <h2><div id="name"></div></h2>
+    </body>
+</html>

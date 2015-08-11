@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html lang="pt-br">
+    <head>
+      <title>Painel jQuery</title>
+      <meta charset="UTF-8">
+      
+      <script src="js/json2.js"></script>
+      <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+      <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+      <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
+      <STYLE type="text/css">
+        @media screen {
+            body {font-size: medium; color: white; line-height: 1em; background: black;}
+        }
+      </STYLE>
+      
+      <script type="text/javascript">
+         $(document).ready(function() {
+
+        var counter = 1;
+        (function poll() {
+            $.ajax({
+               //url: "http://localhost:8000/sistema/painel/json",
+               url: $("#json_url").val(),
+               type: "GET",
+               success: function(data) {
+
+                  //TODO: json spitted out is very complex, have to simplify/flat it
+                  //TODO: probably building it by hand on REST side
+
+                  var list = $("#parlamentares");
+                  list.children().remove();
+                  
+
+                  //select 10 random names (for tests purposes only)
+                  var newList = Array();
+                  for (i = 0; i < 10; i++) {
+                    newList[i] = data[Math.floor(Math.random() * data.length)]
+                  }
+                  newList.sort(function(a,b) {
+                      if (a['fields'].nome_parlamentar < b['fields'].nome_parlamentar) return -1;
+                      else if (a['fields'].nome_parlamentar > b['fields'].nome_parlamentar) return 1;
+                      else return 0;
+                  });
+                  // ---
+
+                  jQuery.each(newList, function(index, value) {
+                      parlamentar = value['fields'];
+                      $('<li />', {text: parlamentar.nome_parlamentar }).appendTo(list);
+                  });
+
+                  $("#counter").text(counter);
+                  counter++;
+               },
+               error: function(err) {
+                  console.error(err);
+               },
+               dataType: "json",
+               complete: setTimeout(function() {poll()}, 5000),
+               timeout: 2000
+            })
+          })();
+         });
+      </script>
+    </head>
+    <body>
+        <input id="json_url" type="hidden" value="{% url 'json_view' %}">
+        <h2>Ajax refresh counter: <span id="counter"></span></h2>
+        <ul id="parlamentares">
+        </ul>
+    </body>
+</html>
