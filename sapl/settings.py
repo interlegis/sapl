@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'materia',
     'norma',
     'lexml',
+    'painel',
     'protocoloadm',
 
     # more

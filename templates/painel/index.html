@@ -1,15 +1,17 @@
+{% load i18n %}                                                                                                              
+{% load staticfiles %}
 <!DOCTYPE HTML>
-<html lang="pt-br">
-    <head>
-      <title>Painel jQuery</title>
-      <meta charset="UTF-8">
-      
-      <script src="js/json2.js"></script>
-      <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
-      <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-      <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en">
+<!--<![endif]-->
 
-      <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <head>
+      <meta charset="UTF-8">
+      <!-- TODO: does it need this head_title here? -->
+      <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
 
       <STYLE type="text/css">
         @media screen {
@@ -23,7 +25,6 @@
         var counter = 1;
         (function poll() {
             $.ajax({
-               //url: "http://localhost:8000/sistema/painel/json",
                url: $("#json_url").val(),
                type: "GET",
                success: function(data) {
@@ -31,26 +32,32 @@
                   //TODO: json spitted out is very complex, have to simplify/flat it
                   //TODO: probably building it by hand on REST side
 
-                  var list = $("#parlamentares");
-                  list.children().remove();
-                  
+                  console.debug(data)
 
-                  //select 10 random names (for tests purposes only)
-                  var newList = Array();
-                  for (i = 0; i < 10; i++) {
-                    newList[i] = data[Math.floor(Math.random() * data.length)]
-                  }
-                  newList.sort(function(a,b) {
-                      if (a['fields'].nome_parlamentar < b['fields'].nome_parlamentar) return -1;
-                      else if (a['fields'].nome_parlamentar > b['fields'].nome_parlamentar) return 1;
-                      else return 0;
-                  });
-                  // ---
+                  var presentes = $("#parlamentares");
+                  presentes.children().remove();
 
-                  jQuery.each(newList, function(index, value) {
-                      parlamentar = value['fields'];
-                      $('<li />', {text: parlamentar.nome_parlamentar }).appendTo(list);
+                  presentes_ordem_dia = data.presentes_ordem_dia
+                  jQuery.each(presentes_ordem_dia, function(index, value) {
+                      console.log(value)
+                      parlamentar = value
+                      $('<li />', {text: parlamentar }).appendTo(presentes);
                   });
+
+                  var votacao = $("#votacao")
+                  votacao.children().remove()
+                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
+                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
+                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
+                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
+
+                  $("#sessao_plenaria").text(data["sessao_plenaria"])
+                  $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
+                  $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
+
+                  $("#materia_legislativa_texto").text(data["materia_legislativa_texto"])
+                  $("#observacao_materia").text(data["observacao_materia"])
+                  $("#resultado_votacao").text(data["tipo_resultado"])
 
                   $("#counter").text(counter);
                   counter++;
@@ -60,16 +67,33 @@
                },
                dataType: "json",
                complete: setTimeout(function() {poll()}, 5000),
-               timeout: 2000
+               timeout: 20000 // TODO: decrease
             })
           })();
          });
       </script>
     </head>
     <body>
-        <input id="json_url" type="hidden" value="{% url 'json_view' %}">
+        <h1>{{ context.title }}</h1>
+        <input id="json_url" type="hidden" value="{% url 'json_votacao' %}">
         <h2>Ajax refresh counter: <span id="counter"></span></h2>
-        <ul id="parlamentares">
-        </ul>
+        <span id="sessao_plenaria"></span><br/>
+        <span id="sessao_plenaria_data"></span><br/>
+        <span id="sessao_plenaria_hora_inicio"></span></br>
+        <table>
+            <tr>
+               <td>
+                  <ul id="parlamentares">
+                  </ul>
+               </td>
+               <td>
+                  <ul id="votacao">
+                  </ul>
+               </td>
+            </tr>
+        </table>
+        <span id="materia_legislativa_texto"></span><br/>
+        <span id="resultado_votacao"></span><br/>
+        <span id="observacao_materia"></span>
     </body>
 </html>
