@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 
 from .views import (json_presenca, json_votacao, painel_parlamentares_view,
                     painel_view, painel_votacao_view)
