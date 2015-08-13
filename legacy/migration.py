@@ -226,6 +226,11 @@ class DataMigrator(object):
                 self.to_delete.append(new)
 
 
+def migrate(obj=appconfs):
+    dm = DataMigrator()
+    dm.migrate(obj)
+
+
 # MIGRATION_ADJUSTMENTS #####################################################
 
 def adjust_participacao(new_participacao, old):
