@@ -244,10 +244,10 @@ def adjust_participacao(new_participacao, old):
         comissao=composicao.comissao, periodo=composicao.periodo)
     if already_created:
         assert len(already_created) == 1  # we must never have made 2 copies
-        return already_created[0]
+        [composicao] = already_created
     else:
         composicao.save()
-        new_participacao.composicao = composicao
+    new_participacao.composicao = composicao
 
 
 def adjust_parlamentar(new_parlamentar, old):
