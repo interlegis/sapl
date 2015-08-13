@@ -6,6 +6,7 @@ from django.core import serializers
 import json
 
 from parlamentares.models import Parlamentar
+from parlamentares.models import Filiacao
 from sessao.models import SessaoPlenaria, SessaoPlenariaPresenca, PresencaOrdemDia, RegistroVotacao, VotoParlamentar, OrdemDia, PresencaOrdemDia
 
 # REST web services
@@ -33,11 +34,18 @@ def json_votacao(request):
 
     sessao_plenaria = SessaoPlenaria.objects.get(id = sessaoplenaria_id)
 
+    # Pra recuperar o partido do parlamentar tem que fazer OUTRA query, deve ter uma
+    # forma de fazer isso na base do join de data models.
+    filiacao = Filiacao.objects.filter(data_desfiliacao__isnull=True)
+    map = {}
+    for f in filiacao:
+      map[f.parlamentar.nome_parlamentar] = f.partido.sigla
+
     presenca_ordem_dia = PresencaOrdemDia.objects.filter(sessao_plenaria_id = sessaoplenaria_id)
     presentes_ordem_dia = []
     for p in presenca_ordem_dia:
-        presentes_ordem_dia.append(p.parlamentar.nome_parlamentar)
-    presentes_ordem_dia.sort()
+        nome_parlamentar = p.parlamentar.nome_parlamentar
+        presentes_ordem_dia.append(nome_parlamentar + " / " + map[nome_parlamentar])
     total_votos = votacao.numero_votos_sim + votacao.numero_votos_nao + votacao.numero_abstencoes
 
     sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(id = sessaoplenaria_id)
