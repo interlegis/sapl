@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 
-from . views import (json_presenca, json_votacao, painel_view,
-                     painel_parlamentares_view, painel_votacao_view)
+from .views import (json_presenca, json_votacao, painel_parlamentares_view,
+                    painel_view, painel_votacao_view)
 
 urlpatterns = [
     url(r'^sistema/painel$', painel_view),

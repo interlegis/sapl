@@ -1,13 +1,13 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.core import serializers
-
 import json
 
-from parlamentares.models import Parlamentar
-from parlamentares.models import Filiacao
-from sessao.models import SessaoPlenaria, SessaoPlenariaPresenca, PresencaOrdemDia, RegistroVotacao, VotoParlamentar, OrdemDia, PresencaOrdemDia
+from django.core import serializers
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+
+from parlamentares.models import Filiacao, Parlamentar
+from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
+                           SessaoPlenaria, SessaoPlenariaPresenca,
+                           VotoParlamentar)
 
 
 # REST web services
