@@ -49,6 +49,7 @@
                   votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
                   votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
                   votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
+                  votacao.append("<li>Presentes: " + data["presentes"] + "</li>")
                   votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
 
                   $("#sessao_plenaria").text(data["sessao_plenaria"])
@@ -66,7 +67,7 @@
                   console.error(err);
                },
                dataType: "json",
-               complete: setTimeout(function() {poll()}, 5000),
+               //complete: setTimeout(function() {poll()}, 5000),
                timeout: 20000 // TODO: decrease
             })
           })();

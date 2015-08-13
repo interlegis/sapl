@@ -20,6 +20,8 @@ def json_presenca(request):
    return HttpResponse(parlamentares,  content_type='application/json')
    #return JsonResponse(data) # work with python dict
 
+#TODO: make this response non cacheable, probably on jQuery site, but check Django too
+#TODO: reduce number of database query hits by means of QuerySet wizardry.
 def json_votacao(request):
     #TODO: se tentar usar objects.get(ordem_id = 104 ocorre a msg: 'RegistroVotacao' object does not support indexing
     #TODO; tratar o caso de vir vazio
@@ -53,6 +55,8 @@ def json_votacao(request):
     for p in sessao_plenaria_presenca:
         presentes_sessao_plenaria.append(p.parlamentar.nome_parlamentar)
 
+    presentes = len(presentes_sessao_plenaria)
+
     votacao_json = {"sessao_plenaria": str(sessao_plenaria),
                     "sessao_plenaria_data": sessao_plenaria.data_inicio,
                     "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
@@ -63,6 +67,7 @@ def json_votacao(request):
                     "numero_votos_nao": votacao.numero_votos_nao,
                     "numero_abstencoes": votacao.numero_abstencoes,
                     "total_votos": total_votos,
+                    "presentes": presentes,
                     "tipo_resultado": votacao.tipo_resultado_votacao.nome.upper(),
                     "presentes_ordem_dia": presentes_ordem_dia,
                     "presentes_sessao_plenaria": presentes_sessao_plenaria,
