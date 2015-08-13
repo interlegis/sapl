@@ -11,6 +11,7 @@ from model_mommy import mommy
 
 from comissoes.models import Composicao, Participacao
 from parlamentares.models import Parlamentar
+from sessao.models import SessaoPlenaria
 from sapl.utils import appconfs
 
 # BASE ######################################################################
@@ -260,9 +261,14 @@ def adjust_parlamentar(new_parlamentar, old):
         new_parlamentar.unidade_deliberativa = False
 
 
+def adjust_sessaoplenaria(new, old):
+    assert not old.tip_expediente
+
+
 MIGRATION_ADJUSTMENTS = {
     Participacao: adjust_participacao,
     Parlamentar: adjust_parlamentar,
+    SessaoPlenaria: adjust_sessaoplenaria,
 }
 
 # CHECKS ####################################################################
