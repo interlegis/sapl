@@ -16,7 +16,6 @@ from .temp_suppress_crispy_form_warnings import \
 
 BASE_DIR = Path(__file__).ancestor(2)
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -58,6 +57,7 @@ INSTALLED_APPS = (
     'bootstrap3',  # basically for django_admin_bootstrapped
     'crispy_forms',
     'crispy_forms_foundation',
+    'sass_processor',
 )
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
@@ -131,6 +131,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'djangobower.finders.BowerFinder',
+    'sass_processor.finders.CssFinder',
 )
 
 MEDIA_ROOT = BASE_DIR.child("media")
@@ -146,7 +147,12 @@ BOWER_INSTALLED_APPS = (
     'foundation-datepicker',
     'components-font-awesome',
     'foundation-icon-fonts',
-    'tinymce'
+    'tinymce',
+)
+
+# Additional search paths for SASS files when using the @import statement 
+SASS_PROCESSOR_INCLUDE_DIRS = (
+    BOWER_COMPONENTS_ROOT.child('bower_components', 'foundation', 'scss'),
 )
 
 # hack to suppress many annoying warnings from crispy_forms

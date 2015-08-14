@@ -6,6 +6,9 @@ django-bower
 django-braces
 django-crispy-forms
 django-zurb-foundation
+django-compressor
+django-sass-processor
+libsass
 psycopg2
 pytz
 PyYAML
