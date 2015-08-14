@@ -4,9 +4,9 @@ django-admin-bootstrapped
 django-bootstrap3
 django-bower
 django-braces
-django-crispy-forms
 django-compressor
-django-sass-processor
+django-crispy-forms
+git+git://github.com/interlegis/django-sass-processor.git
 libsass
 psycopg2
 pytz
