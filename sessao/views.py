@@ -1,8 +1,5 @@
-from django import forms
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic.edit import FormMixin
-
-from parlamentares.models import Parlamentar
+from extra_views import InlineFormSetView
 from sapl.crud import build_crud
 
 from .models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
@@ -83,74 +80,15 @@ registro_votacao_crud = build_crud(
     ])
 
 
-def expediente_form_field(index):
-    return 'ExpedienteForm_%d' % index
+class ExpedienteView(InlineFormSetView):
 
-
-class ExpedienteForm(forms.Form):
-
-    def __init__(self, *args, **kwargs):
-        super(ExpedienteForm, self).__init__(*args, **kwargs)
-        for i, values in enumerate(TipoExpediente.objects.all()):
-            self.fields[expediente_form_field(i)] = forms.CharField(
-                widget=forms.Textarea, max_length=100, required=False)
-
-
-class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+    model = SessaoPlenaria
+    inline_model = ExpedienteSessao
     template_name = 'sessao/expediente.html'
-    form_class = ExpedienteForm
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            for i, values in enumerate(TipoExpediente.objects.all()):
-                expediente = ExpedienteSessao()
-                expediente.sessao_plenaria = self.object
-                expediente.tipo = values
-                expediente.conteudo = form.data[expediente_form_field(i)]
-                expediente.save()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        return self.detail_url
-
-    def get_title_and_fieldnames(self):
-        for i, tipo in enumerate(TipoExpediente.objects.all()):
-            yield tipo.nome, expediente_form_field(i)
+    extra = 1
 
 
-class PresencaForm(forms.Form):
-    presenca = forms.BooleanField(required=False, initial=False)
-    parlamentar = forms.CharField(required=False, max_length=20)
-
-
-class PresencaView(FormMixin, sessao_crud.CrudDetailView):
+class PresencaView(InlineFormSetView):
+    model = SessaoPlenaria
+    inline_model = SessaoPlenariaPresenca
     template_name = 'sessao/presenca.html'
-    form_class = PresencaForm
-    paginate_by = 10
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            for parlamentar in Parlamentar.objects.all():
-                if parlamentar.ativo and form.data["presenca"] == "on":
-                    lista_presenca = SessaoPlenariaPresenca()
-                    lista_presenca.sessao_plen = self.object
-                    lista_presenca.parlamentar = parlamentar
-                    lista_presenca.save()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        return self.detail_url
-
-    def get_parlamentares(self):
-        self.object = self.get_object()
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                yield parlamentar

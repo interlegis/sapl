@@ -2,15 +2,11 @@
 {% load i18n %}
 
 {% block detail_content %}
-<form method="Post">
-  {% csrf_token %}
 
-  {% for title, fieldname in view.get_title_and_fieldnames %}
-    <h5>{{ title }}:</h5>
-  	<textarea name="{{ fieldname }}"></textarea>
-  {% endfor %}
-  
-  <br /><input type="submit" value="Salvar" />
+<form method="post">
+  {% csrf_token %}
+  {{ formset }}
+<input type="submit" value="Submit" />
 </form>
 
 {% endblock detail_content %}
