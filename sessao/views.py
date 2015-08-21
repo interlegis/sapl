@@ -1,3 +1,5 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, Submit, ButtonHolder
 from django.utils.translation import ugettext_lazy as _
 from extra_views import InlineFormSetView
 from sapl.crud import build_crud
@@ -81,11 +83,29 @@ registro_votacao_crud = build_crud(
 
 
 class ExpedienteView(InlineFormSetView):
-
     model = SessaoPlenaria
     inline_model = ExpedienteSessao
     template_name = 'sessao/expediente.html'
+    fields = ('tipo', 'conteudo')
+    can_delete = False
     extra = 1
+#    import ipdb; ipdb.set_trace()
+
+
+    def get_context_data(self, **kwargs):
+        context = super(ExpedienteView, self).get_context_data(**kwargs)
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'tipo',
+                'conteudo'
+            )
+        )
+        context.update({'helper': self.helper})
+
+#        import ipdb; ipdb.set_trace()
+        return context
 
 
 class PresencaView(InlineFormSetView):
