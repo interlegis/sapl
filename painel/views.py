@@ -34,7 +34,11 @@ def json_votacao(request):
 
     # Magic!
     # http://stackoverflow.com/questions/15507171/django-filter-query-foreign-key
-    # voto_parlamentar = VotoParlamentar.objects.filter(votacao__ordem__id=140)
+    # recuperar pela votacao.id
+    voto_parlamentar = VotoParlamentar.objects.filter(votacao_id = votacao.id)
+    votos = {}
+    for vp in voto_parlamentar:
+        votos[vp.parlamentar.nome_parlamentar] = vp.voto
 
     ordem_dia = OrdemDia.objects.get(id=104)
 
@@ -46,9 +50,9 @@ def json_votacao(request):
     # tem que fazer OUTRA query, deve ter uma
     # forma de fazer isso na base do join de data models.
     filiacao = Filiacao.objects.filter(data_desfiliacao__isnull=True)
-    map = {}
+    parlamentar_partido = {}
     for f in filiacao:
-        map[f.parlamentar.nome_parlamentar] = f.partido.sigla
+        parlamentar_partido[f.parlamentar.nome_parlamentar] = f.partido.sigla
 
     presenca_ordem_dia = PresencaOrdemDia.objects.filter(
         sessao_plenaria_id=sessaoplenaria_id)
@@ -56,7 +60,10 @@ def json_votacao(request):
     for p in presenca_ordem_dia:
         nome_parlamentar = p.parlamentar.nome_parlamentar
         presentes_ordem_dia.append(
-            nome_parlamentar + " / " + map[nome_parlamentar])
+                {'nome': nome_parlamentar, 
+                 'partido':  parlamentar_partido[nome_parlamentar],
+                 'voto': votos.get(nome_parlamentar, '-')})
+                
     total_votos = votacao.numero_votos_sim + \
         votacao.numero_votos_nao + votacao.numero_abstencoes
 

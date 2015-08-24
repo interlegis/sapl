@@ -58,10 +58,8 @@
                   presentes.children().remove();
 
                   presentes_ordem_dia = data.presentes_ordem_dia
-                  jQuery.each(presentes_ordem_dia, function(index, value) {
-                      console.log(value)
-                      parlamentar = value
-                      $('<li />', {text: parlamentar }).appendTo(presentes);
+                  jQuery.each(presentes_ordem_dia, function(index, parlamentar) {                     
+                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido + ' ' + parlamentar.voto }).appendTo(presentes);
                   });
 
                   var votacao = $("#votacao")
