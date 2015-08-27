@@ -263,6 +263,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
             'votacao': self.votacao, 'parlamentar': self.parlamentar}
 
+
 class SessaoPlenariaPresenca(models.Model):
     sessao_plen = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)

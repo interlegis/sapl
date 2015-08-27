@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 from extra_views import InlineFormSetView
+
 from sapl.crud import build_crud
 
 from .models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,

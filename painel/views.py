@@ -3,7 +3,7 @@ from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from parlamentares.models import Filiacao, Parlamentar
+from parlamentares.models import Filiacao
 from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            SessaoPlenaria, SessaoPlenariaPresenca,
                            VotoParlamentar)
@@ -35,7 +35,7 @@ def json_votacao(request):
     # Magic!
     # http://stackoverflow.com/questions/15507171/django-filter-query-foreign-key
     # recuperar pela votacao.id
-    voto_parlamentar = VotoParlamentar.objects.filter(votacao_id = votacao.id)
+    voto_parlamentar = VotoParlamentar.objects.filter(votacao_id=votacao.id)
     votos = {}
     for vp in voto_parlamentar:
         votos[vp.parlamentar.nome_parlamentar] = vp.voto
@@ -60,10 +60,10 @@ def json_votacao(request):
     for p in presenca_ordem_dia:
         nome_parlamentar = p.parlamentar.nome_parlamentar
         presentes_ordem_dia.append(
-                {'nome': nome_parlamentar, 
-                 'partido':  parlamentar_partido[nome_parlamentar],
-                 'voto': votos.get(nome_parlamentar, '-')})
-                
+            {'nome': nome_parlamentar,
+             'partido':  parlamentar_partido[nome_parlamentar],
+             'voto': votos.get(nome_parlamentar, '-')})
+
     total_votos = votacao.numero_votos_sim + \
         votacao.numero_votos_nao + votacao.numero_abstencoes
 
