@@ -15,6 +15,6 @@ def test_str_sanity():
             try:
                 str(obj)
             except Exception as exc:
-                msg = '%s.%s.__str__ has is broken.' % (
+                msg = '%s.%s.__str__ is broken.' % (
                     model.__module__, model.__name__)
                 raise AssertionError(msg, exc) from exc

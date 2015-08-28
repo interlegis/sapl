@@ -11,8 +11,8 @@ from model_mommy import mommy
 
 from comissoes.models import Composicao, Participacao
 from parlamentares.models import Parlamentar
-from sessao.models import SessaoPlenaria
 from sapl.utils import appconfs
+from sessao.models import SessaoPlenaria
 
 # BASE ######################################################################
 
