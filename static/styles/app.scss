@@ -36,40 +36,40 @@ $top-bar-dropdown-radius: $global-radius;
 .nav {
 	@media #{$topbar-media-query} {
 		.has-dropdown {
+			// Default values for dropdowns, while also being hidden.
 			.dropdown {
-				// Border-radius for the dropdowns
+				// Border-radius for the first and last dropdown items. We don't style the parent dropdown, as the items overflows it. 
 				@include radius(rem-calc($top-bar-dropdown-radius));
+				// Second child here actually targets the first item, since Foundation JS injects a hidden li before it for a mobile back button.
 				> li:nth-child(2), > li:nth-child(2) > a {
 					@include side-radius(top, rem-calc($top-bar-dropdown-radius));
 				}
 				> li:last-child, li:last-child > a {
 					@include side-radius(bottom, rem-calc($top-bar-dropdown-radius));
 				}
-				
-				// Default values while dropdown is hidden
-
-				// For transition effect
-				opacity: 0; 
-
-
-
-				// This allows the triangle pip to stay above the dropdown
-				overflow: visible; 
 				box-shadow: 0 10px 18px rgba(0, 0, 0, 0.19),
 							0 2px 6px rgba(0, 0, 0, 0.23);
-
-				pointer-events: none; // Making sure when its animating back do default states, it wont  
+				// For the transition effect.
+				opacity: 0; 
+				// Show the dropdown accurately while it animates. 
+				width: auto;
+				// This will allow the triangle pip to be visible above the dropdown.
+				overflow: visible;
+				// This ensures we won't accidentally trigger the dropdown if we hover on it, while the animation to default values is run.
+				pointer-events: none;
 				transform: translateY(rem-calc(25px));
+				// This transition is actually for when we hover-out of the dropdown.
 				transition: transform 0.1s linear,
 							opacity 0.1s linear,
 							clip 0s 0.3s;
+				// The triangle pip
 				&::before {
 					@include css-triangle(rem-calc(6px), $topbar-dropdown-bg, bottom);
 					position: absolute;
 					top: rem-calc(-12px);
 					left: rem-calc(15px);
-				}
-
+				}	
+				// This bridges the gap between the top bar and a dropdown. 
 				&::after {
 					content: "";
 					position: absolute;
@@ -78,18 +78,26 @@ $top-bar-dropdown-radius: $global-radius;
 					top: rem-calc(-25px);		
 					height: rem-calc(25px);
 					width: 100%;
+					// This transition is for hover-on.
 					transition: all 0.3s cubic-bezier(0.55,0,0.1,1);
 				}
 			}
-
+			// When hovering
 			&.hover, &.not-click:hover {
 				> .dropdown {
 					opacity: 1;
+					// Here we override the default clip value ("auto") for an arbitrary large size that fits any dropdown,
+					// as this now makes it possible to apply a transition effect for it.
 					clip: rect(-100px, 2000px, 2000px, -100px);
 					transform: translateY(rem-calc(10px));
+					// Reverting back our pointer-events.
 					pointer-events: auto;
+					// Animating with a beautiful cubic-bezier curve, or Google's "Swift out" easing :)
 					transition: transform 0.3s cubic-bezier(0.55,0,0.1,1),
-								opacity 0.3s cubic-bezier(0.55,0,0.1,1), clip 0s 0s;
+								opacity 0.3s cubic-bezier(0.55,0,0.1,1), 
+								// Here we make sure the clipping is set before any other transition.
+								clip 0s 0s;
+					// Don't forget to properly animate our bridge, so it keeps only between our gap.
 					&::after {
 						top: rem-calc(-10px);
 					}
@@ -101,7 +109,6 @@ $top-bar-dropdown-radius: $global-radius;
 
 // Our app
 // - - - - - - - - - - - - - - - - - - - - - - - - -
-
 
 @-webkit-keyframes fadeIn {
 0% {opacity: 0;}
