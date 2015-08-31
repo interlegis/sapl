@@ -3,8 +3,8 @@
 {% load sass_tags %}
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> 
-<html class="no-js" lang="en"> 
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
 <!--<![endif]-->
 
   <head>
@@ -12,27 +12,29 @@
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head_content %}
-      
+
       {# Styles #}
       <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
       <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
       <link rel="stylesheet" href="{% static 'foundation-icon-fonts/foundation-icons.css' %}">
       <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
-      
+
       {# Scripts #}
       {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
     {% endblock %}
   </head>
 
   <body>
     <div class="page fadein">
-    
+
       {# Navigation #}
       {% block navigation %}
-        <div id="navigation" class="navigation fixed contain-to-grid">        
+        <div id="navigation" class="navigation fixed contain-to-grid">
           <nav class="top-bar" data-topbar role="navigation">
             <ul class="title-area left">
               <li class="name"></li>
@@ -40,7 +42,7 @@
             </ul>
 
             <div class="nav right">
-              <div class="icon-bar three-up">        
+              <div class="icon-bar three-up">
                 <a class="item" tabindex="0" role="button" aria-label="{% trans 'Pesquisa' %}">
                   <img src="{% static 'img/search.png' %}">
                 </a>
@@ -113,7 +115,7 @@
           </nav>
         </div>
       {% endblock navigation %}
-      
+
       {# Header #}
       {% block main_header %}
         <header id="masthead" class="masthead page__row">
@@ -146,7 +148,7 @@
             {# Content header #}
             {% block base_header %}
               <div class="clearfix">
-                
+
                 {% block help %}
                   {% if view.help_path %}
                     <a class="contextual-help right" href="{% url 'help_base' %}{{ view.help_path }}">{% trans 'Ajuda' %}</a>

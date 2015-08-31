@@ -147,9 +147,10 @@ BOWER_INSTALLED_APPS = (
     'components-font-awesome',
     'foundation-icon-fonts',
     'tinymce',
+    'jquery-runner',
 )
 
-# Additional search paths for SASS files when using the @import statement 
+# Additional search paths for SASS files when using the @import statement
 SASS_PROCESSOR_INCLUDE_DIRS = (
     BOWER_COMPONENTS_ROOT.child('bower_components', 'foundation', 'scss'),
 )
