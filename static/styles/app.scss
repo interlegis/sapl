@@ -4,8 +4,111 @@
 
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic);
 
-$main-color: #27AE60;
-$sub-color: #34495E;
+$top-bar-dropdown-radius: $global-radius;
+
+// Foundation Restyling
+// - - - - - - - - - - - - - - - - - - - - - - - - -
+
+// Moving the mobile menu icon to the right
+.title-area.left {
+	.toggle-topbar {
+		right: initial;
+	}
+	// Making sure dropdowns on mobile are not rendered on top of the top bar.
+	@media #{$small-only} {
+		~ .top-bar-section {
+			.has-dropdown.moved > .dropdown,
+			.dropdown {
+			  top: $topbar-height;
+			}
+		}
+	}
+}
+
+// Restyles to foundation top bar menu, in order to behave aesthetically different 
+/* 
+   XXX
+   Is there a better way to implement these styles using best practices without the
+   need to override this much of foundation? Or at least avoid too much nesting and
+   specificity (better use of BEM and ITCSS)?
+*/
+
+.nav {
+	@media #{$topbar-media-query} {
+		.has-dropdown {
+			// Default values for dropdowns, while also being hidden.
+			.dropdown {
+				// Border-radius for the first and last dropdown items. We don't style the parent dropdown, as the items overflows it. 
+				@include radius(rem-calc($top-bar-dropdown-radius));
+				// Second child here actually targets the first item, since Foundation JS injects a hidden li before it for a mobile back button.
+				> li:nth-child(2), > li:nth-child(2) > a {
+					@include side-radius(top, rem-calc($top-bar-dropdown-radius));
+				}
+				> li:last-child, li:last-child > a {
+					@include side-radius(bottom, rem-calc($top-bar-dropdown-radius));
+				}
+				box-shadow: 0 10px 18px rgba(0, 0, 0, 0.19),
+							0 2px 6px rgba(0, 0, 0, 0.23);
+				// For the transition effect.
+				opacity: 0; 
+				// Show the dropdown accurately while it animates. 
+				width: auto;
+				// This will allow the triangle pip to be visible above the dropdown.
+				overflow: visible;
+				// This ensures we won't accidentally trigger the dropdown if we hover on it, while the animation to default values is run.
+				pointer-events: none;
+				transform: translateY(rem-calc(25px));
+				// This transition is actually for when we hover-out of the dropdown.
+				transition: transform 0.1s linear,
+							opacity 0.1s linear,
+							clip 0s 0.3s;
+				// The triangle pip
+				&::before {
+					@include css-triangle(rem-calc(6px), $topbar-dropdown-bg, bottom);
+					position: absolute;
+					top: rem-calc(-12px);
+					left: rem-calc(15px);
+				}	
+				// This bridges the gap between the top bar and a dropdown. 
+				&::after {
+					content: "";
+					position: absolute;
+					z-index: -1;
+					left: 0;
+					top: rem-calc(-25px);		
+					height: rem-calc(25px);
+					width: 100%;
+					// This transition is for hover-on.
+					transition: all 0.3s cubic-bezier(0.55,0,0.1,1);
+				}
+			}
+			// When hovering
+			&.hover, &.not-click:hover {
+				> .dropdown {
+					opacity: 1;
+					// Here we override the default clip value ("auto") for an arbitrary large size that fits any dropdown,
+					// as this now makes it possible to apply a transition effect for it.
+					clip: rect(-100px, 2000px, 2000px, -100px);
+					transform: translateY(rem-calc(10px));
+					// Reverting back our pointer-events.
+					pointer-events: auto;
+					// Animating with a beautiful cubic-bezier curve, or Google's "Swift out" easing :)
+					transition: transform 0.3s cubic-bezier(0.55,0,0.1,1),
+								opacity 0.3s cubic-bezier(0.55,0,0.1,1), 
+								// Here we make sure the clipping is set before any other transition.
+								clip 0s 0s;
+					// Don't forget to properly animate our bridge, so it keeps only between our gap.
+					&::after {
+						top: rem-calc(-10px);
+					}
+				}
+			}
+		}
+	}
+}
+
+// Our app
+// - - - - - - - - - - - - - - - - - - - - - - - - -
 
 @-webkit-keyframes fadeIn {
 0% {opacity: 0;}
@@ -17,7 +120,6 @@ $sub-color: #34495E;
 }
 
 html, body {
-font: 100% "Open Sans", Helvetica, Arial, sans-serif;
 margin: 0;
 padding: 0;
 height: 100%;
@@ -34,23 +136,23 @@ border: none;
 
 a {
 background-color: transparent;
-color: $main-color;
+color: $primary-color;
 text-decoration: none;
 transition: 0.2s;
 }
 
 h1 {
-color: $main-color;
+color: $primary-color;
 font-size: 120%;
 }
 
 h2 {
-color: $main-color;
+color: $primary-color;
 font-size: 110%;
 }
 
 h1 a, h2 a, h3 a, h1 a:hover, h2 a:hover, h3 a:hover {
-color: $main-color;
+color: $primary-color;
 }
 
 .fadein {
@@ -86,17 +188,6 @@ color: #444444;
         }
 
 .navigation {
-position: fixed;
-z-index: 100;
-top: 0;
-font-weight: 700;
-font-size: 85%;
-padding: 0;
-width: 100%;
-height: 40px;
-line-height: 40px;
-background-color: $sub-color;
-color: #ffffff;
 box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
 }
 
@@ -105,13 +196,14 @@ box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
     max-width: 960px;
     }
 
-.masthead {
 
-}  
+.icon-bar {
+	vertical-align: top;
+}
 
     .masthead > .container {
-    padding-top: 60px;
-    border-bottom: 20px solid $main-color;
+    padding-top: 20px;
+    border-bottom: 20px solid $primary-color;
     background-color: #ffffff;
     }
 
@@ -170,7 +262,7 @@ font-size: 100%;
 
 .footer {
 width: 100%;
-background-color: $sub-color;
+background-color: $secondary-color;
 color: #ffffff;
 text-align: center;
 }

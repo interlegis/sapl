@@ -137,7 +137,7 @@ MEDIA_ROOT = BASE_DIR.child("media")
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_TEMPLATE_PACK = 'foundation-5'
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 BOWER_COMPONENTS_ROOT = BASE_DIR.child("bower")
@@ -147,6 +147,7 @@ BOWER_INSTALLED_APPS = (
     'components-font-awesome',
     'foundation-icon-fonts',
     'tinymce',
+    'jquery-runner',
 )
 
 # Additional search paths for SASS files when using the @import statement

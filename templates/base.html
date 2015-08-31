@@ -3,8 +3,8 @@
 {% load sass_tags %}
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> 
-<html class="no-js" lang="en"> 
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
 <!--<![endif]-->
 
   <head>
@@ -12,34 +12,110 @@
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head_content %}
-      
+
       {# Styles #}
       <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
       <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
       <link rel="stylesheet" href="{% static 'foundation-icon-fonts/foundation-icons.css' %}">
-      {# Root directory to look for SASS files is set in settings.py with SASS_PROCESSOR_ROOT #}
       <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
-      
+
       {# Scripts #}
       {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
     {% endblock %}
   </head>
 
   <body>
     <div class="page fadein">
-    
+
       {# Navigation #}
       {% block navigation %}
-        <nav id="navigation" class="navigation">
-          <div class="container">
-            <span>Navigation Placeholder!</span>
-          </div>
-        </nav>
+        <div id="navigation" class="navigation fixed contain-to-grid">
+          <nav class="top-bar" data-topbar role="navigation">
+            <ul class="title-area left">
+              <li class="name"></li>
+              <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+            </ul>
+
+            <div class="nav right">
+              <div class="icon-bar three-up">
+                <a class="item" tabindex="0" role="button" aria-label="{% trans 'Pesquisa' %}">
+                  <img src="{% static 'img/search.png' %}">
+                </a>
+                <a class="item" tabindex="0" role="button" aria-label="{% trans 'Manual' %}">
+                  <img src="{% static 'img/manual.png' %}">
+                </a>
+                <a class="item" tabindex="0" role="button" aria-label="{% trans 'Usuário' %}">
+                  <img src="{% static 'img/user.png' %}">
+                </a>
+              </div>
+            </div>
+
+            <section class="top-bar-section">
+              <ul class="nav left">
+                <li class="nav__item has-dropdown"><a class="nav__link">Institucional</a>
+                  <ul class="nav__sub-nav dropdown">
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Mesa Diretora</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Comissões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Comissões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Parlamentares</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Parlamentares</a></li>
+                  </ul>
+                </li>
+                <li class="nav__item has-dropdown"><a class="nav__link">Protocolo</a>
+                  <ul class="nav__sub-nav dropdown">
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pesquisar</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Protocolo Legislativo</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Protocolo SPDO</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Receber Proposições</a></li>
+                  </ul>
+                </li>
+                <li class="nav__item has-dropdown"><a class="nav__link">Atividade Legislativa</a>
+                  <ul class="nav__sub-nav dropdown">
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Proposições</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Matérias Legislativas</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Matérias Legislativas</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Sessões Plenárias</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pautas das Sessões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Atas das Sessões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Reuniões das Comissões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Tramitação em Lote</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Impressos</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Relatórios</a></li>
+                  </ul>
+                </li>
+                <li class="nav__item has-dropdown"><a class="nav__link">Normas Jurídicas</a>
+                  <ul class="nav__sub-nav dropdown">
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pesquisar</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pesquisar</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Índice de Assuntos</a></li>
+                  </ul>
+                </li>
+                <li class="nav__item has-dropdown"><a class="nav__link">Sistema</a>
+                  <ul class="nav__sub-nav dropdown">
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Tabelas Auxiliares</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Publicador LexML</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Gerenciar Usuários</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Backup e Restauração</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Migração de Dados</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Sobre</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">ZopeEdit Windows</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Troca de Senha</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+          </nav>
+        </div>
       {% endblock navigation %}
-      
+
       {# Header #}
       {% block main_header %}
         <header id="masthead" class="masthead page__row">
@@ -48,6 +124,7 @@
               <img src="{% static 'img/logo.png' %}" alt="Logo">
             </a>
             <div class="masthead__heading">
+              {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
               <h1>{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}</h1>
               <h2>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</h2>
             </div>
@@ -71,7 +148,7 @@
             {# Content header #}
             {% block base_header %}
               <div class="clearfix">
-                
+
                 {% block help %}
                   {% if view.help_path %}
                     <a class="contextual-help right" href="{% url 'help_base' %}{{ view.help_path }}">{% trans 'Ajuda' %}</a>

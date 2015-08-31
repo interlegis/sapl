@@ -1,0 +1,45 @@
+{% load i18n %}                                                                                                              
+{% load staticfiles %}
+<!DOCTYPE HTML>
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en">
+<!--<![endif]-->
+
+    <head>
+      <meta charset="UTF-8">
+      <!-- TODO: does it need this head_title here? -->
+      <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+
+      <STYLE type="text/css">
+        @media screen {
+            body {font-size: medium; color: white; line-height: 1em; background: black;}
+        }
+      </STYLE>
+      
+    </head>
+    <body>
+        STATUS SESSÃO:<br/>
+
+        <button id="open-votacao">Iniciar Votação</button>
+        <button id="close-votacao">Fechar Votação</button>
+        <br/>
+
+        CRONÔMETROS:<br/>
+        <button id="init-stopwatch-discurso">Iniciar Cronômetro discurso</button>
+        <button id="init-stopwatch-aparte">Iniciar Cronômetro aparte</button>
+        <button id="init-stopwatch-questaoordem">Iniciar Cronômetro Questão de Ordem</button>
+        <br/>
+        <button id="stop-stopwatch-discurso">Parar Cronômetro discurso</button>
+        <button id="stop-stopwatch-aparte">Parar Cronômetro aparte</button>
+        <button id="stop-stopwatch-questaoordem">Parar Cronômetro Questão de Ordem</button>
+        <br/>
+        <button id="reset-stopwatch-discurso">Reiniciar Cronômetro discurso</button>
+        <button id="reset-stopwatch-aparte">Reiniciar Cronômetro aparte</button>
+        <button id="reset-stopwatch-questaoordem">Reiniciar Cronômetro Questão de Ordem</button>
+        <br/>
+
+    </body>
+</html>
