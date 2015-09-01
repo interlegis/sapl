@@ -1,0 +1,150 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block detail_content %}
+	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
+
+	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
+  		<li><a href="#">Iniciar painel presidente</a></li>
+  		<li><a href="#">Iniciar painel completo</a></li>
+  		<li><a href="#">Iniciar painel mensagem</a></li>
+  		<li><a href="#">Iniciar painel parlamentares</a></li>
+  		<li><a href="#">Iniciar painel votação</a></li>
+	</ul>
+
+	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+		<li><h3>Cronômetro do Discurso</h3></li>
+	</ul>
+
+	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+		<li><input size="2" id="discurso" name="discurso" value="" readyonly="true"></li>
+	</ul>
+
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+		<li><div class="button" id="discursoStart" style="display: inline;" >Iniciar</div></li>
+		<li><div class="button" id="discursoReset" style="display: inline;" >Reiniciar</div></li>
+	</ul>
+
+	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+		<li><h3>Cronômetro do Aparte</h3></li>
+	</ul>
+
+	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+		<li><input size="2" id="aparte" name="aparte" value="" readyonly="true"></li>
+	</ul>
+
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+		<li><div class="button" id="aparteStart" style="display: inline;" >Iniciar</div></li>
+		<li><div class="button" id="aparteReset" style="display: inline;" >Reiniciar</div></li>
+	</ul>
+
+	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+		<li><h3>Cronômetro da Questão de Ordem </h3></li>
+	</ul>
+
+	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+		<li><input size="2" id="ordem" name="ordem" value="" readyonly="true"></li>
+	</ul>
+
+	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+		<li><div class="button" id="ordemStart" style="display: inline;" >Iniciar</div></li>
+		<li><div class="button" id="ordemReset" style="display: inline;" >Reiniciar</div></li>
+	</ul>
+
+{% endblock detail_content %}
+
+{% block foot_js %}
+<script language="JavaScript">
+$(function() {
+	var audioAlertFinish = document.getElementById("audio");
+
+	$('#discurso').prop('disabled', true);
+	$('#aparte').prop('disabled', true);
+	$('#ordem').prop('disabled', true);
+
+    $('#discurso').runner({
+        autostart: false,
+        countdown: true,
+        startAt: 60 * 5 * 1000,
+        stopAt: 0,
+        milliseconds: false
+	}).on('runnerFinish', function(eventObject, info){
+		audioAlertFinish.play();
+	});
+
+    $('#discursoStart').click(function() {
+		if($('#discursoStart').text() == 'Iniciar'){
+			$('#discursoReset').hide();
+			$('#discurso').runner('start');
+			$('#discursoStart').text('Parar');
+		}else{
+			$('#discursoReset').show();
+			$('#discurso').runner('stop');
+			$('#discursoStart').text('Iniciar');
+		}
+    });
+
+    $('#discursoReset').click(function() {
+        $('#discurso').runner('stop');
+        $('#discurso').runner('reset');
+    });
+
+    $('#aparte').runner({
+        autostart: false,
+        countdown: true,
+        startAt: 60 * 3 * 1000,
+        stopAt: 0,
+        milliseconds: false
+	}).on('runnerFinish', function(eventObject, info){
+		audioAlertFinish.play();
+	});
+
+	$('#aparteStart').click(function(){
+		if($('#aparteStart').text() == 'Iniciar'){
+			$('#aparteReset').hide();
+	        $('#aparte').runner('start');
+			$('#aparteStart').text('Parar');
+		}else{
+			$('#aparteReset').show();
+			$('#aparte').runner('stop');
+			$('#aparteStart').text('Iniciar');
+		}
+    });
+
+    $('#aparteReset').click(function() {
+        $('#aparte').runner('stop');
+        $('#aparte').runner('reset');
+    });
+
+    $('#ordem').runner({
+        autostart: false,
+        countdown: true,
+        startAt: 60 * 2 * 1000,
+        stopAt: 0,
+        milliseconds: false
+	}).on('runnerFinish', function(eventObject, info){
+		audioAlertFinish.play();
+	});
+
+    $('#ordemStart').click(function() {
+		if($('#ordemStart').text() == 'Iniciar'){
+			$('#ordemReset').hide();
+	        $('#ordem').runner('start');
+			$('#ordemStart').text('Parar');
+		}else{
+			$('#ordemReset').show();
+	        $('#ordem').runner('stop');
+			$('#ordemStart').text('Iniciar');
+		}
+    });
+
+    $('#ordemReset').click(function() {
+        $('#ordem').runner('stop');
+        $('#ordem').runner('reset');
+    });
+
+});
+</script>
+
+{% endblock %}

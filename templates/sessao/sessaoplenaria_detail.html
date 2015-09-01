@@ -6,5 +6,6 @@
     <dd><a href="{% url 'sessaoplenaria:detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
     <dd><a href="{% url 'sessaoplenaria:expediente' object.pk %}" class="button secondary">{% trans 'Expediente' %}</a></dd>
     <dd><a href="{% url 'sessaoplenaria:presenca' object.pk %}" class="button secondary">{% trans 'Presença' %}</a></dd>
+    <dd><a href="{% url 'sessaoplenaria:painel' object.pk %}" class="button secondary">{% trans 'Painel Eletrônico' %}</a></dd>
   </dl>
 {% endblock sections_nav %}

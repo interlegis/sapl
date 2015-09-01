@@ -150,3 +150,7 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
                     yield (parlamentar, False)
                 else:
                     yield (parlamentar, True)
+
+
+class PainelView(sessao_crud.CrudDetailView):
+    template_name = 'sessao/painel.html'
