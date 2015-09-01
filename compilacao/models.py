@@ -1,7 +1,7 @@
-from django.db import models 
-
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from sapl.utils import YES_NO_CHOICES, make_choices
+
+from sapl.utils import YES_NO_CHOICES
 
 
 class TipoNota(models.Model):
@@ -16,33 +16,33 @@ class TipoNota(models.Model):
 
     def __str__(self):
         return self.sigla
-    
-    
+
+
 class TipoVide(models.Model):
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-    
+
     class Meta:
         verbose_name = _('Tipo de Vide')
         verbose_name_plural = _('Tipos de Vide')
 
     def __str__(self):
         return self.sigla
-    
-    
+
+
 class TipoDispositivo(models.Model):
     FORMATO_NUMERACAO = [
-        ('1', _('Numérico')), 
-        ('I', _('Romano Maiúsculo')), 
-        ('i', _('Romano Minúsculo')), 
-        ('A', _('Alfabético Maiúsculo')), 
-        ('a', _('Alfabético Minúsculo')), 
-        ('*', _('Tópico sem contagem')),    
-        ('N', _('Sem renderização de Contagem')),     
+        ('1', _('Numérico')),
+        ('I', _('Romano Maiúsculo')),
+        ('i', _('Romano Minúsculo')),
+        ('A', _('Alfabético Maiúsculo')),
+        ('a', _('Alfabético Minúsculo')),
+        ('*', _('Tópico sem contagem')),
+        ('N', _('Sem renderização de Contagem')),
     ]
-    
+
     nome = models.CharField(
-        max_length=50, unique = True, verbose_name=_('Nome'))
+        max_length=50, unique=True, verbose_name=_('Nome'))
     class_css = models.CharField(
         max_length=20, verbose_name=_('Classe CSS'))
     rotulo_prefixo_html = models.CharField(
@@ -51,9 +51,9 @@ class TipoDispositivo(models.Model):
         max_length=30,
         verbose_name=_('Prefixo de construção do rótulo'))
     rotulo_ordinal = models.IntegerField(
-        verbose_name=_('Tipo de Número do Rótulo')) 
+        verbose_name=_('Tipo de Número do Rótulo'))
     rotulo_separadores_variacao = models.CharField(
-        max_length=5, verbose_name=_('Separadores das Variações'))    
+        max_length=5, verbose_name=_('Separadores das Variações'))
     rotulo_sufixo_texto = models.CharField(
         max_length=30,
         verbose_name=_('Sufixo de construção do rótulo'))
@@ -93,12 +93,10 @@ class TipoDispositivo(models.Model):
         max_length=1,
         choices=FORMATO_NUMERACAO,
         verbose_name=_('Formato da Variação 5'))
-    
-    
-    
+
     class Meta:
         verbose_name = _('Tipo de Dispositivo')
         verbose_name_plural = _('Tipos de Dispositivo')
-        
+
     def __str__(self):
         return self.sigla
