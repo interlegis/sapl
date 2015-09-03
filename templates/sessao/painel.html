@@ -25,8 +25,8 @@
 	</ul>
 
 	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li><div class="button" id="discursoStart" style="display: inline;" >Iniciar</div></li>
-		<li><div class="button" id="discursoReset" style="display: inline;" >Reiniciar</div></li>
+		<li><button type="button" id="discursoStart">Iniciar</button></li>
+		<li><button type="button" id="discursoReset">Reiniciar</button></li>
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
@@ -38,8 +38,8 @@
 	</ul>
 
 	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li><div class="button" id="aparteStart" style="display: inline;" >Iniciar</div></li>
-		<li><div class="button" id="aparteReset" style="display: inline;" >Reiniciar</div></li>
+		<li><button type="button" id="aparteStart">Iniciar</button></li>
+		<li><button type="button" id="aparteReset">Reiniciar</button></li>
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
@@ -51,8 +51,8 @@
 	</ul>
 
 	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li><div class="button" id="ordemStart" style="display: inline;" >Iniciar</div></li>
-		<li><div class="button" id="ordemReset" style="display: inline;" >Reiniciar</div></li>
+		<li><button type="button" id="ordemStart">Iniciar</button></li>
+		<li><button type="button" id="ordemReset">Reiniciar</button></li>
 	</ul>
 
 {% endblock detail_content %}
@@ -102,10 +102,18 @@ $(function() {
 			$('#discursoReset').hide();
 			$('#discurso').runner('start');
 			$('#discursoStart').text('Parar');
+			$('#aparteStart').prop('disabled', true);
+			$('#aparteReset').prop('disabled', true);
+			$('#ordemStart').prop('disabled', true);
+			$('#ordemReset').prop('disabled', true);
 		}else{
 			$('#discursoReset').show();
 			$('#discurso').runner('stop');
 			$('#discursoStart').text('Iniciar');
+			$('#aparteStart').prop('disabled', false);
+			$('#aparteReset').prop('disabled', false);
+			$('#ordemStart').prop('disabled', false);
+			$('#ordemReset').prop('disabled', false);
 		}
     });
 
@@ -129,10 +137,18 @@ $(function() {
 			$('#aparteReset').hide();
 	        $('#aparte').runner('start');
 			$('#aparteStart').text('Parar');
+			$('#discursoStart').prop('disabled', true);
+			$('#discursoReset').prop('disabled', true);
+			$('#ordemStart').prop('disabled', true);
+			$('#ordemReset').prop('disabled', true);
 		}else{
 			$('#aparteReset').show();
 			$('#aparte').runner('stop');
 			$('#aparteStart').text('Iniciar');
+			$('#discursoStart').prop('disabled', false);
+			$('#discursoReset').prop('disabled', false);
+			$('#ordemStart').prop('disabled', false);
+			$('#ordemReset').prop('disabled', false);
 		}
     });
 
@@ -156,10 +172,18 @@ $(function() {
 			$('#ordemReset').hide();
 	        $('#ordem').runner('start');
 			$('#ordemStart').text('Parar');
+			$('#discursoStart').prop('disabled', true);
+			$('#discursoReset').prop('disabled', true);
+			$('#aparteStart').prop('disabled', true);
+			$('#aparteReset').prop('disabled', true);
 		}else{
 			$('#ordemReset').show();
 	        $('#ordem').runner('stop');
 			$('#ordemStart').text('Iniciar');
+			$('#discursoStart').prop('disabled', false);
+			$('#discursoReset').prop('disabled', false);
+			$('#aparteStart').prop('disabled', false);
+			$('#aparteReset').prop('disabled', false);
 		}
     });
 
