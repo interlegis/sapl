@@ -12,9 +12,12 @@
   		<li><a href="#">Iniciar painel parlamentares</a></li>
   		<li><a href="#">Iniciar painel votação</a></li>
 	</ul>
-
+	<br />
+	<h5>Operação do Painel Eletrônico</h5>
+	<h8><span id="relogio"></span></h8>
+	<br /><br />
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><h3>Cronômetro do Discurso</h3></li>
+		<li><h5>Cronômetro do Discurso</h5></li>
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
@@ -27,7 +30,7 @@
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><h3>Cronômetro do Aparte</h3></li>
+		<li><h5>Cronômetro do Aparte</h5></li>
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
@@ -40,7 +43,7 @@
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><h3>Cronômetro da Questão de Ordem </h3></li>
+		<li><h5>Cronômetro da Questão de Ordem </h5></li>
 	</ul>
 
 	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
@@ -57,6 +60,27 @@
 {% block foot_js %}
 <script language="JavaScript">
 $(function() {
+
+	function checkTime(i) {
+		if (i<10) {i = "0" + i};
+			return i;
+	}
+
+	function startTime() {
+		var today=new Date();
+	 	var h=today.getHours();
+		var m=today.getMinutes();
+		var s=today.getSeconds();
+		m = checkTime(m);
+		s = checkTime(s);
+		$("#relogio").text(h+":"+m+":"+s)
+		var t = setTimeout(function(){
+		    startTime()
+		},500);
+	}
+
+	startTime();
+
 	var audioAlertFinish = document.getElementById("audio");
 
 	$('#discurso').prop('disabled', true);
