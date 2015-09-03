@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from sessao.views import (ExpedienteView, OradorExpedienteDelete,
                           OradorExpedienteView, PainelView,
                           PresencaOrdemDiaView, PresencaView, sessao_crud,
