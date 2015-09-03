@@ -1,4 +1,3 @@
-import datetime
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
@@ -184,8 +183,6 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                 ordem = PresencaOrdemDia()
                 ordem.sessao_plenaria = self.object
                 ordem.parlamentar = Parlamentar.objects.get(id=p)
-                ordem.data_ordem = datetime.datetime.now().strftime(
-                    '%Y-%m-%d')
                 ordem.save()
 
             return self.form_valid(form)

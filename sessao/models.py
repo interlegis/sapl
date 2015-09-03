@@ -201,7 +201,6 @@ class OrdemDia(AbstractOrdemDia):
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
-    data_ordem = models.DateField()
 
     class Meta:
         verbose_name = _('Presença da Ordem do Dia')
