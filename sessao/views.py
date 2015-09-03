@@ -1,3 +1,4 @@
+import datetime
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
@@ -5,8 +6,9 @@ from extra_views import InlineFormSetView
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 from .models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
-                     RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria)
+                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoExpediente,
+                     TipoResultadoVotacao, TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
@@ -154,3 +156,61 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
 
 class PainelView(sessao_crud.CrudDetailView):
     template_name = 'sessao/painel.html'
+
+
+class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/presencaOrdemDia.html'
+    form_class = PresencaForm
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+
+        if form.is_valid():
+            # Pegar os presentes salvos no banco
+            presentes_banco = PresencaOrdemDia.objects.filter(
+                sessao_plenaria_id=self.object.id)
+
+            # Id dos parlamentares presentes
+            marcados = request.POST.getlist('presenca')
+
+            # Deletar os que foram desmarcadors
+            deletar = set(set(presentes_banco) - set(marcados))
+            for d in deletar:
+                PresencaOrdemDia.objects.filter(
+                    parlamentar_id=d.parlamentar_id).delete()
+
+            for p in marcados:
+                ordem = PresencaOrdemDia()
+                ordem.sessao_plenaria = self.object
+                ordem.parlamentar = Parlamentar.objects.get(id=p)
+                ordem.data_ordem = datetime.datetime.now().strftime(
+                    '%Y-%m-%d')
+                ordem.save()
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return self.detail_url
+
+    def get_parlamentares(self):
+        self.object = self.get_object()
+
+        presencas = PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=self.object.id
+        )
+
+        presentes = []
+        for p in presencas:
+            presentes.append(p.parlamentar.id)
+
+        for parlamentar in Parlamentar.objects.all():
+            if parlamentar.ativo:
+                try:
+                    presentes.index(parlamentar.id)
+                except ValueError:
+                    yield (parlamentar, False)
+                else:
+                    yield (parlamentar, True)
