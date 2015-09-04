@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'base',
     'parlamentares',
     'comissoes',
+    'compilacao',
     'sessao',
     'materia',
     'norma',
