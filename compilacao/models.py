@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -163,7 +164,7 @@ class Publicacao(models.Model):
         verbose_name_plural = _('Publicações')
 
     def __str__(self):
-        return self.veiculo_publicacao.nome + ": "+str(self.publicacao)
+        return self.veiculo_publicacao.nome + ": " + str(self.publicacao)
 
 
 class Dispositivo(models.Model):
@@ -290,15 +291,72 @@ class Dispositivo(models.Model):
         verbose_name = _('Dispositivo')
         verbose_name_plural = _('Dispositivos')
         unique_together = (
-                ('norma', 'ordem', ),
-                ('norma',
-                    'dispositivo0',
-                    'dispositivo1',
-                    'dispositivo2',
-                    'dispositivo3',
-                    'dispositivo4',
-                    'dispositivo5',
-                    'tipo_dispositivo',
-                    'dispositivo_pai',
-                    'publicacao', ),
-            )
+            ('norma', 'ordem',),
+            ('norma',
+             'dispositivo0',
+             'dispositivo1',
+             'dispositivo2',
+             'dispositivo3',
+             'dispositivo4',
+             'dispositivo5',
+             'tipo_dispositivo',
+             'dispositivo_pai',
+             'publicacao',),
+        )
+
+
+class Vide(models.Model):
+    data_criacao = models.DateTimeField(verbose_name=_('Data de Criação'))
+    texto = models.TextField(verbose_name=_('Texto do Vide'))
+
+    tipo = models.ForeignKey(TipoVide, verbose_name=_('Tipo do Vide'))
+
+    dispositivo_base = models.ForeignKey(
+        Dispositivo,
+        verbose_name=_('Dispositivo Base'),
+        related_name='%(class)s_dispositivo_base')
+    dispositivo_ref = models.ForeignKey(
+        Dispositivo,
+        related_name='%(class)s_dispositivo_ref',
+        verbose_name=_('Dispositivo Referido'))
+
+    class Meta:
+        verbose_name = _('Vide')
+        verbose_name_plural = _('Vides')
+
+
+class Nota(models.Model):
+    NPRIV = 1
+    NSTRL = 2
+    NINST = 3
+    NPUBL = 4
+    PUBLICIDADE_CHOICES = (
+        # Apenas o dono da nota tem visibilidade.
+        (NPRIV, _('Nota Privada')),
+        # Todos do mesmo grupo tem visibilidade.
+        (NSTRL, _('Nota Setorial')),
+        # Todo usuário autênticado tem visibilidade
+        (NINST, _('Nota Institucional')),
+        # Todo usuário tem visibilidade
+        (NPUBL, _('Nota Pública')),
+    )
+
+    texto = models.TextField(verbose_name=_('Texto da Nota'))
+    url_externa = models.CharField(
+        max_length=1024,
+        blank=True,
+        verbose_name=_('Url externa'))
+
+    data_criacao = models.DateTimeField(verbose_name=_('Data de Criação'))
+    publicacao = models.DateTimeField(verbose_name=_('Data de Publicação'))
+    efetifidade = models.DateTimeField(verbose_name=_('Data de Efeito'))
+
+    tipo = models.ForeignKey(TipoNota, verbose_name=_('Tipo da Nota'))
+    dispositivo = models.ForeignKey(
+        Dispositivo,
+        verbose_name=_('Dispositivo da Nota'))
+
+    owner = models.ForeignKey(User, verbose_name=_('Dono da Nota'))
+    publicidade = models.PositiveSmallIntegerField(
+        choice=PUBLICIDADE_CHOICES,
+        verbose_name=_('Nível de Publicidade'))
