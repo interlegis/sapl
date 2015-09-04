@@ -138,6 +138,7 @@ MEDIA_ROOT = BASE_DIR.child("media")
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 CRISPY_TEMPLATE_PACK = 'foundation-5'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'foundation-5'
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 BOWER_COMPONENTS_ROOT = BASE_DIR.child("bower")
