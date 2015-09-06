@@ -18,7 +18,7 @@ class TipoNota(models.Model):
         verbose_name_plural = _('Tipos de Nota')
 
     def __str__(self):
-        return self.sigla + ' - ' + self.nome
+        return '%s: %s' % (self.sigla, self.nome)
 
 
 class TipoVide(models.Model):
@@ -31,7 +31,7 @@ class TipoVide(models.Model):
         verbose_name_plural = _('Tipos de Vide')
 
     def __str__(self):
-        return self.sigla + ' - ' + self.nome
+        return '%s: %s' % (self.sigla, self.nome)
 
 
 class TipoDispositivo(models.Model):
@@ -43,41 +43,58 @@ class TipoDispositivo(models.Model):
     FNC8 = '*'
     FNCN = 'N'
     FORMATO_NUMERACAO_CHOICES = (
-        (FNC1, _('Numérico')),
-        (FNCI, _('Romano Maiúsculo')),
-        (FNCi, _('Romano Minúsculo')),
-        (FNCA, _('Alfabético Maiúsculo')),
-        (FNCa, _('Alfabético Minúsculo')),
-        (FNC8, _('Tópico sem contagem')),
-        (FNCN, _('Sem renderização de Contagem')),
+        (FNC1, _('(1) Numérico')),
+        (FNCI, _('(I) Romano Maiúsculo')),
+        (FNCi, _('(i) Romano Minúsculo')),
+        (FNCA, _('(A) Alfabético Maiúsculo')),
+        (FNCa, _('(a) Alfabético Minúsculo')),
+        (FNC8, _('Tópico - Sem contagem')),
+        (FNCN, _('Sem renderização')),
     )
 
     nome = models.CharField(
         max_length=50, unique=True, verbose_name=_('Nome'))
     class_css = models.CharField(
-        max_length=20, verbose_name=_('Classe CSS'))
+        max_length=20,
+        verbose_name=_('Classe CSS'))
     rotulo_prefixo_html = models.CharField(
-        max_length=100, verbose_name=_('Prefixo html do rótulo'))
+        blank=True,
+        max_length=100,
+        verbose_name=_('Prefixo html do rótulo'))
     rotulo_prefixo_texto = models.CharField(
+        blank=True,
         max_length=30,
         verbose_name=_('Prefixo de construção do rótulo'))
     rotulo_ordinal = models.IntegerField(
         verbose_name=_('Tipo de número do rótulo'))
     rotulo_separadores_variacao = models.CharField(
-        max_length=5, verbose_name=_('Separadores das Variações'))
+        blank=True,
+        max_length=5,
+        verbose_name=_('Separadores das Variações'))
     rotulo_sufixo_texto = models.CharField(
+        blank=True,
         max_length=30,
         verbose_name=_('Sufixo de construção do rótulo'))
     rotulo_sufixo_html = models.CharField(
-        max_length=100, verbose_name=_('Sufixo html do rótulo'))
+        blank=True,
+        max_length=100,
+        verbose_name=_('Sufixo html do rótulo'))
     texto_prefixo_html = models.CharField(
-        max_length=100, verbose_name=_('Prefixo html do texto'))
+        blank=True,
+        max_length=100,
+        verbose_name=_('Prefixo html do texto'))
     texto_sufixo_html = models.CharField(
-        max_length=100, verbose_name=_('Sufixo html do texto'))
+        blank=True,
+        max_length=100,
+        verbose_name=_('Sufixo html do texto'))
     nota_automatica_prefixo_html = models.CharField(
-        max_length=100, verbose_name=_('Prefixo html da nota automática'))
+        blank=True,
+        max_length=100,
+        verbose_name=_('Prefixo html da nota automática'))
     nota_automatica_sufixo_html = models.CharField(
-        max_length=100, verbose_name=_('Sufixo html da nota automática'))
+        blank=True,
+        max_length=100,
+        verbose_name=_('Sufixo html da nota automática'))
     contagem_continua = models.BooleanField(
         choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
     formato_variacao0 = models.CharField(
@@ -142,7 +159,7 @@ class VeiculoPublicacao(models.Model):
         verbose_name_plural = _('Veículos de Publicação')
 
     def __str__(self):
-        return self.sigla + ' - ' + self.nome
+        return '%s: %s' % (self.sigla, self.nome)
 
 
 class Publicacao(models.Model):
@@ -164,7 +181,7 @@ class Publicacao(models.Model):
         verbose_name_plural = _('Publicações')
 
     def __str__(self):
-        return self.veiculo_publicacao.nome + ": " + str(self.publicacao)
+        return '%s: %s' % (self.veiculo_publicacao, self.publicacao)
 
 
 class Dispositivo(models.Model):
@@ -304,6 +321,11 @@ class Dispositivo(models.Model):
              'publicacao',),
         )
 
+    def __str__(self):
+        return '%(rotulo)s - %(norma)s' % {
+            'rotulo': self.rotulo,
+            'norma': self.norma}
+
 
 class Vide(models.Model):
     data_criacao = models.DateTimeField(verbose_name=_('Data de Criação'))
@@ -323,6 +345,9 @@ class Vide(models.Model):
     class Meta:
         verbose_name = _('Vide')
         verbose_name_plural = _('Vides')
+
+    def __str__(self):
+        return _('Vide %s') % self.texto
 
 
 class Nota(models.Model):
@@ -358,5 +383,15 @@ class Nota(models.Model):
 
     owner = models.ForeignKey(User, verbose_name=_('Dono da Nota'))
     publicidade = models.PositiveSmallIntegerField(
-        choice=PUBLICIDADE_CHOICES,
+        choices=PUBLICIDADE_CHOICES,
         verbose_name=_('Nível de Publicidade'))
+
+    class Meta:
+        verbose_name = _('Nota')
+        verbose_name_plural = _('Notas')
+
+    def __str__(self):
+        return '%s: %s' % (
+            self.tipo,
+            self.PUBLICIDADE_CHOICES[self.publicidade][1]
+        )

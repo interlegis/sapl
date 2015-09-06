@@ -87,7 +87,9 @@ class NormaJuridica(models.Model):
     complemento = models.NullBooleanField(
         blank=True, verbose_name=_('Complementar ?'))
     # XXX was a CharField (attention on migrate)
-    assunto = models.ForeignKey(AssuntoNorma)
+    assuntos = models.ManyToManyField(
+        AssuntoNorma,
+        through='AssuntoNormaRelationship')
     data_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
 
@@ -101,6 +103,11 @@ class NormaJuridica(models.Model):
             'numero': self.numero,
             'materia': self.materia,
             'ano': self.ano}
+
+
+class AssuntoNormaRelationship(models.Model):
+    assunto = models.ForeignKey(AssuntoNorma)
+    norma = models.ForeignKey(NormaJuridica)
 
 
 class LegislacaoCitada(models.Model):
