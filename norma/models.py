@@ -109,6 +109,11 @@ class AssuntoNormaRelationship(models.Model):
     assunto = models.ForeignKey(AssuntoNorma)
     norma = models.ForeignKey(NormaJuridica)
 
+    class Meta:
+        unique_together = (
+            ('assunto', 'norma'),
+        )
+
 
 class LegislacaoCitada(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)

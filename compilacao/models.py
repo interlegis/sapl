@@ -254,6 +254,7 @@ class Dispositivo(models.Model):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Inconstitucionalidade'))
+    # Relevant attribute only in altering norms
     visibilidade = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
@@ -275,38 +276,39 @@ class Dispositivo(models.Model):
     norma_publicada = models.ForeignKey(
         NormaJuridica,
         blank=True, null=True, default=None,
-        related_name='%(class)s_norma_publicada',
+        related_name='dispositivos_alterados_set',
         verbose_name=_('Norma Jurídica Publicada'))
 
     dispositivo_subsequente = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='%(class)s_dispositivo_subsequente',
+        related_name='+',
         verbose_name=_('Dispositivo Subsequente'))
     dispositivo_substituido = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='%(class)s_dispositivo_substituido',
+        related_name='+',
         verbose_name=_('Dispositivo Substituido'))
     dispositivo_pai = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='%(class)s_dispositivo_pai',
+        related_name='+',
         verbose_name=_('Dispositivo Pai'))
     dispositivo_vigencia = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='%(class)s_dispositivo_vigencia',
+        related_name='+',
         verbose_name=_('Dispositivo de Vigência'))
     dispositivo_atualizador = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='%(class)s_dispositivo_atualizador',
+        related_name='dispositivos_alterados_set',
         verbose_name=_('Dispositivo Atualizador'))
 
     class Meta:
         verbose_name = _('Dispositivo')
         verbose_name_plural = _('Dispositivos')
+        ordering = ['norma', 'ordem']
         unique_together = (
             ('norma', 'ordem',),
             ('norma',
@@ -323,7 +325,7 @@ class Dispositivo(models.Model):
 
     def __str__(self):
         return '%(rotulo)s - %(norma)s' % {
-            'rotulo': self.rotulo,
+            'rotulo': (self.rotulo if self.rotulo else self.tipo_dispositivo),
             'norma': self.norma}
 
 
@@ -356,13 +358,13 @@ class Nota(models.Model):
     NINST = 3
     NPUBL = 4
     PUBLICIDADE_CHOICES = (
-        # Apenas o dono da nota tem visibilidade.
+        # Only the owner of the note has visibility.
         (NPRIV, _('Nota Privada')),
-        # Todos do mesmo grupo tem visibilidade.
+        # All of the same group have visibility.
         (NSTRL, _('Nota Setorial')),
-        # Todo usuário autênticado tem visibilidade
+        # All authenticated users have visibility.
         (NINST, _('Nota Institucional')),
-        # Todo usuário tem visibilidade
+        # All users have visibility.
         (NPUBL, _('Nota Pública')),
     )
 
