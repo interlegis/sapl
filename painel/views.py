@@ -1,15 +1,50 @@
-
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
+from painel.models import Painel
 from parlamentares.models import Filiacao
 from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            SessaoPlenaria, SessaoPlenariaPresenca,
                            VotoParlamentar)
 
+# UI views
+
+
+def controlador_painel(request):
+
+    painel = Painel.objects.update_or_create(abrir=0, fechar=1, mostrar='C')[0]
+
+    if request.method == 'POST':
+        if 'start-painel' in request.POST:
+            painel.abrir = 1
+            painel.fechar = 0
+            painel.save()
+        elif 'stop-painel' in request.POST:
+            painel.abrir = 0
+            painel.fechar = 1
+            painel.save()
+
+    context = {'painel': painel}
+    print(painel.abrir)
+    return render(request, 'painel/controller.html', context)
+
+
+def painel_view(request):
+    context = {'head_title': 'Painel Plenário',
+               'title': '3a. Sessao Ordinária do Município XYZ'}
+    return render(request, 'painel/index.html', {'context': context})
+
+
+def painel_parlamentares_view(request):
+    return render(request, 'painel/parlamentares.html')
+
+
+def painel_votacao_view(request):
+    return render(request, 'painel/votacao.html')
 
 # REST web services
+
 
 def json_presenca(request):
     presencas = PresencaOrdemDia.objects.filter(sessao_plenaria_id=50)
@@ -18,7 +53,7 @@ def json_presenca(request):
         parlamentares.append(p.parlamentar)
     # parlamentares = serializers.serialize('json', Parlamentar.objects.all())
     parlamentares = serializers.serialize('json', parlamentares)
-    return HttpResponse(parlamentares,  content_type='application/json')
+    return HttpResponse(parlamentares, content_type='application/json')
     # return JsonResponse(data) # work with python dict
 
 
@@ -61,7 +96,7 @@ def json_votacao(request):
         nome_parlamentar = p.parlamentar.nome_parlamentar
         presentes_ordem_dia.append(
             {'nome': nome_parlamentar,
-             'partido':  parlamentar_partido[nome_parlamentar],
+             'partido': parlamentar_partido[nome_parlamentar],
              'voto': votos.get(nome_parlamentar, '-')})
 
     total_votos = votacao.numero_votos_sim + \
@@ -93,19 +128,3 @@ def json_votacao(request):
                     "presentes_sessao_plenaria": presentes_sessao_plenaria,
                     }
     return JsonResponse(votacao_json)
-
-
-# UI views
-
-def painel_view(request):
-    context = {'head_title': 'Painel Plenário',
-               'title': '3a. Sessao Ordinária do Município XYZ'}
-    return render(request, 'painel/index.html', {'context': context})
-
-
-def painel_parlamentares_view(request):
-    return render(request, 'painel/parlamentares.html')
-
-
-def painel_votacao_view(request):
-    return render(request, 'painel/votacao.html')

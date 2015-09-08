@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block base_content %}
+     <form method="post">
+         {% csrf_token %}
+         {{ painel.fechar }}<br/>
+         <input type="submit" name="start-painel" value="Abrir Painel">
+         <input type="submit" name="stop-painel" value="Fechar Painel">
+     </form>
+{% endblock %}

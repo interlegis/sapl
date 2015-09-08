@@ -1,10 +1,13 @@
 from django.conf.urls import url
 
-from .views import (json_presenca, json_votacao, painel_parlamentares_view,
-                    painel_view, painel_votacao_view)
+from .views import (controlador_painel, json_presenca, json_votacao,
+                    painel_parlamentares_view, painel_view,
+                    painel_votacao_view)
 
 urlpatterns = [
     url(r'^sistema/painel$', painel_view),
+    url(r'^sistema/painel/controlador',
+        controlador_painel, name='controlador_painel'),
     url(r'^sistema/painel/parlamentares', painel_parlamentares_view),
     url(r'^sistema/painel/votacao', painel_votacao_view),
     url(r'^sistema/painel/json_presenca', json_presenca, name='json_presenca'),
