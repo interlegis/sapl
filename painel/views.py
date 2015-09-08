@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -8,26 +10,31 @@ from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            SessaoPlenaria, SessaoPlenariaPresenca,
                            VotoParlamentar)
 
-# UI views
 
+# REST WS
 
 def controlador_painel(request):
 
-    painel = Painel.objects.update_or_create(abrir=0, fechar=1, mostrar='C')[0]
+    painel_created = Painel.objects.get_or_create(data_painel=date.today())
+    painel = painel_created[0]
 
     if request.method == 'POST':
         if 'start-painel' in request.POST:
-            painel.abrir = 1
-            painel.fechar = 0
+            painel.aberto = True
             painel.save()
         elif 'stop-painel' in request.POST:
-            painel.abrir = 0
-            painel.fechar = 1
+            painel.aberto = False
+            painel.save()
+        elif 'save-painel' in request.POST:
+            painel.mostrar = request.POST['tipo_painel']
             painel.save()
 
-    context = {'painel': painel}
-    print(painel.abrir)
+    context = {'painel': painel, 'PAINEL_TYPES': Painel.PAINEL_TYPES}
     return render(request, 'painel/controller.html', context)
+
+
+def cronometro_painel(request):
+    pass
 
 
 def painel_view(request):

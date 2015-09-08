@@ -2,8 +2,10 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
+
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
+
 from .models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
