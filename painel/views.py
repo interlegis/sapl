@@ -3,15 +3,26 @@ from datetime import date
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-
+from django.utils.translation import ugettext_lazy as _
 from painel.models import Painel
 from parlamentares.models import Filiacao
+from sapl.crud import build_crud
 from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            SessaoPlenaria, SessaoPlenariaPresenca,
                            VotoParlamentar)
 
+from .models import Cronometro
+
+cronometro_painel_crud = build_crud(
+    Cronometro, '', [
+
+        [_('Cronometro'),
+         [('status', 3), ('data_cronometro', 6),
+          ('tipo', 3)]],
+    ])
 
 # REST WS
+
 
 def controlador_painel(request):
 
@@ -34,7 +45,9 @@ def controlador_painel(request):
 
 
 def cronometro_painel(request):
-    pass
+    print(request.POST)
+
+    return HttpResponse({})
 
 
 def painel_view(request):

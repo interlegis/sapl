@@ -33,7 +33,7 @@ class Cronometro(models.Model):
         verbose_name='Status do cronômetro',
         choices=CRONOMETRO_STATUS,
         default='S')
-    time = models.FloatField(verbose_name='Start time', default=0)
-    data_painel = models.DateField(verbose_name='Data do cronômetro')
+    #time = models.FloatField(verbose_name='Start time', default=0)
+    data_cronometro = models.DateField(verbose_name='Data do cronômetro')
     tipo = models.CharField(
         max_length=1, choices=CRONOMETRO_TYPES, verbose_name='Tipo Cronômetro')
