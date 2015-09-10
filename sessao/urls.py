@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
-
-from sessao.views import (ExpedienteView, PainelView, PresencaOrdemDiaView,
-                          PresencaView, sessao_crud, tipo_expediente_crud,
-                          tipo_resultado_votacao_crud, tipo_sessao_crud)
+from sessao.views import (ExpedienteView, OradorExpedienteView, PainelView,
+                          PresencaOrdemDiaView, PresencaView, sessao_crud,
+                          tipo_expediente_crud, tipo_resultado_votacao_crud,
+                          tipo_sessao_crud)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',
@@ -14,6 +14,8 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
+    url(r'^(?P<pk>\d+)/oradorexpediente$',
+        OradorExpedienteView.as_view(), name='oradorexpediente'),
 ]
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
 

@@ -1,0 +1,55 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+
+<h2>Oradores do Expediente</h2>
+<br /><br />
+
+<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
+        <li>Ordem de pronunciamento</li>
+        <li>Parlamentar</li>
+        <li>URL Discurso</li>
+	    <li>Excluir</li>
+</ul>
+
+<form method="post" action="./oradorexpediente">
+    {% csrf_token %}
+	{% for numero_ordem, url_discuro, parlamentar in view.get_oradores %}
+	    <ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
+	        <li>{{numero_ordem}}</li>
+	        <li>{{parlamentar}}</li>
+	        <li>{% if url_discurso == null %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</li>
+	        <li><a href="{% url 'sessaoplenaria:oradorexpediente' object.pk  %}">Excluir</a></li>
+	    </ul>
+	{% endfor %}
+
+    <br />
+<input type="submit" value="Atualizar" />
+
+</form>
+
+<form method="POST" action="{% url 'sessaoplenaria:oradorexpediente' object.pk %}">
+    {% csrf_token %}
+
+	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+	        <li>Ordem de pronunciamento</li>
+	        <li>Parlamentar</li>
+	        <li>URL Discurso</li>
+	</ul>
+	
+	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+        <li><input type="text" id="numero_ordem" name="numero_ordem"/></li>
+
+        <select name="parlamentar" id="parlamentar">
+        {% for parlamentar in view.get_candidatos_orador %}
+        	<option value="{{parlamentar.id}}">{{parlamentar.nome_parlamentar}}</option>        
+        {% endfor %}
+        </select>
+        <li><input type="text" id="url_discurso" name="url_discurso" /></li>
+	</ul>
+	<input type="submit" value="Adicionar Orador" />
+</form>
+
+{% endblock detail_content %}

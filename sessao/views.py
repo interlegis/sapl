@@ -2,13 +2,11 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
-
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
-
-from .models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
-                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoExpediente,
+from .models import (ExpedienteMateria, ExpedienteSessao, OradorExpediente,
+                     OrdemDia, PresencaOrdemDia, RegistroVotacao,
+                     SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
@@ -213,3 +211,71 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                     yield (parlamentar, False)
                 else:
                     yield (parlamentar, True)
+
+
+class OradorForm(forms.Form):
+    numero_ordem = forms.IntegerField(required=True)
+    parlamentar = forms.CharField(required=True, max_length=20)
+    url_discurso = forms.CharField(required=False, max_length=100)
+
+
+class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/oradorExpediente.html'
+    form_class = OradorForm
+
+    def get(self, request, *args, **kwargs):
+        print(request.GET)
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def get_candidatos_orador(self):
+        self.object = self.get_object()
+        lista_parlamentares = []
+        lista_oradores = []
+
+        for parlamentar in Parlamentar.objects.all():
+            if parlamentar.ativo:
+                lista_parlamentares.append(parlamentar)
+
+        for orador in OradorExpediente.objects.filter(
+                sessao_plenaria_id=self.object.id):
+            parlamentar = Parlamentar.objects.get(
+                id=orador.parlamentar_id)
+            lista_oradores.append(parlamentar)
+
+        lista = list(set(lista_parlamentares) - set(lista_oradores))
+        lista.sort(key=lambda x: x.nome_parlamentar)
+        return lista
+
+    def get_oradores(self):
+        self.object = self.get_object()
+
+        for orador in OradorExpediente.objects.filter(
+                sessao_plenaria_id=self.object.id):
+            numero_ordem = orador.numero_ordem
+            url_discurso = orador.url_discurso
+            parlamentar = Parlamentar.objects.get(
+                id=orador.parlamentar_id)
+            yield(numero_ordem, url_discurso, parlamentar.nome_parlamentar)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        print(request.POST['numero_ordem'], request.POST['parlamentar'])
+        form = OradorForm(request.POST)
+
+        if form.is_valid():
+            orador = OradorExpediente()
+            orador.sessao_plenaria_id = self.object.id
+            orador.numero_ordem = request.POST['numero_ordem']
+            orador.parlamentar = Parlamentar.objects.get(
+                id=request.POST['parlamentar'])
+            orador.url_discurso = request.POST['url_discurso']
+            orador.save()
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return self.detail_url
