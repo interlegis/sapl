@@ -12,4 +12,5 @@ libsass
 psycopg2
 pytz
 PyYAML
+trml2pdf>=0.3
 Unipath

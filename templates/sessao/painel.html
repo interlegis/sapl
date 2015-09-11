@@ -99,6 +99,9 @@ $(function() {
 
     $('#discursoStart').click(function() {
 		if($('#discursoStart').text() == 'Iniciar'){
+
+			$.post('/sistema/painel/cronometro', { tipo: 'Discurso', action: 'Start' } );
+
 			$('#discursoReset').hide();
 			$('#discurso').runner('start');
 			$('#discursoStart').text('Parar');
@@ -107,6 +110,9 @@ $(function() {
 			$('#ordemStart').prop('disabled', true);
 			$('#ordemReset').prop('disabled', true);
 		}else{
+
+			$.post('/sistema/painel/cronometro', { tipo: 'Discurso', action: 'Stop' } );
+
 			$('#discursoReset').show();
 			$('#discurso').runner('stop');
 			$('#discursoStart').text('Iniciar');
@@ -118,6 +124,9 @@ $(function() {
     });
 
     $('#discursoReset').click(function() {
+
+		$.post('/sistema/painel/cronometro', { tipo: 'Discurso', action: 'Reset' } );
+
         $('#discurso').runner('stop');
         $('#discurso').runner('reset');
     });
@@ -134,6 +143,9 @@ $(function() {
 
 	$('#aparteStart').click(function(){
 		if($('#aparteStart').text() == 'Iniciar'){
+
+			$.post('/sistema/painel/cronometro', { tipo: 'Aparte', action: 'Start' } );
+
 			$('#aparteReset').hide();
 	        $('#aparte').runner('start');
 			$('#aparteStart').text('Parar');
@@ -142,6 +154,9 @@ $(function() {
 			$('#ordemStart').prop('disabled', true);
 			$('#ordemReset').prop('disabled', true);
 		}else{
+
+			$.post('/sistema/painel/cronometro', { tipo: 'Aparte', action: 'Stop' } );
+
 			$('#aparteReset').show();
 			$('#aparte').runner('stop');
 			$('#aparteStart').text('Iniciar');
@@ -153,6 +168,9 @@ $(function() {
     });
 
     $('#aparteReset').click(function() {
+
+		$.post('/sistema/painel/cronometro', { tipo: 'Aparte', action: 'Reset' } );
+
         $('#aparte').runner('stop');
         $('#aparte').runner('reset');
     });
@@ -169,6 +187,9 @@ $(function() {
 
     $('#ordemStart').click(function() {
 		if($('#ordemStart').text() == 'Iniciar'){
+
+			$.post('/sistema/painel/cronometro', { tipo: 'Ordem', action: 'Start' } );
+
 			$('#ordemReset').hide();
 	        $('#ordem').runner('start');
 			$('#ordemStart').text('Parar');
@@ -177,6 +198,9 @@ $(function() {
 			$('#aparteStart').prop('disabled', true);
 			$('#aparteReset').prop('disabled', true);
 		}else{
+
+			$.post('/sistema/painel/cronometro', { tipo: 'Ordem', action: 'Stop' } );
+
 			$('#ordemReset').show();
 	        $('#ordem').runner('stop');
 			$('#ordemStart').text('Iniciar');
@@ -188,6 +212,9 @@ $(function() {
     });
 
     $('#ordemReset').click(function() {
+
+		$.post('/sistema/painel/cronometro', { tipo: 'Ordem', action: 'Reset' } );
+
         $('#ordem').runner('stop');
         $('#ordem').runner('reset');
     });
