@@ -1,8 +1,5 @@
 from django import forms
-from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
 
@@ -224,28 +221,31 @@ class OradorForm(forms.Form):
     url_discurso = forms.CharField(required=False, max_length=100)
 
 
-def orador_delete(request, pk, oid):
-
-    orador = OradorExpediente.objects.get(
-        sessao_plenaria_id=pk, parlamentar_id=oid)
-    orador.delete()
-
-    # return HttpResponseRedirect(
-    # reverse_lazy('oradorexpediente', kwargs={'pk': int(pk)}))
-    # return redirect(request, reverse('sessao:oradorexpediente',
-    # kwargs={'pk': pk}), context)
-
-    return redirect('/sessao/' + pk + '/oradorexpediente')
+class OradorDeleteForm(forms.Form):
+    pass
 
 
-class OradorExpedienteDelete(DetailView):
-    model = OradorExpediente
-    success_url = reverse_lazy('sessao:oradorexpediente')
+class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/delete_orador.html'
+    form_class = OradorDeleteForm
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+        current_url = request.get_full_path()
+        words = current_url.split('/')
+        form = OradorDeleteForm(request.POST)
+
+        if form.is_valid():
+            orador = OradorExpediente.objects.get(
+                sessao_plenaria_id=self.object.id,
+                parlamentar_id=words[-1])
+            orador.delete()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return self.detail_url
 
 
 class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
