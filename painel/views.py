@@ -4,6 +4,7 @@ from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+
 from painel.models import Painel
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud

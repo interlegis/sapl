@@ -16,12 +16,12 @@
 
 <form method="post" action="./oradorexpediente">
     {% csrf_token %}
-	{% for numero_ordem, url_discuro, parlamentar in view.get_oradores %}
+	{% for numero_ordem, url_discurso, parlamentar in view.get_oradores %}
 	    <ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
 	        <li>{{numero_ordem}}</li>
-	        <li>{{parlamentar}}</li>
-	        <li>{% if url_discurso == null %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</li>
-	        <li><a href="{% url 'sessaoplenaria:oradorexpediente' object.pk  %}">Excluir</a></li>
+            <li>{{parlamentar.nome_parlamentar }}</li>
+	        <li>{% if not url_discurso %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</li>
+            <li><a id="excluir-orador" href="{% url 'sessaoplenaria:oradorexcluir' object.pk parlamentar.id %}">Excluir</a></li>
 	    </ul>
 	{% endfor %}
 

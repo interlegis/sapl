@@ -1,9 +1,14 @@
 from django import forms
+from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
+
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
+
 from .models import (ExpedienteMateria, ExpedienteSessao, OradorExpediente,
                      OrdemDia, PresencaOrdemDia, RegistroVotacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
@@ -219,12 +224,35 @@ class OradorForm(forms.Form):
     url_discurso = forms.CharField(required=False, max_length=100)
 
 
+def orador_delete(request, pk, oid):
+
+    orador = OradorExpediente.objects.get(
+        sessao_plenaria_id=pk, parlamentar_id=oid)
+    orador.delete()
+
+    # return HttpResponseRedirect(
+    # reverse_lazy('oradorexpediente', kwargs={'pk': int(pk)}))
+    # return redirect(request, reverse('sessao:oradorexpediente',
+    # kwargs={'pk': pk}), context)
+
+    return redirect('/sessao/' + pk + '/oradorexpediente')
+
+
+class OradorExpedienteDelete(DetailView):
+    model = OradorExpediente
+    success_url = reverse_lazy('sessao:oradorexpediente')
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+
 class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/oradorExpediente.html'
     form_class = OradorForm
 
     def get(self, request, *args, **kwargs):
-        print(request.GET)
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
@@ -257,7 +285,7 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             url_discurso = orador.url_discurso
             parlamentar = Parlamentar.objects.get(
                 id=orador.parlamentar_id)
-            yield(numero_ordem, url_discurso, parlamentar.nome_parlamentar)
+            yield(numero_ordem, url_discurso, parlamentar)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
