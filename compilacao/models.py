@@ -292,7 +292,7 @@ class Dispositivo(models.Model):
     dispositivo_pai = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='+',
+        related_name='filhos',
         verbose_name=_('Dispositivo Pai'))
     dispositivo_vigencia = models.ForeignKey(
         'self',

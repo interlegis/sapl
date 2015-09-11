@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+ 
+ 
+{% block title%}
+  <h1>{{ view.get_norma }}</h1>
+{% endblock %} 
+
+{% block base_content %} 
+	{% for dispositivo in view.get_queryset %}  
+		{% if dispositivo.tipo_dispositivo.class_css == 'articulacao'%}
+			{%if not forloop.first%}
+				</div>
+			{% endif%}
+			<div class="articulacao"> 
+		{% else %}
+
+		
+		
+		
+		
+			<div class="{{ dispositivo.tipo_dispositivo.class_css }}">  
+				<b>{{ dispositivo.tipo_dispositivo.class_css }}</b> - {{ dispositivo.rotulo }} - {{ dispositivo.texto|safe }}
+				<br>
+				
+				{% if view.is_norma_alteradora %}
+					{% if dispositivo.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+						{% for alterado in dispositivo.id|get_bloco %}  
+
+							<div class="{{ alterado.tipo_dispositivo.class_css }}">  
+								<b>{{ alterado.tipo_dispositivo.class_css }}</b> - {{ alterado.rotulo }} - {{ alterado.texto }}
+								<br> 
+							</div>
+
+						{% endfor %} 
+					{% endif%} 
+				{% endif%} 
+
+			</div> 
+		{% endif%} 
+		{%if forloop.last %}
+			</div>
+		{% endif%} 
+	{% endfor %} 
+{% endblock base_content %}

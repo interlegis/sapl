@@ -98,10 +98,10 @@ class NormaJuridica(models.Model):
         verbose_name_plural = _('Normas Jurídicas')
 
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s - %(materia)s - %(ano)s') % {
+        return _('%(tipo)s nº %(numero)s - %(data)s - %(ano)s') % {
             'tipo': self.tipo,
             'numero': self.numero,
-            'materia': self.materia,
+            'data': self.data,
             'ano': self.ano}
 
 
