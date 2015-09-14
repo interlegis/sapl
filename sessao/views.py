@@ -217,7 +217,7 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
 class OradorForm(forms.Form):
     numero_ordem = forms.IntegerField(required=True)
-    parlamentar = forms.CharField(required=True, max_length=20)
+    parlamentar = forms.CharField(required=False, max_length=20)
     url_discurso = forms.CharField(required=False, max_length=100)
 
 
@@ -231,12 +231,14 @@ class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        current_url = request.get_full_path()
+        words = current_url.split('/')
         form = OradorDeleteForm(request.POST)
 
         if form.is_valid():
             orador = OradorExpediente.objects.get(
                 sessao_plenaria_id=self.object.id,
-                parlamentar_id=kwargs['oid'])
+                parlamentar_id=words[-1])
             orador.delete()
             return self.form_valid(form)
         else:
@@ -244,6 +246,56 @@ class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         return self.detail_url
+
+
+class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/edit_orador.html'
+    form_class = OradorForm
+
+    def get_success_url(self):
+        return self.detail_url
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = OradorForm(request.POST)
+
+        if form.is_valid():
+            current_url = request.get_full_path()
+            words = current_url.split('/')
+
+            orador = OradorExpediente.objects.get(
+                sessao_plenaria_id=self.object.id,
+                parlamentar_id=words[-1])
+            orador.delete()
+
+            orador = OradorExpediente()
+            orador.sessao_plenaria_id = self.object.id
+            orador.numero_ordem = request.POST['numero_ordem']
+            orador.parlamentar = Parlamentar.objects.get(
+                id=words[-1])
+            orador.url_discurso = request.POST['url_discurso']
+            orador.save()
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        current_url = self.request.get_full_path()
+        words = current_url.split('/')
+
+        parlamentar = Parlamentar.objects.get(id=words[-1])
+        orador = OradorExpediente.objects.get(
+            sessao_plenaria=self.object, parlamentar=parlamentar)
+
+        orador = {'parlamentar': parlamentar, 'numero_ordem':
+                  orador.numero_ordem, 'url_discurso': orador.url_discurso}
+        context.update({'orador': orador})
+
+        return self.render_to_response(context)
 
 
 class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
@@ -287,7 +339,6 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        print(request.POST['numero_ordem'], request.POST['parlamentar'])
         form = OradorForm(request.POST)
 
         if form.is_valid():
