@@ -21,8 +21,7 @@
 		 	
 		 	{% if dispositivo.norma_publicada_id != None %}
 				
-				<a class="link_alterador" href="{%url 'compilacao' dispositivo.norma_publicada.pk %}#{{dispositivo.dispositivo_atualizador_idexit
-				}}"> 
+				<a class="link_alterador" href="{%url 'compilacao' dispositivo.norma_publicada.pk %}#{{dispositivo.dispositivo_atualizador_id}}"> 
 				{{ dispositivo.tipo_dispositivo.nota_automatica_prefixo_html|safe  }}
 				{% nota_automatica dispositivo %}
 				{{ dispositivo.tipo_dispositivo.nota_automatica_sufixo_html|safe  }}
