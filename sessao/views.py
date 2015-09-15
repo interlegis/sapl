@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
 
+from materia.models import TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 
@@ -214,6 +217,38 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                     yield (parlamentar, False)
                 else:
                     yield (parlamentar, True)
+
+
+class MateriaOrdemDiaForm(forms.Form):
+    numero_ordem = forms.IntegerField(required=True)
+
+
+class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/materia_ordemdia.html'
+    form_class = MateriaOrdemDiaForm
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        tipo_materia = TipoMateriaLegislativa.objects.all()
+
+        now = datetime.now()
+
+        data_sessao = "%s/%s/%s" % (now.day, now.month, now.year)
+
+        tipo_sessao = TipoSessaoPlenaria.objects.all()
+
+        tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
+
+        ano_materia = now.year
+
+        context.update({'data_sessao': data_sessao,
+                        'tipo_sessao': tipo_sessao,
+                        'tipo_materia': tipo_materia,
+                        'tipo_votacao': tipo_votacao,
+                        'ano_materia': ano_materia})
+        return self.render_to_response(context)
 
 
 class OradorForm(forms.Form):
