@@ -1,4 +1,5 @@
 from django.db import models
+from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import MateriaLegislativa
@@ -96,13 +97,13 @@ class NormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')
+        ordering = ['-data']
 
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s - %(data)s - %(ano)s') % {
+        return _('%(tipo)s nº %(numero)s de %(data)s') % {
             'tipo': self.tipo,
             'numero': self.numero,
-            'data': self.data,
-            'ano': self.ano}
+            'data': defaultfilters.date(self.data, "d \d\e N \d\e Y")}
 
 
 class AssuntoNormaRelationship(models.Model):

@@ -1,0 +1,9 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block sections_nav %}
+  <dl class="sub-nav left">
+    <dd><a href="{% url 'normajuridica:detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
+    <dd><a href="{% url 'compilacao' object.pk %}" class="button secondary">{% trans 'Texto Integral' %}</a></dd>
+  </dl>
+{% endblock sections_nav %}

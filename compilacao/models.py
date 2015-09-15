@@ -264,6 +264,7 @@ class Dispositivo(models.Model):
 
     tipo_dispositivo = models.ForeignKey(
         TipoDispositivo,
+        related_name='dispositivos_do_tipo_set',
         verbose_name=_('Tipo do Dispositivo'))
 
     publicacao = models.ForeignKey(
@@ -272,11 +273,12 @@ class Dispositivo(models.Model):
 
     norma = models.ForeignKey(
         NormaJuridica,
+        related_name='dispositivos_set',
         verbose_name=_('Norma Jurídica'))
     norma_publicada = models.ForeignKey(
         NormaJuridica,
         blank=True, null=True, default=None,
-        related_name='dispositivos_alterados_set',
+        related_name='dispositivos_alterados_pela_norma_set',
         verbose_name=_('Norma Jurídica Publicada'))
 
     dispositivo_subsequente = models.ForeignKey(
@@ -292,7 +294,7 @@ class Dispositivo(models.Model):
     dispositivo_pai = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='filhos',
+        related_name='dispositivos_filhos_set',
         verbose_name=_('Dispositivo Pai'))
     dispositivo_vigencia = models.ForeignKey(
         'self',

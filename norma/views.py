@@ -45,6 +45,17 @@ norma_crud = build_crud(
             [('assunto_norma_FIXME', 12)]],
     ])
 
+norma_temporario_para_compilacao_crud = build_crud(
+    NormaJuridica, 'norma', [
+
+        [_('Identificação Básica'),
+         [('tipo', 4), ('numero', 4), ('ano', 4)],
+            [('data', 4), ('esfera_federacao', 4)],
+            [('data_publicacao', 3)],
+            [('ementa', 12)]],
+    ])
+
+
 legislacao_citada_crud = build_crud(
     LegislacaoCitada, '', [
 
