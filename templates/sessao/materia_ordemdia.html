@@ -2,6 +2,9 @@
 {% load i18n %}
 
 {% block detail_content %}
+	<div>
+		{{ error_message }}
+	</div>
 	<form method="POST">
 	  {% csrf_token %}	  	  
 	  Data da Sessão:

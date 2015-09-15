@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django import forms
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
@@ -221,34 +222,53 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
 class MateriaOrdemDiaForm(forms.Form):
     numero_ordem = forms.IntegerField(required=True)
+    tipo_votacao = forms.IntegerField(required=True)
+    tipo_sessao = forms.IntegerField(required=True)
+    ano_materia = forms.IntegerField(required=True)
+    numero_materia = forms.IntegerField(required=True)
+    tipo_materia = forms.IntegerField(required=True)
 
 
 class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia.html'
     form_class = MateriaOrdemDiaForm
 
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia', kwargs={'pk': pk})
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
-        tipo_materia = TipoMateriaLegislativa.objects.all()
-
         now = datetime.now()
 
+        tipo_materia = TipoMateriaLegislativa.objects.all()
         data_sessao = "%s/%s/%s" % (now.day, now.month, now.year)
-
         tipo_sessao = TipoSessaoPlenaria.objects.all()
-
         tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
-
         ano_materia = now.year
 
         context.update({'data_sessao': data_sessao,
                         'tipo_sessao': tipo_sessao,
                         'tipo_materia': tipo_materia,
                         'tipo_votacao': tipo_votacao,
-                        'ano_materia': ano_materia})
+                        'ano_materia': ano_materia,
+                        'error_message': '', })
         return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        form = MateriaOrdemDiaForm(request.POST)
+
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            context.update(
+                {'error_message': "Não foi possível salvar formulário!"})
+            return self.form_invalid(form)
 
 
 class OradorForm(forms.Form):
