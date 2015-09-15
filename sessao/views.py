@@ -6,9 +6,10 @@ from extra_views import InlineFormSetView
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 
-from .models import (ExpedienteMateria, ExpedienteSessao, OradorExpediente,
-                     OrdemDia, PresencaOrdemDia, RegistroVotacao,
-                     SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
+from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
+                     IntegranteMesa, OradorExpediente, OrdemDia,
+                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
@@ -356,3 +357,97 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         return self.detail_url
+
+
+class MesaForm(forms.Form):
+    parlamentar = forms.IntegerField(required=True)
+    cargo = forms.IntegerField(required=True)
+
+
+class MesaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/mesa.html'
+    form_class = MesaForm
+
+    def get_success_url(self):
+        return self.detail_url
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = MesaForm(request.POST)
+
+        if 'Incluir' in request.POST:
+            if form.is_valid():
+                integrante = IntegranteMesa()
+                integrante.sessao_plenaria_id = self.object.id
+                integrante.parlamentar_id = request.POST['parlamentar']
+                integrante.cargo_id = request.POST['cargo']
+                integrante.save()
+
+                return self.form_valid(form)
+
+            else:
+                form.clean()
+                return self.form_valid(form)
+        elif 'Excluir' in request.POST:
+            ids = request.POST['composicao_mesa'].split(':')
+            IntegranteMesa.objects.get(
+                sessao_plenaria_id=self.object.id,
+                parlamentar_id=ids[0],
+                cargo_id=ids[1]
+            ).delete()
+
+        return self.form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        mesa = IntegranteMesa.objects.filter(
+            sessao_plenaria=self.object)
+
+        integrantes = []
+        for m in mesa:
+            parlamentar = Parlamentar.objects.get(
+                id=m.parlamentar_id)
+            cargo = CargoMesa.objects.get(
+                id=m.cargo_id)
+            integrante = {'parlamentar': parlamentar, 'cargo': cargo}
+            integrantes.append(integrante)
+
+        context.update({'integrantes': integrantes})
+
+        return self.render_to_response(context)
+
+    def get_candidatos_mesa(self):
+        self.object = self.get_object()
+        lista_parlamentares = []
+        lista_integrantes = []
+
+        for parlamentar in Parlamentar.objects.all():
+            if parlamentar.ativo:
+                lista_parlamentares.append(parlamentar)
+
+        for integrante in IntegranteMesa.objects.filter(
+                sessao_plenaria=self.object):
+            parlamentar = Parlamentar.objects.get(
+                id=integrante.parlamentar_id)
+            lista_integrantes.append(parlamentar)
+
+        lista = list(set(lista_parlamentares) - set(lista_integrantes))
+        lista.sort(key=lambda x: x.nome_parlamentar)
+        return lista
+
+    def get_cargos_mesa(self):
+        self.object = self.get_object()
+        lista_cargos = CargoMesa.objects.all()
+        lista_cargos_ocupados = []
+
+        for integrante in IntegranteMesa.objects.filter(
+                sessao_plenaria=self.object):
+            cargo = CargoMesa.objects.get(
+                id=integrante.cargo_id)
+            lista_cargos_ocupados.append(cargo)
+
+        lista = list(set(lista_cargos) - set(lista_cargos_ocupados))
+        lista.sort(key=lambda x: x.descricao)
+        return lista
