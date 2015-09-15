@@ -1,0 +1,12 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<form method="post">
+		{% csrf_token %}
+		{{formset}}
+		<br />
+		<input type="submit" value="Submit" />
+	</form>
+{% endblock detail_content %}

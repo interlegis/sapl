@@ -10,28 +10,24 @@
 	        <li>Ordem de pronunciamento</li>
 	        <li>Parlamentar</li>
 	        <li>URL Discurso</li>
-		    <li>Excluir</li>
+		    <li>Editar/Excluir</li>
 	</ul>
-
-	<form method="post" action="./oradorexpediente">
-	    {% csrf_token %}
 		{% for numero_ordem, url_discurso, parlamentar in view.get_oradores %}
 		    <ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-		        <li><input size="2" type="text" id="numero_ordem" name="numero_ordem" value="{{numero_ordem}}" /></li>
+		        <li>{{numero_ordem}}</li>
 	            <li>{{parlamentar.nome_parlamentar }}</li>
 		        <li>{% if not url_discurso %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</li>
-	            <li><a id="excluir-orador" href="{% url 'sessaoplenaria:oradorexcluir' object.pk parlamentar.id %}">Excluir</a></li>
+	            <li>
+	            	<a id="editar-orador" href="{% url 'sessaoplenaria:oradoreditar' object.pk parlamentar.id %}">Editar</a>
+	              / <a id="excluir-orador" href="{% url 'sessaoplenaria:oradorexcluir' object.pk parlamentar.id %}">Excluir</a>
+	            </li>
 		    </ul>
 		{% endfor %}
-
-	    <br />
-	<input type="submit" value="Atualizar" />
-	</form>
 </fieldset>
 
 <fieldset>
 	<legend>Adicionar Orador</legend>
-	<form method="POST" action="{% url 'sessaoplenaria:oradorexpediente' object.pk %}">
+	<form method="POST" action="">
 	    {% csrf_token %}
 
 		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
