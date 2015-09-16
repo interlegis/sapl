@@ -1,7 +1,9 @@
 from datetime import datetime
+from re import sub
 
 from django import forms
 from django.core.urlresolvers import reverse
+from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
@@ -234,7 +236,7 @@ class MateriaOrdemDiaForm(forms.Form):
     ano_materia = forms.IntegerField(required=True)
     numero_materia = forms.IntegerField(required=True)
     tipo_materia = forms.IntegerField(required=True)
-    observacao =  forms.CharField(required=False)
+    observacao = forms.CharField(required=False)
 
 
 class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -271,9 +273,26 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         context = self.get_context_data(object=self.object)
         form = MateriaOrdemDiaForm(request.POST)
 
-        # print(form)
+        print(form)
 
         if form.is_valid():
+
+            # TODO: Pra que tipo_materia e tipo_sessao
+            # se já existem em seus respectivos objetos???
+            # TODO: barrar matérias não existentes
+            # TODO: barrar criação de ordemdia para materias já incluídas
+
+            ordemdia = OrdemDia()
+            ordemdia.sessao_plenaria_id = self.object.id
+            ordemdia.materia_id = request.POST['numero_materia']
+            ordemdia.numero_ordem = request.POST['numero_ordem']
+            ordemdia.data_ordem = datetime.now()
+            ordemdia.observacao = sub(
+                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
+            ordemdia.tipo_votacao = request.POST['tipo_votacao']
+
+            ordemdia.save()
+
             return self.form_valid(form)
         else:
             context.update(
