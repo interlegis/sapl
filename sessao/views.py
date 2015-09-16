@@ -221,12 +221,14 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
 
 class MateriaOrdemDiaForm(forms.Form):
+    data_sessao = forms.CharField(required=True)
     numero_ordem = forms.IntegerField(required=True)
     tipo_votacao = forms.IntegerField(required=True)
     tipo_sessao = forms.IntegerField(required=True)
     ano_materia = forms.IntegerField(required=True)
     numero_materia = forms.IntegerField(required=True)
     tipo_materia = forms.IntegerField(required=True)
+    observacao =  forms.CharField(required=False)
 
 
 class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -262,6 +264,8 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
         form = MateriaOrdemDiaForm(request.POST)
+
+        # print(form)
 
         if form.is_valid():
             return self.form_valid(form)

@@ -7,8 +7,8 @@
 	</div>
 	<form method="POST">
 	  {% csrf_token %}	  	  
-	  Data da Sessão:
-	  <input type="text" id="data_sessao" name="data_sessao" length="10" maxlength="10" disabled="disabled" value="{{data_sessao}}" />
+	  Data da Sessão: {{data_sessao}}</br>
+	  <input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value="{{data_sessao}}" />
 	  Tipo da Sessão:
 	  <select id="tipo_sessao" name="tipo_sessao" >
 	  	{% for tipo in tipo_sessao %}
@@ -37,7 +37,7 @@
 	  </select>
 	</br>
 	  Ementa:
-	  <textarea cols="10" rows="10"></textarea>
+	  <textarea id="observacao" name="observacao" cols="10" rows="10"></textarea>
  	  <input type="submit" value="Salvar" />
 	</form>
 {% endblock detail_content %}
