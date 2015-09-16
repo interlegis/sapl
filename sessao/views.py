@@ -98,6 +98,10 @@ class ExpedienteView(InlineFormSetView):
     can_delete = True
     extra = 1
 
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
+
 
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
@@ -137,7 +141,8 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:presenca', kwargs={'pk': pk})
 
     def get_parlamentares(self):
         self.object = self.get_object()
@@ -197,7 +202,8 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
 
     def get_parlamentares(self):
         self.object = self.get_object()
@@ -305,7 +311,8 @@ class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
 class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
@@ -313,7 +320,8 @@ class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
     form_class = OradorForm
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -415,7 +423,8 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
 class MesaForm(forms.Form):
@@ -428,7 +437,8 @@ class MesaView(FormMixin, sessao_crud.CrudDetailView):
     form_class = MesaForm
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:mesa', kwargs={'pk': pk})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
