@@ -45,6 +45,14 @@ class Origem(models.Model):
         return self.nome
 
 
+def get_materia_media_path(instance, subpath, filename):
+    return './materia/%s/%s/%s' % (instance.numero, subpath, filename)
+
+
+def texto_upload_path(instance, filename):
+    return get_materia_media_path(instance, 'materia', filename)
+
+
 class MateriaLegislativa(models.Model):
     TIPO_APRESENTACAO_CHOICES, ORAL, ESCRITA = make_choices(
         'O', _('Oral'),
@@ -108,6 +116,11 @@ class MateriaLegislativa(models.Model):
         through_fields=(
             'materia_principal',
             'materia_anexada'))
+    texto_original = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Texto original (PDF)'))
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
