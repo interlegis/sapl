@@ -1,0 +1,46 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+	<div>
+		{{ error_message }}
+	</div>
+	<form method="POST">
+	  {% csrf_token %}	  	  
+	  Data da Sessão: {{data_sessao}}</br>
+	  <input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value="{{data_sessao}}" />
+	  Tipo da Sessão:
+	  <select id="tipo_sessao" name="tipo_sessao" >
+	  	    <option value=""></option>
+	  	{% for tipo in tipo_sessao %}
+	  		<option value="{{tipo.id}}">{{tipo.nome}}</option>
+	  	{% endfor %}	  	
+	  </select>
+	  Número Ordem:
+	  <input type="text" id="numero_ordem" name="numero_ordem"/>
+	  </br>
+	  Tipo Matéria:
+	  <select id="tipo_materia" name="tipo_materia">
+	  	    <option value=""></option>	  	
+	  	{% for tipo in tipo_materia %}
+	  		<option value="{{tipo.id}}">{{tipo.descricao}}</option>
+	  	{% endfor %}
+	  </select>
+	  Número Matéria:
+	  <input type="text" id="numero_materia" name="numero_materia"/>
+	  Ano Matéria:
+	  <input type="text" id="ano_materia" name="ano_materia" value="{{ano_materia}}" />
+
+	  Tipo Votação:
+	  <select id="tipo_votacao" name="tipo_votacao">
+	  	    <option value=""></option>	  	
+	  	 {% for id, descricao in tipo_votacao %}
+	  		<option value="{{id}}">{{descricao}}</option>
+	  	 {% endfor %}  	
+	  </select>
+	</br>
+	  Ementa:
+	  <textarea id="observacao" name="observacao" cols="10" rows="10"></textarea>
+ 	  <input type="submit" value="Salvar" />
+	</form>
+{% endblock detail_content %}

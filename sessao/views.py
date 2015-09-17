@@ -1,14 +1,21 @@
+from datetime import datetime
+from re import sub
+
 from django import forms
+from django.core.urlresolvers import reverse
+from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from extra_views import InlineFormSetView
 
+from materia.models import TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 
-from .models import (ExpedienteMateria, ExpedienteSessao, OradorExpediente,
-                     OrdemDia, PresencaOrdemDia, RegistroVotacao,
-                     SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
+from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
+                     IntegranteMesa, OradorExpediente, OrdemDia,
+                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
@@ -93,6 +100,10 @@ class ExpedienteView(InlineFormSetView):
     can_delete = True
     extra = 1
 
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
+
 
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
@@ -132,7 +143,8 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:presenca', kwargs={'pk': pk})
 
     def get_parlamentares(self):
         self.object = self.get_object()
@@ -192,7 +204,8 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
 
     def get_parlamentares(self):
         self.object = self.get_object()
@@ -213,6 +226,78 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                     yield (parlamentar, False)
                 else:
                     yield (parlamentar, True)
+
+
+class MateriaOrdemDiaForm(forms.Form):
+    data_sessao = forms.CharField(required=True)
+    numero_ordem = forms.IntegerField(required=True)
+    tipo_votacao = forms.IntegerField(required=True)
+    tipo_sessao = forms.IntegerField(required=True)
+    ano_materia = forms.IntegerField(required=True)
+    numero_materia = forms.IntegerField(required=True)
+    tipo_materia = forms.IntegerField(required=True)
+    observacao = forms.CharField(required=False)
+
+
+class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/materia_ordemdia.html'
+    form_class = MateriaOrdemDiaForm
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        now = datetime.now()
+
+        tipo_materia = TipoMateriaLegislativa.objects.all()
+        data_sessao = "%s/%s/%s" % (now.day, now.month, now.year)
+        tipo_sessao = TipoSessaoPlenaria.objects.all()
+        tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
+        ano_materia = now.year
+
+        context.update({'data_sessao': data_sessao,
+                        'tipo_sessao': tipo_sessao,
+                        'tipo_materia': tipo_materia,
+                        'tipo_votacao': tipo_votacao,
+                        'ano_materia': ano_materia,
+                        'error_message': '', })
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        form = MateriaOrdemDiaForm(request.POST)
+
+        print(form)
+
+        if form.is_valid():
+
+            # TODO: Pra que tipo_materia e tipo_sessao
+            # se já existem em seus respectivos objetos???
+            # TODO: barrar matérias não existentes
+            # TODO: barrar criação de ordemdia para materias já incluídas
+
+            ordemdia = OrdemDia()
+            ordemdia.sessao_plenaria_id = self.object.id
+            ordemdia.materia_id = request.POST['numero_materia']
+            ordemdia.numero_ordem = request.POST['numero_ordem']
+            ordemdia.data_ordem = datetime.now()
+            ordemdia.observacao = sub(
+                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
+            ordemdia.tipo_votacao = request.POST['tipo_votacao']
+
+            ordemdia.save()
+
+            return self.form_valid(form)
+        else:
+            context.update(
+                {'error_message': "Não foi possível salvar formulário!"})
+            return self.form_invalid(form)
 
 
 class OradorForm(forms.Form):
@@ -245,7 +330,8 @@ class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
 class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
@@ -253,7 +339,8 @@ class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
     form_class = OradorForm
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -355,4 +442,100 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return self.detail_url
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
+
+
+class MesaForm(forms.Form):
+    parlamentar = forms.IntegerField(required=True)
+    cargo = forms.IntegerField(required=True)
+
+
+class MesaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/mesa.html'
+    form_class = MesaForm
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:mesa', kwargs={'pk': pk})
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = MesaForm(request.POST)
+
+        if 'Incluir' in request.POST:
+            if form.is_valid():
+                integrante = IntegranteMesa()
+                integrante.sessao_plenaria_id = self.object.id
+                integrante.parlamentar_id = request.POST['parlamentar']
+                integrante.cargo_id = request.POST['cargo']
+                integrante.save()
+
+                return self.form_valid(form)
+
+            else:
+                form.clean()
+                return self.form_valid(form)
+        elif 'Excluir' in request.POST:
+            ids = request.POST['composicao_mesa'].split(':')
+            IntegranteMesa.objects.get(
+                sessao_plenaria_id=self.object.id,
+                parlamentar_id=ids[0],
+                cargo_id=ids[1]
+            ).delete()
+
+        return self.form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        mesa = IntegranteMesa.objects.filter(
+            sessao_plenaria=self.object)
+
+        integrantes = []
+        for m in mesa:
+            parlamentar = Parlamentar.objects.get(
+                id=m.parlamentar_id)
+            cargo = CargoMesa.objects.get(
+                id=m.cargo_id)
+            integrante = {'parlamentar': parlamentar, 'cargo': cargo}
+            integrantes.append(integrante)
+
+        context.update({'integrantes': integrantes})
+
+        return self.render_to_response(context)
+
+    def get_candidatos_mesa(self):
+        self.object = self.get_object()
+        lista_parlamentares = []
+        lista_integrantes = []
+
+        for parlamentar in Parlamentar.objects.all():
+            if parlamentar.ativo:
+                lista_parlamentares.append(parlamentar)
+
+        for integrante in IntegranteMesa.objects.filter(
+                sessao_plenaria=self.object):
+            parlamentar = Parlamentar.objects.get(
+                id=integrante.parlamentar_id)
+            lista_integrantes.append(parlamentar)
+
+        lista = list(set(lista_parlamentares) - set(lista_integrantes))
+        lista.sort(key=lambda x: x.nome_parlamentar)
+        return lista
+
+    def get_cargos_mesa(self):
+        self.object = self.get_object()
+        lista_cargos = CargoMesa.objects.all()
+        lista_cargos_ocupados = []
+
+        for integrante in IntegranteMesa.objects.filter(
+                sessao_plenaria=self.object):
+            cargo = CargoMesa.objects.get(
+                id=integrante.cargo_id)
+            lista_cargos_ocupados.append(cargo)
+
+        lista = list(set(lista_cargos) - set(lista_cargos_ocupados))
+        lista.sort(key=lambda x: x.descricao)
+        return lista
