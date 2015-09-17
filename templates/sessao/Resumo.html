@@ -1,0 +1,121 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+<fieldset>
+	<legend>Resumo</legend>
+	
+	<fieldset>
+		<legend>Identificação Básica</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			{% for b in basica %}
+				<li>{{b}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Conteúdo Multimídia</legend>
+		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+			<li>{{multimidia_audio}}</li>
+			<li>{{multimidia_video}}</li>
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Mesa Diretora</legend>
+		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+			{% for m in mesa %}
+				<li><b>{{m.cargo}}: </b>{{m.parlamentar.nome_parlamentar}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Lista de Presença na Sessão</legend>
+		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+			{% for p in presenca_sessao %}
+				<li>{{p}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Expedientes</legend>
+		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+			{% for e in expedientes %}
+				<li>
+					<b>{{e.tipo}}:</b>
+					<br />
+					{{e.conteudo}}
+				</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Matérias do Expediente</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Matéria</li>
+			<li>Ementa</li>
+			<li>Resultado da Votação</li>
+		</ul>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			{% for m in materia_expediente %}
+				<li>
+					{{m.numero}} - {{m.titulo}}
+					<br />
+					{{m.autor}}
+				</li>
+				<li>{{m.ementa}}</li>
+				<li>{{m.resultado}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Oradores do Expediente</legend>
+		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+		<li>Parlamentar</li>
+		<li>Discurso</li>
+		</ul>
+		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+			{% for o in oradores %}
+				<li><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</li>
+				<li>{{o.url_discurso}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Lista de Presença na Ordem do Dia</legend>
+		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+			{% for p in presenca_ordem %}
+				<li>{{p}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+	<fieldset>
+		<legend>Matérias da Ordem do Dia</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Matéria</li>
+			<li>Ementa</li>
+			<li>Resultado da Votação</li>
+		</ul>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			{% for m in materias_ordem %}
+				<li>
+					{{m.numero}} - {{m.titulo}}
+					<br />
+					{{m.autor}}
+				</li>
+				<li>{{m.ementa}}</li>
+				<li>{{m.resultado}}</li>
+			{% endfor %}
+		</ul>
+	</fieldset>
+
+</fieldset>
+{% endblock detail_content %}
