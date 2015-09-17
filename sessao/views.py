@@ -92,19 +92,6 @@ registro_votacao_crud = build_crud(
     ])
 
 
-class ExpedienteView(InlineFormSetView):
-    model = SessaoPlenaria
-    inline_model = ExpedienteSessao
-    template_name = 'sessao/expediente.html'
-    fields = ('tipo', 'conteudo')
-    can_delete = True
-    extra = 1
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
-
-
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)
@@ -273,7 +260,7 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         context = self.get_context_data(object=self.object)
         form = MateriaOrdemDiaForm(request.POST)
 
-        print(form)
+        # print(form)
 
         if form.is_valid():
 
@@ -607,7 +594,8 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         for e in expediente:
             tipo = TipoExpediente.objects.get(
                 id=e.tipo_id)
-            conteudo = e.conteudo
+            conteudo = sub(
+                '&nbsp;', ' ', strip_tags(e.conteudo))
 
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
@@ -721,3 +709,57 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         context.update({'materias_ordem': materias_ordem})
 
         return self.render_to_response(context)
+
+
+class ExpedienteForm(forms.Form):
+    conteudo = forms.CharField(required=False, widget=forms.Textarea)
+
+
+class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/expediente.html'
+    form_class = ExpedienteForm
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = ExpedienteForm(request.POST)
+
+        if form.is_valid():
+            list_tipo = request.POST.getlist('tipo')
+            list_conteudo = request.POST.getlist('conteudo')
+
+            for i in range(len(list_tipo)):
+                tipo = list_tipo[i]
+                conteudo = list_conteudo[i]
+
+                ExpedienteSessao.objects.get(
+                    sessao_plenaria_id=self.object.id,
+                    tip_oid=tipo
+                ).delete()
+
+                expediente = ExpedienteSessao()
+                expediente.sessao_plenaria_id = self.object.id
+                expediente.tipo_id = tipo
+                expediente.conteudo = conteudo
+                expediente.save()
+            return self.form_valid(form)
+        else:
+            return self.form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        expedientes_sessao = ExpedienteSessao.objects.filter(
+            sessao_plenaria_id=self.object.id)
+
+        expedientes = []
+        for e in expedientes_sessao:
+            expedientes.append({'tipo': e.tipo,
+                                'conteudo': e.conteudo
+                                })
+        context.update({'expedientes': expedientes})
+        return self.render_to_response(context)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
