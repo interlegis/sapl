@@ -733,7 +733,7 @@ class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
 
                 ExpedienteSessao.objects.get(
                     sessao_plenaria_id=self.object.id,
-                    tip_oid=tipo
+                    tipo_id=tipo
                 ).delete()
 
                 expediente = ExpedienteSessao()
