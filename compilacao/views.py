@@ -105,6 +105,9 @@ class CompilacaoView(ListView):
             else:
                 self.itens_de_vigencia[9999] = [item, ]
 
+        if len(self.itens_de_vigencia.keys()) <= 1:
+            return{}
+
         self.itens_de_vigencia = OrderedDict(
             sorted(self.itens_de_vigencia.items(), key=lambda t: t[0]))
 

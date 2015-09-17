@@ -23,20 +23,17 @@
 							{% endfor %}
 						{% elif forloop.last %}
 							{% for dispositivo in values %}
-								<a class="nav__link" href="{%url 'compilacao' dispositivo.norma.pk %}" title="{% trans 'Compilação atual'%}">{% trans 'Texto em Vigência'%}</a>
+								<a class="nav__link" href="{%url 'compilacao' dispositivo.norma.pk %}" title="{% trans 'Compilação atual'%} - {% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}} ">{% trans 'Texto em Vigência'%}</a>
 							{% endfor %}
 						{% else %}
 							<a class="nav__link">{{ key }}</a>
 						{%endif%}
 
-						{% if not forloop.first and not forloop.last %}
-
+						{% if not forloop.first and not forloop.last %} 
 							<ul class="nav__sub-nav dropdown">
 								{% for dispositivo in values %}
 									<li class="nav__sub-item">
-										{% if forloop.parentloop.first %}
-											<a class="nav__sub-link" href="{%url 'vigencia' dispositivo.norma.pk dispositivo.inicio_vigencia.year dispositivo.inicio_vigencia.month dispositivo.inicio_vigencia.day  dispositivo.fim_vigencia.year dispositivo.fim_vigencia.month dispositivo.fim_vigencia.day %}" >{% trans 'Norma Original'%}</a>
-										{% else %}
+										{% if not forloop.parentloop.first %}
 											<a class="nav__sub-link" href="{%url 'vigencia' dispositivo.norma.pk dispositivo.inicio_vigencia.year dispositivo.inicio_vigencia.month dispositivo.inicio_vigencia.day  dispositivo.fim_vigencia.year dispositivo.fim_vigencia.month dispositivo.fim_vigencia.day %}" title="{{ dispositivo.norma_publicada }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
 										{%endif%}
 									</li>
