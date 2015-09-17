@@ -3,17 +3,17 @@
 .articulacao div {
 	background-color: #fff;
 }
- 
+
 
 .dispositivo { 
 	background-color: #ddd !important; 
 	transition: all .4s ease-in-out;
-    display:inline;
+	display:inline;
 }
 
 
 .dispositivo .ementa {
-	padding: 2em 0em 3em 50%;
+	padding: 4em 0em 3em 50%;
 	font-weight: bold;
 	
 } 
@@ -117,10 +117,13 @@
 	color: #2980B9 !important;
 	font-size: 0.9rem; 
 }
-
-
-.dispositivo .bloco_alteracao{
+ 
+.dispositivo .bloco_alteracao {
 	margin-left: 5em;
+}
+
+.dispositivo .bloco_alteracao:hover a {
+    text-decoration: underline;
 }
 
 .dispositivo .bloco_alteracao,
@@ -128,4 +131,24 @@
 .dispositivo .bloco_alteracao table,
 .dispositivo .bloco_alteracao table td {
 	color: #018 !important;  
+}
+
+
+.compilacao .top-bar-section li:not(.has-form) a:not(.button), 
+.compilacao .top-bar {
+	line-height: 1.6rem;
+	height: auto;
+}
+.compilacao .top-bar-section li:not(.has-form) a:not(.button) {
+	padding: 0 0.43333rem;
+}
+
+.compilacao ul.nav {
+	background: #34495E;
+	display:block;
+	width: 100%;
+}
+
+.compilacao .vigencias{
+	margin: 2em 0 0 0;
 }

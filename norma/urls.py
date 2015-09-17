@@ -1,7 +1,8 @@
 from django.conf.urls import include, url
 
-from norma.views import (assunto_norma_crud, tipo_norma_crud,
-                         norma_temporario_para_compilacao_crud)
+from norma.views import (assunto_norma_crud,
+                         norma_temporario_para_compilacao_crud,
+                         tipo_norma_crud)
 
 norma_url_patterns = norma_temporario_para_compilacao_crud.urlpatterns
 

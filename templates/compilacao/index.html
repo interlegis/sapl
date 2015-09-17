@@ -1,16 +1,60 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
- 
- 
+
+
 {% block title%}
   <h1>{{ view.get_norma }}</h1>
-{% endblock %} 
+{% endblock %}
 
 
 
 {% block base_content %}  
- 
-	{% include 'compilacao/template_render_bloco.html'%}  
 
+
+<div class="compilacao">
+<section class="vigencias">
+	<nav class="top-bar" data-topbar="" role="navigation">
+		<section class="top-bar-section">
+			<ul class="nav left"> 
+				{% for key, values in view.get_vigencias.items %}
+					<li class="nav__item has-dropdown">
+	
+						{% if forloop.first %}
+							{% for dispositivo in values %}
+								<a class="nav__link" href="{%url 'compilacao' dispositivo.norma.pk %}" title="{{ dispositivo.norma }}">{% trans 'Norma Original'%}</a>
+							{% endfor %}
+						{% elif forloop.last %}
+							{% for dispositivo in values %}
+								<a class="nav__link" href="{%url 'compilacao' dispositivo.norma_publicada.pk %}" title="{% trans 'Compilação atual'%}">{% trans 'Texto em Vigência'%}</a>
+							{% endfor %}
+						{% else %}
+							<a class="nav__link">{{ key }}</a>
+						{%endif%}
+	
+						{% if not forloop.first and not forloop.last %}
+	
+							<ul class="nav__sub-nav dropdown">
+								{% for dispositivo in values %}
+									<li class="nav__sub-item">
+										{% if forloop.parentloop.first %}
+											<a class="nav__sub-link" href="{%url 'compilacao' dispositivo.norma.pk %}" >{% trans 'Norma Original'%}</a>
+										{% else %}
+											<a class="nav__sub-link" href="{%url 'compilacao' dispositivo.norma_publicada.pk %}" title="{{ dispositivo.norma_publicada }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+										{%endif%}
+									</li>
+								{% endfor %}
+							</ul>
+	
+						{%endif%}
+	
+					</li>
+				{% endfor %}
+			</ul>
+		</section>
+	</nav>
+</section>
+
+{% include 'compilacao/template_render_bloco.html'%}
+</div>
 {% endblock base_content %}

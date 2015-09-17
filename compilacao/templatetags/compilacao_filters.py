@@ -17,6 +17,14 @@ def get_bloco(pk_atualizador):
 
 
 @register.filter
+def get_field(value, key):
+    try:
+        return value[key]
+    except ValueError:
+        return None
+
+
+@register.filter
 def bloco_ja_incluso(view, bloco):
     try:
         return view.itens_de_bloco.index(bloco) >= 0

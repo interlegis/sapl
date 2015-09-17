@@ -103,7 +103,7 @@ class NormaJuridica(models.Model):
         return _('%(tipo)s nº %(numero)s de %(data)s') % {
             'tipo': self.tipo,
             'numero': self.numero,
-            'data': defaultfilters.date(self.data, "d \d\e N \d\e Y")}
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
 
 class AssuntoNormaRelationship(models.Model):
