@@ -24,7 +24,7 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
     if inicio_vigencia and fim_vigencia:
         if dispositivo.fim_vigencia is None:
             return ''
-        if dispositivo.inicio_vigencia >= inicio_vigencia:
+        if dispositivo.fim_vigencia >= fim_vigencia:
             return ''
         return 'desativado'
 
