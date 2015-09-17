@@ -1,6 +1,7 @@
 from collections import OrderedDict
-from datetime import timedelta
+from datetime import timedelta, datetime, date
 
+from django.db.models import Q
 from django.views.generic.list import ListView
 
 from compilacao.models import Dispositivo
@@ -28,13 +29,27 @@ class CompilacaoView(ListView):
 
     itens_de_vigencia = {}
 
+    inicio_vigencia = None
+    fim_vigencia = None
+
     def get_queryset(self):
         self.flag_alteradora = -1
         self.flag_nivel_ini = 0
         self.flag_nivel_old = -1
 
-        if self.is_norma_alteradora():
+        self.inicio_vigencia = None
+        self.fim_vigencia = None
+        if 'iyear' in self.kwargs and 'eyear' in self.kwargs:
+            self.inicio_vigencia = date(
+                int(self.kwargs['iyear']),
+                int(self.kwargs['imonth']),
+                int(self.kwargs['iday']))
+            self.fim_vigencia = date(
+                int(self.kwargs['eyear']),
+                int(self.kwargs['emonth']),
+                int(self.kwargs['eday']))
             return Dispositivo.objects.filter(
+                Q(inicio_vigencia__lte=self.fim_vigencia),
                 ordem__gt=0,
                 norma_id=self.kwargs['norma_id'],
             ).select_related(*DISPOSITIVO_SELECT_RELATED)

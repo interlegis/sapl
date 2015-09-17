@@ -1,5 +1,3 @@
-from builtins import ValueError
-
 from django import template
 from django.db.models import Q
 
@@ -18,24 +16,21 @@ def get_bloco(pk_atualizador):
 
 @register.filter
 def get_field(value, key):
-    try:
-        return value[key]
-    except ValueError:
-        return None
-
-
-@register.filter
-def bloco_ja_incluso(view, bloco):
-    try:
-        return view.itens_de_bloco.index(bloco) >= 0
-    except ValueError:
-        return False
+    return value[key]
 
 
 @register.simple_tag
-def dispositivo_desativado(dispositivo):
-    if dispositivo.fim_vigencia is not None:
+def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
+    if inicio_vigencia and fim_vigencia:
+        if dispositivo.fim_vigencia is None:
+            return ''
+        if dispositivo.inicio_vigencia >= inicio_vigencia:
+            return ''
         return 'desativado'
+
+    else:
+        if dispositivo.fim_vigencia is not None:
+            return 'desativado'
     return ''
 
 
@@ -52,12 +47,6 @@ def nota_automatica(dispositivo):
 @register.simple_tag
 def set_nivel_old(view, value):
     view.flag_nivel_old = value
-    return ''
-
-
-@register.simple_tag
-def append_to_itens_de_bloco(view, value):
-    view.itens_de_bloco.append(value)
     return ''
 
 

@@ -8,13 +8,14 @@
 		{% close_div view.flag_nivel_old dispositivo.nivel %}
 	{% endif%}
 	<div class="dispositivo" id="d{{dispositivo.id}}">
-		<div class="{% dispositivo_desativado dispositivo %} {{ dispositivo.tipo_dispositivo.class_css }}" id="id{{dispositivo.id}}">  
+		<div class="{% dispositivo_desativado dispositivo view.inicio_vigencia view.fim_vigencia %} {{ dispositivo.tipo_dispositivo.class_css }}" id="id{{dispositivo.id}}">  
 {% spaceless %}
 				{{ dispositivo.tipo_dispositivo.rotulo_prefixo_html|safe }}
 				<a name="{{dispositivo.pk}}">{{ dispositivo.rotulo }}</a>
 				{{ dispositivo.tipo_dispositivo.rotulo_sufixo_html|safe }}
 				{{ dispositivo.tipo_dispositivo.texto_prefixo_html|safe }}
 				{{ dispositivo.texto|safe }}
+				 
 			{% if dispositivo.norma_publicada_id != None %}
 				<a class="link_alterador" href="{%url 'compilacao' dispositivo.norma_publicada.pk %}#{{dispositivo.dispositivo_atualizador_id}}">
 				{{ dispositivo.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
