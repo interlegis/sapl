@@ -774,11 +774,6 @@ class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         context.update({'expedientes': expedientes})
         return self.render_to_response(context)
 
-    def get_tipos(self):
-        tipos = TipoExpediente.objects.all()
-        for t in tipos:
-            yield (t.nome, t.id)
-
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
