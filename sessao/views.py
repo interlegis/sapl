@@ -727,14 +727,14 @@ class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             list_tipo = request.POST.getlist('tipo')
             list_conteudo = request.POST.getlist('conteudo')
 
-            for i in range(len(list_tipo)):
-                tipo = list_tipo[i]
-                conteudo = list_conteudo[i]
-
-                ExpedienteSessao.objects.get(
-                    sessao_plenaria_id=self.object.id,
-                    tipo_id=tipo
-                ).delete()
+            for tipo, conteudo in zip(list_tipo, list_conteudo):
+                try:
+                    ExpedienteSessao.objects.get(
+                        sessao_plenaria_id=self.object.id,
+                        tipo_id=tipo
+                    ).delete()
+                except:
+                    pass
 
                 expediente = ExpedienteSessao()
                 expediente.sessao_plenaria_id = self.object.id
@@ -749,16 +749,35 @@ class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
+        tipos = TipoExpediente.objects.all()
         expedientes_sessao = ExpedienteSessao.objects.filter(
             sessao_plenaria_id=self.object.id)
 
-        expedientes = []
+        expedientes_salvos = []
         for e in expedientes_sessao:
+            expedientes_salvos.append(e.tipo)
+
+        tipos_null = list(set(tipos) - set(expedientes_salvos))
+
+        expedientes = []
+        for e, t in zip(expedientes_sessao, tipos):
             expedientes.append({'tipo': e.tipo,
                                 'conteudo': e.conteudo
                                 })
         context.update({'expedientes': expedientes})
+
+        for e in tipos_null:
+            expedientes.append({'tipo': e,
+                                'conteudo': ''
+                                })
+
+        context.update({'expedientes': expedientes})
         return self.render_to_response(context)
+
+    def get_tipos(self):
+        tipos = TipoExpediente.objects.all()
+        for t in tipos:
+            yield (t.nome, t.id)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
