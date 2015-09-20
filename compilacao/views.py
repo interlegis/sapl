@@ -1,7 +1,9 @@
 from collections import OrderedDict
 from datetime import timedelta, datetime, date
 
+from django.core.signing import Signer
 from django.db.models import Q
+from django.utils.dateparse import parse_date
 from django.views.generic.list import ListView
 
 from compilacao.models import Dispositivo
@@ -32,7 +34,7 @@ class CompilacaoView(ListView):
     inicio_vigencia = None
     fim_vigencia = None
 
-    def get_queryset(self):
+    def get_queryset1(self):
         self.flag_alteradora = -1
         self.flag_nivel_ini = 0
         self.flag_nivel_old = -1
@@ -49,7 +51,34 @@ class CompilacaoView(ListView):
                 int(self.kwargs['emonth']),
                 int(self.kwargs['eday']))
             return Dispositivo.objects.filter(
-                Q(inicio_vigencia__lte=self.fim_vigencia),
+                inicio_vigencia__lte=self.fim_vigencia,
+                ordem__gt=0,
+                norma_id=self.kwargs['norma_id'],
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+        else:
+            return Dispositivo.objects.filter(
+                ordem__gt=0,
+                norma_id=self.kwargs['norma_id']
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+
+    def get_queryset(self):
+        self.flag_alteradora = -1
+        self.flag_nivel_ini = 0
+        self.flag_nivel_old = -1
+
+        self.inicio_vigencia = None
+        self.fim_vigencia = None
+        if 'sign' in self.kwargs:
+            signer = Signer()
+            try:
+                string = signer.unsign(self.kwargs['sign']).split(',')
+                self.inicio_vigencia = parse_date(string[0])
+                self.fim_vigencia = parse_date(string[1])
+            except:
+                return{}
+
+            return Dispositivo.objects.filter(
+                inicio_vigencia__lte=self.fim_vigencia,
                 ordem__gt=0,
                 norma_id=self.kwargs['norma_id'],
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
@@ -106,7 +135,7 @@ class CompilacaoView(ListView):
                 self.itens_de_vigencia[9999] = [item, ]
 
         if len(self.itens_de_vigencia.keys()) <= 1:
-            return{}
+            return {}
 
         self.itens_de_vigencia = OrderedDict(
             sorted(self.itens_de_vigencia.items(), key=lambda t: t[0]))

@@ -120,6 +120,7 @@
  
 .dispositivo .bloco_alteracao {
 	margin-left: 5em;
+	font-style: italic;
 }
 
 .dispositivo .bloco_alteracao:hover a {
@@ -132,23 +133,32 @@
 .dispositivo .bloco_alteracao table td {
 	color: #018 !important;  
 }
-
-
+ 
 .compilacao .top-bar-section li:not(.has-form) a:not(.button), 
 .compilacao .top-bar {
 	line-height: 1.6rem;
 	height: auto;
+	background: #2980B9;
+	z-index:1;
 }
 .compilacao .top-bar-section li:not(.has-form) a:not(.button) {
 	padding: 0 0.43333rem;
 }
 
 .compilacao ul.nav {
-	background: #34495E;
+	background: #2980B9;
 	display:block;
 	width: 100%;
+	z-index:1;
 }
 
 .compilacao .vigencias{
-	margin: 2em 0 0 0;
+	margin: 2.5em 0 0 0; 
+	transition: all .4s ease-in-out;
+}
+
+.compilacao .fixed{ 	
+	z-index:98;
+	transition: all .4s ease-in-out;
+	
 }
