@@ -6,16 +6,20 @@
 Matérias da Ordem do Dia
 
 		<table border="1">
-			<tr><td>Matéria</th><th>Ementa</th><th>Resultado da Votação</th></tr>
+				<tr><td>Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>
 			{% for m in materias_ordem %}
 				<tr>
 					<td>
-						{{m.numero}} - {{m.titulo}}
-					</br>
+						{{m.numero}} - {{m.titulo}}					
+						&nbsp;
+						</br>
 						{{m.autor}}
-					<td/>
+					</td>
 					<td>
-						{{m.observacao}}
+						{{m.ementa}}
+					</td>
+					<td>
+						{% if m.resultado %}{{m.resultado}}{%endif%}
 					</td>
 				</tr>
 			{% endfor %}
