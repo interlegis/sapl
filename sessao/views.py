@@ -230,6 +230,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
             titulo = o.materia
             numero = o.numero_ordem
 
+            print(ementa)
+
             autoria = Autoria.objects.filter(materia_id=o.materia_id)
             if len(autoria) > 1:
                 autor = 'Autores: '
@@ -247,8 +249,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                    'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
-                   'resultado': resultado,
-                   'autor': autor
+                   'resultado': o.resultado,
+                   'autor': autor,
                    }
             materias_ordem.append(mat)
 
@@ -276,7 +278,7 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia', kwargs={'pk': pk})
+        return reverse('sessaoplenaria:materiaordemdia_list', kwargs={'pk': pk})
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
