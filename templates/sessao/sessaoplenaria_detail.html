@@ -10,7 +10,7 @@
     <dd><a href="{% url 'sessaoplenaria:oradorexpediente' object.pk %}" class="button secondary">{% trans 'Oradores do Expediente' %}</a></dd>
     <dd><a href="{% url 'sessaoplenaria:mesa' object.pk %}" class="button secondary">{% trans 'Mesa' %}</a></dd>
     <dd><a href="{% url 'sessaoplenaria:explicacao' object.pk %}" class="button secondary">{% trans 'Explicações Pessoais' %}</a></dd>
-    <dd><a href="{% url 'sessaoplenaria:materiaordemdia' object.pk %}" class="button secondary">{% trans 'Matérias' %}</a></dd>
+    <dd><a href="{% url 'sessaoplenaria:materiaordemdia_list' object.pk %}" class="button secondary">{% trans 'Matérias' %}</a></dd>
     <dd><a href="{% url 'sessaoplenaria:painel' object.pk %}" class="button secondary">{% trans 'Painel Eletrônico' %}</a></dd>
     <dd><a href="{% url 'sessaoplenaria:resumo' object.pk %}" class="button secondary">{% trans 'Resumo' %}</a></dd>
   </dl>

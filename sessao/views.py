@@ -6,7 +6,6 @@ from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from extra_views import InlineFormSetView
 
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
@@ -215,6 +214,51 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                     yield (parlamentar, True)
 
 
+class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
+    template_name = 'sessao/materia_ordemdia_list.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        pk = self.kwargs['pk']
+        ordem = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+
+        materias_ordem = []
+        for o in ordem:
+            ementa = o.observacao
+            titulo = o.materia
+            numero = o.numero_ordem
+
+            autoria = Autoria.objects.filter(materia_id=o.materia_id)
+            if len(autoria) > 1:
+                autor = 'Autores: '
+            else:
+                autor = 'Autor: '
+
+            for a in autoria:
+                autor += str(a.autor)
+                autor += ' '
+
+            resultado = ''
+
+            mat = {'pk': pk,
+                   'oid': o.id,
+                   'ementa': ementa,
+                   'titulo': titulo,
+                   'numero': numero,
+                   'resultado': resultado,
+                   'autor': autor
+                   }
+            materias_ordem.append(mat)
+
+        sorted(materias_ordem, key=lambda x: x['numero'])
+
+        context.update({'materias_ordem': materias_ordem})
+
+        return self.render_to_response(context)
+
+
 class MateriaOrdemDiaForm(forms.Form):
     data_sessao = forms.CharField(required=True)
     numero_ordem = forms.IntegerField(required=True)
@@ -285,6 +329,11 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             context.update(
                 {'error_message': "Não foi possível salvar formulário!"})
             return self.form_invalid(form)
+
+
+class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/materia_ordemdia.html'
+    form_class = MateriaOrdemDiaForm
 
 
 class OradorForm(forms.Form):
@@ -697,6 +746,7 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
             for a in autoria:
                 autor += str(a.autor)
                 autor += ' '
+            # autor += ' '.join(map(lambda a : str(a.autor), autoria))
 
             mat = {'ementa': ementa,
                    'titulo': titulo,
