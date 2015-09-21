@@ -1,0 +1,26 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+
+<fieldset>
+	<legend>Editar Orador</legend>
+	<form method="POST" action="">
+	    {% csrf_token %}
+
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+		        <li>Ordem de pronunciamento</li>
+		        <li>Parlamentar</li>
+		        <li>URL Discurso</li>
+		</ul>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+	        <li><input type="text" id="numero_ordem" name="numero_ordem" value="{{explicacao.numero_ordem}}" /></li>
+	        <li><input type="text" id="parlamentar" name="parlamentar" value="{{explicacao.parlamentar.nome_parlamentar}}" disabled /></li>
+	        <li><input type="text" id="url_discurso" name="url_discurso" value="{{explicacao.url_discurso}}"/></li>
+		</ul>
+		<input type="submit" value="Salvar Orador" />
+	</form>
+</fieldset>
+
+{% endblock detail_content %}
