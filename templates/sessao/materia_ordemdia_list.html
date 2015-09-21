@@ -1,0 +1,26 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+
+Matérias da Ordem do Dia
+
+		<table border="1">
+			<tr><td>Matéria</th><th>Ementa</th><th>Resultado da Votação</th></tr>
+			{% for m in materias_ordem %}
+				<tr>
+					<td>
+						{{m.numero}} - {{m.titulo}}
+					</br>
+						{{m.autor}}
+					<td/>
+					<td>
+						{{m.observacao}}
+					</td>
+				</tr>
+			{% endfor %}
+		</table>
+		</ul>
+		</br>
+		<a href="{% url 'sessaoplenaria:materiaordemdia_create' object.pk %}" class="button secondary">{% trans 'Adicionar Matérias' %}</a></dd>
+{% endblock detail_content %}
