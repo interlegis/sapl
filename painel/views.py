@@ -57,6 +57,10 @@ def painel_view(request):
     return render(request, 'painel/index.html', {'context': context})
 
 
+def paienl_mensagem_view(request):
+    return render(request, 'painel/mensagem.html')
+
+
 def painel_parlamentares_view(request):
     return render(request, 'painel/parlamentares.html')
 
