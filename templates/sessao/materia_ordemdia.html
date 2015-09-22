@@ -10,8 +10,8 @@
 	{% csrf_token %}
 		 
 	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-		<li>Data da Sessão: <input type="text" value="{{data_sessao}}" disabled /></li>
-		<input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value="{{data_sessao}}" />
+		<li>Data da Sessão: <input type="text" value='{{data_sessao|date:"d/m/Y" }}' disabled /></li>
+		<input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value='{{data_sessao|date:"d/m/Y" }}' />
 		<li>
 			Tipo da Sessão: <select id="tipo_sessao" name="tipo_sessao" >
 			<option value=""></option>

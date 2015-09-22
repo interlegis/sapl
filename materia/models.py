@@ -125,6 +125,7 @@ class MateriaLegislativa(models.Model):
     class Meta:
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
+        unique_together = (("tipo", "numero", "ano"),)
 
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {

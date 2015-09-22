@@ -2,6 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
@@ -286,7 +287,7 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         now = datetime.now()
 
         tipo_materia = TipoMateriaLegislativa.objects.all()
-        data_sessao = "%s/%s/%s" % (now.day, now.month, now.year)
+        data_sessao = now
         tipo_sessao = TipoSessaoPlenaria.objects.all()
         tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
         ano_materia = now.year
@@ -306,29 +307,27 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         form = MateriaOrdemDiaForm(request.POST)
 
         if form.is_valid():
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    numero=request.POST['numero_materia'],
+                    tipo_id=request.POST['tipo_materia'],
+                    ano=request.POST['ano_materia'])
+            except ObjectDoesNotExist:
+                context.update(
+                    {'error_message': "Matéria inexistente!"})
+                return self.form_invalid(form)
 
-            # TODO: Pra que tipo_materia e tipo_sessao
-            # se já existem em seus respectivos objetos???
             # TODO: barrar matérias não existentes
             # TODO: barrar criação de ordemdia para materias já incluídas
 
-            # ordem = OrdemDia.objects.get(
-            #     sessao_plenaria_id=self.object.id)
-
-            # # Verficar se matéria existe
-            # materia = MateriaLegislativa.objects.get(
-            #     id=ordem.materia_id, 
-            #     tipo=request.POST['tipo_materia'])
-
             ordemdia = OrdemDia()
             ordemdia.sessao_plenaria_id = self.object.id
-            ordemdia.materia_id = ordem.materia_id
+            ordemdia.materia_id = materia.id
             ordemdia.numero_ordem = request.POST['numero_ordem']
             ordemdia.data_ordem = datetime.now()
-            ordemdia.observacao = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
+            ordemdia.observacao = sub('&nbsp;', ' ',
+                                      strip_tags(request.POST['observacao']))
             ordemdia.tipo_votacao = request.POST['tipo_votacao']
-
             ordemdia.save()
 
             return self.form_valid(form)
@@ -346,21 +345,19 @@ class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
-        current_url = request.get_full_path()
-        words = current_url.split('/')
-
-        ordem = OrdemDia.objects.get(
-            sessao_plenaria_id=self.object.id,
-            materia_id=words[-1])
+        pk = kwargs['pk']
+        oid = kwargs['oid']
+        ordem = OrdemDia.objects.get(sessao_plenaria_id=pk, materia_id=oid)
 
         materia = MateriaLegislativa.objects.get(
             id=ordem.materia_id)
 
+        data_ordem = ordem.data_ordem
         tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
         tipo_sessao = TipoSessaoPlenaria.objects.all()
         tipo_materia = TipoMateriaLegislativa.objects.all()
 
-        context.update({'data_sessao': self.object.data_fim,
+        context.update({'data_sessao': data_ordem,
                         'tipo_sessao': tipo_sessao,
                         'tipo_sessao_selected': self.object.tipo,
                         'tipo_materia': tipo_materia,
@@ -370,10 +367,49 @@ class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                         'ano_materia': materia.ano,
                         'numero_ordem': ordem.numero_ordem,
                         'numero_materia': materia.numero,
+                        'ordem_id': oid,
+                        'oid': '',
                         'observacao': sub(
                             '&nbsp;', ' ', strip_tags(ordem.observacao)),
                         'error_message': '', })
         return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        form = MateriaOrdemDiaForm(request.POST)
+
+        pk = kwargs['pk']
+        oid = kwargs['oid']
+        ordemdia = OrdemDia.objects.get(sessao_plenaria_id=pk, materia_id=oid)
+
+        if 'update-ordemdia' in request.POST:
+            if form.is_valid():
+                try:
+                    materia = MateriaLegislativa.objects.get(
+                        numero=request.POST['numero_materia'],
+                        tipo_id=request.POST['tipo_materia'],
+                        ano=request.POST['ano_materia'])
+                except ObjectDoesNotExist:
+                    context.update(
+                        {'error_message': "Matéria inexistente!"})
+                    return self.form_invalid(form)
+
+                ordemdia.materia_id = materia.id
+                ordemdia.numero_ordem = request.POST['numero_ordem']
+                ordemdia.tipo_votacao = request.POST['tipo_votacao']
+                obs = strip_tags(request.POST['observacao'])
+                ordemdia.observacao = sub('&nbsp;', '  ', obs)
+                ordemdia.save()
+                return self.form_valid(form)
+            else:
+                context.update(
+                    {'error_message': "Não foi possível salvar formulário!"})
+                return self.form_invalid(form)
+        elif 'delete-ordemdia' in request.POST:
+            ordemdia.delete()
+            return self.form_valid(form)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
