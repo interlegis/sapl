@@ -28,7 +28,6 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
         elif dispositivo.fim_vigencia >= fim_vigencia:
             return ''
         return 'desativado'
-
     else:
         if dispositivo.fim_vigencia is not None:
             return 'desativado'
@@ -37,11 +36,13 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 
 @register.simple_tag
 def nota_automatica(dispositivo):
-    # return ''
     if dispositivo.norma_publicada is not None and \
             dispositivo.tipo_dispositivo.class_css != 'artigo':
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
-        return 'Alteração feita pelo %s.' % d
+        if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
+            return 'Revogado pelo %s.' % d
+        else:
+            return 'Alteração feita pelo %s.' % d
     return ''
 
 

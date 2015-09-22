@@ -140,7 +140,15 @@
 	height: auto;
 	background: #2980B9;
 	z-index:1;
+	margin: 0 auto;
+	max-width: 62.5rem; 
 }
+
+.compilacao .top-bar-section li:not(.has-form) a:not(.button).selected,
+.compilacao .top-bar-section li:not(.has-form) a:not(.button):hover {
+	background: #1056A0;
+}
+
 .compilacao .top-bar-section li:not(.has-form) a:not(.button) {
 	padding: 0 0.43333rem;
 }
@@ -151,14 +159,20 @@
 	width: 100%;
 	z-index:1;
 }
-
-.compilacao .vigencias{
+.compilacao .tipo-vigencias {
+	border-top: 1px solid #62B5B5;
+}
+ 
+.compilacao .vigencias {
 	margin: 2.5em 0 0 0; 
 	transition: all .4s ease-in-out;
+	background: #2980B9;
 }
 
 .compilacao .fixed{ 	
-	z-index:98;
-	transition: all .4s ease-in-out;
-	
+	z-index:98;  
+}
+
+.displaynone {
+	display: none !important;
 }

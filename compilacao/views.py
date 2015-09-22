@@ -1,14 +1,12 @@
 from collections import OrderedDict
-from datetime import timedelta, datetime, date
+from datetime import timedelta
 
 from django.core.signing import Signer
-from django.db.models import Q
 from django.utils.dateparse import parse_date
 from django.views.generic.list import ListView
 
 from compilacao.models import Dispositivo
 from norma.models import NormaJuridica
-
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -33,33 +31,6 @@ class CompilacaoView(ListView):
 
     inicio_vigencia = None
     fim_vigencia = None
-
-    def get_queryset1(self):
-        self.flag_alteradora = -1
-        self.flag_nivel_ini = 0
-        self.flag_nivel_old = -1
-
-        self.inicio_vigencia = None
-        self.fim_vigencia = None
-        if 'iyear' in self.kwargs and 'eyear' in self.kwargs:
-            self.inicio_vigencia = date(
-                int(self.kwargs['iyear']),
-                int(self.kwargs['imonth']),
-                int(self.kwargs['iday']))
-            self.fim_vigencia = date(
-                int(self.kwargs['eyear']),
-                int(self.kwargs['emonth']),
-                int(self.kwargs['eday']))
-            return Dispositivo.objects.filter(
-                inicio_vigencia__lte=self.fim_vigencia,
-                ordem__gt=0,
-                norma_id=self.kwargs['norma_id'],
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
-        else:
-            return Dispositivo.objects.filter(
-                ordem__gt=0,
-                norma_id=self.kwargs['norma_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
     def get_queryset(self):
         self.flag_alteradora = -1

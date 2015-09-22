@@ -18,7 +18,29 @@ $( window ).scroll(function() {
     else if (!$( "section.vigencias" ).hasClass("fixed")){
         $( "section.vigencias" ).addClass("fixed"); 
     }
-});
+}); 
+
+function textoMultiVigente(item) {
+
+	$(".compilacao .tipo-vigencias a").removeClass("selected")
+	$(item).addClass("selected")
+
+	$(".desativado").removeClass("displaynone");
+	$(".link_alterador").removeClass("displaynone");
+}
+function textoVigente(item, link) {
+
+	$(".compilacao .tipo-vigencias a").removeClass("selected")
+	$(item).addClass("selected")
+
+	$(".desativado").addClass("displaynone");
+	$(".link_alterador").removeClass("displaynone");
+
+	if (!link)
+		$(".link_alterador").addClass("displaynone");
+}
+
+
 </script>
 
 <div class="compilacao">  
@@ -32,14 +54,16 @@ $( window ).scroll(function() {
 				<li class="nav__item has-dropdown">
 					{% if forloop.first %}
 						{% for dispositivo in values %}
-							<a class="nav__link" href="{%url 'vigencia' dispositivo.norma.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Norma Original'%}</a>
+							<a class="nav__link {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}selected{%endif%}" href="{%url 'vigencia' dispositivo.norma.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Norma Original'%}</a>
 						{% endfor %}
 					{% elif forloop.last %}
 						{% for dispositivo in values %}
-							<a class="nav__link" href="{%url 'compilacao' dispositivo.norma.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.norma_publicada}}">{% trans 'Texto em Vigência'%}</a>
+							<a class="nav__link {% if view.inicio_vigencia == None %}selected{%endif%}" href="{%url 'compilacao' dispositivo.norma.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.norma_publicada}}">{% trans 'Norma Atual'%}</a>
 						{% endfor %}
 					{% else %}
-						<a class="nav__link">{{ key }}</a>
+						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
+						
+						
 					{%endif%}
 
 					{% if not forloop.first and not forloop.last %} 
@@ -56,14 +80,18 @@ $( window ).scroll(function() {
 				</li>
 				{% if forloop.last %}
 			</ul>
+			<ul class="nav left tipo-vigencias"> 
+				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li> 
+				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li> 
+				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li> 
+			</ul>	
 		</section>
 	</nav>
 </section>
 				{%endif%}
 			{% endfor %}
-
+<br>
 {% if view.inicio_vigencia != None and view.fim_vigencia != None %}
-	<br>
 	{% trans 'Vigência entre'%} <b>{{view.inicio_vigencia}}</b> {% trans 'e'%} <b>{{view.fim_vigencia}}</b>.
 {%endif%}
 

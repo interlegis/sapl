@@ -185,6 +185,7 @@ class Publicacao(models.Model):
 
 
 class Dispositivo(models.Model):
+    TEXTO_PADRAO_DISPOSITIVO_REVOGADO = _('(Revogado)')
     ordem = models.PositiveIntegerField(
         default=0,
         verbose_name=_('Ordem de Renderização'))
