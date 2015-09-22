@@ -12,10 +12,10 @@ from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
-                     IntegranteMesa, Orador, OradorExpediente, OrdemDia,
-                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoExpediente,
-                     TipoResultadoVotacao, TipoSessaoPlenaria)
+                     IntegranteMesa, MateriaLegislativa, Orador,
+                     OradorExpediente, OrdemDia, PresencaOrdemDia,
+                     RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
+                     TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
@@ -242,10 +242,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                 autor += str(a.autor)
                 autor += ' '
 
-            resultado = ''
-
             mat = {'pk': pk,
-                   'oid': o.id,
+                   'oid': o.materia_id,
                    'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
@@ -278,7 +276,8 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list', kwargs={'pk': pk})
+        return reverse('sessaoplenaria:materiaordemdia_list',
+                       kwargs={'pk': pk})
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -306,8 +305,6 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         context = self.get_context_data(object=self.object)
         form = MateriaOrdemDiaForm(request.POST)
 
-        # print(form)
-
         if form.is_valid():
 
             # TODO: Pra que tipo_materia e tipo_sessao
@@ -315,9 +312,17 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             # TODO: barrar matérias não existentes
             # TODO: barrar criação de ordemdia para materias já incluídas
 
+            # ordem = OrdemDia.objects.get(
+            #     sessao_plenaria_id=self.object.id)
+
+            # # Verficar se matéria existe
+            # materia = MateriaLegislativa.objects.get(
+            #     id=ordem.materia_id, 
+            #     tipo=request.POST['tipo_materia'])
+
             ordemdia = OrdemDia()
             ordemdia.sessao_plenaria_id = self.object.id
-            ordemdia.materia_id = request.POST['numero_materia']
+            ordemdia.materia_id = ordem.materia_id
             ordemdia.numero_ordem = request.POST['numero_ordem']
             ordemdia.data_ordem = datetime.now()
             ordemdia.observacao = sub(
@@ -334,8 +339,46 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
 
 class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
-    template_name = 'sessao/materia_ordemdia.html'
+    template_name = 'sessao/materia_ordemdia_edit.html'
     form_class = MateriaOrdemDiaForm
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        current_url = request.get_full_path()
+        words = current_url.split('/')
+
+        ordem = OrdemDia.objects.get(
+            sessao_plenaria_id=self.object.id,
+            materia_id=words[-1])
+
+        materia = MateriaLegislativa.objects.get(
+            id=ordem.materia_id)
+
+        tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
+        tipo_sessao = TipoSessaoPlenaria.objects.all()
+        tipo_materia = TipoMateriaLegislativa.objects.all()
+
+        context.update({'data_sessao': self.object.data_fim,
+                        'tipo_sessao': tipo_sessao,
+                        'tipo_sessao_selected': self.object.tipo,
+                        'tipo_materia': tipo_materia,
+                        'tipo_materia_selected': materia.tipo,
+                        'tipo_votacao': tipo_votacao,
+                        'tipo_votacao_selected': ordem.tipo_votacao,
+                        'ano_materia': materia.ano,
+                        'numero_ordem': ordem.numero_ordem,
+                        'numero_materia': materia.numero,
+                        'observacao': sub(
+                            '&nbsp;', ' ', strip_tags(ordem.observacao)),
+                        'error_message': '', })
+        return self.render_to_response(context)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia_list',
+                       kwargs={'pk': pk})
 
 
 class OradorForm(forms.Form):
