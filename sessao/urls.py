@@ -1,12 +1,14 @@
 from django.conf.urls import include, url
 
-from sessao.views import (EditMateriaOrdemDiaView, ExpedienteView,
+from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
+                          ExpedienteOrdemDiaView, ExpedienteView,
                           ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
-                          ListMateriaOrdemDiaView, MateriaOrdemDiaView,
-                          MesaView, OradorExpedienteDelete,
-                          OradorExpedienteEdit, OradorExpedienteView,
-                          PainelView, PresencaOrdemDiaView, PresencaView,
-                          ResumoView, sessao_crud, tipo_expediente_crud,
+                          ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
+                          MateriaOrdemDiaView, MesaView,
+                          OradorExpedienteDelete, OradorExpedienteEdit,
+                          OradorExpedienteView, PainelView,
+                          PresencaOrdemDiaView, PresencaView, ResumoView,
+                          sessao_crud, tipo_expediente_crud,
                           tipo_resultado_votacao_crud, tipo_sessao_crud)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
@@ -32,6 +34,12 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         EditMateriaOrdemDiaView.as_view(), name='materiaordemdia_edit'),
     url(r'^(?P<pk>\d+)/materiaordemdia/create$',
         MateriaOrdemDiaView.as_view(), name='materiaordemdia_create'),
+    url(r'^(?P<pk>\d+)/expedienteordemdia/list$',
+        ListExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_list'),
+    url(r'^(?P<pk>\d+)/expedienteordemdia/edit/(?P<oid>\d+)$',
+        EditExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_edit'),
+    url(r'^(?P<pk>\d+)/expedienteordemdia/create$',
+        ExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_create'),
     url(r'^(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
     url(r'^(?P<pk>\d+)/explicacao$',

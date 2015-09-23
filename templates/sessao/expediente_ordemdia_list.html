@@ -1,0 +1,38 @@
+{% extends "sessao/sessaoplenaria_detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+
+Matérias do Expediente
+
+	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+		<li>Matéria</li>
+		<li>Ementa</li>
+		<li>Resultado da Votação</li>
+	</ul>
+	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+		{% for m in materias_ordem %}
+			<li>
+				{{m.numero}} - <a href="{% url 'sessaoplenaria:expedienteordemdia_edit' m.pk m.oid %}">{{m.titulo}}</a>
+				&nbsp;
+				</br>
+				{{m.autor}}
+			</li>
+			<li>{{m.ementa|safe}}</li>
+			<li>{% if m.resultado %}{{m.resultado}}{% endif %}</li>
+		{% endfor %}
+	</ul>
+
+	</br>
+	<a href="{% url 'sessaoplenaria:expedienteordemdia_create' object.pk %}" class="button secondary">
+		{% trans 'Adicionar Matérias' %}
+	</a></dd>
+
+	<!-- TODO implment -->
+<!--
+	<button>Incluir várias matérias</button>
+	<button>Reordenar Matérias na Ordem do Dia</button>
+	<button>Atualizar</button>
+-->
+
+{% endblock detail_content %}
