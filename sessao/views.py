@@ -239,6 +239,7 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
 
             mat = {'pk': pk,
                    'oid': o.materia_id,
+                   'ordem_id': o.id,
                    'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
@@ -1222,8 +1223,91 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         return self.render_to_response(context)
 
 
+class VotacaoForm(forms.Form):
+    votos_sim = forms.CharField(required=True)
+    votos_nao = forms.CharField(required=True)
+    abstencoes = forms.CharField(required=True)
+
+
 class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/simbolica.html'
+
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        current_url = self.request.get_full_path()
+        words = current_url.split('/')
+        materia_id = words[-2]
+        ordem_id = words[-1]
+        ordem = OrdemDia.objects.get(id=ordem_id)
+
+        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        context.update({'materia': materia})
+
+        try:
+            votacao = RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                ordem_id=ordem_id)
+        except:
+            pass
+        else:
+            votacao_existente = {'materia': ordem.materia,
+                                 'ementa': ordem.observacao,
+                                 'votos_sim': votacao.numero_votos_sim,
+                                 'votos_nao': votacao.numero_votos_nao,
+                                 'abstencoes': votacao.numero_abstencoes,
+                                 'observacao': votacao.observacao,
+                                 'tipo_resultado':
+                                 votacao.tipo_resultado_votacao_id}
+            context.update({'votacao_existente': votacao_existente})
+
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = VotacaoForm(request.POST)
+
+        if form.is_valid():
+            current_url = request.get_full_path()
+            words = current_url.split('/')
+            materia_id = words[-2]
+            ordem_id = words[-1]
+
+            try:
+                votacao = RegistroVotacao()
+                votacao.numero_votos_sim = int(request.POST['votos_sim'])
+                votacao.numero_votos_nao = int(request.POST['votos_nao'])
+                votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                votacao.observacao = request.POST['observacao']
+                votacao.materia_id = materia_id
+                votacao.ordem_id = ordem_id
+                votacao.tipo_resultado_votacao_id = int(
+                    request.POST['resultado_votacao'])
+                votacao.save()
+            except:
+                return self.form_invalid(form)
+            else:
+                ordem = OrdemDia.objects.get(
+                    sessao_plenaria_id=self.object.id,
+                    materia_id=materia_id)
+                resultado = TipoResultadoVotacao.objects.get(
+                    id=request.POST['resultado_votacao'])
+                ordem.resultado = resultado.nome
+                ordem.save()
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia_list',
+                       kwargs={'pk': pk})
 
 
 class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):

@@ -50,7 +50,7 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         ExplicacaoDelete.as_view(), name='explicacaoexcluir'),
     url(r'^(?P<pk>\d+)/explicacao/editar/(?P<oid>\d+)$',
         ExplicacaoEdit.as_view(), name='explicacaoeditar'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/votacaosimbolica/(?P<oid>\d+)$',
+    url(r'^(?P<pk>\d+)/materiaordemdia/votacaosimbolica/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoSimbolicaView.as_view(), name='votacaosimbolica'),
     url(r'^(?P<pk>\d+)/materiaordemdia/votacaonominal/(?P<oid>\d+)$',
         VotacaoNomimalView.as_view(), name='votacaonominal'),

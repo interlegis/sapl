@@ -25,7 +25,7 @@ Matérias da Ordem do Dia
 				{% else %}
 					Matéria não votada <br />
 					{% if m.tipo_votacao == 1 %}
-						<b><a href="{% url 'sessaoplenaria:votacaosimbolica' m.pk m.oid %}">Registrar Votação</a></b>
+						<b><a href="{% url 'sessaoplenaria:votacaosimbolica' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
 					{% elif m.tipo_votacao == 2 %}
 						<b><a href="{% url 'sessaoplenaria:votacaonominal' m.pk m.oid %}">Registrar Votação</a></b>
 					{% elif m.tipo_votacao == 3%}
