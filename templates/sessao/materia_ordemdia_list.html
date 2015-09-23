@@ -18,7 +18,7 @@ Matérias da Ordem do Dia
 				</br>
 				{{m.autor}}
 			</li>
-			<li>{{m.ementa}}</li>
+			<li>{{m.ementa|safe}}</li>
 			<li>{% if m.resultado %}{{m.resultado}}{% endif %}</li>
 		{% endfor %}
 	</ul>

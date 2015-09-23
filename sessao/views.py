@@ -658,7 +658,7 @@ class MesaView(FormMixin, sessao_crud.CrudDetailView):
 
 
 class ResumoView(FormMixin, sessao_crud.CrudDetailView):
-    template_name = 'sessao/Resumo.html'
+    template_name = 'sessao/resumo.html'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
