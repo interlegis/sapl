@@ -250,6 +250,7 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                    'numero': numero,
                    'resultado': o.resultado,
                    'autor': autor,
+                   'tipo_votacao': o.tipo_votacao
                    }
             materias_ordem.append(mat)
 
@@ -1237,3 +1238,35 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         context.update({'explicacao': explicacao})
 
         return self.render_to_response(context)
+
+
+class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/votacao/simbolica.html'
+
+
+class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/votacao/nominal.html'
+
+    def get_parlamentares(self):
+        self.object = self.get_object()
+
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            sessao_plen_id=self.object.id
+        )
+
+        presentes = []
+        for p in presencas:
+            presentes.append(p.parlamentar.id)
+
+        for parlamentar in Parlamentar.objects.all():
+            if parlamentar.ativo:
+                try:
+                    presentes.index(parlamentar.id)
+                except ValueError:
+                    pass
+                else:
+                    yield parlamentar
+
+
+class VotacaoSecretaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/votacao/secreta.html'

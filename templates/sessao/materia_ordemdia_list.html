@@ -19,7 +19,20 @@ Matérias da Ordem do Dia
 				{{m.autor}}
 			</li>
 			<li>{{m.ementa|safe}}</li>
-			<li>{% if m.resultado %}{{m.resultado}}{% endif %}</li>
+			<li>
+				{% if m.resultado %}
+					{{m.resultado}}
+				{% else %}
+					Matéria não votada <br />
+					{% if m.tipo_votacao == 1 %}
+						<b><a href="{% url 'sessaoplenaria:votacaosimbolica' m.pk m.oid %}">Registrar Votação</a></b>
+					{% elif m.tipo_votacao == 2 %}
+						<b><a href="{% url 'sessaoplenaria:votacaonominal' m.pk m.oid %}">Registrar Votação</a></b>
+					{% elif m.tipo_votacao == 3%}
+						<b><a href="{% url 'sessaoplenaria:votacaosecreta' m.pk m.oid %}">Registrar Votação</a></b>
+					{% endif %}
+				{% endif %}
+			</li>
 		{% endfor %}
 	</ul>
 
