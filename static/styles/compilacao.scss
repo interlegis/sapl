@@ -1,0 +1,178 @@
+
+
+.articulacao div {
+	background-color: #fff;
+}
+
+
+.dispositivo { 
+	background-color: #ddd !important; 
+	transition: all .4s ease-in-out;
+	display:inline;
+}
+
+
+.dispositivo .ementa {
+	padding: 4em 0em 3em 50%;
+	font-weight: bold;
+	
+} 
+
+.dispositivo .anexo {
+	font-size: 1.4em;
+	text-align: center;
+	font-weight: bold;
+	margin-top: 3em;
+}
+
+.dispositivo .parte {
+	font-size: 1.5em;
+	text-align: center;
+	font-weight: bold;
+	margin-top: 2em;
+}
+.dispositivo .livro {
+	font-size: 1.5em;
+	text-align: center;
+	font-weight: bold;
+	margin-top: 2em;
+}
+
+.dispositivo .titulo {
+	font-size: 1.5em;
+	text-align: center;
+	font-weight: bold;
+	margin-top: 2em; 
+}
+
+.dispositivo .capitulo {
+	margin-top: 1.5em;
+	font-size: 1.3em;
+	text-align: center;
+	font-weight: bold;
+}
+
+.dispositivo .secao {
+	margin-top: 0.8em;
+	font-size: 1.2em;
+	text-align: center;
+	font-weight: bold;
+}
+
+.dispositivo .subsecao, .dispositivo .itemsecao {
+	margin-top: 0.8em;
+	font-size: 1.2em;
+	text-align: center;
+	font-style: italic;
+	font-weight: bold;
+} 
+
+.dispositivo .artigo {  
+	font-size: 1.15em;
+	 float:left;
+}
+.dispositivo .caput { 
+	font-size: 1.15em; 
+	margin-bottom: 0.5em; 
+	display: block;
+} 
+ 
+.dispositivo .paragrafo {
+	margin-left: 1.5em;
+	font-size: 1.1em;
+	margin-top: 5px;
+	margin-bottom: 3px;
+}
+ 
+.dispositivo .inciso {
+	font-size: 1.1em;
+	margin-left: 2.5em;
+	margin-top: 5px;
+	margin-bottom: 3px;
+}
+
+.dispositivo .alinea {
+	font-size: 1.0em;
+	margin-left: 3.5em;
+}
+
+.dispositivo .item {
+	font-size: 1.0em;
+	margin-left: 4.5em;
+}
+
+.dispositivo .desativado, .dispositivo .desativado * {
+	text-decoration: line-through;
+	color: #777 !important;
+} 
+.dispositivo .desativado table, .dispositivo .desativado table td {
+	border: 1px dotted #ccc;
+	text-decoration: line-through;
+}
+
+.dispositivo a {
+	color: #444444 !important;
+}
+.dispositivo a.link_alterador {
+	color: #2980B9 !important;
+	font-size: 0.9rem; 
+}
+ 
+.dispositivo .bloco_alteracao {
+	margin-left: 5em;
+	font-style: italic;
+}
+
+.dispositivo .bloco_alteracao:hover a {
+    text-decoration: underline;
+}
+
+.dispositivo .bloco_alteracao,
+.dispositivo .bloco_alteracao a, 
+.dispositivo .bloco_alteracao table,
+.dispositivo .bloco_alteracao table td {
+	color: #018 !important;  
+}
+ 
+.compilacao .top-bar-section li:not(.has-form) a:not(.button), 
+.compilacao .top-bar {
+	line-height: 1.6rem;
+	height: auto;
+	background: #2980B9;
+	z-index:1;
+	margin: 0 auto;
+	max-width: 62.5rem; 
+}
+
+.compilacao .top-bar-section li:not(.has-form) a:not(.button).selected,
+.compilacao .top-bar-section li:not(.has-form) a:not(.button):hover {
+	background: #1056A0;
+}
+
+.compilacao .top-bar-section li:not(.has-form) a:not(.button) {
+	padding: 0 0.43333rem;
+}
+
+.compilacao ul.nav {
+	background: #2980B9;
+	display:block;
+	width: 100%;
+	z-index:1;
+}
+.compilacao .tipo-vigencias {
+	border-top: 1px solid #62B5B5;
+}
+ 
+.compilacao .vigencias {
+	margin: 2.5em 0 0 0; 
+	transition: all .4s ease-in-out;
+	background: #2980B9;
+}
+
+.compilacao .fixed{ 	
+	z-index:98;  
+}
+
+.displaynone {
+	display: none !important;
+}

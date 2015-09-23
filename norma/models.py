@@ -1,4 +1,5 @@
 from django.db import models
+from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import MateriaLegislativa
@@ -87,20 +88,32 @@ class NormaJuridica(models.Model):
     complemento = models.NullBooleanField(
         blank=True, verbose_name=_('Complementar ?'))
     # XXX was a CharField (attention on migrate)
-    assunto = models.ForeignKey(AssuntoNorma)
+    assuntos = models.ManyToManyField(
+        AssuntoNorma,
+        through='AssuntoNormaRelationship')
     data_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
 
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')
+        ordering = ['-data']
 
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s - %(materia)s - %(ano)s') % {
+        return _('%(tipo)s nº %(numero)s de %(data)s') % {
             'tipo': self.tipo,
             'numero': self.numero,
-            'materia': self.materia,
-            'ano': self.ano}
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+
+
+class AssuntoNormaRelationship(models.Model):
+    assunto = models.ForeignKey(AssuntoNorma)
+    norma = models.ForeignKey(NormaJuridica)
+
+    class Meta:
+        unique_together = (
+            ('assunto', 'norma'),
+        )
 
 
 class LegislacaoCitada(models.Model):

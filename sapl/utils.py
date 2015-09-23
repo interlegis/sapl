@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 appconfs = [apps.get_app_config(n) for n in [
     'parlamentares',
     'comissoes',
+    'compilacao',
     'materia',
     'norma',
     'sessao',

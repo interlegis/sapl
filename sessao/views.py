@@ -416,7 +416,6 @@ class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:materiaordemdia_list',
                        kwargs={'pk': pk})
 
-
 class OradorForm(forms.Form):
     numero_ordem = forms.IntegerField(required=True)
     parlamentar = forms.CharField(required=False, max_length=20)
