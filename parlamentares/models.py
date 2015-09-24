@@ -273,6 +273,7 @@ class Parlamentar(models.Model):
     class Meta:
         verbose_name = _('Parlamentar')
         verbose_name_plural = _('Parlamentares')
+        ordering = ['nome_parlamentar']
 
     def __str__(self):
         return self.nome_completo

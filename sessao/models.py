@@ -120,6 +120,7 @@ class ExpedienteMateria(AbstractOrdemDia):
     class Meta:
         verbose_name = _('Matéria do Expediente')
         verbose_name_plural = _('Matérias do Expediente')
+        ordering = ['numero_ordem']
 
 
 class TipoExpediente(models.Model):
@@ -196,6 +197,7 @@ class OrdemDia(AbstractOrdemDia):
     class Meta:
         verbose_name = _('Matéria da Ordem do Dia')
         verbose_name_plural = _('Matérias da Ordem do Dia')
+        ordering = ['numero_ordem']
 
 
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
@@ -205,6 +207,7 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     class Meta:
         verbose_name = _('Presença da Ordem do Dia')
         verbose_name_plural = _('Presenças da Ordem do Dia')
+        ordering = ['parlamentar__nome_parlamentar']
 
     def __str__(self):
         # FIXME ambigous
@@ -271,6 +274,7 @@ class SessaoPlenariaPresenca(models.Model):
     class Meta:
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
+        ordering = ['parlamentar__nome_parlamentar']
 
     def __str__(self):
         return _('Sessão: %(sessao_plen)s Data: %(data)s') % {
