@@ -139,19 +139,13 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
         presencas = SessaoPlenariaPresenca.objects.filter(
             sessao_plen_id=self.object.id
         )
+        presentes = [p.parlamentar for p in presencas]
 
-        presentes = []
-        for p in presencas:
-            presentes.append(p.parlamentar.id)
-
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                try:
-                    presentes.index(parlamentar.id)
-                except ValueError:
-                    yield (parlamentar, False)
-                else:
-                    yield (parlamentar, True)
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
 
 
 class PainelView(sessao_crud.CrudDetailView):
@@ -944,14 +938,8 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
 
             autoria = Autoria.objects.filter(
                 materia_id=m.materia_id)
-            if len(autoria) > 1:
-                autor = 'Autores: '
-            else:
-                autor = 'Autor: '
 
-            for a in autoria:
-                autor += str(a.autor)
-                autor += ' '
+            autor = [str(x.autor) for x in autoria]
 
             mat = {'ementa': ementa,
                    'titulo': titulo,
@@ -995,6 +983,7 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         context.update({'presenca_ordem': parlamentares_ordem})
 
         # =====================================================================
+
         # Matérias Ordem do Dia
         ordem = OrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id)
@@ -1013,15 +1002,8 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
 
             autoria = Autoria.objects.filter(
                 materia_id=o.materia_id)
-            if len(autoria) > 1:
-                autor = 'Autores: '
-            else:
-                autor = 'Autor: '
 
-            for a in autoria:
-                autor += str(a.autor)
-                autor += ' '
-            # autor += ' '.join(map(lambda a : str(a.autor), autoria))
+            autor = [str(x.autor) for x in autoria]
 
             mat = {'ementa': ementa,
                    'titulo': titulo,

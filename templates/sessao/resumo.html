@@ -66,7 +66,7 @@
 				<li>
 					{{m.numero}} - {{m.titulo}}
 					<br />
-					{{m.autor}}
+					<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 				</li>
 				<li>{{m.ementa|safe}}</li>
 				<li>{{m.resultado}}</li>
@@ -109,7 +109,7 @@
 				<li>
 					{{m.numero}} - {{m.titulo}}
 					<br />
-					{{m.autor}}
+					<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 				</li>
 				<li>{{m.ementa|safe}}</li>
 				<li>{{m.resultado}}</li>
