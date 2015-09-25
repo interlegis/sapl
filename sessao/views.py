@@ -189,24 +189,19 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
 
     def get_parlamentares(self):
-        self.object = self.get_object()
+        self.object = self.get_object()       
 
         presencas = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id
         )
 
-        presentes = []
-        for p in presencas:
-            presentes.append(p.parlamentar.id)
+        presentes = [p.parlamentar for p in presencas]
 
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                try:
-                    presentes.index(parlamentar.id)
-                except ValueError:
-                    yield (parlamentar, False)
-                else:
-                    yield (parlamentar, True)
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
 
 
 class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
@@ -1236,19 +1231,13 @@ class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
             sessao_plen_id=self.object.id
         )
 
-        presentes = []
-        for p in presencas:
-            presentes.append(p.parlamentar.id)
-
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                try:
-                    presentes.index(parlamentar.id)
-                except ValueError:
-                    pass
-                else:
-                    yield parlamentar
-
+        presentes = [p.parlamentar for p in presencas]    
+        
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
 
 class VotacaoSecretaView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/secreta.html'
