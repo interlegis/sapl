@@ -189,15 +189,18 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
 
     def get_parlamentares(self):
-        self.object = self.get_object()
+        self.object = self.get_object()       
 
         presencas = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id
         )
 
+<<<<<<< HEAD
         presencas = SessaoPlenariaPresenca.objects.filter(
             sessao_plen_id=self.object.id
         )
+=======
+>>>>>>> f0a7ceed7625f68654453d90052a43dd4cad58f1
         presentes = [p.parlamentar for p in presencas]
 
         for parlamentar in Parlamentar.objects.filter(ativo=True):
@@ -1373,14 +1376,11 @@ class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
             sessao_plen_id=self.object.id
         )
 
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plen_id=self.object.id
-        )
-        presentes = [p.parlamentar for p in presencas]
-
         for parlamentar in Parlamentar.objects.filter(ativo=True):
             if parlamentar in presentes:
-                yield parlamentar
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
 
 
 class VotacaoSecretaView(FormMixin, sessao_crud.CrudDetailView):
