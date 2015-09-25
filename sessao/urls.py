@@ -9,9 +9,9 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           OradorExpedienteView, PainelView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
                           VotacaoNomimalView, VotacaoSecretaView,
-                          VotacaoSimbolicaView, sessao_crud,
-                          tipo_expediente_crud, tipo_resultado_votacao_crud,
-                          tipo_sessao_crud)
+                          VotacaoSimbolicaEditView, VotacaoSimbolicaView,
+                          sessao_crud, tipo_expediente_crud,
+                          tipo_resultado_votacao_crud, tipo_sessao_crud)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',
@@ -50,12 +50,14 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         ExplicacaoDelete.as_view(), name='explicacaoexcluir'),
     url(r'^(?P<pk>\d+)/explicacao/editar/(?P<oid>\d+)$',
         ExplicacaoEdit.as_view(), name='explicacaoeditar'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/votacaosimbolica/(?P<oid>\d+)/(?P<mid>\d+)$',
-        VotacaoSimbolicaView.as_view(), name='votacaosimbolica'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/votacaonominal/(?P<oid>\d+)$',
+    url(r'^(?P<pk>\d+)/matordemdia/votacaonominal/(?P<oid>\d+)$',
         VotacaoNomimalView.as_view(), name='votacaonominal'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/votacaosecreta/(?P<oid>\d+)$',
+    url(r'^(?P<pk>\d+)/matordemdia/votacaosecreta/(?P<oid>\d+)$',
         VotacaoSecretaView.as_view(), name='votacaosecreta'),
+    url(r'^(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
+        VotacaoSimbolicaView.as_view(), name='votacaosimbolica'),
+    url(r'^(?P<pk>\d+)/matordemdia/votsimb/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+        VotacaoSimbolicaEditView.as_view(), name='votacaosimbolicaedit'),
 ]
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
 

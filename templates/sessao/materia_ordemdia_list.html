@@ -21,7 +21,13 @@ Matérias da Ordem do Dia
 			<li>{{m.ementa|safe}}</li>
 			<li>
 				{% if m.resultado %}
-					{{m.resultado}}
+					{% if m.tipo_votacao == 1 %}
+						<b><a href="{% url 'sessaoplenaria:votacaosimbolicaedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+					{% elif m.tipo_votacao == 2 %}
+						<b><a href="{% url 'sessaoplenaria:votacaonominaledit' m.pk m.oid %}">{{m.resultado}}</a></b>
+					{% elif m.tipo_votacao == 3%}
+						<b><a href="{% url 'sessaoplenaria:votacaosecretaedit' m.pk m.oid %}">{{m.resultado}}</a></b>
+					{% endif %}
 				{% else %}
 					Matéria não votada <br />
 					{% if m.tipo_votacao == 1 %}

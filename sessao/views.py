@@ -195,18 +195,16 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             sessao_plenaria_id=self.object.id
         )
 
-        presentes = []
-        for p in presencas:
-            presentes.append(p.parlamentar.id)
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            sessao_plen_id=self.object.id
+        )
+        presentes = [p.parlamentar for p in presencas]
 
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                try:
-                    presentes.index(parlamentar.id)
-                except ValueError:
-                    yield (parlamentar, False)
-                else:
-                    yield (parlamentar, True)
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
 
 
 class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
@@ -1229,6 +1227,66 @@ class VotacaoForm(forms.Form):
     abstencoes = forms.CharField(required=True)
 
 
+class VotacaoEdit(forms.Form):
+    pass
+
+
+class VotacaoSimbolicaEditView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = 'sessao/votacao/simbolica_edit.html'
+
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = VotacaoEdit(request.POST)
+
+        materia_id = kwargs['oid']
+        ordem_id = kwargs['mid']
+
+        if(int(request.POST['anular_votacao']) == 1):
+            RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                ordem_id=ordem_id).delete()
+
+            ordem = OrdemDia.objects.get(
+                sessao_plenaria_id=self.object.id,
+                materia_id=materia_id)
+            ordem.resultado = None
+            ordem.save()
+
+        return self.form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        materia_id = kwargs['oid']
+        ordem_id = kwargs['mid']
+
+        ordem = OrdemDia.objects.get(id=ordem_id)
+
+        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        context.update({'materia': materia})
+
+        votacao = RegistroVotacao.objects.get(
+            materia_id=materia_id,
+            ordem_id=ordem_id)
+        votacao_existente = {'observacao': sub(
+                                '&nbsp;', ' ', strip_tags(votacao.observacao)),
+                             'tipo_resultado':
+                             votacao.tipo_resultado_votacao_id}
+        context.update({'votacao': votacao_existente})
+
+        return self.render_to_response(context)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia_list',
+                       kwargs={'pk': pk})
+
+
 class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/simbolica.html'
 
@@ -1240,31 +1298,11 @@ class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
-        current_url = self.request.get_full_path()
-        words = current_url.split('/')
-        materia_id = words[-2]
-        ordem_id = words[-1]
+        ordem_id = kwargs['mid']
         ordem = OrdemDia.objects.get(id=ordem_id)
 
         materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
         context.update({'materia': materia})
-
-        try:
-            votacao = RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                ordem_id=ordem_id)
-        except:
-            pass
-        else:
-            votacao_existente = {'materia': ordem.materia,
-                                 'ementa': ordem.observacao,
-                                 'votos_sim': votacao.numero_votos_sim,
-                                 'votos_nao': votacao.numero_votos_nao,
-                                 'abstencoes': votacao.numero_abstencoes,
-                                 'observacao': votacao.observacao,
-                                 'tipo_resultado':
-                                 votacao.tipo_resultado_votacao_id}
-            context.update({'votacao_existente': votacao_existente})
 
         return self.render_to_response(context)
 
@@ -1278,29 +1316,44 @@ class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
             materia_id = words[-2]
             ordem_id = words[-1]
 
-            try:
-                votacao = RegistroVotacao()
-                votacao.numero_votos_sim = int(request.POST['votos_sim'])
-                votacao.numero_votos_nao = int(request.POST['votos_nao'])
-                votacao.numero_abstencoes = int(request.POST['abstencoes'])
-                votacao.observacao = request.POST['observacao']
-                votacao.materia_id = materia_id
-                votacao.ordem_id = ordem_id
-                votacao.tipo_resultado_votacao_id = int(
-                    request.POST['resultado_votacao'])
-                votacao.save()
-            except:
-                return self.form_invalid(form)
-            else:
-                ordem = OrdemDia.objects.get(
-                    sessao_plenaria_id=self.object.id,
-                    materia_id=materia_id)
-                resultado = TipoResultadoVotacao.objects.get(
-                    id=request.POST['resultado_votacao'])
-                ordem.resultado = resultado.nome
-                ordem.save()
+            qtde_presentes = len(SessaoPlenariaPresenca.objects.filter(
+                sessao_plen_id=self.object.id))
+            qtde_votos = (int(request.POST['votos_sim']) +
+                          int(request.POST['votos_nao']) +
+                          int(request.POST['abstencoes']))
 
-            return self.form_valid(form)
+            if(int(request.POST['voto_presidente']) == 0):
+                qtde_presentes -= 1
+
+            if(qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
+                # context.update ({'error_message':
+                #                  'A quantidade de votos e de
+                #                   presentes não correspondem.'})
+                return self.form_invalid(form)
+            elif (qtde_presentes == qtde_votos):
+                try:
+                    votacao = RegistroVotacao()
+                    votacao.numero_votos_sim = int(request.POST['votos_sim'])
+                    votacao.numero_votos_nao = int(request.POST['votos_nao'])
+                    votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                    votacao.observacao = request.POST['observacao']
+                    votacao.materia_id = materia_id
+                    votacao.ordem_id = ordem_id
+                    votacao.tipo_resultado_votacao_id = int(
+                        request.POST['resultado_votacao'])
+                    votacao.save()
+                except:
+                    return self.form_invalid(form)
+                else:
+                    ordem = OrdemDia.objects.get(
+                        sessao_plenaria_id=self.object.id,
+                        materia_id=materia_id)
+                    resultado = TipoResultadoVotacao.objects.get(
+                        id=request.POST['resultado_votacao'])
+                    ordem.resultado = resultado.nome
+                    ordem.save()
+
+                return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
@@ -1320,18 +1373,14 @@ class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
             sessao_plen_id=self.object.id
         )
 
-        presentes = []
-        for p in presencas:
-            presentes.append(p.parlamentar.id)
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            sessao_plen_id=self.object.id
+        )
+        presentes = [p.parlamentar for p in presencas]
 
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                try:
-                    presentes.index(parlamentar.id)
-                except ValueError:
-                    pass
-                else:
-                    yield parlamentar
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield parlamentar
 
 
 class VotacaoSecretaView(FormMixin, sessao_crud.CrudDetailView):
