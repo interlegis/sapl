@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -16,7 +15,8 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria)
+                     TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
+                     VotoParlamentar)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
@@ -1491,8 +1491,17 @@ class VotacaoSecretaEditView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
+class VotacaoNominalForm(forms.Form):
+    pass
+
+
 class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia_list',
+                       kwargs={'pk': pk})
 
     def get_parlamentares(self):
         self.object = self.get_object()
@@ -1510,6 +1519,172 @@ class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
             if parlamentar in presentes:
                 yield parlamentar
 
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        ordem_id = kwargs['mid']
+
+        ordem = OrdemDia.objects.get(id=ordem_id)
+
+        materia = {'materia': ordem.materia,
+                   'ementa': sub(
+                        '&nbsp;', ' ', strip_tags(ordem.observacao))}
+        context.update({'materia': materia})
+
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = VotacaoNominalForm(request.POST)
+
+        if form.is_valid():
+            materia_id = kwargs['oid']
+            ordem_id = kwargs['mid']
+
+            votos_sim = 0
+            votos_nao = 0
+            abstencoes = 0
+            nao_votou = 0
+
+            for votos in request.POST.getlist('voto_parlamentar'):
+                v = votos.split(':')
+                voto = v[0]
+                parlamentar_id = v[1]
+
+                if(voto == 'sim'):
+                    votos_sim += 1
+                elif(voto == 'nao'):
+                    votos_nao += 1
+                elif(voto == 'abstencao'):
+                    abstencoes += 1
+                elif(voto == 'nao_votou'):
+                    nao_votou += 1
+
+            try:
+                votacao = RegistroVotacao()
+                votacao.numero_votos_sim = votos_sim
+                votacao.numero_votos_nao = votos_nao
+                votacao.numero_abstencoes = abstencoes
+                votacao.observacao = request.POST['observacao']
+                votacao.materia_id = materia_id
+                votacao.ordem_id = ordem_id
+                votacao.tipo_resultado_votacao_id = int(
+                    request.POST['resultado_votacao'])
+                votacao.save()
+            except:
+                return self.form_invalid(form)
+            else:
+                votacao = RegistroVotacao.objects.get(
+                    materia_id=materia_id,
+                    ordem_id=ordem_id)
+
+                for votos in request.POST.getlist('voto_parlamentar'):
+                    v = votos.split(':')
+                    voto = v[0]
+                    parlamentar_id = v[1]
+
+                    voto_parlamentar = VotoParlamentar()
+                    if(voto == 'sim'):
+                        voto_parlamentar.voto = 'Sim'
+                    elif(voto == 'nao'):
+                        voto_parlamentar.voto = 'Não'
+                    elif(voto == 'abstencao'):
+                        voto_parlamentar.voto = 'Abestenção'
+                    elif(voto == 'nao_votou'):
+                        voto_parlamentar.voto = 'Não Votou'
+                    voto_parlamentar.parlamentar_id = parlamentar_id
+                    voto_parlamentar.votacao_id = votacao.id
+                    voto_parlamentar.save()
+
+                    ordem = OrdemDia.objects.get(
+                        sessao_plenaria_id=self.object.id,
+                        materia_id=materia_id)
+                    resultado = TipoResultadoVotacao.objects.get(
+                        id=request.POST['resultado_votacao'])
+                    ordem.resultado = resultado.nome
+                    ordem.save()
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
 
 class VotacaoNomimalEditView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal_edit.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        materia_id = kwargs['oid']
+        ordem_id = kwargs['mid']
+
+        votacao = RegistroVotacao.objects.get(
+            materia_id=materia_id,
+            ordem_id=ordem_id)
+        ordem = OrdemDia.objects.get(id=ordem_id)
+        votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
+
+        list_votos = []
+        for v in votos:
+            parlamentar = Parlamentar.objects.get(id=v.parlamentar_id)
+            list_votos.append({'parlamentar': parlamentar, 'voto': v.voto})
+
+        context.update({'votos': list_votos})
+
+        materia = {'materia': ordem.materia,
+                   'ementa': sub(
+                        '&nbsp;', ' ', strip_tags(ordem.observacao))}
+        context.update({'materia': materia})
+
+        votacao_existente = {'observacao': sub(
+                                '&nbsp;', ' ', strip_tags(votacao.observacao)),
+                             'tipo_resultado':
+                             votacao.tipo_resultado_votacao_id}
+        context.update({'votacao': votacao_existente})
+
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = VotacaoEdit(request.POST)
+
+        materia_id = kwargs['oid']
+        ordem_id = kwargs['mid']
+
+        if(int(request.POST['anular_votacao']) == 1):
+            registro = RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                ordem_id=ordem_id)
+
+            ordem = OrdemDia.objects.get(
+                sessao_plenaria_id=self.object.id,
+                materia_id=materia_id)
+            ordem.resultado = None
+            ordem.save()
+
+            try:
+                votacao = VotoParlamentar.objects.filter(
+                    votacao_id=registro.id)
+                for v in votacao:
+                    v.delete()
+            except:
+                pass
+
+            registro.delete()
+
+        return self.form_valid(form)
+
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:materiaordemdia_list',
+                       kwargs={'pk': pk})

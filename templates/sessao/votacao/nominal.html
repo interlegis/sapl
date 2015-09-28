@@ -7,10 +7,11 @@
 
 	<fieldset>
 		<legend>Votação Nominal</legend>
-		
-		Matéria: 
-		<br />
-		Ementa: 
+		<div>
+			Matéria: {{materia.materia}}
+			<br />
+			Ementa: {{materia.ementa|safe}}
+		</div>
 
 		<fieldset>
 			<legend>Votos</legend>
@@ -18,12 +19,12 @@
 				{% for parlamentar in view.get_parlamentares %}
 					<li>{{parlamentar.nome_parlamentar}}</li>
 					<li>
-						<select id="anular_votacao" name="anular_votacao">
+						<select id="voto_parlamentar" name="voto_parlamentar">
 							<option value=""></option>
-							<option value="sim">Sim</option>
-							<option value="nao">Não</option>
-							<option value="abstencao">Abstenção</option>
-							<option value="nao_votou">Não Votou</option>
+							<option value="sim:{{parlamentar.id}}">Sim</option>
+							<option value="nao:{{parlamentar.id}}">Não</option>
+							<option value="abstencao:{{parlamentar.id}}">Abstenção</option>
+							<option value="nao_votou:{{parlamentar.id}}">Não Votou</option>
 						</select>
 					</li>
 				{% endfor %}
@@ -34,7 +35,10 @@
 			<li>
 				Resultado da Votação
 				<select id="resultado_votacao" name="resultado_votacao">
-					<option value=""></option>
+					<option value="" selected></option>
+					{% for tipo in view.get_tipos_votacao %}
+						<option value="{{tipo.id}}">{{tipo.nome}}</option>
+					{% endfor %}
 				</select>
 			</li>
 		</ul>
