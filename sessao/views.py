@@ -108,7 +108,7 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
         if form.is_valid():
             # Pegar os presentes salvos no banco
             presentes_banco = SessaoPlenariaPresenca.objects.filter(
-                sessao_plen_id=self.object.id)
+                sessao_plenaria_id=self.object.id)
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca')
@@ -137,7 +137,7 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
 
         presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plen_id=self.object.id
+            sessao_plenaria_id=self.object.id
         )
         presentes = [p.parlamentar for p in presencas]
 
@@ -195,9 +195,6 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             sessao_plenaria_id=self.object.id
         )
 
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plen_id=self.object.id
-        )
         presentes = [p.parlamentar for p in presencas]
 
         for parlamentar in Parlamentar.objects.filter(ativo=True):
@@ -891,7 +888,7 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         # =====================================================================
         # Presença Sessão
         presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plen_id=self.object.id
+            sessao_plenaria_id=self.object.id
         )
 
         parlamentares_sessao = []
@@ -1315,7 +1312,7 @@ class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
             ordem_id = kwargs['mid']
 
             qtde_presentes = len(PresencaOrdemDia.objects.filter(
-                sessao_plen_id=self.object.id))
+                sessao_plenaria_id=self.object.id))
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
                           int(request.POST['abstencoes']))
@@ -1389,7 +1386,7 @@ class VotacaoSecretaView(FormMixin, sessao_crud.CrudDetailView):
             ordem_id = kwargs['mid']
 
             qtde_presentes = len(PresencaOrdemDia.objects.filter(
-                sessao_plen_id=self.object.id))
+                sessao_plenaria_id=self.object.id))
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
                           int(request.POST['abstencoes']))
@@ -1507,7 +1504,7 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
 
         presencas = PresencaOrdemDia.objects.filter(
-            sessao_plen_id=self.object.id
+            sessao_plenaria_id=self.object.id
         )
         presentes = [p.parlamentar for p in presencas]
 

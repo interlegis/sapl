@@ -267,7 +267,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
 
 
 class SessaoPlenariaPresenca(models.Model):
-    sessao_plen = models.ForeignKey(SessaoPlenaria)
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
     data_sessao = models.DateField(blank=True, null=True)
 
