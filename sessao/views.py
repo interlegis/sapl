@@ -121,7 +121,7 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
 
             for p in marcados:
                 sessao = SessaoPlenariaPresenca()
-                sessao.sessao_plen = self.object
+                sessao.sessao_plenaria = self.object
                 sessao.parlamentar = Parlamentar.objects.get(id=p)
                 sessao.save()
 
