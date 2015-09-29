@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           ExpedienteOrdemDiaView, ExpedienteView,
                           ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
@@ -7,11 +8,10 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           OradorExpedienteDelete, OradorExpedienteEdit,
                           OradorExpedienteView, PainelView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
-                          VotacaoNominalEditView, VotacaoNominalView,
-                          VotacaoSecretaEditView, VotacaoSecretaView,
-                          VotacaoSimbolicaEditView, VotacaoSimbolicaView,
-                          sessao_crud, tipo_expediente_crud,
-                          tipo_resultado_votacao_crud, tipo_sessao_crud)
+                          VotacaoEditView, VotacaoNominalEditView,
+                          VotacaoNominalView, VotacaoView, sessao_crud,
+                          tipo_expediente_crud, tipo_resultado_votacao_crud,
+                          tipo_sessao_crud)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',
@@ -55,13 +55,13 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalEditView.as_view(), name='votacaonominaledit'),
     url(r'^(?P<pk>\d+)/matordemdia/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
-        VotacaoSecretaView.as_view(), name='votacaosecreta'),
+        VotacaoView.as_view(), name='votacaosecreta'),
     url(r'^(?P<pk>\d+)/matordemdia/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
-        VotacaoSecretaEditView.as_view(), name='votacaosecretaedit'),
+        VotacaoEditView.as_view(), name='votacaosecretaedit'),
     url(r'^(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
-        VotacaoSimbolicaView.as_view(), name='votacaosimbolica'),
+        VotacaoView.as_view(), name='votacaosimbolica'),
     url(r'^(?P<pk>\d+)/matordemdia/votsimb/view/(?P<oid>\d+)/(?P<mid>\d+)$',
-        VotacaoSimbolicaEditView.as_view(), name='votacaosimbolicaedit'),
+        VotacaoEditView.as_view(), name='votacaosimbolicaedit'),
 ]
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
 

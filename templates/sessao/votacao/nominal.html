@@ -20,7 +20,6 @@
 					<li>{{parlamentar.nome_parlamentar}}</li>
 					<li>
 						<select id="voto_parlamentar" name="voto_parlamentar">
-							<option value=""></option>
 							<option value="sim:{{parlamentar.id}}">Sim</option>
 							<option value="nao:{{parlamentar.id}}">Não</option>
 							<option value="abstencao:{{parlamentar.id}}">Abstenção</option>
@@ -35,7 +34,6 @@
 			<li>
 				Resultado da Votação
 				<select id="resultado_votacao" name="resultado_votacao">
-					<option value="" selected></option>
 					{% for tipo in view.get_tipos_votacao %}
 						<option value="{{tipo.id}}">{{tipo.nome}}</option>
 					{% endfor %}

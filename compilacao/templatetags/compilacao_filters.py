@@ -4,7 +4,6 @@ from django.db.models import Q
 
 from compilacao.models import Dispositivo
 
-
 register = template.Library()
 
 

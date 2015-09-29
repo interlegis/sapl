@@ -6,11 +6,14 @@
 	{% csrf_token %}
 
 	<fieldset>
-		<legend>Votação Simbólica</legend>
+		<legend>{{votacao_titulo}}</legend>
 		<div>
-			Matéria: {{materia.materia|safe}}
+			<b>Matéria:</b> {{materia.materia|safe}}
 			<br />
-			Ementa: {{materia.ementa|safe}} 
+			<b>Ementa:</b> {{materia.ementa|safe}}
+			<br />
+			<br />
+			<b>Total presentes:</b> {{total_presentes}} (com presidente)
 		</div>
 		<br />
 
@@ -32,7 +35,6 @@
 			<li>
 				Resultado da Votação
 				<select id="resultado_votacao" name="resultado_votacao">
-					<option value="" selected></option>
 					{% for tipo in view.get_tipos_votacao %}
 						<option value="{{tipo.id}}">{{tipo.nome}}</option>
 					{% endfor %}

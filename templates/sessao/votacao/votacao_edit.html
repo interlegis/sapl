@@ -6,7 +6,7 @@
 	{% csrf_token %}
 
 	<fieldset>
-		<legend>Votação Simbólica</legend>
+		<legend>{{votacao_titulo}}</legend>
 		<div>
 			Matéria: {{materia.materia|safe}}
 			<br />
