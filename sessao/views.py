@@ -2,6 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django import forms
+from django.forms.util import ErrorList
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
@@ -1220,9 +1221,10 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
 
 
 class VotacaoForm(forms.Form):
-    votos_sim = forms.CharField(required=True)
-    votos_nao = forms.CharField(required=True)
-    abstencoes = forms.CharField(required=True)
+    votos_sim = forms.CharField(required=True, label='Sim')
+    votos_nao = forms.CharField(required=True, label='Não')
+    abstencoes = forms.CharField(required=True, label='Abstenções')
+    total_votos = forms.CharField(required=False, label='total')
 
 
 class VotacaoEdit(forms.Form):
@@ -1342,6 +1344,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = VotacaoForm(request.POST)
+        context = self.get_context_data(object=self.object)
 
         if form.is_valid():
             materia_id = kwargs['oid']
@@ -1357,9 +1360,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
                 qtde_presentes -= 1
 
             if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
-                # context.update ({'error_message':
-                #                  'A quantidade de votos e de
-                #                   presentes não correspondem.'})
+                form._errors["total_votos"] = ErrorList([u"aaaaa"])
                 return self.form_invalid(form)
             elif (qtde_presentes == qtde_votos):
                 try:

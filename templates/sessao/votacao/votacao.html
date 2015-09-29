@@ -2,10 +2,25 @@
 {% load i18n %}
 
 {% block detail_content %}
-<form method="post">
+<form id="form-votacao" method="post">
 	{% csrf_token %}
 
 	<fieldset>
+		{% if form.errors %}
+			<div class="alert-box alert">
+				<b><h4>Os seguintes erros foram encontrados:</h4></b>
+				<ul>
+					{% for field in form %}
+						{% if field.label == 'total'%}
+							<li>O total de votos não corresponde com a quantidade de presentes!</li>
+						{% endif %}
+						{% if field.errors and not field.label == 'total' %}
+							<li>O campo <b>{{field.label}}</b> é obrigatório!</li>
+						{% endif %}
+					{% endfor %}
+				</ul>
+			</div>
+		{% endif %}
 		<legend>{{votacao_titulo}}</legend>
 		<div>
 			<b>Matéria:</b> {{materia.materia|safe}}
@@ -14,6 +29,7 @@
 			<br />
 			<br />
 			<b>Total presentes:</b> {{total_presentes}} (com presidente)
+			<input type="hidden" id="total_votos" name="total_votos"> 
 		</div>
 		<br />
 
@@ -50,7 +66,30 @@
 		</ul>
 			
 		<br /><br />
-		<input type="submit" value="Salvar" />
+		<input id="salvar-votacao" name="salvar-votacao" type="submit" value="Salvar" />
 	</fieldset>
 </form>
 {% endblock detail_content %}
+{% block foot_js %}
+    <script language="JavaScript">
+		// $(document).ready(function() {
+
+  // 			$('#salvar-votacao').click(function(e){
+
+  // 				var presentes = Number($("#total_presentes").val())
+  // 				var sim = Number($("#votos_sim").val())
+  // 				var nao = Number($("#votos_nao").val())
+  // 				var abstencoes = Number($("#abstencoes").val())
+
+  // 				var total = sim + nao + abstencoes
+
+  // 				if (total < presentes) {
+  // 					alert('quantidade invalida')
+  // 					return false;
+  // 				}
+
+  // 				$("#form-votacao").submit()
+  // 			});
+		// });
+	</script>
+{% endblock %}
