@@ -1314,7 +1314,7 @@ class VotacaoSimbolicaView(FormMixin, sessao_crud.CrudDetailView):
             materia_id = kwargs['oid']
             ordem_id = kwargs['mid']
 
-            qtde_presentes = len(SessaoPlenariaPresenca.objects.filter(
+            qtde_presentes = len(PresencaOrdemDia.objects.filter(
                 sessao_plen_id=self.object.id))
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
@@ -1388,7 +1388,7 @@ class VotacaoSecretaView(FormMixin, sessao_crud.CrudDetailView):
             materia_id = kwargs['oid']
             ordem_id = kwargs['mid']
 
-            qtde_presentes = len(SessaoPlenariaPresenca.objects.filter(
+            qtde_presentes = len(PresencaOrdemDia.objects.filter(
                 sessao_plen_id=self.object.id))
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
@@ -1495,7 +1495,7 @@ class VotacaoNominalForm(forms.Form):
     pass
 
 
-class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
 
     def get_success_url(self):
@@ -1506,11 +1506,7 @@ class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
     def get_parlamentares(self):
         self.object = self.get_object()
 
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plen_id=self.object.id
-        )
-
-        presencas = SessaoPlenariaPresenca.objects.filter(
+        presencas = PresencaOrdemDia.objects.filter(
             sessao_plen_id=self.object.id
         )
         presentes = [p.parlamentar for p in presencas]
@@ -1614,7 +1610,7 @@ class VotacaoNomimalView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_invalid(form)
 
 
-class VotacaoNomimalEditView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoNominalEditView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal_edit.html'
 
     def get(self, request, *args, **kwargs):
