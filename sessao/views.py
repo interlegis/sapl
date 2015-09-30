@@ -1318,7 +1318,6 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
-
         url = request.get_full_path()
 
         # TODO: HACK, VERIFICAR MELHOR FORMA DE FAZER ISSO
@@ -1345,6 +1344,27 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         form = VotacaoForm(request.POST)
         context = self.get_context_data(object=self.object)
+        url = request.get_full_path()
+
+        # ====================================================
+        if "votsimb" in url:
+            titulo = "Votação Simbólica"
+        elif "votsec" in url:
+            titulo = "Votação Secreta"
+        else:
+            titulo = "Não definida"
+
+        ordem_id = kwargs['mid']
+        ordem = OrdemDia.objects.get(id=ordem_id)
+        qtde_presentes = PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=self.object.id).count()
+
+        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        context.update({'votacao_titulo': titulo,
+                        'materia': materia,
+                        'total_presentes': qtde_presentes})
+        context.update({'form': form})
+        # ====================================================
 
         if form.is_valid():
             materia_id = kwargs['oid']
@@ -1360,8 +1380,8 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
                 qtde_presentes -= 1
 
             if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
-                form._errors["total_votos"] = ErrorList([u"aaaaa"])
-                return self.form_invalid(form)
+                form._errors["total_votos"] = ErrorList([u""])
+                return self.render_to_response(context)
             elif (qtde_presentes == qtde_votos):
                 try:
                     votacao = RegistroVotacao()
@@ -1387,7 +1407,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
 
                 return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            return self.render_to_response(context)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
