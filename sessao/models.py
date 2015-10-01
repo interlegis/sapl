@@ -277,5 +277,5 @@ class SessaoPlenariaPresenca(models.Model):
         ordering = ['parlamentar__nome_parlamentar']
 
     def __str__(self):
-        return _('Sessão: %(sessao_plen)s Data: %(data)s') % {
+        return _('Sessão: %(sessao_plenaria)s Data: %(data)s') % {
             'sessao_plen': self.sessao_plen, 'data': self.data_sessao}

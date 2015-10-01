@@ -57,7 +57,7 @@ def painel_view(request):
     return render(request, 'painel/index.html', {'context': context})
 
 
-def paienl_mensagem_view(request):
+def painel_mensagem_view(request):
     return render(request, 'painel/mensagem.html')
 
 
@@ -72,7 +72,7 @@ def painel_votacao_view(request):
 
 
 def json_presenca(request):
-    presencas = PresencaOrdemDia.objects.filter(sessao_plenaria_id=50)
+    presencas = PresencaOrdemDia.objects.filter(sessao_plenaria_id=6)
     parlamentares = []
     for p in presencas:
         parlamentares.append(p.parlamentar)
@@ -90,7 +90,7 @@ def json_votacao(request):
     # TODO: se tentar usar objects.get(ordem_id = 104
     # ocorre a msg: 'RegistroVotacao' object does not support indexing
     # TODO; tratar o caso de vir vazio
-    votacao = RegistroVotacao.objects.filter(ordem_id=104)[0]
+    votacao = RegistroVotacao.objects.first()
 
     # Magic!
     # http://stackoverflow.com/questions/15507171/django-filter-query-foreign-key
@@ -114,8 +114,9 @@ def json_votacao(request):
     for f in filiacao:
         parlamentar_partido[f.parlamentar.nome_parlamentar] = f.partido.sigla
 
+    # FIXME: id fixo para testes
     presenca_ordem_dia = PresencaOrdemDia.objects.filter(
-        sessao_plenaria_id=sessaoplenaria_id)
+        sessao_plenaria_id=6)
     presentes_ordem_dia = []
     for p in presenca_ordem_dia:
         nome_parlamentar = p.parlamentar.nome_parlamentar
