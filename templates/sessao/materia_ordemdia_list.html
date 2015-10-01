@@ -44,11 +44,12 @@ Matérias da Ordem do Dia
 
 	</br>
 	<a href="{% url 'sessaoplenaria:materiaordemdia_create' object.pk %}" class="button secondary">
-		{% trans 'Adicionar Matérias' %}
+			{% trans 'Adicionar Matérias' %}
 	</a></dd>
-
 	<button>Incluir várias matérias</button>
-	<button>Reordenar Matérias na Ordem do Dia</button>
-	<button>Atualizar</button>
+	<form method="POST" action="{% url 'sessaoplenaria:materiaordemdia_list' object.pk %}">
+		{% csrf_token %}
+		<input type="submit" id="materia_reorder" name="materia_reorder" value="Reordenar Matérias da Ordem do Dia" class="button secondary" />
+	</form>
 
 {% endblock detail_content %}

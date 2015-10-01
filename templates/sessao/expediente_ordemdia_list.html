@@ -29,7 +29,10 @@ Matérias do Expediente
 	</a></dd>
 
 	<button>Incluir várias matérias</button>
-	<button>Reordenar Matérias na Ordem do Dia</button>
-	<button>Atualizar</button>
+	<form method="POST" action="{% url 'sessaoplenaria:expedienteordemdia_list' object.pk %}">
+		{% csrf_token %}
+		<input type="submit" id="expediente_reorder" name="expediente_reorder" value="Reordenar Matérias do Expediente" class="button secondary" />
+	</form>
+
 
 {% endblock detail_content %}

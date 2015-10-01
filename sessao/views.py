@@ -2,9 +2,9 @@ from datetime import datetime
 from re import sub
 
 from django import forms
-from django.forms.util import ErrorList
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.forms.util import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
@@ -143,11 +143,12 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
             if parlamentar in presentes:
                 yield (parlamentar, True)
             else:
-                yield (parlamentar, False)            
+                yield (parlamentar, False)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:presenca', kwargs={'pk': pk})
+
 
 class PainelView(sessao_crud.CrudDetailView):
     template_name = 'sessao/painel.html'
@@ -205,7 +206,7 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})                
+        return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
 
 
 class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
@@ -252,6 +253,24 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
 
         return self.render_to_response(context)
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        pk = self.kwargs['pk']
+
+        # TODO: Existe uma forma de atualizar em lote de acordo
+        # com a forma abaixo, mas como setar o primeiro para "1"?
+        # OrdemDia.objects.filter(sessao_plenaria_id=pk)
+        # .order_by('numero_ordem').update(numero_ordem=3)
+
+        ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+        ordem_num = 1
+        for o in ordens:
+            o.numero_ordem = ordem_num
+            o.save()
+            ordem_num += 1
+
+        return self.get(self, request, args, kwargs)
+
 
 class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/expediente_ordemdia_list.html'
@@ -294,6 +313,24 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
         context.update({'materias_ordem': materias_ordem})
 
         return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        pk = self.kwargs['pk']
+
+        # TODO: Existe uma forma de atualizar em lote de acordo
+        # com a forma abaixo, mas como setar o primeiro para "1"?
+        # OrdemDia.objects.filter(sessao_plenaria_id=pk)
+        # .order_by('numero_ordem').update(numero_ordem=3)
+
+        expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
+        exp_num = 1
+        for e in expedientes:
+            e.numero_ordem = exp_num
+            e.save()
+            exp_num += 1
+
+        return self.get(self, request, args, kwargs)
 
 
 class MateriaOrdemDiaForm(forms.Form):
@@ -370,7 +407,7 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:materiaordemdia_list',
-                       kwargs={'pk': pk})            
+                       kwargs={'pk': pk})
 
 
 class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -516,7 +553,7 @@ class ExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:expedienteordemdia_list',
-                       kwargs={'pk': pk})            
+                       kwargs={'pk': pk})
 
 
 class EditExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -682,7 +719,7 @@ class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})        
+        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
 class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
@@ -739,7 +776,7 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             url_discurso = orador.url_discurso
             parlamentar = Parlamentar.objects.get(
                 id=orador.parlamentar_id)
-            yield(numero_ordem, url_discurso, parlamentar)            
+            yield(numero_ordem, url_discurso, parlamentar)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -773,7 +810,7 @@ class MesaView(FormMixin, sessao_crud.CrudDetailView):
 
         context.update({'integrantes': integrantes})
 
-        return self.render_to_response(context)    
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -838,7 +875,7 @@ class MesaView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:mesa', kwargs={'pk': pk})        
+        return reverse('sessaoplenaria:mesa', kwargs={'pk': pk})
 
 
 class ResumoView(FormMixin, sessao_crud.CrudDetailView):
@@ -1135,11 +1172,11 @@ class ExplicacaoView(FormMixin, sessao_crud.CrudDetailView):
             url_discurso = orador.url_discurso
             parlamentar = Parlamentar.objects.get(
                 id=orador.parlamentar_id)
-            yield(numero_ordem, url_discurso, parlamentar)        
+            yield(numero_ordem, url_discurso, parlamentar)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})            
+        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
 
 
 class ExplicacaoDelete(FormMixin, sessao_crud.CrudDetailView):
@@ -1214,7 +1251,7 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})        
+        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
 
 
 class VotacaoForm(forms.Form):
@@ -1292,7 +1329,7 @@ class VotacaoEditView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
-            yield tipo        
+            yield tipo
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -1404,7 +1441,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
-            yield tipo            
+            yield tipo
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -1528,7 +1565,7 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:materiaordemdia_list',
-                       kwargs={'pk': pk})            
+                       kwargs={'pk': pk})
 
 
 class VotacaoNominalEditView(FormMixin, sessao_crud.CrudDetailView):

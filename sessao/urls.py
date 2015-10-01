@@ -32,6 +32,8 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
     url(r'^(?P<pk>\d+)/materiaordemdia/list$',
         ListMateriaOrdemDiaView.as_view(), name='materiaordemdia_list'),
+    url(r'^(?P<pk>\d+)/materiaordemdia/list$',
+        ListMateriaOrdemDiaView.as_view(), name='materiaordemdia_reorder'),
     url(r'^(?P<pk>\d+)/materiaordemdia/edit/(?P<oid>\d+)$',
         EditMateriaOrdemDiaView.as_view(), name='materiaordemdia_edit'),
     url(r'^(?P<pk>\d+)/materiaordemdia/create$',
