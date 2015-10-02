@@ -12,7 +12,11 @@
 		<ul>
 			{% for field in form %}
 				{% if field.errors %}
-					<li>O campo <b>{{field.label}}</b> é obrigatório!</li>
+					{% if field.label == 'Matéria' %}
+						<li>Matéria inexistente!</li>
+					{% else %}
+						<li>O campo <b>{{field.label}}</b> é obrigatório!</li>
+					{% endif %}
 				{% endif %}
 			{% endfor %}
 		</ul>
@@ -21,7 +25,7 @@
 
 <form method="POST">
 	{% csrf_token %}
-		 
+		<input type="hidden" name="error_message" id="error_message" />
 	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
 		<li>Data da Sessão: <input type="text" value='{{data_sessao|date:"d/m/Y"}}' disabled /></li>
 		<input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value='{{data_sessao|date:"d/m/Y"}}' />

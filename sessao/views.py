@@ -342,6 +342,7 @@ class MateriaOrdemDiaForm(forms.Form):
     numero_materia = forms.IntegerField(required=True, label='Número Matéria')
     tipo_materia = forms.IntegerField(required=True, label='Tipo Matéria')
     observacao = forms.CharField(required=False, label='Ementa')
+    error_message = forms.CharField(required=False, label='Matéria')
 
 
 class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -381,9 +382,9 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                     tipo_id=request.POST['tipo_materia'],
                     ano=request.POST['ano_materia'])
             except ObjectDoesNotExist:
-                context.update(
-                    {'error_message': "Matéria inexistente!"})
-                return self.form_invalid(form)
+                form._errors["error_message"] = ErrorList([u""])
+                context.update({'form': form})
+                return self.render_to_response(context)
 
             # TODO: barrar matérias não existentes
             # TODO: barrar criação de ordemdia para materias já incluídas
@@ -400,8 +401,6 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
             return self.form_valid(form)
         else:
-            context.update(
-                {'error_message': "Não foi possível salvar formulário!"})
             return self.form_invalid(form)
 
     def get_success_url(self):
@@ -558,9 +557,9 @@ class ExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                     tipo_id=request.POST['tipo_materia'],
                     ano=request.POST['ano_materia'])
             except ObjectDoesNotExist:
-                context.update(
-                    {'error_message': "Matéria inexistente!"})
-                return self.form_invalid(form)
+                form._errors["error_message"] = ErrorList([u""])
+                context.update({'form': form})
+                return self.render_to_response(context)
 
             # TODO: barrar matérias não existentes
             # TODO: barrar criação de ordemdia para materias já incluídas
