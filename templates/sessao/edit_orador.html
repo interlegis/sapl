@@ -6,6 +6,18 @@
 
 <fieldset>
 	<legend>Editar Orador</legend>
+	{% if form.errors %}
+		<div class="alert-box alert">
+			<b><h4>Os seguintes erros foram encontrados:</h4></b>
+			<ul>
+				{% for field in form %}
+					{% if field.errors %}
+						<li>O campo <b>{{field.label}}</b> é obrigatório!</li>
+					{% endif %}
+				{% endfor %}
+			</ul>
+		</div>
+	{% endif %}
 	<form method="POST" action="">
 	    {% csrf_token %}
 

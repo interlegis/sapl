@@ -334,14 +334,14 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
 
 
 class MateriaOrdemDiaForm(forms.Form):
-    data_sessao = forms.CharField(required=True)
-    numero_ordem = forms.IntegerField(required=True)
-    tipo_votacao = forms.IntegerField(required=True)
-    tipo_sessao = forms.IntegerField(required=True)
-    ano_materia = forms.IntegerField(required=True)
-    numero_materia = forms.IntegerField(required=True)
-    tipo_materia = forms.IntegerField(required=True)
-    observacao = forms.CharField(required=False)
+    data_sessao = forms.CharField(required=True, label='Data da Sessão')
+    numero_ordem = forms.IntegerField(required=True, label='Número Ordem')
+    tipo_votacao = forms.IntegerField(required=True, label='Tipo Votação')
+    tipo_sessao = forms.IntegerField(required=True, label='Tipo da Sessão')
+    ano_materia = forms.IntegerField(required=True, label='Ano Matéria')
+    numero_materia = forms.IntegerField(required=True, label='Número Matéria')
+    tipo_materia = forms.IntegerField(required=True, label='Tipo Matéria')
+    observacao = forms.CharField(required=False, label='Ementa')
 
 
 class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -477,9 +477,40 @@ class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                 ordemdia.save()
                 return self.form_valid(form)
             else:
-                context.update(
-                    {'error_message': "Não foi possível salvar formulário!"})
-                return self.form_invalid(form)
+                context = self.get_context_data(object=self.object)
+
+                pk = kwargs['pk']
+                oid = kwargs['oid']
+                ordem = OrdemDia.objects.get(
+                    sessao_plenaria_id=pk,
+                    materia_id=oid)
+
+                materia = MateriaLegislativa.objects.get(
+                    id=ordem.materia_id)
+
+                data_ordem = ordem.data_ordem
+                tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
+                tipo_sessao = TipoSessaoPlenaria.objects.all()
+                tipo_materia = TipoMateriaLegislativa.objects.all()
+
+                context.update({'data_sessao': data_ordem,
+                                'tipo_sessao': tipo_sessao,
+                                'tipo_sessao_selected': self.object.tipo,
+                                'tipo_materia': tipo_materia,
+                                'tipo_materia_selected': materia.tipo,
+                                'tipo_votacao': tipo_votacao,
+                                'tipo_votacao_selected': ordem.tipo_votacao,
+                                'ano_materia': materia.ano,
+                                'numero_ordem': ordem.numero_ordem,
+                                'numero_materia': materia.numero,
+                                'ordem_id': oid,
+                                'oid': '',
+                                'observacao': sub(
+                                    '&nbsp;', ' ',
+                                    strip_tags(ordem.observacao)),
+                                'error_message': '', })
+                context.update({'form': form})
+                return self.render_to_response(context)
         elif 'delete-ordemdia' in request.POST:
             ordemdia.delete()
             return self.form_valid(form)
@@ -639,7 +670,9 @@ class EditExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
 
 
 class OradorForm(forms.Form):
-    numero_ordem = forms.IntegerField(required=True)
+    numero_ordem = forms.IntegerField(
+        required=True,
+        label='Ordem de pronunciamento')
     parlamentar = forms.CharField(required=False, max_length=20)
     url_discurso = forms.CharField(required=False, max_length=100)
 
@@ -699,7 +732,18 @@ class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
 
             return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            context = self.get_context_data(object=self.object)
+            orador_id = kwargs['oid']
+
+            parlamentar = Parlamentar.objects.get(id=orador_id)
+            orador = OradorExpediente.objects.get(
+                sessao_plenaria=self.object, parlamentar=parlamentar)
+
+            orador = {'parlamentar': parlamentar,
+                      'url_discurso': orador.url_discurso}
+            context.update({'orador': orador})
+            context.update({'form': form})
+            return self.render_to_response(context)
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1230,7 +1274,20 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
 
             return self.form_valid(form)
         else:
-            return self.form_invalid(form)
+            context = self.get_context_data(object=self.object)
+
+            current_url = self.request.get_full_path()
+            words = current_url.split('/')
+
+            parlamentar = Parlamentar.objects.get(id=words[-1])
+            orador = Orador.objects.get(
+                sessao_plenaria=self.object, parlamentar=parlamentar)
+
+            explicacao = {'parlamentar': parlamentar,
+                          'url_discurso': orador.url_discurso}
+            context.update({'explicacao': explicacao})
+            context.update({'form': form})
+            return self.render_to_response(context)
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
