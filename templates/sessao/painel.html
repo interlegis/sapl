@@ -6,12 +6,12 @@
 	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
 
 	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="painel">Iniciar painel presidente</a></li>
-  		<li><a href="painel">Iniciar painel completo</a></li>
-  		<li><a href="painel/mensagem">Iniciar painel mensagem</a></li>
-  		<li><a href="painel/parlamentares">Iniciar painel parlamentares</a></li>
-  		<li><a href="painel/votacao">Iniciar painel votação</a></li>
-  		<li><a href="painel/controlador">Controlador Painel</a></li>
+  		<li><a href="{% url 'painel_principal' object.pk %}">Iniciar painel presidente</a></li>
+  		<li><a href="{% url 'painel_principal' object.pk %}">Iniciar painel completo</a></li>
+  		<li><a href="{% url 'painel_mensagem' %}">Iniciar painel mensagem</a></li>
+  		<li><a href="{% url 'painel_parlamentares' %}">Iniciar painel parlamentares</a></li>
+  		<li><a href="{% url 'painel_votacao' %}">Iniciar painel votação</a></li>
+  		<li><a href="{% url 'painel_controlador' %}">Controlador Painel</a></li>
 	</ul>
 	<br />
 	<h5>Operação do Painel Eletrônico</h5>

@@ -74,5 +74,5 @@ urlpatterns = [
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
         include(tipo_resultado_votacao_crud.urls)),
     url(r'^sistema/sessao-plenaria/tipo-expediente/',
-        include(tipo_expediente_crud.urls)),
+        include(tipo_expediente_crud.urls))
 ]

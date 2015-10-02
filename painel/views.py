@@ -42,7 +42,7 @@ def controlador_painel(request):
             painel.save()
 
     context = {'painel': painel, 'PAINEL_TYPES': Painel.PAINEL_TYPES}
-    return render(request, 'painel/controller.html', context)
+    return render(request, 'painel/controlador.html', context)
 
 
 def cronometro_painel(request):
