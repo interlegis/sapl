@@ -778,18 +778,27 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         form = OradorForm(request.POST)
 
-        if form.is_valid():
-            orador = OradorExpediente()
-            orador.sessao_plenaria_id = self.object.id
-            orador.numero_ordem = request.POST['numero_ordem']
-            orador.parlamentar = Parlamentar.objects.get(
-                id=request.POST['parlamentar'])
-            orador.url_discurso = request.POST['url_discurso']
-            orador.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        if 'adicionar' in request.POST:
+            if form.is_valid():
+                orador = OradorExpediente()
+                orador.sessao_plenaria_id = self.object.id
+                orador.numero_ordem = request.POST['numero_ordem']
+                orador.parlamentar = Parlamentar.objects.get(
+                    id=request.POST['parlamentar'])
+                orador.url_discurso = request.POST['url_discurso']
+                orador.save()
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        elif 'reordenar' in request.POST:
+            orador = OradorExpediente.objects.filter(
+                sessao_plenaria_id=self.object.id)
+            ordem_num = 1
+            for o in orador:
+                o.numero_ordem = ordem_num
+                o.save()
+                ordem_num += 1
+            return self.get(self, request, args, kwargs)
 
     def get_candidatos_orador(self):
         self.object = self.get_object()
@@ -1174,18 +1183,27 @@ class ExplicacaoView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         form = OradorForm(request.POST)
 
-        if form.is_valid():
-            orador = Orador()
-            orador.sessao_plenaria_id = self.object.id
-            orador.numero_ordem = request.POST['numero_ordem']
-            orador.parlamentar = Parlamentar.objects.get(
-                id=request.POST['parlamentar'])
-            orador.url_discurso = request.POST['url_discurso']
-            orador.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        if 'adicionar' in request.POST:
+            if form.is_valid():
+                orador = Orador()
+                orador.sessao_plenaria_id = self.object.id
+                orador.numero_ordem = request.POST['numero_ordem']
+                orador.parlamentar = Parlamentar.objects.get(
+                    id=request.POST['parlamentar'])
+                orador.url_discurso = request.POST['url_discurso']
+                orador.save()
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        elif 'reordenar' in request.POST:
+            orador = Orador.objects.filter(
+                sessao_plenaria_id=self.object.id)
+            ordem_num = 1
+            for o in orador:
+                o.numero_ordem = ordem_num
+                o.save()
+                ordem_num += 1
+            return self.get(self, request, args, kwargs)
 
     def get_candidatos_orador(self):
         self.object = self.get_object()
