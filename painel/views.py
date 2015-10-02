@@ -51,7 +51,7 @@ def cronometro_painel(request):
     return HttpResponse({})
 
 
-def painel_view(request):
+def painel_view(request, pk):
     context = {'head_title': 'Painel Plenário',
                'title': '3a. Sessao Ordinária do Município XYZ'}
     return render(request, 'painel/index.html', {'context': context})
@@ -70,23 +70,15 @@ def painel_votacao_view(request):
 
 # REST web services
 
-
-def json_presenca(request):
-    presencas = PresencaOrdemDia.objects.filter(sessao_plenaria_id=6)
-    parlamentares = []
-    for p in presencas:
-        parlamentares.append(p.parlamentar)
-    # parlamentares = serializers.serialize('json', Parlamentar.objects.all())
-    parlamentares = serializers.serialize('json', parlamentares)
-    return HttpResponse(parlamentares, content_type='application/json')
-    # return JsonResponse(data) # work with python dict
-
-
 # TODO: make this response non cacheable,
 #       probably on jQuery site, but check Django too
 # TODO: reduce number of database query hits by means
 #       of QuerySet wizardry.
-def json_votacao(request):
+
+
+def json_votacao(request, pk):
+
+    
     # TODO: se tentar usar objects.get(ordem_id = 104
     # ocorre a msg: 'RegistroVotacao' object does not support indexing
     # TODO; tratar o caso de vir vazio
