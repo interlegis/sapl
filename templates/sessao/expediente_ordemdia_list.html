@@ -24,14 +24,14 @@ Matérias do Expediente
 	</ul>
 
 	</br>
-	<a href="{% url 'sessaoplenaria:expedienteordemdia_create' object.pk %}" class="button secondary">
+	<a href="{% url 'sessaoplenaria:expedienteordemdia_create' object.pk %}" class="button primary">
 		{% trans 'Adicionar Matérias' %}
 	</a></dd>
 
 	<button>Incluir várias matérias</button>
 	<form method="POST" action="{% url 'sessaoplenaria:expedienteordemdia_list' object.pk %}">
 		{% csrf_token %}
-		<input type="submit" id="expediente_reorder" name="expediente_reorder" value="Reordenar Matérias do Expediente" class="button secondary" />
+		<input type="submit" id="expediente_reorder" name="expediente_reorder" value="Reordenar Matérias do Expediente" class="button primary" />
 	</form>
 
 
