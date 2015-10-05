@@ -8,7 +8,6 @@ from django.forms.util import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -209,8 +208,13 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
 
 
+class ListMateriaForm(forms.Form):
+    error_message = forms.CharField(required=False, label='votacao_aberta')
+
+
 class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia_list.html'
+    form_class = ListMateriaForm
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -250,8 +254,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        context = self.get_context_data(object=self.object)        
         pk = self.kwargs['pk']
+        form = ListMateriaForm(request.POST)
 
         # TODO: Existe uma forma de atualizar em lote de acordo
         # com a forma abaixo, mas como setar o primeiro para "1"?
@@ -265,11 +269,47 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                 o.numero_ordem = ordem_num
                 o.save()
                 ordem_num += 1
-        elif 'abrir-votacao' in request.POST:            
-            existe_votacao_aberta = OrdemDia.objects.filter(sessao_plenaria_id=pk, votacao_aberta=True).exists()
+        elif 'abrir-votacao' in request.POST:
+
+            existe_votacao_aberta = OrdemDia.objects.filter(
+                sessao_plenaria_id=pk, votacao_aberta=True
+                ).exists()
+
             if existe_votacao_aberta:
-                context.update(
-                    {'error_message': "Já existe um formulário aberto!"})
+                context = self.get_context_data(object=self.object)
+
+                form._errors = {'error_message': 'error_message'}
+                context.update({'form': form})
+
+                pk = self.kwargs['pk']
+                ordem = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+
+                materias_ordem = []
+                for o in ordem:
+                    ementa = o.observacao
+                    titulo = o.materia
+                    numero = o.numero_ordem
+
+                    autoria = Autoria.objects.filter(materia_id=o.materia_id)
+
+                    autor = [str(a.autor) for a in autoria]
+
+                    mat = {'pk': pk,
+                           'oid': o.materia_id,
+                           'ordem_id': o.id,
+                           'ementa': ementa,
+                           'titulo': titulo,
+                           'numero': numero,
+                           'resultado': o.resultado,
+                           'autor': autor,
+                           'votacao_aberta': o.votacao_aberta,
+                           'tipo_votacao': o.tipo_votacao
+                           }
+                    materias_ordem.append(mat)
+
+                sorted(materias_ordem, key=lambda x: x['numero'])
+                context.update({'materias_ordem': materias_ordem})
+                return self.render_to_response(context)
             else:
                 ordem_id = request.POST['ordem_id']
                 ordem = OrdemDia.objects.get(id=ordem_id)
