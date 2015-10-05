@@ -68,81 +68,75 @@ def painel_parlamentares_view(request):
 def painel_votacao_view(request):
     return render(request, 'painel/votacao.html')
 
-# REST web services
+def get_dados_painel(request, pk):
 
-# TODO: make this response non cacheable,
-#       probably on jQuery site, but check Django too
-# TODO: reduce number of database query hits by means
-#       of QuerySet wizardry.
+    # Sessão Plenária
+    sessao_plenaria_id = pk
+    sessao_plenaria = SessaoPlenaria.objects.get(id=sessao_plenaria_id)
 
+    # # Ordem Dia 
+    # ordem_dia = OrdemDia.objects.get(sessao_plenaria_id = sessao_plenaria_id)
 
-def json_votacao(request, pk):
-
-    
-    # TODO: se tentar usar objects.get(ordem_id = 104
-    # ocorre a msg: 'RegistroVotacao' object does not support indexing
-    # TODO; tratar o caso de vir vazio
-    votacao = RegistroVotacao.objects.first()
-
-    # Magic!
-    # http://stackoverflow.com/questions/15507171/django-filter-query-foreign-key
-    # recuperar pela votacao.id
-    voto_parlamentar = VotoParlamentar.objects.filter(votacao_id=votacao.id)
-    votos = {}
-    for vp in voto_parlamentar:
-        votos[vp.parlamentar.nome_parlamentar] = vp.voto
-
-    ordem_dia = OrdemDia.objects.get(id=104)
-
-    sessaoplenaria_id = ordem_dia.sessao_plenaria_id
-
-    sessao_plenaria = SessaoPlenaria.objects.get(id=sessaoplenaria_id)
-
-    # Pra recuperar o partido do parlamentar
-    # tem que fazer OUTRA query, deve ter uma
-    # forma de fazer isso na base do join de data models.
-    filiacao = Filiacao.objects.filter(data_desfiliacao__isnull=True)
+    # # Pra recuperar o partido do parlamentar
+    # # tem que fazer OUTRA query, deve ter uma
+    # # forma de fazer isso na base do join de data models.
+    filiacao = Filiacao.objects.filter(data_desfiliacao__isnull=True, parlamentar__ativo=True)
     parlamentar_partido = {}
     for f in filiacao:
-        parlamentar_partido[f.parlamentar.nome_parlamentar] = f.partido.sigla
+        parlamentar_partido[f.parlamentar.nome_parlamentar] = f.partido.sigla   
 
-    # FIXME: id fixo para testes
-    presenca_ordem_dia = PresencaOrdemDia.objects.filter(
-        sessao_plenaria_id=6)
+    # Presença Sessão Plenária
+    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(id=sessao_plenaria_id)    
+    presentes_sessao_plenaria = [p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
+    num_presentes_sessao_plen = len(presentes_sessao_plenaria)
+
+    # Presença Ordem do dia
+    presenca_ordem_dia = PresencaOrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria_id)
     presentes_ordem_dia = []
     for p in presenca_ordem_dia:
         nome_parlamentar = p.parlamentar.nome_parlamentar
         presentes_ordem_dia.append(
             {'nome': nome_parlamentar,
              'partido': parlamentar_partido[nome_parlamentar],
-             'voto': votos.get(nome_parlamentar, '-')})
+             #'voto': votos.get(nome_parlamentar, '-')
+             })
+    num_presentes_ordem_dia = len(presentes_ordem_dia)
 
-    total_votos = votacao.numero_votos_sim + \
-        votacao.numero_votos_nao + votacao.numero_abstencoes
 
-    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(
-        id=sessaoplenaria_id)
-    presentes_sessao_plenaria = []
-    for p in sessao_plenaria_presenca:
-        presentes_sessao_plenaria.append(p.parlamentar.nome_parlamentar)
+    # # TODO: se tentar usar objects.get(ordem_id = 104
+    # # ocorre a msg: 'RegistroVotacao' object does not support indexing
+    # # TODO; tratar o caso de vir vazio
+    # votacao = RegistroVotacao.objects.first()
 
-    presentes = len(presentes_sessao_plenaria)
+    # # Magic!
+    # # http://stackoverflow.com/questions/15507171/django-filter-query-foreign-key
+    # # recuperar pela votacao.id
+    # voto_parlamentar = VotoParlamentar.objects.filter(votacao_id=votacao.id)
+    # votos = {}
+    # for vp in voto_parlamentar:
+    #     votos[vp.parlamentar.nome_parlamentar] = vp.voto        
 
-    tipo_resultado = votacao.tipo_resultado_votacao.nome.upper()
+    # total_votos = votacao.numero_votos_sim + votacao.numero_votos_nao + votacao.numero_abstencoes
+
+    # tipo_resultado = votacao.tipo_resultado_votacao.nome.upper()
 
     votacao_json = {"sessao_plenaria": str(sessao_plenaria),
                     "sessao_plenaria_data": sessao_plenaria.data_inicio,
                     "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
-                    "materia_legislativa_texto": ordem_dia.materia.ementa,
-                    "observacao_materia": ordem_dia.materia.observacao,
-                    "tipo_votacao": ordem_dia.tipo_votacao,
-                    "numero_votos_sim": votacao.numero_votos_sim,
-                    "numero_votos_nao": votacao.numero_votos_nao,
-                    "numero_abstencoes": votacao.numero_abstencoes,
-                    "total_votos": total_votos,
-                    "presentes": presentes,
-                    "tipo_resultado": tipo_resultado,
+                    #"materia_legislativa_texto": ordem_dia.materia.ementa,
+                    #"observacao_materia": ordem_dia.materia.observacao,
+                    # "tipo_votacao": ordem_dia.tipo_votacao,
+                    # "numero_votos_sim": votacao.numero_votos_sim,
+                    # "numero_votos_nao": votacao.numero_votos_nao,
+                    # "numero_abstencoes": votacao.numero_abstencoes,
+                    # "total_votos": total_votos,
+                    # "presentes": presentes,
+                    # "tipo_resultado": tipo_resultado,
                     "presentes_ordem_dia": presentes_ordem_dia,
+                    "num_presentes_ordem_dia": num_presentes_ordem_dia,                    
                     "presentes_sessao_plenaria": presentes_sessao_plenaria,
+                    "num_presentes_sessao_plenaria": num_presentes_sessao_plen,
                     }
+
+
     return JsonResponse(votacao_json)

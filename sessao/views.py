@@ -226,14 +226,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
             numero = o.numero_ordem
 
             autoria = Autoria.objects.filter(materia_id=o.materia_id)
-            if len(autoria) > 1:
-                autor = 'Autores: '
-            else:
-                autor = 'Autor: '
 
-            for a in autoria:
-                autor += str(a.autor)
-                autor += ' '
+            autor = [str(a.autor) for a in autoria]
 
             mat = {'pk': pk,
                    'oid': o.materia_id,
@@ -243,6 +237,7 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                    'numero': numero,
                    'resultado': o.resultado,
                    'autor': autor,
+                   'votacao_aberta': o.votacao_aberta,
                    'tipo_votacao': o.tipo_votacao
                    }
             materias_ordem.append(mat)
@@ -255,6 +250,7 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        context = self.get_context_data(object=self.object)        
         pk = self.kwargs['pk']
 
         # TODO: Existe uma forma de atualizar em lote de acordo
@@ -262,13 +258,23 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
         # OrdemDia.objects.filter(sessao_plenaria_id=pk)
         # .order_by('numero_ordem').update(numero_ordem=3)
 
-        ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
-        ordem_num = 1
-        for o in ordens:
-            o.numero_ordem = ordem_num
-            o.save()
-            ordem_num += 1
-
+        if 'materia_reorder' in request.POST:
+            ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+            ordem_num = 1
+            for o in ordens:
+                o.numero_ordem = ordem_num
+                o.save()
+                ordem_num += 1
+        elif 'abrir-votacao' in request.POST:            
+            existe_votacao_aberta = OrdemDia.objects.filter(sessao_plenaria_id=pk, votacao_aberta=True).exists()
+            if existe_votacao_aberta:
+                context.update(
+                    {'error_message': "Não foi possível salvar formulário!"})
+            else:
+                ordem_id = request.POST['ordem_id']
+                ordem = OrdemDia.objects.get(id=ordem_id)
+                ordem.votacao_aberta = True
+                ordem.save()
         return self.get(self, request, args, kwargs)
 
 
@@ -945,13 +951,13 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
                                    ]})
         # =====================================================================
         # Conteúdo Multimídia
-        if(self.object.url_audio):
+        if vself.object.url_audio:
             context.update({'multimidia_audio':
                             'Audio: ' + str(self.object.url_audio)})
         else:
             context.update({'multimidia_audio': 'Audio: Indisponivel'})
 
-        if(self.object.url_video):
+        if self.object.url_video:
             context.update({'multimidia_video':
                             'Video: ' + str(self.object.url_video)})
         else:
@@ -1363,6 +1369,7 @@ class VotacaoEditView(FormMixin, sessao_crud.CrudDetailView):
             ordem = OrdemDia.objects.get(
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
+            ordem.votacao_aberta = False
             ordem.resultado = None
             ordem.save()
 
@@ -1507,6 +1514,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
                     resultado = TipoResultadoVotacao.objects.get(
                         id=request.POST['resultado_votacao'])
                     ordem.resultado = resultado.nome
+                    ordem.votacao_aberta = False
                     ordem.save()
 
                 return self.form_valid(form)
@@ -1614,6 +1622,7 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
                     resultado = TipoResultadoVotacao.objects.get(
                         id=request.POST['resultado_votacao'])
                     ordem.resultado = resultado.nome
+                    ordem.votacao_aberta = False
                     ordem.save()
 
             return self.form_valid(form)
@@ -1694,6 +1703,7 @@ class VotacaoNominalEditView(FormMixin, sessao_crud.CrudDetailView):
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
             ordem.resultado = None
+            ordem.votacao_aberta = False
             ordem.save()
 
             try:

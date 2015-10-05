@@ -107,6 +107,9 @@ class AbstractOrdemDia(models.Model):
     resultado = models.TextField(blank=True, null=True)
     tipo_votacao = models.PositiveIntegerField(
         verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
+    votacao_aberta = models.NullBooleanField(blank=True,
+                        choices=YES_NO_CHOICES,
+                        verbose_name=_('Votação iniciada?'))
 
     class Meta:
         abstract = True

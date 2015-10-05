@@ -16,7 +16,7 @@ Matérias da Ordem do Dia
 				{{m.numero}} - <a href="{% url 'sessaoplenaria:materiaordemdia_edit' m.pk m.oid %}">{{m.titulo}}</a>
 				&nbsp;
 				</br>
-				{{m.autor}}
+				<strong>Autor{{m.autor|length|pluralize:"es"}}</strong>: {{m.autor|join:', '}}
 			</li>
 			<li>{{m.ementa|safe}}</li>
 			<li>
@@ -30,13 +30,21 @@ Matérias da Ordem do Dia
 					{% endif %}
 				{% else %}
 					Matéria não votada <br />
-					{% if m.tipo_votacao == 1 %}
-						<b><a href="{% url 'sessaoplenaria:votacaosimbolica' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
-					{% elif m.tipo_votacao == 2 %}
-						<b><a href="{% url 'sessaoplenaria:votacaonominal' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
-					{% elif m.tipo_votacao == 3%}
-						<b><a href="{% url 'sessaoplenaria:votacaosecreta' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
-					{% endif %}
+					{% if m.votacao_aberta %}
+						{% if m.tipo_votacao == 1 %}
+							<b><a href="{% url 'sessaoplenaria:votacaosimbolica' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+						{% elif m.tipo_votacao == 2 %}
+							<b><a href="{% url 'sessaoplenaria:votacaonominal' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+						{% elif m.tipo_votacao == 3%}
+							<b><a href="{% url 'sessaoplenaria:votacaosecreta' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+						{% endif %}
+					{% else %}
+						<form method="POST" action="{% url 'sessaoplenaria:materiaordemdia_list' object.pk %}"> 
+							{% csrf_token %}
+							<input type="hidden" id="ordem_id" name="ordem_id" value="{{ m.ordem_id }}">
+							<input type="submit" id="abrir-votacao" name="abrir-votacao" value="Abrir Votação" class="button primary">
+						</form>
+					{% endif %}						
 				{% endif %}
 			</li>
 		{% endfor %}
