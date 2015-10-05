@@ -269,7 +269,7 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
             existe_votacao_aberta = OrdemDia.objects.filter(sessao_plenaria_id=pk, votacao_aberta=True).exists()
             if existe_votacao_aberta:
                 context.update(
-                    {'error_message': "Não foi possível salvar formulário!"})
+                    {'error_message': "Já existe um formulário aberto!"})
             else:
                 ordem_id = request.POST['ordem_id']
                 ordem = OrdemDia.objects.get(id=ordem_id)
@@ -1560,7 +1560,17 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        
+        ordem_id = kwargs['mid']
+        ordem = OrdemDia.objects.get(id=ordem_id)
+
         form = VotacaoNominalForm(request.POST)
+
+        if 'cancelar-votacao' in request.POST:
+            ordem.votacao_aberta = False
+            ordem.save()
+            return self.form_valid(form)        
 
         if form.is_valid():
             materia_id = kwargs['oid']

@@ -7,7 +7,7 @@ from .views import (controlador_painel, cronometro_painel_crud,
 
 urlpatterns = [
     url(r'^(?P<pk>\d+)/painel$', painel_view, name="painel_principal"),
-    url(r'^painel/(?P<pk>\d+)/dados$', get_dados_painel, name='painel_dados'),
+    url(r'^painel/(?P<pk>\d+)/dados$', get_dados_painel, name='dados_painel'),
     url(r'^painel/controlador$', controlador_painel, name='painel_controlador'),
     url(r'^painel/mensagem$', painel_mensagem_view, name="painel_mensagem"),
     url(r'^painel/parlamentares$', painel_parlamentares_view, name='painel_parlamentares'),

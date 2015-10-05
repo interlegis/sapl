@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -74,9 +75,6 @@ def get_dados_painel(request, pk):
     sessao_plenaria_id = pk
     sessao_plenaria = SessaoPlenaria.objects.get(id=sessao_plenaria_id)
 
-    # # Ordem Dia 
-    # ordem_dia = OrdemDia.objects.get(sessao_plenaria_id = sessao_plenaria_id)
-
     # # Pra recuperar o partido do parlamentar
     # # tem que fazer OUTRA query, deve ter uma
     # # forma de fazer isso na base do join de data models.
@@ -102,6 +100,26 @@ def get_dados_painel(request, pk):
              })
     num_presentes_ordem_dia = len(presentes_ordem_dia)
 
+    try: 
+
+        ordemdia = OrdemDia.objects.get(
+            sessao_plenaria_id=sessao_plenaria_id, votacao_aberta=True)
+        votacao_aberta = True
+        materia_legislativa_texto = ordemdia.materia.ementa
+        materia_observacao = ordemdia.materia.observacao
+        tipo_votacao = ordemdia.tipo_votacao
+
+        try:
+            votacao = RegistroVotacao.objects.get(
+                ordem_id=ordemdia.id, materia_id=ordemdia.materia.id)
+        except ObjectDoesNotExist:
+            None
+    except ObjectDoesNotExist:
+        votacao_aberta = False
+        materia_legislativa_texto = ""
+        materia_observacao = ""
+        tipo_votacao = ""
+
 
     # # TODO: se tentar usar objects.get(ordem_id = 104
     # # ocorre a msg: 'RegistroVotacao' object does not support indexing
@@ -123,19 +141,19 @@ def get_dados_painel(request, pk):
     votacao_json = {"sessao_plenaria": str(sessao_plenaria),
                     "sessao_plenaria_data": sessao_plenaria.data_inicio,
                     "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
-                    #"materia_legislativa_texto": ordem_dia.materia.ementa,
-                    #"observacao_materia": ordem_dia.materia.observacao,
-                    # "tipo_votacao": ordem_dia.tipo_votacao,
-                    # "numero_votos_sim": votacao.numero_votos_sim,
-                    # "numero_votos_nao": votacao.numero_votos_nao,
-                    # "numero_abstencoes": votacao.numero_abstencoes,
-                    # "total_votos": total_votos,
-                    # "presentes": presentes,
-                    # "tipo_resultado": tipo_resultado,
+                    "materia_legislativa_texto": materia_legislativa_texto,
+                    "materia_observacao": materia_observacao,
+                    "tipo_votacao": tipo_votacao,
                     "presentes_ordem_dia": presentes_ordem_dia,
                     "num_presentes_ordem_dia": num_presentes_ordem_dia,                    
                     "presentes_sessao_plenaria": presentes_sessao_plenaria,
                     "num_presentes_sessao_plenaria": num_presentes_sessao_plen,
+                    "votacao_aberta": votacao_aberta,
+                    # "numero_votos_sim": votacao.numero_votos_sim,
+                    # "numero_votos_nao": votacao.numero_votos_nao,
+                    # "numero_abstencoes": votacao.numero_abstencoes,
+                    # "total_votos": total_votos,
+                    # "tipo_resultado": tipo_resultado,                    
                     }
 
 
