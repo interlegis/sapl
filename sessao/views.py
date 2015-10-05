@@ -1477,6 +1477,11 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
         context.update({'form': form})
         # ====================================================
 
+        if 'cancelar-votacao' in request.POST:
+            ordem.votacao_aberta = False
+            ordem.save()
+            return self.form_valid(form)
+
         if form.is_valid():
             materia_id = kwargs['oid']
             ordem_id = kwargs['mid']
