@@ -951,7 +951,7 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
                                    ]})
         # =====================================================================
         # Conteúdo Multimídia
-        if vself.object.url_audio:
+        if self.object.url_audio:
             context.update({'multimidia_audio':
                             'Audio: ' + str(self.object.url_audio)})
         else:
