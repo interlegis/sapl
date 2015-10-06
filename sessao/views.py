@@ -8,6 +8,7 @@ from django.forms.util import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
+
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -230,7 +231,6 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
             numero = o.numero_ordem
 
             autoria = Autoria.objects.filter(materia_id=o.materia_id)
-
             autor = [str(a.autor) for a in autoria]
 
             mat = {'pk': pk,
@@ -254,6 +254,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
         pk = self.kwargs['pk']
         form = ListMateriaForm(request.POST)
 
@@ -270,11 +272,8 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                 o.save()
                 ordem_num += 1
         elif 'abrir-votacao' in request.POST:
-
             existe_votacao_aberta = OrdemDia.objects.filter(
-                sessao_plenaria_id=pk, votacao_aberta=True
-                ).exists()
-
+                sessao_plenaria_id=pk, votacao_aberta=True).exists()
             if existe_votacao_aberta:
                 context = self.get_context_data(object=self.object)
 
@@ -291,7 +290,6 @@ class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                     numero = o.numero_ordem
 
                     autoria = Autoria.objects.filter(materia_id=o.materia_id)
-
                     autor = [str(a.autor) for a in autoria]
 
                     mat = {'pk': pk,
@@ -335,14 +333,7 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
             numero = o.numero_ordem
 
             autoria = Autoria.objects.filter(materia_id=o.materia_id)
-            if len(autoria) > 1:
-                autor = 'Autores: '
-            else:
-                autor = 'Autor: '
-
-            for a in autoria:
-                autor += str(a.autor)
-                autor += ' '
+            autor = [str(a.autor) for a in autoria]
 
             mat = {'pk': pk,
                    'oid': o.materia_id,
@@ -379,7 +370,7 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
         elif 'abrir-votacao' in request.POST:
             existe_votacao_aberta = ExpedienteMateria.objects.filter(
                 sessao_plenaria_id=pk, votacao_aberta=True
-                ).exists()
+            ).exists()
 
             if existe_votacao_aberta:
                 context = self.get_context_data(object=self.object)
@@ -397,16 +388,8 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
                     titulo = o.materia
                     numero = o.numero_ordem
 
-                    autoria = Autoria.objects.filter(
-                        materia_id=o.materia_id)
-                    if len(autoria) > 1:
-                        autor = 'Autores: '
-                    else:
-                        autor = 'Autor: '
-
-                    for a in autoria:
-                        autor += str(a.autor)
-                        autor += ' '
+                    autoria = Autoria.objects.filter(materia_id=o.materia_id)
+                    autor = [str(a.autor) for a in autoria]
 
                     mat = {'pk': pk,
                            'oid': o.materia_id,
@@ -982,12 +965,16 @@ class MesaView(FormMixin, sessao_crud.CrudDetailView):
                 form.clean()
                 return self.form_valid(form)
         elif 'Excluir' in request.POST:
-            ids = request.POST['composicao_mesa'].split(':')
-            IntegranteMesa.objects.get(
-                sessao_plenaria_id=self.object.id,
-                parlamentar_id=ids[0],
-                cargo_id=ids[1]
-            ).delete()
+            if 'composicao_mesa' in request.POST:
+                ids = request.POST['composicao_mesa'].split(':')
+                IntegranteMesa.objects.get(
+                    sessao_plenaria_id=self.object.id,
+                    parlamentar_id=ids[0],
+                    cargo_id=ids[1]
+                ).delete()
+            else:
+                pass
+                # TODO display message asking to select a member of list
 
         return self.form_valid(form)
 
@@ -1120,9 +1107,7 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
             else:
                 resultado = 'Matéria não votada'
 
-            autoria = Autoria.objects.filter(
-                materia_id=m.materia_id)
-
+            autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
 
             mat = {'ementa': ementa,
@@ -1186,7 +1171,6 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
 
             autoria = Autoria.objects.filter(
                 materia_id=o.materia_id)
-
             autor = [str(x.autor) for x in autoria]
 
             mat = {'ementa': ementa,
@@ -1654,8 +1638,7 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        
+
         ordem_id = kwargs['mid']
         ordem = OrdemDia.objects.get(id=ordem_id)
 
@@ -1664,7 +1647,7 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
         if 'cancelar-votacao' in request.POST:
             ordem.votacao_aberta = False
             ordem.save()
-            return self.form_valid(form)        
+            return self.form_valid(form)
 
         if form.is_valid():
             materia_id = kwargs['oid']

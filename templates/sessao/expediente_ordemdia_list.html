@@ -31,7 +31,7 @@ Matérias do Expediente
 				{{m.numero}} - <a href="{% url 'sessaoplenaria:expedienteordemdia_edit' m.pk m.oid %}">{{m.titulo}}</a>
 				&nbsp;
 				</br>
-				{{m.autor}}
+				<strong>Autor{{m.autor|length|pluralize:"es"}}</strong>: {{m.autor|join:', '}}
 			</li>
 			<li>{{m.ementa|safe}}</li>
 			<li>

@@ -1,7 +1,6 @@
 from datetime import date
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
@@ -15,6 +14,9 @@ from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
 
 from .models import Cronometro
 
+#                           VotoParlamentar)
+
+
 cronometro_painel_crud = build_crud(
     Cronometro, '', [
 
@@ -22,8 +24,6 @@ cronometro_painel_crud = build_crud(
          [('status', 3), ('data_cronometro', 6),
           ('tipo', 3)]],
     ])
-
-# REST WS
 
 
 def controlador_painel(request):
@@ -69,6 +69,7 @@ def painel_parlamentares_view(request):
 def painel_votacao_view(request):
     return render(request, 'painel/votacao.html')
 
+
 def get_dados_painel(request, pk):
 
     # Sessão Plenária
@@ -78,29 +79,34 @@ def get_dados_painel(request, pk):
     # # Pra recuperar o partido do parlamentar
     # # tem que fazer OUTRA query, deve ter uma
     # # forma de fazer isso na base do join de data models.
-    filiacao = Filiacao.objects.filter(data_desfiliacao__isnull=True, parlamentar__ativo=True)
+    filiacao = Filiacao.objects.filter(
+        data_desfiliacao__isnull=True, parlamentar__ativo=True)
     parlamentar_partido = {}
     for f in filiacao:
-        parlamentar_partido[f.parlamentar.nome_parlamentar] = f.partido.sigla   
+        parlamentar_partido[f.parlamentar.nome_parlamentar] = f.partido.sigla
 
     # Presença Sessão Plenária
-    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(id=sessao_plenaria_id)    
-    presentes_sessao_plenaria = [p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
+    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(
+        sessao_plenaria_id=sessao_plenaria_id)
+    print(sessao_plenaria_presenca)
+    presentes_sessao_plenaria = [
+        p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
     num_presentes_sessao_plen = len(presentes_sessao_plenaria)
 
     # Presença Ordem do dia
-    presenca_ordem_dia = PresencaOrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria_id)
+    presenca_ordem_dia = PresencaOrdemDia.objects.filter(
+        sessao_plenaria_id=sessao_plenaria_id)
     presentes_ordem_dia = []
     for p in presenca_ordem_dia:
         nome_parlamentar = p.parlamentar.nome_parlamentar
         presentes_ordem_dia.append(
-            {'nome': nome_parlamentar,
+            {'id': p.id,
+             'nome': nome_parlamentar,
              'partido': parlamentar_partido[nome_parlamentar],
-             #'voto': votos.get(nome_parlamentar, '-')
              })
     num_presentes_ordem_dia = len(presentes_ordem_dia)
 
-    try: 
+    try:
 
         ordemdia = OrdemDia.objects.get(
             sessao_plenaria_id=sessao_plenaria_id, votacao_aberta=True)
@@ -108,53 +114,60 @@ def get_dados_painel(request, pk):
         materia_legislativa_texto = ordemdia.materia.ementa
         materia_observacao = ordemdia.materia.observacao
         tipo_votacao = ordemdia.tipo_votacao
+        # materia_titulo = ordemdia.materia
+        materia_titulo = ""
 
         try:
             votacao = RegistroVotacao.objects.get(
                 ordem_id=ordemdia.id, materia_id=ordemdia.materia.id)
+            numero_votos_sim = votacao.numero_votos_sim
+            numero_votos_nao = votacao.numero_votos_nao
+            numero_abstencoes = votacao.numero_abstencoes
+            tipo_resultado = votacao.tipo_resultado_votacao.nome
+            votacao_id = votacao.id
         except ObjectDoesNotExist:
-            None
+            votacao_id = -1
+            numero_votos_sim = 0
+            numero_votos_nao = 0
+            numero_abstencoes = 0
+            tipo_resultado = ""
+
+        total_votos = numero_votos_sim + numero_votos_nao + numero_abstencoes
+
+        votos = {}
+        try:
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                votacao_id=votacao_id)
+            for vp in voto_parlamentar:
+                votos[vp.parlamentar.id] = vp.voto
+        except ObjectDoesNotExist:
+            pass
+
     except ObjectDoesNotExist:
         votacao_aberta = False
+        materia_titulo = ""
         materia_legislativa_texto = ""
         materia_observacao = ""
         tipo_votacao = ""
 
-
-    # # TODO: se tentar usar objects.get(ordem_id = 104
-    # # ocorre a msg: 'RegistroVotacao' object does not support indexing
-    # # TODO; tratar o caso de vir vazio
-    # votacao = RegistroVotacao.objects.first()
-
-    # # Magic!
-    # # http://stackoverflow.com/questions/15507171/django-filter-query-foreign-key
-    # # recuperar pela votacao.id
-    # voto_parlamentar = VotoParlamentar.objects.filter(votacao_id=votacao.id)
-    # votos = {}
-    # for vp in voto_parlamentar:
-    #     votos[vp.parlamentar.nome_parlamentar] = vp.voto        
-
-    # total_votos = votacao.numero_votos_sim + votacao.numero_votos_nao + votacao.numero_abstencoes
-
-    # tipo_resultado = votacao.tipo_resultado_votacao.nome.upper()
-
     votacao_json = {"sessao_plenaria": str(sessao_plenaria),
                     "sessao_plenaria_data": sessao_plenaria.data_inicio,
                     "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
+                    "materia_titulo": materia_titulo,
                     "materia_legislativa_texto": materia_legislativa_texto,
                     "materia_observacao": materia_observacao,
                     "tipo_votacao": tipo_votacao,
                     "presentes_ordem_dia": presentes_ordem_dia,
-                    "num_presentes_ordem_dia": num_presentes_ordem_dia,                    
+                    "num_presentes_ordem_dia": num_presentes_ordem_dia,
                     "presentes_sessao_plenaria": presentes_sessao_plenaria,
                     "num_presentes_sessao_plenaria": num_presentes_sessao_plen,
                     "votacao_aberta": votacao_aberta,
-                    # "numero_votos_sim": votacao.numero_votos_sim,
-                    # "numero_votos_nao": votacao.numero_votos_nao,
-                    # "numero_abstencoes": votacao.numero_abstencoes,
-                    # "total_votos": total_votos,
-                    # "tipo_resultado": tipo_resultado,                    
+                    "numero_votos_sim": numero_votos_sim,
+                    "numero_votos_nao": numero_votos_nao,
+                    "numero_abstencoes": numero_abstencoes,
+                    "total_votos": total_votos,
+                    "tipo_resultado": tipo_resultado,
+                    "votos": votos,
                     }
-
 
     return JsonResponse(votacao_json)
