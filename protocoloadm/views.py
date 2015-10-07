@@ -1,5 +1,8 @@
+from django import forms
 from django.utils.translation import ugettext_lazy as _
-
+from django.views.generic import ListView
+from django.views.generic.edit import FormMixin
+from materia.models import TipoMateriaLegislativa
 from sapl.crud import build_crud
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
@@ -85,3 +88,76 @@ anular_protocolo_crud = build_crud(
          [('numero', 6), ('ano', 6)],
             [('justificativa_anulacao', 12)]],
     ])
+
+
+class ProtocoloForm(forms.Form):
+    tipo_protocolo = forms.CharField(required=False)
+    numero_protocolo = forms.CharField(required=False)
+    ano = forms.CharField(required=False)
+    inicial = forms.DateField(required=False)
+    final = forms.DateField(required=False)
+    natureza_processo = forms.CharField(required=False)
+    tipo_documento = forms.CharField(required=False)
+    interessado = forms.CharField(required=False)
+    tipo_materia = forms.CharField(required=False)
+    autor = forms.CharField(required=False)
+    assunto = forms.CharField(required=False)
+
+
+class ProtocoloPesquisaView(ListView, FormMixin):
+    template_name = 'protocoloadm/protocolo_pesquisa.html'
+    form_class = ProtocoloForm
+
+    def get_queryset(self):
+        return Protocolo.objects.all()
+
+    def get_tipo_documento(self):
+        return TipoDocumentoAdministrativo.objects.all()
+
+    def get_tipo_materia(self):
+        return TipoMateriaLegislativa.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            kwargs = {}
+
+            if request.POST['tipo_protocolo']:
+                kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
+
+            if request.POST['numero_protocolo']:
+                kwargs['numero'] = request.POST['numero_protocolo']
+
+            if request.POST['ano']:
+                kwargs['ano'] = request.POST['ano']
+
+            if request.POST['inicial']:
+                kwargs['inicial'] = request.POST['inicial']
+
+            if request.POST['final']:
+                kwargs['final'] = request.POST['final']
+
+            if request.POST['tipo_documento']:
+                kwargs['tipo_documento'] = request.POST['tipo_documento']
+
+            if request.POST['interessado']:
+                kwargs['interessado'] = request.POST['interessado']
+
+            if request.POST['tipo_materia']:
+                kwargs['tipo_materia'] = request.POST['tipo_materia']
+
+            if request.POST['autor']:
+                kwargs['autor'] = request.POST['autor']
+
+            if request.POST['assunto']:
+                kwargs['assunto'] = request.POST['assunto']
+
+            protocolos = Protocolo.objects.filter(
+                **kwargs)
+
+            # context = self.get_context_data()
+            # context.update({'pesquisa_set': protocolos})
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)

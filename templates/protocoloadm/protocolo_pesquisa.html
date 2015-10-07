@@ -1,0 +1,85 @@
+{% extends "protocoloadm/protocoloadm_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<form method="post">
+		{% csrf_token %}
+		<fieldset>
+		<legend>Pesquisa Avançada</legend>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li>Tipo Protocolo</li>
+				<li>
+					<select name="tipo_protocolo">
+						<option value="">Selecione</option>
+						<option value="0">Enviado</option>
+						<option value="1">Recebido</option>
+					</select>
+				</li>
+			</ul>
+			<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
+				<li>Número Protocolo</li>
+				<li><input type="text" name="numero_protocolo" /></li>
+				<li>Ano</li>
+				<li><input type="text" name="ano" /></li>
+			</ul>
+			<ul class="small-block-grid-5 medium-block-grid-5 large-block-grid-5">
+				<li>Período Protocolo</li>
+				<li>Inicial</li>
+				<li><input type="text" name="inicial" class="dateinput" /></li>
+				<li>Final</li>
+				<li><input type="text" name="final" class="dateinput" /></li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li>Tipo Documento</li>
+				<li>
+					<select name="tipo_documento">
+						<option value="">Selecione</option>
+						{% for tipo in view.get_tipo_documento %}
+							<option value="{{tipo.id}}">{{tipo.sigla}} - {{tipo.descricao}}</option>
+						{% endfor %}
+					</select>
+				</li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li>Interessado</li>
+				<li><input type="text" name="interessado" /></li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li>Tipo Matéria</li>
+				<li>
+					<select name="tipo_materia">
+						<option value="">Selecione</option>
+						{% for tipo in view.get_tipo_materia %}
+							<option value="{{tipo.id}}">{{tipo.sigla}} - {{tipo.descricao}}</option>
+						{% endfor %}
+					</select>
+				</li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li>Autor</li>
+				<li><input type="text" name="autor" /></li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+				<li>Assunto</li>
+				<li><input type="text" name="assunto" /></li>
+			</ul>
+			<br />
+			<input type="submit" value="Pesquisar" class="button primary"/>
+		</fieldset>
+	</form>
+{% endblock detail_content %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}
