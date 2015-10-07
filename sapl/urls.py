@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'', include('norma.urls')),
     url(r'', include('lexml.urls')),
     url(r'', include('painel.urls')),
+    url(r'', include('protocoloadm.urls')),
 
     url(r'', include('compilacao.urls')),
 

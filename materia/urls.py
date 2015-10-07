@@ -10,7 +10,6 @@ from materia.views import (autor_crud, materia_legislativa_crud, orgao_crud,
 urlpatterns = [
     url(r'^sistema/proposicoes/tipo/', include(tipo_proposicao_crud.urls)),
     url(r'^sistema/proposicoes/autor/', include(autor_crud.urls)),
-
     url(r'^sistema/materia/tipo/', include(tipo_materia_crud.urls)),
     url(r'^sistema/materia/regime-tramitacao/',
         include(regime_tramitacao_crud.urls)),

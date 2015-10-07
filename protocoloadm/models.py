@@ -17,6 +17,14 @@ class TipoDocumentoAdministrativo(models.Model):
         return self.descricao
 
 
+def get_docadm_media_path(instance, subpath, filename):
+    return './docadm/%s/%s/%s' % (instance.numero, subpath, filename)
+
+
+def texto_upload_path(instance, filename):
+    return get_docadm_media_path(instance, 'docadm', filename)
+
+
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
@@ -36,6 +44,11 @@ class DocumentoAdministrativo(models.Model):
     assunto = models.TextField(verbose_name=_('Assunto'))
     observacao = models.TextField(
         blank=True, null=True, verbose_name=_('Observação'))
+    texto_integral = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Texto Integral'))
 
     class Meta:
         verbose_name = _('Documento Administrativo')
@@ -52,7 +65,11 @@ class DocumentoAcessorioAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
-    arquivo = models.CharField(max_length=100, verbose_name=_('Arquivo'))
+    arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Arquivo'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
         max_length=50, blank=True, null=True, verbose_name=_('Autor'))
