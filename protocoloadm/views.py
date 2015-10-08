@@ -4,6 +4,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
+from django.views.generic.edit import UpdateView
 from django.views.generic.edit import FormMixin
 
 from materia.models import TipoMateriaLegislativa
@@ -95,27 +96,34 @@ anular_protocolo_crud = build_crud(
 
 
 class ProtocoloForm(forms.Form):
-    tipo_protocolo = forms.CharField(required=False)
-    numero_protocolo = forms.CharField(required=False)
-    ano = forms.CharField(required=False)
-    inicial = forms.DateField(required=False)
-    final = forms.DateField(required=False)
-    natureza_processo = forms.CharField(required=False)
-    tipo_documento = forms.CharField(required=False)
-    interessado = forms.CharField(required=False)
-    tipo_materia = forms.CharField(required=False)
-    autor = forms.CharField(required=False)
-    assunto = forms.CharField(required=False)
+    tipo_protocolo = forms.CharField(label='Tipo de Protocolo', required=False)
+    numero_protocolo = forms.CharField(label='Número de Protocolo', required=False)
+    ano = forms.CharField(label='Ano', required=False)
+    inicial = forms.DateField(label='Data Inicial', required=False)
+    final = forms.DateField(label='Data Final', required=False)
+    natureza_processo = forms.CharField(label='Natureza Processo', required=False)
+    tipo_documento = forms.CharField(label='Tipo de Documento', required=False)
+    interessado = forms.CharField(label='Interessado', required=False)
+    tipo_materia = forms.CharField(label='Tipo de Matéria', required=False)
+    autor = forms.CharField(label='Autor', required=False)
+    assunto = forms.CharField(label='Assunto <DFS', required=False)
 
 
-class ProtocoloPesquisaView(ListView, FormMixin):
+class ProtocoloPesquisaView(FormMixin, ListView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
     form_class = ProtocoloForm
+    context_object_name = 'protocolos'    
+    paginate_by = 10
 
     extra_context = {}
 
     def get_success_url(self):
         return reverse('protocolo')
+
+    def get_form(self, data=None, files=None, **kwargs):
+        # kwargs['user'] = self.request.user
+        # return AccountForm(data, files, **kwargs)
+        return ProtocoloForm()
 
     def get_context_data(self, **kwargs):
         context = super(ProtocoloPesquisaView, self).get_context_data(**kwargs)
@@ -131,8 +139,20 @@ class ProtocoloPesquisaView(ListView, FormMixin):
     def get_tipo_materia(self):
         return TipoMateriaLegislativa.objects.all()
 
+    # def get(self, request, *args, **kwargs):
+    #     context = self.get_context_data(self)
+
+    #     form = ProtocoloForm()
+    #     # return self.render(request, self.template_name, {'form': form})
+    #     context.update({'form': form})
+
+    #     return self.render_to_response(context)        
+
     def post(self, request, *args, **kwargs):
-        form = self.get_form()
+        #form = self.get_form()
+
+        form = ProtocoloForm(request.POST or None)
+
         if form.is_valid():
             kwargs = {}
 
@@ -173,6 +193,7 @@ class ProtocoloPesquisaView(ListView, FormMixin):
                 **kwargs)
 
             self.extra_context['protocolos'] = protocolos
+            self.extra_context['form'] = form
 
             return self.form_valid(form)
         else:

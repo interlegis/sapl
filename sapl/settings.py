@@ -149,6 +149,7 @@ BOWER_INSTALLED_APPS = (
     'components-font-awesome',
     'foundation-icon-fonts',
     'tinymce',
+    'jquery-ui',
     'jquery-runner',
 )
 

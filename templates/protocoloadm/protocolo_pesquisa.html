@@ -78,13 +78,30 @@
 			</tr>
 			{% for p in protocolos %}
 				<tr><td>{{ p.numero }}</td>
+					<td>{{ p.ano }}</td>					
 					<td>{{ p.assunto_ementa }}</td>
 					<td>{{ p.tipo_documento }}</td>
-					<td>{{ p.ano }}</td>
 					<td>{{ p.data|date:"d/m/Y" }}</td>
 				</tr>
 			{% endfor %}
 		</table>
+
+<!--    {% if is_paginated %}
+        <div class="pagination">
+            <span class="page-links">
+                {% if page_obj.has_previous %}
+                    <a href="{% url 'protocolo' %}{?page={{ page_obj.previous_page_number }}"><<</a>
+                {% endif %}
+                <span class="page-current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+                {% if page_obj.has_next %}
+                    <a href="{% url 'protocolo' %}/?page={{ page_obj.next_page_number }}">>></a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %} -->
+
 		Total: {{ protocolos|length }}
 		{% endif %}
 	</form>
