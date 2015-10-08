@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+
 from materia.models import TipoMateriaLegislativa
 from sapl.crud import build_crud
 
@@ -117,7 +120,7 @@ class ProtocoloPesquisaView(ListView, FormMixin):
     def get_context_data(self, **kwargs):
         context = super(ProtocoloPesquisaView, self).get_context_data(**kwargs)
         context.update(self.extra_context)
-        return context        
+        return context
 
     def get_queryset(self):
         return Protocolo.objects.all()
@@ -133,6 +136,8 @@ class ProtocoloPesquisaView(ListView, FormMixin):
         if form.is_valid():
             kwargs = {}
 
+            # format = '%Y-%m-%d'
+
             if request.POST['tipo_protocolo']:
                 kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
 
@@ -143,10 +148,11 @@ class ProtocoloPesquisaView(ListView, FormMixin):
                 kwargs['ano'] = request.POST['ano']
 
             if request.POST['inicial']:
-                kwargs['inicial'] = request.POST['inicial']
+                kwargs['data'] = datetime.strptime(
+                    request.POST['inicial'], '%d/%m/%Y').strftime('%Y-%m-%d')
 
-            if request.POST['final']:
-                kwargs['final'] = request.POST['final']
+            # if request.POST['final']:
+            #     kwargs['final'] = request.POST['final']
 
             if request.POST['tipo_documento']:
                 kwargs['tipo_documento'] = request.POST['tipo_documento']

@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from protocoloadm.views import (ProtocoloPesquisaView, anular_protocolo_crud,
                                 documento_acessorio_administrativo_crud,
                                 documento_administrativo_crud,

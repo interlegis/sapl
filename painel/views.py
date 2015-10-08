@@ -54,7 +54,7 @@ def cronometro_painel(request):
 
 def painel_view(request, pk):
     print(pk)
-    context = {'head_title': 'Painel Plenário', 'sessao_id': pk}    
+    context = {'head_title': 'Painel Plenário', 'sessao_id': pk}
     return render(request, 'painel/index.html', {'context': context})
 
 

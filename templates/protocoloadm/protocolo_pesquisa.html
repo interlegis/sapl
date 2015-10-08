@@ -70,8 +70,19 @@
 
 		{% if protocolos %}		
 		<table>
+			<tr><td>Número de Protocolo</td>
+				<td>Assunto</td>
+				<td>Tipo de Documento</td>
+				<td>Ano</td>
+				<td>Data</td>
+			</tr>
 			{% for p in protocolos %}
-				<tr><td>{{ p.numero }}</td><td>{{ p.assunto_ementa }}</td></tr>
+				<tr><td>{{ p.numero }}</td>
+					<td>{{ p.assunto_ementa }}</td>
+					<td>{{ p.tipo_documento }}</td>
+					<td>{{ p.ano }}</td>
+					<td>{{ p.data|date:"d/m/Y" }}</td>
+				</tr>
 			{% endfor %}
 		</table>
 		Total: {{ protocolos|length }}
