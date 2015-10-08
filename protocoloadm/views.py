@@ -1,4 +1,5 @@
 from django import forms
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
@@ -108,6 +109,16 @@ class ProtocoloPesquisaView(ListView, FormMixin):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
     form_class = ProtocoloForm
 
+    extra_context = {}
+
+    def get_success_url(self):
+        return reverse('protocolo')
+
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloPesquisaView, self).get_context_data(**kwargs)
+        context.update(self.extra_context)
+        return context        
+
     def get_queryset(self):
         return Protocolo.objects.all()
 
@@ -155,8 +166,7 @@ class ProtocoloPesquisaView(ListView, FormMixin):
             protocolos = Protocolo.objects.filter(
                 **kwargs)
 
-            # context = self.get_context_data()
-            # context.update({'pesquisa_set': protocolos})
+            self.extra_context['protocolos'] = protocolos
 
             return self.form_valid(form)
         else:

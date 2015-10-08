@@ -67,6 +67,15 @@
 			<br />
 			<input type="submit" value="Pesquisar" class="button primary"/>
 		</fieldset>
+
+		{% if protocolos %}		
+		<table>
+			{% for p in protocolos %}
+				<tr><td>{{ p.numero }}</td><td>{{ p.assunto_ementa }}</td></tr>
+			{% endfor %}
+		</table>
+		Total: {{ protocolos|length }}
+		{% endif %}
 	</form>
 {% endblock detail_content %}
 
