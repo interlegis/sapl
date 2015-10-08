@@ -17,16 +17,22 @@
 					</select>
 				</li>
 			</ul>
-			<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
 				<li>Número Protocolo</li>
 				<li><input type="text" name="numero_protocolo" /></li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
 				<li>Ano</li>
 				<li><input type="text" name="ano" /></li>
 			</ul>
-			<ul class="small-block-grid-5 medium-block-grid-5 large-block-grid-5">
-				<li>Período Protocolo</li>
+			<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+				<li><b>Período Protocolo</b></li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
 				<li>Inicial</li>
 				<li><input type="text" name="inicial" class="dateinput" /></li>
+			</ul>
+			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
 				<li>Final</li>
 				<li><input type="text" name="final" class="dateinput" /></li>
 			</ul>
@@ -67,7 +73,7 @@
 			<br />
 			<input type="submit" value="Pesquisar" class="button primary"/>
 		</fieldset>
-
+<!-- 
 		{% if protocolos %}		
 		<table>
 			<tr><td>Número de Protocolo</td>
@@ -86,7 +92,7 @@
 			{% endfor %}
 		</table>
 
-<!--    {% if is_paginated %}
+   {% if is_paginated %}
         <div class="pagination">
             <span class="page-links">
                 {% if page_obj.has_previous %}
@@ -100,10 +106,11 @@
                 {% endif %}
             </span>
         </div>
-    {% endif %} -->
+    {% endif %} 
 
-		Total: {{ protocolos|length }}
+		Total: {{ protocolos|length }} 
 		{% endif %}
+		-->
 	</form>
 {% endblock detail_content %}
 
