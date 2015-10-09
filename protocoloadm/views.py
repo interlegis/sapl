@@ -3,8 +3,7 @@ from datetime import datetime
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
-from django.views.generic.edit import UpdateView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 
 from materia.models import TipoMateriaLegislativa
@@ -97,11 +96,13 @@ anular_protocolo_crud = build_crud(
 
 class ProtocoloForm(forms.Form):
     tipo_protocolo = forms.CharField(label='Tipo de Protocolo', required=False)
-    numero_protocolo = forms.CharField(label='Número de Protocolo', required=False)
+    numero_protocolo = forms.CharField(
+        label='Número de Protocolo', required=False)
     ano = forms.CharField(label='Ano', required=False)
     inicial = forms.DateField(label='Data Inicial', required=False)
     final = forms.DateField(label='Data Final', required=False)
-    natureza_processo = forms.CharField(label='Natureza Processo', required=False)
+    natureza_processo = forms.CharField(
+        label='Natureza Processo', required=False)
     tipo_documento = forms.CharField(label='Tipo de Documento', required=False)
     interessado = forms.CharField(label='Interessado', required=False)
     tipo_materia = forms.CharField(label='Tipo de Matéria', required=False)
@@ -109,10 +110,10 @@ class ProtocoloForm(forms.Form):
     assunto = forms.CharField(label='Assunto <DFS', required=False)
 
 
-class ProtocoloPesquisaView(FormMixin, ListView):
+class ProtocoloPesquisaView(TemplateView, FormMixin):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
     form_class = ProtocoloForm
-    context_object_name = 'protocolos'    
+    context_object_name = 'protocolos'
     paginate_by = 10
 
     extra_context = {}
@@ -121,8 +122,6 @@ class ProtocoloPesquisaView(FormMixin, ListView):
         return reverse('protocolo')
 
     def get_form(self, data=None, files=None, **kwargs):
-        # kwargs['user'] = self.request.user
-        # return AccountForm(data, files, **kwargs)
         return ProtocoloForm()
 
     def get_context_data(self, **kwargs):
@@ -130,71 +129,64 @@ class ProtocoloPesquisaView(FormMixin, ListView):
         context.update(self.extra_context)
         return context
 
-    def get_queryset(self):
-        return Protocolo.objects.all()
-
     def get_tipo_documento(self):
         return TipoDocumentoAdministrativo.objects.all()
 
     def get_tipo_materia(self):
         return TipoMateriaLegislativa.objects.all()
 
-    # def get(self, request, *args, **kwargs):
-    #     context = self.get_context_data(self)
-
-    #     form = ProtocoloForm()
-    #     # return self.render(request, self.template_name, {'form': form})
-    #     context.update({'form': form})
-
-    #     return self.render_to_response(context)        
-
     def post(self, request, *args, **kwargs):
-        #form = self.get_form()
-
         form = ProtocoloForm(request.POST or None)
 
         if form.is_valid():
-            kwargs = {}
+            if "nova-pesquisa" in request.POST:
+                return self.render_to_response({})
+            else:
+                kwargs = {}
 
-            # format = '%Y-%m-%d'
+                # format = '%Y-%m-%d'
 
-            if request.POST['tipo_protocolo']:
-                kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
+                if request.POST['tipo_protocolo']:
+                    kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
 
-            if request.POST['numero_protocolo']:
-                kwargs['numero'] = request.POST['numero_protocolo']
+                if request.POST['numero_protocolo']:
+                    kwargs['numero'] = request.POST['numero_protocolo']
 
-            if request.POST['ano']:
-                kwargs['ano'] = request.POST['ano']
+                if request.POST['ano']:
+                    kwargs['ano'] = request.POST['ano']
 
-            if request.POST['inicial']:
-                kwargs['data'] = datetime.strptime(
-                    request.POST['inicial'], '%d/%m/%Y').strftime('%Y-%m-%d')
+                if request.POST['inicial']:
+                    kwargs['data'] = datetime.strptime(
+                        request.POST['inicial'],
+                        '%d/%m/%Y').strftime('%Y-%m-%d')
 
-            # if request.POST['final']:
-            #     kwargs['final'] = request.POST['final']
+                # if request.POST['final']:
+                #     kwargs['final'] = request.POST['final']
 
-            if request.POST['tipo_documento']:
-                kwargs['tipo_documento'] = request.POST['tipo_documento']
+                if request.POST['tipo_documento']:
+                    kwargs['tipo_documento'] = request.POST['tipo_documento']
 
-            if request.POST['interessado']:
-                kwargs['interessado'] = request.POST['interessado']
+                if request.POST['interessado']:
+                    kwargs['interessado'] = request.POST['interessado']
 
-            if request.POST['tipo_materia']:
-                kwargs['tipo_materia'] = request.POST['tipo_materia']
+                if request.POST['tipo_materia']:
+                    kwargs['tipo_materia'] = request.POST['tipo_materia']
 
-            if request.POST['autor']:
-                kwargs['autor'] = request.POST['autor']
+                if request.POST['autor']:
+                    kwargs['autor'] = request.POST['autor']
 
-            if request.POST['assunto']:
-                kwargs['assunto'] = request.POST['assunto']
+                if request.POST['assunto']:
+                    kwargs['assunto'] = request.POST['assunto']
 
-            protocolos = Protocolo.objects.filter(
-                **kwargs)
+                protocolos = Protocolo.objects.filter(
+                    **kwargs)
 
-            self.extra_context['protocolos'] = protocolos
-            self.extra_context['form'] = form
+                self.extra_context['protocolos'] = protocolos
+                self.extra_context['form'] = form
 
-            return self.form_valid(form)
+                # return self.form_valid(form)
+                return self.render_to_response(
+                    {'protocolos': protocolos}
+                )
         else:
             return self.form_invalid(form)

@@ -23,6 +23,6 @@ urlpatterns = [
     url(r'^protocoloadm/protocolo-mat/', include(protocolo_materia_crud.urls)),
     url(r'^protocoloadm/anular-protocolo/',
         include(anular_protocolo_crud.urls)),
-    url(r'^protocoloadm/protocolo',
+    url(r'^protocoloadm/protocolo$',
         ProtocoloPesquisaView.as_view(), name='protocolo'),
 ]

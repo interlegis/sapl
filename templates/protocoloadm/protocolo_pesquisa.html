@@ -3,115 +3,133 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-	<form method="post">
-		{% csrf_token %}
-		<fieldset>
-		<legend>Pesquisa Avançada</legend>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Tipo Protocolo</li>
-				<li>
-					<select name="tipo_protocolo">
-						<option value="">Selecione</option>
-						<option value="0">Enviado</option>
-						<option value="1">Recebido</option>
-					</select>
-				</li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Número Protocolo</li>
-				<li><input type="text" name="numero_protocolo" /></li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Ano</li>
-				<li><input type="text" name="ano" /></li>
-			</ul>
-			<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-				<li><b>Período Protocolo</b></li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Inicial</li>
-				<li><input type="text" name="inicial" class="dateinput" /></li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Final</li>
-				<li><input type="text" name="final" class="dateinput" /></li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Tipo Documento</li>
-				<li>
-					<select name="tipo_documento">
-						<option value="">Selecione</option>
-						{% for tipo in view.get_tipo_documento %}
-							<option value="{{tipo.id}}">{{tipo.sigla}} - {{tipo.descricao}}</option>
-						{% endfor %}
-					</select>
-				</li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Interessado</li>
-				<li><input type="text" name="interessado" /></li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Tipo Matéria</li>
-				<li>
-					<select name="tipo_materia">
-						<option value="">Selecione</option>
-						{% for tipo in view.get_tipo_materia %}
-							<option value="{{tipo.id}}">{{tipo.sigla}} - {{tipo.descricao}}</option>
-						{% endfor %}
-					</select>
-				</li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Autor</li>
-				<li><input type="text" name="autor" /></li>
-			</ul>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li>Assunto</li>
-				<li><input type="text" name="assunto" /></li>
-			</ul>
-			<br />
-			<input type="submit" value="Pesquisar" class="button primary"/>
-		</fieldset>
-<!-- 
-		{% if protocolos %}		
-		<table>
-			<tr><td>Número de Protocolo</td>
-				<td>Assunto</td>
-				<td>Tipo de Documento</td>
-				<td>Ano</td>
-				<td>Data</td>
-			</tr>
-			{% for p in protocolos %}
-				<tr><td>{{ p.numero }}</td>
-					<td>{{ p.ano }}</td>					
-					<td>{{ p.assunto_ementa }}</td>
-					<td>{{ p.tipo_documento }}</td>
-					<td>{{ p.data|date:"d/m/Y" }}</td>
+	{% if protocolos %}		
+		<form method="POST">
+			{% csrf_token %}
+			Total: {{ protocolos|length }} 
+		
+			<table>
+				<tr><td>Número de Protocolo</td>
+					<td>Assunto</td>
+					<td>Tipo de Documento</td>
+					<td>Ano</td>
+					<td>Data</td>
 				</tr>
-			{% endfor %}
-		</table>
+				{% for p in protocolos %}
+					<tr><td>{{ p.numero }}</td>
+						<td>{{ p.ano }}</td>					
+						<td>{{ p.assunto_ementa }}</td>
+						<td>{{ p.tipo_documento }}</td>
+						<td>{{ p.data|date:"d/m/Y" }}</td>
+					</tr>
+				{% endfor %}
+			</table>
+			{% if is_paginated %}
+			  <nav class="pagination-centered">
+			    <ul class="pagination">
+			      {% if page_obj.has_previous %}
+			        <li>
+			          <a href="?page={{ page_obj.previous_page_number }}">
+			            <span class="arrow">&laquo;</span>
+			          </a>
+			        </li>
+			      {% else %}
+			        <li class="arrow unavailable"><a href="">&laquo;</a></li>
+			      {% endif %}
 
-   {% if is_paginated %}
-        <div class="pagination">
-            <span class="page-links">
-                {% if page_obj.has_previous %}
-                    <a href="{% url 'protocolo' %}{?page={{ page_obj.previous_page_number }}"><<</a>
-                {% endif %}
-                <span class="page-current">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                </span>
-                {% if page_obj.has_next %}
-                    <a href="{% url 'protocolo' %}/?page={{ page_obj.next_page_number }}">>></a>
-                {% endif %}
-            </span>
-        </div>
-    {% endif %} 
+			      {% for page in paginator.page_range %}
+			        <li {% if page == page_obj.number %}class="active current"{% endif %}>
+			          <a href="?page={{ page }}">{{ page }}</a>
+			        </li>
+			      {% endfor %}
 
-		Total: {{ protocolos|length }} 
-		{% endif %}
-		-->
-	</form>
+			      {% if page_obj.has_next %}
+			        <li>
+			          <a href="?page={{ page_obj.next_page_number }}">
+			            <span class="arrow">&raquo;</span>
+			          </a>
+			        </li>
+			      {% else %}
+			        <li class="arrow unavailable"><a href="">&raquo;</a></li>
+			      {% endif %}
+			    </ul>
+			  </nav>
+			{% endif %}
+			<input type="submit" value="Voltar" name="nova-pesquisa" class="button primary"/>
+		</form>
+	{% else %}
+		<form method="post">
+			{% csrf_token %}
+			<fieldset>
+			<legend>Pesquisa Avançada</legend>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Tipo Protocolo</li>
+					<li>
+						<select name="tipo_protocolo">
+							<option value="">Selecione</option>
+							<option value="0">Enviado</option>
+							<option value="1">Recebido</option>
+						</select>
+					</li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Número Protocolo</li>
+					<li><input type="text" name="numero_protocolo" /></li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Ano</li>
+					<li><input type="text" name="ano" /></li>
+				</ul>
+				<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+					<li><b>Período Protocolo</b></li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Inicial</li>
+					<li><input type="text" name="inicial" class="dateinput" /></li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Final</li>
+					<li><input type="text" name="final" class="dateinput" /></li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Tipo Documento</li>
+					<li>
+						<select name="tipo_documento">
+							<option value="">Selecione</option>
+							{% for tipo in view.get_tipo_documento %}
+								<option value="{{tipo.id}}">{{tipo.sigla}} - {{tipo.descricao}}</option>
+							{% endfor %}
+						</select>
+					</li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Interessado</li>
+					<li><input type="text" name="interessado" /></li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Tipo Matéria</li>
+					<li>
+						<select name="tipo_materia">
+							<option value="">Selecione</option>
+							{% for tipo in view.get_tipo_materia %}
+								<option value="{{tipo.id}}">{{tipo.sigla}} - {{tipo.descricao}}</option>
+							{% endfor %}
+						</select>
+					</li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Autor</li>
+					<li><input type="text" name="autor" /></li>
+				</ul>
+				<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+					<li>Assunto</li>
+					<li><input type="text" name="assunto" /></li>
+				</ul>
+				<br />
+				<input type="submit" value="Pesquisar" name="pesquisa" class="button primary"/>
+			</fieldset>
+		</form>
+	{% endif %}
 {% endblock detail_content %}
 
 {% block foot_js %}
