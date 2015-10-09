@@ -1,21 +1,12 @@
 from datetime import datetime
 
 from django import forms
-from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext_lazy as _
-
-from django.views.generic import ListView, TemplateView
-
-from django.views.generic import ListView
-from django.views.generic import View
-from django.views.generic.base import TemplateView
-from django.views.generic.edit import UpdateView
-
-from django.views.generic.edit import FormMixin
-
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic.base import TemplateView
+from django.views.generic.edit import FormMixin
 
 from materia.models import TipoMateriaLegislativa
 from sapl.crud import build_crud
@@ -202,8 +193,10 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
         else:
             return self.form_invalid(form)
 
+
 class AnularProcoloAdmForm(forms.Form):
-    numero_protocolo = forms.CharField(label='Número de Protocolo', required=True)
+    numero_protocolo = forms.CharField(
+        label='Número de Protocolo', required=True)
     ano = forms.CharField(label='Ano', required=True)
     motivo = forms.CharField(label='Motivo', required=True)
 
@@ -214,11 +207,12 @@ def get_client_ip(request):
         ip = x_forwarded_for.split(',')[0]
     else:
         ip = request.META.get('REMOTE_ADDR')
-    return ip  
+    return ip
+
 
 class AnularProtocoloAdmView(FormMixin, TemplateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
-            
+
     def get_success_url(self):
         return reverse('anular_protocolo')
 
@@ -229,19 +223,21 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
 
         form = AnularProcoloAdmForm(request.POST)
 
-        if form.is_valid():            
+        if form.is_valid():
 
             numero = request.POST['numero_protocolo']
             ano = request.POST['ano_protocolo']
-            justificativa_anulacao = strip_tags(request.POST['justificativa_anulacao'])
-            user_anulacao = "NOUSER" # TODO get user from session 
+            justificativa_anulacao = strip_tags(
+                request.POST['justificativa_anulacao'])
+            user_anulacao = "NOUSER"  # TODO get user from session
             ip_addr = get_client_ip(request)
 
             try:
-                protocolo = Protocolo.objects.get(numero = numero, ano = ano)
+                protocolo = Protocolo.objects.get(numero=numero, ano=ano)
 
                 if protocolo.anulado:
-                    form._errors = {'error_message': 'Procolo encontra-se anulado'}
+                    form._errors = {
+                        'error_message': 'Procolo encontra-se anulado'}
                     return self.form_invalid(form)
 
                 protocolo.anulado = True
@@ -251,9 +247,9 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
                 protocolo.save()
 
                 return self.form_valid(form)
-                
+
             except ObjectDoesNotExist:
                 form._errors = {'error_message': 'Protocolo não existe'}
                 return self.form_invalid(form)
         else:
-            return self.form_invalid(form)        
+            return self.form_invalid(form)
