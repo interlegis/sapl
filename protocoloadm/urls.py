@@ -1,5 +1,7 @@
 from django.conf.urls import include, url
-from protocoloadm.views import (ProtocoloPesquisaView, anular_protocolo_crud,
+from protocoloadm.views import (ProtocoloPesquisaView, 
+                                #anular_protocolo_crud,
+                                AnularProtocoloAdmView,
                                 documento_acessorio_administrativo_crud,
                                 documento_administrativo_crud,
                                 protocolo_documento_crud,
@@ -21,8 +23,11 @@ urlpatterns = [
     url(r'^protocoloadm/protocolo-doc/',
         include(protocolo_documento_crud.urls)),
     url(r'^protocoloadm/protocolo-mat/', include(protocolo_materia_crud.urls)),
-    url(r'^protocoloadm/anular-protocolo/',
-        include(anular_protocolo_crud.urls)),
     url(r'^protocoloadm/protocolo$',
         ProtocoloPesquisaView.as_view(), name='protocolo'),
+
+    # url(r'^protocoloadm/anular-protocolo/',
+    #     include(anular_protocolo_crud.urls), name='anular_protocolo'),
+    url(r'^protocoladm/anular-protocolo', AnularProtocoloAdmView.as_view(), name='anular_protocolo'),
+
 ]

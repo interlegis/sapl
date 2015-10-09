@@ -1,0 +1,28 @@
+{% extends "protocoloadm/protocoloadm_detail.html" %}
+{% load i18n %}
+{% block detail_content %}
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <p> {{ errors }} </p>
+        {% endfor %}
+    {% endfor %}
+{% endif %}
+
+	<form method="POST">
+		{% csrf_token %}
+		<fieldset>
+			Número / Ano
+			<input type="text" id="numero_protocolo" name="numero_protocolo" /> / 
+
+			<input type="text" id="ano_protocolo" name="ano_protocolo" />
+		</br>
+			Motivo da Anulação
+			<textarea id="justificativa_anulacao" name="justificativa_anulacao">
+			</textarea>
+		</br>
+			<input type="submit" value="Anular" class="button primary" />
+		</fieldset>
+	</form>
+{% endblock detail_content %}

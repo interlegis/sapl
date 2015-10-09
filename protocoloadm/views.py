@@ -3,8 +3,19 @@ from datetime import datetime
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+
 from django.views.generic import ListView, TemplateView
+
+from django.views.generic import ListView
+from django.views.generic import View
+from django.views.generic.base import TemplateView
+from django.views.generic.edit import UpdateView
+
 from django.views.generic.edit import FormMixin
+
+from django.core.exceptions import ObjectDoesNotExist
+
+from django.utils.html import strip_tags
 
 from materia.models import TipoMateriaLegislativa
 from sapl.crud import build_crud
@@ -85,13 +96,13 @@ protocolo_materia_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-anular_protocolo_crud = build_crud(
-    Protocolo, '', [
+# anular_protocolo_crud = build_crud(
+#     Protocolo, '', [
 
-        [_('Indentificação do Protocolo'),
-         [('numero', 6), ('ano', 6)],
-            [('justificativa_anulacao', 12)]],
-    ])
+#         [_('Indentificação do Protocolo'),
+#          [('numero', 6), ('ano', 6)],
+#             [('justificativa_anulacao', 12)]],
+#     ])
 
 
 class ProtocoloForm(forms.Form):
@@ -107,7 +118,7 @@ class ProtocoloForm(forms.Form):
     interessado = forms.CharField(label='Interessado', required=False)
     tipo_materia = forms.CharField(label='Tipo de Matéria', required=False)
     autor = forms.CharField(label='Autor', required=False)
-    assunto = forms.CharField(label='Assunto <DFS', required=False)
+    assunto = forms.CharField(label='Assunto', required=False)
 
 
 class ProtocoloPesquisaView(TemplateView, FormMixin):
@@ -190,3 +201,59 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
                 )
         else:
             return self.form_invalid(form)
+
+class AnularProcoloAdmForm(forms.Form):
+    numero_protocolo = forms.CharField(label='Número de Protocolo', required=True)
+    ano = forms.CharField(label='Ano', required=True)
+    motivo = forms.CharField(label='Motivo', required=True)
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip  
+
+class AnularProtocoloAdmView(FormMixin, TemplateView):
+    template_name = 'protocoloadm/anular_protocoloadm.html'
+            
+    def get_success_url(self):
+        return reverse('anular_protocolo')
+
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response({})
+
+    def post(self, request, *args, **kwargs):
+
+        form = AnularProcoloAdmForm(request.POST)
+
+        if form.is_valid():            
+
+            numero = request.POST['numero_protocolo']
+            ano = request.POST['ano_protocolo']
+            justificativa_anulacao = strip_tags(request.POST['justificativa_anulacao'])
+            user_anulacao = "NOUSER" # TODO get user from session 
+            ip_addr = get_client_ip(request)
+
+            try:
+                protocolo = Protocolo.objects.get(numero = numero, ano = ano)
+
+                if protocolo.anulado:
+                    form._errors = {'error_message': 'Procolo encontra-se anulado'}
+                    return self.form_invalid(form)
+
+                protocolo.anulado = True
+                protocolo.justificativa_anulacao = justificativa_anulacao
+                protocolo.user_anulacao = user_anulacao
+                protocolo.ip_anulacao = ip_addr
+                protocolo.save()
+
+                return self.form_valid(form)
+                
+            except ObjectDoesNotExist:
+                form._errors = {'error_message': 'Protocolo não existe'}
+                return self.form_invalid(form)
+        else:
+            return self.form_invalid(form)        
