@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+
+{% block title%}
+  <h1><b>Edição:</b> {{ view.get_norma }}</h1>
+{% endblock %}
+
+{% block base_content %}  
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	var flag_add_next = false
+	var flag_add_next_pk = 0
+	var flag_add_next_pai = 0
+
+	clickEditDispositivo = function(event) { 
+		var _pk = event.target.getAttribute('pk');
+		
+		
+		if ($('#de'+_pk).hasClass("editclick")) {
+            clearEditClick();
+			return;
+		}
+		
+        clearEditClick();
+
+		clickUpdateDispositivo(event)
+	}
+
+	clickUpdateDispositivo = function(event, __pk, __action, addeditclick) {
+
+		var _pk = __pk;
+		var _action = __action;
+		var _variacao = '';
+		var _tipo_pk = '';
+
+		if (event != null) {
+			_pk = event.target.getAttribute('pk');
+			_action = $(this).attr('action');
+			_variacao = $(this).attr('variacao');
+			_tipo_pk = $(this).attr('tipo_pk');
+		}
+		
+		if (flag_add_next_pk == 0)
+		    flag_add_next_pk = _pk
+
+		var url = ''
+		if (_action == '')
+		    return
+		else if (_action == 'refresh' || typeof _action == 'undefined')
+		    url = _pk+'/refresh?pkadd='+flag_add_next_pk;
+		else {
+		    url = _pk+'/actions?action='+_action;
+		    url += '&tipo_pk='+_tipo_pk;
+		    url += '&variacao='+_variacao;
+		    
+		    
+	        if (typeof addeditclick == 'undefined' || addeditclick) {
+	            $("#message_block").css("display", "block");
+	        }
+		}
+        
+        
+		$.get(url).done(function( data ) { 
+
+            if (addeditclick)
+                clearEditClick();
+
+            if (_action == 'refresh' || typeof _action == 'undefined') { 
+
+
+                if (flag_add_next) {
+                    $( '#de' + _pk ).html( data); 
+                    flag_add_next = false
+                } 
+                else {
+                    clearEditClick();
+                    $( '#de' + _pk ).prepend( data );
+                    }
+
+                reloadFunctionClicks(); 
+
+                if (typeof addeditclick == 'undefined' || addeditclick) {
+                    $('#de'+flag_add_next_pk).addClass('editclick');
+                    $('html, body').animate({
+                        scrollTop: $('#de' + flag_add_next_pk ).offset().top - window.innerHeight / 3 
+                        }, 300);
+                    flag_add_next_pk = 0;
+                }
+            }
+
+            else if (_action == 'add_next') {
+ 
+                clearEditClick();
+            
+				flag_add_next_pk = data.pk;
+				flag_add_next_pai = data.pai;
+				
+				if (flag_add_next_pk != null)
+				    for (var pai = 0; pai < flag_add_next_pai.length; pai++)
+				         if (flag_add_next_pai[pai] != -1) {
+                              flag_add_next = true;
+                              flag_add_next_pk = data.pk;
+                              clickUpdateDispositivo(null, flag_add_next_pai[pai], 'refresh', pai == 0);
+				         }
+				         else {
+				             href = location.href.split('#')[0]
+				             location.href = href+'#'+flag_add_next_pk
+				             location.reload(true)
+				         }
+				else {
+				    alert('TODO: Inserção com renumeração ');
+				    flag_add_next_pk = 0;
+				    flag_add_next = false;
+				    }
+		    }
+		}).always(function() {
+		    $("#message_block").css("display", "none");
+		});
+
+	}
+	
+
+function clearEditClick() {
+    $('.editclick').removeClass('editclick');
+    $('.editclick .label_pai, .edit .label_pai').remove();
+    $('.editclick .actions_head, .edit .actions_head').remove();
+    $('.editclick .actions_footer, .edit .actions_footer').remove();
+}
+
+function reloadFunctionClicks() { 
+	$('.dispositivo .edit .di').off();
+	$('.actions .btn-action').off();
+	$('.actions_head .btn-action').off();
+
+	$('.dispositivo .edit .di').on('click', clickEditDispositivo);
+	$('.actions .btn-action').on('click', clickEditDispositivo);
+	$('.actions_head .btn-action').on('click', clickUpdateDispositivo);
+}
+
+reloadFunctionClicks();
+
+});
+
+
+</script>
+<div id="message_block"><div id="msg">Aguarde... Atualizando informações!!!</div></div>
+<div class="compilacaoedit">
+	{% include 'compilacao/edit_bloco.html'%}
+</div>
+{% endblock base_content %}

@@ -1,5 +1,5 @@
 {% load compilacao_filters %}
-{% for ch in dispositivo.pk|get_bloco %}
+{% for ch in dispositivo.pk|get_bloco_atualizador %}
 {% spaceless %}
 	<div class="dispositivo" id="d{{ch.id}}">
 		<div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}">

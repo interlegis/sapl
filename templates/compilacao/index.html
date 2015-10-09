@@ -3,47 +3,51 @@
 {% load compilacao_filters %}
 
 {% block title%}
-  <h1>{{ view.get_norma }}</h1>
+    <h1>{{ view.get_norma }}</h1>
 {% endblock %}
 
 {% block base_content %}  
-
 <script type="text/javascript">
 
 $( window ).scroll(function() {
-
-    if (window.pageYOffset <= 180) {
+    if (window.pageYOffset <= 180)
         $( "section.vigencias" ).removeClass("fixed");
-    }
-    else if (!$( "section.vigencias" ).hasClass("fixed")){
+    else if (!$( "section.vigencias" ).hasClass("fixed"))
         $( "section.vigencias" ).addClass("fixed"); 
-    }
-}); 
+});
 
+
+$(window).load(function() {
+    setTimeout(function() {
+	    height = $( "section.vigencias" ).height()
+	    window.scrollTo(0, window.pageYOffset - height - 36 ); 
+    }, 1000);
+});
+ 
 function textoMultiVigente(item) {
-
 	$(".compilacao .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
-
 	$(".desativado").removeClass("displaynone");
 	$(".link_alterador").removeClass("displaynone");
 }
 function textoVigente(item, link) {
-
 	$(".compilacao .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
-
 	$(".desativado").addClass("displaynone");
 	$(".link_alterador").removeClass("displaynone");
-
 	if (!link)
 		$(".link_alterador").addClass("displaynone");
 }
-
-
 </script>
 
 <div class="compilacao">  
+
+
+<div style="float: right; clear:right;">
+<a title="TODO: diminuir fonte... basta manipular font-size da classe css dispositivo">---</a>
+<a title="TODO: aumentar fonte... basta manipular font-size da classe css dispositivo">+++</a>
+</div>
+
 			{% for key, values in view.get_vigencias.items %}
 				{% if forloop.first %}				
 <section class="vigencias">
@@ -84,7 +88,7 @@ function textoVigente(item, link) {
 				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li> 
 				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li> 
 				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li> 
-			</ul>	
+			</ul>
 		</section>
 	</nav>
 </section>
@@ -96,6 +100,8 @@ function textoVigente(item, link) {
 {%endif%}
 
 
-{% include 'compilacao/template_render_bloco.html'%}
+
+
+{% include 'compilacao/index_bloco.html'%}
 </div>
 {% endblock base_content %}
