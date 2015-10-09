@@ -1,28 +1,53 @@
 
 
-.articulacao div {
-	background-color: #fff;
+#message_block {
+    
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(220, 220, 220, 0.75);
+    z-index:99;
 }
 
+#message_block #msg{
+	position: relative;
+    margin: 25% auto;
+    padding: 1.2em 2em;
+    max-width: 600px;
+    text-align: center;
+    font-size: 1.5em;
+    color: #677;
 
-.dispositivo { 
-	background-color: #ddd !important; 
-	transition: all .4s ease-in-out;
-	display:inline;
+    border: 1px solid #eee; 
+    background-color: #fff !important;
+    box-shadow: 0 1px 2px #999;
+}
+
+.dispositivo {
+	font-size:1em;
+	transition: all 0.2s ease-in-out;
 }
 
 
 .dispositivo .ementa {
-	padding: 4em 0em 3em 50%;
+	padding: 4em 0em 3em 35%;
 	font-weight: bold;
 	
 } 
 
-.dispositivo .anexo {
-	font-size: 1.4em;
+.dispositivo .anexo, 
+.dispositivo .disp_preliminares, 
+.dispositivo .disp_gerais, 
+.dispositivo .disp_transitorias, 
+.dispositivo .disp_finais {
+	font-size: 1.5em;
 	text-align: center;
 	font-weight: bold;
 	margin-top: 3em;
+	margin-bottom: 1em;
 }
 
 .dispositivo .parte {
@@ -30,12 +55,14 @@
 	text-align: center;
 	font-weight: bold;
 	margin-top: 2em;
+	margin-bottom: 1em;
 }
 .dispositivo .livro {
 	font-size: 1.5em;
 	text-align: center;
 	font-weight: bold;
 	margin-top: 2em;
+	margin-bottom: 1em;
 }
 
 .dispositivo .titulo {
@@ -43,9 +70,11 @@
 	text-align: center;
 	font-weight: bold;
 	margin-top: 2em; 
+	margin-bottom: 1em;
 }
 
-.dispositivo .capitulo {
+.dispositivo .capitulo { 
+	margin-bottom: 1em;
 	margin-top: 1.5em;
 	font-size: 1.3em;
 	text-align: center;
@@ -53,14 +82,16 @@
 }
 
 .dispositivo .secao {
-	margin-top: 0.8em;
+	margin-top: 1.2em;
+	margin-bottom: 0.7em;
 	font-size: 1.2em;
 	text-align: center;
 	font-weight: bold;
 }
 
 .dispositivo .subsecao, .dispositivo .itemsecao {
-	margin-top: 0.8em;
+	margin-top: 1em;
+	margin-bottom: 0.6em;
 	font-size: 1.2em;
 	text-align: center;
 	font-style: italic;
@@ -69,43 +100,45 @@
 
 .dispositivo .artigo {  
 	font-size: 1.15em;
-	 float:left;
+	float:left;
 }
 .dispositivo .caput { 
-	font-size: 1.15em; 
-	margin-bottom: 0.5em; 
+	margin-top: 0.3333em; 
+	font-size: 1.15em;  
 	display: block;
 } 
  
 .dispositivo .paragrafo {
-	margin-left: 1.5em;
+	padding-left: 1.5em;
 	font-size: 1.1em;
-	margin-top: 5px;
-	margin-bottom: 3px;
+	margin-top: 0.2222em; 
 }
  
 .dispositivo .inciso {
 	font-size: 1.1em;
-	margin-left: 2.5em;
-	margin-top: 5px;
-	margin-bottom: 3px;
+	padding-left: 2.5em;
+	margin-top: 0.1667em;  
 }
 
 .dispositivo .alinea {
 	font-size: 1.0em;
-	margin-left: 3.5em;
+	padding-left: 3.5em;
+	margin-top: 2px;
 }
 
 .dispositivo .item {
 	font-size: 1.0em;
-	margin-left: 4.5em;
+	padding-left: 4.5em;
+	margin-top: 2px;
 }
 
-.dispositivo .desativado, .dispositivo .desativado * {
+.compilacaoedit .desativado, .compilacaoedit .desativado *,
+.compilacao .desativado, .compilacao .desativado * {
 	text-decoration: line-through;
 	color: #777 !important;
 } 
-.dispositivo .desativado table, .dispositivo .desativado table td {
+.compilacaoedit .desativado table, .compilacaoedit .desativado table td,
+.compilacao .desativado table, .compilacao .desativado table td {
 	border: 1px dotted #ccc;
 	text-decoration: line-through;
 }
@@ -115,11 +148,11 @@
 }
 .dispositivo a.link_alterador {
 	color: #2980B9 !important;
-	font-size: 0.9rem; 
+	font-size: 0.75em; 
 }
  
 .dispositivo .bloco_alteracao {
-	margin-left: 5em;
+	padding-left: 5em;
 	font-style: italic;
 }
 
@@ -133,6 +166,7 @@
 .dispositivo .bloco_alteracao table td {
 	color: #018 !important;  
 }
+ 
  
 .compilacao .top-bar-section li:not(.has-form) a:not(.button), 
 .compilacao .top-bar {
@@ -167,6 +201,7 @@
 	margin: 2.5em 0 0 0; 
 	transition: all .4s ease-in-out;
 	background: #2980B9;
+	clear:both;
 }
 
 .compilacao .fixed{ 	
@@ -175,4 +210,332 @@
 
 .displaynone {
 	display: none !important;
+}
+
+
+.compilacaoedit {
+    margin-left: 0.8em;
+    z-index: 1;
+}
+
+
+.compilacaoedit .articulacao{ 
+	
+    margin-left: -0.8em; 
+    margin-top: 2em;
+}
+
+.compilacaoedit .articulacao::before {
+    content: "Articulação";
+    background-color: #eee;
+    border-bottom: 1px solid #aaa; 
+    padding: 0.333em;
+    padding-left: 1em;
+    display:block;
+}
+
+.compilacaoedit .editclick .articulacao::before {
+    display: none;
+}
+.compilacaoedit .editdi {
+	display: block;
+	clear: left;
+}
+
+.compilacaoedit  .edit {
+	position: relative;
+	display:block;
+	background-color: transparent !important;
+	border: 0px none #fff;
+} 
+.compilacaoedit  .edit .artigo {
+	float: none;
+}
+
+.compilacaoedit  .edit > .actions {
+	color: #fff; 
+	position: absolute;
+	padding: 0 0.2em;
+	left: -2.1em;
+	opacity: 0;
+	transition: all 0.4s ease-in-out;
+}
+
+.compilacaoedit  .edit > .actions a.btn-action {
+  background: #3498db;
+  background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+  background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+  background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+  background-image: -o-linear-gradient(top, #3498db, #2980b9);
+  background-image: linear-gradient(to bottom, #3498db, #2980b9);
+  -webkit-border-radius: 7;
+  -moz-border-radius: 7;
+  border-radius: 7px;
+  color: #ffffff !important;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 2px 6px 2px 7px;
+  text-decoration: none;
+}
+
+.compilacaoedit  .edit > .actions a.btn-action:hover {
+  background: #3cb0fd;
+  background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+  text-decoration: none;
+}
+.compilacaoedit .edit:hover > .actions { 
+	z-index: 9;
+	opacity: 0.5; 
+	background-color: transparent !important
+}
+
+.compilacaoedit  .edit:hover > .actions:hover {
+	opacity: 1; 
+}
+
+.compilacaoedit  .edit:hover > .actions:hover::before {
+    
+    border-color: transparent transparent transparent #78F9FF; 
+}
+
+.compilacaoedit  .edit:hover > .actions::before {
+    border: inset 0.375rem;
+    content: "";
+    display: block;
+    height: 0;
+    width: 0;
+    border-color: transparent transparent transparent #78F9FF; 
+    position: absolute;
+    top: 0.53rem;
+    right: -0.51rem;
+} 
+
+.compilacaoedit .edit *:hover {
+  background-color: #eee;
+}
+
+.compilacaoedit .editclick > .label_pai {
+	position: absolute;
+	color: #999;
+	top: -1.7em;
+	left: 0;
+	right: 0; 
+	width: auto;
+	height: auto;
+}
+
+.compilacaoedit  .editclick {	
+	border: 2.1em solid #eee;
+	padding: 1em;
+	margin: 1em -2em 1em -2.8em;
+	z-index: 1;
+	background-color: #fff !important;
+	box-shadow: 0 1px 2px #aaa; 
+}
+
+.compilacaoedit .editclick > .actions {
+    display: none;
+}
+
+
+.compilacaoedit .actions_head {
+	color: #fff; 
+	position: relative;
+	opacity: 0;
+	transition: all 0.4s ease-in-out;
+	border-bottom: 1px solid #2980b9;
+	z-index: 9;
+	margin: -1em -1em 2em -1em; 
+}
+ 
+.compilacaoedit .actions_head ul {
+	margin-left: 0;
+	}
+	
+.compilacaoedit .actions_head li {
+    font-weight: normal !important;
+    display: inline-block;
+    position: relative;
+    white-space:nowrap; 
+    max-width:something;
+    }
+.compilacaoedit .actions_head > li.left {
+    border-left: 1px solid white;
+    }
+    
+    
+.compilacaoedit .actions_head > li.right{ 
+    width: 3em;
+    text-align: center;
+    clear:right;
+}
+    
+    
+	
+.compilacaoedit .actions_head li ul {
+	display: none;
+	position:absolute;
+	top: auto;
+	}
+	
+.compilacaoedit .actions_head li:hover ul{
+	display: block; 
+	}
+
+.compilacaoedit .actions_head li:hover ul li{
+	display: block;
+	background: #3498db;
+	background-image: none;
+}
+ 
+
+.compilacaoedit  .actions_head a.btn-action {
+  background: #3498db;
+  background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+  background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+  background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+  background-image: -o-linear-gradient(top, #3498db, #2980b9);
+  background-image: linear-gradient(to bottom, #3498db, #2980b9);
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0px;
+  color: #ffffff !important;
+  font-size: 0.8em; 
+  padding: 1px 6px 2px 7px;
+  text-decoration: none;
+  display: block;
+}
+
+.compilacaoedit .actions_head a.btn-action:hover {
+  background: #3cb0fd;
+  background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+  text-decoration: none;
+}
+
+.compilacaoedit .actions_head > li > a.btn-action {
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.compilacaoedit .actions_head { 
+	z-index: 99;
+	opacity: 0.5;
+}
+
+.compilacaoedit .actions_head:hover {
+    opacity: 1;
+} 
+
+.compilacaoedit .actions_insert {
+    opacity: 1;  
+    display: block;
+} 
+
+.compilacaoedit .actions_insert li {
+    opacity: 1;
+    display: block;
+}
+
+.compilacaoedit .actions_insert > li.right{
+    opacity: 1;
+    width: 3em;
+    text-align: center;
+    clear:right;
+}
+
+.compilacaoedit .actions_insert > li.left:nth-child(1),
+.compilacaoedit .actions_insert > li.left:nth-child(2) {
+    opacity: 1;
+    display: block;
+    min-width: 35%; 
+    max-width: 35%; 
+}
+.compilacaoedit .actions_insert li.left:nth-child(1) ul,
+.compilacaoedit .actions_insert li.left:nth-child(2) ul {
+
+    display: block; 
+    position: relative;
+    
+}
+
+.compilacaoedit .actions_insert li.left:nth-child(3):hover ul {
+	right: 0;
+    box-shadow: -3px 3px 1.5em #336;
+}
+ 
+
+
+
+
+
+
+.compilacaoedit .actions_footer {
+	color: #fff; 
+	position: absolute;
+	top: 100%;
+	left: -2em;
+	opacity: 0;
+	transition: all 0.4s ease-in-out;
+	clip: rect(0,0,0,0);
+}
+
+.compilacaoedit .actions_footer ul  {
+	margin-left: 0;
+	margin-bottom: 0;
+}
+
+.compilacaoedit .actions_footer li  {
+	display: block;
+    height: auto !important; 
+}
+
+.compilacaoedit  .editclick > .actions_footer a.btn-action {
+  background: #3498db;
+
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0px;
+  color: #ffffff !important;
+  font-size: 12px; 
+  padding: 1px 6px 1px 7px;
+  text-decoration: none;
+  display: block;
+}
+
+.compilacaoedit  .editclick > .actions_footer a.btn-action:hover {
+  background: #3cb0fd;
+
+  text-decoration: none;
+}
+.compilacaoedit  .editclick > .actions_footer { 
+	z-index: 99;
+	opacity: 0.5; 
+    clip: rect(0,0,0,0);
+}
+
+.compilacaoedit  .editclick > .actions_footer:hover {
+	opacity: 1; 
+	clip: auto
+}
+
+.clear {
+	 clear:both;
+	 height: 0;
+	 width: 0;
+}
+
+
+
+@media print {
+	.compilacao .vigencias {
+		display:none;
+	}
 }
