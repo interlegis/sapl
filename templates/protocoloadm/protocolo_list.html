@@ -3,11 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-	{% if protocolos %}		
-		<form method="POST">
-			{% csrf_token %}
-			Total: {{ protocolos|length }} 
-		
+			Total: {{ protocolos|length }} 		
 			<table>
 				<tr><td>Número de Protocolo</td>
 					<td>Assunto</td>
@@ -24,6 +20,7 @@
 					</tr>
 				{% endfor %}
 			</table>
+
 			{% if is_paginated %}
 			  <nav class="pagination-centered">
 			    <ul class="pagination">
@@ -54,30 +51,5 @@
 			      {% endif %}
 			    </ul>
 			  </nav>
-			{% endif %}
-		</form>
-	{% else %}
-		<form method="post">
-			{% csrf_token %}
-			<fieldset>
-			<legend>Pesquisa Avançada</legend>
-				{{ form.as_p }}
-				<input type="submit" value="Pesquisar" name="pesquisa" class="button primary"/>
-			</fieldset>
-		</form>
-	{% endif %}
+			{% endif %}	
 {% endblock detail_content %}
-
-{% block foot_js %}
-   <script type="text/javascript">
-    	$(function () {
-			$('.dateinput').fdatepicker({
-				// TODO localize
-				format: 'dd/mm/yyyy',
-				language: 'pt',
-				endDate: '31/12/2100',
-				todayBtn: true
-			});
-		});
-	</script>
-{% endblock %}
