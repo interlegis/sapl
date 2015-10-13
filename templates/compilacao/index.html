@@ -19,9 +19,11 @@ $( window ).scroll(function() {
 
 $(window).load(function() {
     setTimeout(function() {
-	    height = $( "section.vigencias" ).height()
-	    window.scrollTo(0, window.pageYOffset - height - 36 ); 
-    }, 1000);
+	    height = $( "section.vigencias" ).height(); 
+        $('html, body').animate({
+        scrollTop:  window.pageYOffset - height - 36 
+        }, 300); 
+    }, 100);
 });
  
 function textoMultiVigente(item) {
@@ -38,14 +40,28 @@ function textoVigente(item, link) {
 	if (!link)
 		$(".link_alterador").addClass("displaynone");
 }
+
+$(document).ready(function() {
+   $("#btn_font_menos").click(function() {
+        $(".dispositivo").css("font-size", "-=1");
+   
+   });
+   $("#btn_font_mais").click(function() {
+        $(".dispositivo").css("font-size", "+=1");
+   
+   });
+
+});
+
+
 </script>
 
 <div class="compilacao">  
 
 
 <div style="float: right; clear:right;">
-<a title="TODO: diminuir fonte... basta manipular font-size da classe css dispositivo">---</a>
-<a title="TODO: aumentar fonte... basta manipular font-size da classe css dispositivo">+++</a>
+<a id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
+<a id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
 </div>
 
 			{% for key, values in view.get_vigencias.items %}

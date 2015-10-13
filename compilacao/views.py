@@ -271,7 +271,7 @@ class CompilacaoEditView(CompilacaoView):
         ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
 
-class DispositivoEditView(DispositivoView):
+class DispositivoEditView(CompilacaoEditView):
     template_name = 'compilacao/edit_bloco.html'
 
     def get_queryset(self):
@@ -405,7 +405,8 @@ class DispositivoEditView(DispositivoView):
         for mudarnivel in [1, 0]:
             if mudarnivel:
                 # Outros Tipos de Dispositivos PARA DENTRO
-                otds = TipoDispositivo.objects.order_by('-contagem_continua', 'id').filter(
+                otds = TipoDispositivo.objects.order_by(
+                    '-contagem_continua', 'id').filter(
                     Q(id__gt=100) & Q(id__gt=d_base.tipo_dispositivo_id))
             else:
                 # Outros Tipos de Dispositivos PARA FORA
@@ -413,22 +414,36 @@ class DispositivoEditView(DispositivoView):
                 for c in result[0]['itens']:
                     if c['class_css'] not in classes_ja_inseridas:
                         classes_ja_inseridas.append(c['class_css'])
-                otds = TipoDispositivo.objects.order_by('-contagem_continua', 'id').filter(
+                otds = TipoDispositivo.objects.order_by(
+                    '-contagem_continua', 'id').filter(
                     id__gt=100,
                     id__lt=d_base.tipo_dispositivo_id).exclude(
                         class_css__in=classes_ja_inseridas)
 
             for td in otds:
 
-                if (tipb.class_css == 'caput' and
-                        td.class_css == 'paragrafo'):
+                if td.class_css == 'caput' or (tipb.class_css == 'caput' and
+                                               td.class_css == 'paragrafo'):
                     continue
 
                 d_base.tipo_dispositivo = td
 
-                disps = Dispositivo.objects.filter(
-                    tipo_dispositivo_id=td.pk,
-                    dispositivo_pai_id=d_base.pk).aggregate(
+                if td.contagem_continua:
+                    disps = Dispositivo.objects.filter(
+                        tipo_dispositivo_id=td.pk,
+                        ordem__lte=d_base.ordem,
+                        norma_id=d_base.norma_id).aggregate(
+                        Max('dispositivo0'),
+                        Max('dispositivo1'),
+                        Max('dispositivo2'),
+                        Max('dispositivo3'),
+                        Max('dispositivo4'),
+                        Max('dispositivo5'))
+
+                else:
+                    disps = Dispositivo.objects.filter(
+                        tipo_dispositivo_id=td.pk,
+                        dispositivo_pai_id=d_base.pk).aggregate(
                         Max('dispositivo0'),
                         Max('dispositivo1'),
                         Max('dispositivo2'),
@@ -464,14 +479,14 @@ class DispositivoEditView(DispositivoView):
                 if mudarnivel == 1:
                     result[1]['itens'] += r
                 else:
-                    if td.pk < tipb.pk and td.class_css != 'caput':
+                    if td.pk < tipb.pk:
                         result[2]['itens'] += r
                         result[0]['itens'] += r
 
         # retira inserir após e inserir antes
         if tipb.class_css == 'caput':
             result.pop()
-            result.remove(result[0])
+            # result.remove(result[0])
 
         if tipb.class_css == 'articulacao':
             r = result[0]
@@ -816,10 +831,18 @@ class ActionsEditMixin(object):
                 pkfilho = dp.pk
                 dp = dp.dispositivo_pai
 
-                parents = Dispositivo.objects.filter(
-                    norma_id=dp.norma_id,
-                    ordem__gte=dp.ordem,
-                    nivel__lte=dp.nivel)
+                if proxima_articulacao is not None and \
+                        proxima_articulacao.exists():
+                    parents = Dispositivo.objects.filter(
+                        norma_id=dp.norma_id,
+                        ordem__gte=dp.ordem,
+                        ordem__lt=proxima_articulacao[0].ordem,
+                        nivel__lte=dp.nivel)
+                else:
+                    parents = Dispositivo.objects.filter(
+                        norma_id=dp.norma_id,
+                        ordem__gte=dp.ordem,
+                        nivel__lte=dp.nivel)
 
                 nivel = sys.maxsize
                 for p in parents:

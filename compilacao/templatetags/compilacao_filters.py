@@ -82,11 +82,7 @@ def render_actions_head(view, d_atual):
     if view.__class__.__name__ != 'DispositivoEditView':
         return False
 
-    # Apenas Menu actions head
-    if view.pk_add == 0 and d_atual.pk == view.pk_view:
-        return True
-
-    # Menu e conteudo
+    # Menu
     if view.pk_view == view.pk_add and d_atual.pk == view.pk_view:
         return True
 
