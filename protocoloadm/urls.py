@@ -27,7 +27,7 @@ urlpatterns = [
 
     # url(r'^protocoloadm/anular-protocolo/',
     #     include(anular_protocolo_crud.urls), name='anular_protocolo'),
-    url(r'^protocoladm/anular-protocolo',
+    url(r'^protocoloadm/anular-protocolo',
         AnularProtocoloAdmView.as_view(), name='anular_protocolo'),
 
 ]

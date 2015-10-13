@@ -3,6 +3,7 @@ from datetime import datetime
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
@@ -233,6 +234,8 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
 
         form = AnularProcoloAdmForm(request.POST)
 
+        template_name = reverse("anular_protocolo")
+
         if form.is_valid():
 
             numero = request.POST['numero_protocolo']
@@ -259,7 +262,9 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
                 protocolo.ip_anulacao = ip_addr
                 protocolo.save()
 
-                return self.form_valid(form)
+                message = "Protocolo criado com sucesso"
+
+                return render(request, self.template_name, {'form': form, 'message': message})
 
             except ObjectDoesNotExist:
                 errors = form._errors.setdefault(

@@ -1,7 +1,7 @@
 {% extends "protocoloadm/protocoloadm_detail.html" %}
 {% load i18n %}
 {% block detail_content %}
-<div>{{ view.message }} </div>
+<div>{{ message }} </div>
 	<form method="POST">
 		{% csrf_token %}
 		<fieldset>
