@@ -1,11 +1,11 @@
-from datetime import datetime
-
+from datetime import date, datetime
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 
@@ -95,27 +95,75 @@ protocolo_materia_crud = build_crud(
 #          [('numero', 6), ('ano', 6)],
 #             [('justificativa_anulacao', 12)]],
 #     ])
+    
+def get_tipos_materia():
+    return [('', 'Selecione')] + [(t.id, t.sigla + ' - ' + t.descricao)
+        for t in TipoMateriaLegislativa.objects.all()]
+
+def get_range_anos():
+    return [('', 'Selecione')] + [(year, year) 
+        for year in range(date.today().year, 1960, -1)]
+
+
+def get_tipos_documento():
+    return [('', 'Selecione')] +  [(t.id, t.sigla + ' - ' + t.descricao) 
+        for t in TipoDocumentoAdministrativo.objects.all()]
+
+class ProtocoloListView(ListView):
+    template_name = 'protocoloadm/protocolo_list.html'
+    context_object_name = 'protocolos'
+    model = Protocolo
+    paginate_by = 10
 
 
 class ProtocoloForm(forms.Form):
-    tipo_protocolo = forms.CharField(label='Tipo de Protocolo', required=False)
+    
+    TIPOS_PROTOCOLO = [('', 'Selecione'),
+                       ('0', 'Enviado'),
+                       ('1', 'Recebido')]
+
+    YEARS = get_range_anos()                       
+
+    tipo_protocolo = forms.ChoiceField(required=False,
+                                      label='Tipo de Protocolo',
+                                      choices=TIPOS_PROTOCOLO,
+                                      widget=forms.Select(
+                                        attrs={'class': 'selector'}))
+
     numero_protocolo = forms.CharField(
         label='Número de Protocolo', required=False)
-    ano = forms.CharField(label='Ano', required=False)
-    inicial = forms.DateField(label='Data Inicial', required=False)
-    final = forms.DateField(label='Data Final', required=False)
+    ano = forms.ChoiceField(required=False,
+                                      label='Ano',
+                                      choices=YEARS,
+                                      widget=forms.Select(
+                                        attrs={'class': 'selector'}))
+
+    inicial = forms.DateField(label='Data Inicial',
+                              required=False, widget=forms.TextInput(attrs={'class':'dateinput'}))
+
+    final = forms.DateField(label='Data Final', required=False, widget=forms.TextInput(attrs={'class':'dateinput'}))
+
     natureza_processo = forms.CharField(
         label='Natureza Processo', required=False)
-    tipo_documento = forms.CharField(label='Tipo de Documento', required=False)
-    interessado = forms.CharField(label='Interessado', required=False)
-    tipo_materia = forms.CharField(label='Tipo de Matéria', required=False)
-    autor = forms.CharField(label='Autor', required=False)
-    assunto = forms.CharField(label='Assunto', required=False)
+    tipo_documento = forms.ChoiceField(required=False,
+                                     label='Tipo de Documento',
+                                     choices=get_tipos_documento(),
+                                     widget=forms.Select(
+                                     attrs={'class': 'selector'}))    
 
+    interessado = forms.CharField(label='Interessado', required=False)
+    tipo_materia = forms.ChoiceField(required=False,
+                                     label='Tipo Matéria',
+                                     choices=get_tipos_materia(),
+                                     widget=forms.Select(
+                                     attrs={'class': 'selector'}))
+
+    autor = forms.CharField(label='Autor', required=False)
+    assunto = forms.CharField(label='Assunto', required=False)    
 
 class ProtocoloPesquisaView(TemplateView, FormMixin):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
-    form_class = ProtocoloForm
+    form_class = ProtocoloForm()
     context_object_name = 'protocolos'
     paginate_by = 10
 
@@ -123,6 +171,10 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
 
     def get_success_url(self):
         return reverse('protocolo')
+
+    def get(self, request, *args, **kwargs):
+        form = ProtocoloForm()
+        return self.render_to_response({'form': form})        
 
     def get_form(self, data=None, files=None, **kwargs):
         return ProtocoloForm()
@@ -132,19 +184,10 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
         context.update(self.extra_context)
         return context
 
-    def get_tipo_documento(self):
-        return TipoDocumentoAdministrativo.objects.all()
-
-    def get_tipo_materia(self):
-        return TipoMateriaLegislativa.objects.all()
-
     def post(self, request, *args, **kwargs):
         form = ProtocoloForm(request.POST or None)
 
         if form.is_valid():
-            if "nova-pesquisa" in request.POST:
-                return self.render_to_response({})
-            else:
                 kwargs = {}
 
                 # format = '%Y-%m-%d'
@@ -197,13 +240,12 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
 
 class AnularProcoloAdmForm(forms.Form):
 
-    from datetime import date
-    YEARS = [(year, year) for year in range(date.today().year, 1960, -1)]
+    YEARS = get_range_anos()
 
     numero_protocolo = forms.CharField(
         label='Número de Protocolo', required=True)
     ano_protocolo = forms.ChoiceField(required=False,
-                                      label="Year",
+                                      label='Ano',
                                       choices=YEARS,
                                       widget=forms.Select(
                                         attrs={'class': 'selector'}))

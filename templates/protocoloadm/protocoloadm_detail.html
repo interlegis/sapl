@@ -3,7 +3,7 @@
 
 {% block sections_nav %}
   <dl class="sub-nav left">
-    <dd><a href="./protocolo" class="button secondary">{% trans 'Inicio' %}</a></dd>
+    <dd><a href="{% url 'protocolo' %}" class="button secondary">{% trans 'Pesquisa' %}</a></dd>
     <dd><a href="./protocolo-doc" class="button secondary">{% trans 'Protocolar Documento' %}</a></dd>
     <dd><a href="./protocolo-mat" class="button secondary">{% trans 'Protocolar Matéria' %}</a></dd>
     <dd><a href="{% url 'anular_protocolo' %}" class="button secondary">{% trans 'Anular Protocolo' %}</a></dd>
