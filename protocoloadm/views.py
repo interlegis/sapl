@@ -195,10 +195,19 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
 
 
 class AnularProcoloAdmForm(forms.Form):
+
+    from datetime import date
+    YEARS = [(year, year) for year in range(date.today().year, 1960, -1)]
+
     numero_protocolo = forms.CharField(
         label='Número de Protocolo', required=True)
-    ano = forms.CharField(label='Ano', required=True)
-    motivo = forms.CharField(label='Motivo', required=True)
+    ano_protocolo = forms.ChoiceField(required=False,
+                                      label="Year",
+                                      choices=YEARS,
+                                      widget=forms.Select(
+                                        attrs={'class': 'selector'}))
+    justificativa_anulacao = forms.CharField(
+        widget=forms.Textarea, label='Motivo', required=True)
 
 
 def get_client_ip(request):
@@ -217,7 +226,8 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
         return reverse('anular_protocolo')
 
     def get(self, request, *args, **kwargs):
-        return self.render_to_response({})
+        form = AnularProcoloAdmForm()
+        return self.render_to_response({'form': form})
 
     def post(self, request, *args, **kwargs):
 
@@ -236,8 +246,11 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
                 protocolo = Protocolo.objects.get(numero=numero, ano=ano)
 
                 if protocolo.anulado:
-                    form._errors = {
-                        'error_message': 'Procolo encontra-se anulado'}
+                    errors = form._errors.setdefault(
+                                        forms.forms.NON_FIELD_ERRORS,
+                                        forms.util.ErrorList())
+                    errors.append("Procolo %s/%s já encontra-se anulado"
+                                  % (numero, ano))
                     return self.form_invalid(form)
 
                 protocolo.anulado = True
@@ -249,7 +262,9 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
                 return self.form_valid(form)
 
             except ObjectDoesNotExist:
-                form._errors = {'error_message': 'Protocolo não existe'}
+                errors = form._errors.setdefault(
+                    forms.forms.NON_FIELD_ERRORS, forms.util.ErrorList())
+                errors.append("Procolo %s/%s não existe" % (numero, ano))
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
