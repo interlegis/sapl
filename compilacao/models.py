@@ -453,10 +453,11 @@ class Dispositivo(BaseModel):
 
         if len(prefixo) > 1:
 
-            if for_insertion and \
-                    d_base_for_insertion is not None and  \
-                    d_base_for_insertion.pk != self.pk and \
-                    d_base_for_insertion.tipo_dispositivo.pk <= t.pk:
+            if (for_insertion and
+                    d_base_for_insertion is not None and
+                    d_base_for_insertion.pk != self.pk and
+                    d_base_for_insertion.tipo_dispositivo.pk <= t.pk) or \
+                    for_insertion and d_base_for_insertion is None:
 
                 count_irmaos_mesmo_tipo = Dispositivo.objects.filter(
                     tipo_dispositivo=self.tipo_dispositivo,

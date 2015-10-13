@@ -17,7 +17,7 @@ $(document).ready(function() {
 	var flag_add_next_pai = 0
 
 	clickEditDispositivo = function(event) { 
-		var _pk = event.target.getAttribute('pk');
+		var _pk = event.currentTarget.getAttribute('pk');
 		
 		
 		if ($('#de'+_pk).hasClass("editclick")) {
@@ -38,7 +38,7 @@ $(document).ready(function() {
 		var _tipo_pk = '';
 
 		if (event != null) {
-			_pk = event.target.getAttribute('pk');
+			_pk = event.currentTarget.getAttribute('pk');
 			_action = $(this).attr('action');
 			_variacao = $(this).attr('variacao');
 			_tipo_pk = $(this).attr('tipo_pk');
@@ -50,14 +50,12 @@ $(document).ready(function() {
 		var url = ''
 		if (_action == '')
 		    return
-		else if (_action == 'refresh' || typeof _action == 'undefined')
+		else if (_action == 'refresh' || _action == null)
 		    url = _pk+'/refresh?pkadd='+flag_add_next_pk;
 		else {
 		    url = _pk+'/actions?action='+_action;
 		    url += '&tipo_pk='+_tipo_pk;
 		    url += '&variacao='+_variacao;
-		    
-		    
 	        if (typeof addeditclick == 'undefined' || addeditclick) {
 	            $("#message_block").css("display", "block");
 	        }
@@ -69,7 +67,7 @@ $(document).ready(function() {
             if (addeditclick)
                 clearEditClick();
 
-            if (_action == 'refresh' || typeof _action == 'undefined') { 
+            if (_action == 'refresh' || _action == null) { 
 
 
                 if (flag_add_next) {
@@ -86,7 +84,7 @@ $(document).ready(function() {
                 if (typeof addeditclick == 'undefined' || addeditclick) {
                     $('#de'+flag_add_next_pk).addClass('editclick');
                     $('html, body').animate({
-                        scrollTop: $('#de' + flag_add_next_pk ).offset().top - window.innerHeight / 3 
+                        scrollTop: $('#de' + flag_add_next_pk ).offset().top - window.innerHeight / 10 
                         }, 300);
                     flag_add_next_pk = 0;
                 }
@@ -112,7 +110,7 @@ $(document).ready(function() {
 				             location.reload(true)
 				         }
 				else {
-				    alert('TODO: Inserção com renumeração ');
+				    alert('Erro na inserção!');
 				    flag_add_next_pk = 0;
 				    flag_add_next = false;
 				    }
@@ -142,7 +140,7 @@ function reloadFunctionClicks() {
 }
 
 reloadFunctionClicks();
-
+$("#message_block").css("display", "none");
 });
 
 
