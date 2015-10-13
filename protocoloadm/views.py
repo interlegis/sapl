@@ -1,4 +1,5 @@
 from datetime import date, datetime
+
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -95,19 +96,24 @@ protocolo_materia_crud = build_crud(
 #          [('numero', 6), ('ano', 6)],
 #             [('justificativa_anulacao', 12)]],
 #     ])
-    
+
+
 def get_tipos_materia():
-    return [('', 'Selecione')] + [(t.id, t.sigla + ' - ' + t.descricao)
-        for t in TipoMateriaLegislativa.objects.all()]
+    return [('', 'Selecione')] \
+            + [(t.id, t.sigla + ' - ' + t.descricao)
+               for t in TipoMateriaLegislativa.objects.all()]
+
 
 def get_range_anos():
-    return [('', 'Selecione')] + [(year, year) 
-        for year in range(date.today().year, 1960, -1)]
+    return [('', 'Selecione')] \
+            + [(year, year) for year in range(date.today().year, 1960, -1)]
 
 
 def get_tipos_documento():
-    return [('', 'Selecione')] +  [(t.id, t.sigla + ' - ' + t.descricao) 
-        for t in TipoDocumentoAdministrativo.objects.all()]
+    return [('', 'Selecione')] \
+            + [(t.id, t.sigla + ' - ' + t.descricao)
+               for t in TipoDocumentoAdministrativo.objects.all()]
+
 
 class ProtocoloListView(ListView):
     template_name = 'protocoloadm/protocolo_list.html'
@@ -117,49 +123,54 @@ class ProtocoloListView(ListView):
 
 
 class ProtocoloForm(forms.Form):
-    
+
     TIPOS_PROTOCOLO = [('', 'Selecione'),
                        ('0', 'Enviado'),
                        ('1', 'Recebido')]
 
-    YEARS = get_range_anos()                       
+    YEARS = get_range_anos()
 
     tipo_protocolo = forms.ChoiceField(required=False,
-                                      label='Tipo de Protocolo',
-                                      choices=TIPOS_PROTOCOLO,
-                                      widget=forms.Select(
-                                        attrs={'class': 'selector'}))
+                                       label='Tipo de Protocolo',
+                                       choices=TIPOS_PROTOCOLO,
+                                       widget=forms.Select(
+                                           attrs={'class': 'selector'}))
 
     numero_protocolo = forms.CharField(
         label='Número de Protocolo', required=False)
     ano = forms.ChoiceField(required=False,
-                                      label='Ano',
-                                      choices=YEARS,
-                                      widget=forms.Select(
-                                        attrs={'class': 'selector'}))
+                            label='Ano',
+                            choices=YEARS,
+                            widget=forms.Select(
+                                attrs={'class': 'selector'}))
 
     inicial = forms.DateField(label='Data Inicial',
-                              required=False, widget=forms.TextInput(attrs={'class':'dateinput'}))
+                              required=False,
+                              widget=forms.TextInput(
+                                attrs={'class': 'dateinput'}))
 
-    final = forms.DateField(label='Data Final', required=False, widget=forms.TextInput(attrs={'class':'dateinput'}))
+    final = forms.DateField(label='Data Final', required=False,
+                            widget=forms.TextInput(
+                                attrs={'class': 'dateinput'}))
 
     natureza_processo = forms.CharField(
         label='Natureza Processo', required=False)
     tipo_documento = forms.ChoiceField(required=False,
-                                     label='Tipo de Documento',
-                                     choices=get_tipos_documento(),
-                                     widget=forms.Select(
-                                     attrs={'class': 'selector'}))    
+                                       label='Tipo de Documento',
+                                       choices=get_tipos_documento(),
+                                       widget=forms.Select(
+                                           attrs={'class': 'selector'}))
 
     interessado = forms.CharField(label='Interessado', required=False)
     tipo_materia = forms.ChoiceField(required=False,
                                      label='Tipo Matéria',
                                      choices=get_tipos_materia(),
                                      widget=forms.Select(
-                                     attrs={'class': 'selector'}))
+                                         attrs={'class': 'selector'}))
 
     autor = forms.CharField(label='Autor', required=False)
-    assunto = forms.CharField(label='Assunto', required=False)    
+    assunto = forms.CharField(label='Assunto', required=False)
+
 
 class ProtocoloPesquisaView(TemplateView, FormMixin):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
@@ -174,7 +185,7 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
 
     def get(self, request, *args, **kwargs):
         form = ProtocoloForm()
-        return self.render_to_response({'form': form})        
+        return self.render_to_response({'form': form})
 
     def get_form(self, data=None, files=None, **kwargs):
         return ProtocoloForm()
@@ -188,52 +199,52 @@ class ProtocoloPesquisaView(TemplateView, FormMixin):
         form = ProtocoloForm(request.POST or None)
 
         if form.is_valid():
-                kwargs = {}
+            kwargs = {}
 
-                # format = '%Y-%m-%d'
+            # format = '%Y-%m-%d'
 
-                if request.POST['tipo_protocolo']:
-                    kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
+            if request.POST['tipo_protocolo']:
+                kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
 
-                if request.POST['numero_protocolo']:
-                    kwargs['numero'] = request.POST['numero_protocolo']
+            if request.POST['numero_protocolo']:
+                kwargs['numero'] = request.POST['numero_protocolo']
 
-                if request.POST['ano']:
-                    kwargs['ano'] = request.POST['ano']
+            if request.POST['ano']:
+                kwargs['ano'] = request.POST['ano']
 
-                if request.POST['inicial']:
-                    kwargs['data'] = datetime.strptime(
-                        request.POST['inicial'],
-                        '%d/%m/%Y').strftime('%Y-%m-%d')
+            if request.POST['inicial']:
+                kwargs['data'] = datetime.strptime(
+                    request.POST['inicial'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
 
-                # if request.POST['final']:
-                #     kwargs['final'] = request.POST['final']
+            # if request.POST['final']:
+            #     kwargs['final'] = request.POST['final']
 
-                if request.POST['tipo_documento']:
-                    kwargs['tipo_documento'] = request.POST['tipo_documento']
+            if request.POST['tipo_documento']:
+                kwargs['tipo_documento'] = request.POST['tipo_documento']
 
-                if request.POST['interessado']:
-                    kwargs['interessado'] = request.POST['interessado']
+            if request.POST['interessado']:
+                kwargs['interessado'] = request.POST['interessado']
 
-                if request.POST['tipo_materia']:
-                    kwargs['tipo_materia'] = request.POST['tipo_materia']
+            if request.POST['tipo_materia']:
+                kwargs['tipo_materia'] = request.POST['tipo_materia']
 
-                if request.POST['autor']:
-                    kwargs['autor'] = request.POST['autor']
+            if request.POST['autor']:
+                kwargs['autor'] = request.POST['autor']
 
-                if request.POST['assunto']:
-                    kwargs['assunto'] = request.POST['assunto']
+            if request.POST['assunto']:
+                kwargs['assunto'] = request.POST['assunto']
 
-                protocolos = Protocolo.objects.filter(
-                    **kwargs)
+            protocolos = Protocolo.objects.filter(
+                **kwargs)
 
-                self.extra_context['protocolos'] = protocolos
-                self.extra_context['form'] = form
+            self.extra_context['protocolos'] = protocolos
+            self.extra_context['form'] = form
 
-                # return self.form_valid(form)
-                return self.render_to_response(
-                    {'protocolos': protocolos}
-                )
+            # return self.form_valid(form)
+            return self.render_to_response(
+                {'protocolos': protocolos}
+            )
         else:
             return self.form_invalid(form)
 
@@ -248,7 +259,7 @@ class AnularProcoloAdmForm(forms.Form):
                                       label='Ano',
                                       choices=YEARS,
                                       widget=forms.Select(
-                                        attrs={'class': 'selector'}))
+                                          attrs={'class': 'selector'}))
     justificativa_anulacao = forms.CharField(
         widget=forms.Textarea, label='Motivo', required=True)
 
@@ -276,8 +287,6 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
 
         form = AnularProcoloAdmForm(request.POST)
 
-        template_name = reverse("anular_protocolo")
-
         if form.is_valid():
 
             numero = request.POST['numero_protocolo']
@@ -292,8 +301,8 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
 
                 if protocolo.anulado:
                     errors = form._errors.setdefault(
-                                        forms.forms.NON_FIELD_ERRORS,
-                                        forms.util.ErrorList())
+                        forms.forms.NON_FIELD_ERRORS,
+                        forms.util.ErrorList())
                     errors.append("Procolo %s/%s já encontra-se anulado"
                                   % (numero, ano))
                     return self.form_invalid(form)
@@ -303,10 +312,10 @@ class AnularProtocoloAdmView(FormMixin, TemplateView):
                 protocolo.user_anulacao = user_anulacao
                 protocolo.ip_anulacao = ip_addr
                 protocolo.save()
-
                 message = "Protocolo criado com sucesso"
-
-                return render(request, self.template_name, {'form': form, 'message': message})
+                return render(request,
+                              reverse("anular_protocolo"),
+                              {'form': form, 'message': message})
 
             except ObjectDoesNotExist:
                 errors = form._errors.setdefault(
