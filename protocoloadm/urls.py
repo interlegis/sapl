@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
-from protocoloadm.views import (AnularProtocoloAdmView, ProtocoloListView,
+from protocoloadm.views import (AnularProtocoloAdmView, ProtocoloDocumentoView,
+                                ProtocoloListView, ProtocoloMateriaView,
                                 ProtocoloPesquisaView,
                                 documento_acessorio_administrativo_crud,
                                 documento_administrativo_crud,
@@ -22,16 +23,18 @@ urlpatterns = [
         include(tramitacao_administrativo_crud.urls)),
     url(r'^protocoloadm/protocolo-doc/',
         include(protocolo_documento_crud.urls)),
-    url(r'^protocoloadm/protocolo-mat/', include(protocolo_materia_crud.urls)),
+    url(r'^protocoloadm/protocolo-mat/',
+        include(protocolo_materia_crud.urls), name='protocolomat'),
     url(r'^protocoloadm/protocolo$',
         ProtocoloPesquisaView.as_view(), name='protocolo'),
-
-
-    url(r'^protocoloadm/protocolo_list$',
-        ProtocoloListView.as_view(), name='protocolo_list'),
-
     # url(r'^protocoloadm/anular-protocolo/',
     #     include(anular_protocolo_crud.urls), name='anular_protocolo'),
+    url(r'^protocoloadm/protocolo_list$',
+        ProtocoloListView.as_view(), name='protocolo_list'),
     url(r'^protocoloadm/anular-protocolo',
         AnularProtocoloAdmView.as_view(), name='anular_protocolo'),
+    url(r'^protocoloadm/protocolar-doc',
+        ProtocoloDocumentoView.as_view(), name='protocolar_doc'),
+    url(r'^protocoloadm/protocolar-mat',
+        ProtocoloMateriaView.as_view(), name='protocolar_mat')
 ]
