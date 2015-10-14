@@ -3,9 +3,9 @@
 
 {% block sections_nav %}
   <dl class="sub-nav left">
-    <dd><a href="{% url 'protocolo' %}" class="button secondary">{% trans 'Pesquisa' %}</a></dd>
-    <dd><a href="./protocolo-doc" class="button secondary">{% trans 'Protocolar Documento' %}</a></dd>
-    <dd><a href="./protocolo-mat" class="button secondary">{% trans 'Protocolar Matéria' %}</a></dd>
+    <dd><a href="{% url 'protocolo' %}" class="button secondary">{% trans 'Pesquisa Protocolo' %}</a></dd>
+    <dd><a href="{% url 'protocolar_doc' %}" class="button secondary">{% trans 'Protocolar Documento' %}</a></dd>
+    <dd><a href="{% url 'protocolar_mat' %}" class="button secondary">{% trans 'Protocolar Matéria' %}</a></dd>
     <dd><a href="{% url 'anular_protocolo' %}" class="button secondary">{% trans 'Anular Protocolo' %}</a></dd>
   </dl>
 {% endblock sections_nav %}

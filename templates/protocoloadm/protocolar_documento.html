@@ -1,0 +1,16 @@
+{% extends "protocoloadm/protocoloadm_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+<form method="POST">
+	<fieldset>
+		Protocolo: Opção de Numeração
+		<br/>
+		{% csrf_token %}
+		{{ form.as_p }}
+		<input type="submit" value="Protocolar Documento" class="button primary" />
+	</fieldset>
+</form>
+
+{% endblock detail_content %}
