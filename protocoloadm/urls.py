@@ -2,7 +2,9 @@ from django.conf.urls import include, url
 
 from protocoloadm.views import (AnularProtocoloAdmView, ProtocoloDocumentoView,
                                 ProtocoloListView, ProtocoloMateriaView,
-                                ProtocoloPesquisaView,
+                                ProtocoloPesquisaView,                                
+                                ProposicaoReceberView, ProposicoesIncorporadasView,
+                                ProposicoesNaoIncorporadasView, ProposicoesNaoRecebidasView,
                                 documento_acessorio_administrativo_crud,
                                 documento_administrativo_crud,
                                 protocolo_documento_crud,
@@ -36,5 +38,16 @@ urlpatterns = [
     url(r'^protocoloadm/protocolar-doc',
         ProtocoloDocumentoView.as_view(), name='protocolar_doc'),
     url(r'^protocoloadm/protocolar-mat',
-        ProtocoloMateriaView.as_view(), name='protocolar_mat')
+        ProtocoloMateriaView.as_view(), name='protocolar_mat'),
+
+
+    # TODO: move to Proposicoes app
+    url(r'^protocoloadm/proposicao-receber',
+        ProposicaoReceberView.as_view(), name='proposicao_receber'),
+    url(r'^protocoloadm/proposicoes-naorecebidas',
+        ProposicoesNaoRecebidasView.as_view(), name='proposicoes_naorecebidas'),    
+    url(r'^protocoloadm/proposicoes-naoincorporadas',
+        ProposicoesNaoIncorporadasView.as_view(), name='proposicoes_naoincorporadas'),
+    url(r'^protocoloadm/proposicoes-incorporadas',
+        ProposicoesIncorporadasView.as_view(), name='proposicoes_incorporadas'),
 ]
