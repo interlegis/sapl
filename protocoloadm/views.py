@@ -497,3 +497,18 @@ class ProtocoloMateriaView(FormMixin, TemplateView):
                           {'form': form, 'message': message})
         else:
             return self.form_invalid(form)
+
+# TODO: move to Proposicao app
+
+class ProposicaoReceberView(TemplateView):
+    template_name = "protocoloadm/proposicao_receber.html"
+
+class ProposicoesNaoRecebidasView(TemplateView):
+    template_name = "protocoloadm/proposicoes_naorecebidas.html"
+
+class ProposicoesNaoIncorporadasView(TemplateView):
+    template_name = "protocoloadm/proposicoes_naoincorporadas.html"
+
+
+class ProposicoesIncorporadasView(TemplateView):
+    template_name = "protocoloadm/proposicoes_incorporadas.html"
