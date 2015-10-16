@@ -13,6 +13,8 @@ from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 
+from vanilla import GenericView
+
 from materia.models import TipoMateriaLegislativa
 from sapl.crud import build_crud
 
@@ -176,7 +178,7 @@ class ProtocoloForm(forms.Form):
     assunto = forms.CharField(label='Assunto', required=False)
 
 
-class ProtocoloPesquisaView(TemplateView, FormMixin):
+class ProtocoloPesquisaView(FormMixin, GenericView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
     form_class = ProtocoloForm()
     context_object_name = 'protocolos'
@@ -277,7 +279,7 @@ def get_client_ip(request):
     return ip
 
 
-class AnularProtocoloAdmView(FormMixin, TemplateView):
+class AnularProtocoloAdmView(FormMixin, GenericView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
 
     def get_success_url(self):
@@ -368,7 +370,7 @@ class ProtocoloDocumentForm(forms.Form):
                                  widget=forms.Textarea, label='Observação')
 
 
-class ProtocoloDocumentoView(FormMixin, TemplateView):
+class ProtocoloDocumentoView(FormMixin, GenericView):
 
     template_name = "protocoloadm/protocolar_documento.html"
     model = Protocolo
@@ -451,7 +453,7 @@ class ProtocoloMateriaForm(forms.Form):
                                  widget=forms.Textarea, label='Observação')
 
 
-class ProtocoloMateriaView(FormMixin, TemplateView):
+class ProtocoloMateriaView(FormMixin, GenericView):
 
     template_name = "protocoloadm/protocolar_materia.html"
     model = Protocolo
