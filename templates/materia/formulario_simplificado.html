@@ -3,11 +3,13 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-
 	<form method="POST">
 		{% csrf_token %}
-		{% crispy form %}
-		<input type="submit" name="salvar_simplificado" value="Salvar" class="button primary"/>
+		<!-- TODO: crispy form faz com que o submit pare de funcionar -->
+		<!-- {% crispy form %} -->
+		{{ form.as_p }}
+	</br>
+	<input type="submit" name="salvar_simplificado" value="Salvar" class="button primary" />
 	</form>
 {% endblock %}
 
