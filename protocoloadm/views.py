@@ -12,7 +12,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
-
 from vanilla import GenericView
 
 from materia.models import TipoMateriaLegislativa
@@ -502,11 +501,14 @@ class ProtocoloMateriaView(FormMixin, GenericView):
 
 # TODO: move to Proposicao app
 
+
 class ProposicaoReceberView(TemplateView):
     template_name = "protocoloadm/proposicao_receber.html"
 
+
 class ProposicoesNaoRecebidasView(TemplateView):
     template_name = "protocoloadm/proposicoes_naorecebidas.html"
+
 
 class ProposicoesNaoIncorporadasView(TemplateView):
     template_name = "protocoloadm/proposicoes_naoincorporadas.html"
