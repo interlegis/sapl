@@ -1,12 +1,18 @@
+from datetime import date, datetime
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud import build_crud
+
+from django import forms
+from django.views.generic.edit import FormMixin
 
 from .models import (Anexada, Autor, Autoria, DocumentoAcessorio,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
                      RegimeTramitacao, Relatoria, StatusTramitacao, TipoAutor,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
+
+from vanilla import GenericView
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -201,3 +207,83 @@ tramitacao_crud = build_crud(
              ('data_fim_prazo', 4)],
             [('texto', 12)]],
     ])
+
+def get_tipos_materia():
+    return [('', 'Selecione')] \
+        + [(t.id, t.sigla + ' - ' + t.descricao)
+           for t in TipoMateriaLegislativa.objects.all()]
+
+def get_range_anos():
+    return [('', 'Selecione')] \
+        + [(year, year) for year in range(date.today().year, 1960, -1)]
+
+def get_regimes_tramitacao():
+    return [('1', 'Normal'),
+            ('3', 'Urgência'),
+            ('4', 'Urgência Especial')]  
+
+
+class HorizontalRadioRenderer(forms.RadioSelect.renderer):
+
+    def render(self):
+        return mark_safe(u' '.join([u'%s ' % w for w in self]))
+
+class FormularioSimplificadoForm(forms.Form):
+
+    tipo_materia = forms.ChoiceField(required=True,
+                                     label='Tipo Matéria',
+                                     choices=get_tipos_materia(),
+                                     widget=forms.Select(
+                                         attrs={'class': 'selector'}))
+
+    numero_materia = forms.CharField(
+        label='Núm. Matéria', required=True)
+
+    ano_materia = forms.ChoiceField(required=True,
+                            label='Ano',
+                            choices=get_range_anos(),
+                            widget=forms.Select(
+                                attrs={'class': 'selector'}))
+
+    data_materia = forms.DateField(label='Data Apresentação',
+                              required=True,
+                              widget=forms.TextInput(
+                                  attrs={'class': 'dateinput'}))                                    
+
+    numero_protocolo = forms.CharField(
+        label='Número de Protocolo', required=True)
+
+    regime_tramitacao = forms.ChoiceField(required=False,
+                            label='Regime de Tramitação',
+                            choices=get_regimes_tramitacao(),
+                            widget=forms.Select(
+                            attrs={'class': 'selector'}))
+
+    em_tramitacao = forms.TypedChoiceField(
+                   coerce=lambda x: x == 'Sim',
+                   choices=((True, 'Sim'), (False, 'Não')),
+                   widget=forms.RadioSelect
+                )
+
+    ementa = forms.CharField(label='Ementa', required=True, widget=forms.Textarea)
+
+    texto_original = forms.ChoiceField(required=False,
+                        label='Regime de Tramitação',
+                        choices=(('1', 'Arquivo'), ('2', 'Proposição')),
+                        widget=forms.RadioSelect)
+
+    arquivo = forms.FileField(required=False, label='Arquivo')    
+
+    proposicao = forms.CharField(required=False, label='Proposição',
+        widget=forms.TextInput(attrs={'disabled':'True'}))
+    
+# form.fields['otherFields'].widget.attrs['enabled'] = True
+
+class FormularioSimplificadoView(FormMixin, GenericView):
+
+    template_name = "materia/formulario_simplificado.html"
+
+    def get(self, request, *args, **kwargs):
+        form = FormularioSimplificadoForm()
+        return self.render_to_response({'form': form})    
+
