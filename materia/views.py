@@ -1,15 +1,17 @@
-from datetime import date, datetime
+from datetime import date
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.urlresolvers import reverse
-from django.shortcuts import render
 from django.forms import ModelForm
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from sapl.crud import build_crud
 from vanilla import GenericView
+
+from sapl.crud import build_crud
 
 from .models import (Anexada, Autor, Autoria, DocumentoAcessorio,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -295,6 +297,7 @@ class FormularioSimplificadoForm(forms.Form):
 
     # form.fields['otherFields'].widget.attrs['enabled'] = True
 
+
 class FormularioCadastroForm(ModelForm):
 
     class Meta:
@@ -410,35 +413,37 @@ class FormularioSimplificadoView(FormMixin, GenericView):
 
         return self.render_to_response({'form': form})
 
-  # id serial NOT NULL,
-  # numero integer NOT NULL,
-  # ano smallint NOT NULL,
-  # numero_protocolo integer,
-  # data_apresentacao date,
-  # tipo_apresentacao character varying(1),
-  # data_publicacao date,
-  # numero_origem_externa character varying(5),
-  # ano_origem_externa smallint,
-  # data_origem_externa date,
-  # apelido character varying(50),
-  # dias_prazo integer,
-  # data_fim_prazo date,
-  # em_tramitacao boolean NOT NULL,
-  # polemica boolean,
-  # objeto character varying(150),
-  # complementar boolean,
-  # ementa text NOT NULL,
-  # indexacao text,
-  # observacao text,
-  # resultado text,
-  # local_origem_externa_id integer,
-  # regime_tramitacao_id integer NOT NULL,
-  # tipo_id integer NOT NULL,
-  # tipo_origem_externa_id integer,
-  # texto_original character varying(100),
+    # id serial NOT NULL,
+    # numero integer NOT NULL,
+    # ano smallint NOT NULL,
+    # numero_protocolo integer,
+    # data_apresentacao date,
+    # tipo_apresentacao character varying(1),
+    # data_publicacao date,
+    # numero_origem_externa character varying(5),
+    # ano_origem_externa smallint,
+    # data_origem_externa date,
+    # apelido character varying(50),
+    # dias_prazo integer,
+    # data_fim_prazo date,
+    # em_tramitacao boolean NOT NULL,
+    # polemica boolean,
+    # objeto character varying(150),
+    # complementar boolean,
+    # ementa text NOT NULL,
+    # indexacao text,
+    # observacao text,
+    # resultado text,
+    # local_origem_externa_id integer,
+    # regime_tramitacao_id integer NOT NULL,
+    # tipo_id integer NOT NULL,
+    # tipo_origem_externa_id integer,
+    # texto_original character varying(100),
 
-  # duplicate key value violates unique constraint "materia_materialegislativa_tipo_id_2646a902479b4205_uniq"
-  # DETAIL:  Key (tipo_id, numero, ano)=(2, 1, 2015) already exists.
+    # duplicate key value violates unique constraint
+    # "materia_materialegislativa_tipo_id_2646a902479b4205_uniq"
+    # DETAIL:  Key (tipo_id, numero, ano)=(2, 1, 2015) already exists.
+
 
 class FormularioCadastroView(FormMixin, GenericView):
     template_name = "materia/formulario_cadastro.html"

@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from materia.views import (FormularioCadastroView, FormularioSimplificadoView,
                            autor_crud, materia_legislativa_crud, orgao_crud,
                            origem_crud, regime_tramitacao_crud,
