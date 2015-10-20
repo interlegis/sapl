@@ -1,18 +1,20 @@
 from datetime import date, datetime
-from django.utils.translation import ugettext_lazy as _
 
-from sapl.crud import build_crud
-
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
+from django.core.urlresolvers import reverse
+from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
+from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (Anexada, Autor, Autoria, DocumentoAcessorio,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
                      RegimeTramitacao, Relatoria, StatusTramitacao, TipoAutor,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
-
-from vanilla import GenericView
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -208,25 +210,34 @@ tramitacao_crud = build_crud(
             [('texto', 12)]],
     ])
 
+
 def get_tipos_materia():
     return [('', 'Selecione')] \
         + [(t.id, t.sigla + ' - ' + t.descricao)
            for t in TipoMateriaLegislativa.objects.all()]
 
+
 def get_range_anos():
     return [('', 'Selecione')] \
         + [(year, year) for year in range(date.today().year, 1960, -1)]
 
+
 def get_regimes_tramitacao():
     return [('1', 'Normal'),
             ('3', 'Urgência'),
-            ('4', 'Urgência Especial')]  
+            ('4', 'Urgência Especial')]
+
+
+def get_local_origem():
+    return [('E', 'Poder Executivo'),
+            ('L', 'Poder Legislativo')]
 
 
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
     def render(self):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
+
 
 class FormularioSimplificadoForm(forms.Form):
 
@@ -240,44 +251,128 @@ class FormularioSimplificadoForm(forms.Form):
         label='Núm. Matéria', required=True)
 
     ano_materia = forms.ChoiceField(required=True,
-                            label='Ano',
-                            choices=get_range_anos(),
-                            widget=forms.Select(
-                                attrs={'class': 'selector'}))
+                                    label='Ano',
+                                    choices=get_range_anos(),
+                                    widget=forms.Select(
+                                        attrs={'class': 'selector'}))
 
     data_materia = forms.DateField(label='Data Apresentação',
-                              required=True,
-                              widget=forms.TextInput(
-                                  attrs={'class': 'dateinput'}))                                    
+                                   required=True,
+                                   widget=forms.TextInput(
+                                       attrs={'class': 'dateinput'}))
 
     numero_protocolo = forms.CharField(
         label='Número de Protocolo', required=True)
 
     regime_tramitacao = forms.ChoiceField(required=False,
-                            label='Regime de Tramitação',
-                            choices=get_regimes_tramitacao(),
-                            widget=forms.Select(
-                            attrs={'class': 'selector'}))
+                                          label='Regime de Tramitação',
+                                          choices=get_regimes_tramitacao(),
+                                          widget=forms.Select(
+                                              attrs={'class': 'selector'}))
 
     em_tramitacao = forms.TypedChoiceField(
-                   coerce=lambda x: x == 'Sim',
-                   choices=((True, 'Sim'), (False, 'Não')),
-                   widget=forms.RadioSelect
-                )
+        coerce=lambda x: x == 'Sim',
+        choices=((True, 'Sim'), (False, 'Não')),
+        widget=forms.RadioSelect
+    )
 
-    ementa = forms.CharField(label='Ementa', required=True, widget=forms.Textarea)
+    ementa = forms.CharField(
+        label='Ementa', required=True, widget=forms.Textarea)
 
     texto_original = forms.ChoiceField(required=False,
-                        label='Regime de Tramitação',
-                        choices=(('1', 'Arquivo'), ('2', 'Proposição')),
-                        widget=forms.RadioSelect)
+                                       label='Regime de Tramitação',
+                                       choices=(
+                                           ('1', 'Arquivo'),
+                                           ('2', 'Proposição')),
+                                       widget=forms.RadioSelect)
 
-    arquivo = forms.FileField(required=False, label='Arquivo')    
+    arquivo = forms.FileField(required=False, label='Arquivo')
 
     proposicao = forms.CharField(required=False, label='Proposição',
-        widget=forms.TextInput(attrs={'disabled':'True'}))
-    
+                                 widget=forms.TextInput(
+                                     attrs={'disabled': 'True'}))
+
 # form.fields['otherFields'].widget.attrs['enabled'] = True
+
+
+class FormularioCadastroForm(ModelForm):
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  'data_apresentacao',
+                  'numero_protocolo',
+                  'tipo_apresentacao',
+                  'texto_original',
+                  'apelido',
+                  'dias_prazo',
+                  'polemica',
+                  'objeto',
+                  'regime_tramitacao',
+                  'em_tramitacao',
+                  'data_fim_prazo',
+                  'data_publicacao',
+                  'complementar',
+                  'tipo_origem_externa',
+                  'numero_origem_externa',
+                  'ano_origem_externa',
+                  'local_origem_externa',
+                  'data_origem_externa',
+                  'ementa',
+                  'indexacao',
+                  'observacao']
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Formulário de Cadastro',
+                Fieldset(
+                    'Identificação Básica',
+                    'tipo',
+                    'numero',
+                    'ano',
+                    'data_apresentacao',
+                    'numero_protocolo',
+                    'tipo_apresentacao',
+                    'texto_original'
+                ),
+                Fieldset(
+                    'Outras Informações',
+                    'apelido',
+                    'dias_prazo',
+                    'polemica',
+                    'objeto',
+                    'regime_tramitacao',
+                    'em_tramitacao',
+                    'data_fim_prazo',
+                    'data_publicacao',
+                    'complementar'
+                ),
+                Fieldset(
+                    'Origem Externa',
+                    'tipo_origem_externa',
+                    'numero_origem_externa',
+                    'ano_origem_externa',
+                    'local_origem_externa',
+                    'data_origem_externa'
+                ),
+                Fieldset(
+                    'Dados Textuais',
+                    'ementa',
+                    'indexacao',
+                    'observacao'
+                ),
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+            )
+        )
+        super(FormularioCadastroForm, self).__init__(*args, **kwargs)
+
 
 class FormularioSimplificadoView(FormMixin, GenericView):
 
@@ -285,5 +380,23 @@ class FormularioSimplificadoView(FormMixin, GenericView):
 
     def get(self, request, *args, **kwargs):
         form = FormularioSimplificadoForm()
-        return self.render_to_response({'form': form})    
+        return self.render_to_response({'form': form})
 
+
+class FormularioCadastroView(FormMixin, GenericView):
+    template_name = "materia/formulario_cadastro.html"
+
+    def get(self, request, *args, **kwargs):
+        form = FormularioCadastroForm()
+        return self.render_to_response({'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = FormularioCadastroForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('formulario_cadastro')
