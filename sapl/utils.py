@@ -1,9 +1,6 @@
-from builtins import TypeError
-
 from django.apps import apps
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
-
 
 # SAPL business apps
 #  This is a dependency order: each entry depends only on previous ones
