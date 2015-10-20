@@ -1,7 +1,8 @@
 from collections import OrderedDict
-from datetime import timedelta
+from datetime import timedelta, datetime
 from os.path import sys
 
+from django import forms
 from django.core.signing import Signer
 from django.db.models import Q
 from django.db.models.aggregates import Max
@@ -9,10 +10,11 @@ from django.http.response import JsonResponse
 from django.utils.dateparse import parse_date
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import FormMixin
 from django.views.generic.list import ListView
 
-from compilacao.models import Dispositivo, TipoNota, TipoVide, TipoPublicacao,\
-    VeiculoPublicacao, TipoDispositivo
+from compilacao.models import (Dispositivo, TipoNota, TipoVide, TipoPublicacao,
+                               VeiculoPublicacao, TipoDispositivo)
 from norma.models import NormaJuridica
 from sapl.crud import build_crud
 
@@ -265,14 +267,74 @@ class CompilacaoEditView(CompilacaoView):
         self.flag_nivel_ini = 0
         self.flag_nivel_old = -1
 
-        return Dispositivo.objects.filter(
-            ordem__gt=0,
+        result = Dispositivo.objects.filter(
             norma_id=self.kwargs['norma_id']
         ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
+        if not result.exists():
 
-class DispositivoEditView(CompilacaoEditView):
+            norma = NormaJuridica.objects.get(pk=self.kwargs['norma_id'])
+
+            td = TipoDispositivo.objects.filter(class_css='articulacao')[0]
+            a = Dispositivo()
+            a.nivel = 0
+            a.ordem = Dispositivo.INTERVALO_ORDEM
+            a.ordem_bloco_atualizador = 0
+            a.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+            a.norma = norma
+            a.tipo_dispositivo = td
+            a.inicio_vigencia = norma.data_publicacao
+            a.inicio_eficacia = norma.data_publicacao
+            a.timestamp = datetime.now()
+            a.save()
+
+            td = TipoDispositivo.objects.filter(class_css='ementa')[0]
+            e = Dispositivo()
+            e.nivel = 1
+            e.ordem = a.ordem + Dispositivo.INTERVALO_ORDEM
+            e.ordem_bloco_atualizador = 0
+            e.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+            e.norma = norma
+            e.tipo_dispositivo = td
+            e.inicio_vigencia = norma.data_publicacao
+            e.inicio_eficacia = norma.data_publicacao
+            e.timestamp = datetime.now()
+            e.texto = norma.ementa
+            e.save()
+
+            a.pk = None
+            a.nivel = 0
+            a.ordem = e.ordem + Dispositivo.INTERVALO_ORDEM
+            a.ordem_bloco_atualizador = 0
+            a.set_numero_completo([2, 0, 0, 0, 0, 0, ])
+            a.timestamp = datetime.now()
+            a.save()
+
+            result = Dispositivo.objects.filter(
+                norma_id=self.kwargs['norma_id']
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+
+        return result
+
+
+class DispositivoSimpleEditForm(forms.Form):
+    texto = forms.CharField(required=False, widget=forms.Textarea)
+
+
+class DispositivoEditView(CompilacaoEditView, FormMixin):
     template_name = 'compilacao/edit_bloco.html'
+    form_class = DispositivoSimpleEditForm
+
+    def post(self, request, *args, **kwargs):
+
+        d = Dispositivo.objects.get(
+            pk=self.kwargs['dispositivo_id'])
+
+        texto = request.POST['texto']
+        d.texto = texto
+        d.save()
+
+        return self.get(request, *args, **kwargs)
 
     def get_queryset(self):
         self.flag_alteradora = -1
@@ -422,8 +484,7 @@ class DispositivoEditView(CompilacaoEditView):
 
             for td in otds:
 
-                if td.class_css == 'caput' or (tipb.class_css == 'caput' and
-                                               td.class_css == 'paragrafo'):
+                if td.class_css == 'caput':
                     continue
 
                 d_base.tipo_dispositivo = td
@@ -477,17 +538,21 @@ class DispositivoEditView(CompilacaoEditView):
                       'dispositivo_base': d_base.pk}]
 
                 if mudarnivel == 1:
-                    result[1]['itens'] += r
+                    if (tipb.class_css == 'caput' and
+                            td.class_css == 'paragrafo'):
+                        result[0]['itens'].insert(0, r[0])
+                    else:
+                        result[1]['itens'] += r
                 else:
                     if td.pk < tipb.pk:
                         result[2]['itens'] += r
                         result[0]['itens'] += r
 
-        # retira inserir após e inserir antes
         if tipb.class_css == 'caput':
             result.pop()
             # result.remove(result[0])
 
+        # retira inserir após e inserir antes
         if tipb.class_css == 'articulacao':
             r = result[0]
             result.remove(result[0])
@@ -513,7 +578,13 @@ class ActionsEditMixin(object):
         pass
 
     def add_in(self, context):
-        pass
+        # pai = Dispositivo.objects.get(pk=context['dispositivo_id'])
+        # dp = Dispositivo.objects.get(pk=context['dispositivo_id'])
+
+        # Tipo Filho
+        # tf = TipoDispositivo.objects.get(pk=context['tipo_pk'])
+
+        return {}
 
     def add_next(self, context):
         try:
@@ -521,17 +592,18 @@ class ActionsEditMixin(object):
             dp = Dispositivo.objects.get(pk=context['dispositivo_id'])
 
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
+            variacao = int(context['variacao'])
 
             while dp.dispositivo_pai is not None and \
                     dp.tipo_dispositivo_id != tipo.pk:
                 dp = dp.dispositivo_pai
 
-            # Inserção interna a uma articulação um tipo já existente
-            # ou de uma articulacao
+            # Inserção interna a uma articulação de um tipo já existente
+            # ou de uma nova articulacao
             if dp.dispositivo_pai is not None or \
                     tipo.class_css == 'articulacao':
 
-                dp.transform_in_next(int(context['variacao']))
+                dp.transform_in_next(variacao)
                 dp.rotulo = dp.rotulo_padrao()
                 dp.texto = ''
                 dp.pk = None
@@ -548,16 +620,17 @@ class ActionsEditMixin(object):
 
                 if not tipo.contagem_continua:
                     irmaos = list(Dispositivo.objects.filter(
+                        Q(ordem__gt=dp.ordem) | Q(dispositivo0=0),
                         dispositivo_pai_id=dp.dispositivo_pai_id,
-                        ordem__gt=dp.ordem,
                         tipo_dispositivo_id=tipo.pk))
+
                 elif tipo.class_css == 'articulacao':
                     irmaos = list(Dispositivo.objects.filter(
                         ordem__gt=dp.ordem,
                         norma_id=dp.norma_id,
                         tipo_dispositivo_id=tipo.pk))
-                else:  # contagem continua restrita a articulacao
 
+                else:  # contagem continua restrita a articulacao
                     proxima_articulacao = Dispositivo.objects.filter(
                         ordem__gt=dp.ordem,
                         nivel=0,
@@ -580,6 +653,11 @@ class ActionsEditMixin(object):
                 irmaos_a_salvar = []
                 ultimo_irmao = None
                 for irmao in irmaos:
+
+                    if irmao.ordem <= dp.ordem:
+                        irmaos_a_salvar.append(irmao)
+                        continue
+
                     irmao_profundidade = irmao.get_profundidade()
                     if irmao_profundidade < dp_profundidade:
                         break
@@ -613,6 +691,12 @@ class ActionsEditMixin(object):
 
                 irmaos_a_salvar.reverse()
                 for irmao in irmaos_a_salvar:
+                    if irmao.dispositivo0 == 0 and \
+                            irmao.ordem <= dp.ordem and variacao == 0:
+                        irmao.dispositivo0 = 1
+                        irmao.rotulo = irmao.rotulo_padrao()
+                        dp.dispositivo0 = 2
+                        dp.rotulo = dp.rotulo_padrao()
                     irmao.clean()
                     irmao.save()
 
@@ -654,7 +738,8 @@ class ActionsEditMixin(object):
                 dp.norma_publicada = None
 
                 if tipo.contagem_continua:
-                    ultimo_irmao = Dispositivo.objects.order_by('-ordem').filter(
+                    ultimo_irmao = Dispositivo.objects.order_by(
+                        '-ordem').filter(
                         ordem__lte=dp.ordem,
                         tipo_dispositivo_id=tipo.pk,
                         norma_id=dp.norma_id)[:1]
@@ -765,7 +850,7 @@ class ActionsEditMixin(object):
                     filho.clean()
                     filho.save()
 
-            ''' Renumerar dispositivos de 
+            ''' Renumerar dispositivos de
             contagem continua, caso a inserção seja uma articulação'''
 
             numtipos = {}

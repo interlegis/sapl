@@ -214,33 +214,18 @@
 
 
 .compilacaoedit {
+	margin-bottom: 30em;
     margin-left: 0.8em;
     z-index: 1;
 }
 
 
-.compilacaoedit .articulacao{ 
-	
-    margin-left: -0.8em; 
-    margin-top: 2em;
+.compilacaoedit .semtexto {
+    font-weight: bold;
+    color: #8DA6D8;
 }
 
-.compilacaoedit .articulacao::before {
-    content: "Articulação";
-    background-color: #eee;
-    border-bottom: 1px solid #aaa; 
-    padding: 0.333em;
-    padding-left: 1em;
-    display:block;
-}
 
-.compilacaoedit .editclick .articulacao::before {
-    display: none;
-}
-.compilacaoedit .editdi {
-	display: block;
-	clear: left;
-}
 
 .compilacaoedit  .edit {
 	position: relative;
@@ -314,11 +299,47 @@
     right: -0.51rem;
 } 
 
-.compilacaoedit .edit *:hover {
+
+.compilacaoedit .editdi {
+    display: block;
+    clear: left; 
+}
+
+.compilacaoedit .editdi *:hover {
   background-color: #eee;
 }
 
-.compilacaoedit .editclick > .label_pai {
+
+.compilacaoedit .articulacao{ 
+    
+    margin-left: -0.8em; 
+    margin-top: 2em;
+}
+
+.compilacaoedit .articulacao::before {
+    content: "Articulação";
+    background-color: #eee;
+    border-bottom: 1px solid #aaa; 
+    padding: 0.333em;
+    padding-left: 1em;
+    display:block;
+}
+
+.compilacaoedit .editselected .articulacao::before {
+    display: none;
+}
+.compilacaoedit .editselected > .editdi {
+    padding: 1em;
+}
+
+.compilacaoedit .editdi_form {
+    display: block;
+    clear: both;
+    padding: 1em;
+}
+
+
+.compilacaoedit .editselected > .label_pai {
 	position: absolute;
 	color: #999;
 	top: -1.7em;
@@ -328,9 +349,9 @@
 	height: auto;
 }
 
-.compilacaoedit  .editclick {	
+.compilacaoedit  .editselected {	
 	border: 2.1em solid #eee;
-    padding: 1em;
+    padding: 0 0 1em 0;
     padding-bottom: 0em;
 	margin: 1em -2em 1em -2.8em;
 	z-index: 1;
@@ -338,7 +359,7 @@
 	box-shadow: 0 1px 2px #aaa; 
 }
 
-.compilacaoedit .editclick > .actions {
+.compilacaoedit .editselected > .actions {
     display: none;
 }
 
@@ -348,9 +369,9 @@
 	position: relative;
 	opacity: 0;
 	transition: all 0.4s ease-in-out;
-	border-bottom: 1px solid #2980b9;
+	border-top: 1px solid #2980b9;
 	z-index: 9;
-	margin: -1em -1em 2em -1em; 
+	margin: 0em; 
 }
  
 .compilacaoedit .actions_head ul {
@@ -365,13 +386,16 @@
     max-width:something;
     }
 .compilacaoedit .actions_head > li.left {
-    border-left: 1px solid white;
+    border-right: 1px solid white;
     }
     
     
-.compilacaoedit .actions_head > li.right{ 
+.compilacaoedit .actions_head > li.right { 
     width: 3em;
-    text-align: center;
+    text-align: center; 
+}
+    
+.compilacaoedit .actions_head > li.right:nth-child(3n + 1) { 
     clear:right;
 }
     
@@ -424,6 +448,7 @@
 .compilacaoedit .actions_head > li > a.btn-action {
   font-weight: bold;
   font-size: 1em;
+  
 }
 
 .compilacaoedit .actions_head { 
@@ -448,44 +473,40 @@
 .compilacaoedit .actions_insert > li.right{
     opacity: 1;
     width: 3em;
-    text-align: center;
+    text-align: center; 
+}
+.compilacaoedit .actions_insert > li.right:nth-child(3n + 1) { 
     clear:right;
 }
+    
 
 .compilacaoedit .actions_insert > li.left:nth-child(1),
 .compilacaoedit .actions_insert > li.left:nth-child(2) {
     opacity: 1;
     display: block;
-    min-width: 35%; 
-    max-width: 35%; 
+    min-width: 30%; 
+    max-width: 30%; 
 }
 .compilacaoedit .actions_insert li.left:nth-child(1) ul,
 .compilacaoedit .actions_insert li.left:nth-child(2) ul {
-
     display: block; 
     position: relative;
-    
 }
 
-.compilacaoedit .actions_insert li.left:nth-child(3):hover ul {
-	right: 0;
+.compilacaoedit .actions_insert li.left:nth-child(n+3):hover ul {
+    right: 0;
     box-shadow: -3px 3px 1.5em #336;
 }
- 
 
 
-
-
-
-
-.compilacaoedit .actions_footer {
-	color: #fff; 
-	position: absolute;
-	top: 100%;
-	left: -2em;
-	opacity: 0;
-	transition: all 0.4s ease-in-out;
-	clip: rect(0,0,0,0);
+.compilacaoedit .actions_footer { 
+    position: absolute;
+    top: 100%;
+    left: -1.8em; 
+    right: -1.8em;
+    color: #999;
+    transition: all 0.4s ease-in-out; 
+    padding: 0.3em 0;
 }
 
 .compilacaoedit .actions_footer ul  {
@@ -497,41 +518,17 @@
 	display: block;
     height: auto !important; 
 }
-
-.compilacaoedit  .editclick > .actions_footer a.btn-action {
-  background: #3498db;
-
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
-  border-radius: 0px;
-  color: #ffffff !important;
-  font-size: 12px; 
-  padding: 1px 6px 1px 7px;
-  text-decoration: none;
-  display: block;
-}
-
-.compilacaoedit  .editclick > .actions_footer a.btn-action:hover {
-  background: #3cb0fd;
-
-  text-decoration: none;
-}
-.compilacaoedit  .editclick > .actions_footer { 
-	z-index: 99;
-	opacity: 0.5; 
-    clip: rect(0,0,0,0);
-}
-
-.compilacaoedit  .editclick > .actions_footer:hover {
-	opacity: 1; 
-	clip: auto
-}
-
+ 
 .clear {
 	 clear:both;
 	 height: 0;
 	 width: 0;
 }
+
+#tinymce .mceContentBody p {
+   font-family: "Open Sans" "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif !important; 
+}
+
 
 @media only screen and (max-width: 40.0625em) {
 

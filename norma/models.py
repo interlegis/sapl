@@ -97,7 +97,7 @@ class NormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')
-        ordering = ['-data']
+        ordering = ['-data', '-numero']
 
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(data)s') % {

@@ -467,7 +467,8 @@ class Dispositivo(BaseModel):
                     tipo_dispositivo=self.tipo_dispositivo,
                     dispositivo_pai=self.dispositivo_pai).count()
 
-            if count_irmaos_mesmo_tipo > 1 and self.dispositivo0 != 0:
+            if count_irmaos_mesmo_tipo > 1 or (
+                    self.dispositivo0 != 0 and not for_insertion):
                 r += prefixo[0]
                 r += self.get_nomenclatura_completa()
             elif count_irmaos_mesmo_tipo == 1 and for_insertion:
@@ -706,9 +707,8 @@ class Dispositivo(BaseModel):
         try:
             dispositivos = Dispositivo.objects.order_by('-ordem').filter(
                 norma_id=self.norma_id)
-        except Exception as e:
-            a = 1
-            a += 1
+        except:
+            return
         ordem = dispositivos.count() * 1000
         for d in dispositivos:
             d.ordem = ordem

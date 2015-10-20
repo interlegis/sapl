@@ -1,5 +1,4 @@
 from django.conf.urls import url, include
-from django.contrib.auth.decorators import permission_required
 
 from compilacao import views
 from compilacao.views import (tipo_nota_crud, tipo_vide_crud,
