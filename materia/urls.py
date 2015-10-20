@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
 from materia.views import (autor_crud, materia_legislativa_crud, orgao_crud,
+                           FormularioSimplificadoView,
                            origem_crud, regime_tramitacao_crud,
                            status_tramitacao_crud, tipo_autor_crud,
                            tipo_documento_crud, tipo_fim_relatoria_crud,
@@ -26,4 +27,5 @@ urlpatterns = [
         include(status_tramitacao_crud.urls)),
     url(r'^sistema/materia/orgao/', include(orgao_crud.urls)),
     url(r'^materia/', include(materia_legislativa_crud.urls)),
+    url(r'^materia/formulario-simplificado', FormularioSimplificadoView.as_view(), name='formulario_simplificado')
 ]
