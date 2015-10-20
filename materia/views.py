@@ -4,6 +4,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
@@ -292,8 +293,7 @@ class FormularioSimplificadoForm(forms.Form):
                                  widget=forms.TextInput(
                                      attrs={'disabled': 'True'}))
 
-# form.fields['otherFields'].widget.attrs['enabled'] = True
-
+    # form.fields['otherFields'].widget.attrs['enabled'] = True
 
 class FormularioCadastroForm(ModelForm):
 
@@ -377,11 +377,68 @@ class FormularioCadastroForm(ModelForm):
 class FormularioSimplificadoView(FormMixin, GenericView):
 
     template_name = "materia/formulario_simplificado.html"
+    model = MateriaLegislativa
+
+    def get_success_url(self):
+        return reverse('formulario_simplificado')
 
     def get(self, request, *args, **kwargs):
         form = FormularioSimplificadoForm()
         return self.render_to_response({'form': form})
 
+    def post(self, request, *args, **kwargs):
+        form = FormularioSimplificadoForm(request.POST)
+
+        if form.is_valid:
+
+            materia = MateriaLegislativa()
+            materia.numero = request.POST['numero_materia']
+            materia.ano = request.POST['ano_materia']
+            materia.numero_protocolo = request.POST['numero_protocolo']
+            materia.em_tramitacao = request.POST['em_tramitacao']
+            materia.ementa = request.POST['ementa']
+            materia.tipo_id = request.POST['tipo_materia']
+            materia.regime_tramitacao_id = request.POST['regime_tramitacao']
+            materia.save()
+
+            message = "Materia Legislativa criada com sucesso"
+            return render(request,
+                          reverse('formulario_simplificado'),
+                          {'form': form, 'message': message})
+        else:
+            return self.form_invalid(form)
+
+        return self.render_to_response({'form': form})
+
+  # id serial NOT NULL,
+  # numero integer NOT NULL,
+  # ano smallint NOT NULL,
+  # numero_protocolo integer,
+  # data_apresentacao date,
+  # tipo_apresentacao character varying(1),
+  # data_publicacao date,
+  # numero_origem_externa character varying(5),
+  # ano_origem_externa smallint,
+  # data_origem_externa date,
+  # apelido character varying(50),
+  # dias_prazo integer,
+  # data_fim_prazo date,
+  # em_tramitacao boolean NOT NULL,
+  # polemica boolean,
+  # objeto character varying(150),
+  # complementar boolean,
+  # ementa text NOT NULL,
+  # indexacao text,
+  # observacao text,
+  # resultado text,
+  # local_origem_externa_id integer,
+  # regime_tramitacao_id integer NOT NULL,
+  # tipo_id integer NOT NULL,
+  # tipo_origem_externa_id integer,
+  # texto_original character varying(100),
+
+  # duplicate key value violates unique constraint "materia_materialegislativa_tipo_id_2646a902479b4205_uniq"
+  # DETAIL:  Key (tipo_id, numero, ano)=(2, 1, 2015) already exists.
 
 class FormularioCadastroView(FormMixin, GenericView):
     template_name = "materia/formulario_cadastro.html"
