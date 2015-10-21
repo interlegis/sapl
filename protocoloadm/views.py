@@ -14,7 +14,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from materia.models import TipoMateriaLegislativa
+from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
@@ -449,7 +449,8 @@ class ProtocoloMateriaForm(forms.Form):
         widget=forms.Textarea, label='Ementa', required=True)
     autor = forms.CharField(label='Autor', required=True)
     observacao = forms.CharField(required=True,
-                                 widget=forms.Textarea, label='Observação')
+                                 widget=forms.Textarea,
+                                 label='Observação')
 
 
 class ProtocoloMateriaView(FormMixin, GenericView):
@@ -485,7 +486,7 @@ class ProtocoloMateriaView(FormMixin, GenericView):
             protocolo.autor = Autor.objects.get(id=request.POST['autor'])
             protocolo.anulado = False
             protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
-                                            id=request.POST['tipo_materia'])
+                id=request.POST['tipo_materia'])
             protocolo.numero_paginas = request.POST['num_paginas']
             protocolo.observacao = sub(
                 '&nbsp;', ' ', strip_tags(request.POST['observacao']))
@@ -506,13 +507,32 @@ class ProposicaoReceberView(TemplateView):
     template_name = "protocoloadm/proposicao_receber.html"
 
 
-class ProposicoesNaoRecebidasView(TemplateView):
+class ProposicoesNaoRecebidasView(ListView):
     template_name = "protocoloadm/proposicoes_naorecebidas.html"
+    model = Proposicao
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(data_envio__isnull=False, status='E')
 
 
-class ProposicoesNaoIncorporadasView(TemplateView):
+class ProposicoesNaoIncorporadasView(ListView):
     template_name = "protocoloadm/proposicoes_naoincorporadas.html"
+    model = Proposicao
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(data_envio__isnull=False,
+                                         data_devolucao__isnull=False,
+                                         status='D')
 
 
-class ProposicoesIncorporadasView(TemplateView):
+class ProposicoesIncorporadasView(ListView):
     template_name = "protocoloadm/proposicoes_incorporadas.html"
+    model = Proposicao
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(data_envio__isnull=False,
+                                         data_recebimento__isnull=False,
+                                         status='I')

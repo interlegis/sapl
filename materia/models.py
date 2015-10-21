@@ -451,7 +451,7 @@ class Proposicao(models.Model):
 
     status = models.CharField(blank=True,
                               null=True,
-                              max_length = 1,
+                              max_length=1,
                               choices=(('E', 'Enviada'),
                                        ('D', 'Devolvida'),
                                        ('I', 'Incorporada')),
