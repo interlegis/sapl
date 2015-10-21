@@ -241,12 +241,12 @@
 	color: #fff; 
 	position: absolute;
 	padding: 0 0.2em;
-	left: -2.1em;
+	left: -2.2em;
 	opacity: 0;
 	transition: all 0.4s ease-in-out;
 }
 
-.compilacaoedit  .edit > .actions a.btn-action {
+.compilacaoedit  .edit > .actions a.btn-inserts {
   background: #3498db;
   background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
   background-image: -moz-linear-gradient(top, #3498db, #2980b9);
@@ -256,14 +256,13 @@
   -webkit-border-radius: 7;
   -moz-border-radius: 7;
   border-radius: 7px;
-  color: #ffffff !important;
-  font-size: 18px;
+  color: #ffffff !important; 
   font-weight: bold;
   padding: 2px 6px 2px 7px;
   text-decoration: none;
 }
 
-.compilacaoedit  .edit > .actions a.btn-action:hover {
+.compilacaoedit  .edit > .actions a.btn-inserts:hover {
   background: #3cb0fd;
   background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
   background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
@@ -310,9 +309,8 @@
 }
 
 
-.compilacaoedit .articulacao{ 
-    
-    margin-left: -0.8em; 
+.compilacaoedit .articulacao{
+    margin-left: -0.8em;
     margin-top: 2em;
 }
 
@@ -329,15 +327,8 @@
     display: none;
 }
 .compilacaoedit .editselected > .editdi {
-    padding: 1em;
+    padding-top: 1em;
 }
-
-.compilacaoedit .editdi_form {
-    display: block;
-    clear: both;
-    padding: 1em;
-}
-
 
 .compilacaoedit .editselected > .label_pai {
 	position: absolute;
@@ -350,9 +341,8 @@
 }
 
 .compilacaoedit  .editselected {	
-	border: 2.1em solid #eee;
-    padding: 0 0 1em 0;
-    padding-bottom: 0em;
+	border: 2.2em solid #eee;
+    padding: 1em; 
 	margin: 1em -2em 1em -2.8em;
 	z-index: 1;
 	background-color: #fff !important;
@@ -364,61 +354,56 @@
 }
 
 
-.compilacaoedit .actions_head {
+.compilacaoedit .actions_inserts {
 	color: #fff; 
-	position: relative;
-	opacity: 0;
-	transition: all 0.4s ease-in-out;
-	border-top: 1px solid #2980b9;
-	z-index: 9;
-	margin: 0em; 
+	position: relative; 
+	transition: all 0.4s ease-in-out;  
+	margin: 0em;  
 }
- 
-.compilacaoedit .actions_head ul {
+
+
+.compilacaoedit .actions_inserts ul {
 	margin-left: 0;
 	}
 	
-.compilacaoedit .actions_head li {
+.compilacaoedit .actions_inserts li {
     font-weight: normal !important;
     display: inline-block;
     position: relative;
-    white-space:nowrap; 
-    max-width:something;
+    white-space:nowrap;  
     }
-.compilacaoedit .actions_head > li.left {
+.compilacaoedit .actions_inserts > li.left {
     border-right: 1px solid white;
     }
     
     
-.compilacaoedit .actions_head > li.right { 
-    width: 3em;
+.compilacaoedit .actions_inserts > li.right { 
+    min-width: 2em;
     text-align: center; 
 }
-    
-.compilacaoedit .actions_head > li.right:nth-child(3n + 1) { 
-    clear:right;
-}
-    
-    
-	
-.compilacaoedit .actions_head li ul {
+
+
+.compilacaoedit .actions_inserts li ul {
 	display: none;
 	position:absolute;
 	top: auto;
 	}
 	
-.compilacaoedit .actions_head li:hover ul{
+.compilacaoedit .actions_inserts li:hover ul{
 	display: block; 
 	}
 
-.compilacaoedit .actions_head li:hover ul li{
+.compilacaoedit .actions_inserts li:hover ul li{
 	display: block;
 	background: #3498db;
 	background-image: none;
 }
- 
 
-.compilacaoedit  .actions_head a.btn-action {
+.compilacaoedit .actions_inserts { 
+    z-index: 99; 
+}
+
+.compilacaoedit a.btn-inserts {
   background: #3498db;
   background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
   background-image: -moz-linear-gradient(top, #3498db, #2980b9);
@@ -430,12 +415,15 @@
   border-radius: 0px;
   color: #ffffff !important;
   font-size: 0.8em; 
-  padding: 1px 6px 2px 7px;
+  padding: 0 6px 0 7px;
   text-decoration: none;
-  display: block;
+  display: block; 
+  line-height: 1.7em;
+  min-height: 1.7em;
+  margin: 0;
 }
 
-.compilacaoedit .actions_head a.btn-action:hover {
+.compilacaoedit a.btn-inserts:hover {
   background: #3cb0fd;
   background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
   background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
@@ -443,22 +431,114 @@
   background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
   background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
   text-decoration: none;
-}
-
-.compilacaoedit .actions_head > li > a.btn-action {
-  font-weight: bold;
-  font-size: 1em;
-  
-}
-
-.compilacaoedit .actions_head { 
-	z-index: 99;
-	opacity: 0.5;
-}
-
-.compilacaoedit .actions_head:hover {
-    opacity: 1;
 } 
+
+.compilacaoedit .actions_inserts > li >a.btn-inserts {
+  line-height: 2.2em; 
+  min-height: 2.2em;
+  font-size: 1em;
+  padding: 0 1em;
+    }
+    
+
+
+
+
+.compilacaoedit .editdi_form input[type=submit] { 
+    margin: 0; 
+    padding: 0.35em 2em;
+} 
+ 
+.compilacaoedit .editdi_form a.alert {
+    background-image: none;
+    background-color: #A70808 !important;
+    color: #c99 !important;
+    font-weight: normal !important;
+    margin: 0; 
+    padding: 0.35em 2em;
+}
+
+.compilacaoedit .editdi_form a.alert:hover { 
+    background-image: none;
+    background-color: #c70808 !important;
+    color: #ecc !important;
+}
+
+
+
+ 
+.compilacaoedit .actions_head {
+    margin: -2.2em -2.2em 0 0;
+	position: absolute; 
+	top: 0; 
+	right: 0;
+    list-style: none;
+    display: table; 
+    z-index: 98;
+}
+
+.compilacaoedit .actions_head > li{  
+  float: right;
+}
+ 
+
+.compilacaoedit a.btn-action {
+    display: table-cell;
+    font-size: 1em;
+    background-image: none;
+    background-color: transparent !important;
+    color: #615151 !important;
+    vertical-align: middle;
+    line-height: 2.2em;
+    min-width: 2.2em;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.compilacaoedit a.btn-action:hover {
+    background-color: rgba(0,0,0,0.1) !important;
+    text-shadow: 0 0 5px #777;
+    color: #fff !important;
+}
+
+.compilacaoedit .actions_right {
+    margin: 0 -2.2em 0 0;
+    position: absolute; 
+    top: 0; 
+    right: 0;
+    list-style: none;
+    display: table; 
+    z-index: 9;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+.compilacaoedit .editdi_form {
+    display: block;
+    clear: both;
+    margin: -1em; 
+}
+
+.compilacaoedit .editdi_form textarea {
+    margin: 0;
+    resize: vertical;
+    min-height: 12.5em;
+}
 
 .compilacaoedit .actions_insert {
     opacity: 1;  
@@ -471,21 +551,15 @@
 }
 
 .compilacaoedit .actions_insert > li.right{
-    opacity: 1;
-    width: 3em;
-    text-align: center; 
-}
-.compilacaoedit .actions_insert > li.right:nth-child(3n + 1) { 
-    clear:right;
-}
-    
-
+    opacity: 1; 
+    text-align: center;
+} 
 .compilacaoedit .actions_insert > li.left:nth-child(1),
 .compilacaoedit .actions_insert > li.left:nth-child(2) {
     opacity: 1;
     display: block;
-    min-width: 30%; 
-    max-width: 30%; 
+    min-width: 33%; 
+    max-width: 33%; 
 }
 .compilacaoedit .actions_insert li.left:nth-child(1) ul,
 .compilacaoedit .actions_insert li.left:nth-child(2) ul {
@@ -518,17 +592,14 @@
 	display: block;
     height: auto !important; 
 }
- 
+
 .clear {
 	 clear:both;
-	 height: 0;
-	 width: 0;
 }
 
-#tinymce .mceContentBody p {
-   font-family: "Open Sans" "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif !important; 
+.mce-container {
+    border-color: #ccc !important;
 }
-
 
 @media only screen and (max-width: 40.0625em) {
 
