@@ -507,7 +507,7 @@ class ProposicaoReceberView(TemplateView):
     template_name = "protocoloadm/proposicao_receber.html"
 
 
-class ProposicoesNaoRecebidasView(ListView):
+class ProposicoesNaoRecebidasView(TemplateView):
     template_name = "protocoloadm/proposicoes_naorecebidas.html"
     model = Proposicao
     paginate_by = 10
@@ -516,7 +516,7 @@ class ProposicoesNaoRecebidasView(ListView):
         return Proposicao.objects.filter(data_envio__isnull=False, status='E')
 
 
-class ProposicoesNaoIncorporadasView(ListView):
+class ProposicoesNaoIncorporadasView(TemplateView):
     template_name = "protocoloadm/proposicoes_naoincorporadas.html"
     model = Proposicao
     paginate_by = 10
@@ -536,3 +536,58 @@ class ProposicoesIncorporadasView(ListView):
         return Proposicao.objects.filter(data_envio__isnull=False,
                                          data_recebimento__isnull=False,
                                          status='I')
+
+# class PesquisaDocForm(forms.Form):
+
+
+class PesquisarDocumentoAdministrativo(TemplateView):
+    template_name = "protocoloadm/pesquisa_doc_adm.html"
+
+    def get_tipos_doc(self):
+        return TipoDocumentoAdministrativo.objects.all()
+
+    def post(self, request, *args, **kwargs):
+
+        if request.POST['tipo_documento']:
+            kwargs['tipo_documento'] = request.POST['tipo_documento']
+
+        if request.POST['numero']:
+            kwargs['numero'] = request.POST['numero']
+
+        if request.POST['ano']:
+            kwargs['ano'] = request.POST['ano']
+
+        if request.POST['numero_protocolo']:
+            kwargs['numero_protocolo'] = request.POST['numero_protocolo']
+
+        if request.POST['periodo_inicial']:
+            kwargs['periodo_inicial'] = request.POST['periodo_inicial']
+
+        if request.POST['periodo_final']:
+            kwargs['periodo_final'] = request.POST['periodo_final']
+
+        if request.POST['interessado']:
+            kwargs['interessado'] = request.POST['interessado']
+
+        if request.POST['assunto']:
+            kwargs['assunto'] = request.POST['assunto']
+
+        if request.POST['tramitacao']:
+            if request.POST['tramitacao'] == 1:
+                kwargs['tramitacao'] = True
+            elif request.POST['tramitacao'] == 0:
+                kwargs['tramitacao'] = False
+            else:
+                kwargs['tramitacao'] = request.POST['tramitacao']
+
+        # if request.POST['localizacao']:
+        #     kwargs['localizacao'] = request.POST['localizacao']
+
+        # if request.POST['situacao']:
+        #     kwargs['situacao'] = request.POST['situacao']
+
+        doc = DocumentoAdministrativo.objects.filter(**kwargs)
+
+        return self.render_to_response(
+            {'documentos': doc}
+        )
