@@ -447,6 +447,16 @@ class Proposicao(models.Model):
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
 
+    # ind_enviado and ind_devolvido collapsed as char field (status)
+
+    status = models.CharField(blank=True,
+                              null=True,
+                              max_length = 1,
+                              choices=(('E', 'Enviada'),
+                                       ('D', 'Devolvida'),
+                                       ('I', 'Incorporada')),
+                              verbose_name=_('Status Proposição'))
+
     # mutually exclusive (depend on tipo.materia_ou_documento)
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
