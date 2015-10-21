@@ -513,7 +513,7 @@ class ProposicoesNaoRecebidasView(TemplateView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Proposicao.objects.filter(data_envio__isnull=False, status='E')
+        return Proposicao.objects.filter(data_envio__isnull=False, status='E')                
 
 
 class ProposicoesNaoIncorporadasView(TemplateView):
