@@ -389,13 +389,13 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
         else:
             d_base = Dispositivo.objects.get(pk=self.pk_add)
 
-        result = [{'tipo_insert': 'Inserir Depois',
+        result = [{'tipo_insert': '&#8631;&nbsp; Inserir Depois',
                    'action': 'add_next',
                    'itens': []},
-                  {'tipo_insert': 'TODO: Inserir Dentro',
+                  {'tipo_insert': '&#8690;&nbsp; TODO: Inserir Dentro',
                    'action': 'add_in',
                    'itens': []},
-                  {'tipo_insert': 'TODO: Inserir Antes',
+                  {'tipo_insert': '&#8630;&nbsp; TODO: Inserir Antes',
                    'action': 'add_prior',
                    'itens': []}
                   ]
