@@ -1,4 +1,4 @@
-{% extends "protocoloadm/documento_detail.html" %}
+{% extends "protocoloadm/pesquisa_documento_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
@@ -12,7 +12,7 @@
 				{% for d in documentos %}
 					<tr>
 						<td>
-							<a href="#"><b>{{ d.tipo.sigla }} {{ d.numero }}/{{ d.ano }} - {{ d.tipo }}</b></a> <br />
+							<a href="{% url 'detail_doc_adm' d.id %}"><b>{{ d.tipo.sigla }} {{ d.numero }}/{{ d.ano }} - {{ d.tipo }}</b></a> <br />
 							{{ d.assunto }} <br />
 							<b>Interessado:</b> {{ d.interessado }}
 						</td>
@@ -23,10 +23,14 @@
 			<form method="POST">
 				{% csrf_token %}
 
+				{% if error %}
+					<h5 align="center"><font color="#FF0000">{{ error }}</font></h5>
+				{% endif %}
+
 				Tipo Documento: 
 				<select name="tipo_documento">
 					<option value=""> --- </option>
-					{% for tipo in view.get_tipos_doc %}
+					{% for tipo in tipos_doc %}
 						<option value="{{tipo.id}}">{{tipo.descricao}}</option>
 					{%  endfor %}
 				</select> <br>
@@ -47,11 +51,11 @@
 				<!-- TODO
 				Localização Atual:
 				<select name="localizacao">
-					<option value=""> --- </option>
+					<option value=""> - </option>
 				</select> <br>
 				Situação:
 				<select name="situacao">
-					<option value=""> --- </option>
+					<option value=""> - </option>
 				</select> <br><br>
 				-->
 

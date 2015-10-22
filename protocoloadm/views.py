@@ -3,13 +3,14 @@ from re import sub
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
@@ -546,10 +547,15 @@ class PesquisarDocumentoAdministrativo(TemplateView):
     def get_tipos_doc(self):
         return TipoDocumentoAdministrativo.objects.all()
 
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response(
+            {"tipos_doc": TipoDocumentoAdministrativo.objects.all()}
+        )
+
     def post(self, request, *args, **kwargs):
 
         if request.POST['tipo_documento']:
-            kwargs['tipo_documento'] = request.POST['tipo_documento']
+            kwargs['tipo_id'] = request.POST['tipo_documento']
 
         if request.POST['numero']:
             kwargs['numero'] = request.POST['numero']
@@ -580,6 +586,7 @@ class PesquisarDocumentoAdministrativo(TemplateView):
             else:
                 kwargs['tramitacao'] = request.POST['tramitacao']
 
+        # TODO
         # if request.POST['localizacao']:
         #     kwargs['localizacao'] = request.POST['localizacao']
 
@@ -588,6 +595,73 @@ class PesquisarDocumentoAdministrativo(TemplateView):
 
         doc = DocumentoAdministrativo.objects.filter(**kwargs)
 
-        return self.render_to_response(
-            {'documentos': doc}
-        )
+        if len(doc) == 0:
+            return self.render_to_response(
+                {'error': 'Nenhum resultado encontrado!',
+                    "tipos_doc": TipoDocumentoAdministrativo.objects.all()}
+            )
+        else:
+            return self.render_to_response(
+                {'documentos': doc}
+            )
+
+
+class DetailDocumentoAdministrativo(DetailView):
+    template_name = "protocoloadm/detail_doc_adm.html"
+
+    def get_tipos_doc(self):
+        return TipoDocumentoAdministrativo.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        doc = DocumentoAdministrativo.objects.get(id=kwargs['pk'])
+        return self.render_to_response({
+            'doc': doc,
+            'tipos_doc': TipoDocumentoAdministrativo.objects.all()
+        })
+
+    def post(self, request, *args, **kwargs):
+
+        if 'Salvar' in request.POST:
+            documento = DocumentoAdministrativo.objects.get(id=kwargs['pk'])
+
+            if request.POST['numero']:
+                documento.numero = request.POST['numero']
+
+            if request.POST['ano']:
+                documento.ano = request.POST['ano']
+
+            if request.POST['data']:
+                documento.data = datetime.strptime(
+                    request.POST['data'], "%d/%m/%Y")
+
+            if request.POST['numero_protocolo']:
+                documento.numero_protocolo = request.POST['numero_protocolo']
+
+            if request.POST['assunto']:
+                documento.assunto = request.POST['assunto']
+
+            if request.POST['interessado']:
+                documento.interessado = request.POST['interessado']
+
+            if request.POST['tramitacao']:
+                documento.tramitacao = request.POST['tramitacao']
+
+            if request.POST['dias_prazo']:
+                documento.dias_prazo = request.POST['dias_prazo']
+
+            if request.POST['data_fim_prazo']:
+                documento.data_fim_prazo = datetime.strptime(
+                    request.POST['data_fim_prazo'], "%d/%m/%Y")
+
+            if request.POST['observacao']:
+                documento.observacao = request.POST['observacao']
+
+            documento.save()
+        elif 'Excluir' in request.POST:
+            DocumentoAdministrativo.objects.get(
+                id=kwargs['pk']).delete()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('pesq_doc_adm')
