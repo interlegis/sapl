@@ -24,37 +24,7 @@
 					</tr>
 				{% endfor %}
 			</table>
-			{% if is_paginated %}
-			  <nav class="pagination-centered">
-			    <ul class="pagination">
-			      {% if page_obj.has_previous %}
-			        <li>
-			          <a href="?page={{ page_obj.previous_page_number }}">
-			            <span class="arrow">&laquo;</span>
-			          </a>
-			        </li>
-			      {% else %}
-			        <li class="arrow unavailable"><a href="">&laquo;</a></li>
-			      {% endif %}
-
-			      {% for page in paginator.page_range %}
-			        <li {% if page == page_obj.number %}class="active current"{% endif %}>
-			          <a href="?page={{ page }}">{{ page }}</a>
-			        </li>
-			      {% endfor %}
-
-			      {% if page_obj.has_next %}
-			        <li>
-			          <a href="?page={{ page_obj.next_page_number }}">
-			            <span class="arrow">&raquo;</span>
-			          </a>
-			        </li>
-			      {% else %}
-			        <li class="arrow unavailable"><a href="">&raquo;</a></li>
-			      {% endif %}
-			    </ul>
-			  </nav>
-			{% endif %}
+			{% include "paginacao.html" %}
 		</form>
 	{% else %}
 		<form method="post">
