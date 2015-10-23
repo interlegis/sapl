@@ -508,21 +508,23 @@ class ProposicaoReceberView(TemplateView):
     template_name = "protocoloadm/proposicao_receber.html"
 
 
-class ProposicoesNaoRecebidasView(TemplateView):
+class ProposicoesNaoRecebidasView(ListView):
     template_name = "protocoloadm/proposicoes_naorecebidas.html"
     model = Proposicao
     paginate_by = 10
 
     def get_queryset(self):
-        return Proposicao.objects.filter(data_envio__isnull=False, status='E')                
+        return Proposicao.objects.filter(data_envio__isnull=False,
+                                         status='E')
 
 
-class ProposicoesNaoIncorporadasView(TemplateView):
+class ProposicoesNaoIncorporadasView(ListView):
     template_name = "protocoloadm/proposicoes_naoincorporadas.html"
     model = Proposicao
     paginate_by = 10
 
     def get_queryset(self):
+        print('heyt')
         return Proposicao.objects.filter(data_envio__isnull=False,
                                          data_devolucao__isnull=False,
                                          status='D')
