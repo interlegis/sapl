@@ -1,10 +1,10 @@
 from django.conf.urls import include, url
+
 from protocoloadm.views import (AnularProtocoloAdmView,
                                 DetailDocumentoAdministrativo,
                                 DocumentoAcessorioAdministrativoView,
                                 PesquisarDocumentoAdministrativo,
-                                ProposicaoReceberView,
-                                ProposicaoView,
+                                ProposicaoReceberView, ProposicaoView,
                                 ProposicoesIncorporadasView,
                                 ProposicoesNaoIncorporadasView,
                                 ProposicoesNaoRecebidasView,
