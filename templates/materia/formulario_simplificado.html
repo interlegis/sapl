@@ -5,7 +5,7 @@
 {% block detail_content %}
 	<form method="POST">
 		{% csrf_token %}
-		{{ form.as_p }}
+		{% crispy form %}
 	</br>
 	<input type="submit" name="salvar_simplificado" value="Salvar" class="button primary" />
 	</form>
