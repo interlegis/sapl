@@ -16,6 +16,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
+from django.views.generic import FormView
+from django.views.generic import DetailView
+from vanilla import GenericView
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
 from vanilla import GenericView
@@ -539,6 +544,52 @@ class ProposicoesIncorporadasView(ListView):
         return Proposicao.objects.filter(data_envio__isnull=False,
                                          data_recebimento__isnull=False,
                                          status='I')
+
+class ProposicaoSimpleForm(forms.Form):
+
+    tipo = forms.CharField(label='Tipo',
+                                widget = forms.TextInput(
+                                  attrs={'readonly':'readonly'}))
+    materia = forms.CharField(label='Matéria',
+                                widget = forms.TextInput(
+                                  attrs={'readonly':'readonly'}))    
+    data_envio = forms.DateField(label='Data Envio',
+      widget=forms.DateInput(format = '%d/%m/%Y', attrs={'readonly':'readonly'}))
+    data_recebimento = forms.DateField(label='Data Recebimento',
+      widget=forms.DateInput(format = '%d/%m/%Y', attrs={'readonly':'readonly'}))
+
+    descricao = forms.CharField(label='Descrição',
+                                widget = forms.TextInput(
+                                  attrs={'readonly':'readonly'}))
+
+    numero_proposicao = forms.CharField(label='Número',
+                                widget = forms.TextInput(
+                                  attrs={'readonly':'readonly'}))
+    # ano = forms.CharField(label='Ano',
+    #                             widget = forms.TextInput(
+    #                               attrs={'readonly':'readonly'}))
+
+
+class ProposicaoView(DetailView):
+    template_name = "protocoloadm/proposicao_view.html"
+    model = Proposicao    
+
+    def get(self, request, *args, **kwargs):
+      proposicao = Proposicao.objects.get(id=kwargs['pk'])
+      data = {# 'ano': proposicao.ano, # TODO: FIX
+              'tipo': proposicao.tipo.descricao, #TODO: FIX
+              'materia': proposicao.materia,
+              'numero_proposicao': proposicao.numero_proposicao,
+              'data_envio': proposicao.data_envio,
+              'data_recebimento': proposicao.data_recebimento,
+              'descricao': proposicao.descricao}
+      form = ProposicaoSimpleForm(initial=data)
+      return self.render_to_response({'form': form})
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoView, self).get_context_data(**kwargs)
+        context['form'] = ProposicaoSimpleForm
+        return context      
 
 # class PesquisaDocForm(forms.Form):
 

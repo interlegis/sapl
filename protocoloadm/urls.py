@@ -4,6 +4,7 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 DocumentoAcessorioAdministrativoView,
                                 PesquisarDocumentoAdministrativo,
                                 ProposicaoReceberView,
+                                ProposicaoView,
                                 ProposicoesIncorporadasView,
                                 ProposicoesNaoIncorporadasView,
                                 ProposicoesNaoRecebidasView,
@@ -62,4 +63,6 @@ urlpatterns = [
     url(r'^protocoloadm/proposicoes-incorporadas',
         ProposicoesIncorporadasView.as_view(),
         name='proposicoes_incorporadas'),
+    url(r'^protocoloadm/(?P<pk>\d+)/proposicao',
+        ProposicaoView.as_view(), name='proposicao_view')
 ]
