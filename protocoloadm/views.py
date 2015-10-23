@@ -2,7 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, HTML
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -16,14 +16,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
-from django.views.generic import FormView
-from django.views.generic import DetailView
 from vanilla import GenericView
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field
+
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -523,6 +519,7 @@ class ProposicoesNaoRecebidasView(ListView):
     def get_queryset(self):
         return Proposicao.objects.filter(data_envio__isnull=False, status='E')
 
+
 class ProposicoesNaoIncorporadasView(ListView):
     template_name = "protocoloadm/proposicoes_naoincorporadas.html"
     model = Proposicao
@@ -545,26 +542,31 @@ class ProposicoesIncorporadasView(ListView):
                                          data_recebimento__isnull=False,
                                          status='I')
 
+
 class ProposicaoSimpleForm(forms.Form):
 
     tipo = forms.CharField(label='Tipo',
-                                widget = forms.TextInput(
-                                  attrs={'readonly':'readonly'}))
+                           widget=forms.TextInput(
+                               attrs={'readonly': 'readonly'}))
     materia = forms.CharField(label='Matéria',
-                                widget = forms.TextInput(
-                                  attrs={'readonly':'readonly'}))    
+                              widget=forms.TextInput(
+                                  attrs={'readonly': 'readonly'}))
     data_envio = forms.DateField(label='Data Envio',
-      widget=forms.DateInput(format = '%d/%m/%Y', attrs={'readonly':'readonly'}))
+                                 widget=forms.DateInput(
+                                  format='%d/%m/%Y',
+                                  attrs={'readonly': 'readonly'}))
     data_recebimento = forms.DateField(label='Data Recebimento',
-      widget=forms.DateInput(format = '%d/%m/%Y', attrs={'readonly':'readonly'}))
+                                       widget=forms.DateInput(
+                                        format='%d/%m/%Y',
+                                        attrs={'readonly': 'readonly'}))
 
     descricao = forms.CharField(label='Descrição',
-                                widget = forms.TextInput(
-                                  attrs={'readonly':'readonly'}))
+                                widget=forms.TextInput(
+                                    attrs={'readonly': 'readonly'}))
 
     numero_proposicao = forms.CharField(label='Número',
-                                widget = forms.TextInput(
-                                  attrs={'readonly':'readonly'}))
+                                        widget=forms.TextInput(
+                                            attrs={'readonly': 'readonly'}))
     # ano = forms.CharField(label='Ano',
     #                             widget = forms.TextInput(
     #                               attrs={'readonly':'readonly'}))
@@ -572,24 +574,24 @@ class ProposicaoSimpleForm(forms.Form):
 
 class ProposicaoView(DetailView):
     template_name = "protocoloadm/proposicao_view.html"
-    model = Proposicao    
+    model = Proposicao
 
     def get(self, request, *args, **kwargs):
-      proposicao = Proposicao.objects.get(id=kwargs['pk'])
-      data = {# 'ano': proposicao.ano, # TODO: FIX
-              'tipo': proposicao.tipo.descricao, #TODO: FIX
-              'materia': proposicao.materia,
-              'numero_proposicao': proposicao.numero_proposicao,
-              'data_envio': proposicao.data_envio,
-              'data_recebimento': proposicao.data_recebimento,
-              'descricao': proposicao.descricao}
-      form = ProposicaoSimpleForm(initial=data)
-      return self.render_to_response({'form': form})
+        proposicao = Proposicao.objects.get(id=kwargs['pk'])
+        data = {  # 'ano': proposicao.ano, # TODO: FIX
+            'tipo': proposicao.tipo.descricao,  # TODO: FIX
+            'materia': proposicao.materia,
+            'numero_proposicao': proposicao.numero_proposicao,
+            'data_envio': proposicao.data_envio,
+            'data_recebimento': proposicao.data_recebimento,
+            'descricao': proposicao.descricao}
+        form = ProposicaoSimpleForm(initial=data)
+        return self.render_to_response({'form': form})
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoView, self).get_context_data(**kwargs)
         context['form'] = ProposicaoSimpleForm
-        return context      
+        return context
 
 # class PesquisaDocForm(forms.Form):
 
@@ -722,8 +724,10 @@ class DetailDocumentoAdministrativo(DetailView):
 
 class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
 
-    data = forms.DateField(label=u'Data', input_formats=['%d/%m/%Y'],
-        required=False, widget=forms.DateInput(format='%d/%m/%Y'))
+    data = forms.DateField(label=u'Data',
+                           input_formats=['%d/%m/%Y'],
+                           required=False,
+                           widget=forms.DateInput(format='%d/%m/%Y'))
 
     class Meta:
         model = DocumentoAcessorioAdministrativo
@@ -748,11 +752,11 @@ class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
                 ButtonHolder(
                     Submit('submit', 'Salvar',
                            css_class='button primary')
-                    )
-                ),
-            )
-        super(ModelFormDocumentoAcessorioAdministrativo, self).__init__(*args, **kwargs)
-
+                )
+            ),
+        )
+        super(ModelFormDocumentoAcessorioAdministrativo,
+              self).__init__(*args, **kwargs)
 
 
 class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
@@ -792,10 +796,11 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             print(form['data'])
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
             return self.form_invalid(form)
             # return HttpResponseRedirect(self.get_success_url())
-            
+
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('doc_ace_adm',kwargs={'pk': pk})
+        return reverse('doc_ace_adm', kwargs={'pk': pk})
