@@ -1,22 +1,24 @@
 from datetime import date, datetime
 from re import sub
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, HTML
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.db.models import Max
+from django.forms import ModelForm
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, DetailView
+from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -514,9 +516,7 @@ class ProposicoesNaoRecebidasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Proposicao.objects.filter(data_envio__isnull=False,
-                                         status='E')
-
+        return Proposicao.objects.filter(data_envio__isnull=False, status='E')
 
 class ProposicoesNaoIncorporadasView(ListView):
     template_name = "protocoloadm/proposicoes_naoincorporadas.html"
@@ -667,3 +667,84 @@ class DetailDocumentoAdministrativo(DetailView):
 
     def get_success_url(self):
         return reverse('pesq_doc_adm')
+
+
+class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
+
+    data = forms.DateField(label=u'Data', input_formats=['%d/%m/%Y'],
+        required=False, widget=forms.DateInput(format='%d/%m/%Y'))
+
+    class Meta:
+        model = DocumentoAcessorioAdministrativo
+        fields = ['tipo',
+                  'nome',
+                  'data',
+                  'autor',
+                  'arquivo',
+                  'assunto']
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Incluir Documento Acessório',
+                'tipo',
+                'nome',
+                'data',
+                'autor',
+                'arquivo',
+                'assunto',
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                    )
+                ),
+            )
+        super(ModelFormDocumentoAcessorioAdministrativo, self).__init__(*args, **kwargs)
+
+
+
+class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
+    template_name = "protocoloadm/documento_acessorio_administrativo.html"
+
+    def get(self, request, *args, **kwargs):
+        form = ModelFormDocumentoAcessorioAdministrativo()
+        doc = DocumentoAdministrativo.objects.get(
+            id=kwargs['pk'])
+        doc_ace_null = ''
+        try:
+            doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
+                documento_id=kwargs['pk'])
+        except ObjectDoesNotExist:
+            doc_ace_null = 'Nenhum documento acessório \
+                 cadastrado para este processo.'
+
+        return self.render_to_response({'doc': doc,
+                                        'doc_ace': doc_acessorio,
+                                        'doc_ace_null': doc_ace_null,
+                                        'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = ModelFormDocumentoAcessorioAdministrativo(request.POST)
+        if form.is_valid():
+            doc_acessorio = DocumentoAcessorioAdministrativo()
+            doc_acessorio.tipo = form.cleaned_data['tipo']
+            doc_acessorio.nome = form.cleaned_data['nome']
+            doc_acessorio.data = form.cleaned_data['data']
+            doc_acessorio.autor = form.cleaned_data['autor']
+            doc_acessorio.assunto = form.cleaned_data['assunto']
+            doc_acessorio.arquivo = form.cleaned_data['arquivo']
+            doc_acessorio.documento = DocumentoAdministrativo.objects.get(
+                id=kwargs['pk'])
+            doc_acessorio.save()
+
+            return self.form_valid(form)
+        else:
+            print(form['data'])
+            import ipdb; ipdb.set_trace()
+            return self.form_invalid(form)
+            # return HttpResponseRedirect(self.get_success_url())
+            
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('doc_ace_adm',kwargs={'pk': pk})

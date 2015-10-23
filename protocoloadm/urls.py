@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 from protocoloadm.views import (AnularProtocoloAdmView,
                                 DetailDocumentoAdministrativo,
+                                DocumentoAcessorioAdministrativoView,
                                 PesquisarDocumentoAdministrativo,
                                 ProposicaoReceberView,
                                 ProposicoesIncorporadasView,
@@ -46,6 +47,8 @@ urlpatterns = [
         PesquisarDocumentoAdministrativo.as_view(), name='pesq_doc_adm'),
     url(r'^protocoloadm/doc-adm/(?P<pk>\d+)',
         DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
+    url(r'^protocoloadm/doc-ace-adm/(?P<pk>\d+)',
+        DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
 
     # TODO: move to Proposicoes app
     url(r'^protocoloadm/proposicao-receber',
