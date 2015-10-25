@@ -1,31 +1,39 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
+{% load staticfiles %}
+{% load sass_tags %}
+
+{% block head_content %}{{block.super}}
+      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+      <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+{% endblock %}
+
 
 {% block title%}
     <h1>{{ view.get_norma }}</h1>
 {% endblock %}
 
-{% block base_content %}  
+{% block base_content %}
 <script type="text/javascript">
 
 $( window ).scroll(function() {
     if (window.pageYOffset <= 180)
         $( "section.vigencias" ).removeClass("fixed");
     else if (!$( "section.vigencias" ).hasClass("fixed"))
-        $( "section.vigencias" ).addClass("fixed"); 
+        $( "section.vigencias" ).addClass("fixed");
 });
 
 
 $(window).load(function() {
     setTimeout(function() {
-	    height = $( "section.vigencias" ).height(); 
+	    height = $( "section.vigencias" ).height();
         $('html, body').animate({
-        scrollTop:  window.pageYOffset - height - 36 
-        }, 300); 
+        scrollTop:  window.pageYOffset - height - 37
+        }, 300);
     }, 100);
 });
- 
+
 function textoMultiVigente(item) {
 	$(".compilacao .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
@@ -44,11 +52,11 @@ function textoVigente(item, link) {
 $(document).ready(function() {
    $("#btn_font_menos").click(function() {
         $(".dispositivo").css("font-size", "-=1");
-   
+
    });
    $("#btn_font_mais").click(function() {
         $(".dispositivo").css("font-size", "+=1");
-   
+
    });
 
 });
@@ -56,7 +64,7 @@ $(document).ready(function() {
 
 </script>
 
-<div class="compilacao">  
+<div class="cp">
 
 
 <div style="float: right; clear:right;">
@@ -65,11 +73,11 @@ $(document).ready(function() {
 </div>
 
 			{% for key, values in view.get_vigencias.items %}
-				{% if forloop.first %}				
+				{% if forloop.first %}
 <section class="vigencias">
 	<nav class="top-bar" data-topbar="" role="navigation">
 		<section class="top-bar-section">
-			<ul class="nav left"> 
+			<ul class="nav left">
 				{%endif%}
 				<li class="nav__item has-dropdown">
 					{% if forloop.first %}
@@ -82,11 +90,11 @@ $(document).ready(function() {
 						{% endfor %}
 					{% else %}
 						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
-						
-						
+
+
 					{%endif%}
 
-					{% if not forloop.first and not forloop.last %} 
+					{% if not forloop.first and not forloop.last %}
 						<ul class="nav__sub-nav dropdown">
 							{% for dispositivo in values %}
 								<li class="nav__sub-item">
@@ -100,10 +108,10 @@ $(document).ready(function() {
 				</li>
 				{% if forloop.last %}
 			</ul>
-			<ul class="nav left tipo-vigencias"> 
-				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li> 
-				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li> 
-				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li> 
+			<ul class="nav left tipo-vigencias">
+				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li>
+				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li>
+				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li>
 			</ul>
 		</section>
 	</nav>

@@ -42,8 +42,7 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 
 @register.simple_tag
 def nota_automatica(dispositivo):
-    if dispositivo.norma_publicada is not None and \
-            dispositivo.tipo_dispositivo.class_css != 'artigo':
+    if dispositivo.norma_publicada is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
             return 'Revogado pelo %s.' % d
@@ -92,6 +91,26 @@ def render_actions_head(view, d_atual):
 
     return False
 
+@register.filter
+def short_string(str, length):
+    if len(str) > length:
+        return str[:length]+'...'
+    else:
+        return str
+
+@register.filter
+def nomenclatura(d):
+    result = ''
+    if d.rotulo != '':
+        if d.tipo_dispositivo.rotulo_prefixo_texto != '':
+            result = d.rotulo
+        else:
+            result = '(' + d.tipo_dispositivo.nome + ' ' + \
+                d.rotulo + ')'
+    else:
+        result = '(' + d.tipo_dispositivo.nome + \
+            d.rotulo_padrao() + ')'
+    return result
 
 @register.simple_tag
 def nomenclatura_heranca(d):

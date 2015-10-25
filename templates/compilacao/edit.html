@@ -1,24 +1,25 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
-{% load staticfiles %} 
+{% load staticfiles %}
 {% load sass_tags %}
 
 {% block head_content %}{{block.super}}
+      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
       <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
 {% endblock %}
+
 
 {% block title%}
   <h1><b>Edição:</b> {{ view.get_norma }} - <i>{% trans 'Texto Multivigente' %}</i></h1>
 {% endblock %}
 
-{% block base_content %}  
+{% block base_content %}
 
 <div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
 
-<div class="compilacaoedit">
+<div class="cpe">
     {% include 'compilacao/edit_bloco.html'%}
 </div>
 
 {% endblock base_content %}
-
