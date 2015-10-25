@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import F
@@ -694,14 +696,20 @@ class Dispositivo(BaseModel):
             filho.save()
             filho.organizar_niveis()
 
-    def get_parents(self):
+    def get_parents(self, ordem='desc'):
         dp = self
         p = []
         while dp.dispositivo_pai is not None:
             dp = dp.dispositivo_pai
-            p.append(dp)
+            if ordem == 'desc':
+                p.append(dp)
+            else:
+                p.insert(0, dp)
 
         return p
+
+    def get_parents_asc(self):
+        return self.get_parents(ordem='asc')
 
     def recalcular_ordem(self):
         try:
@@ -714,6 +722,25 @@ class Dispositivo(BaseModel):
             d.ordem = ordem
             d.save()
             ordem -= 1000
+
+    @staticmethod
+    def init_with_base(dispositivo_base, tipo_base):
+        dp = Dispositivo()
+
+        dp.tipo_dispositivo = tipo_base
+
+        dp.set_numero_completo(
+            dispositivo_base.get_numero_completo())
+        dp.nivel = dispositivo_base.nivel
+        dp.texto = ''
+        dp.norma = dispositivo_base.norma
+        dp.dispositivo_pai = dispositivo_base.dispositivo_pai
+        dp.inicio_eficacia = dispositivo_base.inicio_eficacia
+        dp.inicio_vigencia = dispositivo_base.inicio_vigencia
+        dp.publicacao = dispositivo_base.publicacao
+        dp.timestamp = datetime.now()
+
+        return dp
 
 
 class Vide(models.Model):

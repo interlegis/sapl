@@ -1,3 +1,5 @@
+
+
 from collections import OrderedDict
 from datetime import timedelta, datetime
 from os.path import sys
@@ -389,13 +391,16 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
         else:
             d_base = Dispositivo.objects.get(pk=self.pk_add)
 
-        result = [{'tipo_insert': '&#8631;&nbsp; Inserir Depois',
+        result = [{'tipo_insert': 'Inserir Depois',
+                   'icone': '&#8631;&nbsp;',
                    'action': 'add_next',
                    'itens': []},
-                  {'tipo_insert': '&#8690;&nbsp; TODO: Inserir Dentro',
+                  {'tipo_insert': 'Inserir Dentro',
+                   'icone': '&#8690;&nbsp;',
                    'action': 'add_in',
                    'itens': []},
-                  {'tipo_insert': '&#8630;&nbsp; TODO: Inserir Antes',
+                  {'tipo_insert': 'Inserir Antes',
+                   'icone': '&#8630;&nbsp;',
                    'action': 'add_prior',
                    'itens': []}
                   ]
@@ -603,11 +608,10 @@ class ActionsEditMixin(object):
             if dp.dispositivo_pai is not None or \
                     tipo.class_css == 'articulacao':
 
+                dpbase = dp
+                dp = Dispositivo.init_with_base(dpbase, tipo)
                 dp.transform_in_next(variacao)
                 dp.rotulo = dp.rotulo_padrao()
-                dp.texto = ''
-                dp.pk = None
-                dp.norma_publicada = None
 
                 if dp.tipo_dispositivo.class_css == 'artigo':
                     ordem = base.criar_espaco_apos(espaco_a_criar=2)
@@ -732,10 +736,8 @@ class ActionsEditMixin(object):
                     else:
                         break
 
-                dp.tipo_dispositivo = tipo
-
-                dp.pk = None
-                dp.norma_publicada = None
+                dpaux = dp
+                dp = Dispositivo.init_with_base(dpaux, tipo)
 
                 if tipo.contagem_continua:
                     ultimo_irmao = Dispositivo.objects.order_by(
@@ -767,7 +769,7 @@ class ActionsEditMixin(object):
                     tipo_dispositivo_id=tipo.pk)
 
                 ''' inserção sem precedente é feita sem variação
-                portanto, não deve ser usado o transform_next() para
+                portanto, não é necessário usar transform_next() para
                 incrementar, e sim, apenas somar no atributo dispositivo0
                 dada a possibilidade de existir irmãos com viariação'''
                 for irmao in irmaos:

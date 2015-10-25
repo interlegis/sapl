@@ -1,16 +1,14 @@
 
-$(document).ready(function() {
+var flag_add_next = false;
+var flag_add_next_pk = 0;
+var flag_add_next_pai = 0;
 
-var flag_add_next = false
-var flag_add_next_pk = 0
-var flag_add_next_pai = 0
-
-var withTinymce = false
+var editortype = "construct";
 
 var onSubmitEditForm = function(event) {
 
-    var texto = ''
-    var editorTiny = tinymce.get('editdi_texto')
+    var texto = '';
+    var editorTiny = tinymce.get('editdi_texto');
 
     if (editorTiny != null)
        texto = editorTiny.getContent();
@@ -21,27 +19,28 @@ var onSubmitEditForm = function(event) {
         'csrfmiddlewaretoken' : $('input[name=csrfmiddlewaretoken]').val(),
         'texto'               : texto
     };
-    var url = $('.editdi_form form').attr( "action_ajax" );
+    var url = $('.csform form').attr( "action_ajax" );
     $("#message_block").css("display", "block");
     $.post(url,formData)
         .done(function(data) {
-            $('.editselected').html(data);
+            $('.dpt-selected').html(data);
             clearEditSelected();
             reloadFunctionClicks();
         }).always(function() {
             $("#message_block").css("display", "none");
-        }); 
-    event.preventDefault(); 
+        });
+    if (event != null)
+    	event.preventDefault();
 }
 
-var clickEditDispositivo = function(event) { 
+var clickEditDispositivo = function(event) {
     var _pk = event.currentTarget.getAttribute('pk');
-    if ($('#de'+_pk).hasClass("editselected")) {
+    if ($('#dpt'+_pk).hasClass("dpt-selected")) {
         clearEditSelected();
         return;
     }
     clearEditSelected();
-    clickUpdateDispositivo(event)
+    clickUpdateDispositivo(event);
 }
 
 var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
@@ -64,15 +63,16 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
     var url = ''
     if (_action == '')
         return
-    else if ( _action == null || _action.startsWith('refresh')) {
+    else if ( _action == null)
+        url = _pk+'/refresh?pkadd='+flag_add_next_pk;
+    else if (_action.startsWith('refresh')) {
 
-        if (_action != null && _action.endsWith('tinymce'))
-           withTinymce = true;
-        else if (_action != null && _action.endsWith('textarea'))
-           withTinymce = false;
+        var str = _action.split(':');
+        if (str.length > 1) {
+            editortype = str[1];
+        }
 
         url = _pk+'/refresh?pkadd='+flag_add_next_pk+url;
-
         }
     else {
         url = _pk+'/actions?action='+_action;
@@ -86,32 +86,41 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
     $.get(url).done(function( data ) {
 
         if ( _action == null || _action.startsWith('refresh')) {
-        
+
             if (flag_add_next) {
-            
+
                 if (addeditselected)
                     clearEditSelected();
-                    
-                $( '#de' + _pk ).html( data);
+
+                $( '#dpt' + _pk ).html( data);
                 flag_add_next = false
-            } 
+            }
             else {
                 clearEditSelected();
-                $( '#de' + _pk ).prepend( data );
+                $( '#dpt' + _pk ).prepend( data );
             }
             reloadFunctionClicks();
 
-            if ( withTinymce ) { 
-                initTinymce()
+            if ( editortype == 'tinymce' ) {
+                initTinymce();
             }
-            else { 
-            	$('.editdi_form form').submit(onSubmitEditForm);
+            else if (editortype == 'textarea') {
+            	$('.csform form').submit(onSubmitEditForm);
             }
+            else if (editortype == 'construct') {
+                $('.csform .btn-salvar, .csform textarea').remove();
+            //    $('#dpt'+flag_add_next_pk).css('min-height', $('.actions_right').height()*1.35 );
+                $('.actions_inserts').addClass('menu_fixo');
+            }
+            $(".edt-"+editortype).addClass('selected');
 
+            /*if (_action != null && _action != 'refresh')
+                $("a.btn-action[pk='"+_pk+"']").css('background-color', '#000000');
+*/
             if (addeditselected == null || addeditselected) {
-                $('#de'+flag_add_next_pk).addClass('editselected');
+                $('#dpt'+flag_add_next_pk).addClass('dpt-selected');
                 $('html, body').animate({
-                    scrollTop: $('#de' + flag_add_next_pk ).offset().top - window.innerHeight / 10 
+                    scrollTop: $('#dpt' + flag_add_next_pk ).offset().top - window.innerHeight / 10
                     }, 300);
                 flag_add_next_pk = 0;
             }
@@ -123,7 +132,7 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
 
             flag_add_next_pk = data.pk;
             flag_add_next_pai = data.pai;
-            
+
             if (flag_add_next_pk != null)
                 for (var pai = 0; pai < flag_add_next_pai.length; pai++)
                      if (flag_add_next_pai[pai] != -1) {
@@ -150,33 +159,34 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
 
 function clearEditSelected() {
     tinymce.remove();
-    $('.editselected').removeClass('editselected');
-    $('.editdi_form').remove();
-    $('.editselected .label_pai, .edit .label_pai').remove();
-    $('.editselected .actions_head, .edit .actions_head').remove();
-    $('.editselected .actions_footer, .edit .actions_footer').remove();
+    $('.dpt-selected').removeClass('dpt-selected');
+    $('.csform').remove();
 }
 
-function reloadFunctionClicks() { 
-    $('.dispositivo .edit .di').off();
-    $('.actions .btn-action').off();
-    $('.actions_head .btn-action').off();
-    $('.dispositivo .edit .di').on('click', clickEditDispositivo);
-    $('.actions .btn-action').on('click', clickEditDispositivo);
-    $('.actions_head .btn-action').on('click', clickUpdateDispositivo);
+function reloadFunctionClicks() {
+    $('.dpt .de, .btn-action, .btn-inserts').off();
+
+    $('.dpt .de, .btn-edit').on(
+        			'click', clickEditDispositivo);
+
+    $('.btn-action, .btn-inserts').on(
+			'click', clickUpdateDispositivo);
+
+
+    $('#editdi_texto').focus();
 }
 
 function initTinymce() {
 
-	tinymce.init({ 
-        mode : "textareas", 
+	tinymce.init({
+        mode : "textareas",
         force_br_newlines : false,
         force_p_newlines : false,
         forced_root_block : '',
         plugins: ["table save code"],
         menubar: "edit format table tools",
         toolbar: "save | undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
-        tools: "inserttable",  
+        tools: "inserttable",
         save_onsavecallback: onSubmitEditForm,
         border_css: "/static/styles/compilacao_tinymce.css",
         content_css: "/static/styles/compilacao_tinymce.css"
@@ -184,8 +194,11 @@ function initTinymce() {
 }
 
 
-reloadFunctionClicks();
-$("#message_block").css("display", "none");
+$(document).ready(function() {
+
+	reloadFunctionClicks();
+	$("#message_block").css("display", "none");
+
+	 clickUpdateDispositivo(null, 64941, 'refresh', true);
 
 });
-
