@@ -91,12 +91,14 @@ def render_actions_head(view, d_atual):
 
     return False
 
+
 @register.filter
 def short_string(str, length):
     if len(str) > length:
         return str[:length]+'...'
     else:
         return str
+
 
 @register.filter
 def nomenclatura(d):
@@ -111,6 +113,7 @@ def nomenclatura(d):
         result = '(' + d.tipo_dispositivo.nome + \
             d.rotulo_padrao() + ')'
     return result
+
 
 @register.simple_tag
 def nomenclatura_heranca(d):
