@@ -3,7 +3,7 @@ var flag_add_next = false;
 var flag_add_next_pk = 0;
 var flag_add_next_pai = 0;
 
-var editortype = "construct";
+var editortype = "textarea";
 
 var onSubmitEditForm = function(event) {
 
@@ -108,15 +108,13 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
             	$('.csform form').submit(onSubmitEditForm);
             }
             else if (editortype == 'construct') {
+                $('.csform .btn-salvar').parent().remove();
                 $('.csform .btn-salvar, .csform textarea').remove();
-            //    $('#dpt'+flag_add_next_pk).css('min-height', $('.actions_right').height()*1.35 );
+                $('#dpt'+flag_add_next_pk).css('min-height', $('.actions_right').height()*2);
                 $('.actions_inserts').addClass('menu_fixo');
             }
             $(".edt-"+editortype).addClass('selected');
 
-            /*if (_action != null && _action != 'refresh')
-                $("a.btn-action[pk='"+_pk+"']").css('background-color', '#000000');
-*/
             if (addeditselected == null || addeditselected) {
                 $('#dpt'+flag_add_next_pk).addClass('dpt-selected');
                 $('html, body').animate({
@@ -160,14 +158,14 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
 function clearEditSelected() {
     tinymce.remove();
     $('.dpt-selected').removeClass('dpt-selected');
+    $('.dpt').css('min-height', '');
     $('.csform').remove();
 }
 
 function reloadFunctionClicks() {
-    $('.dpt .de, .btn-action, .btn-inserts').off();
+    $('.dpt .de, .btn-action, .btn-inserts, .btn-edit').off();
 
-    $('.dpt .de, .btn-edit').on(
-        			'click', clickEditDispositivo);
+    $('.dpt .de, .btn-edit').on('click', clickEditDispositivo);
 
     $('.btn-action, .btn-inserts').on(
 			'click', clickUpdateDispositivo);
@@ -199,6 +197,6 @@ $(document).ready(function() {
 	reloadFunctionClicks();
 	$("#message_block").css("display", "none");
 
-	 clickUpdateDispositivo(null, 64941, 'refresh', true);
+	 clickUpdateDispositivo(null, 216879, 'refresh', true);
 
 });

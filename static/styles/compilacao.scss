@@ -39,6 +39,7 @@ $color_actions_border: #ddd;
         box-shadow: 0 1px 2px #999;
     }
 }
+
 .page {
     background-color: #f0f0f0;
 }
@@ -242,7 +243,7 @@ $color_actions_border: #ddd;
         & > .actions_left {
             color: #fff;
             position: absolute;
-            left: -2.2em;
+            left: -2em;
             opacity: 0;
             transition: all 0.4s ease-in-out;
             a {
@@ -251,7 +252,7 @@ $color_actions_border: #ddd;
                     @include border-radius(7px);
                     color: #ffffff !important;
                     font-weight: bold;
-                    padding: 2px 6px 2px 7px;
+                    padding: 2px 7px 2px 7px;
 
                     &:hover {
                         @include background-top-down(#3cb0fd, #3498DB);
@@ -288,7 +289,6 @@ $color_actions_border: #ddd;
             *:hover {
                 background-color: #eee;
             }
-
         }
         .articulacao{
             margin-left: -0.8em;
@@ -305,9 +305,12 @@ $color_actions_border: #ddd;
     }
 
     .dpt-selected {
-        border: 2.2em solid #eee;
+        font-size: 1em;
+        border: 1px solid #aabbcc;
         margin: 1em -2em 1em -2.8em;
-        box-shadow: 0 2px 2px #aaa;
+        padding: 2.2em 2.2em 1.6em 2.2em;
+        background: #eee;
+        box-shadow: 0px 10px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.23);
 
         ul {
             list-style: none;
@@ -317,14 +320,31 @@ $color_actions_border: #ddd;
 
         .bloco {
             opacity: 0.5;
+            &:hover {
+                opacity: 1;
+            }
+            a:hover {
+                background: transparent;
+            }
+
         }
+
         & > .bloco {
             padding: 1em;
             opacity: 1;
+            margin: 0 !important;
         }
 
         & > .dpt {
             padding: 0 1em;
+            &:last-child {
+                padding-bottom: 1em;
+                border-bottom: 1px solid black;
+            }
+        }
+
+        & > .actions_left {
+            display: none;
         }
 
         .csform {  /* compilacao simple form */
@@ -340,18 +360,17 @@ $color_actions_border: #ddd;
                 a {
                     color: $color_actions;
                     display: block;
-                    font-size: 1em;
-                    background-image: none;
-                    background-color: transparent;
+                    background: transparent;
                     vertical-align: middle;
-                    line-height: 2.2em;
-                    min-width: 2.2em;
                     text-align: center;
                     font-weight: normal;
                     text-shadow: 0 0 10px rgba(0,0,0,0.3);
+                    padding: 0.33em 0.4em;
                 }
                 & > li {
                     position: relative;
+                    display: table-cell;
+                    vertical-align: top;
                     &:hover {
                         background-color: rgba(0,0,0,0.1);
                         & > a {
@@ -363,16 +382,26 @@ $color_actions_border: #ddd;
                 }
             }
 
+            .label_status {
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                color: #889;
+                padding: 0.3em;
+                font-size: 80%;
+                text-align: right;
+                z-index: 5;
+            }
+
             .actions_parents {
-                height: 2.2em;
-                top: -2.2em;
-                left: -2.2em;
+                z-index: 1;
+                top: 0em;
+                left: 0em;
                 a {
-                    padding: 0.2em 0.4em;
-                    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+                    padding: 0.62em;
                 }
                 div, li {
-                    font-size: 0.8em;
+                    font-size: 80%;
                     display: table-cell;
                     vertical-align: middle;
                     border-right: 1px solid #ccc;
@@ -384,48 +413,48 @@ $color_actions_border: #ddd;
                 & > li {
                     &:hover a{
                         color: $color_actions;
-                        text-shadow: 0 0 0px #777;
                         font-weight: normal;
                     }
                 }
             }
 
-            .label_status {
-                position: absolute;
-                bottom: -2.5em;
-                right: -1.8em;
-                color: #889;
-                padding: 0.3em 0;
-                font-size: 0.8em;
-            }
-
             .actions_top {
-                top: -2.2em;
+                top: 0em;
                 right: 0em;
-
+                a {
+                    padding-right: 1em;
+                    padding-left: 1em;
+                }
                 li {
                     display: table-cell;
                     vertical-align: middle;
                     border-left: 1px solid $color_actions_border;
-                    &:last-child {
-                        border-right: 1px solid $color_actions_border;
-                    }
                 }
             }
 
             .actions_bottom {
                 @extend .actions_top;
                 top: auto;
-                right: auto;
-                left: 0em;
-                bottom: -2.2em;
+                left: 0;
+                bottom: 0;
+                display: inline-block;
+                a {
+                    padding: 0 0.4em;
+                }
+                li {
+                    border: 0px;
+                    border-right: 1px solid $color_actions_border;
+                    border-top: 1px solid $color_actions_border;
+                }
             }
 
             .actions_right {
-                top: 0em;
-                right: -2.2em;
-
+                top: 2.2em;
+                right: 0em;
+                bottom:0;
+                display: block;
                 li {
+                    width: 2.2em;
                     display: block;
                     border-bottom: 1px solid $color_actions_border;
                     &:first-child {
@@ -437,39 +466,39 @@ $color_actions_border: #ddd;
             .actions_left {
                 @extend .actions_right;
                 right: auto;
-                left: -2.2em;
+                left: 0em;
             }
 
             .actions_inserts {
+                background: transparent;
                 position: relative;
                 z-index: 9;
                 display: table;
                 width: 100%;
 
                 li, li:hover {
-                    background: transparent;
+                    background: #2980C9;
                     a {
-                        background: #2980C9;
-                        background-image: none;
+                        vertical-align: top;
                         text-shadow: 0 0 0;
                         color: #fff;
                         font-weight: normal;
                         white-space: nowrap;
-
+                        min-height: 2.4em;
                         &:hover {
-                            background-color: #196aad;
+                            background: #1770ba;
                             text-shadow: 0 0 0;
-                            color: #fff;
+                            color: #ffd145;
                             font-weight: normal;
                         }
                     }
                 }
-
                 & > li {
+                    background: #3385CA;
                     display: table-cell;
                     table-layout: auto;
-                    vertical-align: middle;
-                    border-right: 1px solid white;
+                    vertical-align: top;
+                    border-right: 1px solid #eee;
 
                     &:hover > ul {
                         display: block;
@@ -477,16 +506,24 @@ $color_actions_border: #ddd;
                     &:last-child {
                         border-right: 0px;
                     }
+                    &:only-child {
+                        display: inline-block;
+                        float: right;
+                    }
 
                     & > ul {
+
                         display: none;
                         position:absolute;
                         box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.23);
                         a {
                             text-align: left;
-                            font-size: 0.8em;
-                            padding: 0 0.5em;
+                            font-size: 80%;
+                            padding: 0.3em 1em;
                             white-space: nowrap;
+                        }
+                        li:nth-child(even) {
+                            background: #3385CA;
                         }
                     }
 
@@ -496,11 +533,12 @@ $color_actions_border: #ddd;
 
                     & > a {
                         @include background-top-down(#3498DB, #2980C9);
+
                         &.btn-excluir {
                             text-align: left;
                             background: #A70808;
                             color: #c99;
-                            padding-left: 1.5em;
+                            padding-left: 1.7em;
                             &:hover {
                                 background-color: #c70808;
                                 color: #ecc;
@@ -508,13 +546,12 @@ $color_actions_border: #ddd;
                             &::before {
                                 z-index: 10;
                                 position: absolute;
-                                background: url(/static/img/icon_delete_white.png) no-repeat 0 50%;
+                                background: url(/static/img/icon_delete_white.png) no-repeat 50% 50%;
                                 content:"";
                                 top: 0;
                                 left: 0;
                                 display: block;
                                 color: black;
-                                margin-top: 0.05em;
                                 margin-left: 0.6em;
                                 height: 2em;
                                 width: 2em;
@@ -525,7 +562,6 @@ $color_actions_border: #ddd;
 
                             background: #1f8b4d;
                             color: white;
-                            padding-left: 1.7em;
                             &:hover {
                                 background: #2d9c5c;
                                 color: white;
@@ -536,12 +572,13 @@ $color_actions_border: #ddd;
                         }
                     }
                 } /* fim li de primeiro nivel*/
+
             } /* fim actions_inserts*/
 
             .menu_fixo {
                 & > li {
                     vertical-align: top;
-                    background-color: transparent;
+                    background: transparent !important;
                     & > ul {
                         display: block;
                         position: relative;
@@ -568,7 +605,10 @@ $color_actions_border: #ddd;
                 resize: vertical;
                 min-height: 12.6em;
                 border: 0px;
-                border-bottom: 2px #ccc solid;
+                font-size: 120%;
+                &:focus {
+                    background: #fff;
+                }
                 &::-webkit-input-placeholder {
                     color: #c70808;
                     opacity: 0.6;
@@ -621,10 +661,10 @@ $color_actions_border: #ddd;
 
             .csform {
                 .actions_parents, .label_status {
-                    font-size: 0.7em;
+                    font-size: 80%;
                     position:static !important;
                     display: block !important;
-                    padding-bottom: 1em;
+                    padding: 0em;
                     height: auto !important;
                     div, li {
                         display: inline-block !important;
