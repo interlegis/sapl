@@ -74,9 +74,6 @@ tipo_dispositivo_crud = build_crud(
          ],
 
         [_('Configurações para Renderização de Rótulo e Texto'),
-
-
-
          [('rotulo_prefixo_html', 6),
           ('rotulo_sufixo_html', 6), ],
 

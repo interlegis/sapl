@@ -13,6 +13,7 @@
 		<div class="dpt" id="dpt{{dpt.pk}}" pk="{{dpt.pk}}">
 	{% endif%}
 
+
 	{% if view|render_actions_head:dpt %}
 	<div class="csform">
 		<form method="post" action="" action_ajax="{{dpt.pk}}/refresh">
@@ -33,12 +34,15 @@
 				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Descer uma posição com todos os subniveis'%}">&#8650;</a></li>
 			</ul>
 
-	        <ul class="btns-action actions_bottom">
-	        	<li><a class="btn-bottom btn-action" pk="{{dpt.pk}}"  title="Button Bottom">BB</a></li>
-	        </ul>
 
 	        <ul class="btns-action actions_left">
 	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="Button Left">BL</a></li>
+	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="Button Left">BL</a></li>
+	        </ul>
+
+	        <ul class="btns-action actions_bottom">
+	        	<li><a class="btn-bottom btn-action" pk="{{dpt.pk}}"  title="Button Bottom">BB</a></li>
+	        	<li><a class="btn-bottom btn-action" pk="{{dpt.pk}}"  title="Button Bottom">BB</a></li>
 	        </ul>
 
 			<ul class="btns-action actions_inserts {% if dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_fixo{%endif%}">
