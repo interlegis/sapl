@@ -1,10 +1,9 @@
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 
 from compilacao import views
-from compilacao.views import (tipo_nota_crud, tipo_vide_crud,
-                              tipo_publicacao_crud, veiculo_publicacao_crud,
-                              tipo_dispositivo_crud)
-
+from compilacao.views import (tipo_dispositivo_crud, tipo_nota_crud,
+                              tipo_publicacao_crud, tipo_vide_crud,
+                              veiculo_publicacao_crud)
 
 urlpatterns_compilacao = [
     url(r'^(?P<norma_id>[0-9]+)/compilacao/$',

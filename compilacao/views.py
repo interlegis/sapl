@@ -1,7 +1,5 @@
-
-
 from collections import OrderedDict
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from os.path import sys
 
 from django import forms
@@ -15,11 +13,10 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from django.views.generic.list import ListView
 
-from compilacao.models import (Dispositivo, TipoNota, TipoVide, TipoPublicacao,
-                               VeiculoPublicacao, TipoDispositivo)
+from compilacao.models import (Dispositivo, TipoDispositivo, TipoNota,
+                               TipoPublicacao, TipoVide, VeiculoPublicacao)
 from norma.models import NormaJuridica
 from sapl.crud import build_crud
-
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
