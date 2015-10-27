@@ -751,15 +751,10 @@ class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
                     Submit('submit', 'Salvar',
                            css_class='button primary')
                 )
-            ),
+            )
         )
-<< << << < HEAD
-    super(ModelFormDocumentoAcessorioAdministrativo,
-          self).__init__(*args, **kwargs)
-== == == =
-    super(ModelFormDocumentoAcessorioAdministrativo, self).__init__(
-        *args, **kwargs)
->>>>>> > Add Anexada and DespachoInicial in MateriaLegislativa
+        super(ModelFormDocumentoAcessorioAdministrativo, self).__init__(
+            *args, **kwargs)
 
 
 class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
@@ -798,15 +793,7 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
 
             return self.form_valid(form)
         else:
-            print(form['data'])
-<< << << < HEAD
-    import ipdb
-    ipdb.set_trace()
-    return self.form_invalid(form)
-    # return HttpResponseRedirect(self.get_success_url())
-== == == =
-    return self.form_invalid(form)
->>>>>> > Add Anexada and DespachoInicial in MateriaLegislativa
+            return self.form_invalid(form)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
