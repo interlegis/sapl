@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
-
-from materia.views import (FormularioCadastroView, FormularioSimplificadoView,
+from materia.views import (DespachoInicialEditView, DespachoInicialView,
+                           FormularioCadastroView, FormularioSimplificadoView,
+                           MateriaAnexadaEditView, MateriaAnexadaView,
                            autor_crud, materia_legislativa_crud, orgao_crud,
                            origem_crud, regime_tramitacao_crud,
                            status_tramitacao_crud, tipo_autor_crud,
@@ -32,5 +33,13 @@ urlpatterns = [
         name='formulario_simplificado'),
     url(r'^materia/formulario-cadastro',
         FormularioCadastroView.as_view(),
-        name='formulario_cadastro')
+        name='formulario_cadastro'),
+    url(r'^materia/(?P<pk>\d+)/materia-anexada$',
+        MateriaAnexadaView.as_view(), name='materia_anexada'),
+    url(r'^materia/(?P<pk>\d+)/materia-anexada/(?P<id>\d+)/edit',
+        MateriaAnexadaEditView.as_view(), name='materia_anexada_edit'),
+    url(r'^materia/(?P<pk>\d+)/despacho-inicial$',
+        DespachoInicialView.as_view(), name='despacho_inicial'),
+    url(r'^materia/(?P<pk>\d+)/despacho-inicial/(?P<id>\d+)/edit',
+        DespachoInicialEditView.as_view(), name='despacho_inicial_edit'),
 ]

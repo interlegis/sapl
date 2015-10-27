@@ -553,12 +553,12 @@ class ProposicaoSimpleForm(forms.Form):
                                   attrs={'readonly': 'readonly'}))
     data_envio = forms.DateField(label='Data Envio',
                                  widget=forms.DateInput(
-                                  format='%d/%m/%Y',
-                                  attrs={'readonly': 'readonly'}))
+                                     format='%d/%m/%Y',
+                                     attrs={'readonly': 'readonly'}))
     data_recebimento = forms.DateField(label='Data Recebimento',
                                        widget=forms.DateInput(
-                                        format='%d/%m/%Y',
-                                        attrs={'readonly': 'readonly'}))
+                                           format='%d/%m/%Y',
+                                           attrs={'readonly': 'readonly'}))
 
     descricao = forms.CharField(label='Descrição',
                                 widget=forms.TextInput(
@@ -724,8 +724,7 @@ class DetailDocumentoAdministrativo(DetailView):
 
 class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
 
-    data = forms.DateField(label=u'Data',
-                           input_formats=['%d/%m/%Y'],
+    data = forms.DateField(label=u'Data', input_formats=['%d/%m/%Y'],
                            required=False,
                            widget=forms.DateInput(format='%d/%m/%Y'))
 
@@ -755,8 +754,13 @@ class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
                 )
             ),
         )
-        super(ModelFormDocumentoAcessorioAdministrativo,
-              self).__init__(*args, **kwargs)
+<< << << < HEAD
+    super(ModelFormDocumentoAcessorioAdministrativo,
+          self).__init__(*args, **kwargs)
+== == == =
+    super(ModelFormDocumentoAcessorioAdministrativo, self).__init__(
+        *args, **kwargs)
+>>>>>> > Add Anexada and DespachoInicial in MateriaLegislativa
 
 
 class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
@@ -796,10 +800,14 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             print(form['data'])
-            import ipdb
-            ipdb.set_trace()
-            return self.form_invalid(form)
-            # return HttpResponseRedirect(self.get_success_url())
+<< << << < HEAD
+    import ipdb
+    ipdb.set_trace()
+    return self.form_invalid(form)
+    # return HttpResponseRedirect(self.get_success_url())
+== == == =
+    return self.form_invalid(form)
+>>>>>> > Add Anexada and DespachoInicial in MateriaLegislativa
 
     def get_success_url(self):
         pk = self.kwargs['pk']

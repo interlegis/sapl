@@ -235,7 +235,6 @@ class Autoria(models.Model):
 class DespachoInicial(models.Model):
     # TODO M2M?
     materia = models.ForeignKey(MateriaLegislativa)
-    numero_ordem = models.PositiveIntegerField()
     comissao = models.ForeignKey(Comissao)
 
     class Meta:
@@ -243,8 +242,7 @@ class DespachoInicial(models.Model):
         verbose_name_plural = _('Despachos Iniciais')
 
     def __str__(self):
-        return _('Nº %(numero)s - %(materia)s - %(comissao)s') % {
-            'numero': self.numero_ordem,
+        return _('%(materia)s - %(comissao)s') % {
             'materia': self.materia,
             'comissao': self.comissao}
 
