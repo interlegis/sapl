@@ -1,0 +1,56 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Matérias Anexadas</legend>
+			<table>
+				<tr>
+					<th>Matéria Anexada</th>
+					<th>Data Anexação</th>
+					<th>Data Desanexação</th>
+				</tr>
+					{% for a in anexadas %}
+						<tr>
+							<td><a href="{% url 'materia_anexada_edit' materia.id a.id %}">{{a.materia_anexada.tipo.sigla}} {{a.materia_anexada.numero}}/{{a.materia_anexada.ano}}</a></td>
+							<td>{{a.data_anexacao|date:"d/m/Y"}}</td>
+							<td>{{a.data_desanexacao|date:"d/m/Y"}}</td>
+						</tr>
+					{% endfor %}
+			</table>
+		</fieldset>
+		<fieldset>
+			<legend>Anexar Matéria</legend>
+			<form method="POST"> 
+				{% csrf_token %}
+				{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
+				{{ form.as_table }}
+				<input type="submit" value="Anexar" id="anexar" name="anexar" class="primary button" />
+			</form>
+		</fieldset>
+	</fieldset>
+{% endblock %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}

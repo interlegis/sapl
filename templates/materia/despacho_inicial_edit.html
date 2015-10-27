@@ -1,0 +1,30 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+		<form method="POST">
+		{% csrf_token %}
+
+			<fieldset>
+				<legend>Editar Despacho</legend>
+				<select name="comissao">
+					{% for c in comissoes %}
+						<option value="{{c.id}}" {% if c.id == despacho.comissao.id %} selected {% endif %}> {{c.nome}} </option>
+					{% endfor %}
+				</select>
+
+				<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
+				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+			</fieldset>
+		</form>
+	</fieldset>
+{% endblock %}
