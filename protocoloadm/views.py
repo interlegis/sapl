@@ -526,7 +526,6 @@ class ProposicoesNaoIncorporadasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        print('heyt')
         return Proposicao.objects.filter(data_envio__isnull=False,
                                          data_devolucao__isnull=False,
                                          status='D')
