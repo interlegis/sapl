@@ -1,21 +1,17 @@
-from django.utils.translation import ugettext_lazy as _
-
-from sapl.crud import build_crud
+from datetime import datetime
 
 from django import forms
-from django.utils.safestring import mark_safe
-
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic.edit import FormMixin
+from vanilla import GenericView
 
-from datetime import datetime
+from materia.models import TipoMateriaLegislativa
+from sapl.crud import build_crud
 
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
-
-from materia.models import TipoMateriaLegislativa
-
-from django.views.generic.edit import FormMixin
-from vanilla import GenericView
 
 assunto_norma_crud = build_crud(
     AssuntoNorma, 'assunto_norma_juridica', [
@@ -231,5 +227,3 @@ class NormaIncluirView(FormMixin, GenericView):
             return self.render_to_response({'form': form})
         else:
             return self.form_invalid(form)
-
-

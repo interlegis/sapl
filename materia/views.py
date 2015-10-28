@@ -1,8 +1,7 @@
 from datetime import date
 
-from comissoes.models import Comissao
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -11,8 +10,11 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from sapl.crud import build_crud
 from vanilla import GenericView
+
+from comissoes.models import Comissao
+from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
+from sapl.crud import build_crud
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -715,3 +717,202 @@ class DespachoInicialEditView(FormMixin, GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('despacho_inicial', kwargs={'pk': pk})
+
+
+def get_tipos_norma():
+    return [('', 'Selecione')] \
+        + [(t.id, t.sigla + ' - ' + t.descricao)
+           for t in TipoNormaJuridica.objects.all()]
+
+
+class LegislacaoCitadaForm(forms.Form):
+
+    tipo = forms.ChoiceField(required=True,
+                             label='Tipo Norma',
+                             choices=get_tipos_norma(),
+                             widget=forms.Select(
+                                 attrs={'class': 'selector'}))
+
+    numero = forms.CharField(label='Número', required=True)
+
+    ano = forms.CharField(label='Ano', required=True)
+
+    disposicao = forms.CharField(label='Disposição', required=False)
+
+    parte = forms.CharField(label='Parte', required=False)
+
+    livro = forms.CharField(label='Livro', required=False)
+
+    titulo = forms.CharField(label='Título', required=False)
+
+    capitulo = forms.CharField(label='Capítulo', required=False)
+
+    secao = forms.CharField(label='Seção', required=False)
+
+    subsecao = forms.CharField(label='Subseção', required=False)
+
+    artigo = forms.CharField(label='Artigo', required=False)
+
+    paragrafo = forms.CharField(label='Parágrafo', required=False)
+
+    inciso = forms.CharField(label='Inciso', required=False)
+
+    alinea = forms.CharField(label='Alínea', required=False)
+
+    item = forms.CharField(label='Item', required=False)
+
+    class Meta:
+        model = LegislacaoCitada
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.layout = Layout(
+            Fieldset(
+                'Incluir Legislação Citada',
+                'tipo',
+                'numero',
+                'ano',
+                'disposicao',
+                'parte',
+                'livro',
+                'titulo',
+                'capitulo',
+                'secao',
+                'subsecao',
+                'artigo',
+                'paragrafo',
+                'inciso',
+                'alinea',
+                'item',
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+            )
+        )
+        super(LegislacaoCitadaForm, self).__init__(*args, **kwargs)
+
+
+class LegislacaoCitadaView(FormMixin, GenericView):
+    template_name = "materia/legislacao_citada.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        legislacao = LegislacaoCitada.objects.filter(materia_id=kwargs['pk'])
+        form = LegislacaoCitadaForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'legislacao': legislacao})
+
+    def post(self, request, *args, **kwargs):
+        form = LegislacaoCitadaForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        legislacao_list = LegislacaoCitada.objects.filter(
+            materia_id=kwargs['pk'])
+
+        if form.is_valid():
+            legislacao = LegislacaoCitada()
+
+            try:
+                norma = NormaJuridica.objects.get(
+                    tipo_id=form.cleaned_data['tipo'],
+                    numero=form.cleaned_data['numero'],
+                    ano=form.cleaned_data['ano'])
+            except ObjectDoesNotExist:
+                error = 'Norma Juridica não existe.'
+                return self.render_to_response({'form': form,
+                                                'materia': materia,
+                                                'legislacao': legislacao_list,
+                                                'error': error})
+            legislacao.materia = materia
+            legislacao.norma = norma
+            legislacao.disposicoes = form.cleaned_data['disposicao']
+            legislacao.parte = form.cleaned_data['parte']
+            legislacao.livro = form.cleaned_data['livro']
+            legislacao.titulo = form.cleaned_data['titulo']
+            legislacao.capitulo = form.cleaned_data['capitulo']
+            legislacao.secao = form.cleaned_data['secao']
+            legislacao.subsecao = form.cleaned_data['subsecao']
+            legislacao.artigo = form.cleaned_data['artigo']
+            legislacao.paragrafo = form.cleaned_data['paragrafo']
+            legislacao.inciso = form.cleaned_data['inciso']
+            legislacao.alinea = form.cleaned_data['alinea']
+            legislacao.item = form.cleaned_data['item']
+
+            legislacao.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'materia': materia,
+                                            'legislacao': legislacao_list})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('legislacao_citada', kwargs={'pk': pk})
+
+
+class LegislacaoCitadaEditView(FormMixin, GenericView):
+    template_name = "materia/legislacao_citada_edit.html"
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('legislacao_citada', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        legislacao = LegislacaoCitada.objects.get(id=kwargs['id'])
+        form = LegislacaoCitadaForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'legislacao': legislacao,
+             'tipos_norma': TipoNormaJuridica.objects.all()})
+
+    def post(self, request, *args, **kwargs):
+        form = LegislacaoCitadaForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        legislacao = LegislacaoCitada.objects.get(id=kwargs['id'])
+
+        if form.is_valid():
+            if 'excluir' in request.POST:
+                legislacao.delete()
+                return self.form_valid(form)
+            elif 'salvar' in request.POST:
+                try:
+                    norma = NormaJuridica.objects.get(
+                        tipo_id=form.cleaned_data['tipo'],
+                        numero=form.cleaned_data['numero'],
+                        ano=form.cleaned_data['ano'])
+                except ObjectDoesNotExist:
+                    error = 'Norma Juridica não existe.'
+                    return self.render_to_response(
+                        {'form': form,
+                         'materia': materia,
+                         'error': error,
+                         'legislacao': legislacao,
+                         'tipos_norma': TipoNormaJuridica.objects.all()})
+                legislacao.materia = materia
+                legislacao.norma = norma
+                legislacao.disposicoes = form.cleaned_data['disposicao']
+                legislacao.parte = form.cleaned_data['parte']
+                legislacao.livro = form.cleaned_data['livro']
+                legislacao.titulo = form.cleaned_data['titulo']
+                legislacao.capitulo = form.cleaned_data['capitulo']
+                legislacao.secao = form.cleaned_data['secao']
+                legislacao.subsecao = form.cleaned_data['subsecao']
+                legislacao.artigo = form.cleaned_data['artigo']
+                legislacao.paragrafo = form.cleaned_data['paragrafo']
+                legislacao.inciso = form.cleaned_data['inciso']
+                legislacao.alinea = form.cleaned_data['alinea']
+                legislacao.item = form.cleaned_data['item']
+
+                legislacao.save()
+                return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'materia': materia})

@@ -1,6 +1,8 @@
 from django.conf.urls import include, url
+
 from materia.views import (DespachoInicialEditView, DespachoInicialView,
                            FormularioCadastroView, FormularioSimplificadoView,
+                           LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
                            autor_crud, materia_legislativa_crud, orgao_crud,
                            origem_crud, regime_tramitacao_crud,
@@ -42,4 +44,8 @@ urlpatterns = [
         DespachoInicialView.as_view(), name='despacho_inicial'),
     url(r'^materia/(?P<pk>\d+)/despacho-inicial/(?P<id>\d+)/edit',
         DespachoInicialEditView.as_view(), name='despacho_inicial_edit'),
+    url(r'^materia/(?P<pk>\d+)/legislacao-citada$',
+        LegislacaoCitadaView.as_view(), name='legislacao_citada'),
+    url(r'^materia/(?P<pk>\d+)/legislacao-citada/(?P<id>\d+)/edit',
+        LegislacaoCitadaEditView.as_view(), name='legislacao_citada_edit'),
 ]

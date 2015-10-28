@@ -1,0 +1,74 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Editar Legislação Citada</legend>
+			<form method="POST">
+				{% csrf_token %}
+				{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
+
+				Tipo Norma*
+				<select name="tipo">
+					{% for tipo in tipos_norma %}
+						<option value="{{tipo.id}}" {% if tipo == legislacao.norma.tipo %} selected {% endif %}>
+							{{tipo.sigla}} - {{tipo.descricao}}
+						</option>
+					{% endfor %}
+				</select>
+
+				Número*
+				<input type="text" name="numero" value="{{legislacao.norma.numero}}" />
+
+				Ano*
+				<input type="text" name="ano" value="{{legislacao.norma.ano}}" />
+
+				Disposição
+				<input type="text" name="disposicao" value="{{legislacao.disposicoes}}" />
+
+				Parte
+				<input type="text" name="parte" value="{{legislacao.parte}}" />
+
+				Livro
+				<input type="text" name="livro" value="{{legislacao.livro}}" />
+
+				Título
+				<input type="text" name="titulo" value="{{legislacao.titulo}}" />
+
+				Capítulo
+				<input type="text" name="capitulo" value="{{legislacao.capitulo}}" />
+
+				Seção
+				<input type="text" name="secao" value="{{legislacao.secao}}" />
+
+				Subseção
+				<input type="text" name="subsecao" value="{{legislacao.subsecao}}" />
+
+				Artigo
+				<input type="text" name="artigo" value="{{legislacao.artigo}}" />
+
+				Inciso
+				<input type="text" name="inciso" value="{{legislacao.inciso}}" />
+
+				Alínea
+				<input type="text" name="alinea" value="{{legislacao.alinea}}" />
+
+				Item
+				<input type="text" name="item" value="{{legislacao.item}}" />
+
+				<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
+				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
+			</form>
+		</fieldset>
+	</fieldset>
+{% endblock %}
