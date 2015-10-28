@@ -1,13 +1,13 @@
-{% extends "crud/detail.html" %}
+{% extends "materia/materia_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
 	<form method="POST">
 		{% csrf_token %}
-		{% crispy form %}
-	</br>
-	<input type="submit" name="salvar_simplificado" value="Salvar" class="button primary" />
+		{{ form.as_table }}
+		</br>
+		<input type="submit" name="salvar" value="Salvar" class="button primary" />
 	</form>
 {% endblock %}
 
@@ -21,11 +21,6 @@
 				endDate: '31/12/2100',
 				todayBtn: true
 			});
-
-/*			$('input[type="radio"]').change(function() {
-				alert('ok');
-			};*/
-
 		});
 	</script>
 {% endblock %}
