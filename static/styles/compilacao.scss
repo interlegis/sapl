@@ -1,5 +1,5 @@
 $color_actions: #16407c;
-$color_actions_border: #ddd;
+$color_actions_border: #CCC;
 @mixin background-top-down($top, $bottom) {
     background: $top;
     background-image: -webkit-linear-gradient(top, $top, $bottom);
@@ -13,6 +13,63 @@ $color_actions_border: #ddd;
     -moz-border-radius: $radius;
     -ms-border-radius: $radius;
     border-radius: $radius;
+}
+
+@mixin li_flutuante() {
+    & > ul {
+        transform: translateY(30px);
+        transition: transform 0.1s linear,
+        opacity 0.1s linear,
+        clip 0s 0.3s;
+        clip: rect(0, 0, 0, 0);
+        opacity: 0;
+        position:absolute;
+        margin-left: 0.5em;
+        box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.23);
+
+        li {
+            a {
+                border-right: 0px !important;
+            }
+        }
+
+        &::before {
+            border-width: 0.375rem;
+            border-style: inset inset solid;
+            content: "";
+            display: block;
+            height: 0px;
+            width: 0px;
+            border-color: transparent transparent #3385CA;
+            position: absolute;
+            top: -0.75rem;
+            left: 0.9375rem;
+        }
+        // This bridges the gap between the top bar and a dropdown.
+        &::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            left: 0;
+            top: rem-calc(-25px);
+            height: rem-calc(25px);
+            width: 100%;
+            // This transition is for hover-on.
+            transition: all 0.3s cubic-bezier(0.55,0,0.1,1);
+        }
+    }
+    &:hover > ul {
+
+        transform: translateY(7px);
+        // This transition is actually for when we hover-out of the dropdown.
+        transition: transform 0.4s linear,
+        opacity 0.4s linear,
+        clip 0s 0.2s;
+        opacity: 1;
+        clip: rect(-100px, 2000px, 2000px, -100px);
+
+    }
+
 }
 
 #message_block {
@@ -40,9 +97,6 @@ $color_actions_border: #ddd;
     }
 }
 
-.page {
-    background-color: #f0f0f0;
-}
 
 .cp {
     .dpt {
@@ -230,10 +284,6 @@ $color_actions_border: #ddd;
         color: #8DA6D8;
     }
 
-    .selected {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-
     .dpt {
         position: relative;
         display:block;
@@ -287,7 +337,7 @@ $color_actions_border: #ddd;
             display: block;
             clear: both;
             *:hover {
-                background-color: #eee;
+                color: #27AE60;
             }
         }
         .articulacao{
@@ -302,15 +352,20 @@ $color_actions_border: #ddd;
                 display:block;
             }
         }
-    }
+        .btns-action {
+            opacity: 0;
+        }
+    } /* fim dpt */
 
     .dpt-selected {
         font-size: 1em;
-        border: 1px solid #aabbcc;
+        border: 0px solid $color_actions_border;
         margin: 1em -2em 1em -2.8em;
         padding: 2.2em 2.2em 1.6em 2.2em;
-        background: #eee;
-        box-shadow: 0px 10px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.23);
+        box-shadow: -4px 18px 18px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23);
+
+        @include background-top-down(#eaeaee, #ddd);
+
 
         ul {
             list-style: none;
@@ -330,16 +385,15 @@ $color_actions_border: #ddd;
         }
 
         & > .bloco {
-            padding: 1em;
+            padding: 1em 0;
             opacity: 1;
             margin: 0 !important;
         }
 
         & > .dpt {
-            padding: 0 1em;
+            padding: 0;
             &:last-child {
                 padding-bottom: 1em;
-                border-bottom: 1px solid black;
             }
         }
 
@@ -354,9 +408,15 @@ $color_actions_border: #ddd;
             position: static;
 
             .btns-action {
+                -webkit-animation: fadeIn 1s ease-in-out;
+                -moz-animation: fadeIn 1s ease-in-out;
+                -o-animation: fadeIn 1s ease-in-out;
+                opacity: 1;
+
                 position: absolute;
                 display: table;
                 transition: all 0.4s ease-in-out;
+
                 a {
                     color: $color_actions;
                     display: block;
@@ -367,6 +427,7 @@ $color_actions_border: #ddd;
                     text-shadow: 0 0 10px rgba(0,0,0,0.3);
                     padding: 0.33em 0.4em;
                 }
+
                 & > li {
                     position: relative;
                     display: table-cell;
@@ -404,7 +465,7 @@ $color_actions_border: #ddd;
                     font-size: 80%;
                     display: table-cell;
                     vertical-align: middle;
-                    border-right: 1px solid #ccc;
+                    border-right: 1px solid $color_actions_border;
                 }
                 div {
                     padding: 0 0.4em;
@@ -469,6 +530,11 @@ $color_actions_border: #ddd;
                 left: 0em;
             }
 
+
+
+
+
+
             .actions_inserts {
                 background: transparent;
                 position: relative;
@@ -476,73 +542,35 @@ $color_actions_border: #ddd;
                 display: table;
                 width: 100%;
 
-                li, li:hover {
-                    background: #2980C9;
-                    a {
-                        vertical-align: top;
-                        text-shadow: 0 0 0;
-                        color: #fff;
-                        font-weight: normal;
-                        white-space: nowrap;
-                        min-height: 2.4em;
-                        &:hover {
-                            background: #1770ba;
-                            text-shadow: 0 0 0;
-                            color: #ffd145;
-                            font-weight: normal;
-                        }
-                    }
-                }
                 & > li {
-                    background: #3385CA;
                     display: table-cell;
-                    table-layout: auto;
-                    vertical-align: top;
-                    border-right: 1px solid #eee;
 
-                    &:hover > ul {
-                        display: block;
+                    &:hover > a {
+                        @include background-top-down(#1c81c4, #0b6dad);
                     }
-                    &:last-child {
-                        border-right: 0px;
-                    }
-                    &:only-child {
-                        display: inline-block;
-                        float: right;
-                    }
-
-                    & > ul {
-
-                        display: none;
-                        position:absolute;
-                        box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.23);
-                        a {
-                            text-align: left;
-                            font-size: 80%;
-                            padding: 0.3em 1em;
-                            white-space: nowrap;
-                        }
-                        li:nth-child(even) {
-                            background: #3385CA;
-                        }
-                    }
-
-                    span {
-                        padding: 0.7em;
-                    }
-
                     & > a {
                         @include background-top-down(#3498DB, #2980C9);
+                        border-right: 1px solid #fff;
+                        padding: 0.3em;
+                        display: block;
+                        color: white;
+                        text-align: center;
+                        white-space: nowrap;
+
 
                         &.btn-excluir {
+
                             text-align: left;
                             background: #A70808;
                             color: #c99;
                             padding-left: 1.7em;
+                            position: relative;
+
                             &:hover {
                                 background-color: #c70808;
                                 color: #ecc;
                             }
+
                             &::before {
                                 z-index: 10;
                                 position: absolute;
@@ -552,14 +580,14 @@ $color_actions_border: #ddd;
                                 left: 0;
                                 display: block;
                                 color: black;
-                                margin-left: 0.6em;
-                                height: 2em;
+                                margin-left: 0.4em;
+                                height: 100%;
                                 width: 2em;
                             }
-                        }
+                        } /* btn-excluir */
+
                         &.btn-salvar {
                             @extend .btn-excluir;
-
                             background: #1f8b4d;
                             color: white;
                             &:hover {
@@ -567,38 +595,53 @@ $color_actions_border: #ddd;
                                 color: white;
                             }
                             &::before {
-                                background: url(/static/img/icon_save_white.png) no-repeat 0 50%;
+                                background: url(/static/img/icon_save_white.png) no-repeat 50% 50%;
                             }
                         }
-                    }
-                } /* fim li de primeiro nivel*/
-
-            } /* fim actions_inserts*/
-
-            .menu_fixo {
-                & > li {
-                    vertical-align: top;
-                    background: transparent !important;
-                    & > ul {
-                        display: block;
-                        position: relative;
-                        box-shadow: 0 0 0;
-                        a {
-                            white-space: normal;
+                        span {
+                            padding: 0 0.7em;
                         }
                     }
-                } /* fim li de primeiro nivel*/
-                .add_prior {
-                    display: block;
-                    position: static;
-                    ul {
-                        position: absolute;
-                        display: none;
-                        right: 1em;
-                        box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.5);
+
+                    &:last-child > a{
+                        border-right: 0px solid #fff;
+                    }
+
+                    & > ul {
+                        li {
+                            &:nth-child(even) a {
+                                background: #3385CA;
+                            }
+                            a {
+                                border-right: 1px solid #fff;
+                                display: block;
+                                color: white;
+                                background: #2980C9;
+                                font-size: 80%;
+                                padding: 0.33em 1em;
+                                &:hover {
+                                    background: #0a5ea4;
+                                }
+                            }
+
+                        }
+                    }
+                    &.add_prior {
+                        @include li_flutuante();
+                        display: block;
                     }
                 }
-            } /* fim menu_fixo*/
+            } /* actions_inserts */
+
+
+            .menu_flutuante  {
+                & > li {
+                    @include li_flutuante();
+                }
+
+            }
+
+
 
             textarea {
                 margin: 0;
@@ -626,8 +669,21 @@ $color_actions_border: #ddd;
             }
         } /* fim csform*/
     }
-}
 
+    .selected {
+        background-color: rgba(0, 0, 0, 0.1);
+        a {
+            &:hover {
+                color: $color_actions !important;
+                font-weight: normal !important;
+            }
+        }
+    }
+
+}
+.class_color_container {
+    background: #ddd !important;
+}
 .clear {
     clear:both;
 }
@@ -641,12 +697,9 @@ $color_actions_border: #ddd;
     box-shadow: 0 0 5px #777;
 }
 
-
 .displaynone {
     display: none !important;
 }
-
-
 
 @media only screen and (max-width: 40.0625em) {
 
@@ -669,43 +722,49 @@ $color_actions_border: #ddd;
                     div, li {
                         display: inline-block !important;
                     }
-
                 }
 
                 .actions_inserts {
-                    a {
-                        &.btn-inserts, &.btn-excluir, &.btn-salvar {
+                    & > li {
+                        @include li_flutuante();
+
+                        & > a {
                             span {
                                 display: none;
                             }
+                            &.btn-excluir, &.btn-salvar {
+                                padding-left: 0;
+                                min-width: 1em;
+                                &::before {
+                                    width: 100%;
+                                    margin: 0;
+                                }
+                            }
                         }
-                    }
-                    & > li {
                         &.add_in, &.add_next, &.add_prior {
-
-                            position: static !important;
-
-                            ul {
-                                position: absolute !important;
-                                display: none !important;
-                                box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.19), 0px 2px 6px rgba(0, 0, 0, 0.5) !important;
-                            }
-                            &:hover ul {
-                                display: block !important;
-                                position: absolute !important;
-                            }
+                            position: static;
                         }
-                        &.add_in ul {
+                        &.add_in > ul {
                             left: 1em !important;
                             right: 1em !important;
+                            margin-left: 0;
+                            &::before {
+                                left: 37%;
+                            }
                         }
-                        &.add_next ul {
+                        &.add_next > ul {
                             left: 0 !important;
                             right: 1em !important;
                         }
-                        &.add_prior ul {
+                        &.add_prior > ul {
                             left: 1em !important;
                             right: 0 !important;
+                            margin-left: 0;
+                            margin-right: 0.5em;
+                            &::before {
+                                right: 42%;
+                                left: auto;
+                            }
                         }
                     }
                 }

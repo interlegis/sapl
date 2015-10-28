@@ -18,12 +18,12 @@
 	<div class="csform">
 		<form method="post" action="" action_ajax="{{dpt.pk}}/refresh">
 	    	<ul class="btns-action actions_top">
-		        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura da Norma'%}">C</a></li>
 		    	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 		        	<li class="edt-textarea"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:textarea" title="{% trans 'Edição simples apenas do texto'%}">E</a></li>
 		        	<li class="edt-tinymce"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:tinymce" title="{% trans 'Editar o texto com TinyMCE'%}">E+</a></li>
 		        	<li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
 		        {%endif%}
+		        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura da Norma'%}">C</a></li>
 			</ul>
 			<ul class="btns-action actions_right">
 				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Reduzir nível do Dispositivo'%}">&#10092;</a></li>
@@ -45,7 +45,7 @@
 	        	<li><a class="btn-bottom btn-action" pk="{{dpt.pk}}"  title="Button Bottom">BB</a></li>
 	        </ul>
 
-			<ul class="btns-action actions_inserts {% if dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_fixo{%endif%}">
+			<ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
 				{% if dpt.dispositivo_subsequente == None %}
 					{% for inserts in view.select_provaveis_inserts%}
 						<li class="{{inserts|get_field:'action'}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts|get_field:'icone'|safe}}<span>{{inserts|get_field:'tipo_insert'}}</span></a>
@@ -79,7 +79,7 @@
 				{%for parent in dpt.get_parents_asc %}
 					<li><a action="refresh" pk="{{parent.pk}}" ordem="{{parent.ordem}}" name="{{parent.pk}}" title="{{parent.texto|short_string:50}}" class="btn-parents btn-action">{{parent|nomenclatura}}</a></li>
 				{%endfor %}
-				<li><a action="refresh" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.texto|short_string:50}}" class="btn-parents btn-action">{{dpt|nomenclatura}}</a></li>
+				<li class="selected"><a action="refresh" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.texto|short_string:50}}" class="btn-parents btn-action">{{dpt|nomenclatura}}</a></li>
 		    </ul>
         </form>
     </div>
