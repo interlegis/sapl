@@ -19,6 +19,7 @@ var onSubmitEditForm = function(event) {
         'csrfmiddlewaretoken' : $('input[name=csrfmiddlewaretoken]').val(),
         'texto'               : texto
     };
+
     var url = $('.csform form').attr( "action_ajax" );
     $("#message_block").css("display", "block");
     $.post(url,formData)
@@ -100,7 +101,7 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
                 $( '#dpt' + _pk ).prepend( data );
             }
             reloadFunctionClicks();
-
+ 
             if ( editortype == 'tinymce' ) {
                 initTinymce();
             }
@@ -111,15 +112,16 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
                 $('.csform .btn-salvar').parent().remove();
                 $('.csform .btn-salvar, .csform textarea').remove();
                 $('#dpt'+flag_add_next_pk).css('min-height', $('.actions_right').height()*2);
-                $('.actions_inserts').addClass('menu_fixo');
+                $('.actions_inserts').removeClass('menu_flutuante');
             }
             $(".edt-"+editortype).addClass('selected');
+            //$(".container").addClass('class_color_container');
 
             if (addeditselected == null || addeditselected) {
-                $('#dpt'+flag_add_next_pk).addClass('dpt-selected');
                 $('html, body').animate({
                     scrollTop: $('#dpt' + flag_add_next_pk ).offset().top - window.innerHeight / 10
                     }, 300);
+                $('#dpt'+flag_add_next_pk).addClass('dpt-selected');
                 flag_add_next_pk = 0;
             }
         }
@@ -149,6 +151,11 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
                 flag_add_next = false;
                 }
         }
+        else {
+            clearEditSelected();
+            reloadFunctionClicks();
+            flag_add_next_pk = 0;
+        }
     }).always(function() {
         $("#message_block").css("display", "none");
     });
@@ -156,6 +163,7 @@ var clickUpdateDispositivo = function(event, __pk, __action, addeditselected) {
 
 
 function clearEditSelected() {
+    $(".container").removeClass('class_color_container');
     tinymce.remove();
     $('.dpt-selected').removeClass('dpt-selected');
     $('.dpt').css('min-height', '');
@@ -197,6 +205,6 @@ $(document).ready(function() {
 	reloadFunctionClicks();
 	$("#message_block").css("display", "none");
 
-	 clickUpdateDispositivo(null, 216879, 'refresh', true);
+	 clickUpdateDispositivo(null, 60933, 'refresh', true);
 
 });
