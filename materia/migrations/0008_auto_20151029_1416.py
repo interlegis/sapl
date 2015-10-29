@@ -14,5 +14,5 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='despachoinicial',
             name='numero_ordem',
-        ),
+        )
     ]

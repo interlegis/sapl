@@ -597,7 +597,6 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                              'materia': mat_principal
                              })
 
-                    anexada = Anexada()
                     anexada.materia_principal = mat_principal
                     anexada.materia_anexada = mat_anexada
                     anexada.data_anexacao = data_anexacao
@@ -916,3 +915,133 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
             return self.render_to_response(
                 {'form': form,
                  'materia': materia})
+
+
+class NumeracaoForm(forms.Form):
+
+    tipo_materia = forms.ChoiceField(required=True,
+                                     label='Tipo Matéria',
+                                     choices=get_tipos_materia(),
+                                     widget=forms.Select(
+                                         attrs={'class': 'selector'}))
+
+    data_materia = forms.DateField(label='Data',
+                                   required=False,
+                                   input_formats=['%d/%m/%Y'],
+                                   widget=forms.TextInput(
+                                       attrs={'class': 'dateinput'}))
+
+    ano_materia = forms.ChoiceField(required=True,
+                                    label='Ano',
+                                    choices=get_range_anos(),
+                                    widget=forms.Select(
+                                        attrs={'class': 'selector'}))
+
+    numero_materia = forms.CharField(
+        label='Número', required=True)
+
+    class Meta:
+        model = Numeracao
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Incluir Numeração',
+                'tipo_materia',
+                'numero_materia',
+                'ano_materia',
+                'data_materia',
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+            )
+        )
+        super(NumeracaoForm, self).__init__(*args, **kwargs)
+
+
+class NumeracaoView(FormMixin, GenericView):
+    template_name = "materia/numeracao.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        numeracao = Numeracao.objects.filter(materia_id=kwargs['pk'])
+        form = NumeracaoForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'numeracao': numeracao})
+
+    def post(self, request, *args, **kwargs):
+        form = NumeracaoForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        numeracao_list = Numeracao.objects.filter(
+            materia_id=kwargs['pk'])
+
+        if form.is_valid():
+            numeracao = Numeracao()
+            tipo = TipoMateriaLegislativa.objects.get(
+                id=form.cleaned_data['tipo_materia'])
+
+            numeracao.materia = materia
+            numeracao.tipo_materia = tipo
+            numeracao.numero_materia = form.cleaned_data['numero_materia']
+            numeracao.ano_materia = form.cleaned_data['ano_materia']
+            numeracao.data_materia = form.cleaned_data['data_materia']
+
+            numeracao.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'materia': materia,
+                                            'numeracao': numeracao_list})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('numeracao', kwargs={'pk': pk})
+
+
+class NumeracaoEditView(FormMixin, GenericView):
+    template_name = "materia/numeracao_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        numeracao = Numeracao.objects.get(id=kwargs['id'])
+        form = NumeracaoForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'numeracao': numeracao,
+             'tipos': TipoMateriaLegislativa.objects.all()})
+
+    def post(self, request, *args, **kwargs):
+        form = NumeracaoForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        numeracao = Numeracao.objects.get(id=kwargs['id'])
+
+        if form.is_valid():
+            if 'excluir' in request.POST:
+                numeracao.delete()
+            elif 'salvar' in request.POST:
+                tipo = TipoMateriaLegislativa.objects.get(
+                    id=form.cleaned_data['tipo_materia'])
+
+                numeracao.materia = materia
+                numeracao.tipo_materia = tipo
+                numeracao.numero_materia = form.cleaned_data['numero_materia']
+                numeracao.ano_materia = form.cleaned_data['ano_materia']
+                numeracao.data_materia = form.cleaned_data['data_materia']
+
+                numeracao.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'materia': materia,
+                                            'numeracao': numeracao})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('numeracao', kwargs={'pk': pk})

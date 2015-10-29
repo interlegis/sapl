@@ -236,7 +236,7 @@ class DespachoInicial(models.Model):
     # TODO M2M?
     materia = models.ForeignKey(MateriaLegislativa)
     comissao = models.ForeignKey(Comissao)
-
+    
     class Meta:
         verbose_name = _('Despacho Inicial')
         verbose_name_plural = _('Despachos Iniciais')
@@ -297,7 +297,6 @@ class MateriaAssunto(models.Model):
 
 class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
-    numero_ordem = models.PositiveIntegerField()
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa, verbose_name=_('Tipo de Matéria'))
     numero_materia = models.CharField(max_length=5, verbose_name=_('Número'))

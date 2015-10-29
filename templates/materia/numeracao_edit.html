@@ -1,0 +1,57 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Editar Numeração</legend>
+				<form method="POST">
+					{% csrf_token %}
+
+					Tipo Matéria*
+					<select name="tipo_materia">
+						{% for t in tipos %}
+							<option value="{{t.id}}" {% if t.id == numeracao.tipo_materia_id %} selected {% endif %}>
+								{{t.sigla}} - {{t.descricao}}
+							</option>
+						{% endfor %}
+					</select>
+
+					Número*
+					<input type="text" name="numero_materia" value="{{numeracao.numero_materia}}" />
+
+					Ano*			
+					<input type="text" name="ano_materia" value="{{numeracao.ano_materia}}" />
+
+					Data
+					<input type="text" name="data_materia" class="dateinput" value="{{numeracao.data_materia|date:'d/m/Y'}}" />
+
+					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
+					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+				</form>
+		</fieldset>
+	</fieldset>
+{% endblock %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}
