@@ -16,7 +16,11 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 protocolo_materia_crud,
                                 status_tramitacao_administrativo_crud,
                                 tipo_documento_administrativo_crud,
-                                tramitacao_administrativo_crud)
+                                tramitacao_administrativo_crud,
+                                TramitacaoAdmView,
+                                TramitacaoAdmEditView,
+                                TramitacaoAdmIncluirView,
+                                TramitacaoAdmDeleteView)
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/', include(documento_administrativo_crud.urls)),
@@ -51,6 +55,16 @@ urlpatterns = [
     url(r'^protocoloadm/doc-ace-adm/(?P<pk>\d+)',
         DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
 
+    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao$',
+        TramitacaoAdmView.as_view(), name='tramitacao'),
+    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_incluir',        
+        TramitacaoAdmIncluirView.as_view(), name='tramitacao_incluir'),    
+    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_edit',
+        TramitacaoAdmEditView.as_view(), name='tramitacao_edit'),
+    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_delete/(?P<oid>\d+)',
+        TramitacaoAdmDeleteView.as_view(), name='tramitacao_delete'),        
+
+
     # TODO: move to Proposicoes app
     url(r'^protocoloadm/proposicao-receber',
         ProposicaoReceberView.as_view(), name='proposicao_receber'),
@@ -64,5 +78,5 @@ urlpatterns = [
         ProposicoesIncorporadasView.as_view(),
         name='proposicoes_incorporadas'),
     url(r'^protocoloadm/(?P<pk>\d+)/proposicao',
-        ProposicaoView.as_view(), name='proposicao_view')
+        ProposicaoView.as_view(), name='proposicao_view'),    
 ]
