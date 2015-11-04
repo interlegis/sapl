@@ -2,7 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Fieldset, Field, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -10,6 +10,7 @@ from django.db.models import Max
 from django.forms import ModelForm
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -798,3 +799,140 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('doc_ace_adm', kwargs={'pk': pk})
+
+
+class TramitacaoAdmView(FormMixin, GenericView):
+    template_name = "protocoloadm/tramitacao.html"
+
+    def get(self, request, *args, **kwargs):
+
+        pk = kwargs['pk']
+        documento = DocumentoAdministrativo.objects.get(id=pk)
+        tramitacoes = TramitacaoAdministrativo.objects.filter(
+            documento=documento).order_by('-data_tramitacao')
+
+        return self.render_to_response({'documento': documento, 'tramitacoes': tramitacoes})
+
+
+class TramitacaoAdmForm(ModelForm):
+
+    data_tramitacao = forms.DateField(label=u'Data Tramitação',
+                                      input_formats=['%d/%m/%Y'],
+                                      required=False,
+                                      widget=forms.DateInput(format='%d/%m/%Y',
+                                                             attrs={'class': 'dateinput'}))
+
+    data_encaminhamento = forms.DateField(label=u'Data Encaminhamento',
+                                          input_formats=['%d/%m/%Y'],
+                                          required=False,
+                                          widget=forms.DateInput(format='%d/%m/%Y',
+                                                                 attrs={'class': 'dateinput'}))
+
+    data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
+                                     input_formats=['%d/%m/%Y'],
+                                     required=False,
+                                     widget=forms.DateInput(format='%d/%m/%Y',
+                                                            attrs={'class': 'dateinput'}))
+
+    class Meta:
+        model = TramitacaoAdministrativo
+        fields = ['data_tramitacao',
+                  'unidade_tramitacao_local',
+                  'status',
+                  'unidade_tramitacao_destino',
+                  'data_encaminhamento',
+                  'data_fim_prazo',
+                  'texto',
+                  'documento',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Incluir Tramitação',
+                     'data_tramitacao',
+                     'unidade_tramitacao_local',
+                     'status',
+                     'unidade_tramitacao_destino',
+                     'data_encaminhamento',
+                     'data_fim_prazo',
+                     'texto'),
+            Field('documento', type="hidden"),
+            ButtonHolder(
+                Submit('submit', 'Salvar',
+                       css_class='button primary')
+            )
+        )
+        super(TramitacaoAdmForm, self).__init__(
+            *args, **kwargs)
+
+
+class TramitacaoAdmIncluirView(FormMixin, GenericView):
+    template_name = "protocoloadm/tramitacao_incluir.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        documento = DocumentoAdministrativo.objects.get(id=pk)
+        data = {'documento': documento}
+        form = TramitacaoAdmForm(initial=data)
+
+        return self.render_to_response({'documento': documento, 'form': form})
+
+    def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        documento = DocumentoAdministrativo.objects.get(id=pk)
+        form = TramitacaoAdmForm(request.POST or None)
+
+        if form.is_valid():
+            tramitacao = form.save(commit=False)
+            tramitacao.ultima = False
+            tramitacao.save()
+            message = "Tramitação criada com sucesso"
+            return HttpResponseRedirect(reverse('tramitacao', kwargs={'pk': pk}))
+        else:
+            return self.form_invalid(form)
+
+
+class TramitacaoAdmEditView(FormMixin, GenericView):
+
+    template_name = "protocoloadm/tramitacao_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
+        documento = tramitacao.documento
+        form = TramitacaoAdmForm(instance=tramitacao)
+
+        return self.render_to_response({'documento': documento, 'form': form})
+
+    def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
+        documento = tramitacao.documento
+        form = TramitacaoAdmForm(request.POST, instance=tramitacao)
+
+        if form.is_valid():
+            tramitacao = form.save(commit=False)
+            tramitacao.ultima = False
+            tramitacao.save()
+            return HttpResponseRedirect(reverse('tramitacao', kwargs={'pk': pk}))
+        else:
+            return self.form_invalid(form)
+
+
+class TramitacaoAdmDeleteView(FormMixin, GenericView):
+
+    template_name = "protocoloadm/tramitacao.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        oid = kwargs['oid']
+
+        documento = DocumentoAdministrativo.objects.get(id=pk)
+
+        tramitacao = TramitacaoAdministrativo.objects.get(id=oid)
+        tramitacao.delete()
+        tramitacoes = TramitacaoAdministrativo.objects.filter(
+            documento=documento)
+
+        return self.render_to_response({'documento': documento, 'tramitacoes': tramitacoes})
