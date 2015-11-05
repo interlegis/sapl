@@ -10,17 +10,15 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 ProposicoesNaoRecebidasView,
                                 ProtocoloDocumentoView, ProtocoloListView,
                                 ProtocoloMateriaView, ProtocoloPesquisaView,
+                                TramitacaoAdmDeleteView, TramitacaoAdmEditView,
+                                TramitacaoAdmIncluirView, TramitacaoAdmView,
                                 documento_acessorio_administrativo_crud,
                                 documento_administrativo_crud,
                                 protocolo_documento_crud,
                                 protocolo_materia_crud,
                                 status_tramitacao_administrativo_crud,
                                 tipo_documento_administrativo_crud,
-                                tramitacao_administrativo_crud,
-                                TramitacaoAdmView,
-                                TramitacaoAdmEditView,
-                                TramitacaoAdmIncluirView,
-                                TramitacaoAdmDeleteView)
+                                tramitacao_administrativo_crud)
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/', include(documento_administrativo_crud.urls)),
@@ -57,12 +55,12 @@ urlpatterns = [
 
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao$',
         TramitacaoAdmView.as_view(), name='tramitacao'),
-    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_incluir',        
-        TramitacaoAdmIncluirView.as_view(), name='tramitacao_incluir'),    
+    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_incluir',
+        TramitacaoAdmIncluirView.as_view(), name='tramitacao_incluir'),
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_edit',
         TramitacaoAdmEditView.as_view(), name='tramitacao_edit'),
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_delete/(?P<oid>\d+)',
-        TramitacaoAdmDeleteView.as_view(), name='tramitacao_delete'),        
+        TramitacaoAdmDeleteView.as_view(), name='tramitacao_delete'),
 
 
     # TODO: move to Proposicoes app
@@ -78,5 +76,5 @@ urlpatterns = [
         ProposicoesIncorporadasView.as_view(),
         name='proposicoes_incorporadas'),
     url(r'^protocoloadm/(?P<pk>\d+)/proposicao',
-        ProposicaoView.as_view(), name='proposicao_view'),    
+        ProposicaoView.as_view(), name='proposicao_view'),
 ]
