@@ -1,4 +1,5 @@
 from django.conf.urls import url
+
 from norma.views import NormaIncluirView, norma_temporario_para_compilacao_crud
 
 norma_url_patterns = norma_temporario_para_compilacao_crud.urlpatterns

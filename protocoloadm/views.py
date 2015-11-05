@@ -2,7 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Field, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -10,7 +10,6 @@ from django.db.models import Max
 from django.forms import ModelForm
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -811,7 +810,8 @@ class TramitacaoAdmView(FormMixin, GenericView):
         tramitacoes = TramitacaoAdministrativo.objects.filter(
             documento=documento).order_by('-data_tramitacao')
 
-        return self.render_to_response({'documento': documento, 'tramitacoes': tramitacoes})
+        return self.render_to_response({'documento': documento,
+                                        'tramitacoes': tramitacoes})
 
 
 class TramitacaoAdmForm(ModelForm):
@@ -819,20 +819,23 @@ class TramitacaoAdmForm(ModelForm):
     data_tramitacao = forms.DateField(label=u'Data Tramitação',
                                       input_formats=['%d/%m/%Y'],
                                       required=False,
-                                      widget=forms.DateInput(format='%d/%m/%Y',
-                                                             attrs={'class': 'dateinput'}))
+                                      widget=forms.DateInput(
+                                        format='%d/%m/%Y',
+                                        attrs={'class': 'dateinput'}))
 
     data_encaminhamento = forms.DateField(label=u'Data Encaminhamento',
                                           input_formats=['%d/%m/%Y'],
                                           required=False,
-                                          widget=forms.DateInput(format='%d/%m/%Y',
-                                                                 attrs={'class': 'dateinput'}))
+                                          widget=forms.DateInput(
+                                            format='%d/%m/%Y',
+                                            attrs={'class': 'dateinput'}))
 
     data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
                                      input_formats=['%d/%m/%Y'],
                                      required=False,
-                                     widget=forms.DateInput(format='%d/%m/%Y',
-                                                            attrs={'class': 'dateinput'}))
+                                     widget=forms.DateInput(
+                                        format='%d/%m/%Y',
+                                        attrs={'class': 'dateinput'}))
 
     class Meta:
         model = TramitacaoAdministrativo
@@ -880,15 +883,14 @@ class TramitacaoAdmIncluirView(FormMixin, GenericView):
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        documento = DocumentoAdministrativo.objects.get(id=pk)
         form = TramitacaoAdmForm(request.POST or None)
 
         if form.is_valid():
             tramitacao = form.save(commit=False)
             tramitacao.ultima = False
             tramitacao.save()
-            message = "Tramitação criada com sucesso"
-            return HttpResponseRedirect(reverse('tramitacao', kwargs={'pk': pk}))
+            return HttpResponseRedirect(
+              reverse('tramitacao', kwargs={'pk': pk}))
         else:
             return self.form_invalid(form)
 
@@ -908,14 +910,14 @@ class TramitacaoAdmEditView(FormMixin, GenericView):
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
         tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
-        documento = tramitacao.documento
         form = TramitacaoAdmForm(request.POST, instance=tramitacao)
 
         if form.is_valid():
             tramitacao = form.save(commit=False)
             tramitacao.ultima = False
             tramitacao.save()
-            return HttpResponseRedirect(reverse('tramitacao', kwargs={'pk': pk}))
+            return HttpResponseRedirect(
+              reverse('tramitacao', kwargs={'pk': pk}))
         else:
             return self.form_invalid(form)
 
@@ -935,4 +937,5 @@ class TramitacaoAdmDeleteView(FormMixin, GenericView):
         tramitacoes = TramitacaoAdministrativo.objects.filter(
             documento=documento)
 
-        return self.render_to_response({'documento': documento, 'tramitacoes': tramitacoes})
+        return self.render_to_response({'documento': documento,
+                                        'tramitacoes': tramitacoes})

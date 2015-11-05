@@ -236,7 +236,7 @@ class DespachoInicial(models.Model):
     # TODO M2M?
     materia = models.ForeignKey(MateriaLegislativa)
     comissao = models.ForeignKey(Comissao)
-    
+
     class Meta:
         verbose_name = _('Despacho Inicial')
         verbose_name_plural = _('Despachos Iniciais')
