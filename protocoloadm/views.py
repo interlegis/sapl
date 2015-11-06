@@ -262,7 +262,7 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
                 kwargs['autor'] = request.POST['autor']
 
             if request.POST['assunto']:
-                kwargs['assunto'] = request.POST['assunto']
+                kwargs['assunto_ementa__icontains'] = request.POST['assunto']
 
             request.session['kwargs'] = kwargs
             return redirect('protocolo_list')
