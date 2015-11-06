@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.forms import ModelForm
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -127,6 +127,13 @@ TIPOS_PROTOCOLO = [('', 'Selecione'),
                    ('0', 'Enviado'),
                    ('1', 'Recebido')]
 
+
+class HorizontalRadioRenderer(forms.RadioSelect.renderer):
+
+    def render(self):
+        return mark_safe(u' '.join([u'%s ' % w for w in self]))
+
+
 class ProtocoloForm(forms.Form):
 
     YEARS = get_range_anos()
@@ -154,8 +161,17 @@ class ProtocoloForm(forms.Form):
                             widget=forms.TextInput(
                                 attrs={'class': 'dateinput'}))
 
-    natureza_processo = forms.CharField(
-        label='Natureza Processo', required=False)
+    # TODO: como pesquisar???
+    natureza_processo = forms.ChoiceField(required=False,
+                                          label='Natureza Processo',
+                                          choices=[
+                                              ('0', 'Administrativo'),
+                                              ('1', 'Legislativo'),
+                                              ('', 'Ambos')],
+                                          widget=forms.RadioSelect(
+                                              renderer=HorizontalRadioRenderer)
+                                          )
+
     tipo_documento = forms.ChoiceField(required=False,
                                        label='Tipo de Documento',
                                        choices=get_tipos_documento(),
@@ -172,6 +188,7 @@ class ProtocoloForm(forms.Form):
     autor = forms.CharField(label='Autor', required=False)
     assunto = forms.CharField(label='Assunto', required=False)
 
+
 class ProtocoloListView(FormMixin, ListView):
     template_name = 'protocoloadm/protocolo_list.html'
     context_object_name = 'protocolos'
@@ -179,9 +196,10 @@ class ProtocoloListView(FormMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-      kwargs = self.request.session['kwargs']
-      return Protocolo.objects.filter(
-                **kwargs)
+        kwargs = self.request.session['kwargs']
+        return Protocolo.objects.filter(
+            **kwargs)
+
 
 class ProtocoloPesquisaView(FormMixin, GenericView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
@@ -247,7 +265,6 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
                 kwargs['assunto'] = request.POST['assunto']
 
             request.session['kwargs'] = kwargs
-            from django.shortcuts import redirect
             return redirect('protocolo_list')
         else:
             return self.form_invalid(form)
@@ -328,12 +345,6 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
-
-
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-
-    def render(self):
-        return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
 class ProtocoloDocumentForm(forms.Form):
@@ -815,22 +826,22 @@ class TramitacaoAdmForm(ModelForm):
                                       input_formats=['%d/%m/%Y'],
                                       required=False,
                                       widget=forms.DateInput(
-                                        format='%d/%m/%Y',
-                                        attrs={'class': 'dateinput'}))
+                                          format='%d/%m/%Y',
+                                          attrs={'class': 'dateinput'}))
 
     data_encaminhamento = forms.DateField(label=u'Data Encaminhamento',
                                           input_formats=['%d/%m/%Y'],
                                           required=False,
                                           widget=forms.DateInput(
-                                            format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}))
+                                              format='%d/%m/%Y',
+                                              attrs={'class': 'dateinput'}))
 
     data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
                                      input_formats=['%d/%m/%Y'],
                                      required=False,
                                      widget=forms.DateInput(
-                                        format='%d/%m/%Y',
-                                        attrs={'class': 'dateinput'}))
+                                         format='%d/%m/%Y',
+                                         attrs={'class': 'dateinput'}))
 
     class Meta:
         model = TramitacaoAdministrativo
@@ -885,7 +896,7 @@ class TramitacaoAdmIncluirView(FormMixin, GenericView):
             tramitacao.ultima = False
             tramitacao.save()
             return HttpResponseRedirect(
-              reverse('tramitacao', kwargs={'pk': pk}))
+                reverse('tramitacao', kwargs={'pk': pk}))
         else:
             return self.form_invalid(form)
 
@@ -913,7 +924,7 @@ class TramitacaoAdmEditView(FormMixin, GenericView):
             tramitacao.ultima = False
             tramitacao.save()
             return HttpResponseRedirect(
-              reverse('tramitacao', kwargs={'pk': tramitacao.documento.id}))
+                reverse('tramitacao', kwargs={'pk': tramitacao.documento.id}))
         else:
             return self.form_invalid(form)
 
