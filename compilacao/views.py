@@ -2,10 +2,8 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import sys
 
-from django import forms
 from django.core.signing import Signer
 from django.db.models import Q
-from django.db.models.aggregates import Max
 from django.http.response import JsonResponse
 from django.utils.dateparse import parse_date
 from django.utils.translation import ugettext_lazy as _
@@ -313,13 +311,8 @@ class CompilacaoEditView(CompilacaoView):
         return result
 
 
-class DispositivoSimpleEditForm(forms.Form):
-    texto = forms.CharField(required=False, widget=forms.Textarea)
-
-
 class DispositivoEditView(CompilacaoEditView, FormMixin):
     template_name = 'compilacao/edit_bloco.html'
-    form_class = DispositivoSimpleEditForm
 
     def post(self, request, *args, **kwargs):
 
@@ -327,10 +320,37 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
             pk=self.kwargs['dispositivo_id'])
 
         texto = request.POST['texto']
+
+        if d.texto != '':
+            d.texto = texto
+            d.save()
+            return self.get(request, *args, **kwargs)
         d.texto = texto
         d.save()
 
-        return self.get(request, *args, **kwargs)
+        if texto != '':
+            dnext = Dispositivo.objects.filter(
+                norma_id=d.norma_id,
+                ordem__gt=d.ordem,
+                texto='',
+                tipo_dispositivo__dispositivo_de_articulacao=False)[:1]
+
+            if not dnext.exists():
+                return self.get(request, *args, **kwargs)
+
+            if dnext[0].nivel > d.nivel:
+                pais = [d.pk, ]
+            else:
+                if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
+                    pais = [dnext[0].dispositivo_pai_id, ]
+                else:
+                    pais = [
+                        dnext[0].dispositivo_pai_id, d.dispositivo_pai_id, ]
+            data = {'pk': dnext[0].pk, 'pai': pais}
+        else:
+            data = {'pk': d.pk, 'pai': [d.pk, ]}
+
+        return JsonResponse(data, safe=False)
 
     def get_queryset(self):
         self.flag_alteradora = -1
@@ -379,183 +399,159 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
 
     def select_provaveis_inserts(self):
 
-        # Não salvar d_base
-        if self.pk_add == 0:
-            d_base = Dispositivo.objects.get(pk=self.pk_view)
-        else:
-            d_base = Dispositivo.objects.get(pk=self.pk_add)
-
-        result = [{'tipo_insert': 'Inserir Depois',
-                   'icone': '&#8631;&nbsp;',
-                   'action': 'add_next',
-                   'itens': []},
-                  {'tipo_insert': 'Inserir Dentro',
-                   'icone': '&#8690;&nbsp;',
-                   'action': 'add_in',
-                   'itens': []},
-                  {'tipo_insert': 'Inserir Antes',
-                   'icone': '&#8630;&nbsp;',
-                   'action': 'add_prior',
-                   'itens': []}
-                  ]
-
-        disps = Dispositivo.objects.order_by(
-            '-ordem').filter(
-                ordem__lte=d_base.ordem,
-                norma_id=d_base.norma_id)
-
-        nivel = sys.maxsize
-        for d in disps:
-
-            if d.nivel >= nivel:
-                continue
-
-            if d.tipo_dispositivo.class_css == 'caput':
-                continue
-
-            nivel = d.nivel
-
-            r = []
-
-            if d == d_base:
-                result[2]['itens'].append({
-                    'class_css': d.tipo_dispositivo.class_css,
-                    'tipo_pk': d.pk,
-                    'variacao': 0,
-                    'provavel': '%s (%s)' % (
-                        d.rotulo_padrao(True, d, False),
-                        d.tipo_dispositivo.nome,),
-                    'dispositivo_base': d_base.pk})
-
-            flag_direcao = 1
-            flag_variacao = 0
-            while True:
-                # rt resultado da transformacao
-                rt = d.transform_in_next(flag_direcao)
-                if not rt[0]:
-                    break
-                flag_variacao += rt[1]
-                r.append({'class_css': d.tipo_dispositivo.class_css,
-                          'tipo_pk': d.tipo_dispositivo.pk,
-                          'variacao': flag_variacao,
-                          'provavel': '%s (%s)' % (
-                              d.rotulo_padrao(
-                                  True, d_base, True),
-                              d.tipo_dispositivo.nome,),
-                          'dispositivo_base': d_base.pk})
-
-                flag_direcao = -1
-
-            r.reverse()
-
-            if len(r) > 0 and d.tipo_dispositivo.class_css == 'articulacao':
-                r = [r[0], ]
-
-            if d.tipo_dispositivo == d_base.tipo_dispositivo:
-                result[0]['itens'] += r
+        try:
+            # Não salvar d_base
+            if self.pk_add == 0:
+                base = Dispositivo.objects.get(pk=self.pk_view)
             else:
-                result[0]['itens'] += r
-                result[2]['itens'] += r
+                base = Dispositivo.objects.get(pk=self.pk_add)
 
-            if nivel == 0:
-                break
+            result = [{'tipo_insert': 'Inserir Depois',
+                       'icone': '&#8631;&nbsp;',
+                       'action': 'add_next',
+                       'itens': []},
+                      {'tipo_insert': 'Inserir Dentro',
+                       'icone': '&#8690;&nbsp;',
+                       'action': 'add_in',
+                       'itens': []},
+                      {'tipo_insert': 'Inserir Antes',
+                       'icone': '&#8630;&nbsp;',
+                       'action': 'add_prior',
+                       'itens': []}
+                      ]
 
-        # tipo do dispositivo base
-        tipb = d_base.tipo_dispositivo
+            # Possíveis inserções sequenciais já existentes
+            dps = base.get_parents()
+            dps.insert(0, base)
+            nivel = sys.maxsize
+            for dp in dps:
 
-        for mudarnivel in [1, 0]:
-            if mudarnivel:
-                # Outros Tipos de Dispositivos PARA DENTRO
-                otds = TipoDispositivo.objects.order_by(
-                    '-contagem_continua', 'id').filter(
-                    Q(id__gt=100) & Q(id__gt=d_base.tipo_dispositivo_id))
-            else:
-                # Outros Tipos de Dispositivos PARA FORA
-                classes_ja_inseridas = []
-                for c in result[0]['itens']:
-                    if c['class_css'] not in classes_ja_inseridas:
-                        classes_ja_inseridas.append(c['class_css'])
-                otds = TipoDispositivo.objects.order_by(
-                    '-contagem_continua', 'id').filter(
-                    id__gt=100,
-                    id__lt=d_base.tipo_dispositivo_id).exclude(
-                        class_css__in=classes_ja_inseridas)
-
-            for td in otds:
-
-                if td.class_css == 'caput':
+                if dp.nivel >= nivel:
                     continue
 
-                d_base.tipo_dispositivo = td
+                if dp.is_relative_auto_insert():
+                    continue
 
-                if td.contagem_continua:
-                    disps = Dispositivo.objects.filter(
-                        tipo_dispositivo_id=td.pk,
-                        ordem__lte=d_base.ordem,
-                        norma_id=d_base.norma_id).aggregate(
-                        Max('dispositivo0'),
-                        Max('dispositivo1'),
-                        Max('dispositivo2'),
-                        Max('dispositivo3'),
-                        Max('dispositivo4'),
-                        Max('dispositivo5'))
+                nivel = dp.nivel
 
-                else:
-                    disps = Dispositivo.objects.filter(
-                        tipo_dispositivo_id=td.pk,
-                        dispositivo_pai_id=d_base.pk).aggregate(
-                        Max('dispositivo0'),
-                        Max('dispositivo1'),
-                        Max('dispositivo2'),
-                        Max('dispositivo3'),
-                        Max('dispositivo4'),
-                        Max('dispositivo5'))
+                # um do mesmo para inserção antes
+                if dp == base:
+                    result[2]['itens'].append({
+                        'class_css': dp.tipo_dispositivo.class_css,
+                        'tipo_pk': dp.tipo_dispositivo.pk,
+                        'variacao': 0,
+                        'provavel': '%s (%s)' % (
+                            dp.rotulo_padrao(),
+                            dp.tipo_dispositivo.nome,),
+                        'dispositivo_base': base.pk})
 
-                if disps['dispositivo0__max'] is not None:
-                    d_base.set_numero_completo([
-                        disps['dispositivo0__max'],
-                        disps['dispositivo1__max'],
-                        disps['dispositivo2__max'],
-                        disps['dispositivo3__max'],
-                        disps['dispositivo4__max'],
-                        disps['dispositivo5__max'],
-                    ])
-
-                    d_base.transform_in_next()
-                else:
-                    if ';' in td.rotulo_prefixo_texto:
-                        d_base.set_numero_completo([0, 0, 0, 0, 0, 0, ])
+                r = []
+                flag_direcao = 1
+                flag_variacao = 0
+                while True:
+                    if dp.dispositivo0 == 0:
+                        local_insert = 1
                     else:
-                        d_base.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+                        local_insert = 0
 
-                r = [{'class_css': td.class_css,
-                      'tipo_pk': td.pk,
-                      'variacao': 0,
-                      'provavel': '%s (%s)' % (
-                          d_base.rotulo_padrao(True, None, True),
-                          td.nome,),
-                      'dispositivo_base': d_base.pk}]
+                    rt = dp.transform_in_next(flag_direcao)
+                    if not rt[0]:
+                        break
+                    flag_variacao += rt[1]
+                    r.append({'class_css': dp.tipo_dispositivo.class_css,
+                              'tipo_pk': dp.tipo_dispositivo.pk,
+                              'variacao': flag_variacao,
+                              'provavel': '%s (%s)' % (
+                                  dp.rotulo_padrao(local_insert),
+                                  dp.tipo_dispositivo.nome,),
+                              'dispositivo_base': base.pk})
 
-                if mudarnivel == 1:
-                    if (tipb.class_css == 'caput' and
-                            td.class_css == 'paragrafo'):
-                        result[0]['itens'].insert(0, r[0])
-                    else:
-                        result[1]['itens'] += r
+                    flag_direcao = -1
+                r.reverse()
+
+                if len(r) > 0 and dp.tipo_dispositivo.class_css in [
+                        'articulacao', 'ementa']:
+                    r = [r[0], ]
+
+                if dp.tipo_dispositivo == base.tipo_dispositivo:
+                    result[0]['itens'] += r
                 else:
-                    if td.pk < tipb.pk:
-                        result[2]['itens'] += r
-                        result[0]['itens'] += r
+                    result[0]['itens'] += r
+                    result[2]['itens'] += r
 
-        if tipb.class_css == 'caput':
-            result.pop()
-            # result.remove(result[0])
+                if nivel == 0:
+                    break
 
-        # retira inserir após e inserir antes
-        if tipb.class_css == 'articulacao':
-            r = result[0]
-            result.remove(result[0])
-            result.insert(1, r)
+            # tipo do dispositivo base
+            tipb = base.tipo_dispositivo
+            raiz = base.get_raiz()
+
+            for paradentro in [1, 0]:
+                if paradentro:
+                    # Outros Tipos de Dispositivos PARA DENTRO
+                    otds = TipoDispositivo.objects.order_by(
+                        '-contagem_continua', 'id').all()
+                else:
+                    # Outros Tipos de Dispositivos PARA FORA
+                    classes_ja_inseridas = []
+                    for c in result[0]['itens']:
+                        if c['class_css'] not in classes_ja_inseridas:
+                            classes_ja_inseridas.append(c['class_css'])
+                    otds = TipoDispositivo.objects.order_by(
+                        '-contagem_continua', 'id').all().exclude(
+                            class_css__in=classes_ja_inseridas)
+
+                for td in otds:
+
+                    if paradentro and not td.permitido_inserir_in(
+                            tipb, excluir_autos=True):
+                        continue
+
+                    base.tipo_dispositivo = td
+
+                    if not paradentro:
+                        if not td.permitido_inserir_in(
+                                raiz.tipo_dispositivo, excluir_autos=True):
+                            continue
+
+                    Dispositivo.set_numero_for_add_in(base, base, td)
+
+                    r = [{'class_css': td.class_css,
+                          'tipo_pk': td.pk,
+                          'variacao': 0,
+                          'provavel': '%s (%s)' % (
+                              base.rotulo_padrao(1, paradentro),
+                              td.nome,),
+                          'dispositivo_base': base.pk}]
+
+                    if paradentro == 1:
+                        if (tipb.class_css == 'caput' and
+                                td.class_css == 'paragrafo'):
+                            result[0]['itens'].insert(0, r[0])
+                        else:
+                            result[1]['itens'] += r
+                    else:
+                        if td.pk < tipb.pk:
+                            result[2]['itens'] += r
+                            result[0]['itens'] += r
+
+            if tipb.class_css == 'caput':
+                result.pop()
+
+            # retira inserir após e inserir antes
+            if tipb.class_css == 'articulacao':
+                r = result[0]
+                result.remove(result[0])
+                result.insert(1, r)
+
+            # remover temporariamente a opção inserir antes
+            # confirmar falta de necessidade
+
+            if len(result) > 2:
+                result.pop()
+
+        except Exception as e:
+            print(e)
 
         return result
 
@@ -577,13 +573,53 @@ class ActionsEditMixin(object):
         pass
 
     def add_in(self, context):
-        # pai = Dispositivo.objects.get(pk=context['dispositivo_id'])
-        # dp = Dispositivo.objects.get(pk=context['dispositivo_id'])
 
-        # Tipo Filho
-        # tf = TipoDispositivo.objects.get(pk=context['tipo_pk'])
-        print("aqui")
-        return {}
+        try:
+            # Tipo do dispositivo a ser inserido
+            tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
+
+            base = Dispositivo.objects.get(pk=context['dispositivo_id'])
+
+            dp = Dispositivo.init_with_base(base, tipo)
+
+            dp.nivel += 1
+            dp.dispositivo_pai = base
+            Dispositivo.set_numero_for_add_in(base, dp, tipo)
+            dp.rotulo = dp.rotulo_padrao()
+
+            if dp.tipo_dispositivo.class_css == 'artigo':
+                ordem = base.criar_espaco(espaco_a_criar=2, local=0)
+            else:
+                ordem = base.criar_espaco(espaco_a_criar=1, local=0)
+
+            dp.ordem = ordem
+
+            dp.incrementar_irmaos(tipo=['add_in'])
+
+            dp.clean()
+            dp.save()
+
+            # Inserção automática do caput para artigos
+            if dp.tipo_dispositivo.class_css == 'artigo':
+                tipocaput = TipoDispositivo.objects.filter(
+                    class_css='caput')
+                dp.dispositivo_pai_id = dp.pk
+                dp.pk = None
+                dp.nivel += 1
+                dp.tipo_dispositivo = tipocaput[0]
+                dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+                dp.rotulo = dp.rotulo_padrao()
+                dp.texto = ''
+
+                dp.ordem = ordem + Dispositivo.INTERVALO_ORDEM
+                dp.clean()
+                dp.save()
+                dp = Dispositivo.objects.get(pk=dp.dispositivo_pai_id)
+        except Exception as e:
+            print(e)
+
+        data = self.get_json_for_refresh(dp)
+        return data
 
     def add_next(self, context):
         try:
@@ -608,95 +644,15 @@ class ActionsEditMixin(object):
                 dp.rotulo = dp.rotulo_padrao()
 
                 if dp.tipo_dispositivo.class_css == 'artigo':
-                    ordem = base.criar_espaco_apos(espaco_a_criar=2)
+                    ordem = base.criar_espaco(espaco_a_criar=2, local=1)
                 else:
-                    ordem = base.criar_espaco_apos(espaco_a_criar=1)
+                    ordem = base.criar_espaco(espaco_a_criar=1, local=1)
 
                 dp.ordem = ordem
 
                 # Incrementar irmãos
 
-                if not tipo.contagem_continua:
-                    irmaos = list(Dispositivo.objects.filter(
-                        Q(ordem__gt=dp.ordem) | Q(dispositivo0=0),
-                        dispositivo_pai_id=dp.dispositivo_pai_id,
-                        tipo_dispositivo_id=tipo.pk))
-
-                elif tipo.class_css == 'articulacao':
-                    irmaos = list(Dispositivo.objects.filter(
-                        ordem__gt=dp.ordem,
-                        norma_id=dp.norma_id,
-                        tipo_dispositivo_id=tipo.pk))
-
-                else:  # contagem continua restrita a articulacao
-                    proxima_articulacao = Dispositivo.objects.filter(
-                        ordem__gt=dp.ordem,
-                        nivel=0,
-                        norma_id=dp.norma_id)[:1]
-
-                    if not proxima_articulacao.exists():
-                        irmaos = list(Dispositivo.objects.filter(
-                            ordem__gt=dp.ordem,
-                            norma_id=dp.norma_id,
-                            tipo_dispositivo_id=tipo.pk))
-                    else:
-                        irmaos = list(Dispositivo.objects.filter(
-                            Q(ordem__gt=dp.ordem) &
-                            Q(ordem__lt=proxima_articulacao[0].ordem),
-                            norma_id=dp.norma_id,
-                            tipo_dispositivo_id=tipo.pk))
-
-                dp_profundidade = dp.get_profundidade()
-
-                irmaos_a_salvar = []
-                ultimo_irmao = None
-                for irmao in irmaos:
-
-                    if irmao.ordem <= dp.ordem:
-                        irmaos_a_salvar.append(irmao)
-                        continue
-
-                    irmao_profundidade = irmao.get_profundidade()
-                    if irmao_profundidade < dp_profundidade:
-                        break
-
-                    if irmao.get_numero_completo() < dp.get_numero_completo():
-                        if irmao_profundidade > dp_profundidade:
-                            if ultimo_irmao is None:
-                                irmao.transform_in_next(
-                                    dp_profundidade - irmao_profundidade)
-                                irmao.transform_in_next(
-                                    irmao_profundidade - dp_profundidade)
-                            else:
-                                irmao.set_numero_completo(
-                                    ultimo_irmao.get_numero_completo())
-
-                                irmao.transform_in_next(
-                                    irmao_profundidade -
-                                    ultimo_irmao.get_profundidade())
-
-                            ultimo_irmao = irmao
-                        else:
-                            irmao.transform_in_next()
-                        irmao.rotulo = irmao.rotulo_padrao()
-                        irmaos_a_salvar.append(irmao)
-                    else:
-                        irmao_numero = irmao.get_numero_completo()
-                        irmao_numero[dp_profundidade] += 1
-                        irmao.set_numero_completo(irmao_numero)
-                        irmao.rotulo = irmao.rotulo_padrao()
-                        irmaos_a_salvar.append(irmao)
-
-                irmaos_a_salvar.reverse()
-                for irmao in irmaos_a_salvar:
-                    if irmao.dispositivo0 == 0 and \
-                            irmao.ordem <= dp.ordem and variacao == 0:
-                        irmao.dispositivo0 = 1
-                        irmao.rotulo = irmao.rotulo_padrao()
-                        dp.dispositivo0 = 2
-                        dp.rotulo = dp.rotulo_padrao()
-                    irmao.clean()
-                    irmao.save()
+                dp.incrementar_irmaos(variacao)
 
                 dp.clean()
                 dp.save()
@@ -736,9 +692,9 @@ class ActionsEditMixin(object):
                 if tipo.contagem_continua:
                     ultimo_irmao = Dispositivo.objects.order_by(
                         '-ordem').filter(
-                        ordem__lte=dp.ordem,
+                        ordem__lte=base.ordem,
                         tipo_dispositivo_id=tipo.pk,
-                        norma_id=dp.norma_id)[:1]
+                        norma_id=base.norma_id)[:1]
 
                     if not ultimo_irmao.exists():
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
@@ -754,7 +710,7 @@ class ActionsEditMixin(object):
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
                 dp.rotulo = dp.rotulo_padrao()
                 dp.texto = ''
-                dp.ordem = base.criar_espaco_apos(espaco_a_criar=1)
+                dp.ordem = base.criar_espaco(espaco_a_criar=1, local=1)
 
                 # Incrementar irmãos
                 irmaos = Dispositivo.objects.order_by('-ordem').filter(
@@ -900,42 +856,44 @@ class ActionsEditMixin(object):
         except Exception as e:
             print(e)
 
-        # data = serializers.serialize('json',  dp)
-        if tipo.contagem_continua:
-            # pais a atualizar
+        data = self.get_json_for_refresh(dp)
 
+        return data
+
+    def get_json_for_refresh(self, dispositivo):
+
+        if dispositivo.tipo_dispositivo.contagem_continua:
             pais = []
-
-            if dp.dispositivo_pai is None:
-                data = {'pk': dp.pk, 'pai': [-1, ]}
+            if dispositivo.dispositivo_pai is None:
+                data = {'pk': dispositivo.pk, 'pai': [-1, ]}
             else:
-                pkfilho = dp.pk
-                dp = dp.dispositivo_pai
+                pkfilho = dispositivo.pk
+                dispositivo = dispositivo.dispositivo_pai
 
-                if proxima_articulacao is not None and \
-                        proxima_articulacao.exists():
+                proxima_articulacao = dispositivo.get_proxima_articulacao()
+
+                if proxima_articulacao is not None:
                     parents = Dispositivo.objects.filter(
-                        norma_id=dp.norma_id,
-                        ordem__gte=dp.ordem,
-                        ordem__lt=proxima_articulacao[0].ordem,
-                        nivel__lte=dp.nivel)
+                        norma_id=dispositivo.norma_id,
+                        ordem__gte=dispositivo.ordem,
+                        ordem__lt=proxima_articulacao.ordem,
+                        nivel__lte=dispositivo.nivel)
                 else:
                     parents = Dispositivo.objects.filter(
-                        norma_id=dp.norma_id,
-                        ordem__gte=dp.ordem,
-                        nivel__lte=dp.nivel)
+                        norma_id=dispositivo.norma_id,
+                        ordem__gte=dispositivo.ordem,
+                        nivel__lte=dispositivo.nivel)
 
                 nivel = sys.maxsize
                 for p in parents:
-
                     if p.nivel > nivel:
                         continue
-
                     pais.append(p.pk)
                     nivel = p.nivel
                 data = {'pk': pkfilho, 'pai': pais}
         else:
-            data = {'pk': dp.pk, 'pai': [dp.dispositivo_pai.pk, ]}
+            data = {'pk': dispositivo.pk, 'pai': [
+                dispositivo.dispositivo_pai.pk, ]}
 
         return data
 

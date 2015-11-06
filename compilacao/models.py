@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.db.models.aggregates import Max
 from django.utils.translation import ugettext_lazy as _
 
@@ -75,7 +75,7 @@ class TipoVide(models.Model):
         return '%s: %s' % (self.sigla, self.nome)
 
 
-class TipoDispositivo(models.Model):
+class TipoDispositivo(BaseModel):
     """
     - ids fazem parte da lógica do desenvolvimento quanto a
       simulação de hierarquia
@@ -237,6 +237,13 @@ class TipoDispositivo(models.Model):
         default=FNC1,
         verbose_name=_('Formato da Variação 5'))
 
+    relacoes_diretas_pai_filho = models.ManyToManyField(
+        'self',
+        through='TipoDispositivoRelationship',
+        through_fields=('pai', 'filho_permitido'),
+        symmetrical=False,
+        related_name='+')
+
     class Meta:
         verbose_name = _('Tipo de Dispositivo')
         verbose_name_plural = _('Tipos de Dispositivo')
@@ -244,6 +251,38 @@ class TipoDispositivo(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def permitido_inserir_in(self, base, excluir_autos=False):
+        pp = self.possiveis_pais.filter(pai=base)
+        if pp.exists():
+            if excluir_autos:
+                if pp[0].filho_de_insercao_automatica:
+                    return False
+            return True
+        return False
+
+
+class TipoDispositivoRelationship(BaseModel):
+    pai = models.ForeignKey(TipoDispositivo, related_name='filhos_permitidos')
+    filho_permitido = models.ForeignKey(
+        TipoDispositivo,
+        blank=True, null=True, default=None,
+        related_name='possiveis_pais')
+    filho_de_insercao_automatica = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES, verbose_name=_('Filho de Inserção Automática'))
+
+    class Meta:
+        verbose_name = _('Relação Direta Permitida')
+        verbose_name_plural = _('Relaçõe Diretas Permitidas')
+        ordering = ['pai', 'filho_permitido']
+        unique_together = (
+            ('pai', 'filho_permitido',),)
+
+    def __str__(self):
+        return '%s - %s' % (
+            self.pai.nome,
+            self.filho_permitido.nome if self.filho_permitido else '')
 
 
 class TipoPublicacao(models.Model):
@@ -445,65 +484,65 @@ class Dispositivo(BaseModel):
             'rotulo': (self.rotulo if self.rotulo else self.tipo_dispositivo),
             'norma': self.norma}
 
-    def rotulo_padrao(self, for_insertion=False,
-                      d_base_for_insertion=None,
-                      insert_next=False):
+    def rotulo_padrao(self, local_insert=0, for_insert_in=0):
+        """
+        0 = Sem inserção - com nomeclatura padrao
+        1 = Inserção com transformação de parágrafo único para §1º """
+
         r = ''
         t = self.tipo_dispositivo
-
         prefixo = t.rotulo_prefixo_texto.split(';')
 
         if len(prefixo) > 1:
 
-            if (for_insertion and
-                    d_base_for_insertion is not None and
-                    d_base_for_insertion.pk != self.pk and
-                    d_base_for_insertion.tipo_dispositivo.pk <= t.pk) or \
-                    for_insertion and d_base_for_insertion is None:
-
-                count_irmaos_mesmo_tipo = Dispositivo.objects.filter(
+            if for_insert_in:
+                irmaos_mesmo_tipo = Dispositivo.objects.filter(
                     tipo_dispositivo=self.tipo_dispositivo,
-                    dispositivo_pai=self).count()
+                    dispositivo_pai=self)
             else:
-                count_irmaos_mesmo_tipo = Dispositivo.objects.filter(
+                irmaos_mesmo_tipo = Dispositivo.objects.filter(
                     tipo_dispositivo=self.tipo_dispositivo,
-                    dispositivo_pai=self.dispositivo_pai).count()
+                    dispositivo_pai=self.dispositivo_pai)
 
-            if count_irmaos_mesmo_tipo > 1 or (
-                    self.dispositivo0 != 0 and not for_insertion):
-                r += prefixo[0]
-                r += self.get_nomenclatura_completa()
-            elif count_irmaos_mesmo_tipo == 1 and for_insertion:
-                numero = self.get_numero_completo()
+            if not irmaos_mesmo_tipo.exists():
+                r += prefixo[1]
+            else:
+                if self.dispositivo0 == 0:
+                    if for_insert_in:
+                        if irmaos_mesmo_tipo.count() == 0:
+                            r += prefixo[0]
+                            r += self.get_nomenclatura_completa()
+                        elif irmaos_mesmo_tipo.count() == 1:
+                            self.transform_in_next()
+                            self.transform_in_next()
+                            r += 'Transformar %s em %s%s e criar %s1%s' % (
+                                prefixo[1].strip(),
+                                prefixo[0],
+                                self.get_nomenclatura_completa(),
+                                prefixo[0],
+                                'º' if
+                                self.tipo_dispositivo.rotulo_ordinal >= 0
+                                else '',)
+                        else:
+                            self.dispositivo0 = 1
+                            r += prefixo[0]
+                            r += self.get_nomenclatura_completa()
 
-                if not insert_next:
-                    self.transform_in_next()
-                    self.transform_in_next()
-                    r += 'Transformar %s em %s%s e criar %s 1%s' % (
-                        prefixo[1].strip(),
-                        prefixo[0],
-                        self.get_nomenclatura_completa(),
-                        prefixo[0],
-                        'º' if
-                        self.tipo_dispositivo.rotulo_ordinal >= 0 else '',)
+                    else:
+                        r += prefixo[1].strip()
+                        r += self.get_nomenclatura_completa()
                 else:
-                    if numero[0] != 0:
-                        self.transform_in_next()
-                        r += 'Transformar %s em %s 1%s e criar %s%s' % (
+                    if local_insert == 1 and irmaos_mesmo_tipo.count() == 1:
+                        r += 'Transformar %s em %s%s e criar %s 2%s' % (
                             prefixo[1].strip(),
+                            prefixo[0],
+                            self.get_nomenclatura_completa(),
                             prefixo[0],
                             'º' if
-                            self.tipo_dispositivo.rotulo_ordinal >= 0 else '',
-                            prefixo[0],
-                            self.get_nomenclatura_completa())
+                            self.tipo_dispositivo.rotulo_ordinal >= 0 else '',)
                     else:
-                        r += '%s%s' % (
-                            prefixo[1].strip(),
-                            self.get_nomenclatura_completa())
-
-                self.set_numero_completo(numero)
-            else:
-                r += prefixo[1].strip() + self.get_nomenclatura_completa()
+                        r += prefixo[0]
+                        r += self.get_nomenclatura_completa()
         else:
             r += prefixo[0]
             r += self.get_nomenclatura_completa()
@@ -655,18 +694,34 @@ class Dispositivo(BaseModel):
 
         return result
 
-    def criar_espaco_apos(self, espaco_a_criar):
+    def criar_espaco(self, espaco_a_criar, local):
+        """
+        -1 = Imediatamente antes
+        0 = Imediatamente Depois
+        1 = Depois - antes do proximo bloco do mesmo tipo"""
 
-        proximo_bloco = Dispositivo.objects.filter(
-            ordem__gt=self.ordem,
-            nivel__lte=self.nivel,
-            norma_id=self.norma_id)[:1]
+        if local == 1:
+            proximo_bloco = Dispositivo.objects.filter(
+                ordem__gt=self.ordem,
+                nivel__lte=self.nivel,
+                norma_id=self.norma_id)[:1]
+        elif local == 0:
+            proximo_bloco = Dispositivo.objects.filter(
+                ordem__gt=self.ordem,
+                nivel__lte=self.nivel + 1,
+                norma_id=self.norma_id).exclude(
+                    tipo_dispositivo__class_css='caput')[:1]
+        else:
+            proximo_bloco = Dispositivo.objects.filter(
+                ordem__gte=self.ordem,
+                norma_id=self.norma_id)[:1]
 
-        if proximo_bloco.count() != 0:
+        if proximo_bloco.exists():
             ordem = proximo_bloco[0].ordem
             proximo_bloco = Dispositivo.objects.order_by('-ordem').filter(
                 ordem__gte=ordem,
                 norma_id=self.norma_id)
+
             proximo_bloco.update(ordem=F('ordem') + 1)
             proximo_bloco.update(
                 ordem=F('ordem') + (
@@ -712,7 +767,8 @@ class Dispositivo(BaseModel):
         return self.get_parents(ordem='asc')
 
     def recalcular_ordem(self):
-        try:
+        pass
+        """try:
             dispositivos = Dispositivo.objects.order_by('-ordem').filter(
                 norma_id=self.norma_id)
         except:
@@ -721,7 +777,131 @@ class Dispositivo(BaseModel):
         for d in dispositivos:
             d.ordem = ordem
             d.save()
-            ordem -= 1000
+            ordem -= 1000"""
+
+    def incrementar_irmaos(self, variacao=0, tipo=[]):
+
+        if not self.tipo_dispositivo.contagem_continua:
+            irmaos = list(Dispositivo.objects.filter(
+                Q(ordem__gt=self.ordem) | Q(dispositivo0=0),
+                dispositivo_pai_id=self.dispositivo_pai_id,
+                tipo_dispositivo_id=self.tipo_dispositivo.pk))
+
+        elif self.tipo_dispositivo.class_css == 'articulacao':
+            irmaos = list(Dispositivo.objects.filter(
+                ordem__gt=self.ordem,
+                norma_id=self.norma_id,
+                tipo_dispositivo_id=self.tipo_dispositivo.pk))
+
+        else:  # contagem continua restrita a articulacao
+            proxima_articulacao = self.get_proxima_articulacao()
+
+            if proxima_articulacao is None:
+                irmaos = list(Dispositivo.objects.filter(
+                    ordem__gt=self.ordem,
+                    norma_id=self.norma_id,
+                    tipo_dispositivo_id=self.tipo_dispositivo.pk))
+            else:
+                irmaos = list(Dispositivo.objects.filter(
+                    Q(ordem__gt=self.ordem) &
+                    Q(ordem__lt=proxima_articulacao.ordem),
+                    norma_id=self.norma_id,
+                    tipo_dispositivo_id=self.tipo_dispositivo.pk))
+
+        dp_profundidade = self.get_profundidade()
+
+        irmaos_a_salvar = []
+        ultimo_irmao = None
+        for irmao in irmaos:
+
+            if irmao.ordem <= self.ordem or irmao.dispositivo0 == 0:
+                irmaos_a_salvar.append(irmao)
+                continue
+
+            irmao_profundidade = irmao.get_profundidade()
+            if irmao_profundidade < dp_profundidade:
+                break
+
+            if irmao.get_numero_completo() < self.get_numero_completo():
+                if irmao_profundidade > dp_profundidade:
+                    if ultimo_irmao is None:
+                        irmao.transform_in_next(
+                            dp_profundidade - irmao_profundidade)
+                        irmao.transform_in_next(
+                            irmao_profundidade - dp_profundidade)
+                    else:
+                        irmao.set_numero_completo(
+                            ultimo_irmao.get_numero_completo())
+
+                        irmao.transform_in_next(
+                            irmao_profundidade -
+                            ultimo_irmao.get_profundidade())
+
+                    ultimo_irmao = irmao
+                else:
+                    irmao.transform_in_next()
+                irmao.rotulo = irmao.rotulo_padrao()
+                irmaos_a_salvar.append(irmao)
+            else:
+                if dp_profundidade == irmao_profundidade and \
+                        dp_profundidade > 0 and \
+                        self.get_numero_completo()[:dp_profundidade] < \
+                        irmao.get_numero_completo()[:dp_profundidade]:
+                    break
+                else:
+                    irmao_numero = irmao.get_numero_completo()
+                    irmao_numero[dp_profundidade] += 1
+                    irmao.set_numero_completo(irmao_numero)
+                    irmao.rotulo = irmao.rotulo_padrao()
+                    irmaos_a_salvar.append(irmao)
+
+        irmaos_a_salvar.reverse()
+        for irmao in irmaos_a_salvar:
+            if (irmao.dispositivo0 == 0 or
+                    irmao.ordem <= self.ordem) and variacao == 0:
+
+                if 'add_in' in tipo:
+                    irmao.dispositivo0 = 2
+                    irmao.rotulo = irmao.rotulo_padrao()
+                    self.dispositivo0 = 1
+                    self.rotulo = self.rotulo_padrao()
+                else:
+                    irmao.dispositivo0 = 1
+                    irmao.rotulo = irmao.rotulo_padrao()
+                    self.dispositivo0 = 2
+                    self.rotulo = self.rotulo_padrao()
+            irmao.clean()
+            irmao.save()
+
+    def get_proxima_articulacao(self):
+        proxima_articulacao = Dispositivo.objects.filter(
+            ordem__gt=self.ordem,
+            nivel=0,
+            norma_id=self.norma_id)[:1]
+
+        if not proxima_articulacao.exists():
+            return None
+
+        return proxima_articulacao[0]
+
+    def is_relative_auto_insert(self):
+        if self.dispositivo_pai is not None:
+            # pp possiveis_pais
+            pp = self.tipo_dispositivo.possiveis_pais.filter(
+                pai=self.dispositivo_pai.tipo_dispositivo)
+
+            if pp.exists():
+                if pp[0].filho_de_insercao_automatica:
+                    return True
+        return False
+
+    def get_raiz(self):
+        raiz = self.get_parents_asc()
+        if len(raiz) > 0:
+            raiz = raiz[0]
+        else:
+            raiz = self
+        return raiz
 
     @staticmethod
     def init_with_base(dispositivo_base, tipo_base):
@@ -739,8 +919,44 @@ class Dispositivo(BaseModel):
         dp.inicio_vigencia = dispositivo_base.inicio_vigencia
         dp.publicacao = dispositivo_base.publicacao
         dp.timestamp = datetime.now()
+        dp.ordem = dispositivo_base.ordem
 
         return dp
+
+    @staticmethod
+    def set_numero_for_add_in(dispositivo_base, dispositivo, tipo_base):
+
+        if tipo_base.contagem_continua:
+            raiz = dispositivo_base.get_raiz()
+
+            disps = Dispositivo.objects.order_by('-ordem').filter(
+                tipo_dispositivo_id=tipo_base.pk,
+                ordem__lte=dispositivo_base.ordem,
+                ordem__gt=raiz.ordem,
+                norma_id=dispositivo_base.norma_id)[:1]
+
+            if disps.exists():
+                dispositivo.set_numero_completo(
+                    disps[0].get_numero_completo())
+                dispositivo.transform_in_next()
+            else:
+                dispositivo.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+        else:
+            if ';' in tipo_base.rotulo_prefixo_texto:
+
+                if dispositivo != dispositivo_base:
+                    irmaos_mesmo_tipo = Dispositivo.objects.filter(
+                        tipo_dispositivo=tipo_base,
+                        dispositivo_pai=dispositivo_base)
+
+                    dispositivo.set_numero_completo([
+                        1 if irmaos_mesmo_tipo.exists() else 0,
+                        0, 0, 0, 0, 0, ])
+                else:
+                    dispositivo.set_numero_completo([0, 0, 0, 0, 0, 0, ])
+
+            else:
+                dispositivo.set_numero_completo([1, 0, 0, 0, 0, 0, ])
 
 
 class Vide(models.Model):
