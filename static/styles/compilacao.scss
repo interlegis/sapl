@@ -8,6 +8,7 @@ $color_actions_border: #CCC;
     background-image: -o-linear-gradient(top, $top, $bottom);
     background-image: linear-gradient(to bottom, $top, $bottom);
 }
+
 @mixin border-radius($radius) {
     -webkit-border-radius: $radius;
     -moz-border-radius: $radius;
@@ -16,6 +17,7 @@ $color_actions_border: #CCC;
 }
 
 @mixin li_flutuante() {
+
     & > ul {
         transform: translateY(30px);
         transition: transform 0.1s linear,
@@ -279,14 +281,15 @@ $color_actions_border: #CCC;
         text-decoration: none;
     }
 
-    .semtexto {
-        font-weight: bold;
-        color: #8DA6D8;
-    }
-
     .dpt {
         position: relative;
         display:block;
+
+        .semtexto {
+            font-weight: bold;
+            color: #cedefe;
+        }
+
         .artigo {
             float: none;
         }
@@ -373,6 +376,10 @@ $color_actions_border: #CCC;
             padding: 0;
         }
 
+        .semtexto {
+            color: #fff;
+        }
+        
         .bloco {
             opacity: 0.5;
             &:hover {
@@ -655,6 +662,7 @@ $color_actions_border: #CCC;
                 &::-webkit-input-placeholder {
                     color: #c70808;
                     opacity: 0.6;
+                    font-size: 80%;
                 }
                 &:-moz-placeholder { /* Firefox 18- */
                     color: #c70808;

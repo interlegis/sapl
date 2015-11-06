@@ -21,9 +21,9 @@
 		    	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 		        	<li class="edt-textarea"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:textarea" title="{% trans 'Edição simples apenas do texto'%}">E</a></li>
 		        	<li class="edt-tinymce"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:tinymce" title="{% trans 'Editar o texto com TinyMCE'%}">E+</a></li>
-		        	<li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
 		        {%endif%}
-		        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura da Norma'%}">C</a></li>
+	        	<li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
+	        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura da Norma'%}">C</a></li>
 			</ul>
 			<ul class="btns-action actions_right">
 				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Reduzir nível do Dispositivo'%}">&#10092;</a></li>
@@ -33,7 +33,6 @@
 				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Subir uma posição com todos os subniveis'%}">&#8648;</a></li>
 				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Descer uma posição com todos os subniveis'%}">&#8650;</a></li>
 			</ul>
-
 
 	        <ul class="btns-action actions_left">
 	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="Button Left">BL</a></li>
@@ -59,16 +58,18 @@
 	        	{%endif%}
 
 				<li><a href="#" class="btn-excluir">&nbsp;<span>Excluir</span></a></li>
-	        	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 	            	<li><a onclick="onSubmitEditForm()" class="btn-salvar">&nbsp<span>Salvar</span></a></li>
-	        	{%endif%}
 	        </ul>
 
-            {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-	            {% csrf_token %}
-	            <textarea id="editdi_texto" placeholder="{% trans "Insirir o texto do dispositivo aqui... Use, nos menus das bordas de edição, 'E+' ou 'E*' para outras opções de editores."%}" name="texto" rows="7">{{ dpt.texto|safe }}</textarea>
-	        {%endif%}
+			<div class="fields">
+                {% csrf_token %}
 
+
+				{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+					<textarea id="editdi_texto" placeholder="{% trans "Insirir o texto do dispositivo aqui... Use, nos menus das bordas de edição, 'E+' ou 'E*' para outras opções de editores."%}" name="texto" rows="7">{{ dpt.texto|safe }}</textarea>
+	        	{%endif%}
+
+	    	</div>
 
 	        <div class="label_status" >
 	        	<div>Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</div>
