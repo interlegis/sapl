@@ -127,14 +127,6 @@ TIPOS_PROTOCOLO = [('', 'Selecione'),
                    ('0', 'Enviado'),
                    ('1', 'Recebido')]
 
-
-class ProtocoloListView(ListView):
-    template_name = 'protocoloadm/protocolo_list.html'
-    context_object_name = 'protocolos'
-    model = Protocolo
-    paginate_by = 10
-
-
 class ProtocoloForm(forms.Form):
 
     YEARS = get_range_anos()
@@ -180,6 +172,16 @@ class ProtocoloForm(forms.Form):
     autor = forms.CharField(label='Autor', required=False)
     assunto = forms.CharField(label='Assunto', required=False)
 
+class ProtocoloListView(FormMixin, ListView):
+    template_name = 'protocoloadm/protocolo_list.html'
+    context_object_name = 'protocolos'
+    model = Protocolo
+    paginate_by = 10
+
+    def get_queryset(self):
+      kwargs = self.request.session['kwargs']
+      return Protocolo.objects.filter(
+                **kwargs)
 
 class ProtocoloPesquisaView(FormMixin, GenericView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
@@ -244,16 +246,9 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
             if request.POST['assunto']:
                 kwargs['assunto'] = request.POST['assunto']
 
-            protocolos = Protocolo.objects.filter(
-                **kwargs)
-
-            self.extra_context['protocolos'] = protocolos
-            self.extra_context['form'] = form
-
-            # return self.form_valid(form)
-            return self.render_to_response(
-                {'protocolos': protocolos}
-            )
+            request.session['kwargs'] = kwargs
+            from django.shortcuts import redirect
+            return redirect('protocolo_list')
         else:
             return self.form_invalid(form)
 
@@ -909,6 +904,7 @@ class TramitacaoAdmEditView(FormMixin, GenericView):
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
+        print(kwargs)
         tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
         form = TramitacaoAdmForm(request.POST, instance=tramitacao)
 
@@ -917,7 +913,7 @@ class TramitacaoAdmEditView(FormMixin, GenericView):
             tramitacao.ultima = False
             tramitacao.save()
             return HttpResponseRedirect(
-              reverse('tramitacao', kwargs={'pk': pk}))
+              reverse('tramitacao', kwargs={'pk': tramitacao.documento.id}))
         else:
             return self.form_invalid(form)
 

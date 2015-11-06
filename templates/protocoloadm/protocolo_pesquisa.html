@@ -3,30 +3,6 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-	{% if protocolos %}		
-		<form method="POST">
-			{% csrf_token %}
-			Total: {{ protocolos|length }} 
-		
-			<table>
-				<tr><td>Número de Protocolo</td>
-					<td>Ano</td>					
-					<td>Assunto</td>
-					<td>Tipo de Documento</td>
-					<td>Data</td>
-				</tr>
-				{% for p in protocolos %}
-					<tr><td>{{ p.numero }}</td>
-						<td>{{ p.ano }}</td>					
-						<td>{{ p.assunto_ementa }}</td>
-						<td>{{ p.tipo_documento }}</td>
-						<td>{{ p.data|date:"d/m/Y" }}</td>
-					</tr>
-				{% endfor %}
-			</table>
-			{% include "paginacao.html" %}
-		</form>
-	{% else %}
 		<form method="post">
 			{% csrf_token %}
 			<fieldset>
@@ -35,7 +11,6 @@
 				<input type="submit" value="Pesquisar" name="pesquisa" class="button primary"/>
 			</fieldset>
 		</form>
-	{% endif %}
 {% endblock detail_content %}
 
 {% block foot_js %}
