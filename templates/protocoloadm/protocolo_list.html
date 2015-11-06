@@ -3,7 +3,8 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-			Total: {{ protocolos|length }} 		
+	{% if protocolos %}		
+<!-- 			Total: {{ protocolos|length }}  -->		
 			<table>
 				<tr><td>Número de Protocolo</td>
 					<td>Assunto</td>
@@ -21,4 +22,7 @@
 				{% endfor %}
 			</table>
 			{% include "paginacao.html" %}
+	{% else %}
+		<h2>Nenhum Registro recuperado</h2>
+	{% endif %}
 {% endblock detail_content %}
