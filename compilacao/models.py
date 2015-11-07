@@ -77,12 +77,6 @@ class TipoVide(models.Model):
 
 class TipoDispositivo(BaseModel):
     """
-    - ids fazem parte da lógica do desenvolvimento quanto a
-      simulação de hierarquia
-    - ids de 1 a 100 são reservados.
-    - São registros inseridos e usados no desenvolvimento
-
-
     - para class_css articulacao, omissis, ementa,
                      bloco_alteracao, artigo, caput e paragrafo
       são palavras chaves usadas no código e de existência obrigatória.
@@ -243,6 +237,10 @@ class TipoDispositivo(BaseModel):
         through_fields=('pai', 'filho_permitido'),
         symmetrical=False,
         related_name='+')
+
+    quantidade_permitida = models.IntegerField(
+        default=-1,
+        verbose_name=_('Quantidade permitida dentro de uma Norma'))
 
     class Meta:
         verbose_name = _('Tipo de Dispositivo')
@@ -779,7 +777,7 @@ class Dispositivo(BaseModel):
             d.save()
             ordem -= 1000"""
 
-    def incrementar_irmaos(self, variacao=0, tipo=[]):
+    def incrementar_irmaos(self, variacao=0, tipoadd=[]):
 
         if not self.tipo_dispositivo.contagem_continua:
             irmaos = list(Dispositivo.objects.filter(
@@ -787,7 +785,7 @@ class Dispositivo(BaseModel):
                 dispositivo_pai_id=self.dispositivo_pai_id,
                 tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
-        elif self.tipo_dispositivo.class_css == 'articulacao':
+        elif self.dispositivo_pai is None:
             irmaos = list(Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 norma_id=self.norma_id,
@@ -860,7 +858,7 @@ class Dispositivo(BaseModel):
             if (irmao.dispositivo0 == 0 or
                     irmao.ordem <= self.ordem) and variacao == 0:
 
-                if 'add_in' in tipo:
+                if 'add_in' in tipoadd:
                     irmao.dispositivo0 = 2
                     irmao.rotulo = irmao.rotulo_padrao()
                     self.dispositivo0 = 1
@@ -896,15 +894,13 @@ class Dispositivo(BaseModel):
         return False
 
     def get_raiz(self):
-        raiz = self.get_parents_asc()
-        if len(raiz) > 0:
-            raiz = raiz[0]
-        else:
-            raiz = self
-        return raiz
+        dp = self
+        while dp.dispositivo_pai is not None:
+            dp = dp.dispositivo_pai
+        return dp
 
     @staticmethod
-    def init_with_base(dispositivo_base, tipo_base):
+    def new_instance_based_on(dispositivo_base, tipo_base):
         dp = Dispositivo()
 
         dp.tipo_dispositivo = tipo_base

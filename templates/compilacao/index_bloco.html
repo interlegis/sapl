@@ -10,7 +10,7 @@
 	<div class="dpt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}" id="d{{dpt.id}}">
 		<div class="{{ dpt.tipo_dispositivo.class_css }}" id="id{{dpt.id}}">
 			{% spaceless %}
-				{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{{ dpt.texto|safe }}
+				{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}
 				{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 					<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
 						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}

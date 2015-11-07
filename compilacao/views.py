@@ -97,6 +97,10 @@ tipo_dispositivo_crud = build_crud(
 
          ],
 
+        [_('Outras Configurações'),
+         [('quantidade_permitida', 12),
+          ],
+         ],
     ])
 
 
@@ -469,8 +473,8 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                     flag_direcao = -1
                 r.reverse()
 
-                if len(r) > 0 and dp.tipo_dispositivo.class_css in [
-                        'articulacao', 'ementa']:
+                if len(r) > 0 and dp.tipo_dispositivo.formato_variacao0 == \
+                        TipoDispositivo.FNCN:
                     r = [r[0], ]
 
                 if dp.tipo_dispositivo == base.tipo_dispositivo:
@@ -525,21 +529,17 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                           'dispositivo_base': base.pk}]
 
                     if paradentro == 1:
-                        if (tipb.class_css == 'caput' and
+                        """if (tipb.class_css == 'caput' and
                                 td.class_css == 'paragrafo'):
                             result[0]['itens'].insert(0, r[0])
-                        else:
-                            result[1]['itens'] += r
+                        else:"""
+                        result[1]['itens'] += r
                     else:
                         if td.pk < tipb.pk:
                             result[2]['itens'] += r
                             result[0]['itens'] += r
 
-            if tipb.class_css == 'caput':
-                result.pop()
-
-            # retira inserir após e inserir antes
-            if tipb.class_css == 'articulacao':
+            if len(result[0]['itens']) < len(result[1]['itens']):
                 r = result[0]
                 result.remove(result[0])
                 result.insert(1, r)
@@ -580,7 +580,7 @@ class ActionsEditMixin(object):
 
             base = Dispositivo.objects.get(pk=context['dispositivo_id'])
 
-            dp = Dispositivo.init_with_base(base, tipo)
+            dp = Dispositivo.new_instance_based_on(base, tipo)
 
             dp.nivel += 1
             dp.dispositivo_pai = base
@@ -594,7 +594,7 @@ class ActionsEditMixin(object):
 
             dp.ordem = ordem
 
-            dp.incrementar_irmaos(tipo=['add_in'])
+            dp.incrementar_irmaos(tipoadd=['add_in'])
 
             dp.clean()
             dp.save()
@@ -624,70 +624,48 @@ class ActionsEditMixin(object):
     def add_next(self, context):
         try:
             base = Dispositivo.objects.get(pk=context['dispositivo_id'])
-            dp = Dispositivo.objects.get(pk=context['dispositivo_id'])
-
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
             variacao = int(context['variacao'])
+            parents = [base, ] + base.get_parents()
 
-            while dp.dispositivo_pai is not None and \
-                    dp.tipo_dispositivo_id != tipo.pk:
-                dp = dp.dispositivo_pai
+            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
+                filho_de_insercao_automatica=True)
 
-            # Inserção interna a uma articulação de um tipo já existente
-            # ou de uma nova articulacao
-            if dp.dispositivo_pai is not None or \
-                    tipo.class_css == 'articulacao':
-
-                dpbase = dp
-                dp = Dispositivo.init_with_base(dpbase, tipo)
-                dp.transform_in_next(variacao)
-                dp.rotulo = dp.rotulo_padrao()
-
-                if dp.tipo_dispositivo.class_css == 'artigo':
-                    ordem = base.criar_espaco(espaco_a_criar=2, local=1)
+            count_auto_insert = 0
+            for tipoauto in tipos_dp_auto_insert:
+                qtdp = tipoauto.filho_permitido.quantidade_permitida
+                if qtdp >= 0:
+                    qtdp -= Dispositivo.objects.filter(
+                        norma_id=base.norma_id,
+                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
+                    ).count()
+                    if qtdp > 0:
+                        count_auto_insert += 1
                 else:
-                    ordem = base.criar_espaco(espaco_a_criar=1, local=1)
+                    count_auto_insert += 1
 
-                dp.ordem = ordem
+            ordem = base.criar_espaco(
+                espaco_a_criar=1 + count_auto_insert, local=1)
 
-                # Incrementar irmãos
+            dp_irmao = None
+            dp_pai = None
+            for dp in parents:
+                if dp.tipo_dispositivo == tipo:
+                    dp_irmao = dp
+                    break
+                if tipo.permitido_inserir_in(dp.tipo_dispositivo):
+                    dp_pai = dp
+                    break
+                dp_pai = dp
 
-                dp.incrementar_irmaos(variacao)
-
-                dp.clean()
-                dp.save()
-
-                # Inserção automática do caput para artigos
-                if dp.tipo_dispositivo.class_css == 'artigo':
-                    tipocaput = TipoDispositivo.objects.filter(
-                        class_css='caput')
-                    dp.dispositivo_pai_id = dp.pk
-                    dp.pk = None
-                    dp.nivel += 1
-                    dp.tipo_dispositivo = tipocaput[0]
-                    dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
-                    dp.rotulo = dp.rotulo_padrao()
-                    dp.texto = ''
-
-                    dp.ordem = ordem + Dispositivo.INTERVALO_ORDEM
-                    dp.clean()
-                    dp.save()
-                    dp = Dispositivo.objects.get(pk=dp.dispositivo_pai_id)
-
-            # Inserção de dispositivo sem precedente de mesmo tipo
+            if dp_irmao is not None:
+                dp = Dispositivo.new_instance_based_on(dp_irmao, tipo)
+                dp.transform_in_next(variacao)
             else:
-                dp = Dispositivo.objects.get(pk=context['dispositivo_id'])
-
-                # Encontrar primeiro irmão que contem um pai compativel
-                while True:
-                    if dp.dispositivo_pai is not None and \
-                            dp.dispositivo_pai.tipo_dispositivo_id > tipo.pk:
-                        dp = dp.dispositivo_pai
-                    else:
-                        break
-
-                dpaux = dp
-                dp = Dispositivo.init_with_base(dpaux, tipo)
+                # Inserção sem precedente
+                dp = Dispositivo.new_instance_based_on(dp_pai, tipo)
+                dp.dispositivo_pai = dp_pai
+                dp.nivel += 1
 
                 if tipo.contagem_continua:
                     ultimo_irmao = Dispositivo.objects.order_by(
@@ -708,28 +686,47 @@ class ActionsEditMixin(object):
                         dp.set_numero_completo([0, 0, 0, 0, 0, 0, ])
                     else:
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+
+            dp.rotulo = dp.rotulo_padrao()
+            dp.ordem = ordem
+            dp.incrementar_irmaos(variacao)
+
+            ''' inserção sem precedente é feita sem variação
+            portanto, não é necessário usar transform_next() para
+            incrementar, e sim, apenas somar no atributo dispositivo0
+            dada a possibilidade de existir irmãos com viariação
+
+            # Incrementar irmãos
+            irmaos = Dispositivo.objects.order_by('-ordem').filter(
+                dispositivo_pai_id=dp.dispositivo_pai_id,
+                ordem__gt=dp.ordem,
+                tipo_dispositivo_id=tipo.pk)
+
+            for irmao in irmaos:
+                irmao.dispositivo0 += 1
+                irmao.rotulo = irmao.rotulo_padrao()
+                irmao.clean()
+                irmao.save()'''
+
+            dp.clean()
+            dp.save()
+
+            # Inserção automática do caput para artigos
+            if count_auto_insert:
+                tipocaput = TipoDispositivo.objects.filter(
+                    class_css='caput')
+                dp.dispositivo_pai_id = dp.pk
+                dp.pk = None
+                dp.nivel += 1
+                dp.tipo_dispositivo = tipocaput[0]
+                dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
                 dp.rotulo = dp.rotulo_padrao()
                 dp.texto = ''
-                dp.ordem = base.criar_espaco(espaco_a_criar=1, local=1)
 
-                # Incrementar irmãos
-                irmaos = Dispositivo.objects.order_by('-ordem').filter(
-                    dispositivo_pai_id=dp.dispositivo_pai_id,
-                    ordem__gt=dp.ordem,
-                    tipo_dispositivo_id=tipo.pk)
-
-                ''' inserção sem precedente é feita sem variação
-                portanto, não é necessário usar transform_next() para
-                incrementar, e sim, apenas somar no atributo dispositivo0
-                dada a possibilidade de existir irmãos com viariação'''
-                for irmao in irmaos:
-                    irmao.dispositivo0 += 1
-                    irmao.rotulo = irmao.rotulo_padrao()
-                    irmao.clean()
-                    irmao.save()
-
+                dp.ordem = ordem + Dispositivo.INTERVALO_ORDEM
                 dp.clean()
                 dp.save()
+                dp = Dispositivo.objects.get(pk=dp.dispositivo_pai_id)
 
             ''' Reenquadrar todos os dispositivos que possuem pai
             antes da inserção atual e que são inferiores a dp,

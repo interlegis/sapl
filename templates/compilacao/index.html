@@ -35,13 +35,13 @@ $(window).load(function() {
 });
 
 function textoMultiVigente(item) {
-	$(".compilacao .tipo-vigencias a").removeClass("selected")
+	$(".cp .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
 	$(".desativado").removeClass("displaynone");
 	$(".link_alterador").removeClass("displaynone");
 }
 function textoVigente(item, link) {
-	$(".compilacao .tipo-vigencias a").removeClass("selected")
+	$(".cp .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
 	$(".desativado").addClass("displaynone");
 	$(".link_alterador").removeClass("displaynone");
@@ -51,11 +51,11 @@ function textoVigente(item, link) {
 
 $(document).ready(function() {
    $("#btn_font_menos").click(function() {
-        $(".dispositivo").css("font-size", "-=1");
+        $(".dpt").css("font-size", "-=1");
 
    });
    $("#btn_font_mais").click(function() {
-        $(".dispositivo").css("font-size", "+=1");
+        $(".dpt").css("font-size", "+=1");
 
    });
 
