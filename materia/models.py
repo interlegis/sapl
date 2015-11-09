@@ -487,10 +487,8 @@ class StatusTramitacao(models.Model):
         verbose_name_plural = _('Status de Tramitação')
 
     def __str__(self):
-        return _('%(sigla)s - %(descricao)s - %(indicador)s') % {
-            'sigla': self.sigla,
-            'descricao': self.descricao,
-            'indicador': self.indicador}
+        return _('%(descricao)s') % {
+            'descricao': self.descricao}
 
 
 class UnidadeTramitacao(models.Model):
@@ -506,7 +504,7 @@ class UnidadeTramitacao(models.Model):
         verbose_name_plural = _('Unidades de Tramitação')
 
     def __str__(self):
-        return _('%(orgao)s %(comissao)s') % {
+        return _('%(orgao)s - %(comissao)s') % {
             'orgao': self.orgao, 'comissao': self.comissao
         }
 

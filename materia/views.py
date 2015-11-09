@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, Field
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -1194,3 +1194,107 @@ class RelatoriaView(FormMixin, GenericView):
             {'materia': materia,
              'form': form,
              'relatorias': relatorias})
+
+
+class TramitacaoForm(ModelForm):
+
+    data_tramitacao = forms.DateField(label=u'Data Tramitação',
+                                      input_formats=['%d/%m/%Y'],
+                                      required=False,
+                                      widget=forms.DateInput(
+                                          format='%d/%m/%Y',
+                                          attrs={'class': 'dateinput'}))
+
+    data_encaminhamento = forms.DateField(label=u'Data Encaminhamento',
+                                          input_formats=['%d/%m/%Y'],
+                                          required=False,
+                                          widget=forms.DateInput(
+                                              format='%d/%m/%Y',
+                                              attrs={'class': 'dateinput'}))
+
+    data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
+                                     input_formats=['%d/%m/%Y'],
+                                     required=False,
+                                     widget=forms.DateInput(
+                                         format='%d/%m/%Y',
+                                         attrs={'class': 'dateinput'}))
+
+    class Meta:
+        model = Tramitacao
+        fields = ['data_tramitacao',
+                  'unidade_tramitacao_local',
+                  'status',
+                  'turno',
+                  'urgente',
+                  'unidade_tramitacao_destino',
+                  'data_encaminhamento',
+                  'data_fim_prazo',
+                  'ultima',
+                  'texto',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Incluir Tramitação',
+                     'data_tramitacao',
+                     'unidade_tramitacao_local',
+                     'status',
+                     'turno',
+                     'urgente',
+                     'unidade_tramitacao_destino',
+                     'data_encaminhamento',
+                     'data_fim_prazo',
+                     'ultima',
+                     'texto'),
+            ButtonHolder(
+                Submit('submit', 'Salvar',
+                       css_class='button primary')
+            )
+        )
+        super(TramitacaoForm, self).__init__(
+            *args, **kwargs)
+
+
+class TramitacaoView(FormMixin, GenericView):
+    template_name = "materia/tramitacao.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        tramitacoes = Tramitacao.objects.filter(
+            materia_id=kwargs['pk']).order_by('-data_tramitacao')
+        form = TramitacaoForm
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'tramitacoes': tramitacoes})
+
+    def post(self, request, *args, **kwargs):
+        form = TramitacaoForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        tramitacoes_list = Tramitacao.objects.filter(
+            materia_id=kwargs['pk'])
+
+        if form.is_valid():
+            ultima_tramitacao = Tramitacao.objects.filter(
+                materia_id=kwargs['pk']).last()
+
+            if(ultima_tramitacao.unidade_tramitacao_destino == form.cleaned_data['unidade_tramitacao_local']):
+                tramitacao = form.save(commit=False)
+                tramitacao.materia = materia
+                tramitacao.save()
+            else:
+                return self.render_to_response({'form': form,
+                                                'materia': materia,
+                                                'tramitacoes': tramitacoes_list,
+                                                'error': 'A origem da nova tramitação deve ser igual ao destino da última adicionada!'})
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'materia': materia,
+                                            'tramitacoes': tramitacoes_list})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('tramtiacao_materia', kwargs={'pk': pk})

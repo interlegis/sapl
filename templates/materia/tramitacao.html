@@ -1,0 +1,51 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Tramitações</legend>
+			<table>
+				<tr>
+					<th>Data Ação</th>
+					<th>Origem</th>
+					<th>Destino</th>
+					<th>Status</th>
+				</tr>
+					{% for t in tramitacoes %}
+						<tr>
+							<td><a href="">{{t.data_tramitacao|date:'d/m/Y'}}</a></td>
+							<td>{{t.unidade_tramitacao_local}}</td>
+							<td>{{t.unidade_tramitacao_destino}}</td>
+							<td>{{t.status.descricao}}</td>
+						</tr>
+					{% endfor %}
+			</table>
+		</fieldset>
+		{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
+		{% crispy form %}
+	</fieldset>
+{% endblock %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}
