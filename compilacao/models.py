@@ -527,17 +527,36 @@ class Dispositivo(BaseModel):
                             r += self.get_nomenclatura_completa()
 
                     else:
-                        r += prefixo[1].strip()
-                        r += self.get_nomenclatura_completa()
+                        if local_insert:
+                            r += prefixo[1].strip()
+                            r += self.get_nomenclatura_completa()
+                        else:
+                            self.dispositivo0 = 1
+                            r += prefixo[0]
+                            r += self.get_nomenclatura_completa()
                 else:
                     if local_insert == 1 and irmaos_mesmo_tipo.count() == 1:
-                        r += 'Transformar %s em %s%s e criar %s 2%s' % (
-                            prefixo[1].strip(),
-                            prefixo[0],
-                            self.get_nomenclatura_completa(),
-                            prefixo[0],
-                            'º' if
-                            self.tipo_dispositivo.rotulo_ordinal >= 0 else '',)
+
+                        if Dispositivo.objects.filter(
+                                ordem__gt=self.ordem,
+                                ordem__lt=irmaos_mesmo_tipo[0].ordem).exists():
+                            self.dispositivo0 = 2
+                            r += 'Transformar %s em %s%s e criar %s1%s' % (
+                                prefixo[1].strip(),
+                                prefixo[0],
+                                self.get_nomenclatura_completa(),
+                                prefixo[0],
+                                'º' if
+                                self.tipo_dispositivo.rotulo_ordinal >= 0
+                                else '',)
+                        else:
+                            r += 'Transformar %s em %s%s e criar %s 2%s' % (
+                                prefixo[1].strip(),
+                                prefixo[0],
+                                self.get_nomenclatura_completa(),
+                                prefixo[0],
+                                'º' if
+                                self.tipo_dispositivo.rotulo_ordinal >= 0 else '',)
                     else:
                         r += prefixo[0]
                         r += self.get_nomenclatura_completa()
@@ -693,17 +712,13 @@ class Dispositivo(BaseModel):
         return result
 
     def criar_espaco(self, espaco_a_criar, local):
-        """
-        -1 = Imediatamente antes
-        0 = Imediatamente Depois
-        1 = Depois - antes do proximo bloco do mesmo tipo"""
 
-        if local == 1:
+        if local == 'add_next':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel,
                 norma_id=self.norma_id)[:1]
-        elif local == 0:
+        elif local == 'add_in':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel + 1,
@@ -763,19 +778,6 @@ class Dispositivo(BaseModel):
 
     def get_parents_asc(self):
         return self.get_parents(ordem='asc')
-
-    def recalcular_ordem(self):
-        pass
-        """try:
-            dispositivos = Dispositivo.objects.order_by('-ordem').filter(
-                norma_id=self.norma_id)
-        except:
-            return
-        ordem = dispositivos.count() * 1000
-        for d in dispositivos:
-            d.ordem = ordem
-            d.save()
-            ordem -= 1000"""
 
     def incrementar_irmaos(self, variacao=0, tipoadd=[]):
 
@@ -840,13 +842,22 @@ class Dispositivo(BaseModel):
                     irmao.transform_in_next()
                 irmao.rotulo = irmao.rotulo_padrao()
                 irmaos_a_salvar.append(irmao)
+
+            elif irmao.get_numero_completo() == self.get_numero_completo():
+                irmao_numero = irmao.get_numero_completo()
+                irmao_numero[dp_profundidade] += 1
+                irmao.set_numero_completo(irmao_numero)
+                irmao.rotulo = irmao.rotulo_padrao()
+                irmaos_a_salvar.append(irmao)
             else:
-                if dp_profundidade == irmao_profundidade and \
+                if dp_profundidade < irmao_profundidade and \
                         dp_profundidade > 0 and \
-                        self.get_numero_completo()[:dp_profundidade] < \
-                        irmao.get_numero_completo()[:dp_profundidade]:
+                        self.get_numero_completo()[:dp_profundidade] >= \
+                        irmao.get_numero_completo()[:dp_profundidade] and\
+                        ultimo_irmao is None:
                     break
                 else:
+                    ultimo_irmao = irmao
                     irmao_numero = irmao.get_numero_completo()
                     irmao_numero[dp_profundidade] += 1
                     irmao.set_numero_completo(irmao_numero)
@@ -855,19 +866,19 @@ class Dispositivo(BaseModel):
 
         irmaos_a_salvar.reverse()
         for irmao in irmaos_a_salvar:
-            if (irmao.dispositivo0 == 0 or
+            if (irmao.dispositivo0 == 0 and
                     irmao.ordem <= self.ordem) and variacao == 0:
+                irmao.dispositivo0 = 1
+                irmao.rotulo = irmao.rotulo_padrao()
+                self.dispositivo0 = 2
+                self.rotulo = self.rotulo_padrao()
+            elif (irmao.dispositivo0 == 0 and
+                    irmao.ordem > self.ordem) and variacao == 0:
+                irmao.dispositivo0 = 2
+                irmao.rotulo = irmao.rotulo_padrao()
+                self.dispositivo0 = 1
+                self.rotulo = self.rotulo_padrao()
 
-                if 'add_in' in tipoadd:
-                    irmao.dispositivo0 = 2
-                    irmao.rotulo = irmao.rotulo_padrao()
-                    self.dispositivo0 = 1
-                    self.rotulo = self.rotulo_padrao()
-                else:
-                    irmao.dispositivo0 = 1
-                    irmao.rotulo = irmao.rotulo_padrao()
-                    self.dispositivo0 = 2
-                    self.rotulo = self.rotulo_padrao()
             irmao.clean()
             irmao.save()
 

@@ -89,6 +89,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 
 		}
 		url = pk_refresh+'/refresh?pkadd='+pk_edit+url;
+				$("#message_block").css("display", "block");
 	}
 	else {
 
@@ -119,7 +120,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 			}
 
 			reloadFunctionClicks();
-			
+
 			var _editortype = editortype;
 			if ( $('.edt-'+_editortype).length == 0) {
 				_editortype = 'construct';
@@ -246,7 +247,7 @@ $(document).ready(function() {
 	editortype = ReadCookie("editortype")
 
 	if (editortype == null || editortype == "") {
-		editortype = "construct"
+		editortype = "textarea"
 		SetCookie("editortype", editortype, 30)
 	}
 

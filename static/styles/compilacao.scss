@@ -13,6 +13,7 @@ $color_actions_border: #CCC;
     -webkit-border-radius: $radius;
     -moz-border-radius: $radius;
     -ms-border-radius: $radius;
+    -o-border-radius: $radius;
     border-radius: $radius;
 }
 
@@ -274,7 +275,7 @@ $color_actions_border: #CCC;
 
     @extend .cp;
 
-    margin-bottom: 30em;
+    margin-bottom: 15em;
     margin-left: 0.8em;
 
     a {
@@ -355,6 +356,21 @@ $color_actions_border: #CCC;
                 display:block;
             }
         }
+        .bloco_alteracao {
+            @extend .articulacao;
+            margin: 0;
+            padding-top: 3em;
+            background: #ddd;
+            &::before {
+                content: "Bloco de Alteração";
+                position:absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+
+                display: block;
+            }
+        }
         .btns-action {
             opacity: 0;
         }
@@ -365,7 +381,7 @@ $color_actions_border: #CCC;
         border: 0px solid $color_actions_border;
         margin: 1em -2em 1em -2.8em;
         padding: 2.2em 2.2em 1.6em 2.2em;
-        box-shadow: -4px 18px 18px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23);
+        box-shadow: -4px 15px 15px rgba(0, 0, 0, 0.1), 0px 6px 6px rgba(0, 0, 0, 0.23);
 
         @include background-top-down(#eaeaee, #ddd);
 
@@ -389,6 +405,12 @@ $color_actions_border: #CCC;
                 background: transparent;
             }
 
+        }
+
+        .bloco_alteracao {
+            &::before {
+                display: none;
+            }
         }
 
         & > .bloco {
@@ -440,7 +462,7 @@ $color_actions_border: #CCC;
                     display: table-cell;
                     vertical-align: top;
                     &:hover {
-                        background-color: rgba(0,0,0,0.1);
+                        background-color: rgba(0,0,0,0.08);
                         & > a {
                             text-shadow: 0 0 5px #777;
                             color: #ff0;
@@ -477,6 +499,9 @@ $color_actions_border: #CCC;
                 div {
                     padding: 0 0.4em;
                     font-stretch: condensed;
+                    font-variant: small-caps;
+                    font-weight: bold;
+                    text-shadow: 0 0 10px #fff;
                 }
                 & > li {
                     &:hover a{
@@ -558,7 +583,7 @@ $color_actions_border: #CCC;
                     & > a {
                         @include background-top-down(#3498DB, #2980C9);
                         border-right: 1px solid #fff;
-                        padding: 0.3em;
+                        padding: 0.2em;
                         display: block;
                         color: white;
                         text-align: center;
@@ -591,6 +616,7 @@ $color_actions_border: #CCC;
                                 height: 100%;
                                 width: 2em;
                             }
+
                         } /* btn-excluir */
 
                         &.btn-salvar {
@@ -625,7 +651,7 @@ $color_actions_border: #CCC;
                                 color: white;
                                 background: #2980C9;
                                 font-size: 80%;
-                                padding: 0.33em 1em;
+                                padding: 0.23em 1em;
                                 &:hover {
                                     background: #0a5ea4;
                                 }
@@ -637,6 +663,28 @@ $color_actions_border: #CCC;
                         @include li_flutuante();
                         display: block;
                     }
+                    &.opc_excluir {
+                        @include li_flutuante();
+                        display: block;
+
+
+                        & > ul {
+                            li {
+                                a {
+                                    background-color: #A70808;
+                                    &:hover {
+                                        background: #c70808;
+                                    }
+                                }
+                            }
+
+                            &::before {
+                                border-color: transparent transparent #A70808;
+                            }
+                        }
+
+                    }
+
                 }
             } /* actions_inserts */
 
@@ -695,9 +743,8 @@ $color_actions_border: #CCC;
 .clear {
     clear:both;
 }
-
-.mce-container {
-    border-color: #ccc !important;
+.mce-panel {
+    border: 0px solid #ccc !important;
 }
 .mce-btn button:hover {
     background-color: rgba(0,0,0,0.1) !important;
@@ -771,6 +818,16 @@ $color_actions_border: #CCC;
                             margin-right: 0.5em;
                             &::before {
                                 right: 42%;
+                                left: auto;
+                            }
+                        }
+                        &.opc_excluir > ul {
+                            left: 30% !important;
+                            right: 0 !important;
+                            margin-left: 0;
+                            margin-right: 0.5em;
+                            &::before {
+                                right: 35%;
                                 left: auto;
                             }
                         }

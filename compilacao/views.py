@@ -298,6 +298,7 @@ class CompilacaoEditView(CompilacaoView):
             e.inicio_eficacia = norma.data_publicacao
             e.timestamp = datetime.now()
             e.texto = norma.ementa
+            e.dispositivo_pai = a
             e.save()
 
             a.pk = None
@@ -329,7 +330,7 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
             d.texto = texto
             d.save()
             return self.get(request, *args, **kwargs)
-        d.texto = texto
+        d.texto = texto.strip()
         d.save()
 
         if texto != '':
@@ -410,6 +411,16 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
             else:
                 base = Dispositivo.objects.get(pk=self.pk_add)
 
+            proximo_possivel = Dispositivo.objects.filter(
+                ordem__gt=base.ordem,
+                nivel__lte=base.nivel,
+                norma_id=base.norma_id)[:1]
+
+            if proximo_possivel.exists():
+                proximo_possivel = proximo_possivel[0]
+            else:
+                proximo_possivel = None
+
             result = [{'tipo_insert': 'Inserir Depois',
                        'icone': '&#8631;&nbsp;',
                        'action': 'add_next',
@@ -425,16 +436,25 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                       ]
 
             # Possíveis inserções sequenciais já existentes
-            dps = base.get_parents()
-            dps.insert(0, base)
+            parents = base.get_parents()
+            parents.insert(0, base)
             nivel = sys.maxsize
-            for dp in dps:
+            for dp in parents:
 
                 if dp.nivel >= nivel:
                     continue
 
                 if dp.is_relative_auto_insert():
                     continue
+
+                if proximo_possivel and \
+                    dp.tipo_dispositivo != base.tipo_dispositivo and\
+                    dp.nivel < proximo_possivel.nivel and\
+                    not proximo_possivel.tipo_dispositivo.permitido_inserir_in(
+                        dp.tipo_dispositivo):
+
+                    if dp.tipo_dispositivo != proximo_possivel.tipo_dispositivo:
+                        continue
 
                 nivel = dp.nivel
 
@@ -445,7 +465,7 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                         'tipo_pk': dp.tipo_dispositivo.pk,
                         'variacao': 0,
                         'provavel': '%s (%s)' % (
-                            dp.rotulo_padrao(),
+                            dp.rotulo_padrao(local_insert=1),
                             dp.tipo_dispositivo.nome,),
                         'dispositivo_base': base.pk})
 
@@ -501,6 +521,9 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                     for c in result[0]['itens']:
                         if c['class_css'] not in classes_ja_inseridas:
                             classes_ja_inseridas.append(c['class_css'])
+                    for c in result[1]['itens']:
+                        if c['class_css'] not in classes_ja_inseridas:
+                            classes_ja_inseridas.append(c['class_css'])
                     otds = TipoDispositivo.objects.order_by(
                         '-contagem_continua', 'id').all().exclude(
                             class_css__in=classes_ja_inseridas)
@@ -514,11 +537,41 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                     base.tipo_dispositivo = td
 
                     if not paradentro:
-                        if not td.permitido_inserir_in(
-                                raiz.tipo_dispositivo, excluir_autos=True):
+
+                        flag_insercao = False
+                        for possivelpai in parents:
+                            if td.permitido_inserir_in(
+                                    possivelpai.tipo_dispositivo,
+                                    excluir_autos=True):
+                                flag_insercao = True
+                                break
+
+                        if not flag_insercao:
                             continue
 
-                    Dispositivo.set_numero_for_add_in(base, base, td)
+                        if possivelpai.is_relative_auto_insert():
+                            continue
+
+                        if proximo_possivel:
+                            if proximo_possivel.nivel == base.nivel:
+                                if proximo_possivel.tipo_dispositivo != td and\
+                                    not proximo_possivel.tipo_dispositivo.\
+                                        permitido_inserir_in(td):
+                                    continue
+                            else:
+                                if possivelpai.tipo_dispositivo != \
+                                        proximo_possivel.tipo_dispositivo and\
+                                        not proximo_possivel.tipo_dispositivo.\
+                                        permitido_inserir_in(
+                                            possivelpai.tipo_dispositivo) and \
+                                        possivelpai.nivel < \
+                                        proximo_possivel.nivel:
+                                    continue
+                        base.dispositivo_pai = possivelpai
+                        Dispositivo.set_numero_for_add_in(
+                            possivelpai, base, td)
+                    else:
+                        Dispositivo.set_numero_for_add_in(base, base, td)
 
                     r = [{'class_css': td.class_css,
                           'tipo_pk': td.pk,
@@ -535,18 +588,16 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                         else:"""
                         result[1]['itens'] += r
                     else:
-                        if td.pk < tipb.pk:
-                            result[2]['itens'] += r
-                            result[0]['itens'] += r
+                        result[2]['itens'] += r
+                        result[0]['itens'] += r
 
-            if len(result[0]['itens']) < len(result[1]['itens']):
-                r = result[0]
-                result.remove(result[0])
-                result.insert(1, r)
+            # if len(result[0]['itens']) < len(result[1]['itens']):
+            #    r = result[0]
+            #    result.remove(result[0])
+            #    result.insert(1, r)
 
             # remover temporariamente a opção inserir antes
             # confirmar falta de necessidade
-
             if len(result) > 2:
                 result.pop()
 
@@ -573,55 +624,9 @@ class ActionsEditMixin(object):
         pass
 
     def add_in(self, context):
+        return self.add_next(context, local_add='add_in')
 
-        try:
-            # Tipo do dispositivo a ser inserido
-            tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
-
-            base = Dispositivo.objects.get(pk=context['dispositivo_id'])
-
-            dp = Dispositivo.new_instance_based_on(base, tipo)
-
-            dp.nivel += 1
-            dp.dispositivo_pai = base
-            Dispositivo.set_numero_for_add_in(base, dp, tipo)
-            dp.rotulo = dp.rotulo_padrao()
-
-            if dp.tipo_dispositivo.class_css == 'artigo':
-                ordem = base.criar_espaco(espaco_a_criar=2, local=0)
-            else:
-                ordem = base.criar_espaco(espaco_a_criar=1, local=0)
-
-            dp.ordem = ordem
-
-            dp.incrementar_irmaos(tipoadd=['add_in'])
-
-            dp.clean()
-            dp.save()
-
-            # Inserção automática do caput para artigos
-            if dp.tipo_dispositivo.class_css == 'artigo':
-                tipocaput = TipoDispositivo.objects.filter(
-                    class_css='caput')
-                dp.dispositivo_pai_id = dp.pk
-                dp.pk = None
-                dp.nivel += 1
-                dp.tipo_dispositivo = tipocaput[0]
-                dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
-                dp.rotulo = dp.rotulo_padrao()
-                dp.texto = ''
-
-                dp.ordem = ordem + Dispositivo.INTERVALO_ORDEM
-                dp.clean()
-                dp.save()
-                dp = Dispositivo.objects.get(pk=dp.dispositivo_pai_id)
-        except Exception as e:
-            print(e)
-
-        data = self.get_json_for_refresh(dp)
-        return data
-
-    def add_next(self, context):
+    def add_next(self, context, local_add='add_next'):
         try:
             base = Dispositivo.objects.get(pk=context['dispositivo_id'])
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
@@ -645,7 +650,7 @@ class ActionsEditMixin(object):
                     count_auto_insert += 1
 
             ordem = base.criar_espaco(
-                espaco_a_criar=1 + count_auto_insert, local=1)
+                espaco_a_criar=1 + count_auto_insert, local=local_add)
 
             dp_irmao = None
             dp_pai = None
@@ -689,44 +694,31 @@ class ActionsEditMixin(object):
 
             dp.rotulo = dp.rotulo_padrao()
             dp.ordem = ordem
-            dp.incrementar_irmaos(variacao)
-
-            ''' inserção sem precedente é feita sem variação
-            portanto, não é necessário usar transform_next() para
-            incrementar, e sim, apenas somar no atributo dispositivo0
-            dada a possibilidade de existir irmãos com viariação
-
-            # Incrementar irmãos
-            irmaos = Dispositivo.objects.order_by('-ordem').filter(
-                dispositivo_pai_id=dp.dispositivo_pai_id,
-                ordem__gt=dp.ordem,
-                tipo_dispositivo_id=tipo.pk)
-
-            for irmao in irmaos:
-                irmao.dispositivo0 += 1
-                irmao.rotulo = irmao.rotulo_padrao()
-                irmao.clean()
-                irmao.save()'''
+            dp.incrementar_irmaos(variacao, [local_add, ])
 
             dp.clean()
             dp.save()
 
-            # Inserção automática do caput para artigos
+            dp_auto_insert = None
+            # Inserção automática
             if count_auto_insert:
-                tipocaput = TipoDispositivo.objects.filter(
-                    class_css='caput')
-                dp.dispositivo_pai_id = dp.pk
-                dp.pk = None
+                dp_pk = dp.pk
                 dp.nivel += 1
-                dp.tipo_dispositivo = tipocaput[0]
-                dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
-                dp.rotulo = dp.rotulo_padrao()
-                dp.texto = ''
-
-                dp.ordem = ordem + Dispositivo.INTERVALO_ORDEM
-                dp.clean()
-                dp.save()
-                dp = Dispositivo.objects.get(pk=dp.dispositivo_pai_id)
+                for tipoauto in tipos_dp_auto_insert:
+                    dp.dispositivo_pai_id = dp_pk
+                    dp.pk = None
+                    dp.tipo_dispositivo = tipoauto.filho_permitido
+                    if ';' in dp.tipo_dispositivo.rotulo_prefixo_texto:
+                        dp.set_numero_completo([0, 0, 0, 0, 0, 0, ])
+                    else:
+                        dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+                    dp.rotulo = dp.rotulo_padrao()
+                    dp.texto = ''
+                    dp.ordem = dp.ordem + Dispositivo.INTERVALO_ORDEM
+                    dp.clean()
+                    dp.save()
+                    dp_auto_insert = dp
+                dp = Dispositivo.objects.get(pk=dp_pk)
 
             ''' Reenquadrar todos os dispositivos que possuem pai
             antes da inserção atual e que são inferiores a dp,
@@ -743,13 +735,14 @@ class ActionsEditMixin(object):
                 if filho.nivel > nivel:
                     continue
 
-                if filho.tipo_dispositivo_id <= dp.tipo_dispositivo_id:
-                    break
-
                 if filho.dispositivo_pai.ordem >= dp.ordem:
                     continue
 
                 nivel = filho.nivel
+
+                if not filho.tipo_dispositivo.permitido_inserir_in(
+                        dp.tipo_dispositivo):
+                    continue
 
                 filho.dispositivo_pai = dp
                 filho.clean()
@@ -853,7 +846,10 @@ class ActionsEditMixin(object):
         except Exception as e:
             print(e)
 
-        data = self.get_json_for_refresh(dp)
+        if dp_auto_insert is None:
+            data = self.get_json_for_refresh(dp)
+        else:
+            data = self.get_json_for_refresh(dp_auto_insert)
 
         return data
 
