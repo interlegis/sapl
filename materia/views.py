@@ -443,6 +443,12 @@ def get_tipos_materia():
            for t in TipoMateriaLegislativa.objects.all()]
 
 
+def get_tipos_documento():
+    return [('', 'Selecione')] \
+        + [(t.id, t.descricao)
+           for t in TipoDocumento.objects.all()]
+
+
 class MateriaAnexadaForm(forms.Form):
 
     tipo = forms.ChoiceField(required=True,
@@ -1045,3 +1051,132 @@ class NumeracaoEditView(FormMixin, GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('numeracao', kwargs={'pk': pk})
+
+
+class DocumentoAcessorioForm(forms.Form):
+
+    tipo = forms.ChoiceField(required=True,
+                             label='Tipo',
+                             choices=get_tipos_documento(),
+                             widget=forms.Select(
+                                 attrs={'class': 'selector'}))
+
+    data = forms.DateField(label='Data',
+                           required=False,
+                           input_formats=['%d/%m/%Y'],
+                           widget=forms.TextInput(
+                               attrs={'class': 'dateinput'}))
+
+    nome = forms.CharField(
+        label='Nome', required=True)
+
+    autor = forms.CharField(
+        label='Autor', required=True)
+
+    ementa = forms.CharField(
+        label='Ementa', required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Incluir Documento Acessório',
+                'tipo',
+                'data',
+                'nome',
+                'autor',
+                'ementa',
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+            )
+        )
+        super(DocumentoAcessorioForm, self).__init__(*args, **kwargs)
+
+
+class DocumentoAcessorioView(FormMixin, GenericView):
+    template_name = "materia/documento_acessorio.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        docs = DocumentoAcessorio.objects.filter(materia_id=kwargs['pk'])
+        form = DocumentoAcessorioForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'docs': docs})
+
+    def post(self, request, *args, **kwargs):
+        form = DocumentoAcessorioForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        docs_list = DocumentoAcessorio.objects.filter(
+            materia_id=kwargs['pk'])
+
+        if form.is_valid():
+            documento_acessorio = DocumentoAcessorio()
+            tipo = TipoDocumento.objects.get(
+                id=form.cleaned_data['tipo'])
+
+            documento_acessorio.materia = materia
+            documento_acessorio.tipo = tipo
+            documento_acessorio.data = form.cleaned_data['data']
+            documento_acessorio.nome = form.cleaned_data['nome']
+            documento_acessorio.autor = form.cleaned_data['autor']
+            documento_acessorio.ementa = form.cleaned_data['ementa']
+
+            documento_acessorio.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'materia': materia,
+                                            'docs': docs_list})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('documento_acessorio', kwargs={'pk': pk})
+
+
+class DocumentoAcessorioEditView(FormMixin, GenericView):
+    template_name = "materia/documento_acessorio_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
+        form = DocumentoAcessorioForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'doc': documento,
+             'tipos': TipoDocumento.objects.all()})
+
+    def post(self, request, *args, **kwargs):
+        form = DocumentoAcessorioForm(request.POST)
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
+
+        if form.is_valid():
+            if 'excluir' in request.POST:
+                documento.delete()
+            elif 'salvar' in request.POST:
+                tipo = TipoDocumento.objects.get(
+                    id=form.cleaned_data['tipo'])
+                documento.materia = materia
+                documento.tipo = tipo
+                documento.data = form.cleaned_data['data']
+                documento.nome = form.cleaned_data['nome']
+                documento.autor = form.cleaned_data['autor']
+                documento.ementa = form.cleaned_data['ementa']
+
+                documento.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'materia': materia,
+                                            'doc': documento})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('documento_acessorio', kwargs={'pk': pk})
