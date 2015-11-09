@@ -57,8 +57,19 @@
 					{% endfor %}
 	        	{%endif%}
 
-				<li><a href="#" class="btn-excluir">&nbsp;<span>Excluir</span></a></li>
-	            	<li><a onclick="onSubmitEditForm()" class="btn-salvar">&nbsp<span>Salvar</span></a></li>
+				<li class="opc_excluir"><a class="btn-excluir">&nbsp;<span>Excluir</span></a>
+
+					<ul>
+						<li><a href="#" class="btn-excluir">&nbsp;<span>Excluir apenas este dispositivo</span></a></li>
+						<li><a href="#" class="btn-excluir">&nbsp;<span>Excluir toda a estrutura deste dispositivo</span></a></li>
+
+					</ul>
+
+
+
+
+				</li>
+	            <li><a onclick="onSubmitEditForm()" class="btn-salvar">&nbsp<span>Salvar</span></a></li>
 	        </ul>
 
 			<div class="fields">
@@ -93,13 +104,9 @@
 
 		<div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
 			{% spaceless %}
-				<a class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">
-					{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}
-					{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}
-				</a>
-
+				<a class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</a>
 				{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-					<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
+					<a class="link_alterador" href="{%url 'comp_edit' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
 						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
 						{% nota_automatica dpt %}
 						{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
