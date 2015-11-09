@@ -411,15 +411,15 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
             else:
                 base = Dispositivo.objects.get(pk=self.pk_add)
 
-            proximo_possivel = Dispositivo.objects.filter(
+            prox_possivel = Dispositivo.objects.filter(
                 ordem__gt=base.ordem,
                 nivel__lte=base.nivel,
                 norma_id=base.norma_id)[:1]
 
-            if proximo_possivel.exists():
-                proximo_possivel = proximo_possivel[0]
+            if prox_possivel.exists():
+                prox_possivel = prox_possivel[0]
             else:
-                proximo_possivel = None
+                prox_possivel = None
 
             result = [{'tipo_insert': 'Inserir Depois',
                        'icone': '&#8631;&nbsp;',
@@ -447,13 +447,13 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                 if dp.is_relative_auto_insert():
                     continue
 
-                if proximo_possivel and \
+                if prox_possivel and \
                     dp.tipo_dispositivo != base.tipo_dispositivo and\
-                    dp.nivel < proximo_possivel.nivel and\
-                    not proximo_possivel.tipo_dispositivo.permitido_inserir_in(
+                    dp.nivel < prox_possivel.nivel and\
+                    not prox_possivel.tipo_dispositivo.permitido_inserir_in(
                         dp.tipo_dispositivo):
 
-                    if dp.tipo_dispositivo != proximo_possivel.tipo_dispositivo:
+                    if dp.tipo_dispositivo != prox_possivel.tipo_dispositivo:
                         continue
 
                 nivel = dp.nivel
@@ -508,7 +508,6 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
 
             # tipo do dispositivo base
             tipb = base.tipo_dispositivo
-            raiz = base.get_raiz()
 
             for paradentro in [1, 0]:
                 if paradentro:
@@ -552,20 +551,20 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                         if possivelpai.is_relative_auto_insert():
                             continue
 
-                        if proximo_possivel:
-                            if proximo_possivel.nivel == base.nivel:
-                                if proximo_possivel.tipo_dispositivo != td and\
-                                    not proximo_possivel.tipo_dispositivo.\
+                        if prox_possivel:
+                            if prox_possivel.nivel == base.nivel:
+                                if prox_possivel.tipo_dispositivo != td and\
+                                    not prox_possivel.tipo_dispositivo.\
                                         permitido_inserir_in(td):
                                     continue
                             else:
                                 if possivelpai.tipo_dispositivo != \
-                                        proximo_possivel.tipo_dispositivo and\
-                                        not proximo_possivel.tipo_dispositivo.\
+                                        prox_possivel.tipo_dispositivo and\
+                                        not prox_possivel.tipo_dispositivo.\
                                         permitido_inserir_in(
                                             possivelpai.tipo_dispositivo) and \
                                         possivelpai.nivel < \
-                                        proximo_possivel.nivel:
+                                        prox_possivel.nivel:
                                     continue
                         base.dispositivo_pai = possivelpai
                         Dispositivo.set_numero_for_add_in(

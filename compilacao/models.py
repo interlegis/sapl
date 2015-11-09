@@ -556,7 +556,8 @@ class Dispositivo(BaseModel):
                                 self.get_nomenclatura_completa(),
                                 prefixo[0],
                                 'º' if
-                                self.tipo_dispositivo.rotulo_ordinal >= 0 else '',)
+                                self.tipo_dispositivo.
+                                rotulo_ordinal >= 0 else '',)
                     else:
                         r += prefixo[0]
                         r += self.get_nomenclatura_completa()
