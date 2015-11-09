@@ -11,7 +11,7 @@
 				{% for p in protocolos %}
 					<tr>
 						<td>
-							<strong>Protocolo:</strong> <a href="">{{ p.numero|stringformat:'06d' }}/{{ p.ano }}</a></br>
+							<strong>Protocolo:</strong> <a href="{% url 'protocolo_mostrar' p.numero p.ano %}">{{ p.numero|stringformat:'06d' }}/{{ p.ano }}</a></br>
 							<strong>Assunto:</strong> {{ p.assunto_ementa }}</br>
 							<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.timestamp|date:"H:m:s" }}</br>
 							<strong>Interessado:</strong> {{ p.interessado }}</br>

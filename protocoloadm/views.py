@@ -133,6 +133,7 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
     def render(self):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
+
 class ProtocoloForm(forms.Form):
 
     YEARS = get_range_anos()
@@ -160,7 +161,6 @@ class ProtocoloForm(forms.Form):
                             widget=forms.TextInput(
                                 attrs={'class': 'dateinput'}))
 
-    # TODO: como pesquisar???
     natureza_processo = forms.ChoiceField(required=False,
                                           label='Natureza Processo',
                                           choices=[
@@ -247,6 +247,9 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
 
             # if request.POST['final']:
             #     kwargs['final'] = request.POST['final']
+
+            if request.POST['natureza_processo']:
+                kwargs['tipo_protocolo'] = request.POST['natureza_processo']
 
             if request.POST['tipo_documento']:
                 kwargs['tipo_documento'] = request.POST['tipo_documento']
@@ -460,6 +463,17 @@ class ProtocoloMateriaForm(forms.Form):
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea,
                                  label='Observação')
+
+
+class ProtocoloMostrarView(TemplateView):
+
+    template_name = "protocoloadm/protocolo_mostrar.html"
+
+    def get(self, request, *args, **kwargs):
+        numero = self.kwargs['pk']
+        ano = self.kwargs['ano']
+        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        return self.render_to_response({"protocolo": protocolo})
 
 
 class ProtocoloMateriaView(FormMixin, GenericView):
