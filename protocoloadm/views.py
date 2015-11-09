@@ -133,7 +133,6 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
     def render(self):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
-
 class ProtocoloForm(forms.Form):
 
     YEARS = get_range_anos()
@@ -253,7 +252,7 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
                 kwargs['tipo_documento'] = request.POST['tipo_documento']
 
             if request.POST['interessado']:
-                kwargs['interessado'] = request.POST['interessado']
+                kwargs['interessado__icontains'] = request.POST['interessado']
 
             if request.POST['tipo_materia']:
                 kwargs['tipo_materia'] = request.POST['tipo_materia']
