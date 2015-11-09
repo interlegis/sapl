@@ -6,18 +6,18 @@
 	{% if protocolos %}		
 <!-- 			Total: {{ protocolos|length }}  -->		
 			<table>
-				<tr><td>Número de Protocolo</td>
-					<td>Ano</td>
-					<td>Assunto</td>
-					<td>Tipo de Documento</td>
-					<td>Data</td>
+				<tr><td><h2>Resultados</h2></td>
 				</tr>
 				{% for p in protocolos %}
-					<tr><td>{{ p.numero }}</td>
-						<td>{{ p.ano }}</td>					
-						<td>{{ p.assunto_ementa }}</td>
-						<td>{{ p.tipo_documento }}</td>
-						<td>{{ p.data|date:"d/m/Y" }}</td>
+					<tr>
+						<td>
+							<strong>Protocolo:</strong> <a href="">{{ p.numero|stringformat:'06d' }}/{{ p.ano }}</a></br>
+							<strong>Assunto:</strong> {{ p.assunto_ementa }}</br>
+							<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.timestamp|date:"H:m:s" }}</br>
+							<strong>Interessado:</strong> {{ p.interessado }}</br>
+							<!-- TODO: convert if-else to custom tag -->
+							<strong>Natureza do Processo:</strong>{% if p.tipo_protocolo == 0 %} Administrativo {% elif p.tipo_protocolo == 1 %} Matéria Legislativa {% endif %}</br>
+							<strong>Classificação:</strong> {{ p.tipo_documento }} </br>
 					</tr>
 				{% endfor %}
 			</table>
