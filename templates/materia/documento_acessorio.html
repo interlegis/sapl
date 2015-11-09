@@ -1,0 +1,50 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Documentos Acessório</legend>
+			<table>
+				<tr>
+					<th>Nome</th>
+					<th>Tipo</th>
+					<th>Data</th>
+					<th>Autor</th>
+				</tr>
+					{% for d in docs %}
+						<tr>
+							<td><a href="{% url 'documento_acessorio_edit' materia.id d.id %}">{{d.nome}}</a></td>
+							<td>{{d.tipo.descricao}}</td>
+							<td>{{d.data|date:'d/m/Y'}}</td>
+							<td>{{d.autor}}</td>
+						</tr>
+					{% endfor %}
+			</table>
+		</fieldset>
+		{% crispy form %}
+	</fieldset>
+{% endblock %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}

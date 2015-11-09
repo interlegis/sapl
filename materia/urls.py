@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
-
 from materia.views import (DespachoInicialEditView, DespachoInicialView,
+                           DocumentoAcessorioEditView, DocumentoAcessorioView,
                            FormularioCadastroView, FormularioSimplificadoView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
@@ -52,4 +52,8 @@ urlpatterns = [
         NumeracaoView.as_view(), name='numeracao'),
     url(r'^materia/(?P<pk>\d+)/numeracao/(?P<id>\d+)/edit',
         NumeracaoEditView.as_view(), name='numeracao_edit'),
+    url(r'^materia/(?P<pk>\d+)/documento-acessorio$',
+        DocumentoAcessorioView.as_view(), name='documento_acessorio'),
+    url(r'^materia/(?P<pk>\d+)/documento-acessorio/(?P<id>\d+)/edit',
+        DocumentoAcessorioEditView.as_view(), name='documento_acessorio_edit'),
 ]

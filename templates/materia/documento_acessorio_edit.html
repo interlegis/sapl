@@ -1,0 +1,60 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Editar Documento Acessório</legend>
+				<form method="POST">
+					{% csrf_token %}
+
+					Tipo*
+					<select name="tipo">
+						{% for t in tipos %}
+							<option value="{{t.id}}" {% if t.id == doc.tipo.id %} selected {% endif %}>
+								{{t.descricao}}
+							</option>
+						{% endfor %}
+					</select>
+
+					Data
+					<input type="text" name="data" class="dateinput" value="{{doc.data|date:'d/m/Y'}}" />
+
+					Nome*
+					<input type="text" name="nome" value="{{doc.nome}}" />
+
+					Autor*			
+					<input type="text" name="autor" value="{{doc.autor}}" />
+
+					Ementa*			
+					<input type="text" name="ementa" value="{{doc.ementa}}" />
+
+					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
+					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+				</form>
+		</fieldset>
+	</fieldset>
+{% endblock %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}
