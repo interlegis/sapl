@@ -1180,3 +1180,17 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('documento_acessorio', kwargs={'pk': pk})
+
+
+class RelatoriaView(FormMixin, GenericView):
+    template_name = "materia/relatoria.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        relatorias = Relatoria.objects.filter(materia_id=kwargs['pk'])
+        form = None
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'relatorias': relatorias})
