@@ -1026,9 +1026,12 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
 
         # =====================================================================
         # Identificação Básica
+        abertura = self.object.data_inicio.strftime('%d/%m/%Y')
+        encerramento = self.object.data_fim.strftime('%d/%m/%Y')
+
         context.update({'basica': ['Tipo de Sessão: ' + str(self.object.tipo),
-                                   'Abertura: ' + str(self.object.data_inicio),
-                                   'Encerramento: ' + str(self.object.data_fim)
+                                   'Abertura: ' + abertura,
+                                   'Encerramento: ' + encerramento,
                                    ]})
         # =====================================================================
         # Conteúdo Multimídia
