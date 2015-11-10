@@ -11,11 +11,11 @@
 	<strong>Natureza do Processo:</strong>{% if protocolo.tipo_protocolo == 0 %} Administrativo {% elif protocolo.tipo_protocolo == 1 %} Matéria Legislativa {% endif %}</br>
 	<strong>Classificação:</strong> {{ protocolo.tipo_documento }} </br>
 	<strong>Número de Páginas:</strong> {{ protocolo.numero_paginas }} </br>
-	<strong>Observação:</strong>{{ protocolo.observacao }}</br>
+	<strong>Observação:</strong>{{ protocolo.observacao|default:"Não há" }}</br>
 	<form method="POST" action="">
 		{% csrf_token %}
 		<strong>Documento Vinculado:</strong></br>
-		<input type="submit" value="Criar Documento" class="secondary button">
+		<a href="" class="secondary button">Criar Documento</a>
 		<input type="submit" value="Comprovante" class="secondary button">
 	</form>
 {% endblock detail_content %}

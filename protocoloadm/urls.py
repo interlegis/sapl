@@ -55,7 +55,7 @@ urlpatterns = [
         DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
 
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao$',
-        TramitacaoAdmView.as_view(), name='tramitacao'),
+        TramitacaoAdmView.as_view(), name='tramitacao_adm'),
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_incluir',
         TramitacaoAdmIncluirView.as_view(), name='tramitacao_incluir'),
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_edit',

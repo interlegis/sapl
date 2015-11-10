@@ -688,6 +688,7 @@ class DetailDocumentoAdministrativo(DetailView):
     def get(self, request, *args, **kwargs):
         doc = DocumentoAdministrativo.objects.get(id=kwargs['pk'])
         return self.render_to_response({
+            'pk': kwargs['pk'],
             'doc': doc,
             'tipos_doc': TipoDocumentoAdministrativo.objects.all()
         })
@@ -791,7 +792,8 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
             doc_ace_null = 'Nenhum documento acessório \
                  cadastrado para este processo.'
 
-        return self.render_to_response({'doc': doc,
+        return self.render_to_response({'pk': kwargs['pk'],
+                                        'doc': doc,
                                         'doc_ace': doc_acessorio,
                                         'doc_ace_null': doc_ace_null,
                                         'form': form})
