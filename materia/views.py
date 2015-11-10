@@ -1297,4 +1297,56 @@ class TramitacaoView(FormMixin, GenericView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('tramtiacao_materia', kwargs={'pk': pk})
+        return reverse('tramitacao_materia', kwargs={'pk': pk})
+
+
+class TramitacaoEditView(FormMixin, GenericView):
+    template_name = "materia/tramitacao_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        tramitacao = Tramitacao.objects.get(id=kwargs['id'])
+        form = TramitacaoForm
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'tramitacao': tramitacao,
+             'turno': Tramitacao.TURNO_CHOICES,
+             'status': StatusTramitacao.objects.all(),
+             'unidade_tramitacao': UnidadeTramitacao.objects.all()})
+
+    def post(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        tramitacao = Tramitacao.objects.get(id=kwargs['id'])
+        form = TramitacaoForm(request.POST)
+
+        if form.is_valid():
+            if 'excluir' in request.POST:
+                tramitacao.delete()
+            elif 'salvar' in request.POST:
+                tramitacao.status = form.cleaned_data['status']
+                tramitacao.turno = form.cleaned_data['turno']
+                tramitacao.urgente = form.cleaned_data['urgente']
+                tramitacao.unidade_tramitacao_destino = form.cleaned_data[
+                    'unidade_tramitacao_destino']
+                tramitacao.data_encaminhamento = form.cleaned_data[
+                    'data_encaminhamento']
+                tramitacao.data_fim_prazo = form.cleaned_data['data_fim_prazo']
+                tramitacao.ultima = form.cleaned_data['ultima']
+                tramitacao.texto = form.cleaned_data['texto']
+
+                tramitacao.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'materia': materia,
+                 'form': form,
+                 'tramitacao': tramitacao,
+                 'turno': Tramitacao.TURNO_CHOICES,
+                 'status': StatusTramitacao.objects.all(),
+                 'unidade_tramitacao': UnidadeTramitacao.objects.all()})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('tramitacao_materia', kwargs={'pk': pk})

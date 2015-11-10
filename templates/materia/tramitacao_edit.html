@@ -1,0 +1,83 @@
+{% extends "materia/materia_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Matéria Legislativa</legend>
+		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materia.numero}}</b></li>
+			<li>Ano: <b>{{materia.ano}}</b></li>
+		</ul>
+		Ementa: <b>{{materia.ementa}}</b>
+
+		<fieldset>
+			<legend>Editar Tramitação</legend>
+				<form method="POST">
+					{% csrf_token %}
+
+					Data Tramitação
+					<input type="text" name="data_tramitacao" class="dateinput" value="{{tramitacao.data_tramitacao|date:'d/m/Y'}}" disabled />
+
+					Unidade Local
+					<input type="text" name="unidade_tramitacao_local" value="{{tramitacao.unidade_tramitacao_local}}" disabled />
+
+					Status*
+					<select name="status">
+						{% for s in status %}
+							<option value="{{s.id}}" {% if s.id == tramitacao.status.id %} selected {% endif %}>
+								{{s.descricao}}
+							</option>
+						{% endfor %}
+					</select>
+
+					Turno*
+					<select name="turno">
+						{% for a, b in turno %}
+							<option value="{{a}}">{{b}}</option>
+						{% endfor %}
+					</select>
+
+					<input type="checkbox" name="urgente" value="{{tramtiacao.urgente}}" /> Urgente ?<br />
+
+					Unidade Destino
+					<select name="unidade_tramitacao_destino">
+						{% for u in unidade_tramitacao %}
+							<option value="{{u.id}}" {% if u.id == tramitacao.unidade_tramitacao_destino.id %} selected {% endif %}>
+								{{u.orgao}} - {{u.comissao}}
+							</option>
+						{% endfor %}
+					</select>
+
+					Data Encaminhamento
+					<input type="text" name="data_encaminhamento" class="dateinput" value="{{tramitacao.data_encaminhamento|date:'d/m/Y'}}" />
+
+					Data Fim Prazo
+					<input type="text" name="data_fim_prazo" class="dateinput" value="{{tramitacao.data_fim_prazo|date:'d/m/Y'}}" />
+
+					<input type="checkbox" name="ultima" value="{{tramtiacao.ultima}}" /> Ultima<br />
+
+					Texto da Ação
+					<textarea rows="4" cols="50" name="texto">{{tramitacao.texto}}</textarea> 
+
+					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
+					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+				</form>
+		</fieldset>
+	</fieldset>
+{% endblock %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}
