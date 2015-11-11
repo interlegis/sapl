@@ -4,6 +4,9 @@ from sapl.crud import build_crud
 
 from .models import CargoComissao, Comissao, Periodo, TipoComissao
 
+from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
 cargo_crud = build_crud(
     CargoComissao, 'cargo_comissao', [
 
@@ -65,3 +68,9 @@ class MateriasView(comissao_crud.CrudDetailView):
 
 class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
+
+
+class ComissaoParlamentarIncluirView(GenericView):
+
+  template_name = "comissoes/comissao_parlamentar.html"
+
