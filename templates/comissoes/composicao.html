@@ -5,6 +5,43 @@
 <h2>Composição</h2>
 {% block detail_content %}
 
+<table>
+	<tr>
+		<th>Nome</th>
+		<th>Cargo</th>
+		<th>Titular</th>
+		<th>Designação</th>
+		<th>Desligamento</th>
+		<th>Motivo</th>
+		<th>Observação</th>
+	</tr>
+
+	<form method="POST">
+		{% csrf_token %}
+		<select id="periodo" name="periodo" onChange="form.submit();">
+			{% for c in composicoes %}
+				<option value="{{c.id}}" {% if composicao_id == c.id %} selected {% endif %}>
+					{{ c.periodo.data_inicio|date:"d/m/Y" }} - {{ c.periodo.data_fim|date:"d/m/Y" }}
+				</option>
+			{% endfor %}
+		</select>
+	</form>
+
+	{% for participacao in participacoes %}
+		{% if participacao.composicao_id == composicao_id %}
+			<tr>
+				<td>{{participacao.parlamentar.nome_parlamentar}}</td>
+				<td>{{participacao.cargo}}</td>
+				<td>{{participacao.titular|yesno:"Sim,Não"}}</td>	
+				<td>{{participacao.data_designacao|date:"d/m/Y"}}</td>
+				<td>{{participacao.data_desligamento|date:"d/m/Y"|default:"-"}}</td>
+				<td>{{participacao.motivo_desligamento|default:"-"}}</td>
+				<td>{{participacao.observacao|default:"-"}}</td>
+			</tr>
+		{% endif %}
+	{% endfor %}
+</table>
+
 <a href="" class="button primary">Incluir Parlamentar</a>
 
 {% endblock detail_content %}

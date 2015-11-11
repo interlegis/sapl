@@ -1,11 +1,12 @@
+from django import forms
 from django.utils.translation import ugettext_lazy as _
-
-from sapl.crud import build_crud
-
-from .models import CargoComissao, Comissao, Periodo, TipoComissao
-
+from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+from sapl.crud import build_crud
 from vanilla import GenericView
+
+from .models import (CargoComissao, Comissao, Composicao, Participacao,
+                     Periodo, TipoComissao)
 
 cargo_crud = build_crud(
     CargoComissao, 'cargo_comissao', [
@@ -58,8 +59,38 @@ comissao_crud = build_crud(
     ])
 
 
-class ComposicaoView(comissao_crud.CrudDetailView):
+class ComposicaoForm(forms.Form):
+    periodo = forms.CharField()
+
+
+class ComposicaoView(FormMixin, GenericView):
     template_name = 'comissoes/composicao.html'
+
+    def get(self, request, *args, **kwargs):
+        form = ComposicaoForm()
+
+        composicoes = Composicao.objects.filter(
+            comissao_id=self.kwargs['pk']).order_by('-periodo')
+        participacoes = Participacao.objects.all()
+
+        return self.render_to_response({
+            'participacoes': participacoes,
+            'composicoes': composicoes,
+            'composicao_id': composicoes.first().id,
+            'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = ComposicaoForm(request.POST)
+
+        composicoes = Composicao.objects.filter(
+            comissao_id=self.kwargs['pk']).order_by('-periodo')
+        participacoes = Participacao.objects.all()
+
+        return self.render_to_response({
+            'participacoes': participacoes,
+            'composicoes': composicoes,
+            'composicao_id': int(form.data['periodo']),
+            'form': form})
 
 
 class MateriasView(comissao_crud.CrudDetailView):
@@ -70,7 +101,5 @@ class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
 
-class ComissaoParlamentarIncluirView(GenericView):
-
-  template_name = "comissoes/comissao_parlamentar.html"
-
+class ComissaoParlamentarIncluirView(comissao_crud.CrudDetailView):
+    template_name = "comissoes/comissao_parlamentar.html"
