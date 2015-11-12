@@ -4,5 +4,19 @@
 
 {% block detail_content %}
 <h2>Incluir Parlamentar</h2>
-
+	{% crispy form %}
 {% endblock detail_content %}
+
+{% block foot_js %}
+   <script type="text/javascript">
+    	$(function () {
+			$('.dateinput').fdatepicker({
+				// TODO localize
+				format: 'dd/mm/yyyy',
+				language: 'pt',
+				endDate: '31/12/2100',
+				todayBtn: true
+			});
+		});
+	</script>
+{% endblock %}
