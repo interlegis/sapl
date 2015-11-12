@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
-
-from materia.views import (DespachoInicialEditView, DespachoInicialView,
-                           DocumentoAcessorioEditView, DocumentoAcessorioView,
-                           FormularioCadastroView, FormularioSimplificadoView,
+from materia.views import (AutoriaView, DespachoInicialEditView,
+                           DespachoInicialView, DocumentoAcessorioEditView,
+                           DocumentoAcessorioView, FormularioCadastroView,
+                           FormularioSimplificadoView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
                            NumeracaoEditView, NumeracaoView, RelatoriaView,
@@ -64,4 +64,9 @@ urlpatterns = [
         TramitacaoView.as_view(), name='tramitacao_materia'),
     url(r'^materia/(?P<pk>\d+)/tramitacao/(?P<id>\d+)/edit$',
         TramitacaoEditView.as_view(), name='tramitacao_edit'),
+<<<<<<< HEAD
+=======
+    url(r'^materia/(?P<pk>\d+)/autoria$',
+        AutoriaView.as_view(), name='autoria'),
+>>>>>>> Add form to Autoria in MateriaLegislativa
 ]
