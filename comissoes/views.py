@@ -1,15 +1,14 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
 from parlamentares.models import Filiacao, Parlamentar
 from sapl.crud import build_crud
-from sessao.models import Parlamentar
-from vanilla import GenericView
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)

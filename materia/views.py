@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, Field
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -1280,15 +1280,19 @@ class TramitacaoView(FormMixin, GenericView):
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=kwargs['pk']).last()
 
-            if(ultima_tramitacao.unidade_tramitacao_destino == form.cleaned_data['unidade_tramitacao_local']):
+            destino = ultima_tramitacao.unidade_tramitacao_destino
+            cleaned_data = form.cleaned_data['unidade_tramitacao_local']
+            if (destino == cleaned_data):
                 tramitacao = form.save(commit=False)
                 tramitacao.materia = materia
                 tramitacao.save()
             else:
-                return self.render_to_response({'form': form,
-                                                'materia': materia,
-                                                'tramitacoes': tramitacoes_list,
-                                                'error': 'A origem da nova tramitação deve ser igual ao destino da última adicionada!'})
+                return self.render_to_response(
+                    {'form': form,
+                     'materia': materia,
+                     'tramitacoes': tramitacoes_list,
+                     'error': 'A origem da nova tramitação \
+                        deve ser igual ao destino da última adicionada!'})
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,

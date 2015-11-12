@@ -1,11 +1,12 @@
 from django.conf.urls import include, url
+
 from materia.views import (DespachoInicialEditView, DespachoInicialView,
                            DocumentoAcessorioEditView, DocumentoAcessorioView,
                            FormularioCadastroView, FormularioSimplificadoView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
                            NumeracaoEditView, NumeracaoView, RelatoriaView,
-                           TramitacaoView, TramitacaoEditView, autor_crud,
+                           TramitacaoEditView, TramitacaoView, autor_crud,
                            materia_legislativa_crud, orgao_crud, origem_crud,
                            regime_tramitacao_crud, status_tramitacao_crud,
                            tipo_autor_crud, tipo_documento_crud,
@@ -62,5 +63,5 @@ urlpatterns = [
     url(r'^materia/(?P<pk>\d+)/tramitacao$',
         TramitacaoView.as_view(), name='tramitacao_materia'),
     url(r'^materia/(?P<pk>\d+)/tramitacao/(?P<id>\d+)/edit$',
-        TramitacaoEditView.as_view(), name='tramitacao_edit'),    
+        TramitacaoEditView.as_view(), name='tramitacao_edit'),
 ]
