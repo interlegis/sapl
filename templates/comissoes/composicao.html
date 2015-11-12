@@ -42,6 +42,6 @@
 	{% endfor %}
 </table>
 
-<a href="" class="button primary">Incluir Parlamentar</a>
+<a href="{% url 'comissao:comissao_parlamentar' pk composicao_id %}" class="button primary">Incluir Parlamentar</a>
 
 {% endblock detail_content %}
