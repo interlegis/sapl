@@ -8,7 +8,7 @@ from comissoes.views import (ComposicaoView, MateriasView, ReunioesView,
 comissao_url_patterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao$',
         ComposicaoView.as_view(), name='composicao'),
-    url(r'^(?P<pk>\d+)/composicao/parlamentar',
+    url(r'^(?P<pk>\d+)/composicao/(?P<id>\d+)/parlamentar$',
         ComissaoParlamentarIncluirView.as_view(), name='comissao_parlamentar'),
     url(r'^(?P<pk>\d+)/materias$',
         MateriasView.as_view(), name='materias'),
