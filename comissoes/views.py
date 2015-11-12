@@ -5,8 +5,14 @@ from django.views.generic.edit import FormMixin
 from sapl.crud import build_crud
 from vanilla import GenericView
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
+from django.forms import ModelForm
+
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
+
+from parlamentares.models import Parlamentar, Filiacao
 
 cargo_crud = build_crud(
     CargoComissao, 'cargo_comissao', [
@@ -77,7 +83,8 @@ class ComposicaoView(FormMixin, GenericView):
             'participacoes': participacoes,
             'composicoes': composicoes,
             'composicao_id': composicoes.first().id,
-            'form': form})
+            'form': form,
+            'pk': self.kwargs['pk']})
 
     def post(self, request, *args, **kwargs):
         form = ComposicaoForm(request.POST)
@@ -90,7 +97,8 @@ class ComposicaoView(FormMixin, GenericView):
             'participacoes': participacoes,
             'composicoes': composicoes,
             'composicao_id': int(form.data['periodo']),
-            'form': form})
+            'form': form,
+            'pk': self.kwargs['pk']})
 
 
 class MateriasView(comissao_crud.CrudDetailView):
@@ -100,6 +108,71 @@ class MateriasView(comissao_crud.CrudDetailView):
 class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
+class ParticipacaoCadastroForm(ModelForm):
 
-class ComissaoParlamentarIncluirView(comissao_crud.CrudDetailView):
+    YES_OR_NO = (
+      (True, 'Sim'),
+      (False, 'Não')
+    )
+
+    PARLAMENTARES_CHOICES = [('', '---------')] + [(p.parlamentar.id, p.parlamentar.nome_parlamentar + ' / ' + p.partido.sigla) for p in Filiacao.objects.filter(data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by('parlamentar__nome_parlamentar')]
+
+
+    parlamentar = forms.ChoiceField(required=True,
+                                    label='Parlamentar',
+                                    choices=PARLAMENTARES_CHOICES,
+                                    widget=forms.Select(
+                                      attrs={'class': 'selector'}))
+
+    titular = forms.BooleanField(widget=forms.RadioSelect(choices=YES_OR_NO), required=True)
+
+    data_designacao = forms.DateField(label=u'Data Designação',
+                          input_formats=['%d/%m/%Y'],
+                          required=True,
+                          widget=forms.DateInput(format='%d/%m/%Y'))
+
+    data_desligamento = forms.DateField(label=u'Data Desligamento',
+                          input_formats=['%d/%m/%Y'],
+                          required=False,
+                          widget=forms.DateInput(format='%d/%m/%Y'))
+
+    class Meta:
+        model = Participacao
+        fields = ['parlamentar',
+                  'composicao',
+                  'cargo',
+                  'titular',
+                  'data_designacao',                  
+                  'data_desligamento',
+                  'motivo_desligamento',
+                  'observacao']
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+                Fieldset(
+                  'Formulário de Cadastro',
+                  'parlamentar',
+                  'composicao', # TODO colocar como hidden (remover daqui)
+                  'cargo',
+                  'titular',
+                  'data_designacao',                  
+                  'data_desligamento',
+                  'motivo_desligamento',
+                  'observacao'
+                ),
+                # Field('documento', type="hidden"),
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+        )
+        super(ParticipacaoCadastroForm, self).__init__(*args, **kwargs)
+
+class ComissaoParlamentarIncluirView(FormMixin, GenericView):
     template_name = "comissoes/comissao_parlamentar.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        form = ParticipacaoCadastroForm()      
+        return self.render_to_response({'form': form})
