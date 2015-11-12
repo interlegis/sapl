@@ -1291,13 +1291,8 @@ class TramitacaoView(FormMixin, GenericView):
                     {'form': form,
                      'materia': materia,
                      'tramitacoes': tramitacoes_list,
-<<<<<<< HEAD
                      'error': 'A origem da nova tramitação \
                         deve ser igual ao destino da última adicionada!'})
-=======
-                     'error': 'A origem da nova tramitação\
-                     deve ser igual ao destino da última adicionada!'})
->>>>>>> Add form to Autoria in MateriaLegislativa
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
