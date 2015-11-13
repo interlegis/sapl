@@ -107,6 +107,12 @@ class MateriasView(comissao_crud.CrudDetailView):
 class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
+PARLAMENTARES_CHOICES = [('', '---------')] + [
+        (p.parlamentar.id,
+         p.parlamentar.nome_parlamentar + ' / ' + p.partido.sigla)
+        for p in Filiacao.objects.filter(
+            data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
+            'parlamentar__nome_parlamentar')]
 
 class ParticipacaoCadastroForm(ModelForm):
 
@@ -114,13 +120,6 @@ class ParticipacaoCadastroForm(ModelForm):
         (True, 'Sim'),
         (False, 'Não')
     )
-
-    PARLAMENTARES_CHOICES = [('', '---------')] + [
-        (p.parlamentar.id,
-         p.parlamentar.nome_parlamentar + ' / ' + p.partido.sigla)
-        for p in Filiacao.objects.filter(
-            data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
-            'parlamentar__nome_parlamentar')]
 
     parlamentar_id = forms.ChoiceField(required=True,
                                        label='Parlamentar',
@@ -223,3 +222,14 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('comissao:composicao', kwargs={'pk': pk})
+
+class ComissaoParlamentarEditView(FormMixin, GenericView):
+    template_name = "comissoes/comissao_parlamentar_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        participacao_id = kwargs['id']
+        participacao = Participacao.objects.get(id = participacao_id)        
+        form = ParticipacaoCadastroForm(initial={'parlamentar_id': participacao.parlamentar.id}, instance=participacao)
+        print(form)
+        return self.render_to_response({'form': form,
+                                        'composicao_id': self.kwargs['id']})    
