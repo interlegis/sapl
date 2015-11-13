@@ -1,11 +1,14 @@
+from django import forms
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.crud import build_crud
+from vanilla import GenericView
+from django import forms
 
 from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      Mandato, NivelInstrucao, Parlamentar, Partido,
                      SessaoLegislativa, SituacaoMilitar, TipoAfastamento,
                      TipoDependente)
+
 
 cargo_mesa_crud = build_crud(
     CargoMesa, 'cargo_mesa', [
@@ -134,3 +137,28 @@ tipo_militar_crud = build_crud(
         [_('Tipo Situação Militar'),
          [('descricao', 12)]],
     ])
+
+class ParlamentaresForm(forms.Form):
+    periodo = forms.CharField()
+
+
+class ParlamentaresView(GenericView):
+    template_name = "parlamentares/parlamentares_list.html"
+
+    def get(self, request, *args, **kwargs):
+        form = ParlamentaresForm()
+        return self.render_to_response(
+            {'legislaturas': Legislatura.objects.all(),
+             'legislatura_id': Legislatura.objects.first().id,
+             'mandatos': Mandato.objects.all(),
+             'form': form,
+             'filiacao': Filiacao.objects.all()})
+
+    def post(self, request, *args, **kwargs):
+        form = ParlamentaresForm(request.POST)
+        return self.render_to_response(
+            {'legislaturas': Legislatura.objects.all(),
+             'legislatura_id': int(form.data['periodo']),
+             'mandatos': Mandato.objects.all(),
+             'form': form,
+             'filiacao': Filiacao.objects.all()})
