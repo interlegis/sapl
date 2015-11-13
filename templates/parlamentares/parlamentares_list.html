@@ -1,0 +1,46 @@
+{% extends "parlamentares/parlamentares_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<fieldset>
+		<legend>Selecione o Período</legend>
+		<form method="POST">
+			{% csrf_token %}
+			<select name="periodo" onChange="form.submit();">
+				{% for l in legislaturas %}
+					<option value="{{l.id}}" {% if l.id == legislatura_id %} selected {% endif %}>
+						{{l}}
+					</option>
+				{% endfor %}
+			</select>
+		</form>
+	</fieldset>
+
+	<fieldset>
+		<legend>Parlamentares</legend>
+		<table>
+			<tr>	
+				<th>Nome do Parlamentar</th>
+				<th>Partido</th>
+				<th>Ativo?</th>
+			</tr>
+
+			{% for m in mandatos %}
+				{% if m.legislatura_id == legislatura_id %}
+					<tr>
+						<td><a href="">{{m.parlamentar.nome_parlamentar}}</a></td>
+						<td>
+							{% for f in filiacao %}
+								{% if f.parlamentar.id == m.parlamentar.id %}
+									{{f.partido}}
+								{% endif %}
+							{% endfor %}
+						</td>
+						<td>{{m.parlamentar.ativo|yesno:"Sim,Não"}}</td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+		</table>
+	</fieldset>
+{% endblock %}
