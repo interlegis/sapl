@@ -49,7 +49,7 @@ urlpatterns = [
         ProtocoloMateriaView.as_view(), name='protocolar_mat'),
     url(r'^protocoloadm/pesq-doc-adm',
         PesquisarDocumentoAdministrativo.as_view(), name='pesq_doc_adm'),
-    url(r'^protocoloadm/doc-adm/(?P<pk>\d+)',
+    url(r'^protocoloadm/doc-adm/(?P<pk>\d+)$',
         DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
     url(r'^protocoloadm/doc-ace-adm/(?P<pk>\d+)',
         DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),

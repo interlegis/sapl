@@ -1433,3 +1433,78 @@ class AutoriaView(GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('autoria', kwargs={'pk': pk})
+
+
+class AutoriaEditView(GenericView):
+    template_name = "materia/autoria_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        autorias = Autoria.objects.filter(materia=materia)
+        autor = Autor.objects.get(id=self.kwargs['id'])
+        form = AutoriaForm()
+
+        return self.render_to_response(
+            {'materia': materia,
+             'form': form,
+             'autorias': autorias,
+             'tipo_autores': TipoAutor.objects.all(),
+             'autores': Autor.objects.all(),
+             'tipo_autor_id': autor.tipo.id,
+             'autor_id': autor.id})
+
+    def post(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        autorias = Autoria.objects.filter(materia=materia)
+        form = AutoriaForm(request.POST)
+
+        if 'salvar' in request.POST:
+            if int(form.data['primeiro_autor']) == 1:
+                primeiro = True
+            else:
+                primeiro = False
+
+            autor = Autor.objects.get(
+                id=int(form.data['nome_autor']))
+
+            try:
+                autoria = Autoria.objects.get(
+                    autor=autor,
+                    materia=materia
+                    )
+            except ObjectDoesNotExist:
+
+                autoria = Autoria()
+                autoria.autor = autor
+                autoria.materia = materia
+                autoria.primeiro_autor = primeiro
+                autoria.save()
+
+                return self.render_to_response(
+                    {'materia': materia,
+                     'form': form,
+                     'autorias': autorias,
+                     'tipo_autores': TipoAutor.objects.all(),
+                     'autores': Autor.objects.all(),
+                     'tipo_autor_id': int(form.data['tipo_autor'])})
+            else:
+                return self.render_to_response(
+                    {'materia': materia,
+                     'form': form,
+                     'autorias': autorias,
+                     'tipo_autores': TipoAutor.objects.all(),
+                     'autores': Autor.objects.all(),
+                     'tipo_autor_id': int(form.data['tipo_autor']),
+                     'error': 'Essa autoria já foi adicionada!'})
+        else:
+            return self.render_to_response(
+                {'materia': materia,
+                 'form': form,
+                 'autorias': autorias,
+                 'tipo_autores': TipoAutor.objects.all(),
+                 'autores': Autor.objects.all(),
+                 'tipo_autor_id': int(form.data['tipo_autor'])})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('autoria', kwargs={'pk': pk})
