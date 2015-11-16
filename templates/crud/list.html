@@ -8,6 +8,10 @@
   <dd><a href="{{ view.create_url }}">
     {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
   </a></dd>
+
+  {% block more_buttons %}  
+  {% endblock more_buttons %}
+
 </dl>
 
 {% if not rows %}
