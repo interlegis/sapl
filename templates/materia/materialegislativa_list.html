@@ -1,0 +1,8 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+
+{% block more_buttons %}
+  <dd><a href="{% url 'formulario_simplificado' %}">
+    {% blocktrans with verbose_name=view.verbose_name %} Formulário Simplificado {% endblocktrans %}
+  </a></dd>
+{% endblock more_buttons %}

@@ -299,7 +299,32 @@ class FormularioSimplificadoForm(forms.Form):
                                  widget=forms.TextInput(
                                      attrs={'disabled': 'True'}))
 
-    # form.fields['otherFields'].widget.attrs['enabled'] = True
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Formulário Simplificado',
+                Fieldset(
+                    'Identificação Básica',
+                    'tipo_materia',
+                    'numero_materia',
+                    'ano_materia',
+                    'data_materia',
+                    'numero_protocolo',
+                    'regime_tramitacao',
+                    'em_tramitacao',
+                    'ementa',
+                    'texto_original',
+                    'arquivo',
+                    'proposicao'
+                ),
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+            )
+        )
+        super(FormularioSimplificadoForm, self).__init__(*args, **kwargs)
 
 
 class FormularioCadastroForm(ModelForm):
