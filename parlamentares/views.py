@@ -147,9 +147,10 @@ class ParlamentaresView(GenericView):
 
     def get(self, request, *args, **kwargs):
         form = ParlamentaresForm()
+        legislaturas = Legislatura.objects.all().order_by('-data_inicio','-data_fim')
         return self.render_to_response(
-            {'legislaturas': Legislatura.objects.all().order_by('-data_inicio'),
-             'legislatura_id': Legislatura.objects.first().id,
+            {'legislaturas': legislaturas,
+             'legislatura_id': legislaturas.first().id,
              'mandatos': Mandato.objects.all(),
              'form': form,
              'filiacao': Filiacao.objects.all()})
@@ -157,7 +158,7 @@ class ParlamentaresView(GenericView):
     def post(self, request, *args, **kwargs):
         form = ParlamentaresForm(request.POST)
         return self.render_to_response(
-            {'legislaturas': Legislatura.objects.all().order_by('-data_inicio'),
+            {'legislaturas': Legislatura.objects.all().order_by('-data_inicio','-data_fim'),
              'legislatura_id': int(form.data['periodo']),
              'mandatos': Mandato.objects.all(),
              'form': form,
