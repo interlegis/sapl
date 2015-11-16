@@ -6,11 +6,11 @@
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
 		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materia.numero}}</b></li>
-			<li>Ano: <b>{{materia.ano}}</b></li>
+			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materialegislativa.numero}}</b></li>
+			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
 		</ul>
-		Ementa: <b>{{materia.ementa}}</b>
+		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
 			<legend>Documentos Acessório</legend>
@@ -23,7 +23,7 @@
 				</tr>
 					{% for d in docs %}
 						<tr>
-							<td><a href="{% url 'documento_acessorio_edit' materia.id d.id %}">{{d.nome}}</a></td>
+							<td><a href="{% url 'documento_acessorio_edit' materialegislativa.id d.id %}">{{d.nome}}</a></td>
 							<td>{{d.tipo.descricao}}</td>
 							<td>{{d.data|date:'d/m/Y'}}</td>
 							<td>{{d.autor}}</td>

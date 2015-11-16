@@ -6,11 +6,11 @@
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
 		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materia.numero}}</b></li>
-			<li>Ano: <b>{{materia.ano}}</b></li>
+			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materialegislativa.numero}}</b></li>
+			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
 		</ul>
-		Ementa: <b>{{materia.ementa}}</b>
+		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
 			<legend>Numeração</legend>
@@ -24,11 +24,11 @@
 				</tr>
 				{% for n in numeracao %}
 					<tr>
-						<td><a href="{% url 'numeracao_edit' materia.id n.id %}">{{n.tipo_materia.sigla}}</a></td>
-						<td>{{n.tipo_materia.descricao}}</td>
-						<td>{{n.numero_materia}}</td>
-						<td>{{n.ano_materia}}</td>
-						<td>{{n.data_materia|date:'d/m/Y'}}</td>
+						<td><a href="{% url 'numeracao_edit' materialegislativa.id n.id %}">{{n.tipo_materialegislativa.sigla}}</a></td>
+						<td>{{n.tipo_materialegislativa.descricao}}</td>
+						<td>{{n.numero_materialegislativa}}</td>
+						<td>{{n.ano_materialegislativa}}</td>
+						<td>{{n.data_materialegislativa|date:'d/m/Y'}}</td>
 					</tr>
 				{% endfor %}
 			</table>

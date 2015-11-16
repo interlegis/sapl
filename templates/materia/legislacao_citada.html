@@ -6,11 +6,11 @@
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
 		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materia.numero}}</b></li>
-			<li>Ano: <b>{{materia.ano}}</b></li>
+			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materialegislativa.numero}}</b></li>
+			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
 		</ul>
-		Ementa: <b>{{materia.ementa}}</b>
+		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
 			<legend>Legislação Citada</legend>
@@ -23,7 +23,7 @@
 				</tr>
 				{% for l in legislacao %}
 					<tr>
-						<td><a href="{% url 'legislacao_citada_edit' materia.id l.id %}">{{l.norma.tipo.descricao}}</a></td>
+						<td><a href="{% url 'legislacao_citada_edit' materialegislativa.id l.id %}">{{l.norma.tipo.descricao}}</a></td>
 						<td>{{l.norma.numero}}</td>
 						<td>{{l.norma.ano}}</td>
 						<td>{{l.disposicoes}}</td>

@@ -6,11 +6,11 @@
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
 		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materia.numero}}</b></li>
-			<li>Ano: <b>{{materia.ano}}</b></li>
+			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materialegislativa.numero}}</b></li>
+			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
 		</ul>
-		Ementa: <b>{{materia.ementa}}</b>
+		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
 			<legend>Editar Numeração</legend>
@@ -18,22 +18,22 @@
 					{% csrf_token %}
 
 					Tipo Matéria*
-					<select name="tipo_materia">
+					<select name="tipo_materialegislativa">
 						{% for t in tipos %}
-							<option value="{{t.id}}" {% if t.id == numeracao.tipo_materia_id %} selected {% endif %}>
+							<option value="{{t.id}}" {% if t.id == numeracao.tipo_materialegislativa_id %} selected {% endif %}>
 								{{t.sigla}} - {{t.descricao}}
 							</option>
 						{% endfor %}
 					</select>
 
 					Número*
-					<input type="text" name="numero_materia" value="{{numeracao.numero_materia}}" />
+					<input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materialegislativa}}" />
 
 					Ano*			
-					<input type="text" name="ano_materia" value="{{numeracao.ano_materia}}" />
+					<input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materialegislativa}}" />
 
 					Data
-					<input type="text" name="data_materia" class="dateinput" value="{{numeracao.data_materia|date:'d/m/Y'}}" />
+					<input type="text" name="data_materialegislativa" class="dateinput" value="{{numeracao.data_materialegislativa|date:'d/m/Y'}}" />
 
 					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
 					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
