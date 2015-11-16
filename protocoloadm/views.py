@@ -590,7 +590,10 @@ class ProposicaoSimpleForm(forms.Form):
     #                               attrs={'readonly':'readonly'}))
 
 
-class ProposicaoView(DetailView):
+class ProposicaoView(TemplateView):
+    template_name = "protocoloadm/proposicoes.html"
+
+class ProposicaoDetailView(DetailView):
     template_name = "protocoloadm/proposicao_view.html"
     model = Proposicao
 

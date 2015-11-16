@@ -1,0 +1,11 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block sections_nav %}
+  <dl class="sub-nav left">
+    <dd><a href="{% url 'proposicao_receber' %}" class="button secondary">{% trans 'Incorporar Proposições' %}</a></dd>
+    <dd><a href="{% url 'proposicoes_naorecebidas' %}" class="button secondary">{% trans 'Proposições Não Recebidas' %}</a></dd>
+    <dd><a href="{% url 'proposicoes_naoincorporadas' %}" class="button secondary">{% trans 'Proposições Não Incorporadas' %}</a></dd>
+    <dd><a href="{% url 'proposicoes_incorporadas' %}" class="button secondary">{% trans 'Proposições Incorporadas' %}</a></dd>
+  </dl>
+{% endblock sections_nav %}
