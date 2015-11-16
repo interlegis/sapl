@@ -6,11 +6,11 @@
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
 		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materia.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materia.numero}}</b></li>
-			<li>Ano: <b>{{materia.ano}}</b></li>
+			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
+			<li>Número: <b>{{materialegislativa.numero}}</b></li>
+			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
 		</ul>
-		Ementa: <b>{{materia.ementa}}</b>
+		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
 			<legend>Matérias Anexadas</legend>
@@ -22,7 +22,7 @@
 				</tr>
 					{% for a in anexadas %}
 						<tr>
-							<td><a href="{% url 'materia_anexada_edit' materia.id a.id %}">{{a.materia_anexada.tipo.sigla}} {{a.materia_anexada.numero}}/{{a.materia_anexada.ano}}</a></td>
+							<td><a href="{% url 'materialegislativa_anexada_edit' materialegislativa.id a.id %}">{{a.materialegislativa_anexada.tipo.sigla}} {{a.materialegislativa_anexada.numero}}/{{a.materialegislativa_anexada.ano}}</a></td>
 							<td>{{a.data_anexacao|date:"d/m/Y"}}</td>
 							<td>{{a.data_desanexacao|date:"d/m/Y"}}</td>
 						</tr>
