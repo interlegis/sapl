@@ -83,7 +83,8 @@ class ComposicaoView(FormMixin, GenericView):
             'composicoes': composicoes,
             'composicao_id': composicoes.first().id,
             'form': form,
-            'pk': self.kwargs['pk']})
+            'pk': self.kwargs['pk'],
+            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
 
     def post(self, request, *args, **kwargs):
         form = ComposicaoForm(request.POST)
@@ -97,7 +98,8 @@ class ComposicaoView(FormMixin, GenericView):
             'composicoes': composicoes,
             'composicao_id': int(form.data['periodo']),
             'form': form,
-            'pk': self.kwargs['pk']})
+            'pk': self.kwargs['pk'],
+            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
 
 
 class MateriasView(comissao_crud.CrudDetailView):
@@ -108,11 +110,12 @@ class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
 PARLAMENTARES_CHOICES = [('', '---------')] + [
-        (p.parlamentar.id,
-         p.parlamentar.nome_parlamentar + ' / ' + p.partido.sigla)
-        for p in Filiacao.objects.filter(
-            data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
-            'parlamentar__nome_parlamentar')]
+    (p.parlamentar.id,
+     p.parlamentar.nome_parlamentar + ' / ' + p.partido.sigla)
+    for p in Filiacao.objects.filter(
+        data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
+        'parlamentar__nome_parlamentar')]
+
 
 class ParticipacaoCadastroForm(ModelForm):
 
@@ -223,13 +226,15 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
         pk = self.kwargs['pk']
         return reverse('comissao:composicao', kwargs={'pk': pk})
 
+
 class ComissaoParlamentarEditView(FormMixin, GenericView):
     template_name = "comissoes/comissao_parlamentar_edit.html"
 
     def get(self, request, *args, **kwargs):
         participacao_id = kwargs['id']
-        participacao = Participacao.objects.get(id = participacao_id)        
-        form = ParticipacaoCadastroForm(initial={'parlamentar_id': participacao.parlamentar.id}, instance=participacao)
+        participacao = Participacao.objects.get(id=participacao_id)
+        form = ParticipacaoCadastroForm(
+            initial={'parlamentar_id': participacao.parlamentar.id}, instance=participacao)
         print(form)
         return self.render_to_response({'form': form,
-                                        'composicao_id': self.kwargs['id']})    
+                                        'composicao_id': self.kwargs['id']})

@@ -62,24 +62,24 @@
                 <li class="nav__item has-dropdown"><a class="nav__link">Institucional</a>
                   <ul class="nav__sub-nav dropdown">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Mesa Diretora</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="/comissoes">Comissões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'comissao:list' %}">Comissões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="/parlamentares">Parlamentares</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares' %}">Parlamentares</a></li>
                   </ul>
                 </li>
                 <li class="nav__item has-dropdown"><a class="nav__link">Protocolo</a>
                   <ul class="nav__sub-nav dropdown">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pesquisar</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'protocolo' %}">Pesquisar</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="/materia">Protocolo Legislativo</a></li> -->
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="/protocoloadm/protocolo">Protocolo Geral</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="/proposicoes">Receber Proposições</a></li>
+                    {# <li class="nav__sub-item"><a class="nav__sub-link" href="">Protocolo Geral</a></li> #}
+                    {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'proposicao' %}">Proposições</a></li> #}
                   </ul>
                 </li>
                 <li class="nav__item has-dropdown"><a class="nav__link">Atividade Legislativa</a>
                   <ul class="nav__sub-nav dropdown">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Proposições</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="/materia">Matérias Legislativas</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="/sessao">Sessões Plenárias</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'proposicao' %}">Proposições</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materialegislativa:list' %}">Matérias Legislativas</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessaoplenaria:list' %}">Sessões Plenárias</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pautas das Sessões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Atas das Sessões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Reuniões das Comissões</a></li>
@@ -212,6 +212,18 @@
         </script>
         <script>
           $(document).foundation();
+        </script>
+        
+        <script type="text/javascript">
+          $(function () {
+          $('.dateinput').fdatepicker({
+            // TODO localize
+            format: 'dd/mm/yyyy',
+            language: 'pt',
+            endDate: '31/12/2100',
+            todayBtn: true
+          });
+        });
         </script>
       {% endblock foot_js %}
   </body>
