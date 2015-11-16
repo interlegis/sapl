@@ -7,11 +7,5 @@
     <dd><a href="{% url 'protocolar_doc' %}" class="button secondary">{% trans 'Protocolar Documento' %}</a></dd>
     <dd><a href="{% url 'protocolar_mat' %}" class="button secondary">{% trans 'Protocolar Matéria' %}</a></dd>
     <dd><a href="{% url 'anular_protocolo' %}" class="button secondary">{% trans 'Anular Protocolo' %}</a></dd>
-
-    <!-- TODO: move to Tramitacao app -->
-    <dd><a href="{% url 'proposicao_receber' %}" class="button secondary">{% trans 'Incorporar Proposições' %}</a></dd>
-    <dd><a href="{% url 'proposicoes_naorecebidas' %}" class="button secondary">{% trans 'Proposições Não Recebidas' %}</a></dd>
-    <dd><a href="{% url 'proposicoes_naoincorporadas' %}" class="button secondary">{% trans 'Proposições Não Incorporadas' %}</a></dd>
-    <dd><a href="{% url 'proposicoes_incorporadas' %}" class="button secondary">{% trans 'Proposições Incorporadas' %}</a></dd>
   </dl>
 {% endblock sections_nav %}
