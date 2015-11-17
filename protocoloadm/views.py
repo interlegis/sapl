@@ -810,7 +810,7 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
             doc_acessorio.data = form.cleaned_data['data']
             doc_acessorio.autor = form.cleaned_data['autor']
             doc_acessorio.assunto = form.cleaned_data['assunto']
-            doc_acessorio.arquivo = form.cleaned_data['arquivo']
+            doc_acessorio.arquivo = request.FILES['arquivo']
             doc_acessorio.documento = DocumentoAdministrativo.objects.get(
                 id=kwargs['pk'])
             doc_acessorio.save()
