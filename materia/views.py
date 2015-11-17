@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, HTML
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -1262,16 +1262,47 @@ class TramitacaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Incluir Tramitação',
+                     HTML("<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>"),
+                     HTML("<li>"),
                      'data_tramitacao',
+                     HTML("</li>"),
+                     HTML("<li>"),
                      'unidade_tramitacao_local',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML("<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                     HTML("<li>"),
                      'status',
+                     HTML("</li>"),
+                     HTML("<li>"),
                      'turno',
+                     HTML("</li>"),
+                     HTML("<li>"),
                      'urgente',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML("<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML("<li>"),
                      'unidade_tramitacao_destino',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML("<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                     HTML("<li>"),
                      'data_encaminhamento',
+                     HTML("</li>"),
+                     HTML("<li>"),
                      'data_fim_prazo',
+                     HTML("</li>"),
+                     HTML("<li>"),
                      'ultima',
-                     'texto'),
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML("<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML("<li>"),
+                     'texto',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     ),
             ButtonHolder(
                 Submit('submit', 'Salvar',
                        css_class='button primary')
