@@ -272,15 +272,48 @@ class FormularioSimplificadoForm(ModelForm):
                 'Formulário Simplificado',
                 Fieldset(
                     'Identificação Básica',
+                    HTML(
+                        "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                    HTML("<li>"),
                     'tipo',
+                    HTML("</li>"),
+                    HTML("<li>"),
                     'numero',
+                    HTML("</li>"),
+                    HTML("<li>"),
                     'ano',
+                    HTML("</li>"),
+                    HTML("</ul>"),
+                    HTML(
+                        "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                    HTML("<li>"),
                     'data_apresentacao',
+                    HTML("</li>"),
+                    HTML("<li>"),
                     'numero_protocolo',
+                    HTML("</li>"),
+                    HTML("<li>"),
                     'regime_tramitacao',
+                    HTML("</li>"),
+                    HTML("</ul>"),
+                    HTML(
+                        "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                    HTML("<li>"),
                     'em_tramitacao',
+                    HTML("</li>"),
+                    HTML("</ul>"),
+                    HTML(
+                        "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                    HTML("<li>"),
                     'ementa',
-                    'texto_original'
+                    HTML("</li>"),
+                    HTML("</ul>"),
+                    HTML(
+                        "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                    HTML("<li>"),
+                    'texto_original',
+                    HTML("</li>"),
+                    HTML("</ul>"),
                 ),
                 ButtonHolder(
                     Submit('submit', 'Salvar',
@@ -388,17 +421,6 @@ class FormularioSimplificadoView(FormMixin, GenericView):
             if request.FILES['texto_original']:
                 materia.texto_original = request.FILES['texto_original']
             materia.save()
-            # materia = MateriaLegislativa()
-            # materia.numero = request.POST['numero_materia']
-            # materia.ano = request.POST['ano_materia']
-            # materia.numero_protocolo = request.POST['numero_protocolo']
-            # materia.em_tramitacao = request.POST['em_tramitacao']
-            # materia.ementa = request.POST['ementa']
-            # materia.tipo_id = request.POST['tipo_materia']
-            # materia.regime_tramitacao_id = request.POST['regime_tramitacao']
-            # materia.texto_original = request.FILES['texto_original']
-            # materia.save()
-
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
