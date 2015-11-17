@@ -3,9 +3,5 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-	<form method="POST">
-		{% csrf_token %}
-		{% crispy form %}
-	</br>
-	</form>
+	{% crispy form %}
 {% endblock %}

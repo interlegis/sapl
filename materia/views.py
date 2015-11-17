@@ -1,7 +1,8 @@
 from datetime import date
 
+from comissoes.models import Comissao
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, HTML
+from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -10,11 +11,9 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-from comissoes.models import Comissao
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -246,58 +245,25 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
-class FormularioSimplificadoForm(forms.Form):
+class FormularioSimplificadoForm(ModelForm):
 
-    tipo_materia = forms.ChoiceField(required=True,
-                                     label='Tipo Matéria',
-                                     choices=get_tipos_materia(),
-                                     widget=forms.Select(
-                                         attrs={'class': 'selector'}))
+    data_apresentacao = forms.DateField(label=u'Data Apresentação',
+                                        input_formats=['%d/%m/%Y'],
+                                        required=False,
+                                        widget=forms.DateInput(
+                                            format='%d/%m/%Y'))
 
-    numero_materia = forms.CharField(
-        label='Núm. Matéria', required=True)
-
-    ano_materia = forms.ChoiceField(required=True,
-                                    label='Ano',
-                                    choices=get_range_anos(),
-                                    widget=forms.Select(
-                                        attrs={'class': 'selector'}))
-
-    data_materia = forms.DateField(label='Data Apresentação',
-                                   required=True,
-                                   widget=forms.TextInput(
-                                       attrs={'class': 'dateinput'}))
-
-    numero_protocolo = forms.CharField(
-        label='Número de Protocolo', required=True)
-
-    regime_tramitacao = forms.ChoiceField(required=False,
-                                          label='Regime de Tramitação',
-                                          choices=get_regimes_tramitacao(),
-                                          widget=forms.Select(
-                                              attrs={'class': 'selector'}))
-
-    em_tramitacao = forms.TypedChoiceField(
-        coerce=lambda x: x == 'Sim',
-        choices=((True, 'Sim'), (False, 'Não')),
-        widget=forms.RadioSelect
-    )
-
-    ementa = forms.CharField(
-        label='Ementa', required=True, widget=forms.Textarea)
-
-    texto_original = forms.ChoiceField(required=False,
-                                       label='Regime de Tramitação',
-                                       choices=(
-                                           ('1', 'Arquivo'),
-                                           ('2', 'Proposição')),
-                                       widget=forms.RadioSelect)
-
-    arquivo = forms.FileField(required=False, label='Arquivo')
-
-    proposicao = forms.CharField(required=False, label='Proposição',
-                                 widget=forms.TextInput(
-                                     attrs={'disabled': 'True'}))
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  'data_apresentacao',
+                  'numero_protocolo',
+                  'regime_tramitacao',
+                  'em_tramitacao',
+                  'ementa',
+                  'texto_original']
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -306,17 +272,15 @@ class FormularioSimplificadoForm(forms.Form):
                 'Formulário Simplificado',
                 Fieldset(
                     'Identificação Básica',
-                    'tipo_materia',
-                    'numero_materia',
-                    'ano_materia',
-                    'data_materia',
+                    'tipo',
+                    'numero',
+                    'ano',
+                    'data_apresentacao',
                     'numero_protocolo',
                     'regime_tramitacao',
                     'em_tramitacao',
                     'ementa',
-                    'texto_original',
-                    'arquivo',
-                    'proposicao'
+                    'texto_original'
                 ),
                 ButtonHolder(
                     Submit('submit', 'Salvar',
@@ -407,9 +371,7 @@ class FormularioCadastroForm(ModelForm):
 
 
 class FormularioSimplificadoView(FormMixin, GenericView):
-
     template_name = "materia/formulario_simplificado.html"
-    model = MateriaLegislativa
 
     def get_success_url(self):
         return reverse('formulario_simplificado')
@@ -422,21 +384,22 @@ class FormularioSimplificadoView(FormMixin, GenericView):
         form = FormularioSimplificadoForm(request.POST)
 
         if form.is_valid:
-
-            materia = MateriaLegislativa()
-            materia.numero = request.POST['numero_materia']
-            materia.ano = request.POST['ano_materia']
-            materia.numero_protocolo = request.POST['numero_protocolo']
-            materia.em_tramitacao = request.POST['em_tramitacao']
-            materia.ementa = request.POST['ementa']
-            materia.tipo_id = request.POST['tipo_materia']
-            materia.regime_tramitacao_id = request.POST['regime_tramitacao']
+            materia = form.save(commit=False)
+            if request.FILES['texto_original']:
+                materia.texto_original = request.FILES['texto_original']
             materia.save()
+            # materia = MateriaLegislativa()
+            # materia.numero = request.POST['numero_materia']
+            # materia.ano = request.POST['ano_materia']
+            # materia.numero_protocolo = request.POST['numero_protocolo']
+            # materia.em_tramitacao = request.POST['em_tramitacao']
+            # materia.ementa = request.POST['ementa']
+            # materia.tipo_id = request.POST['tipo_materia']
+            # materia.regime_tramitacao_id = request.POST['regime_tramitacao']
+            # materia.texto_original = request.FILES['texto_original']
+            # materia.save()
 
-            message = "Materia Legislativa criada com sucesso"
-            return render(request,
-                          reverse('formulario_simplificado'),
-                          {'form': form, 'message': message})
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
@@ -1262,7 +1225,8 @@ class TramitacaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Incluir Tramitação',
-                     HTML("<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>"),
+                     HTML(
+                         "<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>"),
                      HTML("<li>"),
                      'data_tramitacao',
                      HTML("</li>"),
@@ -1270,7 +1234,8 @@ class TramitacaoForm(ModelForm):
                      'unidade_tramitacao_local',
                      HTML("</li>"),
                      HTML("</ul>"),
-                     HTML("<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                     HTML(
+                         "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
                      HTML("<li>"),
                      'status',
                      HTML("</li>"),
@@ -1281,12 +1246,14 @@ class TramitacaoForm(ModelForm):
                      'urgente',
                      HTML("</li>"),
                      HTML("</ul>"),
-                     HTML("<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML(
+                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
                      HTML("<li>"),
                      'unidade_tramitacao_destino',
                      HTML("</li>"),
                      HTML("</ul>"),
-                     HTML("<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                     HTML(
+                         "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
                      HTML("<li>"),
                      'data_encaminhamento',
                      HTML("</li>"),
@@ -1297,7 +1264,8 @@ class TramitacaoForm(ModelForm):
                      'ultima',
                      HTML("</li>"),
                      HTML("</ul>"),
-                     HTML("<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML(
+                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
                      HTML("<li>"),
                      'texto',
                      HTML("</li>"),
@@ -1452,7 +1420,7 @@ class AutoriaView(GenericView):
                 autoria = Autoria.objects.get(
                     autor=autor,
                     materia=materia
-                    )
+                )
             except ObjectDoesNotExist:
 
                 autoria = Autoria()
@@ -1527,7 +1495,7 @@ class AutoriaEditView(GenericView):
                 autoria = Autoria.objects.get(
                     autor=autor,
                     materia=materia
-                    )
+                )
             except ObjectDoesNotExist:
 
                 autoria = Autoria()
