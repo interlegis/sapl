@@ -18,11 +18,11 @@ class TipoDocumentoAdministrativo(models.Model):
 
 
 def get_docadm_media_path(instance, subpath, filename):
-    return './docadm/%s/%s/%s' % (instance.numero, subpath, filename)
+    return './docadm/%s/%s/%s' % (instance, subpath, filename)
 
 
 def texto_upload_path(instance, filename):
-    return get_docadm_media_path(instance, 'docadm', filename)
+    return get_docadm_media_path(instance, 'DocAdm', filename)
 
 
 class DocumentoAdministrativo(models.Model):
