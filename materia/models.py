@@ -120,7 +120,7 @@ class MateriaLegislativa(models.Model):
         blank=True,
         null=True,
         upload_to=texto_upload_path,
-        verbose_name=_('Texto original (PDF)'))
+        verbose_name=_('Texto Original (PDF)'))
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
