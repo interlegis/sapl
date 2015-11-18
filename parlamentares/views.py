@@ -85,7 +85,7 @@ parlamentar_crud = build_crud(
             [('municipio_residencia', 12)],
             [('telefone_residencia', 6), ('fax_residencia', 6)],
             [('locais_atuacao', 12)],
-            # [('fotografia', 12)],
+            [('fotografia', 12)],
             [('biografia', 12)]],
     ])
 
