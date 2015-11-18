@@ -1167,8 +1167,8 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
             numero = o.numero_ordem
 
             # Verificar resultado
-            if m.resultado:
-                resultado = m.resultado
+            if o.resultado:
+                resultado = o.resultado
             else:
                 resultado = 'Matéria não votada'
 
