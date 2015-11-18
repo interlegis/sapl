@@ -22,7 +22,7 @@
 				</tr>
 					{% for a in anexadas %}
 						<tr>
-							<td><a href="{% url 'materialegislativa_anexada_edit' materialegislativa.id a.id %}">{{a.materialegislativa_anexada.tipo.sigla}} {{a.materialegislativa_anexada.numero}}/{{a.materialegislativa_anexada.ano}}</a></td>
+							<td><a href="{% url 'materia_anexada_edit' materialegislativa.id a.id %}">{{a.materia_anexada.tipo.sigla}} {{a.materia_anexada.numero}}/{{a.materia_anexada.ano}}</a></td>
 							<td>{{a.data_anexacao|date:"d/m/Y"}}</td>
 							<td>{{a.data_desanexacao|date:"d/m/Y"}}</td>
 						</tr>

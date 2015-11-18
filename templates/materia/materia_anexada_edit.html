@@ -18,7 +18,7 @@
 				{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
 				Tipo:
 				<select id="tipo" name="tipo">
-					{% for tipo in get_tipos_materialegislativa %}
+					{% for tipo in get_tipos_materia %}
 						<option value="{{tipo.id}}" {% if tipo.id == data.tipo.id %} selected {% endif %}>{{tipo.sigla}} - {{tipo.descricao}}</option>
 					{% endfor %}
 				</select>
