@@ -335,10 +335,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
                 protocolo.user_anulacao = user_anulacao
                 protocolo.ip_anulacao = ip_addr
                 protocolo.save()
-                message = "Protocolo criado com sucesso"
-                return render(request,
-                              reverse("anular_protocolo"),
-                              {'form': form, 'message': message})
+                return self.form_valid(form)
 
             except ObjectDoesNotExist:
                 errors = form._errors.setdefault(
@@ -387,7 +384,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
     model = Protocolo
 
     def get_success_url(self):
-        return reverse('protocolar_doc')
+        return reverse('protocolo')
 
     def get(self, request, *args, **kwargs):
         form = ProtocoloDocumentForm()
@@ -398,15 +395,12 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
         form = ProtocoloDocumentForm(request.POST)
 
         if form.is_valid():
-
             if request.POST['numeracao'] == '1':
                 numeracao = Protocolo.objects.filter(
                     ano=date.today().year).aggregate(Max('numero'))
             else:
                 numeracao = Protocolo.objects.all().aggregate(Max('numero'))
-
             protocolo = Protocolo()
-
             protocolo.numero = numeracao['numero__max'] + 1
             protocolo.ano = datetime.now().year
             protocolo.data = datetime.now().strftime("%Y-%m-%d")
@@ -423,13 +417,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
             protocolo.numero_paginas = request.POST['num_paginas']
             protocolo.observacao = sub(
                 '&nbsp;', ' ', strip_tags(request.POST['observacao']))
-
-            protocolo.save()
-
-            message = "Protocolo criado com sucesso"
-            return render(request,
-                          reverse('protocolo'),
-                          {'form': form, 'message': message})
+            return self.form_valid(form)            
         else:
             return self.form_invalid(form)
 
@@ -516,10 +504,7 @@ class ProtocoloMateriaView(FormMixin, GenericView):
 
             protocolo.save()
 
-            message = "Protocolo criado com sucesso"
-            return render(request,
-                          reverse('protocolo'),
-                          {'form': form, 'message': message})
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
