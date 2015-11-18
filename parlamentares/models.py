@@ -189,6 +189,14 @@ class SituacaoMilitar(models.Model):
         return self.descricao
 
 
+def get_foto_media_path(instance, subpath, filename):
+    return './parlamentar/%s/%s/%s' % (instance, subpath, filename)
+
+
+def foto_upload_path(instance, filename):
+    return get_foto_media_path(instance, 'foto', filename)
+
+
 class Parlamentar(models.Model):
     FEMININO = 'F'
     MASCULINO = 'M'
@@ -269,6 +277,11 @@ class Parlamentar(models.Model):
     biografia = models.TextField(
         blank=True, null=True, verbose_name=_('Biografia'))
     unidade_deliberativa = models.BooleanField()
+    fotografia = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=foto_upload_path,
+        verbose_name=_('Fotografia'))
 
     class Meta:
         verbose_name = _('Parlamentar')

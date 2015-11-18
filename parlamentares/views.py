@@ -69,11 +69,11 @@ sessao_legislativa_crud = build_crud(
             ('data_fim_intervalo', 2)]],
     ])
 
-dependente_crud = build_crud(
+parlamentar_crud = build_crud(
     Parlamentar, '', [
 
         [_('Cadastro do Parlamentar'),
-         [('nome_parlamentar', 4), ('login_FIXME', 4), ('ativo', 4)],
+         [('nome_parlamentar', 8), ('ativo', 4)],
             [('nome_completo', 12)],
             [('nivel_instrucao', 4), ('sexo', 4), ('data_nascimento', 4)],
             [('cpf', 4), ('rg', 4), ('titulo_eleitor', 4)],
@@ -82,13 +82,11 @@ dependente_crud = build_crud(
             [('email', 12)],
             [('numero_gab_parlamentar', 4), ('telefone', 4), ('fax', 4)],
             [('endereco_residencia', 6), ('cep_residencia', 6)],
-            [('municipio_residencia', 6), ('uf_FIXME', 6)],
+            [('municipio_residencia', 12)],
             [('telefone_residencia', 6), ('fax_residencia', 6)],
             [('locais_atuacao', 12)],
-            [('file_FIXME', 12)],
-            [('biografia', 12)],
-            [('observacao_FIXME', 12)],
-            [('parlamentar_salvar_FIXME', 12)]],
+            # [('fotografia', 12)],
+            [('biografia', 12)]],
     ])
 
 filiacao_crud = build_crud(
