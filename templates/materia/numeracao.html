@@ -24,11 +24,11 @@
 				</tr>
 				{% for n in numeracao %}
 					<tr>
-						<td><a href="{% url 'numeracao_edit' materialegislativa.id n.id %}">{{n.tipo_materialegislativa.sigla}}</a></td>
-						<td>{{n.tipo_materialegislativa.descricao}}</td>
-						<td>{{n.numero_materialegislativa}}</td>
-						<td>{{n.ano_materialegislativa}}</td>
-						<td>{{n.data_materialegislativa|date:'d/m/Y'}}</td>
+						<td><a href="{% url 'numeracao_edit' materialegislativa.id n.id %}">{{n.tipo_materia.sigla}}</a></td>
+						<td>{{n.tipo_materia.descricao}}</td>
+						<td>{{n.numero_materia}}</td>
+						<td>{{n.ano_materia}}</td>
+						<td>{{n.data_materia|date:'d/m/Y'}}</td>
 					</tr>
 				{% endfor %}
 			</table>
