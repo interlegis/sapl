@@ -181,12 +181,15 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
 
     def get(self, request, *args, **kwargs):
         form = ParticipacaoCadastroForm()
+        comissao = Comissao.objects.get(id=self.kwargs['pk'])
         return self.render_to_response({'form': form,
-                                        'composicao_id': self.kwargs['id']})
+                                        'composicao_id': self.kwargs['id'],
+                                        'comissao': comissao})
 
     def post(self, request, *args, **kwargs):
         composicao = Composicao.objects.get(id=self.kwargs['id'])
         form = ParticipacaoCadastroForm(request.POST)
+        comissao = Comissao.objects.get(id=self.kwargs['pk'])
 
         if form.is_valid():
             cargo = form.cleaned_data['cargo']
@@ -196,7 +199,8 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
                         return self.render_to_response(
                             {'form': form,
                              'composicao_id': self.kwargs['id'],
-                             'error': 'Esse cargo já está sendo ocupado!'})
+                             'error': 'Esse cargo já está sendo ocupado!',
+                             'comissao': comissao})
                     else:
                         # Pensar em forma melhor para não duplicar código
                         participacao = form.save(commit=False)
@@ -220,7 +224,8 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'composicao_id': self.kwargs['id']})
+                 'composicao_id': self.kwargs['id'],
+                 'comissao': comissao})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
