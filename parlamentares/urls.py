@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
 from parlamentares.views import (ParlamentaresView, cargo_mesa_crud,
                                  coligacao_crud, legislatura_crud,
-                                 nivel_instrucao_crud, partido_crud,
-                                 sessao_legislativa_crud,
+                                 nivel_instrucao_crud, parlamentar_crud,
+                                 partido_crud, sessao_legislativa_crud,
                                  tipo_afastamento_crud, tipo_dependente_crud,
                                  tipo_militar_crud)
 
@@ -25,6 +25,8 @@ urlpatterns = [
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(cargo_mesa_crud.urls)),
 
-    url(r'^parlamentares$',
+    url(r'^parlamentares/list$',
         ParlamentaresView.as_view(), name='parlamentares'),
+    url(r'^parlamentares/',
+        include(parlamentar_crud.urls)),
 ]
