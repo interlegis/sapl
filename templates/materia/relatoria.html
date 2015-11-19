@@ -22,13 +22,61 @@
 				</tr>
 					{% for r in relatorias %}
 						<tr>
-							<td><a href="">{{r.data_designacao_relator|date:'d/m/Y'}}</a></td>
+							<td><a href="{% url 'relatoria_edit' materialegislativa.id r.id %}">{{r.data_designacao_relator|date:'d/m/Y'}}</a></td>
 							<td>{{r.comissao}}</td>
 							<td>{{r.parlamentar}}</td>
 						</tr>
 					{% endfor %}
 			</table>
 		</fieldset>
-		<!-- {% crispy form %} -->
+		
+		<fieldset>
+			<legend>Adicionar Relator</legend>
+			{% if error_localizacao %}
+				<h5 align="center"><font color="#FF0000">{{ error_localizacao }}</font></h5>
+			{% else %}
+				<form method="POST">
+					{% csrf_token %}
+
+					<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>
+						<li>
+							Localização Atual
+							<input type="text" name="comissao" disabled value="{{comissao.nome}}" />
+						</li>
+					</ul>
+					<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>
+						<li>
+							Data Designação*
+							<input type="text" name="data_designacao_relator" class ="dateinput" />
+						</li>
+						<li>
+							Data Destituição
+							<input type="text" name="data_destituicao_relator" class ="dateinput" />
+						</li>
+					</ul>
+					<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>
+						<li>
+							Parlamentar*
+							<select name="parlamentar">
+								<option value=""> ---------- </option>
+								{% for p in parlamentares %}
+									<option value="{{p.parlamentar_id}}"> {{p.parlamentar}} </option>
+								{% endfor %}
+							</select>
+						</li>
+						<li>
+							Motivo Fim Relatoria
+							<select name="tipo_fim_relatoria">
+								<option value=""> ---------- </option>
+								{% for t in tipo_fim_relatoria %}
+									<option value="{{t.id}}"> {{t.descricao}} </option>
+								{% endfor %}
+							</select>
+						</li>
+					</ul>
+					<input type="submit" name="salvar" value="Salvar" class="primary button"/>
+				</form>
+			{% endif %}
+		</fieldset>
 	</fieldset>
 {% endblock %}
