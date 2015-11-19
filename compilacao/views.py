@@ -2,17 +2,21 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import sys
 
+from django import forms
 from django.core.signing import Signer
 from django.db.models import Q
 from django.http.response import JsonResponse
+from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from django.views.generic.list import ListView
 
-from compilacao.models import (Dispositivo, TipoDispositivo, TipoNota,
-                               TipoPublicacao, TipoVide, VeiculoPublicacao)
+from compilacao.file2dispositivo import Parser
+from compilacao.models import (Dispositivo, PerfilEstruturalTextosNormativos,
+                               TipoDispositivo, TipoNota, TipoPublicacao,
+                               TipoVide, VeiculoPublicacao)
 from norma.models import NormaJuridica
 from sapl.crud import build_crud
 
@@ -46,6 +50,13 @@ tipo_publicacao_crud = build_crud(
     TipoPublicacao, 'tipo_publicacao', [
 
         [_('Tipo de Publicação'),
+         [('sigla', 2), ('nome', 10)]],
+    ])
+
+perfil_estr_txt_norm = build_crud(
+    PerfilEstruturalTextosNormativos, 'perfil_estrutural', [
+
+        [_('Perfil Estrutural de Textos Normativos'),
          [('sigla', 2), ('nome', 10)]],
     ])
 
@@ -97,10 +108,6 @@ tipo_dispositivo_crud = build_crud(
 
          ],
 
-        [_('Outras Configurações'),
-         [('quantidade_permitida', 12),
-          ],
-         ],
     ])
 
 
@@ -246,7 +253,20 @@ class DispositivoView(CompilacaoView):
         return itens
 
 
-class CompilacaoEditView(CompilacaoView):
+class UpLoadImportFileForm(forms.Form):
+    import_file = forms.FileField(
+        required=True,
+        label=_('Arquivo formato ODF para Importanção'))
+
+
+def handle_uploaded_file(f, outfilepath):
+    with open(outfilepath, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
+class CompilacaoEditView(CompilacaoView, FormMixin):
+
     template_name = 'compilacao/edit.html'
 
     flag_alteradora = -1
@@ -254,11 +274,60 @@ class CompilacaoEditView(CompilacaoView):
     flag_nivel_ini = 0
     flag_nivel_old = -1
 
-    pk_add = 0
+    pk_edit = 0
     pk_view = 0
 
+    def post(self, request, *args, **kwargs):
+        form = UpLoadImportFileForm(request.POST, request.FILES)
+        message = "Arquivo Submetido com sucesso"
+
+        self.object_list = self.get_queryset()
+
+        if form.is_valid():
+            try:
+                f = request.FILES['import_file']
+                outfilepath = '/tmp/' + f.name
+                handle_uploaded_file(f, outfilepath)
+
+                p = Parser()
+                p.parser(outfilepath)
+
+            except Exception as e:
+                print(e)
+
+            context = self.get_context_data(
+                object_list=self.object_list,
+                form=form,
+                message=message,
+                view=self,
+                parser_list=p.parser_list)
+            return render(request, self.template_name, context)
+        else:
+            context = self.get_context_data(
+                object_list=self.object_list,
+                form=form,
+                message=form.errors,
+                view=self)
+            return self.form_invalid(context)
+
+        return self.render_to_response({'form': form})
+
+    def form_invalid(self, context):
+        return self.render_to_response(context)
+
+    def get(self, request, *args, **kwargs):
+
+        self.object_list = self.get_queryset()
+        form_class = UpLoadImportFileForm
+        self.form = self.get_form(form_class)
+        context = self.get_context_data(
+            object_list=self.object_list,
+            form=self.form)
+
+        return self.render_to_response(context)
+
     def get_queryset(self):
-        self.pk_add = 0
+        self.pk_edit = 0
         self.pk_view = 0
 
         self.flag_alteradora = -1
@@ -315,8 +384,25 @@ class CompilacaoEditView(CompilacaoView):
 
         return result
 
+    def set_perfil_in_session(self, request=None, perfil_id=0):
+        if not request:
+            return None
 
-class DispositivoEditView(CompilacaoEditView, FormMixin):
+        if perfil_id:
+            perfil = PerfilEstruturalTextosNormativos.objects.get(
+                pk=perfil_id)
+            request.session['perfil_estrutural'] = perfil.pk
+        else:
+            perfis = PerfilEstruturalTextosNormativos.objects.filter(
+                padrao=True)[:1]
+
+            if not perfis.exists():
+                request.session.pop('perfil_estrutural')
+            else:
+                request.session['perfil_estrutural'] = perfis[0].pk
+
+
+class DispositivoEditView(CompilacaoEditView):
     template_name = 'compilacao/edit_bloco.html'
 
     def post(self, request, *args, **kwargs):
@@ -357,19 +443,45 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
 
         return JsonResponse(data, safe=False)
 
+    def get_queryset_perfil_estrutural(self):
+        perfis = PerfilEstruturalTextosNormativos.objects.all()
+        return perfis
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            if 'perfil_pk' in request.GET:
+                self.set_perfil_in_session(
+                    request, request.GET['perfil_pk'])
+            elif 'perfil_estrutural' not in request.session:
+                self.set_perfil_in_session(request=request)
+
+            self.object_list = self.get_queryset()
+
+            self.perfil_estrutural_list = self.get_queryset_perfil_estrutural()
+
+            context = self.get_context_data(
+                object_list=self.object_list,
+                perfil_estrutural_list=self.perfil_estrutural_list
+            )
+        except Exception as e:
+            print(e)
+
+        return self.render_to_response(context)
+
     def get_queryset(self):
         self.flag_alteradora = -1
         self.flag_nivel_ini = 0
         self.flag_nivel_old = -1
 
         try:
-            self.pk_add = int(self.request.GET['pkadd'])
+            self.pk_edit = int(self.request.GET['edit'])
         except:
-            self.pk_add = 0
+            self.pk_edit = 0
         self.pk_view = int(self.kwargs['dispositivo_id'])
 
         try:
-            if self.pk_add == self.pk_view:
+            if self.pk_edit == self.pk_view:
                 bloco = Dispositivo.objects.get(
                     pk=self.kwargs['dispositivo_id'])
             else:
@@ -381,7 +493,7 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
         self.flag_nivel_old = bloco.nivel - 1
         self.flag_nivel_ini = bloco.nivel
 
-        if self.pk_add == self.pk_view:
+        if self.pk_edit == self.pk_view:
             return [bloco, ]
 
         proximo_bloco = Dispositivo.objects.filter(
@@ -402,14 +514,20 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         return itens
 
-    def select_provaveis_inserts(self):
+    def select_provaveis_inserts(self, request=None):
 
         try:
+
+            if request and 'perfil_estrutural' not in request.session:
+                self.set_perfil_in_session(request)
+
+            perfil_pk = request.session['perfil_estrutural']
+
             # Não salvar d_base
-            if self.pk_add == 0:
+            if self.pk_edit == 0:
                 base = Dispositivo.objects.get(pk=self.pk_view)
             else:
-                base = Dispositivo.objects.get(pk=self.pk_add)
+                base = Dispositivo.objects.get(pk=self.pk_edit)
 
             prox_possivel = Dispositivo.objects.filter(
                 ordem__gt=base.ordem,
@@ -444,14 +562,15 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                 if dp.nivel >= nivel:
                     continue
 
-                if dp.is_relative_auto_insert():
+                if dp.is_relative_auto_insert(perfil_pk):
                     continue
 
                 if prox_possivel and \
                     dp.tipo_dispositivo != base.tipo_dispositivo and\
                     dp.nivel < prox_possivel.nivel and\
                     not prox_possivel.tipo_dispositivo.permitido_inserir_in(
-                        dp.tipo_dispositivo):
+                        dp.tipo_dispositivo,
+                        perfil_pk=perfil_pk):
 
                     if dp.tipo_dispositivo != prox_possivel.tipo_dispositivo:
                         continue
@@ -468,6 +587,13 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                             dp.rotulo_padrao(local_insert=1),
                             dp.tipo_dispositivo.nome,),
                         'dispositivo_base': base.pk})
+
+                if dp.dispositivo_pai:
+                    flag_pv = dp.tipo_dispositivo.permitido_variacao(
+                        dp.dispositivo_pai.tipo_dispositivo,
+                        perfil_pk=perfil_pk)
+                else:
+                    flag_pv = False
 
                 r = []
                 flag_direcao = 1
@@ -491,7 +617,11 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                               'dispositivo_base': base.pk})
 
                     flag_direcao = -1
+
                 r.reverse()
+
+                if not flag_pv:
+                    r = [r[0], ]
 
                 if len(r) > 0 and dp.tipo_dispositivo.formato_variacao0 == \
                         TipoDispositivo.FNCN:
@@ -530,7 +660,9 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                 for td in otds:
 
                     if paradentro and not td.permitido_inserir_in(
-                            tipb, excluir_autos=True):
+                        tipb,
+                        include_relative_autos=False,
+                            perfil_pk=perfil_pk):
                         continue
 
                     base.tipo_dispositivo = td
@@ -540,29 +672,32 @@ class DispositivoEditView(CompilacaoEditView, FormMixin):
                         flag_insercao = False
                         for possivelpai in parents:
                             if td.permitido_inserir_in(
-                                    possivelpai.tipo_dispositivo,
-                                    excluir_autos=True):
+                                possivelpai.tipo_dispositivo,
+                                include_relative_autos=False,
+                                    perfil_pk=perfil_pk):
                                 flag_insercao = True
                                 break
 
                         if not flag_insercao:
                             continue
 
-                        if possivelpai.is_relative_auto_insert():
+                        if possivelpai.is_relative_auto_insert(perfil_pk):
                             continue
 
                         if prox_possivel:
                             if prox_possivel.nivel == base.nivel:
                                 if prox_possivel.tipo_dispositivo != td and\
                                     not prox_possivel.tipo_dispositivo.\
-                                        permitido_inserir_in(td):
+                                        permitido_inserir_in(
+                                            td, perfil_pk=perfil_pk):
                                     continue
                             else:
                                 if possivelpai.tipo_dispositivo != \
                                         prox_possivel.tipo_dispositivo and\
                                         not prox_possivel.tipo_dispositivo.\
                                         permitido_inserir_in(
-                                            possivelpai.tipo_dispositivo) and \
+                                            possivelpai.tipo_dispositivo,
+                                            perfil_pk=perfil_pk) and \
                                         possivelpai.nivel < \
                                         prox_possivel.nivel:
                                     continue
@@ -610,17 +745,33 @@ class ActionsEditMixin(object):
 
     def render_to_json_response(self, context, **response_kwargs):
 
-        if context['action'] == 'add_next':
-            return JsonResponse(self.add_next(context), safe=False)
-        elif context['action'] == 'add_in':
-            return JsonResponse(self.add_in(context), safe=False)
-        elif context['action'] == 'add_prior':
-            return JsonResponse(self.add_prior(context), safe=False)
+        test = getattr(self, context['action'])
+        return JsonResponse(test(context), safe=False)
+
+    def delete_item_dispositivo(self, context):
+        return self.delete_bloco_dispositivo(context)
+
+    def delete_bloco_dispositivo(self, context):
+        base = Dispositivo.objects.get(pk=context['dispositivo_id'])
+
+        base_anterior = Dispositivo.objects.order_by('-ordem').filter(
+            norma_id=base.norma_id,
+            ordem__lt=base.ordem
+        )[:1]
+        base.delete()
+
+        if base_anterior.exists():
+            if base_anterior[0].dispositivo_pai_id:
+                data = {'pk': base_anterior[0].pk, 'pai': [
+                    base_anterior[0].dispositivo_pai_id, ]}
+            else:
+                data = {'pk': base_anterior[0].pk, 'pai': [-1, ]}
+            return data
         else:
-            return JsonResponse({}, safe=False)
+            return {}
 
     def add_prior(self, context):
-        pass
+        return {}
 
     def add_in(self, context):
         return self.add_next(context, local_add='add_in')
@@ -637,7 +788,7 @@ class ActionsEditMixin(object):
 
             count_auto_insert = 0
             for tipoauto in tipos_dp_auto_insert:
-                qtdp = tipoauto.filho_permitido.quantidade_permitida
+                qtdp = tipoauto.quantidade_permitida
                 if qtdp >= 0:
                     qtdp -= Dispositivo.objects.filter(
                         norma_id=base.norma_id,
@@ -657,7 +808,9 @@ class ActionsEditMixin(object):
                 if dp.tipo_dispositivo == tipo:
                     dp_irmao = dp
                     break
-                if tipo.permitido_inserir_in(dp.tipo_dispositivo):
+                if tipo.permitido_inserir_in(
+                        dp.tipo_dispositivo,
+                        perfil_pk=context['perfil_pk']):
                     dp_pai = dp
                     break
                 dp_pai = dp
@@ -723,30 +876,33 @@ class ActionsEditMixin(object):
             antes da inserção atual e que são inferiores a dp,
             redirecionando para o novo pai'''
 
-            possiveis_filhos = Dispositivo.objects.filter(
-                ordem__gt=dp.ordem,
-                norma_id=dp.norma_id)
-
             nivel = sys.maxsize
             flag_niveis = False
-            for filho in possiveis_filhos:
 
-                if filho.nivel > nivel:
-                    continue
+            if not dp.tipo_dispositivo.dispositivo_de_alteracao:
+                possiveis_filhos = Dispositivo.objects.filter(
+                    ordem__gt=dp.ordem,
+                    norma_id=dp.norma_id)
 
-                if filho.dispositivo_pai.ordem >= dp.ordem:
-                    continue
+                for filho in possiveis_filhos:
 
-                nivel = filho.nivel
+                    if filho.nivel > nivel:
+                        continue
 
-                if not filho.tipo_dispositivo.permitido_inserir_in(
-                        dp.tipo_dispositivo):
-                    continue
+                    if filho.dispositivo_pai.ordem >= dp.ordem:
+                        continue
 
-                filho.dispositivo_pai = dp
-                filho.clean()
-                filho.save()
-                flag_niveis = True
+                    nivel = filho.nivel
+
+                    if not filho.tipo_dispositivo.permitido_inserir_in(
+                        dp.tipo_dispositivo,
+                            perfil_pk=context['perfil_pk']):
+                        continue
+
+                    filho.dispositivo_pai = dp
+                    filho.clean()
+                    filho.save()
+                    flag_niveis = True
 
             if flag_niveis:
                 dp.organizar_niveis()
@@ -795,7 +951,7 @@ class ActionsEditMixin(object):
             contagem continua, caso a inserção seja uma articulação'''
 
             numtipos = {}
-            if tipo.class_css == 'articulacao':
+            if dp.nivel == 0:
 
                 proxima_articulacao = Dispositivo.objects.filter(
                     ordem__gt=dp.ordem,
@@ -894,6 +1050,14 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
         context['action'] = self.request.GET['action']
-        context['tipo_pk'] = self.request.GET['tipo_pk']
-        context['variacao'] = self.request.GET['variacao']
+
+        if 'tipo_pk' in self.request.GET:
+            context['tipo_pk'] = self.request.GET['tipo_pk']
+
+        if 'variacao' in self.request.GET:
+            context['variacao'] = self.request.GET['variacao']
+
+        if 'perfil_estrutural' in self.request.session:
+            context['perfil_pk'] = self.request.session['perfil_estrutural']
+
         return self.render_to_json_response(context, **response_kwargs)

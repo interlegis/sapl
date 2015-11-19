@@ -35,40 +35,40 @@
 			</ul>
 
 	        <ul class="btns-action actions_left">
-	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="Button Left">BL</a></li>
-	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="Button Left">BL</a></li>
+	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="TODO: Notas...">Nt</a></li>
+	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="TODO: Vides...">Vd</a></li>
 	        </ul>
-
-	        <ul class="btns-action actions_bottom">
-	        	<li><a class="btn-bottom btn-action" pk="{{dpt.pk}}"  title="Button Bottom">BB</a></li>
-	        	<li><a class="btn-bottom btn-action" pk="{{dpt.pk}}"  title="Button Bottom">BB</a></li>
+			<ul class="btns-action actions_bottom">
+				{% for perfil in perfil_estrutural_list%}
+					<li class="{%if request.session.perfil_estrutural == perfil.pk%}selected{%endif%}"><a class="btn-bottom btn-action" pk="{{dpt.pk}}" perfil_pk="{{perfil.pk}}" action="refresh:perfil" title="{{perfil.nome}}">{{perfil.sigla}}</a></li>
+				{% endfor %}
 	        </ul>
 
 			<ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
 				{% if dpt.dispositivo_subsequente == None %}
-					{% for inserts in view.select_provaveis_inserts%}
+					{% for inserts in view|select_provaveis_inserts:request %}
 						<li class="{{inserts|get_field:'action'}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts|get_field:'icone'|safe}}<span>{{inserts|get_field:'tipo_insert'}}</span></a>
 							<ul id="afe{{dpt.id}}" >
 								{% for item in inserts|get_field:'itens' %}
-									<li><a class="btn-inserts" action="{{inserts|get_field:'action'}}" pk="{{item|get_field:'dispositivo_base'}}" variacao="{{item|get_field:'variacao'}}" tipo_pk="{{item|get_field:'tipo_pk'}}">{{item|get_field:'provavel'}}</a></li>
+									<li><a class="btn-inserts btn-action" action="{{inserts|get_field:'action'}}" pk="{{item|get_field:'dispositivo_base'}}" variacao="{{item|get_field:'variacao'}}" tipo_pk="{{item|get_field:'tipo_pk'}}">{{item|get_field:'provavel'}}</a></li>
 								{% endfor %}
 							</ul>
 						</li>
 					{% endfor %}
 	        	{%endif%}
 
-				<li class="opc_excluir"><a class="btn-excluir">&nbsp;<span>Excluir</span></a>
 
-					<ul>
-						<li><a href="#" class="btn-excluir">&nbsp;<span>Excluir apenas este dispositivo</span></a></li>
-						<li><a href="#" class="btn-excluir">&nbsp;<span>Excluir toda a estrutura deste dispositivo</span></a></li>
+				{% if not dpt|is_relative_auto_insert:request %}
+					<li class="opc_excluir"><a {% if not dpt.dispositivos_filhos_set.exists %}class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}{%else%}class="btn-excluir"{%endif%}>&nbsp;<span>Excluir</span></a>
+						{% if dpt.dispositivos_filhos_set.exists %}
+							<ul>
+								<li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}>TODO: Excluir apenas este dispositivo</a></li>
+								<li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>TODO: Excluir toda a estrutura deste dispositivo</a></li>
+							</ul>
+						{% endif %}
+					</li>
+				{% endif %}
 
-					</ul>
-
-
-
-
-				</li>
 	            <li><a onclick="onSubmitEditForm()" class="btn-salvar">&nbsp<span>Salvar</span></a></li>
 	        </ul>
 
@@ -97,11 +97,13 @@
     </div>
 	{% endif%}
 
-    {% if view.pk_view == 0 and view.pk_add == 0 or view.pk_add != view.pk_view %}
-        <div class="btns-action actions_left">
-            <a class="btn-edit" pk="{{dpt.pk}}"  title="Edição do dispositivo: {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}">E</a>
-        </div>
+    {% if view.pk_view == 0 and view.pk_edit == 0 or view.pk_edit != view.pk_view %}
 
+		{% if not dpt.rotulo and not dpt.texto %}
+			<div class="btns-action actions_left">
+	            <a class="btn-edit" pk="{{dpt.pk}}"  title="Edição do dispositivo: {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}">E</a>
+	        </div>
+		{% endif %}
 		<div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
 			{% spaceless %}
 				<a class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</a>

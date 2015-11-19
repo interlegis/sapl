@@ -9,6 +9,7 @@ django-crispy-forms
 django-extra-views
 django-vanilla-views
 git+git://github.com/interlegis/django-sass-processor.git
+git+git://github.com/LeandroRoberto/odfpy.git
 libsass
 psycopg2
 pytz
