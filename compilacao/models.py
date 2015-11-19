@@ -11,6 +11,17 @@ from sapl import utils
 from sapl.utils import YES_NO_CHOICES
 
 
+class TimestampedMixin(models.Model):
+    created = models.DateTimeField(
+        verbose_name=_('created'),
+        editable=False, blank=True, auto_now_add=True)
+    modified = models.DateTimeField(
+        verbose_name=_('modified'), editable=False, blank=True, auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
 class BaseModel(models.Model):
 
     class Meta:
@@ -77,12 +88,6 @@ class TipoVide(models.Model):
 
 class TipoDispositivo(BaseModel):
     """
-    - para class_css articulacao, omissis, ementa,
-                     bloco_alteracao, artigo, caput e paragrafo
-      são palavras chaves usadas no código e de existência obrigatória.
-
-    - apenas articulacao recebe nivel zero
-
     - no attributo rotulo_prefixo_texto, caso haja um ';' (ponto e vírgula), e
       só pode haver 1 ';', o método [def rotulo_padrao] considerará que o
       rótulo do dispositivo deverá ser escrito com o contéudo após o ';'
@@ -200,6 +205,10 @@ class TipoDispositivo(BaseModel):
         choices=YES_NO_CHOICES,
         default=False,
         verbose_name=_('Dispositivo de Articulação (Sem Texto)'))
+    dispositivo_de_alteracao = models.BooleanField(
+        choices=YES_NO_CHOICES,
+        default=False,
+        verbose_name=_('Dispositivo de Alteração'))
     formato_variacao0 = models.CharField(
         max_length=1,
         choices=FORMATO_NUMERACAO_CHOICES,
@@ -238,10 +247,6 @@ class TipoDispositivo(BaseModel):
         symmetrical=False,
         related_name='+')
 
-    quantidade_permitida = models.IntegerField(
-        default=-1,
-        verbose_name=_('Quantidade permitida dentro de uma Norma'))
-
     class Meta:
         verbose_name = _('Tipo de Dispositivo')
         verbose_name_plural = _('Tipos de Dispositivo')
@@ -250,32 +255,86 @@ class TipoDispositivo(BaseModel):
     def __str__(self):
         return self.nome
 
-    def permitido_inserir_in(self, base, excluir_autos=False):
-        pp = self.possiveis_pais.filter(pai=base)
+    def permitido_inserir_in(
+            self, base, include_relative_autos=True, perfil_pk=None):
+
+        if not perfil_pk:
+            perfis = PerfilEstruturalTextosNormativos.objects.filter(
+                padrao=True)[:1]
+
+            if not perfis.exists():
+                return False
+
+            perfil_pk = perfis[0].pk
+
+        pp = self.possiveis_pais.filter(pai=base, perfil_id=perfil_pk)
         if pp.exists():
-            if excluir_autos:
+            if not include_relative_autos:
                 if pp[0].filho_de_insercao_automatica:
                     return False
             return True
         return False
+
+    def permitido_variacao(
+            self, base, perfil_pk=None):
+
+        if not perfil_pk:
+            perfis = PerfilEstruturalTextosNormativos.objects.filter(
+                padrao=True)[:1]
+
+            if not perfis.exists():
+                return False
+
+            perfil_pk = perfis[0].pk
+
+        pp = self.possiveis_pais.filter(pai=base, perfil_id=perfil_pk)
+        if pp.exists():
+            if pp[0].permitir_variacao:
+                return True
+        return False
+
+
+class PerfilEstruturalTextosNormativos(BaseModel):
+    sigla = models.CharField(
+        max_length=10, unique=True, verbose_name=_('Sigla'))
+    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    padrao = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES, verbose_name=_('Padrão'))
+
+    class Meta:
+        verbose_name = _('Perfil Estrutural de Textos Normativos')
+        verbose_name_plural = _('Perfis Estruturais de Textos Normativos')
+
+        ordering = ['-padrao', 'sigla']
+
+    def __str__(self):
+        return self.nome
 
 
 class TipoDispositivoRelationship(BaseModel):
     pai = models.ForeignKey(TipoDispositivo, related_name='filhos_permitidos')
     filho_permitido = models.ForeignKey(
         TipoDispositivo,
-        blank=True, null=True, default=None,
         related_name='possiveis_pais')
+    perfil = models.ForeignKey(PerfilEstruturalTextosNormativos)
     filho_de_insercao_automatica = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES, verbose_name=_('Filho de Inserção Automática'))
+    permitir_variacao = models.BooleanField(
+        default=True,
+        choices=YES_NO_CHOICES, verbose_name=_('Permitir Variação Numérica'))
+
+    quantidade_permitida = models.IntegerField(
+        default=-1,
+        verbose_name=_('Quantidade permitida nesta relação'))
 
     class Meta:
         verbose_name = _('Relação Direta Permitida')
         verbose_name_plural = _('Relaçõe Diretas Permitidas')
         ordering = ['pai', 'filho_permitido']
         unique_together = (
-            ('pai', 'filho_permitido',),)
+            ('pai', 'filho_permitido', 'perfil'),)
 
     def __str__(self):
         return '%s - %s' % (
@@ -331,7 +390,7 @@ class Publicacao(models.Model):
         return '%s: %s' % (self.veiculo_publicacao, self.publicacao)
 
 
-class Dispositivo(BaseModel):
+class Dispositivo(BaseModel, TimestampedMixin):
     TEXTO_PADRAO_DISPOSITIVO_REVOGADO = _('(Revogado)')
     INTERVALO_ORDEM = 1000
     ordem = models.PositiveIntegerField(
@@ -410,8 +469,6 @@ class Dispositivo(BaseModel):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Visibilidade na Norma Publicada'))
-
-    timestamp = models.DateTimeField()
 
     tipo_dispositivo = models.ForeignKey(
         TipoDispositivo,
@@ -894,11 +951,12 @@ class Dispositivo(BaseModel):
 
         return proxima_articulacao[0]
 
-    def is_relative_auto_insert(self):
+    def is_relative_auto_insert(self, perfil_pk):
         if self.dispositivo_pai is not None:
             # pp possiveis_pais
             pp = self.tipo_dispositivo.possiveis_pais.filter(
-                pai=self.dispositivo_pai.tipo_dispositivo)
+                pai=self.dispositivo_pai.tipo_dispositivo,
+                perfil_id=perfil_pk)
 
             if pp.exists():
                 if pp[0].filho_de_insercao_automatica:

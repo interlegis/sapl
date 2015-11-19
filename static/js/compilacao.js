@@ -63,12 +63,14 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 	var _action = __action;
 	var _variacao = '';
 	var _tipo_pk = '';
+	var _perfil_pk = '';
 
 	if (event != null) {
 		pk_refresh = event.currentTarget.getAttribute('pk');
 		_action = $(this).attr('action');
 		_variacao = $(this).attr('variacao');
 		_tipo_pk = $(this).attr('tipo_pk');
+		_perfil_pk = $(this).attr('perfil_pk');
 	}
 
 	if (pk_edit == null)
@@ -78,20 +80,22 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 	if (_action == '')
 		return;
 	else if ( _action == null) {
-		url = pk_refresh+'/refresh?pkadd='+pk_edit;
+		url = pk_refresh+'/refresh?edit='+pk_edit;
 	}
 	else if (_action.startsWith('refresh')) {
-
 		var str = _action.split(':');
 		if (str.length > 1) {
-			editortype = str[1];
-			SetCookie("editortype", editortype, 30)
-
+			if(_action.endsWith('perfil')) {
+				url = '&perfil_pk='+_perfil_pk;
+			}
+			else {
+				editortype = str[1];
+				SetCookie("editortype", editortype, 30)
+			}
 		}
-		url = pk_refresh+'/refresh?pkadd='+pk_edit+url;
-				$("#message_block").css("display", "block");
+		url = pk_refresh+'/refresh?edit='+pk_edit+url;
 	}
-	else {
+	else if (_action.startsWith('add_')) {
 
 		url = pk_refresh+'/actions?action='+_action;
 		url += '&tipo_pk='+_tipo_pk;
@@ -100,10 +104,13 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 		$("#message_block").css("display", "block");
 
 	}
+	else if (_action.startsWith('delete_')) {
+		url = pk_refresh+'/actions?action='+_action;
+		$("#message_block").css("display", "block");
+	}
 
 	$.get(url).done(function( data ) {
 		if ( _action == null || _action.startsWith('refresh')) {
-
 
 			if (flag_refresh_all) {
                 if (flag_actions_vibible)
@@ -165,6 +172,16 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 				alert('Erro na inserção!');
 			}
 		}
+		else if (_action.startsWith('delete_')) {
+			$("#message_block").css("display", "block");
+			clearEditSelected();
+			if (data.pk != null) {
+				refreshScreenFocusPk(data);
+			}
+			else {
+				alert('Erro exclusão!');
+			}
+		}
 		else {
 			clearEditSelected();
 			reloadFunctionClicks();
@@ -196,11 +213,11 @@ function clearEditSelected() {
 }
 
 function reloadFunctionClicks() {
-	$('.dpt .de, .btn-action, .btn-inserts, .btn-edit').off();
+	$('.dpt .de, .btn-action, .btn-edit').off();
 
 	$('.dpt .de, .btn-edit').on('click', clickEditDispositivo);
 
-	$('.btn-action, .btn-inserts').on('click', clickUpdateDispositivo);
+	$('.btn-action').on('click', clickUpdateDispositivo);
 
 	$('#editdi_texto').focus();
 }

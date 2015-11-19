@@ -17,6 +17,7 @@ $color_actions_border: #CCC;
     border-radius: $radius;
 }
 
+
 @mixin li_flutuante() {
 
     & > ul {
@@ -34,19 +35,26 @@ $color_actions_border: #CCC;
             a {
                 border-right: 0px !important;
             }
-        }
 
-        &::before {
-            border-width: 0.375rem;
-            border-style: inset inset solid;
-            content: "";
-            display: block;
-            height: 0px;
-            width: 0px;
-            border-color: transparent transparent #3385CA;
-            position: absolute;
-            top: -0.75rem;
-            left: 0.9375rem;
+
+            &:first-child {
+
+                &::before {
+                    border-width: 0.375rem;
+                    border-style: inset inset solid;
+                    content: "";
+                    display: block;
+                    height: 0px;
+                    width: 0px;
+                    border-color: transparent transparent #3385CA;
+                    position: absolute;
+                    top: -0.75rem;
+                    left: 0.9375rem;
+                }
+                &:hover::before {
+                    border-color: transparent transparent #0A5EA4;
+                }
+            }
         }
         // This bridges the gap between the top bar and a dropdown.
         &::after {
@@ -74,7 +82,9 @@ $color_actions_border: #CCC;
     }
 
 }
-
+.test_import:nth-child(even) {
+    background-color: #ccc;
+}
 #message_block {
     display: block;
     position: fixed;
@@ -267,7 +277,31 @@ $color_actions_border: #CCC;
     }
 
     .fixed{
+
         z-index:98;
+        opacity: 0.2;
+        transition: all 2s ease-in-out;
+        -webkit-transition-delay: 3s; /* Safari */
+        transition-delay: 3s;
+
+        &:hover {
+            -webkit-transition-delay: 0s; /* Safari */
+            transition-delay: 0s;
+            transition: all 0.3s ease-in-out;
+            opacity: 0.9;
+
+            &::-webkit-scrollbar {
+                width: 10px;
+                height: 10px;
+            }
+
+
+            &::-webkit-scrollbar-thumb:vertical {
+                height: 30px;
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+
+        }
     }
 } /* end cp */
 
@@ -297,7 +331,7 @@ $color_actions_border: #CCC;
         & > .actions_left {
             color: #fff;
             position: absolute;
-            left: -2em;
+            left: -2.6em;
             opacity: 0;
             transition: all 0.4s ease-in-out;
             a {
@@ -360,13 +394,10 @@ $color_actions_border: #CCC;
             @extend .articulacao;
             margin: 0;
             padding-top: 3em;
+            padding-left: 0em;
             background: #ddd;
             &::before {
                 content: "Bloco de Alteração";
-                position:absolute;
-                left: 0;
-                right: 0;
-                top: 0;
 
                 display: block;
             }
@@ -407,11 +438,6 @@ $color_actions_border: #CCC;
 
         }
 
-        .bloco_alteracao {
-            &::before {
-                display: none;
-            }
-        }
 
         & > .bloco {
             padding: 1em 0;
@@ -466,7 +492,6 @@ $color_actions_border: #CCC;
                         & > a {
                             text-shadow: 0 0 5px #777;
                             color: #ff0;
-                            font-weight: bold;
                         }
                     }
                 }
@@ -661,14 +686,16 @@ $color_actions_border: #CCC;
                     }
                     &.add_prior {
                         @include li_flutuante();
-                        display: block;
+                        table-layout: fixed;
                     }
                     &.opc_excluir {
                         @include li_flutuante();
-                        display: block;
+                        table-layout: fixed;
+                        position: static;
 
 
                         & > ul {
+                            right: 0.5em;
                             li {
                                 a {
                                     background-color: #A70808;
@@ -676,10 +703,16 @@ $color_actions_border: #CCC;
                                         background: #c70808;
                                     }
                                 }
-                            }
-
-                            &::before {
-                                border-color: transparent transparent #A70808;
+                                &:first-child {
+                                    &::before {
+                                        border-color: transparent transparent #A70808;
+                                        right: 10%;
+                                        left: auto;
+                                    }
+                                    &:hover::before {
+                                        border-color: transparent transparent #c70808;
+                                    }
+                                }
                             }
                         }
 
@@ -692,6 +725,21 @@ $color_actions_border: #CCC;
             .menu_flutuante  {
                 & > li {
                     @include li_flutuante();
+
+
+                    &.opc_excluir {
+                        & > ul {
+                            li {
+                                &:first-child {
+                                    &::before {
+                                        right: auto;
+                                        left: 0.9375rem;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
                 }
 
             }
@@ -803,7 +851,7 @@ $color_actions_border: #CCC;
                             left: 1em !important;
                             right: 1em !important;
                             margin-left: 0;
-                            &::before {
+                            li:first-child::before {
                                 left: 37%;
                             }
                         }
@@ -816,18 +864,18 @@ $color_actions_border: #CCC;
                             right: 0 !important;
                             margin-left: 0;
                             margin-right: 0.5em;
-                            &::before {
+                            li:first-child::before {
                                 right: 42%;
                                 left: auto;
                             }
                         }
                         &.opc_excluir > ul {
-                            left: 30% !important;
+                            left: 10% !important;
                             right: 0 !important;
                             margin-left: 0;
                             margin-right: 0.5em;
-                            &::before {
-                                right: 35%;
+                            li:first-child::before {
+                                right: 27%;
                                 left: auto;
                             }
                         }

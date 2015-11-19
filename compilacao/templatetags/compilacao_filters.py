@@ -46,6 +46,8 @@ def nota_automatica(dispositivo):
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
             return 'Revogado pelo %s.' % d
+        elif not dispositivo.dispositivo_substituido:
+            return 'Inclusão feita pelo %s.' % d
         else:
             return 'Alteração feita pelo %s.' % d
     return ''
@@ -70,6 +72,16 @@ def get_sign_vigencia(value):
 
 
 @register.filter
+def select_provaveis_inserts(view, request):
+    return view.select_provaveis_inserts(request)
+
+
+@register.filter
+def is_relative_auto_insert(dpt, request):
+    return dpt.is_relative_auto_insert(request.session.perfil_estrutural)
+
+
+@register.filter
 def isinst(value, class_str):
     classe = value.__class__.__name__
     return classe == class_str
@@ -82,11 +94,11 @@ def render_actions_head(view, d_atual):
         return False
 
     # Menu
-    if view.pk_view == view.pk_add and d_atual.pk == view.pk_view:
+    if view.pk_view == view.pk_edit and d_atual.pk == view.pk_view:
         return True
 
     # conteudo e menu no filho
-    if view.pk_view != view.pk_add and d_atual.pk == view.pk_add:
+    if view.pk_view != view.pk_edit and d_atual.pk == view.pk_edit:
         return True
 
     return False
@@ -95,7 +107,7 @@ def render_actions_head(view, d_atual):
 @register.filter
 def short_string(str, length):
     if len(str) > length:
-        return str[:length]+'...'
+        return str[:length] + '...'
     else:
         return str
 
