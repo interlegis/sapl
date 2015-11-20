@@ -78,7 +78,7 @@ def select_provaveis_inserts(view, request):
 
 @register.filter
 def is_relative_auto_insert(dpt, request):
-    return dpt.is_relative_auto_insert(request.session.perfil_estrutural)
+    return dpt.is_relative_auto_insert(request.session['perfil_estrutural'])
 
 
 @register.filter
