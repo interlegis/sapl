@@ -2,7 +2,6 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import sys
 
-from django import forms
 from django.core.signing import Signer
 from django.db.models import Q
 from django.http.response import JsonResponse
@@ -14,6 +13,7 @@ from django.views.generic.edit import FormMixin
 from django.views.generic.list import ListView
 
 from compilacao.file2dispositivo import Parser
+from compilacao.forms import UpLoadImportFileForm
 from compilacao.models import (Dispositivo, PerfilEstruturalTextosNormativos,
                                TipoDispositivo, TipoNota, TipoPublicacao,
                                TipoVide, VeiculoPublicacao)
@@ -251,12 +251,6 @@ class DispositivoView(CompilacaoView):
                 norma_id=self.kwargs['norma_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         return itens
-
-
-class UpLoadImportFileForm(forms.Form):
-    import_file = forms.FileField(
-        required=True,
-        label=_('Arquivo formato ODF para Importanção'))
 
 
 def handle_uploaded_file(f, outfilepath):
@@ -1018,7 +1012,7 @@ class ActionsEditMixin(object):
                 pkfilho = dispositivo.pk
                 dispositivo = dispositivo.dispositivo_pai
 
-                proxima_articulacao = dispositivo.get_proxima_articulacao()
+                proxima_articulacao = dispositivo.get_proximo_nivel_zero()
 
                 if proxima_articulacao is not None:
                     parents = Dispositivo.objects.filter(

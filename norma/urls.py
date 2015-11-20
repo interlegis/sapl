@@ -1,6 +1,6 @@
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 
-from norma.views import NormaIncluirView, tipo_norma_crud, assunto_norma_crud
+from norma.views import NormaIncluirView, assunto_norma_crud, tipo_norma_crud
 
 urlpatterns = [
     # url(r'^norma/', include(norma_url_patterns,

@@ -368,7 +368,7 @@ class VeiculoPublicacao(models.Model):
         return '%s: %s' % (self.sigla, self.nome)
 
 
-class Publicacao(models.Model):
+class Publicacao(TimestampedMixin):
     norma = models.ForeignKey(
         NormaJuridica, verbose_name=_('Norma Jurídica'))
     veiculo_publicacao = models.ForeignKey(
@@ -380,7 +380,6 @@ class Publicacao(models.Model):
         blank=True, null=True, verbose_name=_('Pg. Início'))
     pagina_fim = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Pg. Fim'))
-    timestamp = models.DateTimeField()
 
     class Meta:
         verbose_name = _('Publicação')
@@ -852,7 +851,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
         else:  # contagem continua restrita a articulacao
-            proxima_articulacao = self.get_proxima_articulacao()
+            proxima_articulacao = self.get_proximo_nivel_zero()
 
             if proxima_articulacao is None:
                 irmaos = list(Dispositivo.objects.filter(
@@ -940,7 +939,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             irmao.clean()
             irmao.save()
 
-    def get_proxima_articulacao(self):
+    def get_proximo_nivel_zero(self):
         proxima_articulacao = Dispositivo.objects.filter(
             ordem__gt=self.ordem,
             nivel=0,
@@ -1025,8 +1024,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 dispositivo.set_numero_completo([1, 0, 0, 0, 0, 0, ])
 
 
-class Vide(models.Model):
-    data_criacao = models.DateTimeField(verbose_name=_('Data de Criação'))
+class Vide(TimestampedMixin):
     texto = models.TextField(verbose_name=_('Texto do Vide'))
 
     tipo = models.ForeignKey(TipoVide, verbose_name=_('Tipo do Vide'))
@@ -1048,7 +1046,7 @@ class Vide(models.Model):
         return _('Vide %s') % self.texto
 
 
-class Nota(models.Model):
+class Nota(TimestampedMixin):
     NPRIV = 1
     NSTRL = 2
     NINST = 3
@@ -1070,7 +1068,6 @@ class Nota(models.Model):
         blank=True,
         verbose_name=_('Url externa'))
 
-    data_criacao = models.DateTimeField(verbose_name=_('Data de Criação'))
     publicacao = models.DateTimeField(verbose_name=_('Data de Publicação'))
     efetifidade = models.DateTimeField(verbose_name=_('Data de Efeito'))
 
