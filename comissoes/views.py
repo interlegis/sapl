@@ -238,8 +238,10 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
     def get(self, request, *args, **kwargs):
         participacao_id = kwargs['id']
         participacao = Participacao.objects.get(id=participacao_id)
+        comissao = Comissao.objects.get(id=self.kwargs['pk'])
         form = ParticipacaoCadastroForm(
             initial={'parlamentar_id': participacao.parlamentar.id}, instance=participacao)
         print(form)
         return self.render_to_response({'form': form,
+                                        'comissao': comissao,
                                         'composicao_id': self.kwargs['id']})
