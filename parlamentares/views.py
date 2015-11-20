@@ -1,14 +1,13 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from sapl.crud import build_crud
 from vanilla import GenericView
-from django import forms
+
+from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      Mandato, NivelInstrucao, Parlamentar, Partido,
                      SessaoLegislativa, SituacaoMilitar, TipoAfastamento,
                      TipoDependente)
-
 
 cargo_mesa_crud = build_crud(
     CargoMesa, 'cargo_mesa', [

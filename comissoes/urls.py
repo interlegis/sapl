@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 
-from comissoes.views import (ComissaoParlamentarIncluirView, ComposicaoView,
-                             ComissaoParlamentarEditView,
+from comissoes.views import (ComissaoParlamentarEditView,
+                             ComissaoParlamentarIncluirView, ComposicaoView,
                              MateriasView, ReunioesView, cargo_crud,
                              comissao_crud, periodo_composicao_crud,
                              tipo_comissao_crud)
