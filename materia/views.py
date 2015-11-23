@@ -217,6 +217,12 @@ tramitacao_crud = build_crud(
     ])
 
 
+def get_tipos_proposicao():
+    return [('', 'Selecione')] \
+        + [(t.id, t.descricao)
+           for t in TipoProposicao.objects.all()]
+
+
 def get_tipos_materia():
     return [('', 'Selecione')] \
         + [(t.id, t.sigla + ' - ' + t.descricao)
@@ -1246,7 +1252,8 @@ class RelatoriaEditView(FormMixin, GenericView):
         form = RelatoriaForm(request.POST)
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         relatoria = Relatoria.objects.get(id=kwargs['id'])
-        composicao = Composicao.objects.filter(comissao=relatoria.comissao).last()
+        composicao = Composicao.objects.filter(
+            comissao=relatoria.comissao).last()
         parlamentares = composicao.participacao_set.all()
 
         if form.is_valid():
@@ -1688,3 +1695,88 @@ class AutoriaEditView(GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('autoria', kwargs={'pk': pk})
+
+
+class ProposicaoForm(ModelForm):
+    tipo = forms.ChoiceField(required=True,
+                             label='Tipo',
+                             choices=get_tipos_proposicao(),
+                             widget=forms.Select(
+                                 attrs={'class': 'selector'}))
+
+    descricao = forms.CharField(
+        label='Descrição', required=True)
+
+    tipo_materia = forms.ChoiceField(required=False,
+                                     label='Matéria Vinculada',
+                                     choices=get_tipos_materia(),
+                                     widget=forms.Select(
+                                         attrs={'class': 'selector'}))
+
+    numero_materia = forms.CharField(
+        label='Número', required=False)
+
+    ano_materia = forms.CharField(
+        label='Ano', required=False)
+
+    class Meta:
+        model = Proposicao
+        fields = ['tipo',
+                  'descricao',
+                  'texto_original']
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Incluir Proposição',
+                     HTML(
+                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML("<li>"),
+                     'tipo',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML(
+                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML("<li>"),
+                     'descricao',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML(
+                         "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                     HTML("<li>"),
+                     'tipo_materia',
+                     HTML("</li>"),
+                     HTML("<li>"),
+                     'numero_materia',
+                     HTML("</li>"),
+                     HTML("<li>"),
+                     'ano_materia',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     HTML(
+                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                     HTML("<li>"),
+                     'texto_original',
+                     HTML("</li>"),
+                     HTML("</ul>"),
+                     ButtonHolder(
+                        Submit('submit', 'Salvar',
+                               css_class='button primary')
+                        )
+                     ),
+        )
+        super(ProposicaoForm, self).__init__(
+            *args, **kwargs)
+
+
+class ProposicaoView(FormMixin, GenericView):
+    template_name = "materia/proposicao.html"
+
+    def get_success_url(self):
+        return reverse('proposicao')
+
+    def get(self, request, *args, **kwargs):
+        form = ProposicaoForm()
+
+        return self.render_to_response(
+            {'form': form})

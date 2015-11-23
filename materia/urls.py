@@ -5,14 +5,14 @@ from materia.views import (AutoriaEditView, AutoriaView,
                            FormularioCadastroView, FormularioSimplificadoView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
-                           NumeracaoEditView, NumeracaoView, RelatoriaEditView,
-                           RelatoriaView, TramitacaoEditView, TramitacaoView,
-                           autor_crud, materia_legislativa_crud, orgao_crud,
-                           origem_crud, regime_tramitacao_crud,
-                           status_tramitacao_crud, tipo_autor_crud,
-                           tipo_documento_crud, tipo_fim_relatoria_crud,
-                           tipo_materia_crud, tipo_proposicao_crud,
-                           unidade_tramitacao_crud)
+                           NumeracaoEditView, NumeracaoView, ProposicaoView,
+                           RelatoriaEditView, RelatoriaView,
+                           TramitacaoEditView, TramitacaoView, autor_crud,
+                           materia_legislativa_crud, orgao_crud, origem_crud,
+                           regime_tramitacao_crud, status_tramitacao_crud,
+                           tipo_autor_crud, tipo_documento_crud,
+                           tipo_fim_relatoria_crud, tipo_materia_crud,
+                           tipo_proposicao_crud, unidade_tramitacao_crud)
 
 urlpatterns = [
     url(r'^sistema/proposicoes/tipo/', include(tipo_proposicao_crud.urls)),
@@ -71,4 +71,6 @@ urlpatterns = [
         AutoriaEditView.as_view(), name='autoria_edit'),
     url(r'^materia/(?P<pk>\d+)/relatoria/(?P<id>\d+)/edit$',
         RelatoriaEditView.as_view(), name='relatoria_edit'),
+    url(r'^materia/proposicao$',
+        ProposicaoView.as_view(), name='proposicao'),
 ]

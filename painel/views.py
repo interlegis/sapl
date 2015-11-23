@@ -71,7 +71,6 @@ def painel_votacao_view(request):
 
 
 def get_dados_painel(request, pk):
-
     # Sessão Plenária
     sessao_plenaria_id = pk
     sessao_plenaria = SessaoPlenaria.objects.get(id=sessao_plenaria_id)

@@ -425,7 +425,6 @@ class TipoProposicao(models.Model):
 
 
 class Proposicao(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     autor = models.ForeignKey(Autor)
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
     # XXX data_envio was not null, but actual data said otherwise!!!
@@ -443,9 +442,7 @@ class Proposicao(models.Model):
         verbose_name=_('Justificativa da Devolução'))
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
-
     # ind_enviado and ind_devolvido collapsed as char field (status)
-
     status = models.CharField(blank=True,
                               null=True,
                               max_length=1,
@@ -453,12 +450,16 @@ class Proposicao(models.Model):
                                        ('D', 'Devolvida'),
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
-
     # mutually exclusive (depend on tipo.materia_ou_documento)
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
     documento = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True, verbose_name=_('Documento'))
+    texto_original = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Texto Original (PDF)'))
 
     class Meta:
         verbose_name = _('Proposição')
