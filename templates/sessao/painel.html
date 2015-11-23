@@ -95,13 +95,14 @@ $(function() {
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
+		audioAlertFinish.play();		
 	});
 
     $('#discursoStart').click(function() {
-		if($('#discursoStart').text() == 'Iniciar'){
+		
+		if ($('#discursoStart').text() == 'Iniciar'){
 
-			$.post('/sistema/painel/cronometro', { tipo: 'Discurso', action: 'Start' } );
+			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
 
 			$('#discursoReset').hide();
 			$('#discurso').runner('start');
@@ -110,9 +111,10 @@ $(function() {
 			$('#aparteReset').prop('disabled', true);
 			$('#ordemStart').prop('disabled', true);
 			$('#ordemReset').prop('disabled', true);
-		}else{
 
-			$.post('/sistema/painel/cronometro', { tipo: 'Discurso', action: 'Stop' } );
+		} else {
+
+			$.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
 
 			$('#discursoReset').show();
 			$('#discurso').runner('stop');
@@ -126,7 +128,7 @@ $(function() {
 
     $('#discursoReset').click(function() {
 
-		$.post('/sistema/painel/cronometro', { tipo: 'Discurso', action: 'Reset' } );
+		$.get('/painel/cronometro', { tipo: 'discurso', action: 'reset' } );
 
         $('#discurso').runner('stop');
         $('#discurso').runner('reset');
@@ -143,9 +145,9 @@ $(function() {
 	});
 
 	$('#aparteStart').click(function(){
-		if($('#aparteStart').text() == 'Iniciar'){
+		if ($('#aparteStart').text() == 'Iniciar') {
 
-			$.post('/sistema/painel/cronometro', { tipo: 'Aparte', action: 'Start' } );
+			$.get('/painel/cronometro', { tipo: 'aparte', action: 'start' } );
 
 			$('#aparteReset').hide();
 	        $('#aparte').runner('start');
@@ -154,9 +156,10 @@ $(function() {
 			$('#discursoReset').prop('disabled', true);
 			$('#ordemStart').prop('disabled', true);
 			$('#ordemReset').prop('disabled', true);
-		}else{
 
-			$.post('/sistema/painel/cronometro', { tipo: 'Aparte', action: 'Stop' } );
+		} else {
+
+			$.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
 
 			$('#aparteReset').show();
 			$('#aparte').runner('stop');
@@ -170,7 +173,7 @@ $(function() {
 
     $('#aparteReset').click(function() {
 
-		$.post('/sistema/painel/cronometro', { tipo: 'Aparte', action: 'Reset' } );
+		$.get('/painel/cronometro', { tipo: 'aparte', action: 'reset' } );
 
         $('#aparte').runner('stop');
         $('#aparte').runner('reset');
@@ -187,9 +190,9 @@ $(function() {
 	});
 
     $('#ordemStart').click(function() {
-		if($('#ordemStart').text() == 'Iniciar'){
+		if ($('#ordemStart').text() == 'Iniciar') {
 
-			$.post('/sistema/painel/cronometro', { tipo: 'Ordem', action: 'Start' } );
+			$.get('/painel/cronometro', { tipo: 'ordem', action: 'start' } );
 
 			$('#ordemReset').hide();
 	        $('#ordem').runner('start');
@@ -198,9 +201,10 @@ $(function() {
 			$('#discursoReset').prop('disabled', true);
 			$('#aparteStart').prop('disabled', true);
 			$('#aparteReset').prop('disabled', true);
-		}else{
 
-			$.post('/sistema/painel/cronometro', { tipo: 'Ordem', action: 'Stop' } );
+		} else {
+
+			$.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
 
 			$('#ordemReset').show();
 	        $('#ordem').runner('stop');
@@ -214,7 +218,7 @@ $(function() {
 
     $('#ordemReset').click(function() {
 
-		$.post('/sistema/painel/cronometro', { tipo: 'Ordem', action: 'Reset' } );
+		$.get('/painel/cronometro', { tipo: 'ordem', action: 'reset' } );
 
         $('#ordem').runner('stop');
         $('#ordem').runner('reset');

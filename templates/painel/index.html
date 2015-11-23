@@ -12,6 +12,7 @@
       <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jquery-runner/build/jquery.runner.js' %}"></script>      
 
       <STYLE type="text/css">
         @media screen {
@@ -42,6 +43,34 @@
              }
 
              startTime();
+
+            $('#cronometro_discurso').runner({
+              autostart: false,
+              countdown: true,
+              startAt: 5 * 60 * 1000, // 5 minutes
+              stopAt: 0,
+              milliseconds: false
+            });
+
+            $('#cronometro_aparte').runner({
+              autostart: false,
+              countdown: true,
+              startAt: 3 * 60 * 1000, // 3 minutes
+              stopAt: 0,
+              milliseconds: false
+            });
+
+            $('#cronometro_ordem').runner({
+              autostart: false,
+              countdown: true,
+              startAt: 2 * 60 * 1000, // 2 minutes
+              stopAt: 0,
+              milliseconds: false
+            });
+
+        var discurso_previous = '';
+        var aparte_previous = '';
+        var ordem_previous = '';
 
         var counter = 1;
         (function poll() {
@@ -82,6 +111,24 @@
                   $("#observacao_materia").text(data["observacao_materia"])
                   $("#resultado_votacao").text(data["tipo_resultado"])
 
+                  var discurso_current = data["cronometro_discurso"];                  
+                  if (discurso_current != discurso_previous) {
+                    $('#cronometro_discurso').runner(discurso_current);
+                    discurso_previous = discurso_current;
+                  }
+
+                  var aparte_current = data["cronometro_aparte"];                  
+                  if (aparte_current != aparte_previous) {
+                    $('#cronometro_aparte').runner(aparte_current);
+                    aparte_previous = aparte_current;
+                  }
+
+                  var ordem_current = data["cronometro_ordem"];                  
+                  if (ordem_current != ordem_previous) {
+                    $('#cronometro_ordem').runner(ordem_current);
+                    ordem_previous = ordem_current;
+                  }                  
+
                   $("#counter").text(counter);
                   counter++;
                },
@@ -89,7 +136,7 @@
                   console.error(err);
                },
                dataType: "json",
-               complete: setTimeout(function() {poll()}, 5000),
+               complete: setTimeout(function() {poll()}, 2000),
                timeout: 20000 // TODO: decrease
             })
           })();
@@ -113,15 +160,15 @@
             </tr>
             <tr>
                 <td>DISCURSO:</td>
-                <td><span id="cronometro-discurso"></span></td>                
+                <td><span id="cronometro_discurso"></span></td>                
             </tr>
             <tr>
                 <td>APARTE:</td>
-                <td><span id="cronometro-aparte"></span></td>                
+                <td><span id="cronometro_aparte"></span></td>                
             </tr>
             <tr>
                 <td>QUESTÃO DE ORDEM:</td>
-                <td><span id="cronometro-ordem"></span></td>                
+                <td><span id="cronometro_ordem"></span></td>
             </tr>
         </table>        
         <table>

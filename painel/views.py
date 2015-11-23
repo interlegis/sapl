@@ -45,15 +45,7 @@ def controlador_painel(request):
     context = {'painel': painel, 'PAINEL_TYPES': Painel.PAINEL_TYPES}
     return render(request, 'painel/controlador.html', context)
 
-
-def cronometro_painel(request):
-    print(request.POST)
-
-    return HttpResponse({})
-
-
 def painel_view(request, pk):
-    print(pk)
     context = {'head_title': 'Painel Plenário', 'sessao_id': pk}
     return render(request, 'painel/index.html', {'context': context})
 
@@ -68,6 +60,19 @@ def painel_parlamentares_view(request):
 
 def painel_votacao_view(request):
     return render(request, 'painel/votacao.html')
+
+def cronometro_painel(request):
+    print(request.GET['tipo'] + ' ' + request.GET['action']);
+
+    request.session[request.GET['tipo']] = request.GET['action'];
+    return HttpResponse({})
+
+def get_cronometro_status(request, name):
+    try:
+        cronometro = request.session[name]
+    except KeyError:
+        cronometro = ''
+    return cronometro
 
 
 def get_dados_painel(request, pk):
@@ -87,7 +92,6 @@ def get_dados_painel(request, pk):
     # Presença Sessão Plenária
     sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(
         sessao_plenaria_id=sessao_plenaria_id)
-    print(sessao_plenaria_presenca)
     presentes_sessao_plenaria = [
         p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
     num_presentes_sessao_plen = len(presentes_sessao_plenaria)
@@ -149,6 +153,10 @@ def get_dados_painel(request, pk):
         materia_observacao = ""
         tipo_votacao = ""
 
+    cronometro_discurso = get_cronometro_status(request, 'discurso')
+    cronometro_aparte = get_cronometro_status(request, 'aparte')
+    cronometro_ordem = get_cronometro_status(request, 'ordem')
+
     votacao_json = {"sessao_plenaria": str(sessao_plenaria),
                     "sessao_plenaria_data": sessao_plenaria.data_inicio,
                     "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
@@ -167,6 +175,9 @@ def get_dados_painel(request, pk):
                     "total_votos": total_votos,
                     "tipo_resultado": tipo_resultado,
                     "votos": votos,
+                    "cronometro_aparte": cronometro_aparte,
+                    "cronometro_discurso": cronometro_discurso,                    
+                    "cronometro_ordem": cronometro_ordem,
                     }
 
     return JsonResponse(votacao_json)
