@@ -1231,7 +1231,8 @@ class RelatoriaEditView(FormMixin, GenericView):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         relatoria = Relatoria.objects.get(
             id=kwargs['id'])
-        composicao = Composicao.objects.get(comissao=relatoria.comissao)
+        composicao = Composicao.objects.filter(
+            comissao=relatoria.comissao).last()
         parlamentares = composicao.participacao_set.all()
 
         return self.render_to_response(
@@ -1245,7 +1246,7 @@ class RelatoriaEditView(FormMixin, GenericView):
         form = RelatoriaForm(request.POST)
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         relatoria = Relatoria.objects.get(id=kwargs['id'])
-        composicao = Composicao.objects.get(comissao=relatoria.comissao)
+        composicao = Composicao.objects.filter(comissao=relatoria.comissao).last()
         parlamentares = composicao.participacao_set.all()
 
         if form.is_valid():
@@ -1328,7 +1329,7 @@ class RelatoriaView(FormMixin, GenericView):
                  'relatorias': relatorias,
                  'error_localizacao': 'O local atual deve  ser uma Comissão!'})
         else:
-            composicao = Composicao.objects.get(comissao=comissao)
+            composicao = Composicao.objects.filter(comissao=comissao).last()
             parlamentares = composicao.participacao_set.all()
             return self.render_to_response(
                 {'materialegislativa': materia,
