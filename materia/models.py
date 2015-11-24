@@ -46,7 +46,7 @@ class Origem(models.Model):
 
 
 def get_materia_media_path(instance, subpath, filename):
-    return './materia/%s/%s/%s' % (instance.numero, subpath, filename)
+    return './materia/%s/%s/%s' % (instance, subpath, filename)
 
 
 def texto_upload_path(instance, filename):
@@ -425,7 +425,7 @@ class TipoProposicao(models.Model):
 
 
 class Proposicao(models.Model):
-    autor = models.ForeignKey(Autor)
+    autor = models.ForeignKey(Autor, null=True, blank=True)
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(

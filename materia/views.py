@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 import sapl
 from comissoes.models import Comissao, Composicao
@@ -1699,14 +1699,10 @@ class AutoriaEditView(GenericView):
 
 
 class ProposicaoForm(ModelForm):
-    tipo = forms.ChoiceField(required=True,
-                             label='Tipo',
-                             choices=get_tipos_proposicao(),
-                             widget=forms.Select(
-                                 attrs={'class': 'selector'}))
 
     descricao = forms.CharField(
-        label='Descrição', required=True)
+        label='Descrição', required=True,
+        widget=forms.Textarea())
 
     tipo_materia = forms.ChoiceField(required=False,
                                      label='Matéria Vinculada',
@@ -1725,6 +1721,15 @@ class ProposicaoForm(ModelForm):
         fields = ['tipo',
                   'descricao',
                   'texto_original']
+        exclude = ['autor',
+                   'data_envio',
+                   'data_recebimento',
+                   'data_devolucao',
+                   'justificativa_devolucao',
+                   'numero_proposicao',
+                   'status',
+                   'materia',
+                   'documento']
 
     def __init__(self, *args, **kwargs):
 
@@ -1743,17 +1748,13 @@ class ProposicaoForm(ModelForm):
             Column(
                 ButtonHolder(
                     Submit('sumbmit', 'Salvar',
-                        css_class='button primary')
-                    ), css_class='columns large-2'))
+                           css_class='button primary')
+                        ), css_class='columns large-2'))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Incluir Proposição',
-                     row1,
-                     row2,
-                     row3,
-                     row4,
-                    )
+                     row1, row2, row3, row4)
         )
         super(ProposicaoForm, self).__init__(
             *args, **kwargs)
@@ -1767,6 +1768,32 @@ class ProposicaoView(FormMixin, GenericView):
 
     def get(self, request, *args, **kwargs):
         form = ProposicaoForm()
+        return self.render_to_response({'form': form})
 
-        return self.render_to_response(
-            {'form': form})
+    def post(self, request, *args, **kwargs):
+        form = ProposicaoForm(request.POST)
+
+        if form.is_valid():
+
+            proposicao = form.save(commit=False)
+            if 'texto_original' in request.FILES:
+                proposicao.texto_original = request.FILES['texto_original']
+
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    tipo_id=int(form.data['tipo_materia']),
+                    ano=int(form.data['ano_materia']),
+                    numero=int(form.data['numero_materia']))
+            except ObjectDoesNotExist:
+                return self.render_to_response(
+                    {'form': form,
+                     'error': 'Matéria adiconada não existe!'})
+            else:
+                proposicao.autor = materia.autoria_set.first().autor
+                proposicao.materia = materia
+                proposicao.data_envio = datetime.now()
+                proposicao.save()
+
+            return self.form_valid(form)
+        else:
+            self.render_to_response({'form': form})
