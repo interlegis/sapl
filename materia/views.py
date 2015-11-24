@@ -1,8 +1,9 @@
 from datetime import date
 
-from comissoes.models import Comissao
+import sapl
+from comissoes.models import Comissao, Composicao
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit, Column
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -11,7 +12,6 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
-from comissoes.models import Composicao
 from sapl.crud import build_crud
 from vanilla import GenericView
 
@@ -21,6 +21,7 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
+
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -1726,44 +1727,33 @@ class ProposicaoForm(ModelForm):
                   'texto_original']
 
     def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 12)])
+        row2 = sapl.layout.to_row(
+            [('descricao', 12)])
+        row3 = sapl.layout.to_row(
+            [('tipo_materia', 4),
+             ('numero_materia', 4),
+             ('ano_materia', 4)])
+        row4 = sapl.layout.to_row(
+            [('texto_original', 10)])
+
+        row4.append(
+            Column(
+                ButtonHolder(
+                    Submit('sumbmit', 'Salvar',
+                        css_class='button primary')
+                    ), css_class='columns large-2'))
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Incluir Proposição',
-                     HTML(
-                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
-                     HTML("<li>"),
-                     'tipo',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
-                     HTML("<li>"),
-                     'descricao',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
-                     HTML("<li>"),
-                     'tipo_materia',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'numero_materia',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'ano_materia',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
-                     HTML("<li>"),
-                     'texto_original',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     ButtonHolder(
-                        Submit('submit', 'Salvar',
-                               css_class='button primary')
-                        )
-                     ),
+                     row1,
+                     row2,
+                     row3,
+                     row4,
+                    )
         )
         super(ProposicaoForm, self).__init__(
             *args, **kwargs)
