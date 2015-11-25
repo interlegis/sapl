@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from re import sub
 
+import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
 from django import forms
@@ -9,17 +10,16 @@ from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.forms import ModelForm
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -198,6 +198,17 @@ class ProtocoloListView(FormMixin, ListView):
         kwargs = self.request.session['kwargs']
         return Protocolo.objects.filter(
             **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloListView, self).get_context_data(
+            **kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = sapl.crud.make_pagination(
+                page_obj.number, paginator.num_pages)
+        return context
 
 
 class ProtocoloPesquisaView(FormMixin, GenericView):
