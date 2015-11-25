@@ -1,14 +1,13 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from sapl.crud import build_crud
 from vanilla import GenericView
-from django import forms
+
+from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      Mandato, NivelInstrucao, Parlamentar, Partido,
                      SessaoLegislativa, SituacaoMilitar, TipoAfastamento,
                      TipoDependente)
-
 
 cargo_mesa_crud = build_crud(
     CargoMesa, 'cargo_mesa', [
@@ -48,6 +47,7 @@ partido_crud = build_crud(
             ('data_extincao', 2)]],
     ])
 
+
 dependente_crud = build_crud(
     Dependente, '', [
 
@@ -56,6 +56,7 @@ dependente_crud = build_crud(
             [('tipo', 4), ('sexo', 4), ('data_nascimento', 4)],
             [('cpf', 4), ('rg', 4), ('titulo_eleitor', 4)]],
     ])
+
 
 sessao_legislativa_crud = build_crud(
     SessaoLegislativa, 'sessao_legislativa', [
@@ -68,6 +69,7 @@ sessao_legislativa_crud = build_crud(
             ('data_inicio_intervalo', 2),
             ('data_fim_intervalo', 2)]],
     ])
+
 
 parlamentar_crud = build_crud(
     Parlamentar, '', [
@@ -136,6 +138,7 @@ tipo_militar_crud = build_crud(
          [('descricao', 12)]],
     ])
 
+
 class ParlamentaresForm(forms.Form):
     periodo = forms.CharField()
 
@@ -145,7 +148,8 @@ class ParlamentaresView(GenericView):
 
     def get(self, request, *args, **kwargs):
         form = ParlamentaresForm()
-        legislaturas = Legislatura.objects.all().order_by('-data_inicio','-data_fim')
+        legislaturas = Legislatura.objects.all().order_by(
+            '-data_inicio', '-data_fim')
         return self.render_to_response(
             {'legislaturas': legislaturas,
              'legislatura_id': legislaturas.first().id,
@@ -156,7 +160,8 @@ class ParlamentaresView(GenericView):
     def post(self, request, *args, **kwargs):
         form = ParlamentaresForm(request.POST)
         return self.render_to_response(
-            {'legislaturas': Legislatura.objects.all().order_by('-data_inicio','-data_fim'),
+            {'legislaturas': Legislatura.objects.all().order_by(
+                '-data_inicio', '-data_fim'),
              'legislatura_id': int(form.data['periodo']),
              'mandatos': Mandato.objects.all(),
              'form': form,

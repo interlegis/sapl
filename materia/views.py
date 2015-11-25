@@ -1,8 +1,6 @@
-from datetime import date, datetime
+from datetime import date
 from re import sub
 
-import sapl
-from comissoes.models import Comissao, Composicao
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
                                  Submit)
@@ -14,11 +12,13 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
-from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
+from comissoes.models import Comissao, Composicao
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -284,7 +284,8 @@ class FormularioSimplificadoForm(ModelForm):
                 Fieldset(
                     'Identificação Básica',
                     HTML(
-                        "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                        "<ul class='small-block-grid-3 " +
+                        "medium-block-grid-3 large-block-grid-3'>"),
                     HTML("<li>"),
                     'tipo',
                     HTML("</li>"),
@@ -296,7 +297,8 @@ class FormularioSimplificadoForm(ModelForm):
                     HTML("</li>"),
                     HTML("</ul>"),
                     HTML(
-                        "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                        "<ul class='small-block-grid-3 " +
+                        "medium-block-grid-3 large-block-grid-3'>"),
                     HTML("<li>"),
                     'data_apresentacao',
                     HTML("</li>"),
@@ -308,19 +310,22 @@ class FormularioSimplificadoForm(ModelForm):
                     HTML("</li>"),
                     HTML("</ul>"),
                     HTML(
-                        "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                        "<ul class='small-block-grid-1 " +
+                        "medium-block-grid-1 large-block-grid-1'>"),
                     HTML("<li>"),
                     'em_tramitacao',
                     HTML("</li>"),
                     HTML("</ul>"),
                     HTML(
-                        "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                        "<ul class='small-block-grid-1 " +
+                        "medium-block-grid-1 large-block-grid-1'>"),
                     HTML("<li>"),
                     'ementa',
                     HTML("</li>"),
                     HTML("</ul>"),
                     HTML(
-                        "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                        "<ul class='small-block-grid-1 " +
+                        "medium-block-grid-1 large-block-grid-1'>"),
                     HTML("<li>"),
                     'texto_original',
                     HTML("</li>"),
@@ -458,12 +463,6 @@ class FormularioCadastroView(FormMixin, GenericView):
         return reverse('formulario_cadastro')
 
 
-def get_tipos_materia():
-    return [('', 'Selecione')] \
-        + [(t.id, t.sigla + ' - ' + t.descricao)
-           for t in TipoMateriaLegislativa.objects.all()]
-
-
 def get_tipos_documento():
     return [('', 'Selecione')] \
         + [(t.id, t.descricao)
@@ -533,10 +532,11 @@ class MateriaAnexadaView(FormMixin, GenericView):
 
                     error = 'A matéria a ser anexada não pode ser do mesmo \
                             tipo da matéria principal.'
-                    return self.render_to_response({'error': error,
-                                                    'form': form,
-                                                    'materialegislativa': mat_principal,
-                                                    'anexadas': anexadas})
+                    return self.render_to_response(
+                                {'error': error,
+                                 'form': form,
+                                 'materialegislativa': mat_principal,
+                                 'anexadas': anexadas})
 
                 anexada = Anexada()
                 anexada.materia_principal = mat_principal
@@ -551,16 +551,18 @@ class MateriaAnexadaView(FormMixin, GenericView):
             except ObjectDoesNotExist:
                 error = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
-                return self.render_to_response({'error': error,
-                                                'form': form,
-                                                'materialegislativa': mat_principal,
-                                                'anexadas': anexadas})
+                return self.render_to_response(
+                          {'error': error,
+                           'form': form,
+                           'materialegislativa': mat_principal,
+                           'anexadas': anexadas})
 
             return self.form_valid(form)
         else:
-            return self.render_to_response({'form': form,
-                                            'materialegislativa': mat_principal,
-                                            'anexadas': anexadas})
+            return self.render_to_response(
+                        {'form': form,
+                         'materialegislativa': mat_principal,
+                         'anexadas': anexadas})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -637,13 +639,15 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                 except ObjectDoesNotExist:
                     error = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
-                    return self.render_to_response({'error': error,
-                                                    'form': form,
-                                                    'materialegislativa': mat_principal})
+                    return self.render_to_response(
+                                {'error': error,
+                                 'form': form,
+                                 'materialegislativa': mat_principal})
 
         else:
-            return self.render_to_response({'form': form,
-                                            'materialegislativa': mat_principal})
+            return self.render_to_response(
+                        {'form': form,
+                         'materialegislativa': mat_principal})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -1394,7 +1398,8 @@ class TramitacaoForm(ModelForm):
         self.helper.layout = Layout(
             Fieldset('Incluir Tramitação',
                      HTML(
-                         "<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>"),
+                         "<ul class='small-block-grid-2 " +
+                         "medium-block-grid-2 large-block-grid-2'>"),
                      HTML("<li>"),
                      'data_tramitacao',
                      HTML("</li>"),
@@ -1403,7 +1408,8 @@ class TramitacaoForm(ModelForm):
                      HTML("</li>"),
                      HTML("</ul>"),
                      HTML(
-                         "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                         "<ul class='small-block-grid-3 " +
+                         "medium-block-grid-3 large-block-grid-3'>"),
                      HTML("<li>"),
                      'status',
                      HTML("</li>"),
@@ -1415,13 +1421,15 @@ class TramitacaoForm(ModelForm):
                      HTML("</li>"),
                      HTML("</ul>"),
                      HTML(
-                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                         "<ul class='small-block-grid-1 " +
+                         "medium-block-grid-1 large-block-grid-1'>"),
                      HTML("<li>"),
                      'unidade_tramitacao_destino',
                      HTML("</li>"),
                      HTML("</ul>"),
                      HTML(
-                         "<ul class='small-block-grid-3 medium-block-grid-3 large-block-grid-3'>"),
+                         "<ul class='small-block-grid-3 " +
+                         "medium-block-grid-3 large-block-grid-3'>"),
                      HTML("<li>"),
                      'data_encaminhamento',
                      HTML("</li>"),
@@ -1433,7 +1441,8 @@ class TramitacaoForm(ModelForm):
                      HTML("</li>"),
                      HTML("</ul>"),
                      HTML(
-                         "<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>"),
+                         "<ul class='small-block-grid-1 " +
+                         "medium-block-grid-1 large-block-grid-1'>"),
                      HTML("<li>"),
                      'texto',
                      HTML("</li>"),

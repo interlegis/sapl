@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from re import sub
 
-import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
 from django import forms
@@ -17,9 +16,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -428,7 +429,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
             protocolo.numero_paginas = request.POST['num_paginas']
             protocolo.observacao = sub(
                 '&nbsp;', ' ', strip_tags(request.POST['observacao']))
-            return self.form_valid(form)            
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
@@ -588,6 +589,7 @@ class ProposicaoSimpleForm(forms.Form):
 
 class ProposicaoView(TemplateView):
     template_name = "protocoloadm/proposicoes.html"
+
 
 class ProposicaoDetailView(DetailView):
     template_name = "protocoloadm/proposicao_view.html"

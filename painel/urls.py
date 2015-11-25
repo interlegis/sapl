@@ -1,8 +1,7 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 
-from .views import (controlador_painel, #cronometro_painel_crud,
-                    cronometro_painel,
-                    get_dados_painel, painel_mensagem_view,
+from .views import controlador_painel  # cronometro_painel_crud,
+from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
                     painel_parlamentares_view, painel_view,
                     painel_votacao_view)
 

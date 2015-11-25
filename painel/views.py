@@ -45,6 +45,7 @@ def controlador_painel(request):
     context = {'painel': painel, 'PAINEL_TYPES': Painel.PAINEL_TYPES}
     return render(request, 'painel/controlador.html', context)
 
+
 def painel_view(request, pk):
     context = {'head_title': 'Painel Plenário', 'sessao_id': pk}
     return render(request, 'painel/index.html', {'context': context})
@@ -61,11 +62,11 @@ def painel_parlamentares_view(request):
 def painel_votacao_view(request):
     return render(request, 'painel/votacao.html')
 
-def cronometro_painel(request):
-    print(request.GET['tipo'] + ' ' + request.GET['action']);
 
-    request.session[request.GET['tipo']] = request.GET['action'];
+def cronometro_painel(request):
+    request.session[request.GET['tipo']] = request.GET['action']
     return HttpResponse({})
+
 
 def get_cronometro_status(request, name):
     try:
@@ -176,7 +177,7 @@ def get_dados_painel(request, pk):
                     "tipo_resultado": tipo_resultado,
                     "votos": votos,
                     "cronometro_aparte": cronometro_aparte,
-                    "cronometro_discurso": cronometro_discurso,                    
+                    "cronometro_discurso": cronometro_discurso,
                     "cronometro_ordem": cronometro_ordem,
                     }
 

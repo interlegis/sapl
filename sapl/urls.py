@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'', include('comissoes.urls')), 
+    url(r'', include('comissoes.urls')),
     url(r'', include('sessao.urls')),
     url(r'', include('parlamentares.urls')),
     url(r'', include('materia.urls')),
