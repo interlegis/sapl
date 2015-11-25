@@ -1,0 +1,38 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block actions %}<!-- Remvoer botões 'Editar' e 'Excluir' -->{% endblock %}
+
+{% block sections_nav %}
+	<h2><b>Proposições</b></h2>
+	<br />
+    <dl class="sub-nav left">
+    	<dd><a href="{% url 'adicionar_proposicao' %}" class="button secondary">Nova Proposição</a></dd>
+    </dl>
+{% endblock %}
+
+{% block detail_content %}
+	<table width="100%">
+		<tr>
+			<th>Enviada em</th>
+			<th>Tipo</th>
+			<th>Descrição</th>
+			<th>Incorporada?</th>
+		</tr>
+		
+		{% for proposicao in page_obj %}
+			<tr>
+				{% if proposicao.data_envio %}
+					<td><a href=""><b>{{ proposicao.data_envio|date:'d/m/Y H:i:s' }}</b></a></td>
+				{% else %}
+					<td><a href=""><b>Em elaboração...</b></a></td>
+				{% endif %}
+				<td>{{ proposicao.tipo }}</td>
+		    	<td>{{ proposicao.descricao|safe }}</td>
+				<td>{% if proposicao.materia %} Sim {% else %} Não {% endif %}</td>
+			</tr>
+		{% endfor %}
+	</table>
+    {% include "paginacao.html" %}
+{% endblock %}

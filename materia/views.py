@@ -1,15 +1,20 @@
 from datetime import date, datetime
+from re import sub
 
 import sapl
 from comissoes.models import Comissao, Composicao
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit, Column
+from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
+                                 Submit)
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
+from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import ListView
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormMixin
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.crud import build_crud
@@ -21,7 +26,6 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
-
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -1764,7 +1768,7 @@ class ProposicaoView(FormMixin, GenericView):
     template_name = "materia/proposicao.html"
 
     def get_success_url(self):
-        return reverse('proposicao')
+        return reverse('list_proposicao')
 
     def get(self, request, *args, **kwargs):
         form = ProposicaoForm()
@@ -1774,26 +1778,51 @@ class ProposicaoView(FormMixin, GenericView):
         form = ProposicaoForm(request.POST)
 
         if form.is_valid():
-
             proposicao = form.save(commit=False)
             if 'texto_original' in request.FILES:
                 proposicao.texto_original = request.FILES['texto_original']
 
-            try:
-                materia = MateriaLegislativa.objects.get(
-                    tipo_id=int(form.data['tipo_materia']),
-                    ano=int(form.data['ano_materia']),
-                    numero=int(form.data['numero_materia']))
-            except ObjectDoesNotExist:
-                return self.render_to_response(
-                    {'form': form,
-                     'error': 'Matéria adiconada não existe!'})
-            else:
-                proposicao.autor = materia.autoria_set.first().autor
-                proposicao.materia = materia
-                proposicao.data_envio = datetime.now()
-                proposicao.save()
+            tipo = TipoProposicao.objects.get(
+                id=int(request.POST['tipo']))
 
+            if tipo.descricao == 'Parecer':
+                try:
+                    materia = MateriaLegislativa.objects.get(
+                        tipo_id=int(form.data['tipo_materia']),
+                        ano=int(form.data['ano_materia']),
+                        numero=int(form.data['numero_materia']))
+                except ObjectDoesNotExist:
+                    return self.render_to_response(
+                        {'form': form,
+                         'error': 'Matéria adicionada não existe!'})
+                else:
+                    proposicao.autor = materia.autoria_set.first().autor
+                    proposicao.materia = materia
+
+            proposicao.descricao = sub('&nbsp;',
+                                       ' ',
+                                       strip_tags(form.data['descricao']))
+            # proposicao.data_envio = datetime.now()
+            proposicao.save()
             return self.form_valid(form)
         else:
-            self.render_to_response({'form': form})
+            return self.render_to_response({'form': form})
+
+
+class ProposicaoListView(ListView):
+    template_name = "materia/proposicao_list.html"
+    paginate_by = 10
+    model = Proposicao
+
+    def get_queryset(self):
+        return Proposicao.objects.all().order_by('-data_envio')
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoListView, self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = sapl.crud.make_pagination(
+                page_obj.number, paginator.num_pages)
+        return context

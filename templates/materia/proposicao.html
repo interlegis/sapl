@@ -2,7 +2,42 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
+{% block actions %}<!-- Remvoer botões 'Editar' e 'Excluir' -->{% endblock %}
+
 {% block detail_content %}
 	{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
 	{% crispy form %}
+{% endblock %}
+
+{% block extra_js %}
+   <script type="text/javascript">
+
+   		function disable_fields() {
+   			$("#id_tipo_materia").val("");
+   			$("#id_numero_materia").val("");
+   			$("#id_ano_materia").val("");
+
+			$("#id_tipo_materia").attr("disabled", "disabled");
+			$("#id_numero_materia").attr("disabled", "disabled");   			
+			$("#id_ano_materia").attr("disabled", "disabled");			
+   		}
+
+   		function enable_fields() {
+			$("#id_tipo_materia").removeAttr('disabled'); 			
+			$("#id_numero_materia").removeAttr('disabled');
+			$("#id_ano_materia").removeAttr('disabled');			
+   		}
+
+    	$(function () {
+    		disable_fields();
+    		$("#id_tipo").change(function() {    			 
+    			if ($("#id_tipo").val() == 9) { // parecer
+    				enable_fields();
+    			}
+    			else {
+    				disable_fields();
+    			}
+    		});
+		});
+	</script>
 {% endblock %}

@@ -77,7 +77,7 @@
                 </li>
                 <li class="nav__item has-dropdown"><a class="nav__link">Atividade Legislativa</a>
                   <ul class="nav__sub-nav dropdown">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'proposicao' %}">Proposições</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'list_proposicao' %}">Proposições</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materialegislativa:list' %}">Matérias Legislativas</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessaoplenaria:list' %}">Sessões Plenárias</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pautas das Sessões</a></li>
@@ -225,6 +225,11 @@
           });
         });
         </script>
+
+        {% block extra_js %}
+        
+        {% endblock %}
+
       {% endblock foot_js %}
   </body>
 </html>
