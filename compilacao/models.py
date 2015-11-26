@@ -256,7 +256,7 @@ class TipoDispositivo(BaseModel):
         return self.nome
 
     def permitido_inserir_in(
-            self, base, include_relative_autos=True, perfil_pk=None):
+            self, pai_relativo, include_relative_autos=True, perfil_pk=None):
 
         if not perfil_pk:
             perfis = PerfilEstruturalTextosNormativos.objects.filter(
@@ -267,7 +267,7 @@ class TipoDispositivo(BaseModel):
 
             perfil_pk = perfis[0].pk
 
-        pp = self.possiveis_pais.filter(pai=base, perfil_id=perfil_pk)
+        pp = self.possiveis_pais.filter(pai=pai_relativo, perfil_id=perfil_pk)
         if pp.exists():
             if not include_relative_autos:
                 if pp[0].filho_de_insercao_automatica:
@@ -1051,6 +1051,7 @@ class Nota(TimestampedMixin):
     NSTRL = 2
     NINST = 3
     NPUBL = 4
+
     PUBLICIDADE_CHOICES = (
         # Only the owner of the note has visibility.
         (NPRIV, _('Nota Privada')),
@@ -1062,19 +1063,25 @@ class Nota(TimestampedMixin):
         (NPUBL, _('Nota Pública')),
     )
 
-    texto = models.TextField(verbose_name=_('Texto da Nota'))
+    titulo = models.CharField(
+        verbose_name=_('Título'),
+        max_length=100,
+        default='',
+        blank=True)
+    texto = models.TextField(verbose_name=_('Texto'))
     url_externa = models.CharField(
         max_length=1024,
         blank=True,
         verbose_name=_('Url externa'))
 
     publicacao = models.DateTimeField(verbose_name=_('Data de Publicação'))
-    efetifidade = models.DateTimeField(verbose_name=_('Data de Efeito'))
+    efetividade = models.DateTimeField(verbose_name=_('Data de Efeito'))
 
     tipo = models.ForeignKey(TipoNota, verbose_name=_('Tipo da Nota'))
     dispositivo = models.ForeignKey(
         Dispositivo,
-        verbose_name=_('Dispositivo da Nota'))
+        verbose_name=_('Dispositivo da Nota'),
+        related_name='notas')
 
     owner = models.ForeignKey(User, verbose_name=_('Dono da Nota'))
     publicidade = models.PositiveSmallIntegerField(
@@ -1084,9 +1091,10 @@ class Nota(TimestampedMixin):
     class Meta:
         verbose_name = _('Nota')
         verbose_name_plural = _('Notas')
+        ordering = ['-publicacao', '-modified']
 
     def __str__(self):
         return '%s: %s' % (
             self.tipo,
-            self.PUBLICIDADE_CHOICES[self.publicidade][1]
+            self.get_publicidade_display()
         )

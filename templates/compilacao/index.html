@@ -6,6 +6,12 @@
 
 {% block head_content %}{{block.super}}
       <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+      <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+
+      {# TODO:  incluir javascript compilacao_notas apenas se houver usuário conectado e que possua permissão para cadastro de notas #}
+      <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
 {% endblock %}
 
 
@@ -14,67 +20,16 @@
 {% endblock %}
 
 {% block base_content %}
-<script type="text/javascript">
-
-$( window ).scroll(function() {
-    if (window.pageYOffset <= 180)
-        $( "section.vigencias" ).removeClass("fixed");
-    else if (!$( "section.vigencias" ).hasClass("fixed"))
-        $( "section.vigencias" ).addClass("fixed");
-});
-
-
-$(window).load(function() {
-    setTimeout(function() {
-	    height = $( "section.vigencias" ).height();
-        $('html, body').animate({
-        scrollTop:  window.pageYOffset - height - 55
-        }, 300);
-    }, 100);
-});
-
-
-
-function textoMultiVigente(item) {
-	$(".cp .tipo-vigencias a").removeClass("selected")
-	$(item).addClass("selected")
-	$(".desativado").removeClass("displaynone");
-	$(".link_alterador").removeClass("displaynone");
-}
-function textoVigente(item, link) {
-	$(".cp .tipo-vigencias a").removeClass("selected")
-	$(item).addClass("selected")
-	$(".desativado").addClass("displaynone");
-	$(".link_alterador").removeClass("displaynone");
-	if (!link)
-		$(".link_alterador").addClass("displaynone");
-}
-
-$(document).ready(function() {
-   $("#btn_font_menos").click(function() {
-        $(".dpt").css("font-size", "-=1");
-
-   });
-   $("#btn_font_mais").click(function() {
-        $(".dpt").css("font-size", "+=1");
-
-   });
-
-});
-
-
-</script>
 
 <div class="cp">
 
+    <div style="float: right; clear:right;">
+    <a id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
+    <a id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
+    </div>
 
-<div style="float: right; clear:right;">
-<a id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
-<a id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
-</div>
-
-			{% for key, values in view.get_vigencias.items %}
-				{% if forloop.first %}
+		{% for key, values in view.get_vigencias.items %}
+			{% if forloop.first %}
 <section class="vigencias">
 	<nav class="top-bar" data-topbar="" role="navigation">
 		<section class="top-bar-section">
@@ -91,8 +46,6 @@ $(document).ready(function() {
 						{% endfor %}
 					{% else %}
 						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
-
-
 					{%endif%}
 
 					{% if not forloop.first and not forloop.last %}
@@ -123,9 +76,6 @@ $(document).ready(function() {
 {% if view.inicio_vigencia != None and view.fim_vigencia != None %}
 	{% trans 'Vigência entre'%} <b>{{view.inicio_vigencia}}</b> {% trans 'e'%} <b>{{view.fim_vigencia}}</b>.
 {%endif%}
-
-
-
 
 {% include 'compilacao/index_bloco.html'%}
 </div>
