@@ -22,6 +22,18 @@ urlpatterns_compilacao = [
     url(r'^(?P<norma_id>[0-9]+)/compilacao/(?P<dispositivo_id>[0-9]+)/actions',
         views.ActionsEditView.as_view(), name='dispositivo_actions'),
 
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/'
+        '(?P<dispositivo_id>[0-9]+)/nota/create$',
+        views.NotasCreateView.as_view(), name='nota_create'),
+
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/'
+        '(?P<dispositivo_id>[0-9]+)/nota/(?P<pk>[0-9]+)/edit$',
+        views.NotasEditView.as_view(), name='nota_edit'),
+
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/'
+        '(?P<dispositivo_id>[0-9]+)/nota/delete$',
+        views.NotasDeleteView.as_view(), name='nota_delete'),
+
 ]
 
 urlpatterns = [

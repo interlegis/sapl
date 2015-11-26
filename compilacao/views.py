@@ -2,23 +2,28 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import sys
 
+from django.contrib.auth.models import User
 from django.core.signing import Signer
+from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormMixin
+from django.views.generic.edit import FormMixin, UpdateView
 from django.views.generic.list import ListView
+from vanilla.model_views import CreateView
 
+from compilacao import forms
 from compilacao.file2dispositivo import Parser
-from compilacao.forms import UpLoadImportFileForm
+from compilacao.forms import NotaForm
 from compilacao.models import (Dispositivo, PerfilEstruturalTextosNormativos,
                                TipoDispositivo, TipoNota, TipoPublicacao,
-                               TipoVide, VeiculoPublicacao)
+                               TipoVide, VeiculoPublicacao, Nota)
 from norma.models import NormaJuridica
 from sapl.crud import build_crud
+
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -149,7 +154,8 @@ class CompilacaoView(ListView):
             return Dispositivo.objects.filter(
                 ordem__gt=0,
                 norma_id=self.kwargs['norma_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+            ).select_related(*DISPOSITIVO_SELECT_RELATED).prefetch_related(
+                'notas',)
 
     def get_vigencias(self):
         itens = Dispositivo.objects.filter(
@@ -272,7 +278,7 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
     pk_view = 0
 
     def post(self, request, *args, **kwargs):
-        form = UpLoadImportFileForm(request.POST, request.FILES)
+        form = forms.UpLoadImportFileForm(request.POST, request.FILES)
         message = "Arquivo Submetido com sucesso"
 
         self.object_list = self.get_queryset()
@@ -312,7 +318,7 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
     def get(self, request, *args, **kwargs):
 
         self.object_list = self.get_queryset()
-        form_class = UpLoadImportFileForm
+        form_class = forms.UpLoadImportFileForm
         self.form = self.get_form(form_class)
         context = self.get_context_data(
             object_list=self.object_list,
@@ -739,8 +745,8 @@ class ActionsEditMixin(object):
 
     def render_to_json_response(self, context, **response_kwargs):
 
-        test = getattr(self, context['action'])
-        return JsonResponse(test(context), safe=False)
+        action = getattr(self, context['action'])
+        return JsonResponse(action(context), safe=False)
 
     def delete_item_dispositivo(self, context):
         return self.delete_bloco_dispositivo(context)
@@ -778,7 +784,8 @@ class ActionsEditMixin(object):
             parents = [base, ] + base.get_parents()
 
             tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
-                filho_de_insercao_automatica=True)
+                filho_de_insercao_automatica=True,
+                perfil_id=context['perfil_pk'])
 
             count_auto_insert = 0
             for tipoauto in tipos_dp_auto_insert:
@@ -792,9 +799,6 @@ class ActionsEditMixin(object):
                         count_auto_insert += 1
                 else:
                     count_auto_insert += 1
-
-            ordem = base.criar_espaco(
-                espaco_a_criar=1 + count_auto_insert, local=local_add)
 
             dp_irmao = None
             dp_pai = None
@@ -838,6 +842,28 @@ class ActionsEditMixin(object):
                     else:
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
 
+            # verificar se existe restrição de quantidade de itens
+            if dp.dispositivo_pai:
+                pp = dp.tipo_dispositivo.possiveis_pais.filter(
+                    pai_id=dp.dispositivo_pai.tipo_dispositivo_id,
+                    perfil_id=context['perfil_pk'])
+
+                if pp.exists() and pp[0].quantidade_permitida >= 0:
+                    qtd_existente = Dispositivo.objects.filter(
+                        norma_id=dp.norma_id,
+                        tipo_dispositivo_id=dp.tipo_dispositivo_id).count()
+
+                    if qtd_existente >= pp[0].quantidade_permitida:
+                        return {'pk': base.pk,
+                                'pai': [base.dispositivo_pai.pk, ],
+                                'alert': str(_('Limite de inserções de '
+                                               'dispositivos deste tipo '
+                                               'foi excedido.'))
+                                }
+
+            ordem = base.criar_espaco(
+                espaco_a_criar=1 + count_auto_insert, local=local_add)
+
             dp.rotulo = dp.rotulo_padrao()
             dp.ordem = ordem
             dp.incrementar_irmaos(variacao, [local_add, ])
@@ -846,6 +872,7 @@ class ActionsEditMixin(object):
             dp.save()
 
             dp_auto_insert = None
+
             # Inserção automática
             if count_auto_insert:
                 dp_pk = dp.pk
@@ -1055,3 +1082,82 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
             context['perfil_pk'] = self.request.session['perfil_estrutural']
 
         return self.render_to_json_response(context, **response_kwargs)
+
+
+class NotasCreateView(FormMixin, CreateView):
+    template_name = 'compilacao/nota_ajaxform.html'
+    form_class = forms.NotaForm
+
+    def get(self, request, *args, **kwargs):
+
+        if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
+            tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
+            return HttpResponse(tn.modelo)
+
+        return super(NotasCreateView, self).get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(NotasCreateView, self).get_form_kwargs()
+        kwargs.update(self.kwargs)
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        try:
+            form = NotaForm(request.POST, request.FILES, **kwargs)
+
+            if form.is_valid():
+                nt = form.save(commit=False)
+                # TODO: Implementar tratamento do usuário.
+                nt.owner_id = User.objects.order_by('id')[:1][0].pk
+                nt.save()
+                self.kwargs['pk'] = nt.pk
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        except Exception as e:
+            print(e)
+        return HttpResponse("post")
+
+    def get_success_url(self):
+        return reverse(
+            'dispositivo', kwargs={
+                'norma_id': self.kwargs[
+                    'norma_id'],
+                'dispositivo_id': self.kwargs[
+                    'dispositivo_id']})
+
+
+class NotasEditView(UpdateView):
+    model = Nota
+    template_name = 'compilacao/nota_ajaxform.html'
+    form_class = forms.NotaForm
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # TODO: permitir edição apenas das notas do usuário conectado
+            # TODO: tratar revalidação no método post
+            # TODO: não mostrar botão de edição na interface
+            if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
+                tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
+                return HttpResponse(tn.modelo)
+
+            return super(NotasEditView, self).get(request, *args, **kwargs)
+        except Exception as e:
+            print(e)
+
+    def get_form_kwargs(self):
+        kwargs = super(NotasEditView, self).get_form_kwargs()
+        kwargs.update(self.kwargs)
+        return kwargs
+
+    def get_success_url(self):
+        return reverse(
+            'dispositivo', kwargs={
+                'norma_id': self.kwargs[
+                    'norma_id'],
+                'dispositivo_id': self.kwargs[
+                    'dispositivo_id']})
+
+
+class NotasDeleteView(FormMixin, CreateView):
+    pass

@@ -7,24 +7,85 @@
 		{% elif dpt.nivel < view.flag_nivel_old %}
 			{% close_div view.flag_nivel_old dpt.nivel 0 %}
 	{% endif%}
-	<div class="dpt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}" id="d{{dpt.id}}">
-		<div class="{{ dpt.tipo_dispositivo.class_css }}" id="id{{dpt.id}}">
-			{% spaceless %}
-				{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}
-				{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-					<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
-						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
-						{% nota_automatica dpt %}
-						{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
-					</a>
-				{% endif %}
-			{% endspaceless %}
-			{% if view.is_norma_alteradora and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
-				{%with node=dpt template_name='compilacao/index_bloco_alteracao.html' %}
-					{%include template_name%}
-				{%endwith%}
-			{% endif%}
+
+
+	{% if forloop.first and view|isinst:'DispositivoView' %}
+	{% else %}
+		<div class="dpt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}">
+	{% endif%}
+
+	{% spaceless %}
+	<div class="{{ dpt.tipo_dispositivo.class_css }}">
+		<div class="dptt">
+			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}
+			{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+				<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
+					{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+					{% nota_automatica dpt %}
+					{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+				</a>
+			{% endif %}
+			{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
+	             <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">{# TODO: User - dne - Dispostivo Nota Editor -  tratar permissão de usuário#}
+	                 <ul class="btns-action">
+	                 <li><a class="btn-create" pk="{{dpt.pk}}" title="{% trans 'Adcionar uma Nota ao Dispositivo'%}">&nbsp;</a></li>
+	                 </ul>
+					 <div class="dne-form"></div>
+	             </div>
+				{% endif%}
 		</div>
+		{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
+			<div class="dn" id="dn{{dpt.pk}}" pk="{{dpt.pk}}">{# Dispostivo Nota#}
+
+				<ul class="dnl">{# Dispostivo Nota Lista#}
+					{% for nota in dpt.notas.all %}{# TODO: User - dnl - Dispostivo Nota Editor -  tratar permissão de usuário quanto a publicidade#}
+						<li class="dnli" id="nt{{nota.pk}}">
+							<ul>
+								<li><a class="btn-edit" pk="{{nota.pk}}">Editar</a></li> {# TODO: User - tratar permissão usuário #}
+								<li class="bullet">&#8226;</li>
+								<li><a class="btn-delete" pk="{{nota.pk}}">Excluir</a></li> {# TODO: User - tratar permissão usuário #}
+								<li class="bullet">&#8226;</li>
+
+
+								<li class="ntipo">{{nota.tipo.nome}}</li>
+								<li class="bullet">&#8226;</li>
+								<li class="nowner" title="{% trans 'Criado Por' %}">{%if nota.owner.first_name%}{{nota.owner.first_name}}{%else%}{{nota.owner}}{%endif%}</li>
+								<li class="bullet">&#8226;</li>
+								<li class="npublicacao" title="{% trans 'Data de Publicação'%}">{{nota.publicacao|date:"d M Y"}}</li>
+							</ul>
+
+
+							{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
+							{%if nota.titulo %}<div class="ntitulo">{{nota.titulo}}</div>{%endif%}
+							{%if nota.url_externa %}</a>{%endif%}
+
+							{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
+							<div class="ntexto">{{ nota.texto}}</div>
+							{%if nota.url_externa %}</a>{%endif%}
+
+{%comment%}
+							<ul>
+								<li class="nefetividade" title="{% trans 'Data de Efetividade'%}">{{nota.efetividade|date:"d M Y"}}</li>
+								<li class="bullet">&#8226;</li>
+								<li class="npublicidade">{{nota.get_publicidade_display}}</li>
+							</ul>
+{%endcomment%}
+						</li>{# Dispostivo Nota Lista Item#}
+					{% endfor %}
+				</ul>
+			</div>
+		{% endif%}
+	</div>
+	{% endspaceless %}
+	{% if view.is_norma_alteradora and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+		{%with node=dpt template_name='compilacao/index_bloco_alteracao.html' %}
+			{%include template_name%}
+		{%endwith%}
+	{% endif%}
 	{% set_nivel_old view dpt.nivel %}
 {% endfor %}
-{% close_div view.flag_nivel_old view.flag_nivel_ini 0 %}
+{% if view|isinst:'DispositivoView' %}
+	{% close_div view.flag_nivel_old view.flag_nivel_ini -1 %}
+{% else %}
+	{% close_div view.flag_nivel_old view.flag_nivel_ini 0 %}
+{% endif%}

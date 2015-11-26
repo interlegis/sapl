@@ -59,11 +59,11 @@
 
 
 				{% if not dpt|is_relative_auto_insert:request %}
-					<li class="opc_excluir"><a {% if not dpt.dispositivos_filhos_set.exists %}class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}{%else%}class="btn-excluir"{%endif%}>&nbsp;<span>Excluir</span></a>
+					<li class="menu_excluir"><a {% if not dpt.dispositivos_filhos_set.exists %}class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}{%else%}class="btn-excluir"{%endif%}>&nbsp;<span>Excluir</span></a>
 						{% if dpt.dispositivos_filhos_set.exists %}
 							<ul>
-								<li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}>TODO: Excluir apenas este dispositivo</a></li>
-								<li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>TODO: Excluir toda a estrutura deste dispositivo</a></li>
+								<li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo_todo" pk={{dpt.pk}}>TODO: Excluir apenas este dispositivo</a></li>
+								<li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>Excluir toda a estrutura deste dispositivo</a></li>
 							</ul>
 						{% endif %}
 					</li>
@@ -82,9 +82,10 @@
 
 	    	</div>
 
-	        <div class="label_status" >
-	        	<div>Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</div>
-	        </div>
+	        <ul class="label_status" >
+		        <li>Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
+			        <li><a>.</a></li>
+	        </ul>
 
             <ul class="btns-action actions_parents">
 			    <div>Em Edição:</div>

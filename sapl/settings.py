@@ -60,7 +60,8 @@ INSTALLED_APPS = (
     'sass_processor',
 )
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
+    #    INSTALLED_APPS += ('debug_toolbar',)
+    pass
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
