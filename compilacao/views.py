@@ -1025,33 +1025,33 @@ class ActionsEditMixin(object):
         if dp_auto_insert is None:
             data = self.get_json_for_refresh(dp)
         else:
-            data = self.get_json_for_refresh(dp_auto_insert)
+            data = self.get_json_for_refresh(dp=dp, dpauto=dp_auto_insert)
 
         return data
 
-    def get_json_for_refresh(self, dispositivo):
+    def get_json_for_refresh(self, dp, dpauto=None):
 
-        if dispositivo.tipo_dispositivo.contagem_continua:
+        if dp.tipo_dispositivo.contagem_continua:
             pais = []
-            if dispositivo.dispositivo_pai is None:
-                data = {'pk': dispositivo.pk, 'pai': [-1, ]}
+            if dp.dispositivo_pai is None:
+                data = {'pk': dp.pk, 'pai': [-1, ]}
             else:
-                pkfilho = dispositivo.pk
-                dispositivo = dispositivo.dispositivo_pai
+                pkfilho = dp.pk
+                dp = dp.dispositivo_pai
 
-                proxima_articulacao = dispositivo.get_proximo_nivel_zero()
+                proxima_articulacao = dp.get_proximo_nivel_zero()
 
                 if proxima_articulacao is not None:
                     parents = Dispositivo.objects.filter(
-                        norma_id=dispositivo.norma_id,
-                        ordem__gte=dispositivo.ordem,
+                        norma_id=dp.norma_id,
+                        ordem__gte=dp.ordem,
                         ordem__lt=proxima_articulacao.ordem,
-                        nivel__lte=dispositivo.nivel)
+                        nivel__lte=dp.nivel)
                 else:
                     parents = Dispositivo.objects.filter(
-                        norma_id=dispositivo.norma_id,
-                        ordem__gte=dispositivo.ordem,
-                        nivel__lte=dispositivo.nivel)
+                        norma_id=dp.norma_id,
+                        ordem__gte=dp.ordem,
+                        nivel__lte=dp.nivel)
 
                 nivel = sys.maxsize
                 for p in parents:
@@ -1059,10 +1059,11 @@ class ActionsEditMixin(object):
                         continue
                     pais.append(p.pk)
                     nivel = p.nivel
-                data = {'pk': pkfilho, 'pai': pais}
+                data = {
+                    'pk': pkfilho if not dpauto else dpauto.pk, 'pai': pais}
         else:
-            data = {'pk': dispositivo.pk, 'pai': [
-                dispositivo.dispositivo_pai.pk, ]}
+            data = {'pk': dp.pk if not dpauto else dpauto.pk, 'pai': [
+                dp.dispositivo_pai.pk, ]}
 
         return data
 
