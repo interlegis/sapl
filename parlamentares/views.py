@@ -1,8 +1,17 @@
+import sapl
+from re import sub
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
+                                 Submit)
 from django import forms
+from django.core.urlresolvers import reverse
+from django.forms import ModelForm
+from django.utils.html import strip_tags
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from vanilla import GenericView
-
+from django.views.generic.edit import FormMixin
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      Mandato, NivelInstrucao, Parlamentar, Partido,
@@ -166,3 +175,177 @@ class ParlamentaresView(GenericView):
              'mandatos': Mandato.objects.all(),
              'form': form,
              'filiacao': Filiacao.objects.all()})
+
+class HorizontalRadioRenderer(forms.RadioSelect.renderer):
+
+    def render(self):
+        return mark_safe(u' '.join([u'%s ' % w for w in self]))
+
+class ParlamentaresForm (ModelForm):
+
+    ativo = forms.TypedChoiceField(
+        coerce=lambda x: x == 'True',
+        choices=((True, 'Sim'), (False, 'Não')),
+        widget=forms.RadioSelect(
+            renderer=HorizontalRadioRenderer
+        )
+    )
+
+    class Meta:
+        model = Parlamentar
+        fields = ['nome_parlamentar',
+                  'ativo',
+                  'nome_completo',
+                  'nivel_instrucao',
+                  'sexo',
+                  'cpf',
+                  'rg',
+                  'titulo_eleitor',
+                  'data_nascimento',
+                  'situacao_militar',
+                  'profissao',
+                  'endereco_web',
+                  'email',
+                  'numero_gab_parlamentar',
+                  'telefone',
+                  'fax',
+                  'endereco_residencia',
+                  'cep_residencia',
+                  'municipio_residencia',
+                  'telefone_residencia',
+                  'fax_residencia',
+                  'locais_atuacao',
+                  'fotografia',
+                  'biografia']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('nome_parlamentar', 8), ('ativo', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('nome_completo', 12)])
+
+        row3 = sapl.layout.to_row(
+            [('nivel_instrucao', 4),
+             ('sexo', 4),
+             ('data_nascimento', 4)])
+
+        row4 = sapl.layout.to_row(
+            [('cpf', 4),
+             ('rg', 4),
+             ('titulo_eleitor', 4)])
+
+        row5 = sapl.layout.to_row(
+            [('situacao_militar', 6),
+             ('profissao', 6)])
+
+        row6 = sapl.layout.to_row(
+            [('endereco_web', 12)])
+
+        row7 = sapl.layout.to_row(
+            [('email', 12)])
+
+        row8 = sapl.layout.to_row(
+            [('numero_gab_parlamentar', 4),
+             ('telefone', 4),
+             ('fax', 4)])
+
+        row9 = sapl.layout.to_row(
+            [('endereco_residencia', 6),
+             ('cep_residencia', 6)])
+
+        row10 = sapl.layout.to_row(
+            [('municipio_residencia', 12)])
+
+        row11 = sapl.layout.to_row(
+            [('telefone_residencia', 6),
+             ('fax_residencia', 6)])
+
+        row12 = sapl.layout.to_row(
+            [('locais_atuacao', 12)])
+
+        row13 = sapl.layout.to_row(
+            [('fotografia', 12)])
+
+        row14 = sapl.layout.to_row(
+            [('biografia', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Cadastro do Parlamentar',
+                     row1, row2, row3, row4, row5,
+                     row6, row7, row8, row9, row10,
+                     row11, row12, row13, row14,
+                     ButtonHolder(
+                         Submit('sumbmit', 'Salvar',
+                                css_class='button primary')
+                     ))
+
+        )
+        super(ParlamentaresForm, self).__init__(
+            *args, **kwargs)
+
+
+class ParlamentaresCadastroView(FormMixin, GenericView):
+    template_name = "parlamentares/parlamentares_cadastro.html"
+
+    def get_success_url(self):
+        return reverse('parlamentares')
+
+    def get(self, request, *args, **kwargs):
+        form = ParlamentaresForm()
+        pk = kwargs['pk']
+        return self.render_to_response({'form': form, 'legislatura_id': pk})
+
+    def post(self, request, *args, **kwargs):
+        form = ParlamentaresForm(request.POST)
+
+        pk = kwargs['pk']
+
+        if form.is_valid():
+
+            parlamentar = form.save(commit=False)
+            if 'fotografia' in request.FILES:
+                parlamentar.fotografia = request.FILES['fotografia']
+            parlamentar.biografia = sub('&nbsp;',
+                                       ' ',
+                                       strip_tags(form.data['biografia']))
+            parlamentar.save()
+
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form, 'legislatura_id': pk})
+
+
+class ParlamentaresEditarView(FormMixin, GenericView):
+    template_name = "parlamentares/parlamentares_cadastro.html"
+
+    def get_success_url(self):
+        return reverse('parlamentares')
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        parlamentar = Parlamentar.objects.get(id=pk)
+
+        form = ParlamentaresForm(instance=parlamentar)
+        return self.render_to_response({'form': form})
+
+    def post(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        parlamentar = Parlamentar.objects.get(id=pk)
+        form = ParlamentaresForm(request.POST, instance=parlamentar)
+
+        if form.is_valid():
+
+            parlamentar = form.save(commit=False)
+            if 'fotografia' in request.FILES:
+                parlamentar.fotografia = request.FILES['fotografia']
+            parlamentar.biografia = sub('&nbsp;',
+                                       ' ',
+                                       strip_tags(form.data['biografia']))
+            parlamentar.save()
+
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form})        

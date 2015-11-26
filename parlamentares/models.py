@@ -217,8 +217,6 @@ class Parlamentar(models.Model):
         max_length=50, verbose_name=_('Nome Completo'))
     nome_parlamentar = models.CharField(
         max_length=50,
-        blank=True,
-        null=True,
         verbose_name=_('Nome Parlamentar'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
@@ -233,7 +231,6 @@ class Parlamentar(models.Model):
         blank=True,
         null=True,
         verbose_name=_('Título de Eleitor'))
-    cod_casa = models.PositiveIntegerField()
     numero_gab_parlamentar = models.CharField(
         max_length=10, blank=True, null=True, verbose_name=_('Nº Gabinete'))
     telefone = models.CharField(
@@ -276,7 +273,6 @@ class Parlamentar(models.Model):
     ativo = models.BooleanField(verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
         blank=True, null=True, verbose_name=_('Biografia'))
-    unidade_deliberativa = models.BooleanField()
     fotografia = models.FileField(
         blank=True,
         null=True,
