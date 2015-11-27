@@ -50,6 +50,18 @@ var onSubmitEditForm = function(event) {
 		}
 	);
 }
+var onDelete = function(event) {
+
+	var id_dispositivo =  $(event).closest('.dn').attr('pk');
+	var id_nota = $(event).attr('pk');
+	var url = 'compilacao/'+id_dispositivo+'/nota/'+id_nota+'/delete'
+
+	$.get( url, function(data) {
+		$('#dne'+id_dispositivo+' .dne-form').closest('.dpt').html(data)
+		onReadyNotas();
+		}
+	);
+}
 function getFormNota(_this, _btn) {
 
 	var id_dispositivo = $('.dne-exec .dne-form').closest('.dne').attr('pk');
@@ -63,12 +75,11 @@ function getFormNota(_this, _btn) {
 		id_dispositivo = $(_this).attr('pk');
 		url = 'compilacao/'+id_dispositivo+'/nota/create';
 		}
-	else {
+	else if (_btn == 'btn-edit') {
 		var id_nota = $(_this).attr('pk');
 		id_dispositivo = $(_this).closest('.dn').attr('pk');
 		url = 'compilacao/'+id_dispositivo+'/nota/'+id_nota+'/edit'
 	}
-	$('#dne'+id_dispositivo).addClass('dne-exec');
 	$('#dne'+id_dispositivo).addClass('dne-exec');
 
 	$.get(url).done(function( data ) {
@@ -79,11 +90,15 @@ function getFormNota(_this, _btn) {
 function onReadyNotas() {
 		$('.dne .btn-create').off();
 		$('.dne .btn-edit').off();
+		$('.dne .btn-delete').off();
 		$('.dne .btn-create').click(function(){
 			getFormNota(this, 'btn-create')
 		});
 		$('.dn .btn-edit').click(function(){
 			getFormNota(this, 'btn-edit')
+		});
+		$('.dn .btn-delete').click(function(){
+			onDelete(this, 'btn-delete')
 		});
 }
 $(document).ready(function() {

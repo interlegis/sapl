@@ -6,12 +6,14 @@ from django.contrib.auth.models import User
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse, HttpResponse,\
+    HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormMixin, UpdateView
+from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import FormMixin, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from vanilla.model_views import CreateView
 
@@ -1160,5 +1162,18 @@ class NotasEditView(UpdateView):
                     'dispositivo_id']})
 
 
-class NotasDeleteView(FormMixin, CreateView):
-    pass
+class NotasDeleteView(TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        nt = Nota.objects.get(pk=self.kwargs['pk'])
+        success_url = self.get_success_url()
+        nt.delete()
+        return HttpResponseRedirect(success_url)
+
+    def get_success_url(self):
+        return reverse(
+            'dispositivo', kwargs={
+                'norma_id': self.kwargs[
+                    'norma_id'],
+                'dispositivo_id': self.kwargs[
+                    'dispositivo_id']})

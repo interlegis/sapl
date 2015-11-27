@@ -36,11 +36,19 @@ class NotaForm(ModelForm):
         # All users have visibility.
         (NPUBL, _('Nota Pública')),
     )
-
+    error_messages = {
+        'required': _('Este campo é obrigatório'),
+        'invalid': _('URL inválida.')
+    }
     titulo = forms.CharField(label='&nbsp;', required=False)
-    texto = forms.CharField(label='', widget=forms.Textarea)
-    url_externa = forms.URLField(label='', required=False)
-
+    texto = forms.CharField(
+        label='',
+        widget=forms.Textarea,
+        error_messages=error_messages)
+    url_externa = forms.URLField(
+        label='',
+        required=False,
+        error_messages=error_messages)
     publicidade = forms.ChoiceField(
         required=True,
         label='Publicidade',
@@ -53,16 +61,21 @@ class NotaForm(ModelForm):
         queryset=TipoNota.objects.all(),
         empty_label=None)
 
-    publicacao = forms.DateField(label=u'Publicação',
-                                 input_formats=['%d/%m/%Y'],
-                                 required=True,
-                                 widget=forms.DateInput(
-                                     format='%d/%m/%Y'))
-    efetividade = forms.DateField(label=u'Efetividade',
-                                  input_formats=['%d/%m/%Y'],
-                                  required=True,
-                                  widget=forms.DateInput(
-                                      format='%d/%m/%Y'))
+    publicacao = forms.DateField(
+        label=u'Publicação',
+        input_formats=['%d/%m/%Y'],
+        required=True,
+        widget=forms.DateInput(
+            format='%d/%m/%Y'),
+        error_messages=error_messages
+    )
+    efetividade = forms.DateField(
+        label=u'Efetividade',
+        input_formats=['%d/%m/%Y'],
+        required=True,
+        widget=forms.DateInput(
+            format='%d/%m/%Y'),
+        error_messages=error_messages)
     dispositivo = forms.ModelChoiceField(queryset=Dispositivo.objects.all(),
                                          widget=forms.HiddenInput())
     pk = forms.IntegerField(widget=forms.HiddenInput(),

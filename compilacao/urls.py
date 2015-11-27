@@ -31,7 +31,7 @@ urlpatterns_compilacao = [
         views.NotasEditView.as_view(), name='nota_edit'),
 
     url(r'^(?P<norma_id>[0-9]+)/compilacao/'
-        '(?P<dispositivo_id>[0-9]+)/nota/delete$',
+        '(?P<dispositivo_id>[0-9]+)/nota/(?P<pk>[0-9]+)/delete$',
         views.NotasDeleteView.as_view(), name='nota_delete'),
 
 ]

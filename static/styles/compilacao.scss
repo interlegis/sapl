@@ -209,7 +209,7 @@ $color_actions_border: #CCC;
             font-size: 1.15em;
             float:left;
             .dptt {
-                z-index: 98;
+                z-index: 89;
                 position: relative;
             }
         }
@@ -273,6 +273,7 @@ $color_actions_border: #CCC;
             font-weight: normal;
             line-height: 1rem;
             position: relative;
+            text-decoration: none;
             p, ul {
                 font-size: 0.8rem;
                 font-weight: normal;
@@ -299,8 +300,6 @@ $color_actions_border: #CCC;
                         padding: 0.5em 0.5em 0em 0.5em;
                         border: 1px solid #c7e3d3;
                         border-top: 0px;
-
-
                     }
 
                     &:hover {
@@ -323,15 +322,25 @@ $color_actions_border: #CCC;
 
                         &:hover {
                             color: #787;
+                            a{
+                                color: #27AE60 !important;
+                            }
                         }
+
                     }
                     .ntitulo {
                         font-weight: bold;
                         color: #676;
                         font-size: 90%;
+                        a{
+                            color: #294 !important;
+                        }
                     }
                     .ntexto {
                         color: #787;
+                        a{
+                            color: #294 !important;
+                        }
                     }
                     .nowner {
                         color: #27AE60;
@@ -342,6 +351,7 @@ $color_actions_border: #CCC;
 
         .dptt {
             .dne {
+                text-decoration: none;
                 position: relative;
                 display: block;
                 font-size: 0.8rem;
@@ -356,6 +366,7 @@ $color_actions_border: #CCC;
                     font-size: 0.8rem;
                     font-weight: normal;
                     line-height: 1rem;
+                    text-decoration: none;
                 }
 
                 ul.btns-action {

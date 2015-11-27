@@ -3,7 +3,7 @@ from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import MateriaLegislativa
-from sapl.utils import make_choices
+from sapl.utils import make_choices, YES_NO_CHOICES
 
 
 class AssuntoNorma(models.Model):
@@ -86,7 +86,8 @@ class NormaJuridica(models.Model):
     observacao = models.TextField(
         blank=True, null=True, verbose_name=_('Observação'))
     complemento = models.NullBooleanField(
-        blank=True, verbose_name=_('Complementar ?'))
+        blank=True, verbose_name=_('Complementar ?'),
+        choices=YES_NO_CHOICES)
     # XXX was a CharField (attention on migrate)
     assuntos = models.ManyToManyField(
         AssuntoNorma,

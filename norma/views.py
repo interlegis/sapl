@@ -30,6 +30,7 @@ tipo_norma_crud = build_crud(
     ])
 
 norma_crud = build_crud(
+
     NormaJuridica, '', [
 
         [_('Identificação Básica'),
@@ -47,19 +48,18 @@ norma_crud = build_crud(
             [('indexacao', 12)],
             [('observacao', 12)]],
 
-        [_('Assuntos (Classificação) [+] '),
+        [_('Assuntos (Classificação) [+]'),
+
          [('assunto_norma_FIXME', 12)],
             [('assunto_norma_FIXME', 12)],
             [('assunto_norma_FIXME', 12)]],
     ])
 
-norma_temporario_para_compilacao_crud = build_crud(
-    NormaJuridica, 'norma', [
+norma_temporario_crud = build_crud(
+    NormaJuridica, 'normajuridica', [
 
         [_('Identificação Básica'),
-         [('tipo', 4), ('numero', 4), ('ano', 4)],
-            [('data', 4), ('esfera_federacao', 4)],
-            [('data_publicacao', 3)],
+         [('tipo', 5), ('numero', 2), ('ano', 2), ('data', 3)],
             [('ementa', 12)]],
     ])
 

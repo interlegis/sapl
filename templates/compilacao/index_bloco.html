@@ -46,7 +46,6 @@
 								<li><a class="btn-delete" pk="{{nota.pk}}">Excluir</a></li> {# TODO: User - tratar permissão usuário #}
 								<li class="bullet">&#8226;</li>
 
-
 								<li class="ntipo">{{nota.tipo.nome}}</li>
 								<li class="bullet">&#8226;</li>
 								<li class="nowner" title="{% trans 'Criado Por' %}">{%if nota.owner.first_name%}{{nota.owner.first_name}}{%else%}{{nota.owner}}{%endif%}</li>
@@ -54,14 +53,19 @@
 								<li class="npublicacao" title="{% trans 'Data de Publicação'%}">{{nota.publicacao|date:"d M Y"}}</li>
 							</ul>
 
+							{%if nota.titulo %}
+								<div class="ntitulo">
+									{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
+										{{nota.titulo}}
+									{%if nota.url_externa %}</a>{%endif%}
+								</div>
+							{%endif%}
 
+							<div class="ntexto">
 							{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
-							{%if nota.titulo %}<div class="ntitulo">{{nota.titulo}}</div>{%endif%}
-							{%if nota.url_externa %}</a>{%endif%}
-
-							{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
-							<div class="ntexto">{{ nota.texto}}</div>
-							{%if nota.url_externa %}</a>{%endif%}
+								{{ nota.texto}}
+								{%if nota.url_externa %}</a>{%endif%}
+							</div>
 
 {%comment%}
 							<ul>
