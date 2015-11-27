@@ -1,8 +1,7 @@
 import sapl
 from re import sub
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
-                                 Submit)
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
@@ -148,7 +147,7 @@ tipo_militar_crud = build_crud(
     ])
 
 
-class ParlamentaresForm(forms.Form):
+class ParlamentaresListForm(forms.Form):
     periodo = forms.CharField()
 
 
@@ -156,7 +155,7 @@ class ParlamentaresView(GenericView):
     template_name = "parlamentares/parlamentares_list.html"
 
     def get(self, request, *args, **kwargs):
-        form = ParlamentaresForm()
+        form = ParlamentaresListForm()
         legislaturas = Legislatura.objects.all().order_by(
             '-data_inicio', '-data_fim')
         return self.render_to_response(
@@ -167,7 +166,7 @@ class ParlamentaresView(GenericView):
              'filiacao': Filiacao.objects.all()})
 
     def post(self, request, *args, **kwargs):
-        form = ParlamentaresForm(request.POST)
+        form = ParlamentaresListForm(request.POST)
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all().order_by(
                 '-data_inicio', '-data_fim'),
@@ -176,13 +175,14 @@ class ParlamentaresView(GenericView):
              'form': form,
              'filiacao': Filiacao.objects.all()})
 
+
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
     def render(self):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
-class ParlamentaresForm (ModelForm):
 
+class ParlamentaresForm (ModelForm):
     ativo = forms.TypedChoiceField(
         coerce=lambda x: x == 'True',
         choices=((True, 'Sim'), (False, 'Não')),
@@ -309,13 +309,14 @@ class ParlamentaresCadastroView(FormMixin, GenericView):
             if 'fotografia' in request.FILES:
                 parlamentar.fotografia = request.FILES['fotografia']
             parlamentar.biografia = sub('&nbsp;',
-                                       ' ',
-                                       strip_tags(form.data['biografia']))
+                                        ' ',
+                                        strip_tags(form.data['biografia']))
             parlamentar.save()
 
             return self.form_valid(form)
         else:
-            return self.render_to_response({'form': form, 'legislatura_id': pk})
+            return self.render_to_response(
+                {'form': form, 'legislatura_id': pk})
 
 
 class ParlamentaresEditarView(FormMixin, GenericView):
@@ -344,10 +345,11 @@ class ParlamentaresEditarView(FormMixin, GenericView):
             if 'fotografia' in request.FILES:
                 parlamentar.fotografia = request.FILES['fotografia']
             parlamentar.biografia = sub('&nbsp;',
-                                       ' ',
-                                       strip_tags(form.data['biografia']))
+                                        ' ',
+                                        strip_tags(form.data['biografia']))
             parlamentar.save()
 
             return self.form_valid(form)
         else:
-            return self.render_to_response({'form': form, 'legislatura_id': pk})
+            return self.render_to_response(
+                {'form': form, 'legislatura_id': pk})
