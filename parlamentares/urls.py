@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
+
 from parlamentares.views import (ParlamentaresCadastroView,
-                                 ParlamentaresEditarView,
-                                 ParlamentaresView,
+                                 ParlamentaresEditarView, ParlamentaresView,
                                  cargo_mesa_crud, coligacao_crud,
                                  legislatura_crud, nivel_instrucao_crud,
                                  parlamentar_crud, partido_crud,

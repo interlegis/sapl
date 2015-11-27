@@ -1,7 +1,7 @@
-import sapl
 from re import sub
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
@@ -9,8 +9,10 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from sapl.crud import build_crud
 from vanilla import GenericView
+
+import sapl
+from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
                      Mandato, NivelInstrucao, Parlamentar, Partido,
@@ -278,13 +280,27 @@ class ParlamentaresForm (ModelForm):
                      row6, row7, row8, row9, row10,
                      row11, row12, row13, row14,
                      ButtonHolder(
-                         Submit('sumbmit', 'Salvar',
-                                css_class='button primary')
+                         Submit('submit', 'Salvar',
+                                css_class='button primary'),
                      ))
 
         )
         super(ParlamentaresForm, self).__init__(
             *args, **kwargs)
+
+
+class ParlamentaresEditForm(ParlamentaresForm):
+
+    def __init__(self, *args, **kwargs):
+        super(ParlamentaresEditForm, self).__init__(
+            *args, **kwargs)
+
+        self.helper.layout[0][-1:] = ButtonHolder(
+            Submit('salvar', 'Salvar',
+                   css_class='button primary'),
+            HTML('&nbsp;'),
+            Submit('excluir', 'Excluir',
+                   css_class='button primary'),)
 
 
 class ParlamentaresCadastroView(FormMixin, GenericView):
@@ -304,15 +320,19 @@ class ParlamentaresCadastroView(FormMixin, GenericView):
         pk = kwargs['pk']
 
         if form.is_valid():
-
             parlamentar = form.save(commit=False)
             if 'fotografia' in request.FILES:
                 parlamentar.fotografia = request.FILES['fotografia']
-            parlamentar.biografia = sub('&nbsp;',
-                                        ' ',
-                                        strip_tags(form.data['biografia']))
-            parlamentar.save()
+                parlamentar.biografia = sub('&nbsp;',
+                                            ' ',
+                                            strip_tags(form.data['biografia']))
+                parlamentar.save()
 
+                mandato = Mandato()
+
+                mandato.parlamentar = parlamentar
+                mandato.legislatura = Legislatura.objects.get(id=pk)
+                mandato.save()
             return self.form_valid(form)
         else:
             return self.render_to_response(
@@ -330,24 +350,27 @@ class ParlamentaresEditarView(FormMixin, GenericView):
         pid = kwargs['pid']
         parlamentar = Parlamentar.objects.get(id=pid)
 
-        form = ParlamentaresForm(instance=parlamentar)
+        form = ParlamentaresEditForm(instance=parlamentar)
         return self.render_to_response({'form': form, 'legislatura_id': pk})
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
         pid = kwargs['pid']
         parlamentar = Parlamentar.objects.get(id=pid)
-        form = ParlamentaresForm(request.POST, instance=parlamentar)
+        form = ParlamentaresEditForm(request.POST, instance=parlamentar)
 
         if form.is_valid():
-
-            parlamentar = form.save(commit=False)
-            if 'fotografia' in request.FILES:
-                parlamentar.fotografia = request.FILES['fotografia']
-            parlamentar.biografia = sub('&nbsp;',
-                                        ' ',
-                                        strip_tags(form.data['biografia']))
-            parlamentar.save()
+            if 'salvar' in request.POST:
+                parlamentar = form.save(commit=False)
+                if 'fotografia' in request.FILES:
+                    parlamentar.fotografia = request.FILES['fotografia']
+                parlamentar.biografia = sub('&nbsp;',
+                                            ' ',
+                                            strip_tags(form.data['biografia']))
+                parlamentar.save()
+            elif 'excluir' in request.POST:
+                Mandato.objects.get(parlamentar=parlamentar).delete()
+                parlamentar.delete()
 
             return self.form_valid(form)
         else:
