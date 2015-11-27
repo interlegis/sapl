@@ -326,14 +326,16 @@ class ParlamentaresEditarView(FormMixin, GenericView):
 
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(id=pk)
+        pid = kwargs['pid']
+        parlamentar = Parlamentar.objects.get(id=pid)
 
         form = ParlamentaresForm(instance=parlamentar)
-        return self.render_to_response({'form': form})
+        return self.render_to_response({'form': form, 'legislatura_id': pk})
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(id=pk)
+        pid = kwargs['pid']
+        parlamentar = Parlamentar.objects.get(id=pid)
         form = ParlamentaresForm(request.POST, instance=parlamentar)
 
         if form.is_valid():
@@ -348,4 +350,4 @@ class ParlamentaresEditarView(FormMixin, GenericView):
 
             return self.form_valid(form)
         else:
-            return self.render_to_response({'form': form})        
+            return self.render_to_response({'form': form, 'legislatura_id': pk})

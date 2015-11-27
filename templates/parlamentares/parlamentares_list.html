@@ -29,7 +29,7 @@
 			{% for m in mandatos %}
 				{% if m.legislatura_id == legislatura_id %}
 					<tr>
-						<td><a href="">{{m.parlamentar.nome_parlamentar}}</a></td>
+						<td><a href="{% url 'parlamentares_editar' legislatura_id m.parlamentar.id %}">{{m.parlamentar.nome_parlamentar}}</a></td>
 						<td>
 							{% for f in filiacao %}
 								{% if f.parlamentar.id == m.parlamentar.id %}

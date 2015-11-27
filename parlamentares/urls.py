@@ -32,7 +32,7 @@ urlpatterns = [
         ParlamentaresView.as_view(), name='parlamentares'),
     url(r'^parlamentares/(?P<pk>\d+)/cadastro$',
         ParlamentaresCadastroView.as_view(), name='parlamentares_cadastro'),
-    url(r'^parlamentares/(?P<pk>\d+)/editar$',
+    url(r'^parlamentares/(?P<pk>\d+)/(?P<pid>\d+)/editar$',
         ParlamentaresEditarView.as_view(), name='parlamentares_editar'),
     url(r'^parlamentares/',
         include(parlamentar_crud.urls)),
