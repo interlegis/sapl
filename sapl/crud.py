@@ -52,11 +52,14 @@ def get_field_display(obj, fieldname):
         value = getattr(obj, 'get_%s_display' % fieldname)()
     else:
         value = getattr(obj, fieldname)
+
     if value is None:
         display = ''
     elif 'date' in str(type(value)):
         display = value.strftime("%d/%m/%Y")
-    else:
+    elif 'bool' in str(type(value)):
+        display = 'Sim' if value else 'Não'
+    else: 
         display = str(value)
 
     return verbose_name, display
