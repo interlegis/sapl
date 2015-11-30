@@ -1,5 +1,6 @@
 from braces.views import FormMessagesMixin
 from crispy_forms.helper import FormHelper
+from datetime import datetime
 from django import forms
 from django.conf.urls import url
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -51,7 +52,13 @@ def get_field_display(obj, fieldname):
         value = getattr(obj, 'get_%s_display' % fieldname)()
     else:
         value = getattr(obj, fieldname)
-    display = '' if value is None else str(value)
+    if value is None:
+        display = ''
+    elif 'date' in str(type(value)):
+        display = value.strftime("%d/%m/%Y")
+    else:
+        display = str(value)
+
     return verbose_name, display
 
 
