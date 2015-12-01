@@ -1,0 +1,43 @@
+{% load i18n %}
+{% load compilacao_filters %}
+
+{% if object_list.count >= 100 %}
+	<div class="alert-box success radius">
+		{% trans 'Use argumentos para simplificar listagem...' %}
+	</div>
+{% endif %}
+
+{% for dpt in object_list %}
+    {% ifchanged dpt.norma%}
+        {% if not forloop.first %}</ul>{% endif %}
+        <div class="norma_title">{{dpt.norma}}</div>
+        <ul>
+    {% endifchanged %}
+
+	{% if dpt.is_relative_auto_insert and dpt.dispositivo_pai and dpt.dispositivo_pai.nivel != 0 %}
+
+		<li>
+			<div class="iteminput">
+				<input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
+			</div>
+			<div class="itemlabel">
+				<label for="r{{dpt.dispositivo_pai.pk}}">{{dpt.dispositivo_pai.rotulo|safe}} - {{dpt.texto|safe}}</label>
+				<a target="_blank" href="{% url 'compilacao' dpt.norma.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+ 			</div>
+		</li>
+	{% endif%}
+
+	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao and not dpt.is_relative_auto_insert %}
+	    <li>
+	        <div class="iteminput">
+	            <input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
+	        </div>
+	        <div class="itemlabel">
+	            <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {{dpt.texto|safe}}</label>
+				<a target="_blank" href="{% url 'compilacao' dpt.norma.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+	        </div>
+	    </li>
+	{% endif%}
+
+	{% if forloop.last %}</ul>{% endif %}
+{% endfor %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+{% load staticfiles %}
+{% load sass_tags %}
+{% load crispy_forms_tags %}
+
+
+{% block head_content %}{{block.super}}
+      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+      <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
+{% endblock %}
+
+
+{% block title%}
+  <h1><b>Edição:</b> {{ view.get_norma }} - <i>{% trans 'Texto Multivigente' %}</i></h1>
+{% endblock %}
+
+{% block base_content %}
+
+<div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
+
+<div class="cpe">
+    {% include 'compilacao/edit_bloco.html'%}
+</div>
+
+
+{% if user.is_authenticated and False %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% if message %}
+	    <div data-alert="" class="alert-box success radius">
+            {{message}}
+            <a href="#" class="close">×</a>
+        </div>
+    {% endif %}
+
+
+    <fieldset>
+    <legend>{% trans 'Parser ODF' %}</legend>
+        {{ form.as_p }}
+        <input type="submit" name="import_submit" value="{% trans 'Importar' %}" class="button primary" />
+    </fieldset>
+</form>
+
+{% for parser in parser_list %}
+        <div class="test_import">
+        {{ parser|safe}}
+    </div>
+{% endfor %}
+{% endif%}
+
+
+
+{% endblock base_content %}

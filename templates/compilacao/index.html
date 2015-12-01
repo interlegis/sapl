@@ -1,55 +1,39 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
+{% load staticfiles %}
+{% load sass_tags %}
 
-{% block title%}
-  <h1>{{ view.get_norma }}</h1>
+{% block head_content %}{{block.super}}
+      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+      <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+
+      {# TODO:  incluir javascript compilacao_notas apenas se houver usuário conectado e que possua permissão para cadastro de notas #}
+      <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
 {% endblock %}
 
-{% block base_content %}  
 
-<script type="text/javascript">
+{% block title%}
+    <h1>{{ view.get_norma }}</h1>
+{% endblock %}
 
-$( window ).scroll(function() {
+{% block base_content %}
 
-    if (window.pageYOffset <= 180) {
-        $( "section.vigencias" ).removeClass("fixed");
-    }
-    else if (!$( "section.vigencias" ).hasClass("fixed")){
-        $( "section.vigencias" ).addClass("fixed"); 
-    }
-}); 
+<div class="cp">
 
-function textoMultiVigente(item) {
+    <div style="float: right; clear:right;">
+    <a id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
+    <a id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
+    </div>
 
-	$(".compilacao .tipo-vigencias a").removeClass("selected")
-	$(item).addClass("selected")
-
-	$(".desativado").removeClass("displaynone");
-	$(".link_alterador").removeClass("displaynone");
-}
-function textoVigente(item, link) {
-
-	$(".compilacao .tipo-vigencias a").removeClass("selected")
-	$(item).addClass("selected")
-
-	$(".desativado").addClass("displaynone");
-	$(".link_alterador").removeClass("displaynone");
-
-	if (!link)
-		$(".link_alterador").addClass("displaynone");
-}
-
-
-</script>
-
-<div class="compilacao">  
-			{% for key, values in view.get_vigencias.items %}
-				{% if forloop.first %}				
+		{% for key, values in view.get_vigencias.items %}
+			{% if forloop.first %}
 <section class="vigencias">
 	<nav class="top-bar" data-topbar="" role="navigation">
 		<section class="top-bar-section">
-			<ul class="nav left"> 
+			<ul class="nav left">
 				{%endif%}
 				<li class="nav__item has-dropdown">
 					{% if forloop.first %}
@@ -62,11 +46,9 @@ function textoVigente(item, link) {
 						{% endfor %}
 					{% else %}
 						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
-						
-						
 					{%endif%}
 
-					{% if not forloop.first and not forloop.last %} 
+					{% if not forloop.first and not forloop.last %}
 						<ul class="nav__sub-nav dropdown">
 							{% for dispositivo in values %}
 								<li class="nav__sub-item">
@@ -80,11 +62,11 @@ function textoVigente(item, link) {
 				</li>
 				{% if forloop.last %}
 			</ul>
-			<ul class="nav left tipo-vigencias"> 
-				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li> 
-				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li> 
-				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li> 
-			</ul>	
+			<ul class="nav left tipo-vigencias">
+				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li>
+				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li>
+				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li>
+			</ul>
 		</section>
 	</nav>
 </section>
@@ -95,7 +77,6 @@ function textoVigente(item, link) {
 	{% trans 'Vigência entre'%} <b>{{view.inicio_vigencia}}</b> {% trans 'e'%} <b>{{view.fim_vigencia}}</b>.
 {%endif%}
 
-
-{% include 'compilacao/template_render_bloco.html'%}
+{% include 'compilacao/index_bloco.html'%}
 </div>
 {% endblock base_content %}
