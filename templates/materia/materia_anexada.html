@@ -34,7 +34,7 @@
 			<form method="POST"> 
 				{% csrf_token %}
 				{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
-				{{ form.as_table }}
+				{% crispy form %}
 				<input type="submit" value="Anexar" id="anexar" name="anexar" class="primary button" />
 			</form>
 		</fieldset>

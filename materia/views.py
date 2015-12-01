@@ -1,6 +1,8 @@
 from datetime import date
 from re import sub
 
+import sapl
+from comissoes.models import Comissao, Composicao
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
                                  Submit)
@@ -13,12 +15,9 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-import sapl
-from comissoes.models import Comissao, Composicao
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -469,7 +468,7 @@ def get_tipos_documento():
            for t in TipoDocumento.objects.all()]
 
 
-class MateriaAnexadaForm(forms.Form):
+class MateriaAnexadaForm(ModelForm):
 
     tipo = forms.ChoiceField(required=True,
                              label='Tipo',
@@ -492,6 +491,25 @@ class MateriaAnexadaForm(forms.Form):
                                        input_formats=['%d/%m/%Y'],
                                        widget=forms.TextInput(
                                            attrs={'class': 'dateinput'}))
+
+    class Meta:
+        model = Anexada
+        fields = ['tipo', 'data_anexacao', 'data_desanexacao']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('numero', 4),
+             ('ano', 4)])
+        row2 = sapl.layout.to_row(
+            [('data_anexacao', 6),
+             ('data_desanexacao', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(row1, row2)
+        super(MateriaAnexadaForm, self).__init__(
+            *args, **kwargs)
 
 
 class MateriaAnexadaView(FormMixin, GenericView):
@@ -755,7 +773,7 @@ def get_tipos_norma():
            for t in TipoNormaJuridica.objects.all()]
 
 
-class LegislacaoCitadaForm(forms.Form):
+class LegislacaoCitadaForm(ModelForm):
 
     tipo = forms.ChoiceField(required=True,
                              label='Tipo Norma',
@@ -793,28 +811,53 @@ class LegislacaoCitadaForm(forms.Form):
 
     class Meta:
         model = LegislacaoCitada
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  'disposicao',
+                  'parte',
+                  'livro',
+                  'titulo',
+                  'capitulo',
+                  'secao',
+                  'subsecao',
+                  'artigo',
+                  'paragrafo',
+                  'inciso',
+                  'alinea',
+                  'item']
 
     def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('numero', 4),
+             ('ano', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('disposicao', 3),
+             ('parte', 3),
+             ('livro', 3),
+             ('titulo', 3)])
+
+        row3 = sapl.layout.to_row(
+            [('capitulo', 3),
+             ('secao', 3),
+             ('subsecao', 3),
+             ('artigo', 3)])
+
+        row4 = sapl.layout.to_row(
+            [('paragrafo', 3),
+             ('inciso', 3),
+             ('alinea', 3),
+             ('item', 3)])
+
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.layout = Layout(
             Fieldset(
                 'Incluir Legislação Citada',
-                'tipo',
-                'numero',
-                'ano',
-                'disposicao',
-                'parte',
-                'livro',
-                'titulo',
-                'capitulo',
-                'secao',
-                'subsecao',
-                'artigo',
-                'paragrafo',
-                'inciso',
-                'alinea',
-                'item',
+                row1, row2, row3, row4,
                 ButtonHolder(
                     Submit('submit', 'Salvar',
                            css_class='button primary')
@@ -948,7 +991,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
                  'materialegislativa': materia})
 
 
-class NumeracaoForm(forms.Form):
+class NumeracaoForm(ModelForm):
 
     tipo_materia = forms.ChoiceField(required=True,
                                      label='Tipo Matéria',
@@ -973,16 +1016,25 @@ class NumeracaoForm(forms.Form):
 
     class Meta:
         model = Numeracao
+        fields = ['tipo_materia',
+                  'numero_materia',
+                  'ano_materia',
+                  'data_materia']
 
     def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo_materia', 12)])
+        row2 = sapl.layout.to_row(
+            [('numero_materia', 4),
+             ('ano_materia', 4),
+             ('data_materia', 4)])
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 'Incluir Numeração',
-                'tipo_materia',
-                'numero_materia',
-                'ano_materia',
-                'data_materia',
+                row1, row2,
                 ButtonHolder(
                     Submit('submit', 'Salvar',
                            css_class='button primary')
@@ -1078,7 +1130,7 @@ class NumeracaoEditView(FormMixin, GenericView):
         return reverse('numeracao', kwargs={'pk': pk})
 
 
-class DocumentoAcessorioForm(forms.Form):
+class DocumentoAcessorioForm(ModelForm):
 
     tipo = forms.ChoiceField(required=True,
                              label='Tipo',
@@ -1101,16 +1153,32 @@ class DocumentoAcessorioForm(forms.Form):
     ementa = forms.CharField(
         label='Ementa', required=True)
 
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ['tipo',
+                  'nome',
+                  'data',
+                  'autor',
+                  'ementa']
+
     def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('nome', 4),
+             ('data', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('autor', 12)])
+
+        row3 = sapl.layout.to_row(
+            [('ementa', 12)])
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 'Incluir Documento Acessório',
-                'tipo',
-                'data',
-                'nome',
-                'autor',
-                'ementa',
+                row1, row2, row3,
                 ButtonHolder(
                     Submit('submit', 'Salvar',
                            css_class='button primary')
@@ -1394,59 +1462,30 @@ class TramitacaoForm(ModelForm):
                   ]
 
     def __init__(self, *args, **kwargs):
+        row1 = sapl.layout.to_row(
+            [('data_tramitacao', 6),
+             ('unidade_tramitacao_local', 6)])
+
+        row2 = sapl.layout.to_row(
+            [('status', 5),
+             ('turno', 5),
+             ('urgente', 2)])
+
+        row3 = sapl.layout.to_row(
+            [('unidade_tramitacao_destino', 12)])
+
+        row4 = sapl.layout.to_row(
+            [('data_encaminhamento', 5),
+             ('data_fim_prazo', 5),
+             ('ultima', 2)])
+
+        row5 = sapl.layout.to_row(
+            [('texto', 12)])
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Incluir Tramitação',
-                     HTML(
-                         "<ul class='small-block-grid-2 " +
-                         "medium-block-grid-2 large-block-grid-2'>"),
-                     HTML("<li>"),
-                     'data_tramitacao',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'unidade_tramitacao_local',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-3 " +
-                         "medium-block-grid-3 large-block-grid-3'>"),
-                     HTML("<li>"),
-                     'status',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'turno',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'urgente',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-1 " +
-                         "medium-block-grid-1 large-block-grid-1'>"),
-                     HTML("<li>"),
-                     'unidade_tramitacao_destino',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-3 " +
-                         "medium-block-grid-3 large-block-grid-3'>"),
-                     HTML("<li>"),
-                     'data_encaminhamento',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'data_fim_prazo',
-                     HTML("</li>"),
-                     HTML("<li>"),
-                     'ultima',
-                     HTML("</li>"),
-                     HTML("</ul>"),
-                     HTML(
-                         "<ul class='small-block-grid-1 " +
-                         "medium-block-grid-1 large-block-grid-1'>"),
-                     HTML("<li>"),
-                     'texto',
-                     HTML("</li>"),
-                     HTML("</ul>"),
+                     row1, row2, row3, row4, row5,
                      ),
             ButtonHolder(
                 Submit('submit', 'Salvar',

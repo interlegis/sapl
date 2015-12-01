@@ -16,24 +16,33 @@
 			<legend>Editar Numeração</legend>
 				<form method="POST">
 					{% csrf_token %}
+					<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+						<li>
+							<label>Tipo Matéria*</label>
+							<select name="tipo_materialegislativa">
+								{% for t in tipos %}
+									<option value="{{t.id}}" {% if t.id == numeracao.tipo_materialegislativa_id %} selected {% endif %}>
+										{{t.sigla}} - {{t.descricao}}
+									</option>
+								{% endfor %}
+							</select>
+						</li>
+					</ul>
 
-					Tipo Matéria*
-					<select name="tipo_materialegislativa">
-						{% for t in tipos %}
-							<option value="{{t.id}}" {% if t.id == numeracao.tipo_materialegislativa_id %} selected {% endif %}>
-								{{t.sigla}} - {{t.descricao}}
-							</option>
-						{% endfor %}
-					</select>
-
-					Número*
-					<input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materialegislativa}}" />
-
-					Ano*			
-					<input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materialegislativa}}" />
-
-					Data
-					<input type="text" name="data_materialegislativa" class="dateinput" value="{{numeracao.data_materialegislativa|date:'d/m/Y'}}" />
+					<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+						<li>
+							<label>Número*</select>label>
+							<input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materialegislativa}}" />
+						</li>
+						<li>
+							<label>Ano*</label>		
+							<input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materialegislativa}}" />
+						</li>
+						<li>
+							<label>Data</label>
+							<input type="text" name="data_materialegislativa" class="dateinput" value="{{numeracao.data_materialegislativa|date:'d/m/Y'}}" />
+						</li>
+					<ul>
 
 					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
 					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		

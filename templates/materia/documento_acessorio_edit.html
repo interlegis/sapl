@@ -16,28 +16,40 @@
 			<legend>Editar Documento Acessório</legend>
 				<form method="POST">
 					{% csrf_token %}
+					<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+						<li>
+							<labe>Tipo*</labe>
+							<select name="tipo">
+								{% for t in tipos %}
+									<option value="{{t.id}}" {% if t.id == doc.tipo.id %} selected {% endif %}>
+										{{t.descricao}}
+									</option>
+								{% endfor %}
+							</select>
+						</li>
 
-					Tipo*
-					<select name="tipo">
-						{% for t in tipos %}
-							<option value="{{t.id}}" {% if t.id == doc.tipo.id %} selected {% endif %}>
-								{{t.descricao}}
-							</option>
-						{% endfor %}
-					</select>
+						<li>
+							<labe>Data</labe>
+							<input type="text" name="data" class="dateinput" value="{{doc.data|date:'d/m/Y'}}" />
+						</li>
 
-					Data
-					<input type="text" name="data" class="dateinput" value="{{doc.data|date:'d/m/Y'}}" />
+						<li>
+							<labe>Nome*</labe>
+							<input type="text" name="nome" value="{{doc.nome}}" />
+						</li>
+					</ul>
 
-					Nome*
-					<input type="text" name="nome" value="{{doc.nome}}" />
-
-					Autor*			
-					<input type="text" name="autor" value="{{doc.autor}}" />
-
-					Ementa*			
-					<input type="text" name="ementa" value="{{doc.ementa}}" />
-
+					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
+						<li>
+							<labe>Autor*</labe>			
+							<input type="text" name="autor" value="{{doc.autor}}" />
+						</li>
+						
+						<li>
+							<labe>Ementa*</labe>		
+							<input type="text" name="ementa" value="{{doc.ementa}}" />
+						</li>
+					</ul>
 					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
 					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
 				</form>
