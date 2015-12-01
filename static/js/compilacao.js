@@ -33,3 +33,7 @@ function ReadCookie(cookieName) {
 	if (ind1==-1) ind1=theCookie.length;
 	return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
 }
+
+function insertWaitAjax(element) {
+	jQuery(element).append('<div style="text-align:center;"><img src="/static/img/ajax-loader.gif"></div>');
+}

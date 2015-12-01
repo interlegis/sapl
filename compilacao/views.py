@@ -2,30 +2,29 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import sys
 
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http.response import JsonResponse, HttpResponse,\
-    HttpResponseRedirect
-from django.shortcuts import render
+from django.http.response import (HttpResponse, HttpResponseRedirect,
+                                  JsonResponse)
+from django.shortcuts import get_object_or_404, render
 from django.utils.dateparse import parse_date
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import FormMixin, UpdateView, DeleteView
+from django.views.generic.edit import FormMixin, UpdateView
 from django.views.generic.list import ListView
 from vanilla.model_views import CreateView
 
 from compilacao import forms
 from compilacao.file2dispositivo import Parser
-from compilacao.forms import NotaForm
-from compilacao.models import (Dispositivo, PerfilEstruturalTextosNormativos,
+from compilacao.models import (Dispositivo, Nota,
+                               PerfilEstruturalTextosNormativos,
                                TipoDispositivo, TipoNota, TipoPublicacao,
-                               TipoVide, VeiculoPublicacao, Nota)
+                               TipoVide, VeiculoPublicacao, Vide)
 from norma.models import NormaJuridica
 from sapl.crud import build_crud
-
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -131,6 +130,22 @@ class CompilacaoView(ListView):
     inicio_vigencia = None
     fim_vigencia = None
 
+    def get_context_data(self, **kwargs):
+        context = super(CompilacaoView, self).get_context_data(**kwargs)
+
+        vides = Vide.objects.filter(
+            Q(dispositivo_base__norma_id=self.kwargs['norma_id']) |
+            Q(dispositivo_ref__norma_id=self.kwargs['norma_id']))
+
+        context['cita'] = [v.dispositivo_base_id for v in vides]
+        context['citado'] = [v.dispositivo_ref_id for v in vides]
+
+        notas = Nota.objects.filter(
+            dispositivo__norma_id=self.kwargs['norma_id'])
+
+        context['notas'] = [n.dispositivo_id for n in notas]
+        return context
+
     def get_queryset(self):
         self.flag_alteradora = -1
         self.flag_nivel_ini = 0
@@ -153,11 +168,22 @@ class CompilacaoView(ListView):
                 norma_id=self.kwargs['norma_id'],
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         else:
-            return Dispositivo.objects.filter(
+
+            r = Dispositivo.objects.filter(
                 ordem__gt=0,
-                norma_id=self.kwargs['norma_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED).prefetch_related(
-                'notas',)
+                norma_id=self.kwargs['norma_id'],
+            ).select_related(
+                'tipo_dispositivo',
+                'norma_publicada',
+                'norma',
+                'dispositivo_atualizador',
+                'dispositivo_atualizador__dispositivo_pai',
+                'dispositivo_atualizador__dispositivo_pai__norma',
+                'dispositivo_atualizador__dispositivo_pai__norma__tipo',
+                'dispositivo_pai',
+                'dispositivo_pai__tipo_dispositivo')
+
+            return r
 
     def get_vigencias(self):
         itens = Dispositivo.objects.filter(
@@ -1087,31 +1113,65 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
         return self.render_to_json_response(context, **response_kwargs)
 
 
-class NotasCreateView(FormMixin, CreateView):
-    template_name = 'compilacao/nota_ajaxform.html'
+class DispositivoSuccessUrlMixin(object):
+
+    def get_success_url(self):
+        return reverse(
+            'dispositivo', kwargs={
+                'norma_id': self.kwargs[
+                    'norma_id'],
+                'dispositivo_id': self.kwargs[
+                    'dispositivo_id']})
+
+
+class NotaMixin(DispositivoSuccessUrlMixin):
+
+    def get_modelo_nota(self, request):
+        # TODO: permitir edição apenas das notas do usuário conectado
+        # TODO: tratar revalidação no método post
+        # TODO: não mostrar botão de edição na interface
+        if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
+            tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
+            return True, tn.modelo
+        return False, ''
+
+    def get_initial(self):
+        dispositivo = get_object_or_404(
+            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
+        initial = {'dispositivo': dispositivo}
+
+        if 'pk' in self.kwargs:
+            initial['pk'] = self.kwargs.get('pk')
+
+        return initial
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(NotaMixin, self).dispatch(*args, **kwargs)
+
+
+class NotasCreateView(NotaMixin, FormMixin, CreateView):
+    template_name = 'compilacao/ajax_form.html'
     form_class = forms.NotaForm
 
     def get(self, request, *args, **kwargs):
-
-        if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
-            tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
-            return HttpResponse(tn.modelo)
+        flag_action, modelo_nota = self.get_modelo_nota(request)
+        if flag_action:
+            return HttpResponse(modelo_nota)
 
         return super(NotasCreateView, self).get(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
-        kwargs = super(NotasCreateView, self).get_form_kwargs()
-        kwargs.update(self.kwargs)
-        return kwargs
-
     def post(self, request, *args, **kwargs):
         try:
-            form = NotaForm(request.POST, request.FILES, **kwargs)
+            norma_id = kwargs.pop('norma_id')
+            dispositivo_id = kwargs.pop('dispositivo_id')
+            form = forms.NotaForm(request.POST, request.FILES, **kwargs)
+            kwargs['norma_id'] = norma_id
+            kwargs['dispositivo_id'] = dispositivo_id
 
             if form.is_valid():
                 nt = form.save(commit=False)
-                # TODO: Implementar tratamento do usuário.
-                nt.owner_id = User.objects.order_by('id')[:1][0].pk
+                nt.owner_id = request.user.pk
                 nt.save()
                 self.kwargs['pk'] = nt.pk
                 return self.form_valid(form)
@@ -1121,59 +1181,147 @@ class NotasCreateView(FormMixin, CreateView):
             print(e)
         return HttpResponse("post")
 
-    def get_success_url(self):
-        return reverse(
-            'dispositivo', kwargs={
-                'norma_id': self.kwargs[
-                    'norma_id'],
-                'dispositivo_id': self.kwargs[
-                    'dispositivo_id']})
 
-
-class NotasEditView(UpdateView):
+class NotasEditView(NotaMixin, UpdateView):
     model = Nota
-    template_name = 'compilacao/nota_ajaxform.html'
+    template_name = 'compilacao/ajax_form.html'
     form_class = forms.NotaForm
 
     def get(self, request, *args, **kwargs):
-        try:
-            # TODO: permitir edição apenas das notas do usuário conectado
-            # TODO: tratar revalidação no método post
-            # TODO: não mostrar botão de edição na interface
-            if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
-                tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
-                return HttpResponse(tn.modelo)
+        flag_action, modelo_nota = self.get_modelo_nota(request)
+        if flag_action:
+            return HttpResponse(modelo_nota)
 
-            return super(NotasEditView, self).get(request, *args, **kwargs)
-        except Exception as e:
-            print(e)
-
-    def get_form_kwargs(self):
-        kwargs = super(NotasEditView, self).get_form_kwargs()
-        kwargs.update(self.kwargs)
-        return kwargs
-
-    def get_success_url(self):
-        return reverse(
-            'dispositivo', kwargs={
-                'norma_id': self.kwargs[
-                    'norma_id'],
-                'dispositivo_id': self.kwargs[
-                    'dispositivo_id']})
+        return super(NotasEditView, self).get(request, *args, **kwargs)
 
 
-class NotasDeleteView(TemplateView):
+class NotasDeleteView(NotaMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         nt = Nota.objects.get(pk=self.kwargs['pk'])
-        success_url = self.get_success_url()
         nt.delete()
-        return HttpResponseRedirect(success_url)
+        return HttpResponseRedirect(self.get_success_url())
 
-    def get_success_url(self):
-        return reverse(
-            'dispositivo', kwargs={
-                'norma_id': self.kwargs[
-                    'norma_id'],
-                'dispositivo_id': self.kwargs[
-                    'dispositivo_id']})
+
+class VideMixin(DispositivoSuccessUrlMixin):
+
+    def get_initial(self):
+        dispositivo_base = get_object_or_404(
+            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
+
+        initial = {'dispositivo_base': dispositivo_base}
+
+        if 'pk' in self.kwargs:
+            initial['pk'] = self.kwargs.get('pk')
+
+        return initial
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(VideMixin, self).dispatch(*args, **kwargs)
+
+
+class VideCreateView(VideMixin, FormMixin, CreateView):
+    template_name = 'compilacao/ajax_form.html'
+    form_class = forms.VideForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            norma_id = kwargs.pop('norma_id')
+            dispositivo_id = kwargs.pop('dispositivo_id')
+            form = forms.VideForm(request.POST, request.FILES, **kwargs)
+            kwargs['norma_id'] = norma_id
+            kwargs['dispositivo_id'] = dispositivo_id
+
+            if form.is_valid():
+                vd = form.save(commit=False)
+                vd.save()
+                self.kwargs['pk'] = vd.pk
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        except Exception as e:
+            print(e)
+        return HttpResponse("post")
+
+
+class VideEditView(VideMixin, UpdateView):
+    model = Vide
+    template_name = 'compilacao/ajax_form.html'
+    form_class = forms.VideForm
+
+
+class VideDeleteView(VideMixin, TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        vd = Vide.objects.get(pk=self.kwargs['pk'])
+        vd.delete()
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class DispositivoSearchFragmentFormView(ListView):
+    template_name = 'compilacao/dispositivo_search_fragment_form.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(
+            DispositivoSearchFragmentFormView,
+            self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        try:
+            busca = ''
+
+            if 'busca' in self.request.GET:
+                busca = self.request.GET['busca']
+
+            q = Q(nivel__gt=0)
+            busca = busca.split(' ')
+            n = 10
+
+            for item in busca:
+
+                if not item:
+                    continue
+
+                if q:
+                    q = q & (Q(dispositivo_pai__rotulo__icontains=item) |
+                             Q(rotulo__icontains=item) |
+                             Q(texto__icontains=item) |
+                             Q(texto_atualizador__icontains=item))
+                    n = 50
+                else:
+                    q = (Q(dispositivo_pai__rotulo__icontains=item) |
+                         Q(rotulo__icontains=item) |
+                         Q(texto__icontains=item) |
+                         Q(texto_atualizador__icontains=item))
+                    n = 50
+
+            if 'tipo_norma' in self.request.GET:
+                tipo_norma = self.request.GET['tipo_norma']
+                if tipo_norma:
+                    q = q & Q(norma__tipo_id=tipo_norma)
+                    n = 50
+
+            if 'num_norma' in self.request.GET:
+                num_norma = self.request.GET['num_norma']
+                if num_norma:
+                    q = q & Q(norma__numero=num_norma)
+                    n = 50
+
+            if 'ano_norma' in self.request.GET:
+                ano_norma = self.request.GET['ano_norma']
+                if ano_norma:
+                    q = q & Q(norma__ano=ano_norma)
+                    n = 50
+
+            if 'initial_ref' in self.request.GET:
+                initial_ref = self.request.GET['initial_ref']
+                if initial_ref:
+                    q = q & Q(pk=initial_ref)
+                    n = 50
+
+            return Dispositivo.objects.filter(q)[:n]
+
+        except Exception as e:
+            print(e)

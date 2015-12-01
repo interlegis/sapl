@@ -128,9 +128,17 @@ def nomenclatura(d):
 
 
 @register.simple_tag
-def nomenclatura_heranca(d):
+def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
     result = ''
     while d is not None:
+
+        if ignore_ultimo and d.dispositivo_pai is None:
+            break
+        if ignore_primeiro:
+            ignore_primeiro = 0
+            d = d.dispositivo_pai
+            continue
+
         if d.rotulo != '':
             if d.tipo_dispositivo.rotulo_prefixo_texto != '':
                 result = d.rotulo + ' ' + result
@@ -141,4 +149,5 @@ def nomenclatura_heranca(d):
             result = '(' + d.tipo_dispositivo.nome + \
                 d.rotulo_padrao() + ')' + ' ' + result
         d = d.dispositivo_pai
+
     return result

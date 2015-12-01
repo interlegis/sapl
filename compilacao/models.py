@@ -950,9 +950,16 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
         return proxima_articulacao[0]
 
-    def is_relative_auto_insert(self, perfil_pk):
+    def is_relative_auto_insert(self, perfil_pk=None):
         if self.dispositivo_pai is not None:
             # pp possiveis_pais
+
+            if not perfil_pk:
+                perfis = PerfilEstruturalTextosNormativos.objects.filter(
+                    padrao=True)[:1]
+                if perfis.exists():
+                    perfil_pk = perfis[0].pk
+
             pp = self.tipo_dispositivo.possiveis_pais.filter(
                 pai=self.dispositivo_pai.tipo_dispositivo,
                 perfil_id=perfil_pk)
@@ -1032,15 +1039,16 @@ class Vide(TimestampedMixin):
     dispositivo_base = models.ForeignKey(
         Dispositivo,
         verbose_name=_('Dispositivo Base'),
-        related_name='%(class)s_dispositivo_base')
+        related_name='cita')
     dispositivo_ref = models.ForeignKey(
         Dispositivo,
-        related_name='%(class)s_dispositivo_ref',
+        related_name='citado',
         verbose_name=_('Dispositivo Referido'))
 
     class Meta:
         verbose_name = _('Vide')
         verbose_name_plural = _('Vides')
+        unique_together = ['dispositivo_base', 'dispositivo_ref']
 
     def __str__(self):
         return _('Vide %s') % self.texto
@@ -1048,15 +1056,12 @@ class Vide(TimestampedMixin):
 
 class Nota(TimestampedMixin):
     NPRIV = 1
-    NSTRL = 2
-    NINST = 3
-    NPUBL = 4
+    NINST = 2
+    NPUBL = 3
 
     PUBLICIDADE_CHOICES = (
         # Only the owner of the note has visibility.
         (NPRIV, _('Nota Privada')),
-        # All of the same group have visibility.
-        (NSTRL, _('Nota Setorial')),
         # All authenticated users have visibility.
         (NINST, _('Nota Institucional')),
         # All users have visibility.

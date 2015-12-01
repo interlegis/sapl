@@ -34,6 +34,22 @@ urlpatterns_compilacao = [
         '(?P<dispositivo_id>[0-9]+)/nota/(?P<pk>[0-9]+)/delete$',
         views.NotasDeleteView.as_view(), name='nota_delete'),
 
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/'
+        '(?P<dispositivo_id>[0-9]+)/vide/create$',
+        views.VideCreateView.as_view(), name='vide_create'),
+
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/'
+        '(?P<dispositivo_id>[0-9]+)/vide/(?P<pk>[0-9]+)/edit$',
+        views.VideEditView.as_view(), name='vide_edit'),
+
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/'
+        '(?P<dispositivo_id>[0-9]+)/vide/(?P<pk>[0-9]+)/delete$',
+        views.VideDeleteView.as_view(), name='vide_delete'),
+
+    url(r'^(?P<norma_id>[0-9]+)/compilacao/search$',
+        views.DispositivoSearchFragmentFormView.as_view(),
+        name='search_dispositivo'),
+
 ]
 
 urlpatterns = [
