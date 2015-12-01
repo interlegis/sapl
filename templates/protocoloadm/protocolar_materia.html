@@ -3,13 +3,9 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-<form method="POST">
-	<fieldset>
-		Protocolo: Opção de Numeração
-		<br/>
+	<form method="POST">
 		{% csrf_token %}
 		{% crispy form %}
 		<input type="submit" value="Protocolar Matéria" class="button primary" />
-	</fieldset>
-</form>
+	</form>
 {% endblock detail_content %}

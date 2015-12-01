@@ -7,7 +7,7 @@
 			{% csrf_token %}
 			<fieldset>
 			<legend>Pesquisa Avançada</legend>
-				{{ form.as_p }}
+				{% crispy form %}
 				<input type="submit" value="Pesquisar" name="pesquisa" class="button primary"/>
 			</fieldset>
 		</form>

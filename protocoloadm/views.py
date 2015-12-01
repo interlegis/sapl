@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from re import sub
 
+import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
 from django import forms
@@ -16,11 +17,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -135,7 +134,7 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
-class ProtocoloForm(forms.Form):
+class ProtocoloForm(ModelForm):
 
     YEARS = get_range_anos()
 
@@ -187,6 +186,48 @@ class ProtocoloForm(forms.Form):
 
     autor = forms.CharField(label='Autor', required=False)
     assunto = forms.CharField(label='Assunto', required=False)
+
+    class Meta:
+        model = Protocolo
+        fields = ['assunto',
+                  'autor',
+                  'interessado',
+                  'tipo_materia',
+                  'tipo_documento',
+                  'natureza_processo',
+                  'final',
+                  'inicial',
+                  'ano',
+                  'numero_protocolo',
+                  'tipo_protocolo']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('numero_protocolo', 6),
+             ('ano', 6)])
+
+        row2 = sapl.layout.to_row(
+            [('inicial', 6),
+             ('final', 6)])
+
+        row3 = sapl.layout.to_row(
+            [('tipo_documento', 4),
+             ('tipo_protocolo', 4),
+             ('tipo_materia', 4)])
+
+        row4 = sapl.layout.to_row(
+            [('interessado', 4),
+             ('autor', 4),
+             ('assunto', 4)])
+
+        row5 = sapl.layout.to_row(
+            [('natureza_processo', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(row1, row2, row3, row4, row5)
+        super(ProtocoloForm, self).__init__(
+            *args, **kwargs)
 
 
 class ProtocoloListView(FormMixin, ListView):
@@ -298,6 +339,22 @@ class AnularProcoloAdmForm(forms.Form):
     justificativa_anulacao = forms.CharField(
         widget=forms.Textarea, label='Motivo', required=True)
 
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('numero_protocolo', 6),
+             ('ano_protocolo', 6)])
+        row2 = sapl.layout.to_row(
+            [('justificativa_anulacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Identificação do Protocolo',
+                     row1, row2)
+        )
+        super(AnularProcoloAdmForm, self).__init__(
+            *args, **kwargs)
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -389,6 +446,31 @@ class ProtocoloDocumentForm(forms.Form):
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea, label='Observação')
 
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('numeracao', 12)])
+        row2 = sapl.layout.to_row(
+            [('tipo_protocolo', 12)])
+        row3 = sapl.layout.to_row(
+            [('tipo_documento', 6),
+             ('num_paginas', 6)])
+        row4 = sapl.layout.to_row(
+            [('assunto', 12)])
+        row5 = sapl.layout.to_row(
+            [('interessado', 12)])
+        row6 = sapl.layout.to_row(
+            [('observacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Protocolo - Opção de Numeração', row1),
+            Fieldset('Identificação de Documento',
+                     row2, row3, row4, row5, row6)
+        )
+        super(ProtocoloDocumentForm, self).__init__(
+            *args, **kwargs)
+
 
 class ProtocoloDocumentoView(FormMixin, GenericView):
 
@@ -463,6 +545,29 @@ class ProtocoloMateriaForm(forms.Form):
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea,
                                  label='Observação')
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('numeracao', 12)])
+        row2 = sapl.layout.to_row(
+            [('tipo_materia', 6),
+             ('num_paginas', 6)])
+        row3 = sapl.layout.to_row(
+            [('ementa', 12)])
+        row4 = sapl.layout.to_row(
+            [('autor', 12)])
+        row5 = sapl.layout.to_row(
+            [('observacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Protocolo - Opção de Numeração', row1),
+            Fieldset('Identificação da Matéria',
+                     row2, row3, row4, row5)
+        )
+        super(ProtocoloMateriaForm, self).__init__(
+            *args, **kwargs)
 
 
 class ProtocoloMostrarView(TemplateView):

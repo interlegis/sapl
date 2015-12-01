@@ -2,13 +2,11 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 {% block detail_content %}
-<div>{{ message }} </div>
+	<div>{{ message }} </div>
 	<form method="POST">
 		{% csrf_token %}
-		<fieldset>
 		{% crispy form %}
 		</br>
-			<input type="submit" value="Anular" class="button primary" />
-		</fieldset>
+		<input type="submit" value="Anular" class="button primary" />
 	</form>
 {% endblock detail_content %}
