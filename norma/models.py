@@ -3,7 +3,7 @@ from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import MateriaLegislativa
-from sapl.utils import make_choices, YES_NO_CHOICES
+from sapl.utils import YES_NO_CHOICES, make_choices
 
 
 class AssuntoNorma(models.Model):
