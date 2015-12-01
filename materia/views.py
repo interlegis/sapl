@@ -1,8 +1,6 @@
 from datetime import date
 from re import sub
 
-import sapl
-from comissoes.models import Comissao, Composicao
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
                                  Submit)
@@ -15,9 +13,12 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
+from comissoes.models import Comissao, Composicao
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,

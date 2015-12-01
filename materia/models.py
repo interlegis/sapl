@@ -205,7 +205,7 @@ class Autor(models.Model):
 
     def __str__(self):
         if str(self.tipo) == 'Parlamentar':
-            return str(self.parlamentar)
+            return self.parlamentar.nome_parlamentar
         elif str(self.tipo) == 'Comissao':
             return str(self.comissao)
         elif str(self.tipo) == 'Partido':

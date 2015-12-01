@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from re import sub
 
-import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
 from django import forms
@@ -17,9 +16,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -134,7 +135,12 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
-class ProtocoloForm(ModelForm):
+def get_autores():
+    return [('', 'Selecione')] \
+        + [(a.id, str(a)) for a in Autor.objects.all().order_by('tipo')]
+
+
+class ProtocoloForm(forms.Form):
 
     YEARS = get_range_anos()
 
@@ -184,22 +190,12 @@ class ProtocoloForm(ModelForm):
                                      widget=forms.Select(
                                          attrs={'class': 'selector'}))
 
-    autor = forms.CharField(label='Autor', required=False)
+    autor = forms.ChoiceField(required=False,
+                              label='Autor',
+                              choices=get_autores(),
+                              widget=forms.Select(
+                                  attrs={'class': 'selector'}))
     assunto = forms.CharField(label='Assunto', required=False)
-
-    class Meta:
-        model = Protocolo
-        fields = ['assunto',
-                  'autor',
-                  'interessado',
-                  'tipo_materia',
-                  'tipo_documento',
-                  'natureza_processo',
-                  'final',
-                  'inicial',
-                  'ano',
-                  'numero_protocolo',
-                  'tipo_protocolo']
 
     def __init__(self, *args, **kwargs):
 
@@ -249,7 +245,7 @@ class ProtocoloListView(FormMixin, ListView):
         page_obj = context['page_obj']
 
         context['page_range'] = sapl.crud.make_pagination(
-                page_obj.number, paginator.num_pages)
+            page_obj.number, paginator.num_pages)
         return context
 
 
@@ -541,7 +537,11 @@ class ProtocoloMateriaForm(forms.Form):
     num_paginas = forms.CharField(label='Núm. Páginas', required=True)
     ementa = forms.CharField(
         widget=forms.Textarea, label='Ementa', required=True)
-    autor = forms.CharField(label='Autor', required=True)
+    autor = forms.ChoiceField(required=False,
+                              label='Autor',
+                              choices=get_autores(),
+                              widget=forms.Select(
+                                  attrs={'class': 'selector'}))
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea,
                                  label='Observação')
