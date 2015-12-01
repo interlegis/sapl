@@ -755,7 +755,7 @@ class PesquisarDocumentoAdministrativo(TemplateView):
             kwargs['interessado'] = request.POST['interessado']
 
         if request.POST['assunto']:
-            kwargs['assunto'] = request.POST['assunto']
+            kwargs['assunto_ementa__icontains'] = request.POST['assunto']
 
         if request.POST['tramitacao']:
             if request.POST['tramitacao'] == 1:
