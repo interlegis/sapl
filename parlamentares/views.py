@@ -1,5 +1,6 @@
 from re import sub
 
+import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -9,15 +10,13 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
+from sapl.crud import build_crud
 from vanilla import GenericView
 
-import sapl
-from sapl.crud import build_crud
-
-from .models import (CargoMesa, Coligacao, Dependente, Filiacao, Legislatura,
-                     Mandato, NivelInstrucao, Parlamentar, Partido,
-                     SessaoLegislativa, SituacaoMilitar, TipoAfastamento,
-                     TipoDependente)
+from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
+                     Filiacao, Legislatura, Mandato, NivelInstrucao,
+                     Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
+                     TipoAfastamento, TipoDependente)
 
 cargo_mesa_crud = build_crud(
     CargoMesa, 'cargo_mesa', [
@@ -376,3 +375,102 @@ class ParlamentaresEditarView(FormMixin, GenericView):
         else:
             return self.render_to_response(
                 {'form': form, 'legislatura_id': pk})
+
+
+class MesaDiretoraForm(forms.Form):
+    pass
+
+
+class MesaDiretoraView(FormMixin, GenericView):
+    template_name = "mesa_diretora/mesa_diretora.html"
+
+    def get_success_url(self):
+        return reverse('mesa_diretora')
+
+    def get(self, request, *args, **kwargs):
+        form = MesaDiretoraForm()
+
+        mesa = SessaoLegislativa.objects.filter(
+            legislatura=Legislatura.objects.last()).first(
+        ).composicaomesa_set.all()
+
+        cargos_ocupados = [m.cargo for m in mesa]
+        cargos = CargoMesa.objects.all()
+        cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+
+        parlamentares = Legislatura.objects.last().mandato_set.all()
+        parlamentares_ocupados = [m.parlamentar for m in mesa]
+        parlamentares_vagos = list(
+            set(
+                [p.parlamentar for p in parlamentares]) - set(
+                parlamentares_ocupados))
+
+        return self.render_to_response(
+            {'form': form,
+             'legislaturas': Legislatura.objects.all(
+             ).order_by('-data_inicio'),
+             'legislatura_selecionada': Legislatura.objects.last(),
+             'sessoes': SessaoLegislativa.objects.filter(
+                 legislatura=Legislatura.objects.last()),
+             'sessao_selecionada': SessaoLegislativa.objects.filter(
+                 legislatura=Legislatura.objects.last()).first(),
+             'composicao_mesa': mesa,
+             'parlamentares': parlamentares_vagos,
+             'cargos_vagos': cargos_vagos
+             })
+
+    def post(self, request, *args, **kwargs):
+        form = MesaDiretoraForm(request.POST)
+
+        if 'Incluir' in request.POST:
+            composicao = ComposicaoMesa()
+            composicao.sessao_legislativa = SessaoLegislativa.objects.get(
+                id=form.data['sessao'])
+            composicao.parlamentar = Parlamentar.objects.get(
+                id=form.data['parlamentar'])
+            composicao.cargo = CargoMesa.objects.get(
+                id=form.data['cargo'])
+            composicao.save()
+            return self.form_valid(form)
+        elif 'Excluir' in request.POST:
+            if 'composicao_mesa' in request.POST:
+                ids = request.POST['composicao_mesa'].split(':')
+                ComposicaoMesa.objects.filter(
+                    sessao_legislativa=form.data['sessao'],
+                    parlamentar=ids[0],
+                    cargo=ids[1]
+                ).delete()
+            return self.form_valid(form)
+        else:
+            mesa = SessaoLegislativa.objects.filter(
+                legislatura_id=int(form.data['legislatura'])).first(
+            ).composicaomesa_set.all()
+
+            cargos_ocupados = [m.cargo for m in mesa]
+            cargos = CargoMesa.objects.all()
+            cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+
+            parlamentares = Legislatura.objects.get(
+                id=int(form.data['legislatura'])).mandato_set.all()
+            parlamentares_ocupados = [m.parlamentar for m in mesa]
+            parlamentares_vagos = list(
+                set(
+                    [p.parlamentar for p in parlamentares]) - set(
+                    parlamentares_ocupados))
+
+            return self.render_to_response(
+                {'form': form,
+                 'legislaturas': Legislatura.objects.all(
+                 ).order_by('-data_inicio'),
+                 'legislatura_selecionada': Legislatura.objects.get(
+                     id=int(form.data['legislatura'])),
+                 'sessoes': SessaoLegislativa.objects.filter(
+                     legislatura_id=int(form.data['legislatura'])),
+                 'sessao_selecionada': SessaoLegislativa.objects.filter(
+                     id=int(form.data['sessao'])),
+                 'composicao_mesa': mesa,
+                 'parlamentares': parlamentares_vagos,
+                 'cargos_vagos': cargos_vagos
+                 })
+
+        return self.form_valid(form)
