@@ -466,11 +466,9 @@ class MesaDiretoraView(FormMixin, GenericView):
                      id=int(form.data['legislatura'])),
                  'sessoes': SessaoLegislativa.objects.filter(
                      legislatura_id=int(form.data['legislatura'])),
-                 'sessao_selecionada': SessaoLegislativa.objects.filter(
+                 'sessao_selecionada': SessaoLegislativa.objects.get(
                      id=int(form.data['sessao'])),
                  'composicao_mesa': mesa,
                  'parlamentares': parlamentares_vagos,
                  'cargos_vagos': cargos_vagos
                  })
-
-        return self.form_valid(form)
