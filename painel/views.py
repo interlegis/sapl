@@ -1,5 +1,6 @@
 from datetime import date
 
+import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -13,8 +14,6 @@ from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            VotoParlamentar)
 
 from .models import Cronometro
-
-#                           VotoParlamentar)
 
 
 cronometro_painel_crud = build_crud(
@@ -47,8 +46,8 @@ def controlador_painel(request):
 
 
 def painel_view(request, pk):
-    context = {'head_title': 'Painel Plenário', 'sessao_id': pk}
-    return render(request, 'painel/index.html', {'context': context})
+    context = {'head_title': 'Painel Plenário', 'sessao_id': pk}    
+    return render(request, 'painel/index.html', context)
 
 
 def painel_mensagem_view(request):
@@ -80,6 +79,30 @@ def get_dados_painel(request, pk):
     # Sessão Plenária
     sessao_plenaria_id = pk
     sessao_plenaria = SessaoPlenaria.objects.get(id=sessao_plenaria_id)
+
+    status_painel = "FECHADO"
+
+    try:
+        painel = Painel.objects.get(data_painel=datetime.date.today())
+
+        if painel.aberto:
+            status_painel = "ABERTO"
+        else:
+            response = {"sessao_plenaria": str(sessao_plenaria),
+                        "sessao_plenaria_data": sessao_plenaria.data_inicio.strftime("%d/%m/%Y"),
+                        "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
+                        "status_painel": status_painel,
+                        }
+            return JsonResponse(response)            
+
+    except ObjectDoesNotExist:
+        response = {"sessao_plenaria": str(sessao_plenaria),
+                    "sessao_plenaria_data": sessao_plenaria.data_inicio.strftime("%d/%m/%Y"),
+                    "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
+                    "status_painel": status_painel,
+                    }
+        return JsonResponse(response)
+
 
     # # Pra recuperar o partido do parlamentar
     # # tem que fazer OUTRA query, deve ter uma
@@ -158,27 +181,28 @@ def get_dados_painel(request, pk):
     cronometro_aparte = get_cronometro_status(request, 'aparte')
     cronometro_ordem = get_cronometro_status(request, 'ordem')
 
-    votacao_json = {"sessao_plenaria": str(sessao_plenaria),
-                    "sessao_plenaria_data": sessao_plenaria.data_inicio,
-                    "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
-                    "materia_titulo": materia_titulo,
-                    "materia_legislativa_texto": materia_legislativa_texto,
-                    "materia_observacao": materia_observacao,
-                    "tipo_votacao": tipo_votacao,
-                    "presentes_ordem_dia": presentes_ordem_dia,
-                    "num_presentes_ordem_dia": num_presentes_ordem_dia,
-                    "presentes_sessao_plenaria": presentes_sessao_plenaria,
-                    "num_presentes_sessao_plenaria": num_presentes_sessao_plen,
-                    "votacao_aberta": votacao_aberta,
-                    "numero_votos_sim": numero_votos_sim,
-                    "numero_votos_nao": numero_votos_nao,
-                    "numero_abstencoes": numero_abstencoes,
-                    "total_votos": total_votos,
-                    "tipo_resultado": tipo_resultado,
-                    "votos": votos,
-                    "cronometro_aparte": cronometro_aparte,
-                    "cronometro_discurso": cronometro_discurso,
-                    "cronometro_ordem": cronometro_ordem,
-                    }
+    response = {"sessao_plenaria": str(sessao_plenaria),
+                "sessao_plenaria_data": sessao_plenaria.data_inicio.strftime("%d/%m/%Y"),
+                "sessao_plenaria_hora_inicio": sessao_plenaria.hora_inicio,
+                "materia_titulo": materia_titulo,
+                "materia_legislativa_texto": materia_legislativa_texto,
+                "materia_observacao": materia_observacao,
+                "tipo_votacao": tipo_votacao,
+                "presentes_ordem_dia": presentes_ordem_dia,
+                "num_presentes_ordem_dia": num_presentes_ordem_dia,
+                "presentes_sessao_plenaria": presentes_sessao_plenaria,
+                "num_presentes_sessao_plenaria": num_presentes_sessao_plen,
+                "votacao_aberta": votacao_aberta,
+                "numero_votos_sim": numero_votos_sim,
+                "numero_votos_nao": numero_votos_nao,
+                "numero_abstencoes": numero_abstencoes,
+                "total_votos": total_votos,
+                "tipo_resultado": tipo_resultado,
+                "votos": votos,
+                "cronometro_aparte": cronometro_aparte,
+                "cronometro_discurso": cronometro_discurso,
+                "cronometro_ordem": cronometro_ordem,
+                "status_painel": status_painel,
+                }
 
-    return JsonResponse(votacao_json)
+    return JsonResponse(response)

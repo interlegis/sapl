@@ -79,10 +79,16 @@
                type: "GET",
                success: function(data) {
 
-                  //TODO: json spitted out is very complex, have to simplify/flat it
-                  //TODO: probably building it by hand on REST side
 
-                  console.debug(data)
+                  $("#sessao_plenaria").text(data["sessao_plenaria"])
+                  $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
+                  $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])            
+
+                  if (data["status_painel"] === "FECHADO") {
+                    $("#message").text("PAINEL ENCONTRA-SE FECHADO");
+                    return;
+                  }                  
+
 
                   var presentes = $("#parlamentares");
                   presentes.children().remove();
@@ -93,7 +99,7 @@
                        $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);                      
                   });
 
-                  //console.debug(presentes_ordem_dia)
+                  //console.debug(presentes_ordem_dia)                  
 
                   var votacao = $("#votacao")
                   votacao.children().remove()
@@ -102,14 +108,6 @@
                   votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
                   votacao.append("<li>Presentes: " + data["num_presentes_ordem_dia"] + "</li>")
                   votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
-
-                  $("#sessao_plenaria").text(data["sessao_plenaria"])
-                  $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
-                  $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-
-                  $("#materia_legislativa_texto").text(data["materia_legislativa_texto"])
-                  $("#observacao_materia").text(data["observacao_materia"])
-                  $("#resultado_votacao").text(data["tipo_resultado"])
 
                   var discurso_current = data["cronometro_discurso"];                  
                   if (discurso_current != discurso_previous) {
@@ -129,8 +127,10 @@
                     ordem_previous = ordem_current;
                   }                  
 
-                  $("#counter").text(counter);
-                  counter++;
+                  $("#materia_legislativa_texto").text(data["materia_legislativa_texto"])
+                  $("#observacao_materia").text(data["observacao_materia"])
+                  $("#resultado_votacao").text(data["tipo_resultado"])
+
                },
                error: function(err) {
                   console.error(err);
@@ -145,13 +145,12 @@
     </head>
     <body>
         <h1 id="title"></h1>
-        {{ pk }}
-        <input id="json_url" type="hidden" value="{% url 'dados_painel' 2 %}">
-<!--         <h2>Ajax refresh counter: <span id="counter"></span></h2> -->
+        <input id="json_url" type="hidden" value="{% url 'dados_painel' sessao_id %}">
         <h3>
         <span id="sessao_plenaria"></span><br/><br/>
         <span id="sessao_plenaria_data"></span><br/><br/>
         <span id="sessao_plenaria_hora_inicio"></span></br><br/>
+        <h2 id="message"></h2>
         <h2><span id="relogio"></span></h2>
         <table>
             <tr>
