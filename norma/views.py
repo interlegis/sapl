@@ -1,7 +1,6 @@
 from datetime import datetime
 from re import sub
 
-import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -12,9 +11,11 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
@@ -130,7 +131,8 @@ class NormaJuridicaForm(ModelForm):
                   'pagina_fim_publicacao',
                   'ementa',
                   'indexacao',
-                  'observacao']
+                  'observacao',
+                  'texto_integral']
 
     def __init__(self, *args, **kwargs):
 
@@ -156,19 +158,22 @@ class NormaJuridicaForm(ModelForm):
              ('pagina_fim_publicacao', 3)])
 
         row5 = sapl.layout.to_row(
-            [('ementa', 12)])
+            [('texto_integral', 12)])
 
         row6 = sapl.layout.to_row(
-            [('indexacao', 12)])
+            [('ementa', 12)])
 
         row7 = sapl.layout.to_row(
+            [('indexacao', 12)])
+
+        row8 = sapl.layout.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Cadastro de Norma Jurídica',
                      Fieldset('Identificação Básica',
-                              row1, row2, row3, row4, row5, row6, row7),
+                              row1, row2, row3, row4, row5, row6, row7, row8),
                      ButtonHolder(
                          Submit('submit', 'Salvar',
                                 css_class='button primary'))
@@ -188,7 +193,6 @@ class NormaIncluirView(FormMixin, GenericView):
         return self.render_to_response({'form': form})
 
     def post(self, request, *args, **kwargs):
-
         form = NormaJuridicaForm(request.POST or None)
         if form.is_valid():
             norma = form.save(commit=False)
@@ -215,6 +219,9 @@ class NormaIncluirView(FormMixin, GenericView):
             if form.cleaned_data['observacao']:
                 norma.observacao = sub(
                     '&nbsp;', ' ', strip_tags(form.cleaned_data['observacao']))
+
+            if 'texto_integral' in request.FILES:
+                norma.texto_integral = request.FILES['texto_integral']
 
             norma.ementa = sub(
                 '&nbsp;', ' ', strip_tags(form.cleaned_data['ementa']))

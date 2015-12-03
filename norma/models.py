@@ -53,13 +53,25 @@ class TipoNormaJuridica(models.Model):
         return self.descricao
 
 
+def get_norma_media_path(instance, subpath, filename):
+    return './norma/%s/%s/%s' % (instance, subpath, filename)
+
+
+def texto_upload_path(instance, filename):
+    return get_norma_media_path(instance, instance.ano, filename)
+
+
 class NormaJuridica(models.Model):
     ESFERA_FEDERACAO_CHOICES, ESTADUAL, FEDERAL, MUNICIPAL = make_choices(
         'E', _('Estadual'),
         'F', _('Federal'),
         'M', _('Municipal'),
     )
-
+    texto_integral = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Texto Integral'))
     tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_('Tipo'))
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
