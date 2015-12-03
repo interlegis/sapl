@@ -1,12 +1,11 @@
-{% extends "materia/materialegislativa_detail.html" %}
+{% extends "norma/normajuridica_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
 	<form method="POST">
 		{% csrf_token %}
-		{{ form.as_table }}
-		</br>
-		<input type="submit" name="salvar" value="Salvar" class="button primary" />
+		{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
+		{% crispy form %}
 	</form>
 {% endblock %}

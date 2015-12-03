@@ -1,14 +1,20 @@
 from datetime import datetime
+from re import sub
 
+import sapl
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.forms import ModelForm
+from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-from materia.models import TipoMateriaLegislativa
+from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
@@ -47,12 +53,6 @@ norma_crud = build_crud(
             [('ementa', 12)],
             [('indexacao', 12)],
             [('observacao', 12)]],
-
-        [_('Assuntos (Classificação) [+]'),
-
-         [('assunto_norma_FIXME', 12)],
-            [('assunto_norma_FIXME', 12)],
-            [('assunto_norma_FIXME', 12)]],
     ])
 
 norma_temporario_crud = build_crud(
@@ -101,83 +101,87 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
-class NormaJuridicaForm(forms.Form):
+class NormaJuridicaForm(ModelForm):
 
-    tipo = forms.ChoiceField(required=True,
-                             label='Tipo',
-                             choices=get_tipos_norma(),
-                             widget=forms.Select(
-                                 attrs={'class': 'selector'}))
-
-    numero = forms.CharField(label='Número', required=True)
-
-    ano = forms.CharField(label='Ano', required=True)
-
-    data = forms.DateField(label='Data',
-                           required=True,
-                           input_formats=['%d/%m/%Y'],
-                           widget=forms.TextInput(
-                               attrs={'class': 'dateinput'}))
-
-    esfera = forms.ChoiceField(required=True,
-                               label='Tipo',
-                               choices=get_esferas(),
-                               widget=forms.Select(
-                                   attrs={'class': 'selector'}))
-
-    complementar = forms.ChoiceField(required=False,
-                                     choices=[('1', 'Sim'), ('0', 'Não')],
-                                     widget=forms.RadioSelect(
-                                         renderer=HorizontalRadioRenderer),
-                                     label='Complementar')
-
-    materia = forms.ChoiceField(required=False,
-                                label='Materia Legislativa',
-                                choices=get_tipos_materia(),
-                                widget=forms.Select(
-                                    attrs={'class': 'selector'}))
+    tipo_materia = forms.ChoiceField(required=False,
+                                     label='Materia Legislativa',
+                                     choices=get_tipos_materia(),
+                                     widget=forms.Select(
+                                         attrs={'class': 'selector'}))
 
     numero_materia = forms.CharField(label='Número', required=False)
 
     ano_materia = forms.CharField(label='Ano', required=False)
 
-    data_publicacao = forms.DateField(label='Data Publicação',
-                                      required=False,
-                                      input_formats=['%d/%m/%Y'],
-                                      widget=forms.TextInput(
-                                          attrs={'class': 'dateinput'}))
+    class Meta:
+        model = NormaJuridica
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  'data',
+                  'esfera_federacao',
+                  'complemento',
+                  'tipo_materia',
+                  'numero_materia',
+                  'ano_materia',
+                  'data_publicacao',
+                  'veiculo_publicacao',
+                  'pagina_inicio_publicacao',
+                  'pagina_fim_publicacao',
+                  'ementa',
+                  'indexacao',
+                  'observacao']
 
-    veiculo_publicacao = forms.CharField(
-        label='Veiculo Publicação', required=False)
+    def __init__(self, *args, **kwargs):
 
-    pg_inicio = forms.CharField(label='Pg. Início', required=False)
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('numero', 4),
+             ('ano', 4)])
 
-    pg_fim = forms.CharField(label='Pg. Fim', required=False)
+        row2 = sapl.layout.to_row(
+            [('data', 4),
+             ('esfera_federacao', 4),
+             ('complemento', 4)])
 
-    # texto = form.FileUpload(label='Texto', required=False) # TODO: implement
-    # file upload
+        row3 = sapl.layout.to_row(
+            [('tipo_materia', 4),
+             ('numero_materia', 4),
+             ('ano_materia', 4)])
 
-    data_fim_vigencia = forms.DateField(label='Data Fim Vigência',
-                                        required=False,
-                                        input_formats=['%d/%m/%Y'],
-                                        widget=forms.TextInput(
-                                            attrs={'class': 'dateinput'}))
+        row4 = sapl.layout.to_row(
+            [('data_publicacao', 3),
+             ('veiculo_publicacao', 3),
+             ('pagina_inicio_publicacao', 3),
+             ('pagina_fim_publicacao', 3)])
 
-    ementa = forms.CharField(
-        label='Ementa', required=True, widget=forms.Textarea)
+        row5 = sapl.layout.to_row(
+            [('ementa', 12)])
 
-    indexacao = forms.CharField(
-        label='Indexação', required=False, widget=forms.Textarea)
+        row6 = sapl.layout.to_row(
+            [('indexacao', 12)])
 
-    observacao = forms.CharField(
-        label='Observação', required=False, widget=forms.Textarea)
+        row7 = sapl.layout.to_row(
+            [('observacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Cadastro de Norma Jurídica',
+                     Fieldset('Identificação Básica',
+                              row1, row2, row3, row4, row5, row6, row7),
+                     ButtonHolder(
+                         Submit('submit', 'Salvar',
+                                css_class='button primary'))
+                     )
+        )
+        super(NormaJuridicaForm, self).__init__(*args, **kwargs)
 
 
 class NormaIncluirView(FormMixin, GenericView):
     template_name = "norma/normajuridica_incluir.html"
 
     def get_success_url(self):
-        return reverse('norma-incluir')
+        return '/norma/'
 
     def get(self, request, *args, **kwargs):
         form = NormaJuridicaForm()
@@ -186,57 +190,36 @@ class NormaIncluirView(FormMixin, GenericView):
     def post(self, request, *args, **kwargs):
 
         form = NormaJuridicaForm(request.POST or None)
-
         if form.is_valid():
+            norma = form.save(commit=False)
 
-            norma = NormaJuridica()
-            norma.tipo = TipoNormaJuridica.objects.get(
-                id=form.cleaned_data['tipo'])
-            norma.numero = form.cleaned_data['numero']
-            norma.ano = form.cleaned_data['ano']
-            norma.data = form.cleaned_data['data']
-            norma.esfera = form.cleaned_data['esfera']
-            norma.complementar = form.cleaned_data['complementar']
-            if form.cleaned_data['complementar']:
-                norma.complementar = TipoMateriaLegislativa.objects.get(
-                    id=form.cleaned_data['complementar'])
+            if form.cleaned_data['tipo_materia']:
+                tipo = TipoMateriaLegislativa.objects.get(
+                    id=form.cleaned_data['tipo_materia'])
+                try:
+                    materia = MateriaLegislativa.objects.get(
+                        tipo=tipo,
+                        numero=form.cleaned_data['numero'],
+                        ano=form.cleaned_data['ano'])
+                except ObjectDoesNotExist:
+                    return self.render_to_response(
+                        {'form': form,
+                         'error': 'Matéria adicionada não existe!'})
+                else:
+                    norma.materia = materia
 
-            if form.cleaned_data['materia']:
-                norma.materia = form.cleaned_data['materia']
+            if form.cleaned_data['indexacao']:
+                norma.indexacao = sub(
+                    '&nbsp;', ' ', strip_tags(form.cleaned_data['indexacao']))
 
-            if form.cleaned_data['numero_materia']:
-                norma.numero_materia = form.cleaned_data['numero_materia']
+            if form.cleaned_data['observacao']:
+                norma.observacao = sub(
+                    '&nbsp;', ' ', strip_tags(form.cleaned_data['observacao']))
 
-            if form.cleaned_data['ano_materia']:
-                norma.ano_materia = form.cleaned_data['ano_materia']
-
-            if form.cleaned_data['data_publicacao']:
-                norma.data_publicacao = form.cleaned_data['data_publicacao']
-
-            if form.cleaned_data['veiculo_publicacao']:
-                norma.veiculo_publicacao = form.cleaned_data[
-                    'veiculo_publicacao']
-
-            if form.cleaned_data['pg_inicio']:
-                norma.pg_inicio = form.cleaned_data['pg_inicio']
-
-            if form.cleaned_data['pg_fim']:
-                norma.pg_fim = form.cleaned_data['pg_fim']
-
-            if form.cleaned_data['data_fim_vigencia']:
-                norma.data_fim_vigencia = form.cleaned_data[
-                    'data_fim_vigencia']
-
-            norma.ementa = form.cleaned_data['ementa']
-
-            norma.indexacao = form.cleaned_data['indexacao']
-
-            norma.observacao = form.cleaned_data['observacao']
-
+            norma.ementa = sub(
+                '&nbsp;', ' ', strip_tags(form.cleaned_data['ementa']))
             norma.timestamp = datetime.now()
-
             norma.save()
-
-            return self.render_to_response({'form': form})
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
