@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from parlamentares.views import (MesaDiretoraView, ParlamentaresCadastroView,
                                  ParlamentaresEditarView, ParlamentaresView,
                                  cargo_mesa_crud, coligacao_crud,

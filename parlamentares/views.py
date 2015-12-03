@@ -1,6 +1,5 @@
 from re import sub
 
-import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -10,8 +9,10 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from sapl.crud import build_crud
 from vanilla import GenericView
+
+import sapl
+from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
