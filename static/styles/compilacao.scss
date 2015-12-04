@@ -447,7 +447,7 @@ a:link:after, a:visited:after {
                     }
                     .title_form {
                         font-size: 2.5em;
-                        padding: 0.5em 0.3em 0.2em;
+                        padding: 0.5em 0.3em 0.3em;
                         background: #e5e5e5;
                         color: #777;
                         margin-bottom: 0.4em;
@@ -460,6 +460,9 @@ a:link:after, a:visited:after {
                         background: url(/static/img/down_arrow_select.jpg) no-repeat right #ddd;
                         border: 0px;
                         outline:0px;
+                    }
+                    .alert-box {
+                        margin-bottom: 0;
                     }
                     .row:first-of-type {
                         margin-top: 1em;
@@ -1173,6 +1176,7 @@ a:link:after, a:visited:after {
     cursor: pointer;
     opacity: 0.7;
     transform: rotate(45deg);
+    z-index: 98;
 
     .icon-close{
         background: #FFF;
