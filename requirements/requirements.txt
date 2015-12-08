@@ -1,5 +1,5 @@
 crispy-forms-foundation
-Django
+Django<1.9
 django-admin-bootstrapped
 django-bootstrap3
 django-bower
