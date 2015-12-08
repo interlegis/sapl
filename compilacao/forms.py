@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Div, Field, Layout, Row
 from django import forms
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
@@ -14,7 +15,7 @@ class UpLoadImportFileForm(forms.Form):
         required=True,
         label=_('Arquivo formato ODF para Importanção'))
 
-error_messages = {
+nota_error_messages = {
     'required': _('Este campo é obrigatório'),
     'invalid': _('URL inválida.')
 }
@@ -37,11 +38,11 @@ class NotaForm(ModelForm):
     texto = forms.CharField(
         label='',
         widget=forms.Textarea,
-        error_messages=error_messages)
+        error_messages=nota_error_messages)
     url_externa = forms.URLField(
         label='',
         required=False,
-        error_messages=error_messages)
+        error_messages=nota_error_messages)
     publicidade = forms.ChoiceField(
         required=True,
         label=_('Publicidade'),
@@ -60,7 +61,7 @@ class NotaForm(ModelForm):
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
-        error_messages=error_messages
+        error_messages=nota_error_messages
     )
     efetividade = forms.DateField(
         label=_('Efetividade'),
@@ -68,7 +69,7 @@ class NotaForm(ModelForm):
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
-        error_messages=error_messages)
+        error_messages=nota_error_messages)
     dispositivo = forms.ModelChoiceField(queryset=Dispositivo.objects.all(),
                                          widget=forms.HiddenInput())
     pk = forms.IntegerField(widget=forms.HiddenInput(),
@@ -137,12 +138,12 @@ class VideForm(ModelForm):
     texto = forms.CharField(
         label='',
         widget=forms.Textarea,
-        error_messages=error_messages,
         required=False)
     tipo = forms.ModelChoiceField(
         label=_('Tipo do Vide'),
         queryset=TipoVide.objects.all(),
-        required=True)
+        required=True,
+        error_messages=nota_error_messages)
 
     busca_dispositivo = forms.CharField(
         label=_('Buscar Dispositivo a Referenciar'),
@@ -157,6 +158,12 @@ class VideForm(ModelForm):
                   'texto',
                   'tipo',
                   'pk']
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together':
+                "Ja existe um Vide deste tipo para o Dispositivo Referido ",
+            }
+        }
 
     def __init__(self, *args, **kwargs):
 

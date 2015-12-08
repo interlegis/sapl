@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
@@ -1048,7 +1049,7 @@ class Vide(TimestampedMixin):
     class Meta:
         verbose_name = _('Vide')
         verbose_name_plural = _('Vides')
-        unique_together = ['dispositivo_base', 'dispositivo_ref']
+        unique_together = ['dispositivo_base', 'dispositivo_ref', 'tipo']
 
     def __str__(self):
         return _('Vide %s') % self.texto
