@@ -17,10 +17,14 @@ Development Environment Installation
 
 * Install the following system dependencies (command bellow for Ubuntu)::
 
-    sudo apt-get install python3-dev libpq-dev graphviz-dev graphviz \
+    sudo apt-get install git python3-dev libpq-dev graphviz-dev graphviz \
     postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
 
     sudo npm install -g bower
+
+* Setup git, following the instructions in https://help.github.com/articles/set-up-git.
+
+* Fork and clone this repository, following the instructions in https://help.github.com/articles/fork-a-repo.
 
 * Create a virtualenv using python 3 for the project and activate it.
   If you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_::
