@@ -1,3 +1,6 @@
+.. image:: https://badge.waffle.io/interlegis/sapl.png?label=ready&title=Ready 
+ :target: https://waffle.io/interlegis/sapl
+ :alt: 'Stories in Ready'
 
 ***********************************************
 SAPL - Legislative Process Support System
