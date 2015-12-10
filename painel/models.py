@@ -13,6 +13,7 @@ class Painel(models.Model):
     data_painel = models.DateField(verbose_name='Data painel')
     mostrar = models.CharField(max_length=1,
                                choices=PAINEL_TYPES, default='C')
+
     def __str__(self):
         return str(self.aberto) + ":" + self.data_painel.strftime("%d/%m/%Y")
 
