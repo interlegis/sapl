@@ -1,4 +1,3 @@
-import datetime
 from datetime import date
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -10,7 +9,7 @@ from parlamentares.models import Filiacao
 from sapl.crud import build_crud
 from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            SessaoPlenaria, SessaoPlenariaPresenca,
-                           TipoResultadoVotacao, VotoParlamentar)
+                           VotoParlamentar)
 
 from .models import Cronometro
 
@@ -149,8 +148,8 @@ def response_null_materia(response):
 
 
 def get_votos(response, materia):
-    registro = RegistroVotacao.objects.get(
-        ordem=materia, materia=materia.materia)
+    registro = RegistroVotacao.objects.filter(
+        ordem=materia, materia=materia.materia).last()
     total = (registro.numero_votos_sim +
              registro.numero_votos_nao +
              registro.numero_abstencoes)
