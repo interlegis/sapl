@@ -19,7 +19,7 @@ import sapl
 from comissoes.models import Comissao, Composicao
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.crud import build_crud
-
+from parlamentares.models import Parlamentar
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria,
@@ -1875,3 +1875,141 @@ class ProposicaoListView(ListView):
         context['page_range'] = sapl.crud.make_pagination(
                 page_obj.number, paginator.num_pages)
         return context
+
+
+def get_autores():
+    return [('', 'Selecione')] \
+        + [(a.id, str(a)) for a in Autor.objects.all().order_by('tipo')]
+
+
+def get_parlamentares():
+    return [('', 'Selecione')] \
+        + [(p.id, str(p.nome_parlamentar,)
+            ) for p in Parlamentar.objects.filter(
+            ativo=True).order_by('nome_parlamentar')]
+
+
+def get_localizacao():
+    return [('', 'Selecione')] \
+        + [(u.id, str(u)
+            ) for u in UnidadeTramitacao.objects.all()]
+
+
+def get_status():
+    return [('', 'Selecione')] \
+        + [(s.id, str(s.descricao)
+            ) for s in StatusTramitacao.objects.all()]
+
+
+def em_tramitacao():
+    return [('', 'Tanto Faz'),
+            (True, 'Sim'),
+            (False, 'Não')]
+
+
+class MateriaLegislativaPesquisaForm(forms.Form):
+    autor = forms.ChoiceField(required=False,
+                              label='Autor',
+                              choices=get_autores(),
+                              widget=forms.Select(
+                                 attrs={'class': 'selector'}))
+    # relatores são os parlamentares ativos?
+    relator = forms.ChoiceField(required=False,
+                                label='Relator',
+                                choices=get_parlamentares(),
+                                widget=forms.Select(
+                                  attrs={'class': 'selector'}))
+
+    tipo = forms.ChoiceField(required=False,
+                             label='Tipo da Matéria',
+                             choices=get_tipos_materia(),
+                             widget=forms.Select(
+                                attrs={'class': 'selector'}))
+
+    data_apresentacao = forms.DateField(label=u'Data Fim Prazo',
+                                        input_formats=['%d/%m/%Y'],
+                                        required=False,
+                                        widget=forms.DateInput(
+                                            format='%d/%m/%Y',
+                                            attrs={'class': 'dateinput'}))
+
+    data_publicacao = forms.DateField(label=u'Data Fim Prazo',
+                                      input_formats=['%d/%m/%Y'],
+                                      required=False,
+                                      widget=forms.DateInput(
+                                          format='%d/%m/%Y',
+                                          attrs={'class': 'dateinput'}))
+
+    numero = forms.CharField(required=False, label=u'Número da Matéria')
+    numero_protocolo = forms.CharField(required=False, label=u'Núm. Protocolo')
+    ano = forms.CharField(required=False, label=u'Ano da Matéria')
+    assunto = forms.CharField(required=False, label=u'Assunto')
+
+    localizacao = forms.ChoiceField(required=False,
+                                    label='Localização Atual',
+                                    choices=get_localizacao(),
+                                    widget=forms.Select(
+                                        attrs={'class': 'selector'}))
+
+    situacao = forms.ChoiceField(required=False,
+                                 label='Situação',
+                                 choices=get_status(),
+                                 widget=forms.Select(
+                                    attrs={'class': 'selector'}))
+
+    tramitacao = forms.ChoiceField(required=False,
+                                   label='Tramitando',
+                                   choices=em_tramitacao(),
+                                   widget=forms.Select(
+                                      attrs={'class': 'selector'}))
+
+    # TODO: Verificar se esses campos estão corretos
+    # assunto? # -> usado 'ementa' em 'assunto'
+    # localizacao autal? #
+    # situacao? #
+    # tramitando? #
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 12)])
+        row2 = sapl.layout.to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('numero_protocolo', 4)])
+        row3 = sapl.layout.to_row(
+            [('data_apresentacao', 6),
+             ('data_publicacao', 6)])
+        row4 = sapl.layout.to_row(
+            [('autor', 6),
+             ('relator', 6)])
+        row5 = sapl.layout.to_row(
+            [('localizacao', 6),
+             ('situacao', 6)])
+        row6 = sapl.layout.to_row(
+            [('tramitacao', 12)])
+        row7 = sapl.layout.to_row(
+            [('assunto', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Pesquisa Básica',
+                     row1, row2, row3, row4, row5, row6, row7),
+            ButtonHolder(
+                Submit('submit', 'Pesquisar',
+                       css_class='button primary')
+            )
+        )
+        super(MateriaLegislativaPesquisaForm, self).__init__(
+            *args, **kwargs)
+
+
+class MateriaLegislativaPesquisaView(FormMixin, GenericView):
+    template_name = 'materia/pesquisa_materia.html'
+
+    def get_success_url(self):
+        return reverse('pesquisar_materia')
+
+    def get(self, request, *args, **kwargs):
+        form = MateriaLegislativaPesquisaForm()
+        return self.render_to_response({'form': form})
