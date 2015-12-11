@@ -1315,7 +1315,7 @@ class ExplicacaoView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
 
         for orador in Orador.objects.filter(
-                sessao_plenaria_id=self.object.id):
+                sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
             numero_ordem = orador.numero_ordem
             url_discurso = orador.url_discurso
             parlamentar = Parlamentar.objects.get(
