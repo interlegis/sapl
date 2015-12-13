@@ -17,6 +17,7 @@ $(window).load(function() {
     }, 100);
 });
 
+
 function isElementInViewport (el) {
 
     //special bonus for those using jQuery
@@ -45,8 +46,6 @@ function textoMultiVigente(item, diff) {
 			break;
 		}
 	}
-	
-	
 	
 	$(".cp .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
@@ -78,6 +77,7 @@ function textoMultiVigente(item, diff) {
 
             if (diff.length > 0) {
                 $('#d'+pks).closest('.desativado').addClass("displaynone");
+
 
                 var clone = $('#da'+pk).clone();
                 $('#da'+pk).after( clone );
@@ -141,6 +141,7 @@ function textoVigente(item, link) {
 			scrollTop: $(elv).parent().offset().top - 60
 		}, 0);
     }
+
 }
 
 $(document).ready(function() {
