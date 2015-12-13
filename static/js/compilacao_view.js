@@ -24,8 +24,8 @@ function textoMultiVigente(item, diff) {
 
     if (diff) {
         $(".dtxt[id^='da'").each(function() {
-
-            if ($(this).html().indexOf('</table>') > 0)
+  
+            if ( $(this).html().search( /<\/\w+>/g ) > 0)
                 return;
 
             var pk = $(this).attr('pk')
@@ -44,7 +44,7 @@ function textoMultiVigente(item, diff) {
             var  diff = JsDiff.diffWordsWithSpace($(a).text(), $(b).text());
 
             if (diff.length > 0) {
-                $('#d'+pk).addClass("displaynone");
+                $('#d'+pks).closest('.desativado').addClass("displaynone");
 
                 var clone = $('#da'+pk).clone();
                 $('#da'+pk).after( clone );
