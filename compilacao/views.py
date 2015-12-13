@@ -133,17 +133,43 @@ class CompilacaoView(ListView):
     def get_context_data(self, **kwargs):
         context = super(CompilacaoView, self).get_context_data(**kwargs)
 
-        vides = Vide.objects.filter(
-            Q(dispositivo_base__norma_id=self.kwargs['norma_id']) |
-            Q(dispositivo_ref__norma_id=self.kwargs['norma_id']))
+        cita = Vide.objects.filter(
+            Q(dispositivo_base__norma_id=self.kwargs['norma_id'])).\
+            select_related(
+            'dispositivo_ref',
+            'dispositivo_ref__norma',
+            'dispositivo_ref__dispositivo_pai',
+            'dispositivo_ref__dispositivo_pai__norma', 'tipo')
 
-        context['cita'] = [v.dispositivo_base_id for v in vides]
-        context['citado'] = [v.dispositivo_ref_id for v in vides]
+        context['cita'] = {}
+        for c in cita:
+            if str(c.dispositivo_base_id) not in context['cita']:
+                context['cita'][str(c.dispositivo_base_id)] = []
+            context['cita'][str(c.dispositivo_base_id)].append(c)
+
+        citado = Vide.objects.filter(
+            Q(dispositivo_ref__norma_id=self.kwargs['norma_id'])).\
+            select_related(
+            'dispositivo_base',
+            'dispositivo_base__norma',
+            'dispositivo_base__dispositivo_pai',
+            'dispositivo_base__dispositivo_pai__norma', 'tipo')
+
+        context['citado'] = {}
+        for c in citado:
+            if str(c.dispositivo_ref_id) not in context['citado']:
+                context['citado'][str(c.dispositivo_ref_id)] = []
+            context['citado'][str(c.dispositivo_ref_id)].append(c)
 
         notas = Nota.objects.filter(
-            dispositivo__norma_id=self.kwargs['norma_id'])
+            dispositivo__norma_id=self.kwargs['norma_id']).select_related(
+            'owner', 'tipo')
 
-        context['notas'] = [n.dispositivo_id for n in notas]
+        context['notas'] = {}
+        for n in notas:
+            if str(n.dispositivo_id) not in context['notas']:
+                context['notas'][str(n.dispositivo_id)] = []
+            context['notas'][str(n.dispositivo_id)].append(n)
         return context
 
     def get_queryset(self):

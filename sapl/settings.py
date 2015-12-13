@@ -160,6 +160,7 @@ BOWER_INSTALLED_APPS = (
     'jquery-ui',
     'jquery-runner',
     'jQuery-Mask-Plugin',
+    'jsdiff',
 )
 
 # Additional search paths for SASS files when using the @import statement

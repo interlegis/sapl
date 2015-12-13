@@ -150,6 +150,15 @@ a:link:after, a:visited:after {
             border: 1px dotted #ccc;
         }
     }
+    .diff {
+        .desativado, .desativado * {
+            text-decoration: line-through;
+            color: #dbb !important;
+        }
+        .added {
+            color: #018;
+        }
+    }
 
     .dpt {
         font-size:1em;
@@ -250,6 +259,9 @@ a:link:after, a:visited:after {
             &.link_alterador {
                 color: #2980B9;
                 font-size: 0.75em;
+                &:hover {
+                    text-decoration: underline;
+                }
             }
             &.desativado {
                 @extend .desativado;
@@ -635,6 +647,10 @@ a:link:after, a:visited:after {
 
     .tipo-vigencias {
         border-top: 1px solid #62B5B5;
+        position: fixed;
+        bottom: 0;
+        transform: translate(-50%,0);
+        left: 50%;
     }
 
     .vigencias {
@@ -783,6 +799,7 @@ a:link:after, a:visited:after {
         margin: 1em -2em 1em -2.8em;
         padding: 2.2em 2.2em 1.6em 2.2em;
         box-shadow: -4px 15px 15px rgba(0, 0, 0, 0.1), 0px 6px 6px rgba(0, 0, 0, 0.23);
+
 
         @include background-top-down(#eaeaee, #ddd);
 

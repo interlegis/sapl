@@ -6,12 +6,14 @@
 
 {% block head_content %}{{block.super}}
       <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+      <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
 
       <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
 
       {# TODO:  incluir javascript compilacao_notas apenas se houver usuário conectado e que possua permissão para cadastro de notas #}
       <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
+
 {% endblock %}
 
 
@@ -20,6 +22,7 @@
 {% endblock %}
 
 {% block base_content %}
+
 
 <div class="cp">
 
@@ -62,11 +65,26 @@
 				</li>
 				{% if forloop.last %}
 			</ul>
-			<ul class="nav left tipo-vigencias">
-				<li><a class="selected" onclick="textoMultiVigente(this);">{% trans 'Texto Multivigente'%}</a></li>
-				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li>
-				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li>
-			</ul>
+
+            {% comment %}
+            	<ul class="nav left tipo-vigencias">
+    				<li><a class="selected" onclick="textoMultiVigente(this);" title="">{% trans 'Texto Multivigente'%}</a></li>
+    				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li>
+    				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li>
+    			</ul>
+
+            {% endcomment %}
+
+            <ul class="tipo-vigencias">
+                <li><a class="selected" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a></li>
+                <li><a onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a></li>
+                <li><a onclick="textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}">{% trans 'TVL'%}</a></li>
+                <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
+            </ul>
+
+
+
+
 		</section>
 	</nav>
 </section>

@@ -19,6 +19,8 @@
 
 {% block base_content %}
 
+
+
 <div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
 
 <div class="cpe">
@@ -26,7 +28,7 @@
 </div>
 
 
-{% if user.is_authenticated and False %}
+{% if False %}
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 

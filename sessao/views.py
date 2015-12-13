@@ -25,6 +25,7 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
 
+
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
 

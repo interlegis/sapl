@@ -14,17 +14,74 @@ $(window).load(function() {
     }, 100);
 });
 
-function textoMultiVigente(item) {
+function textoMultiVigente(item, diff) {
 	$(".cp .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
-	$(".desativado").removeClass("displaynone");
+	$(".dptt.desativado").removeClass("displaynone");
+	$(".dtxt").removeClass("displaynone");
+	$(".dtxt.diff").remove();
 	$(".link_alterador").removeClass("displaynone");
+
+    if (diff) {
+        $(".dtxt[id^='da'").each(function() {
+
+            if ($(this).html().indexOf('</table>') > 0)
+                return;
+
+            var pk = $(this).attr('pk')
+            var pks = $(this).attr('pks')
+
+            var a = $('#d'+pks).contents().filter(function () {
+                return this.nodeType === Node.TEXT_NODE;
+            });
+            var b = $('#da'+pk).contents().filter(function () {
+                return this.nodeType === Node.TEXT_NODE;
+            });
+
+
+
+
+            var  diff = JsDiff.diffWordsWithSpace($(a).text(), $(b).text());
+
+            if (diff.length > 0) {
+                $('#d'+pk).addClass("displaynone");
+
+                var clone = $('#da'+pk).clone();
+                $('#da'+pk).after( clone );
+                $('#da'+pk).addClass('displaynone');
+                $(clone).addClass('diff').html('');
+
+
+                diff.forEach(function(part){
+                    var color = part.added ? '#018' :
+                      part.removed ? '#faa' : '';
+
+                    var span = document.createElement('span');
+
+                    var value = part.value;
+
+                    if (part.removed) {
+                        $(span).addClass('desativado')
+                        value += ' ';
+                    }
+                    else if (part.added) {
+                        $(span).addClass('added')
+                    }
+
+                    span.appendChild(document.createTextNode(value));
+                    $(clone).append(span);
+                });
+            }
+        });
+        //textoVigente(item, true);
+    }
 }
 
 function textoVigente(item, link) {
 	$(".cp .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
-	$(".desativado").addClass("displaynone");
+
+	$(".dptt.desativado").addClass("displaynone");
 	$(".link_alterador").removeClass("displaynone");
 	if (!link)
 		$(".link_alterador").addClass("displaynone");
@@ -37,4 +94,8 @@ $(document).ready(function() {
 	$("#btn_font_mais").click(function() {
 	    $(".dpt").css("font-size", "+=1");
 	});
+
+
+
+
 });

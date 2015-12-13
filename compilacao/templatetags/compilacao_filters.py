@@ -22,8 +22,9 @@ def get_tipos_dispositivo(pk_atual):
 
 
 @register.filter
-def get_field(value_dict, key):
-    return value_dict[key]
+def lookup(d, key):
+    skey = str(key)
+    return d[str(key)] if skey in d else []
 
 
 @register.simple_tag

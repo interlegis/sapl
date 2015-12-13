@@ -1,6 +1,8 @@
 {% load i18n %}
 {% load compilacao_filters %}
 
+<div class="display"></div>
+
 {% for dpt in object_list %}
 	{% if dpt.nivel == view.flag_nivel_old %}
 			</div>
@@ -16,8 +18,8 @@
 
 	{% spaceless %}
 	<div class="{{ dpt.tipo_dispositivo.class_css }}">
-		<div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}">
-			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}
+		<div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
+			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}<span class="dtxt" id="d{% if not dpt.dispositivo_subsequente and dpt.dispositivo_substituido %}a{%endif%}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido.pk}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}</span>
 			{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 				<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
 					{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
@@ -41,8 +43,11 @@
 		{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
 			<div class="dn" id="dn{{dpt.pk}}" pk="{{dpt.pk}}">{# Dispostivo Nota e Vides #}
 						<ul class="dnl">{# Dispostivo Nota Lista#}
-							{% if cita and dpt.pk in cita %}
-								{% for vide in dpt.cita.all %}
+
+
+                            {% if cita and cita|lookup:dpt.pk %}
+                                {% for vide in cita|lookup:dpt.pk %}
+
 									{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
 									<li class="dnli" id="nt{{vide.pk}}">
 
@@ -74,8 +79,8 @@
 								{% endfor %}
 							{% endif %}
 
-							{% if citado and dpt.pk in citado %}
-								{% for vide in dpt.citado.all %}
+							{% if citado and citado|lookup:dpt.pk %}
+								{% for vide in citado|lookup:dpt.pk %}
 									{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
 									<li class="dnli" id="nt{{vide.pk}}">
 										<ul>
@@ -100,9 +105,8 @@
 
 					{%if notas and dpt.pk in notas and dpt.pk in cita or dpt.pk in citado and notas%}<li class="bullet">&#8226;</li>{%endif%}
 
-					{% if notas and dpt.pk in notas %}
-
-						{% for nota in dpt.notas.all %}
+					{% if notas and notas|lookup:dpt.pk %}
+						{% for nota in notas|lookup:dpt.pk  %}
 
 							{% if user.is_superuser or nota.publicidade == nota.NPUBL or nota.publicidade == nota.NINST and user.is_authenticated or nota.publicidade = nota.NPRIV and nota.owner == user %}
 								{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
