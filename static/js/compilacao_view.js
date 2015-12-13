@@ -46,7 +46,7 @@ function textoMultiVigente(item, diff) {
 			break;
 		}
 	}
-	
+
 	$(".cp .tipo-vigencias a").removeClass("selected")
 	$(item).addClass("selected")
 	$(".dptt.desativado").removeClass("displaynone");
@@ -56,8 +56,9 @@ function textoMultiVigente(item, diff) {
 
     if (diff) {
         $(".dtxt[id^='da'").each(function() {
-  
+
             if ( $(this).html().search( /<\/\w+>/g ) > 0)
+
                 return;
 
             var pk = $(this).attr('pk')
@@ -141,6 +142,7 @@ function textoVigente(item, link) {
 			scrollTop: $(elv).parent().offset().top - 60
 		}, 0);
     }
+
 
 }
 
