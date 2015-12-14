@@ -1,0 +1,22 @@
+{% extends "materia/materialegislativa_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block sections_nav %} {% endblock %}
+{% block detail_content %}
+{% if materias %}				
+	<table>
+		<tr><td><h2>Resultados</h2></td></tr>
+		{% for m in materias %}
+			<tr>
+				<td>
+					<strong><a href="{% url 'materialegislativa:detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+					{{ m.ementa }}</br>
+					<strong>Localização Atual:</strong> {{m.local_origem_externa}}</br>
+			</tr>
+		{% endfor %}
+	</table>
+{% include "paginacao.html" %}
+{% else %}
+	<h2>Nenhum Registro recuperado</h2>
+{% endif %}
+{% endblock detail_content %}

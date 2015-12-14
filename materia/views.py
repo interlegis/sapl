@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
@@ -8,6 +8,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
+from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -18,8 +19,9 @@ from vanilla import GenericView
 import sapl
 from comissoes.models import Comissao, Composicao
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
-from sapl.crud import build_crud
 from parlamentares.models import Parlamentar
+from sapl.crud import build_crud
+
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria,
@@ -1926,14 +1928,14 @@ class MateriaLegislativaPesquisaForm(forms.Form):
                              widget=forms.Select(
                                 attrs={'class': 'selector'}))
 
-    data_apresentacao = forms.DateField(label=u'Data Fim Prazo',
+    data_apresentacao = forms.DateField(label=u'Data de Apresentação',
                                         input_formats=['%d/%m/%Y'],
                                         required=False,
                                         widget=forms.DateInput(
                                             format='%d/%m/%Y',
                                             attrs={'class': 'dateinput'}))
 
-    data_publicacao = forms.DateField(label=u'Data Fim Prazo',
+    data_publicacao = forms.DateField(label=u'Data da Publicação',
                                       input_formats=['%d/%m/%Y'],
                                       required=False,
                                       widget=forms.DateInput(
@@ -2013,3 +2015,62 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
     def get(self, request, *args, **kwargs):
         form = MateriaLegislativaPesquisaForm()
         return self.render_to_response({'form': form})
+
+    def post(self, request, *args, **kwargs):
+        kwargs = {}
+
+        # TODO: Autor, Relator, Localização, Origem
+
+        if request.POST['tipo']:
+            kwargs['tipo'] = request.POST['tipo']
+
+        if request.POST['numero']:
+            kwargs['numero'] = request.POST['numero']
+
+        if request.POST['ano']:
+            kwargs['ano'] = request.POST['ano']
+
+        if request.POST['numero_protocolo']:
+            kwargs['numero_protocolo'] = request.POST['numero_protocolo']
+
+        if request.POST['data_apresentacao']:
+            kwargs['data_apresentacao'] = datetime.strptime(
+                    request.POST['data_apresentacao'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
+
+        if request.POST['data_publicacao']:
+            kwargs['data_publicacao'] = datetime.strptime(
+                    request.POST['data_publicacao'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
+
+        if request.POST['tramitacao']:
+            kwargs['em_tramitacao'] = request.POST['tramitacao']
+
+        if request.POST['assunto']:
+            kwargs['ementa'] = request.POST['assunto']
+
+        request.session['kwargs'] = kwargs
+        return redirect('pesquisar_materia_list')
+
+
+class PesquisaMateriaListView(FormMixin, ListView):
+    template_name = 'materia/pesquisa_materia_list.html'
+    context_object_name = 'materias'
+    model = MateriaLegislativa
+    paginate_by = 10
+
+    def get_queryset(self):
+        kwargs = self.request.session['kwargs']
+        return MateriaLegislativa.objects.filter(
+            **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisaMateriaListView, self).get_context_data(
+            **kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = sapl.crud.make_pagination(
+            page_obj.number, paginator.num_pages)
+        return context
