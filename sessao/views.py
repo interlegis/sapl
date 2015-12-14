@@ -1333,14 +1333,13 @@ class ExplicacaoDelete(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        current_url = request.get_full_path()
-        words = current_url.split('/')
+        oid = kwargs['oid']
         form = OradorDeleteForm(request.POST)
 
         if form.is_valid():
             orador = Orador.objects.get(
                 sessao_plenaria_id=self.object.id,
-                parlamentar_id=words[-1])
+                parlamentar_id=oid)
             orador.delete()
             return self.form_valid(form)
         else:
@@ -1359,20 +1358,20 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         form = OradorForm(request.POST)
 
-        if form.is_valid():
-            current_url = request.get_full_path()
-            words = current_url.split('/')
+        pk = kwargs['pk']
+        oid = kwargs['oid']
 
+        if form.is_valid():
             orador = Orador.objects.get(
-                sessao_plenaria_id=self.object.id,
-                parlamentar_id=words[-1])
+                sessao_plenaria_id=pk,
+                parlamentar_id=oid)
             orador.delete()
 
             orador = Orador()
-            orador.sessao_plenaria_id = self.object.id
+            orador.sessao_plenaria_id = pk
             orador.numero_ordem = request.POST['numero_ordem']
             orador.parlamentar = Parlamentar.objects.get(
-                id=words[-1])
+                id=oid)
             orador.url_discurso = request.POST['url_discurso']
             orador.save()
 
@@ -1380,10 +1379,7 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         else:
             context = self.get_context_data(object=self.object)
 
-            current_url = self.request.get_full_path()
-            words = current_url.split('/')
-
-            parlamentar = Parlamentar.objects.get(id=words[-1])
+            parlamentar = Parlamentar.objects.get(id=oid)
             orador = Orador.objects.get(
                 sessao_plenaria=self.object, parlamentar=parlamentar)
 
@@ -1397,10 +1393,9 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
-        current_url = self.request.get_full_path()
-        words = current_url.split('/')
+        oid = kwargs['oid']
 
-        parlamentar = Parlamentar.objects.get(id=words[-1])
+        parlamentar = Parlamentar.objects.get(id=oid)
         orador = Orador.objects.get(
             sessao_plenaria=self.object, parlamentar=parlamentar)
 
