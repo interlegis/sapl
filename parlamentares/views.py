@@ -1,5 +1,5 @@
 from re import sub
-
+from datetime import date
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -326,13 +326,12 @@ class ParlamentaresCadastroView(FormMixin, GenericView):
                 parlamentar.biografia = sub('&nbsp;',
                                             ' ',
                                             strip_tags(form.data['biografia']))
-                parlamentar.save()
+            parlamentar.save()
 
-                mandato = Mandato()
-
-                mandato.parlamentar = parlamentar
-                mandato.legislatura = Legislatura.objects.get(id=pk)
-                mandato.save()
+            mandato = Mandato()
+            mandato.parlamentar = parlamentar
+            mandato.legislatura = Legislatura.objects.get(id=pk)
+            mandato.save()
             return self.form_valid(form)
         else:
             return self.render_to_response(
