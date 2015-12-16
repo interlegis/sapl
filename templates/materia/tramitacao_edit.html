@@ -14,6 +14,7 @@
 
 		<fieldset>
 			<legend>Editar Tramitação</legend>
+			{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
 				<form method="POST">
 					{% csrf_token %}
 					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">

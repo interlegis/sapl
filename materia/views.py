@@ -1570,7 +1570,18 @@ class TramitacaoEditView(FormMixin, GenericView):
 
         if form.is_valid():
             if 'excluir' in request.POST:
-                tramitacao.delete()
+                if tramitacao == Tramitacao.objects.filter(materia=materia).last():
+                    tramitacao.delete()
+                    return self.form_valid(form)
+                else:
+                    return self.render_to_response(
+                        {'materialegislativa': materia,
+                         'form': form,
+                         'tramitacao': tramitacao,
+                         'turno': Tramitacao.TURNO_CHOICES,
+                         'status': StatusTramitacao.objects.all(),
+                         'unidade_tramitacao': UnidadeTramitacao.objects.all(),
+                         'error': 'Somente a última tramitação pode ser deletada!'})
             elif 'salvar' in request.POST:
                 tramitacao.status = form.cleaned_data['status']
                 tramitacao.turno = form.cleaned_data['turno']
@@ -1584,7 +1595,7 @@ class TramitacaoEditView(FormMixin, GenericView):
                 tramitacao.texto = form.cleaned_data['texto']
 
                 tramitacao.save()
-            return self.form_valid(form)
+                return self.form_valid(form)
         else:
             return self.render_to_response(
                 {'materialegislativa': materia,
