@@ -110,11 +110,21 @@ def get_presentes(pk, response, materia):
     presentes_ordem_dia = []
     for p in presenca_ordem_dia:
         nome_parlamentar = p.parlamentar.nome_parlamentar
-        presentes_ordem_dia.append(
-            {'id': p.id,
-             'nome': nome_parlamentar,
-             'partido': parlamentar_partido[nome_parlamentar],
-             })
+
+        try:
+            parlamentar_partido[nome_parlamentar]
+        except KeyError:
+            presentes_ordem_dia.append(
+                {'id': p.id,
+                 'nome': nome_parlamentar,
+                 'partido': 'Sem Registro',
+                 })
+        else:
+            presentes_ordem_dia.append(
+                {'id': p.id,
+                 'nome': nome_parlamentar,
+                 'partido': parlamentar_partido[nome_parlamentar],
+                 })
     num_presentes_ordem_dia = len(presentes_ordem_dia)
 
     if materia.tipo_votacao == 1:
