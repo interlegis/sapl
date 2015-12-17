@@ -348,9 +348,9 @@ class ParlamentaresEditarView(FormMixin, GenericView):
         pk = kwargs['pk']
         pid = kwargs['pid']
         parlamentar = Parlamentar.objects.get(id=pid)
-
         form = ParlamentaresEditForm(instance=parlamentar)
-        return self.render_to_response({'form': form, 'legislatura_id': pk})
+        return self.render_to_response(
+            {'form': form, 'legislatura_id': pk, 'parlamentar': parlamentar})
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -396,8 +396,8 @@ class DependenteForm(ModelForm):
 
         row2 = sapl.layout.to_row(
             [('tipo', 4),
-            ('sexo', 4),
-            ('data_nascimento', 4)])
+             ('sexo', 4),
+             ('data_nascimento', 4)])
 
         row3 = sapl.layout.to_row(
             [('cpf', 4),
@@ -409,33 +409,98 @@ class DependenteForm(ModelForm):
             Fieldset('Cadastro de Dependentes',
                      row1, row2, row3,
                      ButtonHolder(
-                         Submit('submit', 'Salvar',
+                         Submit('Salvar', 'Salvar',
                                 css_class='button primary'),
                      ))
 
         )
         super(DependenteForm, self).__init__(
-            *args, **kwargs)                  
+            *args, **kwargs)
+
+
+class DependenteEditForm(DependenteForm):
+
+    def __init__(self, *args, **kwargs):
+        super(DependenteEditForm, self).__init__(
+            *args, **kwargs)
+
+        self.helper.layout[0][-1:] = ButtonHolder(
+            Submit('Salvar', 'Salvar',
+                   css_class='button primary'),
+            HTML('&nbsp;'),
+            Submit('Excluir', 'Excluir',
+                   css_class='button primary'),)
+
 
 class ParlamentaresDependentesView(FormMixin, GenericView):
 
-  template_name = "parlamentares/parlamentares_dependentes.html"
+    template_name = "parlamentares/parlamentares_dependentes.html"
 
-  def get_success_url(self):
-    return reverse('parlamentares_dependentes')
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('parlamentares_dependentes', kwargs={'pk': pk})
 
-  def get(self, request, *args, **kwargs):
-    
-    pid = kwargs['pk']
-    parlamentar = Parlamentar.objects.get(id=pid)
-    dependentes = Dependente.objects.filter(parlamentar = parlamentar).order_by('nome', 'tipo')
+    def get(self, request, *args, **kwargs):
 
-    form = DependenteForm()
+        pid = kwargs['pk']
+        parlamentar = Parlamentar.objects.get(id=pid)
+        dependentes = Dependente.objects.filter(
+            parlamentar=parlamentar).order_by('nome', 'tipo')
 
-    return self.render_to_response({'parlamentar': parlamentar,
-                                    'dependentes': dependentes,
-                                    'form': form})
+        form = DependenteForm()
 
+        return self.render_to_response({'parlamentar': parlamentar,
+                                        'dependentes': dependentes,
+                                        'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = DependenteForm(request.POST)
+
+        if form.is_valid():
+            dependente = form.save(commit=False)
+
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+            dependente.parlamentar = parlamentar
+
+            dependente.save()
+            return self.form_valid(form)
+        else:
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+            dependentes = Dependente.objects.filter(
+                parlamentar=parlamentar).order_by('nome', 'tipo')
+
+            return self.render_to_response({'parlamentar': parlamentar,
+                                            'dependentes': dependentes,
+                                            'form': form})
+
+
+class ParlamentaresDependentesEditView(FormMixin, GenericView):
+    template_name = "parlamentares/parlamentares_dependentes_edit.html"
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('parlamentares_dependentes', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        dependente = Dependente.objects.get(id=kwargs['dk'])
+        form = DependenteEditForm(instance=dependente)
+        return self.render_to_response({'form': form})
+
+    def post(self, request, *args, **kwargs):
+        dependente = Dependente.objects.get(id=kwargs['dk'])
+        form = DependenteEditForm(request.POST, instance=dependente)
+
+        if form.is_valid():
+            if 'Salvar' in request.POST:
+                dependente.save()
+            elif 'Excluir' in request.POST:
+                dependente.delete()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form})
 
 
 class MesaDiretoraForm(forms.Form):

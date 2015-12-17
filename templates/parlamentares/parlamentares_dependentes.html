@@ -1,31 +1,30 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-
+{% block actions %}{% endblock %}
 {% block detail_content %}
 	
-
-<strong>{{ parlamentar.nome_parlamentar }}</strong>
+<strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
 
 <fieldset>
 	<legend>Dependentes</legend>
-	
-	<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-	        <li><strong>Nome Dependente</strong></li>
-	        <li><strong>Tipo</strong></li>
-	        <li><strong>Data de Nascimento</strong></li>
-	</ul>	
-		{% for d in dependentes %}
-		    <ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-		        <li>{{d.nome}}</li>
-	            <li>{{d.tipo }}</li>
-	            <li>{{d.data_nascimento}}</li>
-	            <li><a href="#">Editar</a> <a href="#">Excluir</a></li>
-		    </ul>
-		{% endfor %}
+
+	<table>
+		<tr>
+			<th><strong>Nome Dependente</strong></th>
+			<th><strong>Tipo</strong></th>
+			<th><strong>Data de Nascimento</strong></th>
+		</tr>
+			{% for d in dependentes %}
+				<tr>
+					<td><a href="{% url 'parlamentares_dependentes_edit' parlamentar.id d.id %}">{{d.nome}}</a></td>
+					<td>{{d.tipo }}</td>
+					<td>{{d.data_nascimento}}</td>
+				</tr>
+			{% endfor %}
+	</table>
 </fieldset>
 
 {% crispy form %}
-
 
 {% endblock detail_content %}
