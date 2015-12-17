@@ -5,7 +5,7 @@
   <dl class="sub-nav left">
     <dd><a href="{% url 'parlamentares_editar' legislatura_id parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Inicio' %}</a></dd>
     <dd><a href="" id="incluir-parlamentar" class="button secondary">{% trans 'Mandatos' %}</a></dd>
-    <dd><a href="{% url 'parlamentares_filiacao' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Filiações Partidárias' %}</a></dd>
+    <dd><a href="" id="incluir-parlamentar" class="button secondary">{% trans 'Filiações Partidárias' %}</a></dd>
     <dd><a href="{% url 'parlamentares_dependentes' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Dependentes' %}</a></dd>
   </dl>
 {% endblock %}
@@ -14,19 +14,19 @@
 <strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
 
 <fieldset>
-	<legend>Dependentes</legend>
+	<legend>Filiações</legend>
 
 	<table>
 		<tr>
-			<th><strong>Nome Dependente</strong></th>
-			<th><strong>Tipo</strong></th>
-			<th><strong>Data de Nascimento</strong></th>
+			<th><strong>Partido</strong></th>
+			<th><strong>Data Filiação</strong></th>
+			<th><strong>Data Desfiliação</strong></th>
 		</tr>
-			{% for d in dependentes %}
+			{% for f in filiacoes %}
 				<tr>
-					<td><a href="{% url 'parlamentares_dependentes_edit' parlamentar.id d.id %}">{{d.nome}}</a></td>
-					<td>{{d.tipo }}</td>
-					<td>{{d.data_nascimento}}</td>
+					<td><a href="">{{f.partido.sigla}}</a></td>
+					<td>{{f.data}}</td>
+					<td>{{f.data_desfiliacao}}</td>
 				</tr>
 			{% endfor %}
 	</table>

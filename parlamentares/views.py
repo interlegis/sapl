@@ -611,3 +611,79 @@ class MesaDiretoraView(FormMixin, GenericView):
                  'parlamentares': parlamentares_vagos,
                  'cargos_vagos': cargos_vagos
                  })
+
+
+class FiliacaoForm(ModelForm):
+
+    class Meta:
+        model = Filiacao
+        fields = ['partido',
+                  'data',
+                  'data_desfiliacao']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('partido', 4),
+             ('data', 4),
+             ('data_desfiliacao', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Adicionar Filiação', row1,
+                     ButtonHolder(
+                         Submit('Salvar', 'Salvar',
+                                css_class='button primary'),
+                     ))
+
+        )
+        super(FiliacaoForm, self).__init__(
+            *args, **kwargs)
+
+
+class FiliacaoView(FormMixin, GenericView):
+
+    template_name = "parlamentares/parlamentares_filiacao.html"
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('parlamentares_filiacao', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        pid = kwargs['pk']
+        parlamentar = Parlamentar.objects.get(id=pid)
+        filiacoes = Filiacao.objects.filter(
+            parlamentar=parlamentar)
+
+        form = FiliacaoForm()
+
+        return self.render_to_response(
+            {'parlamentar': parlamentar,
+             'filiacoes': filiacoes,
+             'form': form,
+             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+
+    def post(self, request, *args, **kwargs):
+        form = FiliacaoForm(request.POST)
+
+        if form.is_valid():
+            filiacao = form.save(commit=False)
+
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+            filiacao.parlamentar = parlamentar
+
+            filiacao.save()
+            return self.form_valid(form)
+        else:
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+            filiacoes = Filiacao.objects.filter(
+                    parlamentar=parlamentar)
+
+            return self.render_to_response(
+                {'parlamentar': parlamentar,
+                 'filiacoes': filiacoes,
+                 'form': form,
+                 'legislatura_id': parlamentar.mandato_set.last(
+                 ).legislatura.id})
