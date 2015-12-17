@@ -1,5 +1,5 @@
 from re import sub
-from datetime import date
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -441,7 +441,6 @@ class ParlamentaresDependentesView(FormMixin, GenericView):
         return reverse('parlamentares_dependentes', kwargs={'pk': pk})
 
     def get(self, request, *args, **kwargs):
-
         pid = kwargs['pk']
         parlamentar = Parlamentar.objects.get(id=pid)
         dependentes = Dependente.objects.filter(
@@ -449,9 +448,11 @@ class ParlamentaresDependentesView(FormMixin, GenericView):
 
         form = DependenteForm()
 
-        return self.render_to_response({'parlamentar': parlamentar,
-                                        'dependentes': dependentes,
-                                        'form': form})
+        return self.render_to_response(
+            {'parlamentar': parlamentar,
+             'dependentes': dependentes,
+             'form': form,
+             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
 
     def post(self, request, *args, **kwargs):
         form = DependenteForm(request.POST)
@@ -471,9 +472,12 @@ class ParlamentaresDependentesView(FormMixin, GenericView):
             dependentes = Dependente.objects.filter(
                 parlamentar=parlamentar).order_by('nome', 'tipo')
 
-            return self.render_to_response({'parlamentar': parlamentar,
-                                            'dependentes': dependentes,
-                                            'form': form})
+            return self.render_to_response(
+                {'parlamentar': parlamentar,
+                 'dependentes': dependentes,
+                 'form': form,
+                 'legislatura_id': parlamentar.mandato_set.last(
+                 ).legislatura.id})
 
 
 class ParlamentaresDependentesEditView(FormMixin, GenericView):
@@ -485,12 +489,18 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
 
     def get(self, request, *args, **kwargs):
         dependente = Dependente.objects.get(id=kwargs['dk'])
+        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
         form = DependenteEditForm(instance=dependente)
-        return self.render_to_response({'form': form})
+        return self.render_to_response(
+            {'form': form,
+             'parlamentar': parlamentar,
+             ' legislatura_id': dependente.parlamentar.mandato_set.last(
+             ).legislatura_id})
 
     def post(self, request, *args, **kwargs):
         dependente = Dependente.objects.get(id=kwargs['dk'])
         form = DependenteEditForm(request.POST, instance=dependente)
+        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
 
         if form.is_valid():
             if 'Salvar' in request.POST:
@@ -500,7 +510,10 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response(
-                {'form': form})
+                {'form': form,
+                 'parlamentar': parlamentar,
+                 'legislatura_id': dependente.parlamentar.mandato_set.last(
+                 ).legislatura_id})
 
 
 class MesaDiretoraForm(forms.Form):
