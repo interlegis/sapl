@@ -1,0 +1,31 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	
+
+<strong>{{ parlamentar.nome_parlamentar }}</strong>
+
+<fieldset>
+	<legend>Dependentes</legend>
+	
+	<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
+	        <li><strong>Nome Dependente</strong></li>
+	        <li><strong>Tipo</strong></li>
+	        <li><strong>Data de Nascimento</strong></li>
+	</ul>	
+		{% for d in dependentes %}
+		    <ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
+		        <li>{{d.nome}}</li>
+	            <li>{{d.tipo }}</li>
+	            <li>{{d.data_nascimento}}</li>
+	            <li><a href="#">Editar</a> <a href="#">Excluir</a></li>
+		    </ul>
+		{% endfor %}
+</fieldset>
+
+{% crispy form %}
+
+
+{% endblock detail_content %}

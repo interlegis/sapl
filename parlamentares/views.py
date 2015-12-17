@@ -377,6 +377,67 @@ class ParlamentaresEditarView(FormMixin, GenericView):
                 {'form': form, 'legislatura_id': pk})
 
 
+class DependenteForm(ModelForm):
+
+    class Meta:
+        model = Dependente
+        fields = ['nome',
+                  'data_nascimento',
+                  'tipo',
+                  'sexo',
+                  'cpf',
+                  'rg',
+                  'titulo_eleitor']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('nome', 12)])
+
+        row2 = sapl.layout.to_row(
+            [('tipo', 4),
+            ('sexo', 4),
+            ('data_nascimento', 4)])
+
+        row3 = sapl.layout.to_row(
+            [('cpf', 4),
+             ('rg', 4),
+             ('titulo_eleitor', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Cadastro de Dependentes',
+                     row1, row2, row3,
+                     ButtonHolder(
+                         Submit('submit', 'Salvar',
+                                css_class='button primary'),
+                     ))
+
+        )
+        super(DependenteForm, self).__init__(
+            *args, **kwargs)                  
+
+class ParlamentaresDependentesView(FormMixin, GenericView):
+
+  template_name = "parlamentares/parlamentares_dependentes.html"
+
+  def get_success_url(self):
+    return reverse('parlamentares_dependentes')
+
+  def get(self, request, *args, **kwargs):
+    
+    pid = kwargs['pk']
+    parlamentar = Parlamentar.objects.get(id=pid)
+    dependentes = Dependente.objects.filter(parlamentar = parlamentar).order_by('nome', 'tipo')
+
+    form = DependenteForm()
+
+    return self.render_to_response({'parlamentar': parlamentar,
+                                    'dependentes': dependentes,
+                                    'form': form})
+
+
+
 class MesaDiretoraForm(forms.Form):
     pass
 
