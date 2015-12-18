@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
-from parlamentares.views import (FiliacaoView, MesaDiretoraView,
-                                 ParlamentaresCadastroView,
+from parlamentares.views import (FiliacaoEditView, FiliacaoView,
+                                 MesaDiretoraView, ParlamentaresCadastroView,
                                  ParlamentaresDependentesEditView,
                                  ParlamentaresDependentesView,
                                  ParlamentaresEditarView, ParlamentaresView,
@@ -42,6 +42,9 @@ urlpatterns = [
     url(r'^parlamentares/(?P<pk>\d+)/filiacao$',
         FiliacaoView.as_view(),
         name='parlamentares_filiacao'),
+    url(r'^parlamentares/(?P<pk>\d+)/filiacao/(?P<dk>\d+)$',
+        FiliacaoEditView.as_view(),
+        name='parlamentares_filiacao_edit'),
 
     url(r'^parlamentares/(?P<pk>\d+)/(?P<pid>\d+)/editar$',
         ParlamentaresEditarView.as_view(), name='parlamentares_editar'),

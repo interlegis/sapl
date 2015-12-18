@@ -641,8 +641,21 @@ class FiliacaoForm(ModelForm):
             *args, **kwargs)
 
 
-class FiliacaoView(FormMixin, GenericView):
+class FiliacaoEditForm(FiliacaoForm):
 
+    def __init__(self, *args, **kwargs):
+        super(FiliacaoEditForm, self).__init__(
+            *args, **kwargs)
+
+        self.helper.layout[0][-1:] = ButtonHolder(
+            Submit('Salvar', 'Salvar',
+                   css_class='button primary'),
+            HTML('&nbsp;'),
+            Submit('Excluir', 'Excluir',
+                   css_class='button primary'),)
+
+
+class FiliacaoView(FormMixin, GenericView):
     template_name = "parlamentares/parlamentares_filiacao.html"
 
     def get_success_url(self):
@@ -679,7 +692,7 @@ class FiliacaoView(FormMixin, GenericView):
             pid = kwargs['pk']
             parlamentar = Parlamentar.objects.get(id=pid)
             filiacoes = Filiacao.objects.filter(
-                    parlamentar=parlamentar)
+                parlamentar=parlamentar)
 
             return self.render_to_response(
                 {'parlamentar': parlamentar,
@@ -687,3 +700,39 @@ class FiliacaoView(FormMixin, GenericView):
                  'form': form,
                  'legislatura_id': parlamentar.mandato_set.last(
                  ).legislatura.id})
+
+
+class FiliacaoEditView(FormMixin, GenericView):
+    template_name = "parlamentares/parlamentares_filiacao_edit.html"
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('parlamentares_filiacao', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        filiacao = Filiacao.objects.get(id=kwargs['dk'])
+        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
+        form = FiliacaoEditForm(instance=filiacao)
+        return self.render_to_response(
+            {'form': form,
+             'parlamentar': parlamentar,
+             'legislatura_id': parlamentar.mandato_set.last(
+             ).legislatura_id})
+
+    def post(self, request, *args, **kwargs):
+        filiacao = Filiacao.objects.get(id=kwargs['dk'])
+        form = FiliacaoEditForm(request.POST, instance=filiacao)
+        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
+
+        if form.is_valid():
+            if 'Salvar' in request.POST:
+                filiacao.save()
+            elif 'Excluir' in request.POST:
+                filiacao.delete()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'parlamentar': parlamentar,
+                 'legislatura_id': parlamentar.mandato_set.last(
+                 ).legislatura_id})
