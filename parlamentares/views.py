@@ -736,3 +736,138 @@ class FiliacaoEditView(FormMixin, GenericView):
                  'parlamentar': parlamentar,
                  'legislatura_id': parlamentar.mandato_set.last(
                  ).legislatura_id})
+
+
+class MandatoForm(ModelForm):
+
+    class Meta:
+        model = Mandato
+        fields = ['legislatura',
+                  'coligacao',
+                  'votos_recebidos',
+                  'data_fim_mandato',
+                  'data_expedicao_diploma',
+                  'observacao']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('legislatura', 4),
+             ('coligacao', 4),
+             ('votos_recebidos', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('data_fim_mandato', 6),
+             ('data_expedicao_diploma', 6)])
+
+        row3 = sapl.layout.to_row(
+            [('observacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Adicionar Mandato', row1, row2, row3,
+                     ButtonHolder(
+                         Submit('Salvar', 'Salvar',
+                                css_class='button primary'),
+                     ))
+
+        )
+        super(MandatoForm, self).__init__(
+            *args, **kwargs)
+
+
+class MandatoEditForm(MandatoForm):
+
+    def __init__(self, *args, **kwargs):
+        super(MandatoEditForm, self).__init__(
+            *args, **kwargs)
+
+        self.helper.layout[0][-1:] = ButtonHolder(
+            Submit('Salvar', 'Salvar',
+                   css_class='button primary'),
+            HTML('&nbsp;'),
+            Submit('Excluir', 'Excluir',
+                   css_class='button primary'),)
+
+
+class MandatoView(FormMixin, GenericView):
+    template_name = "parlamentares/parlamentares_mandato.html"
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('parlamentares_mandato', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        pid = kwargs['pk']
+        parlamentar = Parlamentar.objects.get(id=pid)
+        mandatos = Mandato.objects.filter(
+            parlamentar=parlamentar)
+
+        form = MandatoForm()
+
+        return self.render_to_response(
+            {'parlamentar': parlamentar,
+             'mandatos': mandatos,
+             'form': form,
+             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+
+    def post(self, request, *args, **kwargs):
+        form = MandatoForm(request.POST)
+
+        if form.is_valid():
+            mandato = form.save(commit=False)
+
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+            mandato.parlamentar = parlamentar
+
+            mandato.save()
+            return self.form_valid(form)
+        else:
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+            mandatos = Mandato.objects.filter(
+                parlamentar=parlamentar)
+
+            return self.render_to_response(
+                {'parlamentar': parlamentar,
+                 'mandatos': mandatos,
+                 'form': form,
+                 'legislatura_id': parlamentar.mandato_set.last(
+                 ).legislatura.id})
+
+
+class MandatoEditView(FormMixin, GenericView):
+    template_name = "parlamentares/parlamentares_mandato_edit.html"
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('parlamentares_mandato', kwargs={'pk': pk})
+
+    def get(self, request, *args, **kwargs):
+        mandato = Mandato.objects.get(id=kwargs['dk'])
+        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
+        form = MandatoEditForm(instance=mandato)
+        return self.render_to_response(
+            {'form': form,
+             'parlamentar': parlamentar,
+             'legislatura_id': parlamentar.mandato_set.last(
+             ).legislatura_id})
+
+    def post(self, request, *args, **kwargs):
+        mandato = Mandato.objects.get(id=kwargs['dk'])
+        form = MandatoEditForm(request.POST, instance=mandato)
+        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
+
+        if form.is_valid():
+            if 'Salvar' in request.POST:
+                mandato.save()
+            elif 'Excluir' in request.POST:
+                mandato.delete()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'parlamentar': parlamentar,
+                 'legislatura_id': parlamentar.mandato_set.last(
+                 ).legislatura_id})

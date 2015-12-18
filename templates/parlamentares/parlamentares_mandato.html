@@ -16,6 +16,33 @@
 {% endblock %}
 {% block detail_content %}
 	
+<strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
+
+<fieldset>
+	<legend>Mandatos</legend>
+
+	<table>
+		<tr>
+			<th><strong>Legislatura</strong></th>
+			<th><strong>Coligação</strong></th>
+			<th><strong>Fim Mandato</strong></th>
+			<th><strong>Exp. Diploma</strong></th>
+			<th><strong>Nº Votos</strong></th>
+			<th><strong>Observação</strong></th>
+		</tr>
+			{% for m in mandatos %}
+				<tr>
+					<td><a href="{% url 'parlamentares_mandato_edit' parlamentar.id m.id %}">{{m.legislatura}}</a></td>
+					<td>{{m.coligacao}}</td>
+					<td>{{m.data_fim_mandato}}</td>
+					<td>{{m.data_expedicao_diploma}}</td>
+					<td>{{m.votos_recebidos}}</td>
+					<td>{{m.observacao}}</td>
+				</tr>
+			{% endfor %}
+	</table>
+</fieldset>
+
 {% crispy form %}
 
 {% endblock detail_content %}
