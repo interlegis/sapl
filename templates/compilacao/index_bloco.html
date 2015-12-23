@@ -20,8 +20,8 @@
 	<div class="{{ dpt.tipo_dispositivo.class_css }}">
 		<div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
 			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}<span class="dtxt" id="d{% if not dpt.dispositivo_subsequente and dpt.dispositivo_substituido %}a{%endif%}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido.pk}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}</span>
-			{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-				<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
+			{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+				<a class="link_alterador" href="{%url 'compilacao' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
 					{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
 					{% nota_automatica dpt %}
 					{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
@@ -69,9 +69,9 @@
 										<div class="ntitulo">Vide: </div>
 										<div class="ntexto">
 											{% if dpt.is_relative_auto_insert %}
-												<a href="{%url 'compilacao' vide.dispositivo_ref.dispositivo_pai.norma.pk%}#{{vide.dispositivo_ref.dispositivo_pai.pk }}">{{ vide.dispositivo_ref.dispositivo_pai}}</a>
+												<a href="{%url 'compilacao' vide.dispositivo_ref.dispositivo_pai.ta.pk%}#{{vide.dispositivo_ref.dispositivo_pai.pk }}">{{ vide.dispositivo_ref.dispositivo_pai}}</a>
 											{% else %}
-												<a href="{%url 'compilacao' vide.dispositivo_ref.norma.pk%}#{{vide.dispositivo_ref.pk }}">{{ vide.dispositivo_ref}}</a>
+												<a href="{%url 'compilacao' vide.dispositivo_ref.ta.pk%}#{{vide.dispositivo_ref.pk }}">{{ vide.dispositivo_ref}}</a>
 											{% endif %}
 											{% if vide.texto %} - {{vide.texto}}{% endif %}
 										</div>
@@ -91,9 +91,9 @@
 										<div class="ntitulo">Citado em: </div>
 										<div class="ntexto">
 												{% if dpt.is_relative_auto_insert %}
-													<a href="{%url 'compilacao' vide.dispositivo_base.dispositivo_pai.norma.pk%}#{{vide.dispositivo_base.dispositivo_pai.pk }}">{{ vide.dispositivo_base.dispositivo_pai}}</a>
+													<a href="{%url 'compilacao' vide.dispositivo_base.dispositivo_pai.ta.pk%}#{{vide.dispositivo_base.dispositivo_pai.pk }}">{{ vide.dispositivo_base.dispositivo_pai}}</a>
 												{% else %}
-													<a href="{%url 'compilacao' vide.dispositivo_base.norma.pk%}#{{vide.dispositivo_base.pk }}">{{ vide.dispositivo_base}}</a>
+													<a href="{%url 'compilacao' vide.dispositivo_base.ta.pk%}#{{vide.dispositivo_base.pk }}">{{ vide.dispositivo_base}}</a>
 												{% endif %}
 												{% if vide.texto %} - {{vide.texto}}{% endif %}
 										</div>
@@ -162,7 +162,7 @@
 		{% endif%}
 	</div>
 	{% endspaceless %}
-	{% if view.is_norma_alteradora and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+	{% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
 		{%with node=dpt template_name='compilacao/index_bloco_alteracao.html' %}
 			{%include template_name%}
 		{%endwith%}

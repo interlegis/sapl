@@ -17,7 +17,16 @@ from materia.views import (AutoriaEditView, AutoriaView,
                            tipo_fim_relatoria_crud, tipo_materia_crud,
                            tipo_proposicao_crud, unidade_tramitacao_crud)
 
+
+materia_legislativa_patterns = materia_legislativa_crud.urlpatterns
+# + __url__compilacao
+
+
 urlpatterns = [
+    url(r'^materia/', include(materia_legislativa_patterns,
+                              materia_legislativa_crud.namespace,
+                              materia_legislativa_crud.namespace)),
+
     url(r'^sistema/proposicoes/tipo/', include(tipo_proposicao_crud.urls)),
     url(r'^sistema/proposicoes/autor/', include(autor_crud.urls)),
     url(r'^sistema/materia/tipo/', include(tipo_materia_crud.urls)),
@@ -35,7 +44,6 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(status_tramitacao_crud.urls)),
     url(r'^sistema/materia/orgao/', include(orgao_crud.urls)),
-    url(r'^materia/', include(materia_legislativa_crud.urls)),
     url(r'^materia/formulario-simplificado',
         FormularioSimplificadoView.as_view(),
         name='formulario_simplificado'),

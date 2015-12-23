@@ -43,7 +43,7 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 
 @register.simple_tag
 def nota_automatica(dispositivo):
-    if dispositivo.norma_publicada is not None:
+    if dispositivo.ta_publicado is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
             return 'Revogado pelo %s.' % d
@@ -152,3 +152,9 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
         d = d.dispositivo_pai
 
     return result
+
+
+
+@register.simple_tag
+def verbose_name(instance, field_name):
+    return instance._meta.get_field(field_name).verbose_name.title()

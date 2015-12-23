@@ -4,11 +4,11 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
+from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
-from norma.models import NormaJuridica
-from sapl import utils
-from sapl.utils import YES_NO_CHOICES
+from compilacao import utils
+from compilacao.utils import YES_NO_CHOICES
 
 
 class TimestampedMixin(models.Model):
@@ -56,6 +56,41 @@ class BaseModel(models.Model):
                     msg = self.unique_error_message(
                         self.__class__, tuple(unique_fields))
                     raise ValidationError(msg)
+
+
+class TipoTextoArticulado(models.Model):
+    sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
+    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Tipo de Texto Articulado')
+        verbose_name_plural = _('Tipos de Texto Articulados')
+
+    def __str__(self):
+        return self.descricao
+
+
+class TextoArticulado(TimestampedMixin):
+    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
+    ementa = models.TextField(verbose_name=_('Ementa'))
+    observacao = models.TextField(
+        blank=True, null=True, verbose_name=_('Observação'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+    tipo_ta = models.ForeignKey(
+        TipoTextoArticulado,
+        verbose_name=_('Tipo de Texto Articulado'))
+
+    class Meta:
+        verbose_name = _('Texto Articulado')
+        verbose_name_plural = _('Textos Articulados')
+        ordering = ['-data', '-numero']
+
+    def __str__(self):
+        return _('Texto Articulado nº %(numero)s de %(data)s') % {
+            'tipo': self.tipo_ta,
+            'numero': self.numero,
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
 
 class TipoNota(models.Model):
@@ -259,7 +294,7 @@ class TipoDispositivo(BaseModel):
             self, pai_relativo, include_relative_autos=True, perfil_pk=None):
 
         if not perfil_pk:
-            perfis = PerfilEstruturalTextosNormativos.objects.filter(
+            perfis = PerfilEstruturalTextoArticulado.objects.filter(
                 padrao=True)[:1]
 
             if not perfis.exists():
@@ -279,7 +314,7 @@ class TipoDispositivo(BaseModel):
             self, base, perfil_pk=None):
 
         if not perfil_pk:
-            perfis = PerfilEstruturalTextosNormativos.objects.filter(
+            perfis = PerfilEstruturalTextoArticulado.objects.filter(
                 padrao=True)[:1]
 
             if not perfis.exists():
@@ -294,7 +329,7 @@ class TipoDispositivo(BaseModel):
         return False
 
 
-class PerfilEstruturalTextosNormativos(BaseModel):
+class PerfilEstruturalTextoArticulado(BaseModel):
     sigla = models.CharField(
         max_length=10, unique=True, verbose_name=_('Sigla'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
@@ -303,8 +338,8 @@ class PerfilEstruturalTextosNormativos(BaseModel):
         choices=YES_NO_CHOICES, verbose_name=_('Padrão'))
 
     class Meta:
-        verbose_name = _('Perfil Estrutural de Textos Normativos')
-        verbose_name_plural = _('Perfis Estruturais de Textos Normativos')
+        verbose_name = _('Perfil Estrutural de Texto Articulado')
+        verbose_name_plural = _('Perfis Estruturais de Textos Articulados')
 
         ordering = ['-padrao', 'sigla']
 
@@ -317,7 +352,7 @@ class TipoDispositivoRelationship(BaseModel):
     filho_permitido = models.ForeignKey(
         TipoDispositivo,
         related_name='possiveis_pais')
-    perfil = models.ForeignKey(PerfilEstruturalTextosNormativos)
+    perfil = models.ForeignKey(PerfilEstruturalTextoArticulado)
     filho_de_insercao_automatica = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES, verbose_name=_('Filho de Inserção Automática'))
@@ -369,8 +404,8 @@ class VeiculoPublicacao(models.Model):
 
 
 class Publicacao(TimestampedMixin):
-    norma = models.ForeignKey(
-        NormaJuridica, verbose_name=_('Norma Jurídica'))
+    ta = models.ForeignKey(
+        TextoArticulado, verbose_name=_('Texto Articulado'))
     veiculo_publicacao = models.ForeignKey(
         VeiculoPublicacao, verbose_name=_('Veículo de Publicação'))
     tipo_publicacao = models.ForeignKey(
@@ -467,7 +502,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     visibilidade = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Visibilidade na Norma Publicada'))
+        verbose_name=_('Visibilidade no Texto Articulado Publicado'))
 
     tipo_dispositivo = models.ForeignKey(
         TipoDispositivo,
@@ -478,15 +513,15 @@ class Dispositivo(BaseModel, TimestampedMixin):
         Publicacao,
         blank=True, null=True, default=None, verbose_name=_('Publicação'))
 
-    norma = models.ForeignKey(
-        NormaJuridica,
+    ta = models.ForeignKey(
+        TextoArticulado,
         related_name='dispositivos_set',
-        verbose_name=_('Norma Jurídica'))
-    norma_publicada = models.ForeignKey(
-        NormaJuridica,
+        verbose_name=_('Texto Articulado'))
+    ta_publicado = models.ForeignKey(
+        TextoArticulado,
         blank=True, null=True, default=None,
-        related_name='dispositivos_alterados_pela_norma_set',
-        verbose_name=_('Norma Jurídica Publicada'))
+        related_name='dispositivos_alterados_pelo_ta_set',
+        verbose_name=_('Texto Articulado Publicado'))
 
     dispositivo_subsequente = models.ForeignKey(
         'self',
@@ -517,10 +552,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
     class Meta:
         verbose_name = _('Dispositivo')
         verbose_name_plural = _('Dispositivos')
-        ordering = ['norma', 'ordem']
+        ordering = ['ta', 'ordem']
         unique_together = (
-            ('norma', 'ordem',),
-            ('norma',
+            ('ta', 'ordem',),
+            ('ta',
              'dispositivo0',
              'dispositivo1',
              'dispositivo2',
@@ -529,14 +564,14 @@ class Dispositivo(BaseModel, TimestampedMixin):
              'dispositivo5',
              'tipo_dispositivo',
              'dispositivo_pai',
-             'norma_publicada',
+             'ta_publicado',
              'publicacao',),
         )
 
     def __str__(self):
-        return '%(rotulo)s - %(norma)s' % {
+        return '%(rotulo)s - %(ta)s' % {
             'rotulo': (self.rotulo if self.rotulo else self.tipo_dispositivo),
-            'norma': self.norma}
+            'ta': self.ta}
 
     def rotulo_padrao(self, local_insert=0, for_insert_in=0):
         """
@@ -774,36 +809,37 @@ class Dispositivo(BaseModel, TimestampedMixin):
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel,
-                norma_id=self.norma_id)[:1]
+                ta_id=self.ta_id)[:1]
         elif local == 'add_in':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel + 1,
-                norma_id=self.norma_id).exclude(
+                ta_id=self.ta_id).exclude(
                     tipo_dispositivo__class_css='caput')[:1]
         else:
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gte=self.ordem,
-                norma_id=self.norma_id)[:1]
+                ta_id=self.ta_id)[:1]
 
         if proximo_bloco.exists():
             ordem = proximo_bloco[0].ordem
             proximo_bloco = Dispositivo.objects.order_by('-ordem').filter(
                 ordem__gte=ordem,
-                norma_id=self.norma_id)
+                ta_id=self.ta_id)
 
             proximo_bloco.update(ordem=F('ordem') + 1)
             proximo_bloco.update(
                 ordem=F('ordem') + (
                     Dispositivo.INTERVALO_ORDEM * espaco_a_criar - 1))
         else:
-            # inserção no fim da norma
+            # inserção no fim da ta
             ordem_max = Dispositivo.objects.order_by(
-                'ordem').filter(norma_id=self.norma_id).aggregate(
+                'ordem').filter(
+                ta_id=self.ta_id).aggregate(
                 Max('ordem'))
             if ordem_max['ordem__max'] is None:
                 raise Exception(
-                    'Não existem registros base nesta Norma')
+                    'Não existem registros base neste Texto Articulado')
             ordem = ordem_max['ordem__max'] + Dispositivo.INTERVALO_ORDEM
         return ordem
 
@@ -847,7 +883,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         elif self.dispositivo_pai is None:
             irmaos = list(Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
-                norma_id=self.norma_id,
+                ta_id=self.ta_id,
                 tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
         else:  # contagem continua restrita a articulacao
@@ -856,13 +892,13 @@ class Dispositivo(BaseModel, TimestampedMixin):
             if proxima_articulacao is None:
                 irmaos = list(Dispositivo.objects.filter(
                     ordem__gt=self.ordem,
-                    norma_id=self.norma_id,
+                    ta_id=self.ta_id,
                     tipo_dispositivo_id=self.tipo_dispositivo.pk))
             else:
                 irmaos = list(Dispositivo.objects.filter(
                     Q(ordem__gt=self.ordem) &
                     Q(ordem__lt=proxima_articulacao.ordem),
-                    norma_id=self.norma_id,
+                    ta_id=self.ta_id,
                     tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
         dp_profundidade = self.get_profundidade()
@@ -943,7 +979,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         proxima_articulacao = Dispositivo.objects.filter(
             ordem__gt=self.ordem,
             nivel=0,
-            norma_id=self.norma_id)[:1]
+            ta_id=self.ta_id)[:1]
 
         if not proxima_articulacao.exists():
             return None
@@ -955,7 +991,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             # pp possiveis_pais
 
             if not perfil_pk:
-                perfis = PerfilEstruturalTextosNormativos.objects.filter(
+                perfis = PerfilEstruturalTextoArticulado.objects.filter(
                     padrao=True)[:1]
                 if perfis.exists():
                     perfil_pk = perfis[0].pk
@@ -985,7 +1021,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             dispositivo_base.get_numero_completo())
         dp.nivel = dispositivo_base.nivel
         dp.texto = ''
-        dp.norma = dispositivo_base.norma
+        dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
         dp.inicio_eficacia = dispositivo_base.inicio_eficacia
         dp.inicio_vigencia = dispositivo_base.inicio_vigencia
@@ -1005,7 +1041,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 tipo_dispositivo_id=tipo_base.pk,
                 ordem__lte=dispositivo_base.ordem,
                 ordem__gt=raiz.ordem,
-                norma_id=dispositivo_base.norma_id)[:1]
+                ta_id=dispositivo_base.ta_id)[:1]
 
             if disps.exists():
                 dispositivo.set_numero_completo(

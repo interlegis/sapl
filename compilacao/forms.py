@@ -1,13 +1,18 @@
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Div, Field, Layout, Row
+from crispy_forms_foundation.layout import (HTML, Column, Div, Fieldset,
+                                            Layout, Row, Submit)
+from crispy_forms_foundation.layout.buttons import Button, ButtonHolder
+from crispy_forms_foundation.layout.fields import Field
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import Dispositivo, Nota, TipoNota, TipoVide, Vide
+from compilacao.models import Dispositivo, Nota, TipoNota, TipoVide, Vide,\
+    TextoArticulado, TipoTextoArticulado
+from compilacao.utils import to_row, to_column
 from norma.models import TipoNormaJuridica
-from sapl.layout import to_column, to_row
 
 
 class UpLoadImportFileForm(forms.Form):
@@ -19,6 +24,71 @@ nota_error_messages = {
     'required': _('Este campo é obrigatório'),
     'invalid': _('URL inválida.')
 }
+
+ta_error_messages = {
+    'required': _('Este campo é obrigatório'),
+}
+
+
+class TaForm(ModelForm):
+    tipo_ta = forms.ModelChoiceField(
+        label=_('Tipo do Texto Articulado'),
+        queryset=TipoTextoArticulado.objects.all(),
+        required=True,
+        empty_label=None)
+    numero = forms.IntegerField(label=_('Número'), required=True)
+    ano = forms.IntegerField(label=_('Ano'), required=True)
+
+    data = forms.DateField(
+        label=_('Data'),
+        input_formats=['%d/%m/%Y'],
+        required=True,
+        widget=forms.DateInput(
+            format='%d/%m/%Y'),
+        error_messages=ta_error_messages
+    )
+    ementa = forms.CharField(
+        label='',
+        widget=forms.Textarea,
+        error_messages=ta_error_messages)
+    observacao = forms.CharField(
+        label='',
+        widget=forms.Textarea,
+        error_messages=ta_error_messages,
+        required=False)
+
+    class Meta:
+        model = TextoArticulado
+        fields = ['tipo_ta',
+                  'numero',
+                  'ano',
+                  'data',
+                  'ementa',
+                  'observacao',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([
+            ('tipo_ta', 5),
+            ('numero', 2),
+            ('ano', 2),
+            ('data', 3),
+        ])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row1,
+            Fieldset(_('Ementa'), Column('ementa'), css_class="large-12"),
+            Fieldset(
+                _('Observações'), Column('observacao'), css_class="large-12"),
+            ButtonHolder(
+                Submit('Save', 'Save',
+                       css_class='radius')
+            )
+        )
+
+        super(TaForm, self).__init__(*args, **kwargs)
 
 
 class NotaForm(ModelForm):

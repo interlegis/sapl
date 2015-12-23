@@ -8,9 +8,9 @@
 {% endif %}
 
 {% for dpt in object_list %}
-    {% ifchanged dpt.norma%}
+    {% ifchanged dpt.ta%}
         {% if not forloop.first %}</ul>{% endif %}
-        <div class="norma_title">{{dpt.norma}}</div>
+        <div class="ta_title">{{dpt.ta}}</div>
         <ul>
     {% endifchanged %}
 
@@ -22,7 +22,7 @@
 			</div>
 			<div class="itemlabel">
 				<label for="r{{dpt.dispositivo_pai.pk}}">{{dpt.dispositivo_pai.rotulo|safe}} - {{dpt.texto|safe}}</label>
-				<a target="_blank" href="{% url 'compilacao' dpt.norma.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+				<a target="_blank" href="{% url 'compilacao' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
  			</div>
 		</li>
 	{% endif%}
@@ -34,7 +34,7 @@
 	        </div>
 	        <div class="itemlabel">
 	            <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {{dpt.texto|safe}}</label>
-				<a target="_blank" href="{% url 'compilacao' dpt.norma.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+				<a target="_blank" href="{% url 'compilacao' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
 	        </div>
 	    </li>
 	{% endif%}

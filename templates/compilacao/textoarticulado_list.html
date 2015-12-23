@@ -1,0 +1,61 @@
+{% extends "base.html" %} {% load i18n %} {% block base_content %}
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>{% trans 'Tipo'%}</th>
+            <th>{% trans 'Número'%}</th>
+            <th>{% trans 'Ano'%}</th>
+            <th>{% trans 'Data'%}</th>
+            <th>{% trans 'Ementa'%}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ta in object_list %}
+        <tr>
+            <td><a href="{% url 'ta_detail' ta.pk %}">{{ ta.tipo_ta }}</a></td>
+            <td>{{ ta.numero }}</td>
+            <td>{{ ta.ano }}</td>
+            <td>{{ ta.data }}</td>
+            <td>{{ ta.ementa }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<div class="pagination-centered">
+  <ul class="pagination" role="menubar" aria-label="Pagination">
+    {% if page_obj.has_previous %}
+    <li>
+      <a href="?page={{ page_obj.previous_page_number }}">
+        <span class="arrow">&laquo;</span>
+      </a>
+    </li>
+    {% else %}
+    <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
+    {% endif %}
+
+    {% for page in page_range %}
+        {% if page %}
+            <li {% if page == page_obj.number %}class="current"{% endif %}>
+              <a href="?page={{ page }}">{{ page }}</a>
+            </li>
+            {% else %}
+            <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <li>
+      <a href="?page={{ page_obj.next_page_number }}">
+        <span class="arrow">&raquo;</span>
+      </a>
+    </li>
+    {% else %}
+    <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

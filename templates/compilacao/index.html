@@ -18,7 +18,7 @@
 
 
 {% block title%}
-    <h1>{{ view.get_norma }}</h1>
+    <h1>{{ view.get_ta }}</h1>
 {% endblock %}
 
 {% block base_content %}
@@ -41,11 +41,11 @@
 				<li class="nav__item has-dropdown">
 					{% if forloop.first %}
 						{% for dispositivo in values %}
-							<a class="nav__link {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}selected{%endif%}" href="{%url 'vigencia' dispositivo.norma.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Norma Original'%}</a>
+							<a class="nav__link {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}selected{%endif%}" href="{%url 'vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
 						{% endfor %}
 					{% elif forloop.last %}
 						{% for dispositivo in values %}
-							<a class="nav__link {% if view.inicio_vigencia == None %}selected{%endif%}" href="{%url 'compilacao' dispositivo.norma.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.norma_publicada}}">{% trans 'Norma Atual'%}</a>
+							<a class="nav__link {% if view.inicio_vigencia == None %}selected{%endif%}" href="{%url 'compilacao' dispositivo.ta.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.ta_publicado}}">{% trans 'Texto Atual'%}</a>
 						{% endfor %}
 					{% else %}
 						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
@@ -56,7 +56,7 @@
 							{% for dispositivo in values %}
 								<li class="nav__sub-item">
 									{% if not forloop.parentloop.first %}
-										<a class="nav__sub-link" href="{%url 'vigencia' dispositivo.norma.pk dispositivo|get_sign_vigencia %}" title="{{ dispositivo.norma_publicada }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+										<a class="nav__sub-link" href="{%url 'vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{{ dispositivo.ta_publicado }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
 									{%endif%}
 								</li>
 							{% endfor %}
@@ -69,8 +69,8 @@
             {% comment %}
             	<ul class="nav left tipo-vigencias">
     				<li><a class="selected" onclick="textoMultiVigente(this);" title="">{% trans 'Texto Multivigente'%}</a></li>
-    				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}</a></li>
-    				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Normas Alteradoras'%}</a></li>
+    				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Textos Alteradores'%}</a></li>
+    				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Textos Alteradores'%}</a></li>
     			</ul>
 
             {% endcomment %}
@@ -78,7 +78,7 @@
             <ul class="tipo-vigencias">
                 <li><a class="selected" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a></li>
                 <li><a onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a></li>
-                <li><a onclick="textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Normas Alteradoras'%}">{% trans 'TVL'%}</a></li>
+                <li><a onclick="textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a></li>
                 <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
             </ul>
 
