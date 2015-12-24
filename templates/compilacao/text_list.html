@@ -41,11 +41,11 @@
 				<li class="nav__item has-dropdown">
 					{% if forloop.first %}
 						{% for dispositivo in values %}
-							<a class="nav__link {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}selected{%endif%}" href="{%url 'vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
+							<a class="nav__link {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}selected{%endif%}" href="{%url 'ta_vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
 						{% endfor %}
 					{% elif forloop.last %}
 						{% for dispositivo in values %}
-							<a class="nav__link {% if view.inicio_vigencia == None %}selected{%endif%}" href="{%url 'compilacao' dispositivo.ta.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.ta_publicado}}">{% trans 'Texto Atual'%}</a>
+							<a class="nav__link {% if view.inicio_vigencia == None %}selected{%endif%}" href="{%url 'ta_text' dispositivo.ta.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.ta_publicado}}">{% trans 'Texto Atual'%}</a>
 						{% endfor %}
 					{% else %}
 						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
@@ -56,7 +56,7 @@
 							{% for dispositivo in values %}
 								<li class="nav__sub-item">
 									{% if not forloop.parentloop.first %}
-										<a class="nav__sub-link" href="{%url 'vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{{ dispositivo.ta_publicado }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+										<a class="nav__sub-link" href="{%url 'ta_vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{{ dispositivo.ta_publicado }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
 									{%endif%}
 								</li>
 							{% endfor %}
@@ -95,6 +95,6 @@
 	{% trans 'Vigência entre'%} <b>{{view.inicio_vigencia}}</b> {% trans 'e'%} <b>{{view.fim_vigencia}}</b>.
 {%endif%}
 
-{% include 'compilacao/index_bloco.html'%}
+{% include 'compilacao/text_list_bloco.html'%}
 </div>
 {% endblock base_content %}

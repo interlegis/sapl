@@ -14,6 +14,16 @@ def to_row(names_spans):
     return Row(*list(map(to_column, names_spans)))
 
 
+def to_fieldsets(fields):
+    for field in fields:
+        if isinstance(field, list):
+            legend, *row_specs = field
+            rows = [to_row(name_span_list) for name_span_list in row_specs]
+            yield Fieldset(legend, *rows)
+        else:
+            yield field
+
+
 def make_choices(*choice_pairs):
     assert len(choice_pairs) % 2 == 0
     ipairs = iter(choice_pairs)

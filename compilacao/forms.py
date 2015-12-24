@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from compilacao import utils, models
 from compilacao.models import Dispositivo, Nota, TipoNota, TipoVide, Vide,\
     TextoArticulado, TipoTextoArticulado
-from compilacao.utils import to_row, to_column
+from compilacao.utils import to_row, to_column, to_fieldsets
 from norma.models import TipoNormaJuridica
 
 
@@ -29,6 +29,21 @@ nota_error_messages = {
 ta_error_messages = {
     'required': _('Este campo é obrigatório'),
 }
+
+
+class FormLayout(Layout):
+
+    def __init__(self, *fields):
+        buttons = Div(
+            HTML('<a href="{{ view.cancel_url }}"'
+                 ' class="button radius alert">%s</a>' % _('Cancelar')),
+            Submit('submit', _('Enviar'),
+                   css_class='button radius success right'),
+            css_class='radius clearfix'
+        )
+        _fields = list(to_fieldsets(fields)) + \
+            [Row(Column(buttons, css_class='clearfix'))]
+        super(FormLayout, self).__init__(*_fields)
 
 
 class TaForm(ModelForm):
@@ -84,15 +99,12 @@ class TaForm(ModelForm):
         ])
 
         self.helper = FormHelper()
-        self.helper.layout = Layout(
+        self.helper.layout = FormLayout(
             Fieldset(_('Identificação Básica'), row1, css_class="large-12"),
             Fieldset(_('Ementa'), Column('ementa'), css_class="large-12"),
             Fieldset(
                 _('Observações'), Column('observacao'), css_class="large-12"),
-            ButtonHolder(
-                Submit('submit', _('Salvar'),
-                       css_class='radius')
-            )
+
         )
 
         super(TaForm, self).__init__(*args, **kwargs)

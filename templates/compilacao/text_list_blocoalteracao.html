@@ -4,7 +4,7 @@
     {% if ch.visibilidade %}
 	<div class="dpt" id="d{{ch.id}}">
 		<div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}">
-			{{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{ch.pk}}" href="{%url 'compilacao' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>{{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+			{{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{ch.pk}}" href="{%url 'ta_text' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>{{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
             </div>
 	</div>
 	{%endif%}

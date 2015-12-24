@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterUniqueTogether(
             name='vide',
-            unique_together=set([('dispositivo_base', 'dispositivo_ref', 'tipo')]),
+            unique_together=set(
+                [('dispositivo_base', 'dispositivo_ref', 'tipo')]),
         ),
     ]

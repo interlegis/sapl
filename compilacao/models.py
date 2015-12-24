@@ -90,6 +90,7 @@ class TextoArticulado(TimestampedMixin):
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     tipo_ta = models.ForeignKey(
         TipoTextoArticulado,
+        blank=True, null=True, default=None,
         verbose_name=_('Tipo de Texto Articulado'))
     participacao_social = models.NullBooleanField(
         default=None,

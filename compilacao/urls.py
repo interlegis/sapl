@@ -10,6 +10,12 @@ urlpatterns_compilacao = [
         views.TaUpdateView.as_view(), name='ta_edit'),
     url(r'^(?P<pk>[0-9]+)/delete$',
         views.TaDeleteView.as_view(), name='ta_delete'),
+
+
+    url(r'^(?P<ta_id>[0-9]+)/text',
+        views.TextoView.as_view(), name='ta_text'),
+    url(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.+)/$',
+        views.TextoView.as_view(), name='ta_vigencia'),
 ]
 
 urlpatterns = [
@@ -18,13 +24,10 @@ urlpatterns = [
 
 
 """
-    url(r'^(?P<ta_id>[0-9]+)/compilacao$',
-        views.CompilacaoView.as_view(), name='compilacao'),
     url(r'^(?P<ta_id>[0-9]+)/compilacao/(?P<dispositivo_id>[0-9]+)/$',
         views.DispositivoView.as_view(), name='dispositivo'),
 
-    url(r'^(?P<ta_id>[0-9]+)/compilacao/vigencia/(?P<sign>.+)/$',
-        views.CompilacaoView.as_view(), name='vigencia'),
+
 
     url(r'^(?P<ta_id>[0-9]+)/compilacao/edit',
         views.CompilacaoEditView.as_view(), name='comp_edit'),

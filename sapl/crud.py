@@ -169,6 +169,14 @@ def build_crud(model, help_path, layout):
             _('O registro não foi criado.'))
         cancel_url = BaseMixin.list_url
 
+        def form_invalid(self, form):
+            """
+            If the form is invalid, re-render the context data with the
+            data-filled form and errors.
+            """
+            print(form.errors)
+            return self.render_to_response(self.get_context_data(form=form))
+
         def get_success_url(self):
             return self.detail_url
 

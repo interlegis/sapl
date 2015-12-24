@@ -22,7 +22,7 @@
 			</div>
 			<div class="itemlabel">
 				<label for="r{{dpt.dispositivo_pai.pk}}">{{dpt.dispositivo_pai.rotulo|safe}} - {{dpt.texto|safe}}</label>
-				<a target="_blank" href="{% url 'compilacao' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+				<a target="_blank" href="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
  			</div>
 		</li>
 	{% endif%}
@@ -34,7 +34,7 @@
 	        </div>
 	        <div class="itemlabel">
 	            <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {{dpt.texto|safe}}</label>
-				<a target="_blank" href="{% url 'compilacao' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+				<a target="_blank" href="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
 	        </div>
 	    </li>
 	{% endif%}
