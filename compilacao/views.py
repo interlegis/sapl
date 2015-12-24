@@ -2,6 +2,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from os.path import sys
 
+from braces.views import FormMessagesMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages.api import success
 from django.core.signing import Signer
@@ -16,7 +17,8 @@ from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import FormMixin, UpdateView, CreateView
+from django.views.generic.edit import FormMixin, UpdateView, CreateView,\
+    DeleteView
 from django.views.generic.list import ListView
 
 from compilacao import forms, utils
@@ -42,7 +44,9 @@ DISPOSITIVO_SELECT_RELATED = (
 class TaListView(ListView):
     model = TextoArticulado
     paginate_by = 10
-    title = TextoArticulado._meta.verbose_name_plural
+    verbose_name = model._meta.verbose_name
+    title = model._meta.verbose_name_plural
+    create_url = reverse_lazy('ta_create')
 
     def get_context_data(self, **kwargs):
         context = super(TaListView, self).get_context_data(**kwargs)
@@ -61,6 +65,17 @@ class TaDetailView(DetailView):
         return self.get_object()
 
 
+class TaCreateView(FormMessagesMixin, CreateView):
+    model = TextoArticulado
+    form_class = forms.TaForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get_success_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.object.id})
+
+
 class TaUpdateView(UpdateView):
     model = TextoArticulado
     form_class = forms.TaForm
@@ -72,3 +87,18 @@ class TaUpdateView(UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+
+class TaDeleteView(DeleteView):
+    model = TextoArticulado
+
+    @property
+    def title(self):
+        return self.get_object()
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_success_url(self):
+        return reverse_lazy('ta_list')

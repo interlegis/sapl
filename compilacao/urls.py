@@ -3,19 +3,17 @@ from django.conf.urls import include, url
 from compilacao import views
 
 urlpatterns_compilacao = [
-
     url(r'^$', views.TaListView.as_view(), name='ta_list'),
+    url(r'^create$', views.TaCreateView.as_view(), name='ta_create'),
     url(r'^(?P<pk>[0-9]+)$', views.TaDetailView.as_view(), name='ta_detail'),
     url(r'^(?P<pk>[0-9]+)/edit$',
         views.TaUpdateView.as_view(), name='ta_edit'),
-
+    url(r'^(?P<pk>[0-9]+)/delete$',
+        views.TaDeleteView.as_view(), name='ta_delete'),
 ]
 
 urlpatterns = [
     url(r'^ta/', include(urlpatterns_compilacao)),
-
-
-
 ]
 
 

@@ -9,6 +9,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
+from compilacao import utils, models
 from compilacao.models import Dispositivo, Nota, TipoNota, TipoVide, Vide,\
     TextoArticulado, TipoTextoArticulado
 from compilacao.utils import to_row, to_column
@@ -56,6 +57,10 @@ class TaForm(ModelForm):
         widget=forms.Textarea,
         error_messages=ta_error_messages,
         required=False)
+    participacao_social = forms.NullBooleanField(
+        label=_('Participação Social'),
+        widget=forms.Select(choices=models.PARTICIPACAO_SOCIAL_CHOICES),
+        required=False)
 
     class Meta:
         model = TextoArticulado
@@ -65,25 +70,27 @@ class TaForm(ModelForm):
                   'data',
                   'ementa',
                   'observacao',
+                  'participacao_social',
                   ]
 
     def __init__(self, *args, **kwargs):
 
         row1 = to_row([
-            ('tipo_ta', 5),
+            ('tipo_ta', 3),
             ('numero', 2),
             ('ano', 2),
-            ('data', 3),
+            ('data', 2),
+            ('participacao_social', 3),
         ])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            row1,
+            Fieldset(_('Identificação Básica'), row1, css_class="large-12"),
             Fieldset(_('Ementa'), Column('ementa'), css_class="large-12"),
             Fieldset(
                 _('Observações'), Column('observacao'), css_class="large-12"),
             ButtonHolder(
-                Submit('Save', 'Save',
+                Submit('submit', _('Salvar'),
                        css_class='radius')
             )
         )

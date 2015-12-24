@@ -61,6 +61,11 @@ class BaseModel(models.Model):
 class TipoTextoArticulado(models.Model):
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    participacao_social = models.NullBooleanField(
+        default=False,
+        blank=True, null=True,
+        choices=utils.YES_NO_CHOICES,
+        verbose_name=_('Participação Social'))
 
     class Meta:
         verbose_name = _('Tipo de Texto Articulado')
@@ -68,6 +73,12 @@ class TipoTextoArticulado(models.Model):
 
     def __str__(self):
         return self.descricao
+
+
+PARTICIPACAO_SOCIAL_CHOICES = [
+    (None, _('Padrão definido no Tipo')),
+    (True, _('Sim')),
+    (False, _('Não'))]
 
 
 class TextoArticulado(TimestampedMixin):
@@ -80,6 +91,11 @@ class TextoArticulado(TimestampedMixin):
     tipo_ta = models.ForeignKey(
         TipoTextoArticulado,
         verbose_name=_('Tipo de Texto Articulado'))
+    participacao_social = models.NullBooleanField(
+        default=None,
+        blank=True, null=True,
+        choices=PARTICIPACAO_SOCIAL_CHOICES,
+        verbose_name=_('Participação Social'))
 
     class Meta:
         verbose_name = _('Texto Articulado')

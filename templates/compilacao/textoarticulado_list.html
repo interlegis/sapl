@@ -1,5 +1,17 @@
 {% extends "base.html" %} {% load i18n %} {% block base_content %}
 
+
+{# FIXME is this the best markup to use? #}
+<dl class="sub-nav">
+  <dd><a href="{{ view.create_url }}">
+    {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+  </a></dd>
+
+  {% block more_buttons %}
+  {% endblock more_buttons %}
+
+</dl>
+
 <table class="table table-hover">
     <thead>
         <tr>
@@ -17,7 +29,7 @@
             <td>{{ ta.numero }}</td>
             <td>{{ ta.ano }}</td>
             <td>{{ ta.data }}</td>
-            <td>{{ ta.ementa }}</td>
+            <td>{{ ta.ementa|safe }}</td>
         </tr>
         {% endfor %}
     </tbody>
