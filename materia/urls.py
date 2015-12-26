@@ -19,7 +19,6 @@ from materia.views import (AutoriaEditView, AutoriaView,
 
 
 materia_legislativa_patterns = materia_legislativa_crud.urlpatterns
-# + __url__compilacao
 
 
 urlpatterns = [

@@ -5,7 +5,7 @@ from norma.views import (NormaIncluirView, assunto_norma_crud,
                          norma_temporario_crud, tipo_norma_crud)
 
 
-norma_url_patterns = norma_temporario_crud.urlpatterns + __url__compilacao
+norma_url_patterns = norma_temporario_crud.urlpatterns
 # norma_url_patterns = norma_crud.urlpatterns + []
 
 urlpatterns = [

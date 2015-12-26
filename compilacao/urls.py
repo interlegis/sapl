@@ -12,7 +12,7 @@ urlpatterns_compilacao = [
         views.TaDeleteView.as_view(), name='ta_delete'),
 
 
-    url(r'^(?P<ta_id>[0-9]+)/text',
+    url(r'^(?P<ta_id>[0-9]+)/text$',
         views.TextoView.as_view(), name='ta_text'),
     url(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.+)/$',
         views.TextoView.as_view(), name='ta_vigencia'),

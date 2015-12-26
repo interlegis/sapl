@@ -105,7 +105,7 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'sapl',
+        'NAME': 'sapl_temp2_compilacao',
         'USER': 'sapl',
         'PASSWORD': 'sapl',
         'HOST': 'localhost',

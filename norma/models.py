@@ -2,7 +2,6 @@ from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import TextoArticulado
 from materia.models import MateriaLegislativa
 from sapl.utils import YES_NO_CHOICES, make_choices
 
@@ -62,7 +61,7 @@ def texto_upload_path(instance, filename):
     return get_norma_media_path(instance, instance.ano, filename)
 
 
-class NormaJuridica(TextoArticulado):
+class NormaJuridica(models.Model):
     ESFERA_FEDERACAO_CHOICES, ESTADUAL, FEDERAL, MUNICIPAL = make_choices(
         'E', _('Estadual'),
         'F', _('Federal'),
@@ -75,10 +74,13 @@ class NormaJuridica(TextoArticulado):
         verbose_name=_('Texto Integral'))
     tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_('Tipo'))
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     esfera_federacao = models.CharField(
         max_length=1,
         verbose_name=_('Esfera Federação'),
         choices=ESFERA_FEDERACAO_CHOICES)
+    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Publicação'))
     veiculo_publicacao = models.CharField(
@@ -90,8 +92,11 @@ class NormaJuridica(TextoArticulado):
         blank=True, null=True, verbose_name=_('Pg. Início'))
     pagina_fim_publicacao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Pg. Fim'))
+    ementa = models.TextField(verbose_name=_('Ementa'))
     indexacao = models.TextField(
         blank=True, null=True, verbose_name=_('Indexação'))
+    observacao = models.TextField(
+        blank=True, null=True, verbose_name=_('Observação'))
     complemento = models.NullBooleanField(
         blank=True, verbose_name=_('Complementar ?'),
         choices=YES_NO_CHOICES)
@@ -105,6 +110,7 @@ class NormaJuridica(TextoArticulado):
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')
+        ordering = ['-data', '-numero']
 
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(data)s') % {
