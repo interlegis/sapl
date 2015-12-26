@@ -218,11 +218,13 @@ class VideForm(ModelForm):
         queryset=Dispositivo.objects.all(),
         widget=forms.HiddenInput())
 
-    tipo_norma = forms.ModelChoiceField(
-        queryset=TipoNormaJuridica.objects.all(),
+    tipo_ta = forms.ModelChoiceField(
+        queryset=TipoTextoArticulado.objects.all(),
         required=False)
-    num_norma = forms.IntegerField(label=_('Núm. da Norma'), required=False)
-    ano_norma = forms.IntegerField(label=_('Ano da Norma'), required=False)
+    num_ta = forms.IntegerField(
+        label=_('Núm Texto Articulado'), required=False)
+    ano_ta = forms.IntegerField(
+        label=_('Ano Texto Articulado'), required=False)
 
     texto = forms.CharField(
         label='',
@@ -280,9 +282,9 @@ class VideForm(ModelForm):
                     ), 4)),
                 to_column((
                     Div(
-                        Div(to_column(('tipo_norma', 6))),
-                        Div(to_column(('num_norma', 3)),
-                            to_column(('ano_norma', 3))),
+                        Div(to_column(('tipo_ta', 6))),
+                        Div(to_column(('num_ta', 3)),
+                            to_column(('ano_ta', 3))),
                         Div(to_column(
                             (Field(
                                 'busca_dispositivo',

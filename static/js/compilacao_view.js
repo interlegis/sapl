@@ -1,7 +1,7 @@
 $( window ).scroll(function() {
     if (window.pageYOffset <= 180)
         $( "section.vigencias" ).removeClass("fixed");
-    else if (!$( "section.vigencias" ).hasClass("fixed"))
+    else if ( ! $( "section.vigencias" ).hasClass("fixed") )
         $( "section.vigencias" ).addClass("fixed");
 });
 
@@ -41,7 +41,7 @@ function textoMultiVigente(item, diff) {
 	for (var i = 0; i < ldpts.length; i++) {
 		if ($(ldpts[i]).hasClass('displaynone'))
 			continue;
-		if (isElementInViewport( ldpts[i])) {  
+		if (isElementInViewport( ldpts[i])) {
 			elv = ldpts[i];
 			break;
 		}
@@ -123,20 +123,20 @@ function textoVigente(item, link) {
 	for (var i = 0; i < ldpts.length; i++) {
 		if ($(ldpts[i]).hasClass('displaynone'))
 			continue;
-		if (isElementInViewport( ldpts[i])) {  
+		if (isElementInViewport( ldpts[i])) {
 			elv = ldpts[i];
 			break;
 		}
 	}
-	
+
 		$(".cp .tipo-vigencias a").removeClass("selected")
 		$(item).addClass("selected")
-	
+
 		$(".dptt.desativado").addClass("displaynone");
 		$(".link_alterador").removeClass("displaynone");
 		if (!link)
 			$(".link_alterador").addClass("displaynone");
-	
+
 	if (elv) {
 	    $('html, body').animate({
 			scrollTop: $(elv).parent().offset().top - 60

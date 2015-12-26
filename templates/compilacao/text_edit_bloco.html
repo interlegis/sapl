@@ -116,7 +116,7 @@
 				{% endif %}
 			{% endspaceless %}
 			{% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
-				{%with node=dpt template_name='compilacao/edit_bloco_alteracao.html' %}
+				{%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
 					{%include template_name%}
 				{%endwith%}
 			{% endif%}

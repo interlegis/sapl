@@ -4,14 +4,19 @@ from re import sub
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse_lazy
 from django.forms import ModelForm
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
+from compilacao.models import TextoArticulado, TipoTextoArticulado
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
 import sapl
@@ -60,7 +65,7 @@ norma_temporario_crud = build_crud(
     NormaJuridica, 'normajuridica', [
 
         [_('Identificação Básica'),
-         [('tipo_ta', 3), ('tipo', 3), ('numero', 2), ('ano', 2), ('data', 2)],
+         [('tipo', 5), ('numero', 2), ('ano', 2), ('data', 3)],
             [('ementa', 12)]],
     ])
 
@@ -219,3 +224,35 @@ class NormaIncluirView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
+
+
+class NormaTaView(GenericView):
+
+    def get(self, *args, **kwargs):
+        norma = get_object_or_404(NormaJuridica, pk=kwargs['pk'])
+        related_object_type = ContentType.objects.get_for_model(norma)
+
+        ta = TextoArticulado.objects.filter(
+            object_id=norma.pk,
+            content_type=related_object_type)
+
+        if not ta.exists():
+            tipo_ta = TipoTextoArticulado.objects.filter(
+                model=norma.__class__.__name__.lower())[:1]
+
+            ta = TextoArticulado()
+
+            if tipo_ta.exists():
+                ta.tipo_ta = tipo_ta[0]
+
+            ta.ementa = norma.ementa
+            ta.numero = norma.numero
+            ta.ano = norma.ano
+            ta.data = norma.data
+            ta.content_object = norma
+            ta.save()
+
+        else:
+            ta = ta[0]
+
+        return redirect(to=reverse_lazy('ta_text', kwargs={'ta_id': ta.pk}))

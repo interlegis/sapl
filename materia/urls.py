@@ -15,7 +15,8 @@ from materia.views import (AutoriaEditView, AutoriaView,
                            regime_tramitacao_crud, status_tramitacao_crud,
                            tipo_autor_crud, tipo_documento_crud,
                            tipo_fim_relatoria_crud, tipo_materia_crud,
-                           tipo_proposicao_crud, unidade_tramitacao_crud)
+                           tipo_proposicao_crud, unidade_tramitacao_crud,
+                           MateriaTaView)
 
 
 materia_legislativa_patterns = materia_legislativa_crud.urlpatterns
@@ -25,6 +26,11 @@ urlpatterns = [
     url(r'^materia/', include(materia_legislativa_patterns,
                               materia_legislativa_crud.namespace,
                               materia_legislativa_crud.namespace)),
+
+
+    url(r'^materia/(?P<pk>[0-9]+)/ta$',
+        MateriaTaView.as_view(), name='materia_ta'),
+
 
     url(r'^sistema/proposicoes/tipo/', include(tipo_proposicao_crud.urls)),
     url(r'^sistema/proposicoes/autor/', include(autor_crud.urls)),

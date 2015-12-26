@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
@@ -61,6 +63,12 @@ class BaseModel(models.Model):
 class TipoTextoArticulado(models.Model):
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    model = models.CharField(
+        default='',
+        blank=True, null=True,
+        max_length=50,
+        unique=True,
+        verbose_name=_('Modelagem Django'))
     participacao_social = models.NullBooleanField(
         default=False,
         blank=True, null=True,
@@ -98,16 +106,26 @@ class TextoArticulado(TimestampedMixin):
         choices=PARTICIPACAO_SOCIAL_CHOICES,
         verbose_name=_('Participação Social'))
 
+    content_type = models.ForeignKey(
+        ContentType,
+        blank=True, null=True, default=None)
+    object_id = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     class Meta:
         verbose_name = _('Texto Articulado')
         verbose_name_plural = _('Textos Articulados')
         ordering = ['-data', '-numero']
 
     def __str__(self):
-        return _('Texto Articulado nº %(numero)s de %(data)s') % {
-            'tipo': self.tipo_ta,
-            'numero': self.numero,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+        if self.content_object:
+            return str(self.content_object)
+        else:
+            return _('Texto Articulado nº %(numero)s de %(data)s') % {
+                'tipo': self.tipo_ta,
+                'numero': self.numero,
+                'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
 
 class TipoNota(models.Model):

@@ -1,4 +1,7 @@
-{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %} {% block base_content %} {# FIXME is this the best markup to use? #}
+{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %} 
+
+{% block base_content %} {# FIXME is this the best markup to use? #}
+
 <div class="clearfix">
     {% block actions %}
     <dl class="sub-nav right">
@@ -8,20 +11,16 @@
     {% endblock actions %}
     
     
-    {% block sections_nav %}
-      <dl class="sub-nav left">
-	    <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
-        <dd><a href="{% url 'ta_text' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
-     
-	  </dl>
-    
-    {% endblock %}
+    <dl class="sub-nav left">
+	    {% block sections_nav %}
+		    <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
+	        <dd><a href="{% url 'ta_text' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
+	    {% endblock %}
+	      </dl>
+        
 </div>
 
-
-
-
-
+ 
 
 {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
 
@@ -30,14 +29,23 @@
 
     <div class="row">
 
-        <div class="columns large-4">
+        <div class="columns large-3">
             <div id="div_id_tipo" class="holder">
                 <label>{% verbose_name object 'tipo_ta' %}</label>
                 <p>{{ object.tipo_ta}}</p>
             </div>
         </div>
 
-        <div class="columns large-3">
+        {% if object.content_object %}
+	        <div class="columns large-3">
+	            <div id="div_id_tipo" class="holder">
+	                <label>{% verbose_name object.content_object 'tipo' %}</label>
+	                <p>{{ object.content_object.tipo}}</p>
+	            </div>
+	        </div>
+	        {%endif%}
+
+        <div class="columns large-2">
             <div id="div_id_numero" class="holder">
                 <label>{% verbose_name object 'numero' %}</label>
                 <p>{{ object.numero}}</p>
@@ -51,7 +59,7 @@
             </div>
         </div>
 
-        <div class="columns large-3">
+        <div class="columns large-2">
             <div id="div_id_data" class="holder">
                 <label>{% verbose_name object 'data' %}</label>
                 <p>{{ object.data}}</p>
@@ -69,8 +77,5 @@
 
     </div>
 
-</fieldset>
-
-
-
+</fieldset> 
 {% endblock detail_content %} {% endblock base_content %}

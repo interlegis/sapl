@@ -104,7 +104,7 @@ class TaDeleteView(DeleteView):
         return reverse_lazy('ta_list')
 
 
-class TextoView(ListView):
+class TextView(ListView):
     template_name = 'compilacao/text_list.html'
 
     flag_alteradora = -1
@@ -118,7 +118,10 @@ class TextoView(ListView):
     fim_vigencia = None
 
     def get_context_data(self, **kwargs):
-        context = super(TextoView, self).get_context_data(**kwargs)
+        context = super(TextView, self).get_context_data(**kwargs)
+
+        context['object'] = TextoArticulado.objects.get(
+            pk=self.kwargs['ta_id'])
 
         cita = Vide.objects.filter(
             Q(dispositivo_base__ta_id=self.kwargs['ta_id'])).\
@@ -185,16 +188,7 @@ class TextoView(ListView):
             r = Dispositivo.objects.filter(
                 ordem__gt=0,
                 ta_id=self.kwargs['ta_id'],
-            ).select_related(
-                'tipo_dispositivo',
-                'ta_publicado',
-                'ta',
-                'dispositivo_atualizador',
-                'dispositivo_atualizador__dispositivo_pai',
-                'dispositivo_atualizador__dispositivo_pai__ta',
-                'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
-                'dispositivo_pai',
-                'dispositivo_pai__tipo_dispositivo')
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
             return r
 
@@ -264,7 +258,7 @@ class TextoView(ListView):
         return self.flag_alteradora > 0
 
 
-class DispositivoView(TextoView):
+class DispositivoView(TextView):
     # template_name = 'compilacao/index.html'
     template_name = 'compilacao/text_list_bloco.html'
 
@@ -298,3 +292,310 @@ class DispositivoView(TextoView):
                 ta_id=self.kwargs['ta_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         return itens
+
+
+class TextEditView(TextView):
+
+    template_name = 'compilacao/text_edit.html'
+
+    flag_alteradora = -1
+
+    flag_nivel_ini = 0
+    flag_nivel_old = -1
+
+    pk_edit = 0
+    pk_view = 0
+    """
+    def get(self, request, *args, **kwargs):
+
+        self.object_list = self.get_queryset()
+        context = self.get_context_data(
+            object_list=self.object_list)
+
+        return self.render_to_response(context)"""
+
+    def get_queryset(self):
+        self.pk_edit = 0
+        self.pk_view = 0
+
+        self.flag_alteradora = -1
+        self.flag_nivel_ini = 0
+        self.flag_nivel_old = -1
+
+        result = Dispositivo.objects.filter(
+            ta_id=self.kwargs['ta_id']
+        ).select_related(*DISPOSITIVO_SELECT_RELATED)
+
+        if not result.exists():
+
+            ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+
+            td = TipoDispositivo.objects.filter(class_css='articulacao')[0]
+            a = Dispositivo()
+            a.nivel = 0
+            a.ordem = Dispositivo.INTERVALO_ORDEM
+            a.ordem_bloco_atualizador = 0
+            a.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+            a.ta = ta
+            a.tipo_dispositivo = td
+            a.inicio_vigencia = ta.data
+            a.inicio_eficacia = ta.data
+            a.timestamp = datetime.now()
+            a.save()
+
+            td = TipoDispositivo.objects.filter(class_css='ementa')[0]
+            e = Dispositivo()
+            e.nivel = 1
+            e.ordem = a.ordem + Dispositivo.INTERVALO_ORDEM
+            e.ordem_bloco_atualizador = 0
+            e.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+            e.ta = ta
+            e.tipo_dispositivo = td
+            e.inicio_vigencia = ta.data
+            e.inicio_eficacia = ta.data
+            e.timestamp = datetime.now()
+            e.texto = ta.ementa
+            e.dispositivo_pai = a
+            e.save()
+
+            a.pk = None
+            a.nivel = 0
+            a.ordem = e.ordem + Dispositivo.INTERVALO_ORDEM
+            a.ordem_bloco_atualizador = 0
+            a.set_numero_completo([2, 0, 0, 0, 0, 0, ])
+            a.timestamp = datetime.now()
+            a.save()
+
+            result = Dispositivo.objects.filter(
+                ta_id=self.kwargs['ta_id']
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+
+        return result
+
+    def set_perfil_in_session(self, request=None, perfil_id=0):
+        if not request:
+            return None
+
+        if perfil_id:
+            perfil = PerfilEstruturalTextoArticulado.objects.get(
+                pk=perfil_id)
+            request.session['perfil_estrutural'] = perfil.pk
+        else:
+            perfis = PerfilEstruturalTextoArticulado.objects.filter(
+                padrao=True)[:1]
+
+            if not perfis.exists():
+                request.session.pop('perfil_estrutural')
+            else:
+                request.session['perfil_estrutural'] = perfis[0].pk
+
+
+class DispositivoSuccessUrlMixin(object):
+
+    def get_success_url(self):
+        return reverse(
+            'dispositivo', kwargs={
+                'ta_id': self.kwargs[
+                    'ta_id'],
+                'dispositivo_id': self.kwargs[
+                    'dispositivo_id']})
+
+
+class NotaMixin(DispositivoSuccessUrlMixin):
+
+    def get_modelo_nota(self, request):
+        if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
+            tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
+            return True, tn.modelo
+        return False, ''
+
+    def get_initial(self):
+        dispositivo = get_object_or_404(
+            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
+        initial = {'dispositivo': dispositivo}
+
+        if 'pk' in self.kwargs:
+            initial['pk'] = self.kwargs.get('pk')
+
+        return initial
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(NotaMixin, self).dispatch(*args, **kwargs)
+
+
+class NotasCreateView(NotaMixin, CreateView):
+    template_name = 'compilacao/ajax_form.html'
+    form_class = forms.NotaForm
+
+    def get(self, request, *args, **kwargs):
+        flag_action, modelo_nota = self.get_modelo_nota(request)
+        if flag_action:
+            return HttpResponse(modelo_nota)
+
+        return super(NotasCreateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            ta_id = kwargs.pop('ta_id')
+            dispositivo_id = kwargs.pop('dispositivo_id')
+            form = forms.NotaForm(request.POST, request.FILES, **kwargs)
+            kwargs['ta_id'] = ta_id
+            kwargs['dispositivo_id'] = dispositivo_id
+
+            if form.is_valid():
+                nt = form.save(commit=False)
+                nt.owner_id = request.user.pk
+                nt.save()
+                self.kwargs['pk'] = nt.pk
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        except Exception as e:
+            print(e)
+        return HttpResponse("post")
+
+
+class NotasEditView(NotaMixin, UpdateView):
+    model = Nota
+    template_name = 'compilacao/ajax_form.html'
+    form_class = forms.NotaForm
+
+    def get(self, request, *args, **kwargs):
+        flag_action, modelo_nota = self.get_modelo_nota(request)
+        if flag_action:
+            return HttpResponse(modelo_nota)
+
+        return super(NotasEditView, self).get(request, *args, **kwargs)
+
+
+class NotasDeleteView(NotaMixin, TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        nt = Nota.objects.get(pk=self.kwargs['pk'])
+        nt.delete()
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class VideMixin(DispositivoSuccessUrlMixin):
+
+    def get_initial(self):
+        dispositivo_base = get_object_or_404(
+            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
+
+        initial = {'dispositivo_base': dispositivo_base}
+
+        if 'pk' in self.kwargs:
+            initial['pk'] = self.kwargs.get('pk')
+
+        return initial
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(VideMixin, self).dispatch(*args, **kwargs)
+
+
+class VideCreateView(VideMixin, CreateView):
+    template_name = 'compilacao/ajax_form.html'
+    form_class = forms.VideForm
+
+    def post(self, request, *args, **kwargs):
+        try:
+            ta_id = kwargs.pop('ta_id')
+            dispositivo_id = kwargs.pop('dispositivo_id')
+            form = forms.VideForm(request.POST, request.FILES, **kwargs)
+            kwargs['ta_id'] = ta_id
+            kwargs['dispositivo_id'] = dispositivo_id
+
+            if form.is_valid():
+                vd = form.save(commit=False)
+                vd.save()
+                self.kwargs['pk'] = vd.pk
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        except Exception as e:
+            print(e)
+        return HttpResponse("post")
+
+
+class VideEditView(VideMixin, UpdateView):
+    model = Vide
+    template_name = 'compilacao/ajax_form.html'
+    form_class = forms.VideForm
+
+
+class VideDeleteView(VideMixin, TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        vd = Vide.objects.get(pk=self.kwargs['pk'])
+        vd.delete()
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class DispositivoSearchFragmentFormView(ListView):
+    template_name = 'compilacao/dispositivo_search_fragment_form.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(
+            DispositivoSearchFragmentFormView,
+            self).dispatch(*args, **kwargs)
+
+    def get_queryset(self):
+        try:
+            busca = ''
+
+            if 'busca' in self.request.GET:
+                busca = self.request.GET['busca']
+
+            q = Q(nivel__gt=0)
+            busca = busca.split(' ')
+            n = 10
+
+            for item in busca:
+
+                if not item:
+                    continue
+
+                if q:
+                    q = q & (Q(dispositivo_pai__rotulo__icontains=item) |
+                             Q(rotulo__icontains=item) |
+                             Q(texto__icontains=item) |
+                             Q(texto_atualizador__icontains=item))
+                    n = 50
+                else:
+                    q = (Q(dispositivo_pai__rotulo__icontains=item) |
+                         Q(rotulo__icontains=item) |
+                         Q(texto__icontains=item) |
+                         Q(texto_atualizador__icontains=item))
+                    n = 50
+
+            if 'tipo_ta' in self.request.GET:
+                tipo_ta = self.request.GET['tipo_ta']
+                if tipo_ta:
+                    q = q & Q(ta__tipo_ta_id=tipo_ta)
+                    n = 50
+
+            if 'num_ta' in self.request.GET:
+                num_ta = self.request.GET['num_ta']
+                if num_ta:
+                    q = q & Q(ta__numero=num_ta)
+                    n = 50
+
+            if 'ano_ta' in self.request.GET:
+                ano_ta = self.request.GET['ano_ta']
+                if ano_ta:
+                    q = q & Q(ta__ano=ano_ta)
+                    n = 50
+
+            if 'initial_ref' in self.request.GET:
+                initial_ref = self.request.GET['initial_ref']
+                if initial_ref:
+                    q = q & Q(pk=initial_ref)
+                    n = 50
+
+            return Dispositivo.objects.filter(q)[:n]
+
+        except Exception as e:
+            print(e)

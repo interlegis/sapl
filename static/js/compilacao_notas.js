@@ -21,7 +21,7 @@ function onEventsDneExec(pk) {
 
 	$('#dne'+pk+" select[name='tipo']").change(function(event) {
 		var url = '';
-		url = 'compilacao/'+pk+'/nota/create?action=modelo_nota&id_tipo='+this.value;
+		url = 'text/'+pk+'/nota/create?action=modelo_nota&id_tipo='+this.value;
 		$.get(url).done(function( data ) {
 			$('#dne'+pk+" textarea[name='texto']").val(data);
 		});
@@ -40,9 +40,9 @@ function onEventsDneExec(pk) {
 	onChangeParamNorma();
 }
 var onChangeParamNorma = function(event) {
-	var tipo_norma = $("select[name='tipo_norma']").val();
-	var num_norma = $("input[name='num_norma']").val();
-	var ano_norma = $("input[name='ano_norma']").val();
+	var tipo_ta = $("select[name='tipo_ta']").val();
+	var num_ta = $("input[name='num_ta']").val();
+	var ano_ta = $("input[name='ano_ta']").val();
 	var busca_dispositivo = $("input[name='busca_dispositivo']").val();
 	var dispositivo_ref = $("#id_dispositivo_ref").val();
 	$('#id_dispositivo_ref').remove();
@@ -51,18 +51,18 @@ var onChangeParamNorma = function(event) {
 		dispositivo_ref = ''
 
 	var url = '';
-	var pk = $("select[name='tipo_norma']").closest('.dne').attr('pk')
+	var pk = $("select[name='tipo_ta']").closest('.dne').attr('pk')
 
 	var formData = {
-		'tipo_norma'            : tipo_norma,
-		'num_norma'             : num_norma,
-		'ano_norma'             : ano_norma,
+		'tipo_ta'            : tipo_ta,
+		'num_ta'             : num_ta,
+		'ano_ta'             : ano_ta,
 		'busca'               	: busca_dispositivo,
 		'tipo_form'             : 'radio',
 		'initial_ref'           : dispositivo_ref
 	};
 
-	url = 'compilacao/search';
+	url = 'text/search';
 	$('.container-busca').html('');
 	insertWaitAjax('.container-busca')
 	$.get(url, formData).done(function( data ) {
@@ -85,7 +85,7 @@ var onSubmitEditForm = function(event) {
 	}
 
 	id_edit = $('#id_pk').val();
-	url = 'compilacao/'+id_dispositivo+'/'+model+'/'
+	url = 'text/'+id_dispositivo+'/'+model+'/'
 	if (id_edit == null || id_edit == '')
 		url += 'create';
 	else
@@ -119,7 +119,7 @@ var onDelete = function(event) {
 
 	var id_dispositivo =  $(event).closest('.dn').attr('pk');
 	var id_delete = $(event).attr('pk');
-	var url = 'compilacao/'+id_dispositivo+'/'+model+'/'+id_delete+'/delete';
+	var url = 'text/'+id_dispositivo+'/'+model+'/'+id_delete+'/delete';
 
 	$.get( url, function(data) {
 		$('#dne'+id_dispositivo+' .dne-form').closest('.dpt').html(data)
@@ -140,12 +140,12 @@ function getForm(_this) {
 
 	if (_this.className.indexOf('create') >= 0 ) {
 		id_dispositivo = $(_this).attr('pk');
-		url = 'compilacao/'+id_dispositivo+'/'+model+'/create';
+		url = 'text/'+id_dispositivo+'/'+model+'/create';
 	}
 	else if (_this.className.indexOf('edit') >= 0 ) {
 		var id_edit = $(_this).attr('pk');
 		id_dispositivo = $(_this).closest('.dn').attr('pk');
-		url = 'compilacao/'+id_dispositivo+'/'+model+'/'+id_edit+'/edit'
+		url = 'text/'+id_dispositivo+'/'+model+'/'+id_edit+'/edit'
 	}
 
 	$('#dne'+id_dispositivo).addClass('dne-nota');

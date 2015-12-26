@@ -4,10 +4,11 @@ from re import sub
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
 from django import forms
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms import ModelForm
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -15,11 +16,12 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-import sapl
 from comissoes.models import Comissao, Composicao
+from compilacao.models import TextoArticulado, TipoTextoArticulado
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
+import sapl
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -27,6 +29,7 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
+
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -508,10 +511,10 @@ class MateriaAnexadaView(FormMixin, GenericView):
                     error = 'A matéria a ser anexada não pode ser do mesmo \
                             tipo da matéria principal.'
                     return self.render_to_response(
-                                {'error': error,
-                                 'form': form,
-                                 'materialegislativa': mat_principal,
-                                 'anexadas': anexadas})
+                        {'error': error,
+                         'form': form,
+                         'materialegislativa': mat_principal,
+                         'anexadas': anexadas})
 
                 anexada = Anexada()
                 anexada.materia_principal = mat_principal
@@ -527,17 +530,17 @@ class MateriaAnexadaView(FormMixin, GenericView):
                 error = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
                 return self.render_to_response(
-                          {'error': error,
-                           'form': form,
-                           'materialegislativa': mat_principal,
-                           'anexadas': anexadas})
+                    {'error': error,
+                     'form': form,
+                     'materialegislativa': mat_principal,
+                     'anexadas': anexadas})
 
             return self.form_valid(form)
         else:
             return self.render_to_response(
-                        {'form': form,
-                         'materialegislativa': mat_principal,
-                         'anexadas': anexadas})
+                {'form': form,
+                 'materialegislativa': mat_principal,
+                 'anexadas': anexadas})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -615,14 +618,14 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                     error = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
                     return self.render_to_response(
-                                {'error': error,
-                                 'form': form,
-                                 'materialegislativa': mat_principal})
+                        {'error': error,
+                         'form': form,
+                         'materialegislativa': mat_principal})
 
         else:
             return self.render_to_response(
-                        {'form': form,
-                         'materialegislativa': mat_principal})
+                {'form': form,
+                 'materialegislativa': mat_principal})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -1519,7 +1522,7 @@ class TramitacaoEditView(FormMixin, GenericView):
         if form.is_valid():
             if 'excluir' in request.POST:
                 if tramitacao == Tramitacao.objects.filter(
-                  materia=materia).last():
+                        materia=materia).last():
                     tramitacao.delete()
                     return self.form_valid(form)
                 else:
@@ -1765,7 +1768,7 @@ class ProposicaoForm(ModelForm):
                 ButtonHolder(
                     Submit('sumbmit', 'Salvar',
                            css_class='button primary')
-                        ), css_class='columns large-2'))
+                ), css_class='columns large-2'))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -1836,7 +1839,7 @@ class ProposicaoListView(ListView):
         page_obj = context['page_obj']
 
         context['page_range'] = sapl.crud.make_pagination(
-                page_obj.number, paginator.num_pages)
+            page_obj.number, paginator.num_pages)
         return context
 
 
@@ -1907,7 +1910,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
                                    label='Tramitando',
                                    choices=em_tramitacao(),
                                    widget=forms.Select(
-                                      attrs={'class': 'selector'}))
+                                       attrs={'class': 'selector'}))
 
     # TODO: Verificar se esses campos estão corretos
     # assunto? # -> usado 'ementa' em 'assunto'
@@ -1979,13 +1982,13 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
 
         if request.POST['data_apresentacao']:
             kwargs['data_apresentacao'] = datetime.strptime(
-                    request.POST['data_apresentacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+                request.POST['data_apresentacao'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
 
         if request.POST['data_publicacao']:
             kwargs['data_publicacao'] = datetime.strptime(
-                    request.POST['data_publicacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+                request.POST['data_publicacao'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
 
         if request.POST['tramitacao']:
             kwargs['em_tramitacao'] = request.POST['tramitacao']
@@ -2018,3 +2021,35 @@ class PesquisaMateriaListView(FormMixin, ListView):
         context['page_range'] = sapl.crud.make_pagination(
             page_obj.number, paginator.num_pages)
         return context
+
+
+class MateriaTaView(GenericView):
+
+    def get(self, *args, **kwargs):
+        materia = get_object_or_404(MateriaLegislativa, pk=kwargs['pk'])
+        related_object_type = ContentType.objects.get_for_model(materia)
+
+        ta = TextoArticulado.objects.filter(
+            object_id=materia.pk,
+            content_type=related_object_type)
+
+        if not ta.exists():
+            tipo_ta = TipoTextoArticulado.objects.filter(
+                model=materia.__class__.__name__.lower())[:1]
+
+            ta = TextoArticulado()
+
+            if tipo_ta.exists():
+                ta.tipo_ta = tipo_ta[0]
+
+            ta.ementa = materia.ementa
+            ta.numero = materia.numero
+            ta.ano = materia.ano
+            ta.data = materia.data_apresentacao
+            ta.content_object = materia
+            ta.save()
+
+        else:
+            ta = ta[0]
+
+        return redirect(to=reverse_lazy('ta_text', kwargs={'ta_id': ta.pk}))
