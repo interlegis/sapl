@@ -1,7 +1,4 @@
-from crispy_forms_foundation.layout import (HTML, Column, Div, Fieldset,
-                                            Layout, Row, Submit)
-from django.apps import apps
-from django.contrib import admin
+from crispy_forms_foundation.layout import Column, Fieldset, Row
 from django.utils.translation import ugettext_lazy as _
 
 

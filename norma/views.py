@@ -12,18 +12,16 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
+import sapl
 from compilacao.models import TextoArticulado, TipoTextoArticulado
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
-import sapl
 
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
-
 
 assunto_norma_crud = build_crud(
     AssuntoNorma, 'assunto_norma_juridica', [

@@ -1,33 +1,26 @@
 from collections import OrderedDict
 from datetime import datetime, timedelta
-from os.path import sys
 
 from braces.views import FormMessagesMixin
 from django.contrib.auth.decorators import login_required
-from django.contrib.messages.api import success
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q
-from django.http.response import (HttpResponse, HttpResponseRedirect,
-                                  JsonResponse)
-from django.shortcuts import get_object_or_404, render
+from django.http.response import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
-from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import FormMixin, UpdateView, CreateView,\
-    DeleteView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from compilacao import forms, utils
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado,
-                               TipoDispositivo, TipoNota, TipoPublicacao,
-                               TipoVide, VeiculoPublicacao, Vide,
-                               TextoArticulado)
-
+                               TextoArticulado, TipoDispositivo, TipoNota,
+                               Vide)
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',

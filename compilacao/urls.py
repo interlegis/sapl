@@ -59,9 +59,6 @@ urlpatterns = [
 
 
 """
-  
-
-
     url(r'^(?P<ta_id>[0-9]+)/compilacao/(?P<dispositivo_id>[0-9]+)/refresh',
         views.DispositivoEditView.as_view(), name='dispositivo_edit'),
 

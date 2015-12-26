@@ -2,18 +2,17 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (HTML, Column, Div, Fieldset,
                                             Layout, Row, Submit)
-from crispy_forms_foundation.layout.buttons import Button, ButtonHolder
+from crispy_forms_foundation.layout.buttons import Button
 from crispy_forms_foundation.layout.fields import Field
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao import utils, models
-from compilacao.models import Dispositivo, Nota, TipoNota, TipoVide, Vide,\
-    TextoArticulado, TipoTextoArticulado
-from compilacao.utils import to_row, to_column, to_fieldsets
-from norma.models import TipoNormaJuridica
+from compilacao import models
+from compilacao.models import (Dispositivo, Nota, TextoArticulado, TipoNota,
+                               TipoTextoArticulado, TipoVide, Vide)
+from compilacao.utils import to_column, to_fieldsets, to_row
 
 
 class UpLoadImportFileForm(forms.Form):
