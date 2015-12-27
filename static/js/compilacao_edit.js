@@ -167,7 +167,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 			if (flag_actions_vibible == null || flag_actions_vibible) {
 				$('#dpt'+pk_edit).addClass('dpt-selected');
 				$('html, body').animate({
-					scrollTop: $('#dpt' + pk_edit ).offset().top - window.innerHeight / 10
+					scrollTop: $('#dpt' + pk_edit ).offset().top - window.innerHeight / 9
 				}, 0);
 			}
 		}

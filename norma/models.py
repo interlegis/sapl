@@ -72,7 +72,7 @@ class NormaJuridica(models.Model):
         null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Texto Integral'))
-    tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(TipoNormaJuridica, verbose_name=_('Tipo da Norma Juridica'))
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))

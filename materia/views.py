@@ -4,21 +4,20 @@ from re import sub
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
 from django import forms
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
 from django.forms import ModelForm
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
+from vanilla.views import GenericView
 
 import sapl
 from comissoes.models import Comissao, Composicao
-from compilacao.models import TextoArticulado, TipoTextoArticulado
+from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -2022,33 +2021,5 @@ class PesquisaMateriaListView(FormMixin, ListView):
         return context
 
 
-class MateriaTaView(GenericView):
-
-    def get(self, *args, **kwargs):
-        materia = get_object_or_404(MateriaLegislativa, pk=kwargs['pk'])
-        related_object_type = ContentType.objects.get_for_model(materia)
-
-        ta = TextoArticulado.objects.filter(
-            object_id=materia.pk,
-            content_type=related_object_type)
-
-        if not ta.exists():
-            tipo_ta = TipoTextoArticulado.objects.filter(
-                model=materia.__class__.__name__.lower())[:1]
-
-            ta = TextoArticulado()
-
-            if tipo_ta.exists():
-                ta.tipo_ta = tipo_ta[0]
-
-            ta.ementa = materia.ementa
-            ta.numero = materia.numero
-            ta.ano = materia.ano
-            ta.data = materia.data_apresentacao
-            ta.content_object = materia
-            ta.save()
-
-        else:
-            ta = ta[0]
-
-        return redirect(to=reverse_lazy('ta_text', kwargs={'ta_id': ta.pk}))
+class MateriaTaView(IntegracaoTaView):
+    model = MateriaLegislativa

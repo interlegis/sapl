@@ -79,7 +79,7 @@ a:link:after, a:visited:after {
                     width: 0px;
                     border-color: transparent transparent #3385CA;
                     position: absolute;
-                    top: -0.75rem;
+                    top: -0.71rem;
                     left: 0.9375rem;
                 }
                 &:hover::before {
@@ -597,6 +597,7 @@ a:link:after, a:visited:after {
                 .dne {
                     height: 0.1667rem;
                     transform: scaleX(1);
+                    transition-delay: 1s;
 
                     ul.btns-action {
                         clip: rect(-100px, 2000px, 2000px, -100px);
@@ -610,7 +611,7 @@ a:link:after, a:visited:after {
                 }
                 .dne-nota {
                     height: auto;
-
+                    transition-delay: 0s;
                 }
             }
 

@@ -1,29 +1,25 @@
-{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %} 
+{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %}
 
 {% block base_content %} {# FIXME is this the best markup to use? #}
-
 <div class="clearfix">
     {% block actions %}
     <dl class="sub-nav right">
-        <dd><a href="{% url 'ta_edit' object.pk %}" class="button">{% trans 'Editar' %}</a></dd>
+        <dd><a href="{% url 'ta_edit' object.pk %}" class="button">{% trans 'Edição dos Metadados do Texto Articulado' %}</a></dd>
         <dd><a href="{% url 'ta_delete' object.pk %}" class="button alert">{% trans 'Excluir' %}</a></dd>
     </dl>
     {% endblock actions %}
-    
-    
     <dl class="sub-nav left">
-	    {% block sections_nav %}
-		    <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
-	        <dd><a href="{% url 'ta_text' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
-	    {% endblock %}
-	      </dl>
-        
+        {% block sections_nav %}
+            {% if object.content_object%}
+                <dd><a href="{% url object|urldetail_content_type object.content_object.pk %}" class="button secondary" title="{% trans 'Ir para '%}{{object.content_object}}">Início</a></dd>
+            {%else%}
+                <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
+            {%endif%}
+        {% endblock %}
+    </dl>
 </div>
 
- 
-
 {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
-
 <fieldset>
     <legend>{%trans 'Identificação Básica'%}</legend>
 
@@ -36,14 +32,14 @@
             </div>
         </div>
 
-        {% if object.content_object %}
-	        <div class="columns large-3">
-	            <div id="div_id_tipo" class="holder">
-	                <label>{% verbose_name object.content_object 'tipo' %}</label>
-	                <p>{{ object.content_object.tipo}}</p>
-	            </div>
-	        </div>
-	        {%endif%}
+        {% if object.content_object and object.content_object.tipo%}
+        <div class="columns large-3">
+            <div id="div_id_tipo" class="holder">
+                <label>{% verbose_name object.content_object 'tipo' %}</label>
+                <p>{{ object.content_object.tipo}}</p>
+            </div>
+        </div>
+        {%endif%}
 
         <div class="columns large-2">
             <div id="div_id_numero" class="holder">
@@ -74,8 +70,6 @@
                 <p>{{ object.ementa|safe}}</p>
             </div>
         </div>
-
     </div>
-
-</fieldset> 
+</fieldset>
 {% endblock detail_content %} {% endblock base_content %}

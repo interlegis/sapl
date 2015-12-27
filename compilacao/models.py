@@ -122,7 +122,7 @@ class TextoArticulado(TimestampedMixin):
         if self.content_object:
             return str(self.content_object)
         else:
-            return _('Texto Articulado nº %(numero)s de %(data)s') % {
+            return _('%(tipo)s nº %(numero)s de %(data)s') % {
                 'tipo': self.tipo_ta,
                 'numero': self.numero,
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}

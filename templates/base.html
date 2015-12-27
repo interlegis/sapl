@@ -117,12 +117,12 @@
       {% block main_header %}
         <header id="masthead" class="masthead page__row">
           <div class="container">
-            <a class="masthead__logo" href="#">                              
+            <a class="masthead__logo" href="#">
                 {% if logotipo %}
                     <img src="{{ MEDIA_URL }}{{ logotipo }}" alt="Logo">
                 {% else %}
                     <img src="{% static 'img/logo.png' %}" alt="Logo">
-                {% endif %}                            
+                {% endif %}
             </a>
             <div class="masthead__heading">
               {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
@@ -158,7 +158,7 @@
 
                 {% block title %}
                   {% if view.title %}
-                    <h1>{{ view.title }}</h1>
+                    <h1>{{ view.title|linebreaksbr  }}</h1>
                   {% endif %}
                 {% endblock %}
 
@@ -214,9 +214,10 @@
       <script>tinymce.init({selector:'textarea'});</script>
 
       <script>$(document).foundation();</script>
-      
+
       <script type="text/javascript">
         $(function () {
+
           $('.dateinput').fdatepicker({
             // TODO localize
             format: 'dd/mm/yyyy',

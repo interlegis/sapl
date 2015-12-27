@@ -35,7 +35,7 @@
 			</ul>
 
 	        <ul class="btns-action actions_left">
-	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="TODO: Vides...">Vd</a></li>
+	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="">.</a></li>
 	        </ul>
 			<ul class="btns-action actions_bottom">
 				{% for perfil in perfil_estrutural_list%}
@@ -108,7 +108,7 @@
 			{% spaceless %}
 				<div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
 				{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-					<a class="link_alterador" href="{%url 'comp_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+					<a class="link_alterador" href="{%url 'ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
 						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
 						{% nota_automatica dpt %}
 						{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
