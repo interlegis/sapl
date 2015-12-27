@@ -446,7 +446,7 @@ class NotasCreateView(NotaMixin, CreateView):
                 return self.form_invalid(form)
         except Exception as e:
             print(e)
-        return HttpResponse("post")
+        return HttpResponse("error post")
 
 
 class NotasEditView(NotaMixin, UpdateView):
@@ -489,11 +489,13 @@ class VideMixin(DispositivoSuccessUrlMixin):
 
 
 class VideCreateView(VideMixin, CreateView):
+    model = Vide
     template_name = 'compilacao/ajax_form.html'
     form_class = forms.VideForm
 
-    def post(self, request, *args, **kwargs):
+    def post_old(self, request, *args, **kwargs):
         try:
+            self.object = None
             ta_id = kwargs.pop('ta_id')
             dispositivo_id = kwargs.pop('dispositivo_id')
             form = forms.VideForm(request.POST, request.FILES, **kwargs)
@@ -509,7 +511,7 @@ class VideCreateView(VideMixin, CreateView):
                 return self.form_invalid(form)
         except Exception as e:
             print(e)
-        return HttpResponse("post")
+        return HttpResponse("error post")
 
 
 class VideEditView(VideMixin, UpdateView):

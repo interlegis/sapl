@@ -14,8 +14,7 @@
         <ul>
     {% endifchanged %}
 
-	{% if dpt.is_relative_auto_insert and dpt.dispositivo_pai and dpt.dispositivo_pai.nivel != 0 %}
-
+	{% if dpt.is_relative_auto_insert and dpt.dispositivo_pai.nivel != 0 %}
 		<li>
 			<div class="iteminput">
 				<input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
@@ -25,10 +24,8 @@
 				<a target="_blank" href="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
  			</div>
 		</li>
-	{% endif%}
-
-	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao and not dpt.is_relative_auto_insert %}
-	    <li>
+	{% elif not dpt.tipo_dispositivo.dispositivo_de_articulacao  %}
+		<li>
 	        <div class="iteminput">
 	            <input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
 	        </div>

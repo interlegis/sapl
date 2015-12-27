@@ -11,9 +11,9 @@
 
       <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
 
-      {# TODO:  incluir javascript compilacao_notas apenas se houver usuário conectado e que possua permissão para cadastro de notas #}
-      <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
-
+      {% if perms.compilacao.add_nota %}
+          <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
+      {% endif %}
 {% endblock %}
 
 

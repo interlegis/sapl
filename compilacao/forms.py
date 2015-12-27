@@ -218,6 +218,7 @@ class VideForm(ModelForm):
         widget=forms.HiddenInput())
 
     tipo_ta = forms.ModelChoiceField(
+        label='Tipo do Texto Articulado',
         queryset=TipoTextoArticulado.objects.all(),
         required=False)
     num_ta = forms.IntegerField(

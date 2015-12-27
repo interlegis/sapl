@@ -1,7 +1,8 @@
 $color_actions: #16407c;
 $color_actions_border: #CCC;
+$color_buttons: #2980B9;
+
 @mixin background-top-down($top, $bottom) {
-    background: $top;
     background-image: -webkit-linear-gradient(top, $top, $bottom);
     background-image: -moz-linear-gradient(top, $top, $bottom);
     background-image: -ms-linear-gradient(top, $top, $bottom);
@@ -220,7 +221,7 @@ a:link:after, a:visited:after {
             font-size: 1.15em;
             float:left;
             .dptt {
-                z-index: 89;
+                z-index: 8;
                 position: relative;
             }
         }
@@ -383,16 +384,22 @@ a:link:after, a:visited:after {
         .dptt {
             .dne {
                 text-decoration: none;
-                position: relative;
+                position: absolute;
                 display: block;
                 font-size: 0.8rem;
                 font-weight: normal;
                 line-height: 1rem;
                 text-align: left;
                 height: 0;
-                transform: scaleY(0);
-                transform-origin: top;
+                transform: scaleX(0);
+                transform-origin: right;
                 transition: all 0.3s ease;
+                top: 0;
+                left: -1.6em;
+                right: -1.6em;
+                background-color: #2980b9;
+                z-index: 8;
+
                 * {
                     font-size: 0.8rem;
                     font-weight: normal;
@@ -408,27 +415,22 @@ a:link:after, a:visited:after {
                     clip: rect(0,0,0,0);
                     opacity: 0;
                     transition: opacity 1.5s linear, clip 1s linear;
-                    transition-delay: 0s;
                     border-collapse:separate;
-                    border-spacing:0.5em;
+                    border-spacing: 0;
+                    top: 0px;
+                    right: 0px;
+                    z-index: 9;
                     li {
                         display: table-cell;
+                        background-color: $color_buttons;
                         a {
-                            background-color: #DDD;
-                            border-radius: 50%;
-                            width: 3rem;
-                            height: 3rem;
+                            font-size: 155%;
+                            padding: 0.4em 0.8em;
                             display: inline-block;
-                            font-size: 203%;
-                            line-height: 3rem;
-                            text-align: center;
-                            &.btn-nota-create {
-                                background: #ddd url(/static/img/hand-note.png) no-repeat 50% 50%;
-                            }
-                            &.btn-vide-create {
-                            }
+                            float: right;
+                            color: #fff !important;
                             &:hover {
-                                background-color: #Cdc ;
+                                background-color: rgba(0, 0, 0, 0.15);
                             }
                         }
                     }
@@ -437,12 +439,15 @@ a:link:after, a:visited:after {
             .dne-nota {
                 box-shadow: -4px 15px 15px rgba(0, 0, 0, 0.1), 0px 6px 6px rgba(0, 0, 0, 0.23);
                 @include background-top-down(#f5f5f5, #eee);
-
-                transform: scaleY(1);
+                position: relative;
+                transform: scaleX(1);
                 height: auto;
-                transition-delay: 0s;
+                left: 0;
+                right: 0;
                 margin: 1em 0 2em 0;
                 padding: 0em;
+                border: 0px;
+                z-index: 9;
                 ul.btns-action {
                     display: none;
                 }
@@ -590,15 +595,13 @@ a:link:after, a:visited:after {
             }
             &:hover {
                 .dne {
-                    height: 4.3em;
-                    transform: scaleY(1);
-                    transition-delay: 1s;
+                    height: 0.1667rem;
+                    transform: scaleX(1);
 
                     ul.btns-action {
                         clip: rect(-100px, 2000px, 2000px, -100px);
                         opacity: 1;
                         transition: opacity 0.5s linear, clip 0s 0.3s;
-                        transition-delay: 0.5s;
                         li {
                             a {
                             }
@@ -606,7 +609,6 @@ a:link:after, a:visited:after {
                     }
                 }
                 .dne-nota {
-                    transition-delay: 0s;
                     height: auto;
 
                 }
