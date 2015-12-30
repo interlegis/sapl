@@ -1,3 +1,4 @@
+import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -5,10 +6,9 @@ from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
 from parlamentares.models import Filiacao, Parlamentar
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
@@ -157,16 +157,26 @@ class ParticipacaoCadastroForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
+
+        row1 = sapl.layout.to_row(
+            [('parlamentar_id', 4),
+             ('cargo', 4),
+             ('titular', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('data_designacao', 6),
+             ('data_desligamento', 6)])
+
+        row3 = sapl.layout.to_row(
+            [('motivo_desligamento', 12)])
+
+        row4 = sapl.layout.to_row(
+            [('observacao', 12)])
+
         self.helper.layout = Layout(
             Fieldset(
                 'Formulário de Cadastro',
-                'parlamentar_id',
-                'cargo',
-                'titular',
-                'data_designacao',
-                'data_desligamento',
-                'motivo_desligamento',
-                'observacao'
+                row1, row2, row3, row4
             ),
             ButtonHolder(
                 Submit('submit', 'Salvar',

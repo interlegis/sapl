@@ -494,7 +494,7 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
         return self.render_to_response(
             {'form': form,
              'parlamentar': parlamentar,
-             ' legislatura_id': dependente.parlamentar.mandato_set.last(
+             'legislatura_id': dependente.parlamentar.mandato_set.last(
              ).legislatura_id})
 
     def post(self, request, *args, **kwargs):
