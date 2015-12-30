@@ -8,7 +8,8 @@
         <li><a href="{% url 'ta_delete' object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
         <li><a href="#" class="button tiny" data-dropdown="drop"><i class="fi-widget"></i></a>
             <ul id="drop" class="tiny f-dropdown" data-dropdown-content>
-          		<li><a href="{% url 'tipopublicacao:list' %}">{%model_verbose_name_plural 'TipoPublicacao'%}</a></li>
+                <li><a href="{% url 'tipo_ta_list' %}">{%model_verbose_name_plural 'TipoTextoArticulado'%}</a></li>
+                <li><a href="{% url 'tipopublicacao:list' %}">{%model_verbose_name_plural 'TipoPublicacao'%}</a></li>
                 <li><a href="{% url 'veiculopublicacao:list' %}">{%model_verbose_name_plural 'VeiculoPublicacao'%}</a></li>
           		<li><a href="{% url 'tiponota:list' %}">{%model_verbose_name_plural 'TipoNota'%}</a></li>
           		<li><a href="{% url 'tipovide:list' %}">{%model_verbose_name_plural 'TipoVide'%}</a></li> 

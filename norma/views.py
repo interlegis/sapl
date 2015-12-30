@@ -12,13 +12,14 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
-import sapl
 from compilacao.views import IntegracaoTaView
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
+import sapl
 
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
+
 
 assunto_norma_crud = build_crud(
     AssuntoNorma, 'assunto_norma_juridica', [

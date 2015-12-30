@@ -62,6 +62,13 @@ urlpatterns_compilacao = [
         name='search_dispositivo'),
 
 
+    url(r'^config/tipo-textoarticulado$',
+        views.TipoTaListView.as_view(), name='tipo_ta_list'),
+    url(r'^config/tipo-textoarticulado/create$',
+        views.TipoTaCreateView.as_view(), name='tipo_ta_create'),
+    url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)$',
+        views.TipoTaDetailView.as_view(), name='tipo_ta_detail'),
+
     url(r'^config/tipo-nota/',
         include(tipo_nota_crud.urls)),
     url(r'^config/tipo-vide/',

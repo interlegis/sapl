@@ -3,11 +3,15 @@ from datetime import datetime, timedelta
 import sys
 
 from braces.views import FormMessagesMixin
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout.containers import Fieldset
+from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q
+from django.forms.models import ModelForm
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
@@ -19,13 +23,15 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
-from compilacao import forms, utils
+from compilacao import utils
+from compilacao.forms import TaForm, NotaForm, VideForm
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoTextoArticulado, Vide, TipoVide,
-                               TipoPublicacao, VeiculoPublicacao)
-from compilacao.utils import build_crud
+                               TipoPublicacao, VeiculoPublicacao,
+                               PARTICIPACAO_SOCIAL_CHOICES)
+from compilacao.utils import build_crud, to_row, FormLayout
 
 
 DISPOSITIVO_SELECT_RELATED = (
@@ -68,79 +74,6 @@ veiculo_publicacao_crud = build_crud(
         [_('Veículo de Publicação'),
          [('sigla', 2), ('nome', 10)]],
     ])
-
-
-class TaListView(ListView):
-    model = TextoArticulado
-    paginate_by = 10
-    verbose_name = model._meta.verbose_name
-    title = model._meta.verbose_name_plural
-    create_url = reverse_lazy('ta_create')
-
-    def get_context_data(self, **kwargs):
-        context = super(TaListView, self).get_context_data(**kwargs)
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-        context['page_range'] = utils.make_pagination(
-            page_obj.number, paginator.num_pages)
-        return context
-
-
-class TaDetailView(DetailView):
-    model = TextoArticulado
-
-    @property
-    def title(self):
-        if self.get_object().content_object:
-            return _(
-                'Metadados para o Texto Articulado da %s - %s') % (
-                self.get_object().content_object._meta.verbose_name_plural,
-                self.get_object().content_object)
-        else:
-            return self.get_object()
-
-
-class TaCreateView(FormMessagesMixin, CreateView):
-    model = TextoArticulado
-    form_class = forms.TaForm
-    template_name = "compilacao/form.html"
-    form_valid_message = _('Registro criado com sucesso!')
-    form_invalid_message = _('O registro não foi criado.')
-
-    def get_success_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.object.id})
-
-
-class TaUpdateView(UpdateView):
-    model = TextoArticulado
-    form_class = forms.TaForm
-    template_name = "compilacao/form.html"
-
-    @property
-    def title(self):
-        return self.get_object()
-
-    def get_success_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
-
-    @property
-    def cancel_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
-
-
-class TaDeleteView(DeleteView):
-    model = TextoArticulado
-
-    @property
-    def title(self):
-        return self.get_object()
-
-    @property
-    def detail_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
-
-    def get_success_url(self):
-        return reverse_lazy('ta_list')
 
 
 class IntegracaoTaView(TemplateView):
@@ -199,6 +132,175 @@ class IntegracaoTaView(TemplateView):
 
     class Meta:
         abstract = True
+
+
+def get_integrations_view_names():
+    result = []
+    modules = sys.modules
+    for key, value in modules.items():
+        if key.endswith('.views'):
+            for v in value.__dict__.values():
+                if hasattr(v, '__bases__'):
+                    for base in v.__bases__:
+                        if base == IntegracaoTaView:
+                            result.append(v)
+    return result
+
+
+def choice_extenal_views():
+    integrations_view_names = get_integrations_view_names()
+    result = []
+    for item in integrations_view_names:
+        ct = ContentType.objects.filter(
+            model=item.model.__name__.lower(),
+            app_label=item.model._meta.app_label)
+        if ct.exists():
+            result.append((
+                ct[0].pk,
+                item.model._meta.verbose_name_plural))
+    return result
+
+
+class TipoTaForm(ModelForm):
+    sigla = forms.CharField(label='Sigla')
+    descricao = forms.CharField(label='Descrição')
+
+    participacao_social = forms.NullBooleanField(
+        label=_('Participação Social'),
+        widget=forms.Select(choices=PARTICIPACAO_SOCIAL_CHOICES),
+        required=False)
+
+    class Meta:
+        model = TipoTextoArticulado
+        fields = ['sigla',
+                  'descricao',
+                  'model',
+                  'participacao_social',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([
+            ('sigla', 2),
+            ('descricao', 4),
+            ('model', 3),
+            ('participacao_social', 3),
+        ])
+
+        self.helper = FormHelper()
+        self.helper.layout = FormLayout(
+            Fieldset(_('Identificação Básica'),
+                     row1, css_class="large-12"))
+        super(TipoTaForm, self).__init__(*args, **kwargs)
+
+
+class TipoTaListView(ListView):
+    model = TipoTextoArticulado
+    paginate_by = 10
+    verbose_name = model._meta.verbose_name
+    title = model._meta.verbose_name_plural
+    create_url = reverse_lazy('tipo_ta_create')
+
+
+class TipoTaCreateView(FormMessagesMixin, CreateView):
+    model = TipoTextoArticulado
+    form_class = TipoTaForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        form.fields['model'] = forms.ChoiceField(
+            choices=choice_extenal_views(),
+            label='Associação', required=False)
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.object.id})
+
+
+class TipoTaDetailView(DetailView):
+    model = TipoTextoArticulado
+
+    @property
+    def title(self):
+        return self.get_object()
+
+
+class TaListView(ListView):
+    model = TextoArticulado
+    paginate_by = 10
+    verbose_name = model._meta.verbose_name
+    title = model._meta.verbose_name_plural
+    create_url = reverse_lazy('ta_create')
+
+    def get_context_data(self, **kwargs):
+        context = super(TaListView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = utils.make_pagination(
+            page_obj.number, paginator.num_pages)
+        return context
+
+
+class TaDetailView(DetailView):
+    model = TextoArticulado
+
+    @property
+    def title(self):
+        if self.get_object().content_object:
+            return _(
+                'Metadados para o Texto Articulado da %s - %s') % (
+                self.get_object().content_object._meta.verbose_name_plural,
+                self.get_object().content_object)
+        else:
+            return self.get_object()
+
+
+class TaCreateView(FormMessagesMixin, CreateView):
+    model = TextoArticulado
+    form_class = TaForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get_success_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.object.id})
+
+
+class TaUpdateView(UpdateView):
+    model = TextoArticulado
+    form_class = TaForm
+    template_name = "compilacao/form.html"
+
+    @property
+    def title(self):
+        return self.get_object()
+
+    def get_success_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+
+class TaDeleteView(DeleteView):
+    model = TextoArticulado
+
+    @property
+    def title(self):
+        return self.get_object()
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_success_url(self):
+        return reverse_lazy('ta_list')
 
 
 class TextView(ListView):
@@ -1243,7 +1345,7 @@ class NotaMixin(DispositivoSuccessUrlMixin):
 
 class NotasCreateView(NotaMixin, CreateView):
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.NotaForm
+    form_class = NotaForm
 
     def get(self, request, *args, **kwargs):
         flag_action, modelo_nota = self.get_modelo_nota(request)
@@ -1256,7 +1358,7 @@ class NotasCreateView(NotaMixin, CreateView):
         try:
             ta_id = kwargs.pop('ta_id')
             dispositivo_id = kwargs.pop('dispositivo_id')
-            form = forms.NotaForm(request.POST, request.FILES, **kwargs)
+            form = NotaForm(request.POST, request.FILES, **kwargs)
             kwargs['ta_id'] = ta_id
             kwargs['dispositivo_id'] = dispositivo_id
 
@@ -1276,7 +1378,7 @@ class NotasCreateView(NotaMixin, CreateView):
 class NotasEditView(NotaMixin, UpdateView):
     model = Nota
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.NotaForm
+    form_class = NotaForm
 
     def get(self, request, *args, **kwargs):
         flag_action, modelo_nota = self.get_modelo_nota(request)
@@ -1315,14 +1417,14 @@ class VideMixin(DispositivoSuccessUrlMixin):
 class VideCreateView(VideMixin, CreateView):
     model = Vide
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.VideForm
+    form_class = VideForm
 
     def post_old(self, request, *args, **kwargs):
         try:
             self.object = None
             ta_id = kwargs.pop('ta_id')
             dispositivo_id = kwargs.pop('dispositivo_id')
-            form = forms.VideForm(request.POST, request.FILES, **kwargs)
+            form = VideForm(request.POST, request.FILES, **kwargs)
             kwargs['ta_id'] = ta_id
             kwargs['dispositivo_id'] = dispositivo_id
 
@@ -1341,7 +1443,7 @@ class VideCreateView(VideMixin, CreateView):
 class VideEditView(VideMixin, UpdateView):
     model = Vide
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.VideForm
+    form_class = VideForm
 
 
 class VideDeleteView(VideMixin, TemplateView):
