@@ -1,8 +1,10 @@
+from compressor.utils import get_class
 from django import template
 from django.core.signing import Signer
 from django.db.models import Q
 
 from compilacao.models import Dispositivo, TipoDispositivo
+
 
 register = template.Library()
 
@@ -155,8 +157,20 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
 
 
 @register.simple_tag
-def verbose_name(instance, field_name):
+def field_verbose_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name
+
+
+@register.simple_tag
+def model_verbose_name(class_name):
+    model = get_class('compilacao.models.' + class_name)
+    return model._meta.verbose_name
+
+
+@register.simple_tag
+def model_verbose_name_plural(class_name):
+    model = get_class('compilacao.models.' + class_name)
+    return model._meta.verbose_name_plural
 
 
 @register.filter

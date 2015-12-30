@@ -35,5 +35,6 @@ function ReadCookie(cookieName) {
 }
 
 function insertWaitAjax(element) {
-	jQuery(element).append('<div style="text-align:center;"><img src="/static/img/ajax-loader.gif"></div>');
+	//jQuery(element).append('<div style="text-align:center;"><img src="/static/img/ajax-loader.gif"></div>');
+	jQuery(element).append('<div style="text-align:center;"><i style="font-size: 200%;"class="fa fa-refresh fa-spin"></i></div>');
 }

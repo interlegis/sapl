@@ -1,6 +1,8 @@
 from django.conf.urls import include, url
 
 from compilacao import views
+from compilacao.views import tipo_nota_crud, tipo_vide_crud,\
+    tipo_publicacao_crud, veiculo_publicacao_crud
 
 urlpatterns_compilacao = [
     url(r'^$', views.TaListView.as_view(), name='ta_list'),
@@ -10,6 +12,7 @@ urlpatterns_compilacao = [
         views.TaUpdateView.as_view(), name='ta_edit'),
     url(r'^(?P<pk>[0-9]+)/delete$',
         views.TaDeleteView.as_view(), name='ta_delete'),
+
 
     url(r'^(?P<ta_id>[0-9]+)/text$',
         views.TextView.as_view(), name='ta_text'),
@@ -57,6 +60,17 @@ urlpatterns_compilacao = [
     url(r'^(?P<ta_id>[0-9]+)/text/search$',
         views.DispositivoSearchFragmentFormView.as_view(),
         name='search_dispositivo'),
+
+
+    url(r'^config/tipo-nota/',
+        include(tipo_nota_crud.urls)),
+    url(r'^config/tipo-vide/',
+        include(tipo_vide_crud.urls)),
+    url(r'^config/tipo-publicacao/',
+        include(tipo_publicacao_crud.urls)),
+    url(r'^config/veiculo-publicacao/',
+        include(veiculo_publicacao_crud.urls)),
+
 ]
 
 urlpatterns = [

@@ -221,7 +221,6 @@ a:link:after, a:visited:after {
             font-size: 1.15em;
             float:left;
             .dptt {
-                z-index: 8;
                 position: relative;
             }
         }
@@ -398,7 +397,7 @@ a:link:after, a:visited:after {
                 left: -1.6em;
                 right: -1.6em;
                 background-color: #2980b9;
-                z-index: 8;
+                z-index: 18;
 
                 * {
                     font-size: 0.8rem;
@@ -419,7 +418,7 @@ a:link:after, a:visited:after {
                     border-spacing: 0;
                     top: 0px;
                     right: 0px;
-                    z-index: 9;
+                    z-index: 19;
                     li {
                         display: table-cell;
                         background-color: $color_buttons;
@@ -447,7 +446,7 @@ a:link:after, a:visited:after {
                 margin: 1em 0 2em 0;
                 padding: 0em;
                 border: 0px;
-                z-index: 9;
+                z-index: 19;
                 ul.btns-action {
                     display: none;
                 }
@@ -895,7 +894,7 @@ a:link:after, a:visited:after {
                 padding: 0.3em;
                 font-size: 80%;
                 text-align: right;
-                z-index: 5;
+                z-index: 15;
                 display: table;
                 li {
                     display: table-cell;
@@ -903,7 +902,7 @@ a:link:after, a:visited:after {
             }
 
             .actions_parents {
-                z-index: 1;
+                z-index: 11;
                 top: 0em;
                 left: 0em;
                 a {
@@ -989,7 +988,7 @@ a:link:after, a:visited:after {
             .actions_inserts {
                 background: transparent;
                 position: relative;
-                z-index: 9;
+                z-index: 19;
                 display: table;
                 width: 100%;
 
@@ -1023,7 +1022,7 @@ a:link:after, a:visited:after {
                             }
 
                             &::before {
-                                z-index: 10;
+                                z-index: 20;
                                 position: absolute;
                                 background: url(/static/img/icon_delete_white.png) no-repeat 50% 50%;
                                 content:"";
@@ -1327,7 +1326,8 @@ a:link:after, a:visited:after {
 }
 
 @media print {
-    .cp .vigencias {
+    .cp .vigencias, .toggle-topbar, .menu-icon, .button {
         display:none;
     }
+
 }

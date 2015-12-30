@@ -154,7 +154,10 @@ $(document).ready(function() {
 	    $(".dpt").css("font-size", "+=1");
 	});
 
+    $(".dpt").each(function() {
+        var nivel = parseInt($(this).attr('nivel'));
 
+        $(this).css('z-index', 20-nivel)
 
-
+    });
 });

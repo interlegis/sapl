@@ -5,38 +5,6 @@ from compilacao.models import (PerfilEstruturalTextoArticulado,
                                TipoVide, VeiculoPublicacao)
 from sapl.crud import build_crud
 
-DISPOSITIVO_SELECT_RELATED = (
-    'tipo_dispositivo',
-    'ta_publicado',
-    'ta',
-    'dispositivo_atualizador',
-    'dispositivo_atualizador__dispositivo_pai',
-    'dispositivo_atualizador__dispositivo_pai__ta',
-    'dispositivo_atualizador__dispositivo_pai__ta__tipo',
-    'dispositivo_pai',
-    'dispositivo_pai__tipo_dispositivo')
-
-tipo_nota_crud = build_crud(
-    TipoNota, 'tipo_nota', [
-
-        [_('Tipo da Nota'),
-         [('sigla', 2), ('nome', 10)],
-         [('modelo', 12)]],
-    ])
-
-tipo_vide_crud = build_crud(
-    TipoVide, 'tipo_vide', [
-
-        [_('Tipo de Vide'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
-
-tipo_publicacao_crud = build_crud(
-    TipoPublicacao, 'tipo_publicacao', [
-
-        [_('Tipo de Publicação'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
 
 perfil_estr_txt_norm = build_crud(
     PerfilEstruturalTextoArticulado, 'perfil_estrutural', [
@@ -45,13 +13,6 @@ perfil_estr_txt_norm = build_crud(
          [('sigla', 2), ('nome', 10)]],
     ])
 
-
-veiculo_publicacao_crud = build_crud(
-    VeiculoPublicacao, 'veiculo_publicacao', [
-
-        [_('Veículo de Publicação'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
 
 tipo_dispositivo_crud = build_crud(
     TipoDispositivo, 'tipo_dispositivo', [

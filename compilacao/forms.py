@@ -1,7 +1,7 @@
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (HTML, Column, Div, Fieldset,
-                                            Layout, Row, Submit)
+                                            Layout, Row)
 from crispy_forms_foundation.layout.buttons import Button
 from crispy_forms_foundation.layout.fields import Field
 from django import forms
@@ -9,10 +9,10 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao import models
 from compilacao.models import (Dispositivo, Nota, TextoArticulado, TipoNota,
-                               TipoTextoArticulado, TipoVide, Vide)
-from compilacao.utils import to_column, to_fieldsets, to_row
+                               TipoTextoArticulado, TipoVide, Vide,
+                               PARTICIPACAO_SOCIAL_CHOICES)
+from compilacao.utils import to_column, to_row, FormLayout
 
 
 class UpLoadImportFileForm(forms.Form):
@@ -28,21 +28,6 @@ nota_error_messages = {
 ta_error_messages = {
     'required': _('Este campo é obrigatório'),
 }
-
-
-class FormLayout(Layout):
-
-    def __init__(self, *fields):
-        buttons = Div(
-            HTML('<a href="{{ view.cancel_url }}"'
-                 ' class="button radius alert">%s</a>' % _('Cancelar')),
-            Submit('submit', _('Enviar'),
-                   css_class='button radius success right'),
-            css_class='radius clearfix'
-        )
-        _fields = list(to_fieldsets(fields)) + \
-            [Row(Column(buttons, css_class='clearfix'))]
-        super(FormLayout, self).__init__(*_fields)
 
 
 class TaForm(ModelForm):
@@ -73,7 +58,7 @@ class TaForm(ModelForm):
         required=False)
     participacao_social = forms.NullBooleanField(
         label=_('Participação Social'),
-        widget=forms.Select(choices=models.PARTICIPACAO_SOCIAL_CHOICES),
+        widget=forms.Select(choices=PARTICIPACAO_SOCIAL_CHOICES),
         required=False)
 
     class Meta:

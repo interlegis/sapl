@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django.contrib.auth.decorators import login_required
@@ -23,7 +23,10 @@ from compilacao import forms, utils
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado,
                                TextoArticulado, TipoDispositivo, TipoNota,
-                               TipoTextoArticulado, Vide)
+                               TipoTextoArticulado, Vide, TipoVide,
+                               TipoPublicacao, VeiculoPublicacao)
+from compilacao.utils import build_crud
+
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -35,6 +38,36 @@ DISPOSITIVO_SELECT_RELATED = (
     'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
     'dispositivo_pai',
     'dispositivo_pai__tipo_dispositivo')
+
+tipo_nota_crud = build_crud(
+    TipoNota, 'tipo_nota', [
+
+        [_('Tipo da Nota'),
+         [('sigla', 2), ('nome', 10)],
+         [('modelo', 12)]],
+    ])
+
+tipo_vide_crud = build_crud(
+    TipoVide, 'tipo_vide', [
+
+        [_('Tipo de Vide'),
+         [('sigla', 2), ('nome', 10)]],
+    ])
+
+tipo_publicacao_crud = build_crud(
+    TipoPublicacao, 'tipo_publicacao', [
+
+        [_('Tipo de Publicação'),
+         [('sigla', 2), ('nome', 10)]],
+    ])
+
+
+veiculo_publicacao_crud = build_crud(
+    VeiculoPublicacao, 'veiculo_publicacao', [
+
+        [_('Veículo de Publicação'),
+         [('sigla', 2), ('nome', 10)]],
+    ])
 
 
 class TaListView(ListView):
@@ -58,7 +91,7 @@ class TaDetailView(DetailView):
 
     @property
     def title(self):
-        if self.object.content_object:
+        if self.get_object().content_object:
             return _(
                 'Metadados para o Texto Articulado da %s - %s') % (
                 self.get_object().content_object._meta.verbose_name_plural,
@@ -348,10 +381,6 @@ class TextView(ListView):
             sorted(self.itens_de_vigencia.items(), key=lambda t: t[0]))
 
         return self.itens_de_vigencia
-
-    def get_ta(self):
-        return TextoArticulado.objects.select_related('tipo_ta').get(
-            pk=self.kwargs['ta_id'])
 
     def is_ta_alterador(self):
         if self.flag_alteradora == -1:

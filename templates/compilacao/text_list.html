@@ -20,15 +20,16 @@
     <dd><a href="{% url 'ta_text_edit' object.pk %}" class="button secondary">{% trans 'Edição' %}</a></dd>
 {% endblock %}
 
+{% block actions %}{% endblock %}
+
 {% block base_content %}{{block.super}}
-    {% block actions %}{% endblock %}
 
 <div class="cp">
     {% if object_list %}
-	    <div style="float: right; clear:right;">
-	    <a id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
-	    <a id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
-	    </div>
+	    <ul class="button-group right">
+	    <li><a class="button tiny" id="btn_font_menos" title="Diminuir tamanho da letra">a</a></li>
+	    <li><a class="button tiny" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a></li>
+        </ul>
 	{% endif %}
 
 		{% for key, values in view.get_vigencias.items %}

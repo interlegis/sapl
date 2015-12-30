@@ -3,10 +3,19 @@
 {% block base_content %} {# FIXME is this the best markup to use? #}
 <div class="clearfix">
     {% block actions %}
-    <dl class="sub-nav right">
-        <dd><a href="{% url 'ta_edit' object.pk %}" class="button">{% trans 'Edição dos Metadados do Texto Articulado' %}</a></dd>
-        <dd><a href="{% url 'ta_delete' object.pk %}" class="button alert">{% trans 'Excluir' %}</a></dd>
-    </dl>
+    <ul class="button-group right">
+        <li><a href="{% url 'ta_edit' object.pk %}" class="button tiny">{% trans 'Edição dos Metadados do Texto Articulado' %}</a></li>
+        <li><a href="{% url 'ta_delete' object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
+        <li><a href="#" class="button tiny" data-dropdown="drop"><i class="fi-widget"></i></a>
+            <ul id="drop" class="tiny f-dropdown" data-dropdown-content>
+          		<li><a href="{% url 'tipopublicacao:list' %}">{%model_verbose_name_plural 'TipoPublicacao'%}</a></li>
+                <li><a href="{% url 'veiculopublicacao:list' %}">{%model_verbose_name_plural 'VeiculoPublicacao'%}</a></li>
+          		<li><a href="{% url 'tiponota:list' %}">{%model_verbose_name_plural 'TipoNota'%}</a></li>
+          		<li><a href="{% url 'tipovide:list' %}">{%model_verbose_name_plural 'TipoVide'%}</a></li> 
+          		<li><a href="#">Tipo de Dispositivo</a></li>
+                <li><a href="#">Perfil Estrutural de Textos Articulados</a></li>
+            </ul></li>
+    </ul>
     {% endblock actions %}
     <dl class="sub-nav left">
         {% block sections_nav %}
@@ -15,6 +24,8 @@
             {%else%}
                 <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
             {%endif%}
+                <dd><a href="#" class="button secondary">{% model_verbose_name_plural 'Publicacao' %}</a></dd>
+                <dd><a href="{% url 'ta_text' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
         {% endblock %}
     </dl>
 </div>
@@ -27,7 +38,7 @@
 
         <div class="columns large-3">
             <div id="div_id_tipo" class="holder">
-                <label>{% verbose_name object 'tipo_ta' %}</label>
+                <label>{% field_verbose_name object 'tipo_ta' %}</label>
                 <p>{{ object.tipo_ta}}</p>
             </div>
         </div>
@@ -35,7 +46,7 @@
         {% if object.content_object and object.content_object.tipo%}
         <div class="columns large-3">
             <div id="div_id_tipo" class="holder">
-                <label>{% verbose_name object.content_object 'tipo' %}</label>
+                <label>{% field_verbose_name object.content_object 'tipo' %}</label>
                 <p>{{ object.content_object.tipo}}</p>
             </div>
         </div>
@@ -43,21 +54,21 @@
 
         <div class="columns large-2">
             <div id="div_id_numero" class="holder">
-                <label>{% verbose_name object 'numero' %}</label>
+                <label>{% field_verbose_name object 'numero' %}</label>
                 <p>{{ object.numero}}</p>
             </div>
         </div>
 
         <div class="columns large-2">
             <div id="div_id_ano" class="holder">
-                <label>{% verbose_name object 'ano' %}</label>
+                <label>{% field_verbose_name object 'ano' %}</label>
                 <p>{{ object.ano}}</p>
             </div>
         </div>
 
         <div class="columns large-2">
             <div id="div_id_data" class="holder">
-                <label>{% verbose_name object 'data' %}</label>
+                <label>{% field_verbose_name object 'data' %}</label>
                 <p>{{ object.data}}</p>
             </div>
         </div>
@@ -66,7 +77,7 @@
     <div class="row">
         <div class="columns large-12">
             <div id="div_id_ementa" class="holder">
-                <label>{% verbose_name object 'ementa' %}</label>
+                <label>{% field_verbose_name object 'ementa' %}</label>
                 <p>{{ object.ementa|safe}}</p>
             </div>
         </div>
