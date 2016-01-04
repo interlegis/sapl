@@ -26,20 +26,14 @@
 				<th>Ativo?</th>
 			</tr>
 
-			{% for m in mandatos %}
-				{% if m.legislatura_id == legislatura_id %}
-					<tr>
-						<td><a href="{% url 'parlamentares_editar' legislatura_id m.parlamentar.id %}">{{m.parlamentar.nome_parlamentar}}</a></td>
-						<td>
-							{% for f in filiacao %}
-								{% if f.parlamentar.id == m.parlamentar.id %}
-									{{f.partido}}
-								{% endif %}
-							{% endfor %}
-						</td>
-						<td>{{m.parlamentar.ativo|yesno:"Sim,Não"}}</td>
-					</tr>
-				{% endif %}
+			{% for p in parlamentares %}
+				<tr>
+					<td><a href="{% url 'parlamentares_editar' legislatura_id p.id %}">
+						{{p.nome}}
+					</a></td>	
+					<td>{{p.partido}}</td>					
+					<td>{{p.ativo|yesno:"Sim,Não"}}</td>
+				</tr>
 			{% endfor %}
 		</table>
 	</fieldset>

@@ -158,24 +158,63 @@ class ParlamentaresView(GenericView):
 
     def get(self, request, *args, **kwargs):
         form = ParlamentaresListForm()
+
         legislaturas = Legislatura.objects.all().order_by(
             '-data_inicio', '-data_fim')
+
+        mandatos = Mandato.objects.filter(
+            legislatura_id=legislaturas.first().id)
+
+        parlamentares = []
+        dict_parlamentar = {}
+        for m in mandatos:
+
+            if m.parlamentar.filiacao_set.last():
+                partido = m.parlamentar.filiacao_set.last().partido.sigla
+            else:
+                partido = 'Sem Registro'
+
+            dict_parlamentar = {
+                'id': m.parlamentar.id,
+                'nome': m.parlamentar.nome_parlamentar,
+                'partido': partido,
+                'ativo': m.parlamentar.ativo}
+            parlamentares.append(dict_parlamentar)
+
         return self.render_to_response(
             {'legislaturas': legislaturas,
              'legislatura_id': legislaturas.first().id,
-             'mandatos': Mandato.objects.all(),
              'form': form,
-             'filiacao': Filiacao.objects.all()})
+             'parlamentares': parlamentares})
 
     def post(self, request, *args, **kwargs):
         form = ParlamentaresListForm(request.POST)
+
+        mandatos = Mandato.objects.filter(
+            legislatura_id=int(form.data['periodo']))
+
+        parlamentares = []
+        dict_parlamentar = {}
+        for m in mandatos:
+
+            if m.parlamentar.filiacao_set.last():
+                partido = m.parlamentar.filiacao_set.last().partido.sigla
+            else:
+                partido = 'Sem Registro'
+
+            dict_parlamentar = {
+                'id': m.parlamentar.id,
+                'nome': m.parlamentar.nome_parlamentar,
+                'partido': partido,
+                'ativo': m.parlamentar.ativo}
+            parlamentares.append(dict_parlamentar)
+
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all().order_by(
                 '-data_inicio', '-data_fim'),
              'legislatura_id': int(form.data['periodo']),
-             'mandatos': Mandato.objects.all(),
              'form': form,
-             'filiacao': Filiacao.objects.all()})
+             'parlamentares': parlamentares})
 
 
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
