@@ -78,13 +78,21 @@ class ComposicaoView(FormMixin, GenericView):
             comissao_id=self.kwargs['pk']).order_by('-periodo')
         participacoes = Participacao.objects.all()
 
+        if composicoes:
+            composicao_id = composicoes.first().id
+            msg = ''
+        else:
+            composicao_id = 0
+            msg = 'Ainda não há composição nessa comissão.'
+
         return self.render_to_response({
             'participacoes': participacoes,
             'composicoes': composicoes,
-            'composicao_id': composicoes.first().id,
+            'composicao_id': composicao_id,
             'form': form,
             'pk': self.kwargs['pk'],
-            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
+            'comissao': Comissao.objects.get(id=self.kwargs['pk']),
+            'error': msg})
 
     def post(self, request, *args, **kwargs):
         form = ComposicaoForm(request.POST)
