@@ -77,22 +77,10 @@ legislacao_citada_crud = build_crud(
     ])
 
 
-def get_tipos_norma():
-    return [('', 'Selecione')] \
-        + [(n.id, n.descricao)
-           for n in TipoNormaJuridica.objects.all()]
-
-
 def get_esferas():
     return [('E', 'Estadual'),
             ('F', 'Federal'),
             ('M', 'Municipal')]
-
-
-def get_tipos_materia():
-    return [('', 'Selecione')] \
-        + [(t.id, t.sigla + ' - ' + t.descricao)
-           for t in TipoMateriaLegislativa.objects.all()]
 
 
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
@@ -103,11 +91,12 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
 class NormaJuridicaForm(ModelForm):
 
-    tipo_materia = forms.ChoiceField(required=False,
-                                     label='Materia Legislativa',
-                                     choices=get_tipos_materia(),
-                                     widget=forms.Select(
-                                         attrs={'class': 'selector'}))
+    tipo_materia = forms.ModelChoiceField(
+        label='Matéria Legislativa',
+        required=False,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione'
+        )
 
     numero_materia = forms.CharField(label='Número', required=False)
 

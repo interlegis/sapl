@@ -224,18 +224,6 @@ tramitacao_crud = build_crud(
     ])
 
 
-def get_tipos_proposicao():
-    return [('', 'Selecione')] \
-        + [(t.id, t.descricao)
-           for t in TipoProposicao.objects.all()]
-
-
-def get_tipos_materia():
-    return [('', 'Selecione')] \
-        + [(t.id, t.sigla + ' - ' + t.descricao)
-           for t in TipoMateriaLegislativa.objects.all()]
-
-
 def get_range_anos():
     return [('', 'Selecione')] \
         + [(year, year) for year in range(date.today().year, 1960, -1)]
@@ -465,19 +453,14 @@ class FormularioCadastroView(FormMixin, GenericView):
         return reverse('formulario_cadastro')
 
 
-def get_tipos_documento():
-    return [('', 'Selecione')] \
-        + [(t.id, t.descricao)
-           for t in TipoDocumento.objects.all()]
-
-
 class MateriaAnexadaForm(ModelForm):
 
-    tipo = forms.ChoiceField(required=True,
-                             label='Tipo',
-                             choices=get_tipos_materia(),
-                             widget=forms.Select(
-                                 attrs={'class': 'selector'}))
+    tipo = forms.ModelChoiceField(
+        label='Tipo',
+        required=True,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+    )
 
     numero = forms.CharField(label='Número', required=True)
 
@@ -770,19 +753,14 @@ class DespachoInicialEditView(FormMixin, GenericView):
         return reverse('despacho_inicial', kwargs={'pk': pk})
 
 
-def get_tipos_norma():
-    return [('', 'Selecione')] \
-        + [(t.id, t.sigla + ' - ' + t.descricao)
-           for t in TipoNormaJuridica.objects.all()]
-
-
 class LegislacaoCitadaForm(ModelForm):
 
-    tipo = forms.ChoiceField(required=True,
-                             label='Tipo Norma',
-                             choices=get_tipos_norma(),
-                             widget=forms.Select(
-                                 attrs={'class': 'selector'}))
+    tipo = forms.ModelChoiceField(
+        label='Tipo Norma',
+        required=True,
+        queryset=TipoNormaJuridica.objects.all(),
+        empty_label='Selecione',
+    )
 
     numero = forms.CharField(label='Número', required=True)
 
@@ -996,11 +974,12 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
 
 class NumeracaoForm(ModelForm):
 
-    tipo_materia = forms.ChoiceField(required=True,
-                                     label='Tipo Matéria',
-                                     choices=get_tipos_materia(),
-                                     widget=forms.Select(
-                                         attrs={'class': 'selector'}))
+    tipo_materia = forms.ModelChoiceField(
+        label='Tipo de Matéria',
+        required=True,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+        )
 
     data_materia = forms.DateField(label='Data',
                                    required=False,
@@ -1135,11 +1114,12 @@ class NumeracaoEditView(FormMixin, GenericView):
 
 class DocumentoAcessorioForm(ModelForm):
 
-    tipo = forms.ChoiceField(required=True,
-                             label='Tipo',
-                             choices=get_tipos_documento(),
-                             widget=forms.Select(
-                                 attrs={'class': 'selector'}))
+    tipo = forms.ModelChoiceField(
+        label='Tipo',
+        required=True,
+        queryset=TipoDocumento.objects.all(),
+        empty_label='Selecione',
+        )
 
     data = forms.DateField(label='Data',
                            required=False,
@@ -1773,11 +1753,12 @@ class ProposicaoForm(ModelForm):
         label='Descrição', required=True,
         widget=forms.Textarea())
 
-    tipo_materia = forms.ChoiceField(required=False,
-                                     label='Matéria Vinculada',
-                                     choices=get_tipos_materia(),
-                                     widget=forms.Select(
-                                         attrs={'class': 'selector'}))
+    tipo_materia = forms.ModelChoiceField(
+        label='Matéria Vinculada',
+        required=False,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+    )
 
     numero_materia = forms.CharField(
         label='Número', required=False)
@@ -1893,30 +1874,6 @@ class ProposicaoListView(ListView):
         return context
 
 
-def get_autores():
-    return [('', 'Selecione')] \
-        + [(a.id, str(a)) for a in Autor.objects.all().order_by('tipo')]
-
-
-def get_parlamentares():
-    return [('', 'Selecione')] \
-        + [(p.id, str(p.nome_parlamentar,)
-            ) for p in Parlamentar.objects.filter(
-            ativo=True).order_by('nome_parlamentar')]
-
-
-def get_localizacao():
-    return [('', 'Selecione')] \
-        + [(u.id, str(u)
-            ) for u in UnidadeTramitacao.objects.all()]
-
-
-def get_status():
-    return [('', 'Selecione')] \
-        + [(s.id, str(s.descricao)
-            ) for s in StatusTramitacao.objects.all()]
-
-
 def em_tramitacao():
     return [('', 'Tanto Faz'),
             (True, 'Sim'),
@@ -1924,23 +1881,28 @@ def em_tramitacao():
 
 
 class MateriaLegislativaPesquisaForm(forms.Form):
-    autor = forms.ChoiceField(required=False,
-                              label='Autor',
-                              choices=get_autores(),
-                              widget=forms.Select(
-                                 attrs={'class': 'selector'}))
-    # relatores são os parlamentares ativos?
-    relator = forms.ChoiceField(required=False,
-                                label='Relator',
-                                choices=get_parlamentares(),
-                                widget=forms.Select(
-                                  attrs={'class': 'selector'}))
+    autor = forms.ModelChoiceField(
+        label='Autor',
+        required=False,
+        queryset=Autor.objects.all().order_by('tipo'),
+        empty_label='Selecione',
+        )
 
-    tipo = forms.ChoiceField(required=False,
-                             label='Tipo da Matéria',
-                             choices=get_tipos_materia(),
-                             widget=forms.Select(
-                                attrs={'class': 'selector'}))
+    # relatores são os parlamentares ativos?
+    relator = forms.ModelChoiceField(
+        label='Relator',
+        required=False,
+        queryset=Parlamentar.objects.filter(
+            ativo=True).order_by('nome_parlamentar'),
+        empty_label='Selecione',
+        )
+
+    tipo = forms.ModelChoiceField(
+        label='Tipo de Matéria',
+        required=False,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+        )
 
     data_apresentacao = forms.DateField(label=u'Data de Apresentação',
                                         input_formats=['%d/%m/%Y'],
@@ -1961,17 +1923,19 @@ class MateriaLegislativaPesquisaForm(forms.Form):
     ano = forms.CharField(required=False, label=u'Ano da Matéria')
     assunto = forms.CharField(required=False, label=u'Assunto')
 
-    localizacao = forms.ChoiceField(required=False,
-                                    label='Localização Atual',
-                                    choices=get_localizacao(),
-                                    widget=forms.Select(
-                                        attrs={'class': 'selector'}))
+    localizacao = forms.ModelChoiceField(
+        label='Localização Atual',
+        required=False,
+        queryset=UnidadeTramitacao.objects.all(),
+        empty_label='Selecione',
+        )
 
-    situacao = forms.ChoiceField(required=False,
-                                 label='Situação',
-                                 choices=get_status(),
-                                 widget=forms.Select(
-                                    attrs={'class': 'selector'}))
+    situacao = forms.ModelChoiceField(
+        label='Situação',
+        required=False,
+        queryset=StatusTramitacao.objects.all(),
+        empty_label='Selecione',
+        )
 
     tramitacao = forms.ChoiceField(required=False,
                                    label='Tramitando',
@@ -1981,7 +1945,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
 
     # TODO: Verificar se esses campos estão corretos
     # assunto? # -> usado 'ementa' em 'assunto'
-    # localizacao autal? #
+    # localizacao atual? #
     # situacao? #
     # tramitando? #
 

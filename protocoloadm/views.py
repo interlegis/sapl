@@ -99,30 +99,10 @@ protocolo_materia_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-# anular_protocolo_crud = build_crud(
-#     Protocolo, '', [
-
-#         [_('Indentificação do Protocolo'),
-#          [('numero', 6), ('ano', 6)],
-#             [('justificativa_anulacao', 12)]],
-#     ])
-
-
-def get_tipos_materia():
-    return [('', 'Selecione')] \
-        + [(t.id, t.sigla + ' - ' + t.descricao)
-           for t in TipoMateriaLegislativa.objects.all()]
-
 
 def get_range_anos():
     return [('', 'Selecione')] \
         + [(year, year) for year in range(date.today().year, 1960, -1)]
-
-
-def get_tipos_documento():
-    return [('', 'Selecione')] \
-        + [(t.id, t.sigla + ' - ' + t.descricao)
-           for t in TipoDocumentoAdministrativo.objects.all()]
 
 TIPOS_PROTOCOLO = [('', 'Selecione'),
                    ('0', 'Enviado'),
@@ -133,11 +113,6 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
     def render(self):
         return mark_safe(u' '.join([u'%s ' % w for w in self]))
-
-
-def get_autores():
-    return [('', 'Selecione')] \
-        + [(a.id, str(a)) for a in Autor.objects.all().order_by('tipo')]
 
 
 class ProtocoloForm(forms.Form):
@@ -177,24 +152,29 @@ class ProtocoloForm(forms.Form):
                                               renderer=HorizontalRadioRenderer)
                                           )
 
-    tipo_documento = forms.ChoiceField(required=False,
-                                       label='Tipo de Documento',
-                                       choices=get_tipos_documento(),
-                                       widget=forms.Select(
-                                           attrs={'class': 'selector'}))
+    tipo_documento = forms.ModelChoiceField(
+        label='Tipo de Documento',
+        required=False,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione',
+    )
 
     interessado = forms.CharField(label='Interessado', required=False)
-    tipo_materia = forms.ChoiceField(required=False,
-                                     label='Tipo Matéria',
-                                     choices=get_tipos_materia(),
-                                     widget=forms.Select(
-                                         attrs={'class': 'selector'}))
 
-    autor = forms.ChoiceField(required=False,
-                              label='Autor',
-                              choices=get_autores(),
-                              widget=forms.Select(
-                                  attrs={'class': 'selector'}))
+    tipo_materia = forms.ModelChoiceField(
+        label='Tipo de Matéria',
+        required=False,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+        )
+
+    autor = forms.ModelChoiceField(
+        label='Autor',
+        required=False,
+        queryset=Autor.objects.all().order_by('tipo'),
+        empty_label='Selecione',
+        )
+
     assunto = forms.CharField(label='Assunto', required=False)
 
     def __init__(self, *args, **kwargs):
@@ -427,11 +407,14 @@ class ProtocoloDocumentForm(forms.Form):
                                        choices=TIPOS_PROTOCOLO[1:],
                                        widget=forms.RadioSelect(
                                            renderer=HorizontalRadioRenderer))
-    tipo_documento = forms.ChoiceField(required=True,
-                                       label='Tipo de Documento',
-                                       choices=get_tipos_documento(),
-                                       widget=forms.Select(
-                                           attrs={'class': 'selector'}))
+
+    tipo_documento = forms.ModelChoiceField(
+        label='Tipo de Documento',
+        required=False,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione',
+    )
+
     num_paginas = forms.CharField(label='Núm. Páginas', required=True)
     assunto = forms.CharField(
         widget=forms.Textarea, label='Assunto', required=True)
@@ -529,19 +512,24 @@ class ProtocoloMateriaForm(forms.Form):
                                        widget=forms.RadioSelect(
                                            renderer=HorizontalRadioRenderer))
 
-    tipo_materia = forms.ChoiceField(required=False,
-                                     label='Tipo Matéria',
-                                     choices=get_tipos_materia(),
-                                     widget=forms.Select(
-                                         attrs={'class': 'selector'}))
+    tipo_materia = forms.ModelChoiceField(
+        label='Tipo de Matéria',
+        required=False,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+        )
+
     num_paginas = forms.CharField(label='Núm. Páginas', required=True)
     ementa = forms.CharField(
         widget=forms.Textarea, label='Ementa', required=True)
-    autor = forms.ChoiceField(required=False,
-                              label='Autor',
-                              choices=get_autores(),
-                              widget=forms.Select(
-                                  attrs={'class': 'selector'}))
+
+    autor = forms.ModelChoiceField(
+        label='Autor',
+        required=False,
+        queryset=Autor.objects.all().order_by('tipo'),
+        empty_label='Selecione',
+        )
+
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea,
                                  label='Observação')
@@ -716,8 +704,6 @@ class ProposicaoDetailView(DetailView):
         context = super(ProposicaoView, self).get_context_data(**kwargs)
         context['form'] = ProposicaoSimpleForm
         return context
-
-# class PesquisaDocForm(forms.Form):
 
 
 class PesquisarDocumentoAdministrativo(TemplateView):
