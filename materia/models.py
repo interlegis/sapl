@@ -544,7 +544,6 @@ class Tramitacao(models.Model):
         null=True,
         related_name='+',
         verbose_name=_('Unidade Destino'))
-    ultima = models.BooleanField()
     urgente = models.BooleanField(verbose_name=_('Urgente ?'))
     turno = models.CharField(
         max_length=1, blank=True, null=True, verbose_name=_('Turno'),

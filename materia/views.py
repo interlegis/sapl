@@ -1440,8 +1440,7 @@ class TramitacaoForm(ModelForm):
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',
-                  'texto',
-                  ]
+                  'texto']
 
     def __init__(self, *args, **kwargs):
         row1 = sapl.layout.to_row(
@@ -1504,10 +1503,7 @@ class TramitacaoView(FormMixin, GenericView):
             destino = ultima_tramitacao.unidade_tramitacao_destino
             cleaned_data = form.cleaned_data['unidade_tramitacao_local']
             if (destino == cleaned_data):
-                ultima_tramitacao.ultima = False
-                ultima_tramitacao.save()
                 tramitacao = form.save(commit=False)
-                tramitacao.ultima = True
                 tramitacao.materia = materia
                 tramitacao.save()
             else:
@@ -1574,7 +1570,6 @@ class TramitacaoEditView(FormMixin, GenericView):
                 tramitacao.data_encaminhamento = form.cleaned_data[
                     'data_encaminhamento']
                 tramitacao.data_fim_prazo = form.cleaned_data['data_fim_prazo']
-                tramitacao.ultima = form.cleaned_data['ultima']
                 tramitacao.texto = form.cleaned_data['texto']
 
                 tramitacao.save()
