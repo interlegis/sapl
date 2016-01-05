@@ -1,0 +1,26 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+	<dl class="sub-nav">
+		<h2>Sessões Plenárias</h2>
+		<dd><a href="{% url 'sessaoplenaria:create' %}">
+			{% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
+		</a></dd>
+	</dl>
+	{% block detail_content %}
+		<table width="100%">
+			{% for sessao in page_obj %}
+				<tr>
+					<th>
+						<a href="{% url 'sessaoplenaria:detail' sessao.id %}">{{sessao}}</a>
+						<br />
+						Data: {{sessao.data_inicio}} - Abertura {{sessao.hora_inicio}}
+					</th>
+				</tr>
+			{% endfor %}
+		</table>
+	    {% include "paginacao.html" %}
+	{% endblock %}
+{% endblock %}

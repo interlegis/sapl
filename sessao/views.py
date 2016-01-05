@@ -1,14 +1,15 @@
 from datetime import datetime
 from re import sub
 
+import sapl
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
-
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -2209,3 +2210,22 @@ class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:expedienteordemdia_list',
                        kwargs={'pk': pk})
+
+
+class SessaoListView(ListView):
+    template_name = "sessao/sessao_list.html"
+    paginate_by = 10
+    model = SessaoPlenaria
+
+    def get_queryset(self):
+        return SessaoPlenaria.objects.all().order_by('-data_inicio')
+
+    def get_context_data(self, **kwargs):
+        context = super(SessaoListView, self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = sapl.crud.make_pagination(
+                page_obj.number, paginator.num_pages)
+        return context
