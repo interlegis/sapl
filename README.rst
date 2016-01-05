@@ -23,6 +23,8 @@ Development Environment Installation
     sudo apt-get install git python3-dev libpq-dev graphviz-dev graphviz \
     postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
 
+    sudo ln -s /usr/bin/nodejs /usr/bin/node
+
     sudo npm install -g bower
 
 * Setup git, following the instructions in https://help.github.com/articles/set-up-git.
