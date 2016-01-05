@@ -118,14 +118,6 @@ class MateriasView(comissao_crud.CrudDetailView):
 class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
-PARLAMENTARES_CHOICES = [('', '---------')] + [
-    (p.parlamentar.id,
-     p.parlamentar.nome_parlamentar + ' / ' + p.partido.sigla)
-    for p in Filiacao.objects.filter(
-        data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
-        'parlamentar__nome_parlamentar')]
-
-
 class ParticipacaoCadastroForm(ModelForm):
 
     YES_OR_NO = (
@@ -133,11 +125,14 @@ class ParticipacaoCadastroForm(ModelForm):
         (False, 'Não')
     )
 
-    parlamentar_id = forms.ChoiceField(required=True,
-                                       label='Parlamentar',
-                                       choices=PARLAMENTARES_CHOICES,
-                                       widget=forms.Select(
-                                           attrs={'class': 'selector'}))
+    parlamentar_id = forms.ModelChoiceField(
+        label='Parlamentar',
+        required=True,
+        queryset=Filiacao.objects.filter(
+            data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
+            'parlamentar__nome_parlamentar'),
+        empty_label='Selecione',
+    )    
 
     titular = forms.BooleanField(
         widget=forms.RadioSelect(choices=YES_OR_NO), required=True)
