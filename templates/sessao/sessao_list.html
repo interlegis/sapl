@@ -5,7 +5,7 @@
 {% block base_content %}
 	<dl class="sub-nav">
 		<h2>Sessões Plenárias</h2>
-		<dd><a href="{% url 'sessaoplenaria:create' %}">
+		<dd><a href="{% url 'sessaoplenaria:sessao_cadastro' %}">
 			{% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
 		</a></dd>
 	</dl>

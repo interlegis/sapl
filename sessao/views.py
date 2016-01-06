@@ -1,7 +1,10 @@
 from datetime import datetime
 from re import sub
-
+from django.forms import ModelForm
 from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
+                                 Submit)
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
@@ -9,7 +12,6 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
-
 import sapl
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
@@ -2327,3 +2329,97 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         context.update({'materias_ordem': materias_ordem})
 
         return self.render_to_response(context)
+
+
+class SessaoForm(ModelForm):
+    
+    class Meta:
+        model = SessaoPlenaria
+        fields = ['numero',
+                  'tipo',
+                  'legislatura',
+                  'sessao_legislativa',                     #Pega do Models os campos necessários para o form
+                  'data_inicio',
+                  'hora_inicio',
+                  'iniciada',
+                  'data_fim',
+                  'hora_fim',
+                  'finalizada',
+                  'upload_pauta',
+                  'upload_ata',
+                  'url_audio',
+                  'url_video']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(                      
+            [('numero', 3),
+             ('tipo', 3),
+             ('legislatura', 3),
+             ('sessao_legislativa', 3)])                    #Cria os campos
+
+        row2 = sapl.layout.to_row(
+            [('data_inicio', 4),
+             ('hora_inicio', 4),
+             ('iniciada', 4)])
+
+        row3 = sapl.layout.to_row(
+            [('data_fim', 4),
+             ('hora_fim', 4),
+             ('finalizada', 4)])
+
+        row4 = sapl.layout.to_row(
+            [('upload_pauta', 6),
+             ('upload_ata', 6)])
+
+        row5 = sapl.layout.to_row(
+            [('url_audio', 6),
+             ('url_video', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Dados Básicos',                    #Desenha o HTML
+                row1,
+                row2,
+                row3,
+                row4,
+                row5,
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
+            )
+        )
+        super(SessaoForm, self).__init__(*args, **kwargs)
+
+
+class SessaoCadastroView(FormMixin, sessao_crud.CrudDetailView):
+
+    template_name = "sessao/sessao_cadastro.html"
+
+    def get(self, request, *args, **kwargs):
+        form = SessaoForm()
+
+        return self.render_to_response({'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = SessaoForm(request.POST)
+
+        if form.is_valid():
+            sessao = form.save(commit=False)
+
+            if 'upload_ata' in request.FILES:
+                sessao.upload_ata = request.FILES['upload_ata']
+
+            if 'upload_pauta' in request.FILES:
+                sessao.upload_pauta = request.FILES['upload_pauta']
+
+            sessao.save()
+
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form})
+
+    def get_success_url(self):
+        return reverse('sessaoplenaria:list_sessao')
