@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           ExpedienteOrdemDiaView, ExpedienteView,
                           ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
@@ -6,6 +7,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView,
                           OradorExpedienteDelete, OradorExpedienteEdit,
                           OradorExpedienteView, PainelView,
+                          PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
                           SessaoListView, VotacaoEditView,
                           VotacaoExpedienteEditView, VotacaoExpedienteView,
@@ -81,6 +83,10 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         VotacaoExpedienteEditView.as_view(), name='votacaosecretaexpedit'),
     url(r'^sessao-list$',
         SessaoListView.as_view(), name='list_sessao'),
+    url(r'^pauta-sessao-list$',
+        PautaSessaoListView.as_view(), name='list_pauta_sessao'),
+    url(r'^(?P<pk>\d+)/pauta-sessao-detail$',
+        PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
 ]
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
 

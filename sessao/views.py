@@ -1,7 +1,6 @@
 from datetime import datetime
 from re import sub
 
-import sapl
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -10,6 +9,8 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+
+import sapl
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -1156,7 +1157,6 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         context.update({'presenca_ordem': parlamentares_ordem})
 
         # =====================================================================
-
         # Matérias Ordem do Dia
         ordem = OrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id)
@@ -2229,3 +2229,101 @@ class SessaoListView(ListView):
         context['page_range'] = sapl.crud.make_pagination(
                 page_obj.number, paginator.num_pages)
         return context
+
+
+class PautaSessaoListView(SessaoListView):
+    template_name = "sessao/pauta_sessao_list.html"
+
+
+class PautaSessaoDetailView(sessao_crud.CrudDetailView):
+    template_name = "sessao/pauta_sessao_detail.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        # =====================================================================
+        # Identificação Básica
+        abertura = self.object.data_inicio.strftime('%d/%m/%Y')
+        encerramento = self.object.data_fim.strftime('%d/%m/%Y')
+
+        context.update({'basica': ['Tipo de Sessão: ' + str(self.object.tipo),
+                                   'Abertura: ' + abertura,
+                                   'Encerramento: ' + encerramento,
+                                   ]})
+        # =====================================================================
+        # Matérias Expediente
+        materias = ExpedienteMateria.objects.filter(
+            sessao_plenaria_id=self.object.id)
+
+        materias_expediente = []
+        for m in materias:
+            ementa = m.observacao
+            titulo = m.materia
+            numero = m.numero_ordem
+
+            if m.resultado:
+                resultado = m.resultado
+            else:
+                resultado = 'Matéria não votada'
+
+            autoria = Autoria.objects.filter(materia_id=m.materia_id)
+            autor = [str(x.autor) for x in autoria]
+
+            mat = {'ementa': ementa,
+                   'titulo': titulo,
+                   'numero': numero,
+                   'resultado': resultado,
+                   'autor': autor
+                   }
+            materias_expediente.append(mat)
+
+        context.update({'materia_expediente': materias_expediente})
+        # =====================================================================
+        # Expedientes
+        expediente = ExpedienteSessao.objects.filter(
+            sessao_plenaria_id=self.object.id)
+
+        expedientes = []
+        for e in expediente:
+            tipo = TipoExpediente.objects.get(
+                id=e.tipo_id)
+            conteudo = sub(
+                '&nbsp;', ' ', strip_tags(e.conteudo))
+
+            ex = {'tipo': tipo, 'conteudo': conteudo}
+            expedientes.append(ex)
+
+        context.update({'expedientes': expedientes})
+        # =====================================================================
+        # Matérias Ordem do Dia
+        ordem = OrdemDia.objects.filter(
+            sessao_plenaria_id=self.object.id)
+
+        materias_ordem = []
+        for o in ordem:
+            ementa = o.observacao
+            titulo = o.materia
+            numero = o.numero_ordem
+
+            # Verificar resultado
+            if o.resultado:
+                resultado = o.resultado
+            else:
+                resultado = 'Matéria não votada'
+
+            autoria = Autoria.objects.filter(
+                materia_id=o.materia_id)
+            autor = [str(x.autor) for x in autoria]
+
+            mat = {'ementa': ementa,
+                   'titulo': titulo,
+                   'numero': numero,
+                   'resultado': resultado,
+                   'autor': autor
+                   }
+            materias_ordem.append(mat)
+
+        context.update({'materias_ordem': materias_ordem})
+
+        return self.render_to_response(context)

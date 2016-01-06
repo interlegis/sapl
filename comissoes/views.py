@@ -118,6 +118,7 @@ class MateriasView(comissao_crud.CrudDetailView):
 class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
+
 class ParticipacaoCadastroForm(ModelForm):
 
     YES_OR_NO = (
@@ -132,7 +133,7 @@ class ParticipacaoCadastroForm(ModelForm):
             data_desfiliacao__isnull=True, parlamentar__ativo=True).order_by(
             'parlamentar__nome_parlamentar'),
         empty_label='Selecione',
-    )    
+    )
 
     titular = forms.BooleanField(
         widget=forms.RadioSelect(choices=YES_OR_NO), required=True)
