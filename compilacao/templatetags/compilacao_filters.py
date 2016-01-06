@@ -5,7 +5,6 @@ from django.db.models import Q
 
 from compilacao.models import Dispositivo, TipoDispositivo
 
-
 register = template.Library()
 
 
@@ -159,6 +158,14 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
 @register.simple_tag
 def field_verbose_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name
+
+
+@register.simple_tag
+def fieldclass_verbose_name(class_name, field_name):
+    cls = get_class(
+        'compilacao.models.' + class_name)
+    return cls._meta.get_field(
+        field_name).verbose_name
 
 
 @register.simple_tag

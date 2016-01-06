@@ -16,11 +16,7 @@
       {% endif %}
 {% endblock %}
 
-{% block sections_nav %}{{block.super}}
-    <dd><a href="{% url 'ta_text_edit' object.pk %}" class="button secondary">{% trans 'Edição' %}</a></dd>
-{% endblock %}
-
-{% block actions %}{% endblock %}
+ 
 
 {% block base_content %}{{block.super}}
 

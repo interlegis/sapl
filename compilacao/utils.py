@@ -1,17 +1,16 @@
 from braces.views import FormMessagesMixin
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Column, Fieldset, Row
-from crispy_forms_foundation.layout.base import Layout, Div, HTML
+from crispy_forms_foundation.layout.base import HTML, Div, Layout
 from crispy_forms_foundation.layout.buttons import Submit
 from django import forms
 from django.conf.urls import url
-from django.core.urlresolvers import reverse_lazy, reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
-
 
 NO_ENTRIES_MSG = _('Não existem registros')
 

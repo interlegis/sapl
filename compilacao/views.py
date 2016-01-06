@@ -1,17 +1,14 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout.containers import Fieldset
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q
-from django.forms.models import ModelForm
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
@@ -24,15 +21,13 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from compilacao import utils
-from compilacao.forms import TaForm, NotaForm, VideForm
+from compilacao.forms import NotaForm, TaForm, TipoTaForm, VideForm
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado,
                                TextoArticulado, TipoDispositivo, TipoNota,
-                               TipoTextoArticulado, Vide, TipoVide,
-                               TipoPublicacao, VeiculoPublicacao,
-                               PARTICIPACAO_SOCIAL_CHOICES)
-from compilacao.utils import build_crud, to_row, FormLayout
-
+                               TipoPublicacao, TipoTextoArticulado, TipoVide,
+                               VeiculoPublicacao, Vide)
+from compilacao.utils import build_crud
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -89,7 +84,7 @@ class IntegracaoTaView(TemplateView):
         if not ta.exists():
             ta = TextoArticulado()
             tipo_ta = TipoTextoArticulado.objects.filter(
-                model=item.__class__.__name__.lower())[:1]
+                content_type=related_object_type)[:1]
             if tipo_ta.exists():
                 ta.tipo_ta = tipo_ta[0]
             ta.content_object = item
@@ -149,7 +144,7 @@ def get_integrations_view_names():
 
 def choice_extenal_views():
     integrations_view_names = get_integrations_view_names()
-    result = []
+    result = [(None, '-------------'), ]
     for item in integrations_view_names:
         ct = ContentType.objects.filter(
             model=item.model.__name__.lower(),
@@ -161,45 +156,22 @@ def choice_extenal_views():
     return result
 
 
-class TipoTaForm(ModelForm):
-    sigla = forms.CharField(label='Sigla')
-    descricao = forms.CharField(label='Descrição')
+class CompMixin(object):
 
-    participacao_social = forms.NullBooleanField(
-        label=_('Participação Social'),
-        widget=forms.Select(choices=PARTICIPACAO_SOCIAL_CHOICES),
-        required=False)
-
-    class Meta:
-        model = TipoTextoArticulado
-        fields = ['sigla',
-                  'descricao',
-                  'model',
-                  'participacao_social',
-                  ]
-
-    def __init__(self, *args, **kwargs):
-
-        row1 = to_row([
-            ('sigla', 2),
-            ('descricao', 4),
-            ('model', 3),
-            ('participacao_social', 3),
-        ])
-
-        self.helper = FormHelper()
-        self.helper.layout = FormLayout(
-            Fieldset(_('Identificação Básica'),
-                     row1, css_class="large-12"))
-        super(TipoTaForm, self).__init__(*args, **kwargs)
+    @property
+    def title(self):
+        return self.get_object()
 
 
 class TipoTaListView(ListView):
     model = TipoTextoArticulado
     paginate_by = 10
     verbose_name = model._meta.verbose_name
-    title = model._meta.verbose_name_plural
     create_url = reverse_lazy('tipo_ta_create')
+
+    @property
+    def title(self):
+        return self.model._meta.verbose_name_plural
 
 
 class TipoTaCreateView(FormMessagesMixin, CreateView):
@@ -212,30 +184,66 @@ class TipoTaCreateView(FormMessagesMixin, CreateView):
     def get(self, request, *args, **kwargs):
         self.object = None
         form = self.get_form()
-        form.fields['model'] = forms.ChoiceField(
+        form.fields['content_type'] = forms.ChoiceField(
             choices=choice_extenal_views(),
-            label='Associação', required=False)
+            label=_('Modelo Integrado'), required=False)
 
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
         return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.object.id})
 
+    @property
+    def cancel_url(self):
+        return reverse_lazy('tipo_ta_list')
 
-class TipoTaDetailView(DetailView):
+
+class TipoTaDetailView(CompMixin, DetailView):
     model = TipoTextoArticulado
 
+
+class TipoTaUpdateView(CompMixin, UpdateView):
+    model = TipoTextoArticulado
+    form_class = TipoTaForm
+    template_name = "compilacao/form.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        form.fields['content_type'] = forms.ChoiceField(
+            choices=choice_extenal_views(),
+            label=_('Modelo Integrado'), required=False)
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+
     @property
-    def title(self):
-        return self.get_object()
+    def cancel_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+
+class TipoTaDeleteView(CompMixin, DeleteView):
+    model = TipoTextoArticulado
+    template_name = "compilacao/confirm_delete.html"
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_success_url(self):
+        return reverse_lazy('tipo_ta_list')
 
 
 class TaListView(ListView):
     model = TextoArticulado
     paginate_by = 10
     verbose_name = model._meta.verbose_name
-    title = model._meta.verbose_name_plural
     create_url = reverse_lazy('ta_create')
+
+    @property
+    def title(self):
+        return self.model._meta.verbose_name_plural
 
     def get_context_data(self, **kwargs):
         context = super(TaListView, self).get_context_data(**kwargs)
@@ -270,15 +278,23 @@ class TaCreateView(FormMessagesMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('ta_detail', kwargs={'pk': self.object.id})
 
+    @property
+    def cancel_url(self):
+        return reverse_lazy('ta_list')
 
-class TaUpdateView(UpdateView):
+
+class TaUpdateView(CompMixin, UpdateView):
     model = TextoArticulado
     form_class = TaForm
     template_name = "compilacao/form.html"
 
-    @property
-    def title(self):
-        return self.get_object()
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        # if self.object and self.object.content_object:
+        #    form.fields['tipo_ta'].required = False
+        #    form.fields['tipo_ta'].widget.attrs['disabled'] = 'disabled'
+        return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
         return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
@@ -288,12 +304,9 @@ class TaUpdateView(UpdateView):
         return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
 
 
-class TaDeleteView(DeleteView):
+class TaDeleteView(CompMixin, DeleteView):
     model = TextoArticulado
-
-    @property
-    def title(self):
-        return self.get_object()
+    template_name = "compilacao/confirm_delete.html"
 
     @property
     def detail_url(self):
@@ -318,10 +331,10 @@ class TextView(ListView):
 
     def get(self, request, *args, **kwargs):
         ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
-        self.title = ta
+        self.object = ta
         if ta.content_object:
             item = ta.content_object
-            self.title = item
+            self.object = item
             if hasattr(item, 'ementa') and item.ementa:
                 ta.ementa = item.ementa
             else:

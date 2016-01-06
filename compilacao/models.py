@@ -63,12 +63,10 @@ class BaseModel(models.Model):
 class TipoTextoArticulado(models.Model):
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
-    model = models.CharField(
-        default='',
-        blank=True, null=True,
-        max_length=50,
-        unique=True,
-        verbose_name=_('Modelagem Django'))
+    content_type = models.ForeignKey(
+        ContentType,
+        blank=True, null=True, default=None,
+        verbose_name=_('Modelo Integrado'))
     participacao_social = models.NullBooleanField(
         default=False,
         blank=True, null=True,

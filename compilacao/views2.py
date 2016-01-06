@@ -1,10 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import (PerfilEstruturalTextoArticulado,
-                               TipoDispositivo, TipoNota, TipoPublicacao,
-                               TipoVide, VeiculoPublicacao)
+from compilacao.models import PerfilEstruturalTextoArticulado, TipoDispositivo
 from sapl.crud import build_crud
-
 
 perfil_estr_txt_norm = build_crud(
     PerfilEstruturalTextoArticulado, 'perfil_estrutural', [

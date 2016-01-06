@@ -15,12 +15,12 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
+import sapl
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
-import sapl
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -28,7 +28,6 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
-
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -952,7 +951,7 @@ class NumeracaoForm(ModelForm):
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     data_materia = forms.DateField(label='Data',
                                    required=False,
@@ -1092,7 +1091,7 @@ class DocumentoAcessorioForm(ModelForm):
         required=True,
         queryset=TipoDocumento.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     data = forms.DateField(label='Data',
                            required=False,
@@ -1854,7 +1853,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         required=False,
         queryset=Autor.objects.all().order_by('tipo'),
         empty_label='Selecione',
-        )
+    )
 
     # relatores são os parlamentares ativos?
     relator = forms.ModelChoiceField(
@@ -1863,14 +1862,14 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         queryset=Parlamentar.objects.filter(
             ativo=True).order_by('nome_parlamentar'),
         empty_label='Selecione',
-        )
+    )
 
     tipo = forms.ModelChoiceField(
         label='Tipo de Matéria',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     data_apresentacao = forms.DateField(label=u'Data de Apresentação',
                                         input_formats=['%d/%m/%Y'],
@@ -1896,14 +1895,14 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         required=False,
         queryset=UnidadeTramitacao.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     situacao = forms.ModelChoiceField(
         label='Situação',
         required=False,
         queryset=StatusTramitacao.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     tramitacao = forms.ChoiceField(required=False,
                                    label='Tramitando',
@@ -2024,3 +2023,7 @@ class PesquisaMateriaListView(FormMixin, ListView):
 
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
+
+
+class ProposicaoTaView(IntegracaoTaView):
+    model = Proposicao

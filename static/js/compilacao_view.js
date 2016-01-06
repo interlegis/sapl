@@ -5,18 +5,6 @@ $( window ).scroll(function() {
         $( "section.vigencias" ).addClass("fixed");
 });
 
-$(window).load(function() {
-    setTimeout(function() {
-    	href = location.href.split('#')
-    	if (href.length == 2) {
-    		height = $( "section.vigencias" ).height();
-            $('html, body').animate({
-            scrollTop:  window.pageYOffset - height - 55
-            }, 300);
-        }
-    }, 100);
-});
-
 
 function isElementInViewport (el) {
 
@@ -142,11 +130,19 @@ function textoVigente(item, link) {
 			scrollTop: $(elv).parent().offset().top - 60
 		}, 0);
     }
-
-
 }
 
 $(document).ready(function() {
+    setTimeout(function() {
+    	var href = location.href.split('#')
+    	if (href.length == 2) {
+    		$('html, body').animate({
+                scrollTop: $('#dptt' + href[1] ).offset().top - window.innerHeight / 9
+            }, 0);
+        }
+    }, 100);
+
+
 	$("#btn_font_menos").click(function() {
 	    $(".dpt").css("font-size", "-=1");
 	});

@@ -35,7 +35,7 @@
 			</ul>
 
 	        <ul class="btns-action actions_left">
-	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="">.</a></li>
+	        	<li><a href ="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="btn-left btn-action" pk="{{dpt.pk}}"  title="{% trans 'Ir para Texto'%}">T</a></li>
 	        </ul>
 			<ul class="btns-action actions_bottom">
 				{% for perfil in perfil_estrutural_list%}

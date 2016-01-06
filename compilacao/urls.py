@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
 
 from compilacao import views
-from compilacao.views import tipo_nota_crud, tipo_vide_crud,\
-    tipo_publicacao_crud, veiculo_publicacao_crud
+from compilacao.views import (tipo_nota_crud, tipo_publicacao_crud,
+                              tipo_vide_crud, veiculo_publicacao_crud)
 
 urlpatterns_compilacao = [
     url(r'^$', views.TaListView.as_view(), name='ta_list'),
@@ -61,13 +61,16 @@ urlpatterns_compilacao = [
         views.DispositivoSearchFragmentFormView.as_view(),
         name='search_dispositivo'),
 
-
     url(r'^config/tipo-textoarticulado$',
         views.TipoTaListView.as_view(), name='tipo_ta_list'),
     url(r'^config/tipo-textoarticulado/create$',
         views.TipoTaCreateView.as_view(), name='tipo_ta_create'),
     url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)$',
         views.TipoTaDetailView.as_view(), name='tipo_ta_detail'),
+    url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)/edit$',
+        views.TipoTaUpdateView.as_view(), name='tipo_ta_edit'),
+    url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)/delete$',
+        views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
 
     url(r'^config/tipo-nota/',
         include(tipo_nota_crud.urls)),

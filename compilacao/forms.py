@@ -1,5 +1,3 @@
-import sys
-
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (HTML, Column, Div, Fieldset,
                                             Layout, Row)
@@ -10,10 +8,10 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import (Dispositivo, Nota, TextoArticulado, TipoNota,
-                               TipoTextoArticulado, TipoVide, Vide,
-                               PARTICIPACAO_SOCIAL_CHOICES)
-from compilacao.utils import to_column, to_row, FormLayout
+from compilacao.models import (PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
+                               TextoArticulado, TipoNota, TipoTextoArticulado,
+                               TipoVide, Vide)
+from compilacao.utils import YES_NO_CHOICES, FormLayout, to_column, to_row
 
 
 class UpLoadImportFileForm(forms.Form):
@@ -29,6 +27,39 @@ nota_error_messages = {
 ta_error_messages = {
     'required': _('Este campo é obrigatório'),
 }
+
+
+class TipoTaForm(ModelForm):
+    sigla = forms.CharField(label='Sigla')
+    descricao = forms.CharField(label='Descrição')
+
+    participacao_social = forms.NullBooleanField(
+        label=_('Participação Social'),
+        widget=forms.Select(choices=YES_NO_CHOICES),
+        required=True)
+
+    class Meta:
+        model = TipoTextoArticulado
+        fields = ['sigla',
+                  'descricao',
+                  'content_type',
+                  'participacao_social',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([
+            ('sigla', 2),
+            ('descricao', 4),
+            ('content_type', 3),
+            ('participacao_social', 3),
+        ])
+
+        self.helper = FormHelper()
+        self.helper.layout = FormLayout(
+            Fieldset(_('Identificação Básica'),
+                     row1, css_class="large-12"))
+        super(TipoTaForm, self).__init__(*args, **kwargs)
 
 
 class TaForm(ModelForm):
