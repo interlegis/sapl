@@ -12,6 +12,10 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+
+from sessao.serializers import SessaoPlenariaSerializer
+from rest_framework import generics
+
 import sapl
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
@@ -2423,3 +2427,8 @@ class SessaoCadastroView(FormMixin, sessao_crud.CrudDetailView):
 
     def get_success_url(self):
         return reverse('sessaoplenaria:list_sessao')
+
+
+class SessaoPlenariaView(generics.ListAPIView):
+    queryset = SessaoPlenaria.objects.select_related('sessao_legislativa').all()
+    serializer_class = SessaoPlenariaSerializer
