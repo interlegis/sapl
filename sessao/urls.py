@@ -9,14 +9,13 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           OradorExpedienteView, PainelView,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoListView, VotacaoEditView,
+                          SessaoCadastroView, SessaoListView, VotacaoEditView,
                           VotacaoExpedienteEditView, VotacaoExpedienteView,
                           VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
                           VotacaoView, sessao_crud, tipo_expediente_crud,
-                          tipo_resultado_votacao_crud, tipo_sessao_crud,
-                          SessaoCadastroView)
+                          tipo_resultado_votacao_crud, tipo_sessao_crud)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',

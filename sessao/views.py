@@ -1,17 +1,18 @@
 from datetime import datetime
 from re import sub
-from django.forms import ModelForm
-from django import forms
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
-                                 Submit)
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.forms import ModelForm
 from django.forms.util import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+
 import sapl
 from materia.models import Autoria, TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
@@ -2332,13 +2333,13 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
 
 
 class SessaoForm(ModelForm):
-    
+
     class Meta:
         model = SessaoPlenaria
         fields = ['numero',
                   'tipo',
                   'legislatura',
-                  'sessao_legislativa',                     #Pega do Models os campos necessários para o form
+                  'sessao_legislativa',
                   'data_inicio',
                   'hora_inicio',
                   'iniciada',
@@ -2352,11 +2353,11 @@ class SessaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(                      
+        row1 = sapl.layout.to_row(
             [('numero', 3),
              ('tipo', 3),
              ('legislatura', 3),
-             ('sessao_legislativa', 3)])                    #Cria os campos
+             ('sessao_legislativa', 3)])
 
         row2 = sapl.layout.to_row(
             [('data_inicio', 4),
@@ -2379,7 +2380,7 @@ class SessaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Dados Básicos',                    #Desenha o HTML
+                'Dados Básicos',
                 row1,
                 row2,
                 row3,
