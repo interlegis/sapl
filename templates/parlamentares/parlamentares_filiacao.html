@@ -31,7 +31,7 @@
 				<tr>
 					<td><a href="{% url 'parlamentares_filiacao_edit' parlamentar.id f.id %}">{{f.partido.sigla}}</a></td>
 					<td>{{f.data}}</td>
-					<td>{{f.data_desfiliacao}}</td>
+					<td>{{f.data_desfiliacao|default_if_none:""}}</td>
 				</tr>
 			{% endfor %}
 	</table>
