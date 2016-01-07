@@ -155,6 +155,7 @@ BOWER_INSTALLED_APPS = (
     'tinymce',
     'jquery-ui',
     'jquery-runner',
+    'jQuery-Mask-Plugin',
 )
 
 # Additional search paths for SASS files when using the @import statement
