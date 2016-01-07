@@ -273,7 +273,7 @@ class Parlamentar(models.Model):
     ativo = models.BooleanField(verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
         blank=True, null=True, verbose_name=_('Biografia'))
-    fotografia = models.FileField(
+    fotografia = models.ImageField(
         blank=True,
         null=True,
         upload_to=foto_upload_path,
