@@ -1,10 +1,19 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+def get_sessao_media_path(instance, subpath, filename):
+    return './casa/%s/%s/%s' % (instance.numero, subpath, filename)
+
+
+def get_casa_media_path(instance, filename):
+    import ipdb; ipdb.set_trace()
+    return get_sessao_media_path(instance, 'Logotipo', filename)
 
 class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
     # cod_casa => id (pk)
+
+    codigo = models.CharField(max_length=100, verbose_name=_('Codigo'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
     endereco = models.CharField(max_length=100, verbose_name=_('Endereço'))
@@ -13,13 +22,11 @@ class CasaLegislativa(models.Model):
     uf = models.CharField(max_length=100, verbose_name=_('UF'))
     telefone = models.CharField(max_length=100, verbose_name=_('Telefone'))
     fax = models.CharField(max_length=100, verbose_name=_('Fax'))
-    cor_fundo = models.CharField(
-        max_length=100, verbose_name=_('Cor de fundo'))
-    cor_borda = models.CharField(
-        max_length=100, verbose_name=_('Cor da borda'))
-    cor_principal = models.CharField(
-        max_length=100, verbose_name=_('Cor principal'))
-    logotipo = models.CharField(max_length=100, verbose_name=_('Logotipo'))
+    logotipo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=get_casa_media_path,
+        verbose_name=_('Logotipo'))
     endereco_web = models.CharField(max_length=100, verbose_name=_('HomePage'))
     email = models.CharField(max_length=100, verbose_name=_('E-mail'))
     informacao_geral = models.CharField(
