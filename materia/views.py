@@ -267,59 +267,31 @@ class FormularioSimplificadoForm(ModelForm):
                   'texto_original']
 
     def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('numero', 4),
+             ('ano', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('data_apresentacao', 4),
+             ('numero_protocolo', 4),
+             ('regime_tramitacao', 4)])
+
+        row3 = sapl.layout.to_row(
+            [('texto_original', 9),
+             ('em_tramitacao', 3)])
+
+        row4 = sapl.layout.to_row(
+            [('ementa', 12)])
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 'Formulário Simplificado',
                 Fieldset(
                     'Identificação Básica',
-                    HTML(
-                        "<ul class='small-block-grid-3 " +
-                        "medium-block-grid-3 large-block-grid-3'>"),
-                    HTML("<li>"),
-                    'tipo',
-                    HTML("</li>"),
-                    HTML("<li>"),
-                    'numero',
-                    HTML("</li>"),
-                    HTML("<li>"),
-                    'ano',
-                    HTML("</li>"),
-                    HTML("</ul>"),
-                    HTML(
-                        "<ul class='small-block-grid-3 " +
-                        "medium-block-grid-3 large-block-grid-3'>"),
-                    HTML("<li>"),
-                    'data_apresentacao',
-                    HTML("</li>"),
-                    HTML("<li>"),
-                    'numero_protocolo',
-                    HTML("</li>"),
-                    HTML("<li>"),
-                    'regime_tramitacao',
-                    HTML("</li>"),
-                    HTML("</ul>"),
-                    HTML(
-                        "<ul class='small-block-grid-1 " +
-                        "medium-block-grid-1 large-block-grid-1'>"),
-                    HTML("<li>"),
-                    'em_tramitacao',
-                    HTML("</li>"),
-                    HTML("</ul>"),
-                    HTML(
-                        "<ul class='small-block-grid-1 " +
-                        "medium-block-grid-1 large-block-grid-1'>"),
-                    HTML("<li>"),
-                    'ementa',
-                    HTML("</li>"),
-                    HTML("</ul>"),
-                    HTML(
-                        "<ul class='small-block-grid-1 " +
-                        "medium-block-grid-1 large-block-grid-1'>"),
-                    HTML("<li>"),
-                    'texto_original',
-                    HTML("</li>"),
-                    HTML("</ul>"),
+                    row1, row2, row3, row4
                 ),
                 ButtonHolder(
                     Submit('submit', 'Salvar',
