@@ -1,17 +1,16 @@
 import sapl
-
-from django.views.generic.base import TemplateView
-from .models import CasaLegislativa
-from django.forms import ModelForm
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.forms import ModelForm
+from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, ButtonHolder, Column, Fieldset, Layout,
-                                 Submit)
-from django.core.exceptions import ObjectDoesNotExist
 
-from django.core.urlresolvers import reverse
+from .models import CasaLegislativa
+
 
 class HelpView(TemplateView):
     # XXX treat non existing template as a 404!!!!
@@ -54,13 +53,28 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
 
     uf = forms.ChoiceField(required=False,
                            label='UF',
-                           choices=[(a,a) for a in ESTADOS],
+                           choices=[(a, a) for a in ESTADOS],
                            widget=forms.Select(
-                           attrs={'class': 'selector'}))
+                               attrs={'class': 'selector'}))
 
-    informacao_geral = forms.CharField(widget=forms.Textarea, 
-                                       label='informacao_geral', 
+    informacao_geral = forms.CharField(widget=forms.Textarea,
+                                       label='informacao_geral',
                                        required=True)
+
+    telefone = forms.CharField(label='Telefone',
+                               required=True,
+                               widget=forms.TextInput(
+                                   attrs={'class': 'telefone'}))
+
+    cep = forms.CharField(label='Cep',
+                          required=True,
+                          widget=forms.TextInput(
+                              attrs={'class': 'cep'}))
+
+    fax = forms.CharField(label='Fax',
+                          required=True,
+                          widget=forms.TextInput(
+                              attrs={'class': 'telefone'}))
 
     class Meta:
 
@@ -81,10 +95,10 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(                      
+        row1 = sapl.layout.to_row(
             [('codigo', 2),
              ('nome', 5),
-             ('sigla', 5)])                    
+             ('sigla', 5)])
 
         row2 = sapl.layout.to_row(
             [('endereco', 8),
@@ -113,7 +127,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Dados Básicos',                    
+                'Dados Básicos',
                 row1,
                 row2,
                 row3,
@@ -129,6 +143,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             )
         )
         super(CasaLegislativaTabelaAuxForm, self).__init__(*args, **kwargs)
+
 
 class CasaLegislativaTableAuxView(FormMixin, GenericView):
 
@@ -153,7 +168,8 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
             except ObjectDoesNotExist:
                 casa_save = form.save(commit=False)
             else:
-                casa_save = CasaLegislativaTabelaAuxForm(request.POST, instance = casa)
+                casa_save = CasaLegislativaTabelaAuxForm(
+                    request.POST, instance=casa)
 
             if 'logotipo' in request.FILES:
                 casa_save.logotipo = request.FILES['logotipo']
