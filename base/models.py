@@ -20,17 +20,17 @@ class CasaLegislativa(models.Model):
     cep = models.CharField(max_length=100, verbose_name=_('CEP'))
     municipio = models.CharField(max_length=100, verbose_name=_('Município'))
     uf = models.CharField(max_length=100, verbose_name=_('UF'))
-    telefone = models.CharField(max_length=100, verbose_name=_('Telefone'))
-    fax = models.CharField(max_length=100, verbose_name=_('Fax'))
+    telefone = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('Telefone'))
+    fax = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('Fax'))
     logotipo = models.FileField(
         blank=True,
         null=True,
         upload_to=get_casa_media_path,
         verbose_name=_('Logotipo'))
-    endereco_web = models.CharField(max_length=100, verbose_name=_('HomePage'))
-    email = models.CharField(max_length=100, verbose_name=_('E-mail'))
+    endereco_web = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('HomePage'))
+    email = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('E-mail'))
     informacao_geral = models.CharField(
-        max_length=100, verbose_name=_('Informação Geral'))
+        max_length=100, blank=True, null=True, verbose_name=_('Informação Geral'))
 
     class Meta:
         verbose_name = _('Casa Legislativa')

@@ -51,15 +51,16 @@ ESTADOS = ["AC",
 
 class CasaLegislativaTabelaAuxForm(ModelForm):
 
-    uf = forms.ChoiceField(required=False,
+    uf = forms.ChoiceField(required=True,
                            label='UF',
                            choices=[(a, a) for a in ESTADOS],
                            widget=forms.Select(
                                attrs={'class': 'selector'}))
 
-    informacao_geral = forms.CharField(widget=forms.Textarea,
-                                       label='informacao_geral',
-                                       required=True)
+
+    informacao_geral = forms.CharField(widget=forms.Textarea, 
+                                       label='Informação Geral', 
+                                       required=False)
 
     telefone = forms.CharField(label='Telefone',
                                required=True,
