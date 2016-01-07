@@ -63,7 +63,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                                        required=False)
 
     telefone = forms.CharField(label='Telefone',
-                               required=True,
+                               required=False,
                                widget=forms.TextInput(
                                    attrs={'class': 'telefone'}))
 
@@ -73,7 +73,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                               attrs={'class': 'cep'}))
 
     fax = forms.CharField(label='Fax',
-                          required=True,
+                          required=False,
                           widget=forms.TextInput(
                               attrs={'class': 'telefone'}))
 
