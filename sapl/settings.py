@@ -86,6 +86,8 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
+                "django.core.context_processors.media",
+                "django.core.context_processors.static",                
                 'django.contrib.messages.context_processors.messages',
                 'sapl.context_processors.parliament_info',
             ],
@@ -93,6 +95,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 
@@ -139,6 +142,7 @@ STATICFILES_FINDERS = (
 )
 
 MEDIA_ROOT = BASE_DIR.child("media")
+MEDIA_URL = '/media/'
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'

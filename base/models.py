@@ -2,11 +2,10 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 def get_sessao_media_path(instance, subpath, filename):
-    return './casa/%s/%s/%s' % (instance.numero, subpath, filename)
+    return './casa/%s/%s/%s' % (instance.codigo, subpath, filename)
 
 
 def get_casa_media_path(instance, filename):
-    import ipdb; ipdb.set_trace()
     return get_sessao_media_path(instance, 'Logotipo', filename)
 
 class CasaLegislativa(models.Model):
@@ -22,7 +21,7 @@ class CasaLegislativa(models.Model):
     uf = models.CharField(max_length=100, verbose_name=_('UF'))
     telefone = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('Telefone'))
     fax = models.CharField(max_length=100, blank=True, null=True, verbose_name=_('Fax'))
-    logotipo = models.FileField(
+    logotipo = models.ImageField(
         blank=True,
         null=True,
         upload_to=get_casa_media_path,

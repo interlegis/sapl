@@ -1,6 +1,6 @@
 import sapl
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, HTML, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -10,6 +10,8 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 from .models import CasaLegislativa
+
+from sapl import settings
 
 
 class HelpView(TemplateView):
@@ -76,7 +78,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
     fax = forms.CharField(label='Fax',
                           required=False,
                           widget=forms.TextInput(
-                              attrs={'class': 'telefone'}))
+                              attrs={'class': 'telefone'}))    
 
     class Meta:
 
@@ -135,6 +137,10 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row3,
                 row4,
                 row5,
+                HTML("""{% if form.logotipo.value %}
+                        <img class="img-responsive" 
+                             src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
+                         {% endif %}""", ),
                 row6,
                 row7,
                 row8,
@@ -162,7 +168,7 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
         return self.render_to_response({'form': form})
 
     def post(self, request, *args, **kwargs):
-        form = CasaLegislativaTabelaAuxForm(request.POST or request.FILES)
+        form = CasaLegislativaTabelaAuxForm(request.POST, request.FILES)
 
         if form.is_valid():
             try:
@@ -171,13 +177,8 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                 casa_save = form.save(commit=False)
             else:
                 casa_save = CasaLegislativaTabelaAuxForm(
-                    request.POST, instance=casa)
-
-            if 'logotipo' in request.FILES:
-                casa_save.logotipo = request.FILES['logotipo']
-
-            casa_save.save()
-
+                    request.POST, request.FILES, instance=casa).save(commit=False) 
+                casa_save.save()
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form})
