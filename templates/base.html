@@ -27,6 +27,7 @@
       <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
       <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
     {% endblock %}
   </head>
 
@@ -201,20 +202,17 @@
       </footer>
     </div>
 
-      {% block foot_js %}
-        <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
-        <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+    {% block foot_js %}
+      <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
+      <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
 
-        <script>
-          tinymce.init({selector:'textarea'});
-        </script>
-        <script>
-          $(document).foundation();
-        </script>
-        
-        <script type="text/javascript">
-          $(function () {
+      <script>tinymce.init({selector:'textarea'});</script>
+
+      <script>$(document).foundation();</script>
+      
+      <script type="text/javascript">
+        $(function () {
           $('.dateinput').fdatepicker({
             // TODO localize
             format: 'dd/mm/yyyy',
@@ -223,12 +221,19 @@
             todayBtn: true
           });
         });
-        </script>
+      </script>
 
-        {% block extra_js %}
-        
-        {% endblock %}
+      <script>
+        $(document).ready(function(){
+           $('.telefone').mask("(99) 9999-9999", {placeholder:"(__)____ -____"});
+           $('.cpf').mask("000.000.000-00", {placeholder:"___.___.___-__"});
+           $('.cep').mask("00000-000", {placeholder:"_____-___"});
+        });
+      </script>
 
-      {% endblock foot_js %}
+      {% block extra_js %}
+      {% endblock %}
+
+    {% endblock foot_js %}
   </body>
 </html>
