@@ -20,7 +20,8 @@ class HelpView(TemplateView):
         return ['ajuda/%s.html' % self.kwargs['topic']]
 
 
-ESTADOS = ["AC",
+ESTADOS = ["",
+           "AC",
            "AL",
            "AM",
            "AP",
