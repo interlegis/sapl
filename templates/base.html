@@ -117,8 +117,12 @@
       {% block main_header %}
         <header id="masthead" class="masthead page__row">
           <div class="container">
-            <a class="masthead__logo" href="#">
-              <img src="{% static 'img/logo.png' %}" alt="Logo">
+            <a class="masthead__logo" href="#">                              
+                {% if logotipo %}
+                    <img src="{{ MEDIA_URL }}{{ logotipo }}" alt="Logo">
+                {% else %}
+                    <img src="{% static 'img/logo.png' %}" alt="Logo">
+                {% endif %}                            
             </a>
             <div class="masthead__heading">
               {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}

@@ -1,6 +1,15 @@
+
+from base.models import CasaLegislativa
+
+
+# TODO: this need to be cached and retrieved once!!!
+def query_database():    
+    return CasaLegislativa.objects.first()
+
+
 def parliament_info(request):
 
-    return {
+    context = {
         'state': 'Estado',
         'state_abbr': 'UF',
         'city': 'Cidade',
@@ -11,3 +20,13 @@ def parliament_info(request):
         'url_portal': '#',
         'url_email': '#',
     }
+
+    casa_legislativa = query_database()
+
+    if casa_legislativa:
+        context['parliament_type'] = casa_legislativa.nome
+        context['city'] = casa_legislativa.municipio
+        context['state'] = casa_legislativa.uf
+        context['logotipo'] = casa_legislativa.logotipo
+
+    return context;
