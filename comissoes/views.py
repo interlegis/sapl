@@ -136,7 +136,7 @@ class CadastrarComissaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-              '',
+              'Cadastrar Comissão',
               Fieldset(
                 'Dados Básicos',
                 row1,
@@ -184,7 +184,7 @@ class CadastrarComissaoView(FormMixin, GenericView):
             return self.render_to_response({'form': form})
 
     def get_success_url(self):
-        return reverse('comissao:cadastrar_comissao')
+        return reverse('comissao:list')
 
 
 
