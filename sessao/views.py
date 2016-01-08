@@ -2334,6 +2334,16 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
 
 class SessaoForm(ModelForm):
 
+    hora_inicio = forms.CharField(label='Horário Inicio',
+                                  required=True,
+                                  widget=forms.TextInput(
+                                   attrs={'class': 'hora'}))
+
+    hora_fim = forms.CharField(label='Horário Fim',
+                               required=True,
+                               widget=forms.TextInput(
+                                attrs={'class': 'hora'}))
+
     class Meta:
         model = SessaoPlenaria
         fields = ['numero',
