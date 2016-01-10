@@ -26,7 +26,7 @@
             {%else%}
                 <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
             {%endif%}
-                <dd><a href="#" class="button secondary">{% model_verbose_name_plural 'Publicacao' %}</a></dd>
+                <dd><a href="{% url 'ta_pub_list' object.pk %}" class="button secondary">{% model_verbose_name_plural 'Publicacao' %}</a></dd>
 
                 <dd><a href="{% url 'ta_text' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
                 <dd><a href="{% url 'ta_text_edit' object.pk %}" class="button secondary">{% trans 'Edição do Texto' %}</a></dd>

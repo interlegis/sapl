@@ -20,7 +20,7 @@
 
 <dl class="sub-nav">
   <dd><a href="{{ view.create_url }}">
-    {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+    {% trans 'Adicionar'%} {%model_verbose_name 'TextoArticulado'%}
 
   </a></dd>
 

@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -21,13 +21,15 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from compilacao import utils
-from compilacao.forms import NotaForm, TaForm, TipoTaForm, VideForm
+from compilacao.forms import NotaForm, TaForm, TipoTaForm, VideForm,\
+    PublicacaoForm
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
-                               VeiculoPublicacao, Vide)
-from compilacao.utils import build_crud
+                               VeiculoPublicacao, Vide, Publicacao)
+from compilacao.utils import build_crud, NO_ENTRIES_MSG
+
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -160,18 +162,24 @@ class CompMixin(object):
 
     @property
     def title(self):
-        return self.get_object()
+        try:
+            return self.get_object()
+        except:
+            return self.object
 
 
 class TipoTaListView(ListView):
     model = TipoTextoArticulado
     paginate_by = 10
     verbose_name = model._meta.verbose_name
-    create_url = reverse_lazy('tipo_ta_create')
 
     @property
     def title(self):
         return self.model._meta.verbose_name_plural
+
+    @property
+    def create_url(self):
+        return reverse_lazy('tipo_ta_create')
 
 
 class TipoTaCreateView(FormMessagesMixin, CreateView):
@@ -239,11 +247,14 @@ class TaListView(ListView):
     model = TextoArticulado
     paginate_by = 10
     verbose_name = model._meta.verbose_name
-    create_url = reverse_lazy('ta_create')
 
     @property
     def title(self):
         return self.model._meta.verbose_name_plural
+
+    @property
+    def create_url(self):
+        return reverse_lazy('ta_create')
 
     def get_context_data(self, **kwargs):
         context = super(TaListView, self).get_context_data(**kwargs)
@@ -316,7 +327,7 @@ class TaDeleteView(CompMixin, DeleteView):
         return reverse_lazy('ta_list')
 
 
-class TextView(ListView):
+class TextView(ListView, CompMixin):
     template_name = 'compilacao/text_list.html'
 
     flag_alteradora = -1
@@ -1533,3 +1544,101 @@ class DispositivoSearchFragmentFormView(ListView):
 
         except Exception as e:
             print(e)
+
+
+class PublicacaoListView(ListView):
+    model = Publicacao
+    verbose_name = model._meta.verbose_name
+
+    @property
+    def title(self):
+        return _('%s de %s' % (
+            self.model._meta.verbose_name_plural,
+            self.ta))
+
+    @property
+    def ta(self):
+        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        return ta
+
+    @property
+    def create_url(self):
+        return reverse_lazy(
+            'ta_pub_create',
+            kwargs={'ta_id': self.kwargs['ta_id']})
+
+    def get_queryset(self):
+        pubs = Publicacao.objects.filter(ta_id=self.kwargs['ta_id'])
+        return pubs
+
+    def get_context_data(self, **kwargs):
+        context = super(PublicacaoListView, self).get_context_data(**kwargs)
+        context['NO_ENTRIES_MSG'] = NO_ENTRIES_MSG
+        return context
+
+
+class PublicacaoCreateView(FormMessagesMixin, CreateView):
+    model = Publicacao
+    form_class = PublicacaoForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'ta_pub_detail',
+            kwargs={
+                'pk': self.object.id,
+                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'ta_pub_list',
+            kwargs={'ta_id': self.kwargs['ta_id']})
+
+    def get_initial(self):
+        return {'ta': self.kwargs['ta_id']}
+
+
+class PublicacaoDetailView(CompMixin, DetailView):
+    model = Publicacao
+
+
+class PublicacaoUpdateView(CompMixin, UpdateView):
+    model = Publicacao
+    form_class = PublicacaoForm
+    template_name = "compilacao/form.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        # if self.object and self.object.content_object:
+        #    form.fields['tipo_ta'].required = False
+        #    form.fields['tipo_ta'].widget.attrs['disabled'] = 'disabled'
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('ta_pub_detail',
+                            kwargs={
+                                'pk': self.object.id,
+                                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def cancel_url(self):
+        return self.get_success_url()
+
+
+class PublicacaoDeleteView(CompMixin, DeleteView):
+    model = Publicacao
+    template_name = "compilacao/confirm_delete.html"
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('ta_pub_detail',
+                            kwargs={
+                                'pk': self.object.id,
+                                'ta_id': self.kwargs['ta_id']})
+
+    def get_success_url(self):
+        return reverse_lazy('ta_pub_list')

@@ -61,6 +61,19 @@ urlpatterns_compilacao = [
         views.DispositivoSearchFragmentFormView.as_view(),
         name='search_dispositivo'),
 
+
+    url(r'^(?P<ta_id>[0-9]+)/publicacao$',
+        views.PublicacaoListView.as_view(), name='ta_pub_list'),
+    url(r'^(?P<ta_id>[0-9]+)/publicacao/create$',
+        views.PublicacaoCreateView.as_view(), name='ta_pub_create'),
+    url(r'^(?P<ta_id>[0-9]+)/publicacao/(?P<pk>[0-9]+)$',
+        views.PublicacaoDetailView.as_view(), name='ta_pub_detail'),
+    url(r'^(?P<ta_id>[0-9]+)/publicacao/(?P<pk>[0-9]+)/edit$',
+        views.PublicacaoUpdateView.as_view(), name='ta_pub_edit'),
+    url(r'^(?P<ta_id>[0-9]+)/publicacao/(?P<pk>[0-9]+)/delete$',
+        views.PublicacaoDeleteView.as_view(), name='ta_pub_delete'),
+
+
     url(r'^config/tipo-textoarticulado$',
         views.TipoTaListView.as_view(), name='tipo_ta_list'),
     url(r'^config/tipo-textoarticulado/create$',

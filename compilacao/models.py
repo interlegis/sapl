@@ -443,7 +443,22 @@ class Publicacao(TimestampedMixin):
         VeiculoPublicacao, verbose_name=_('Veículo de Publicação'))
     tipo_publicacao = models.ForeignKey(
         TipoPublicacao, verbose_name=_('Tipo de Publicação'))
-    publicacao = models.DateTimeField(verbose_name=_('Data de Publicação'))
+
+    data = models.DateTimeField(verbose_name=_('Data de Publicação'))
+
+    numero = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Número'))
+
+    ano = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Ano'))
+
+    edicao = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Edição'))
+
+    url_externa = models.CharField(
+        max_length=1024,
+        blank=True,
+        verbose_name=_('Link para Versão Eletrônica'))
     pagina_inicio = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Pg. Início'))
     pagina_fim = models.PositiveIntegerField(
@@ -454,7 +469,10 @@ class Publicacao(TimestampedMixin):
         verbose_name_plural = _('Publicações')
 
     def __str__(self):
-        return '%s: %s' % (self.veiculo_publicacao, self.publicacao)
+        return '%s\n%s: %s' % (
+            self.ta,
+            self.tipo_publicacao,
+            defaultfilters.date(self.data, "d \d\e F \d\e Y"))
 
 
 class Dispositivo(BaseModel, TimestampedMixin):

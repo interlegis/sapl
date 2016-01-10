@@ -194,7 +194,7 @@ def build_crud(model, help_path, layout):
 
         def get_template_names(self):
             names = super(BaseMixin, self).get_template_names()
-            names.append("crud/%s.html" %
+            names.append("compilacao/%s.html" %
                          self.template_name_suffix.lstrip('_'))
             return names
 

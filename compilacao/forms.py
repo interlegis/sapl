@@ -10,7 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from compilacao.models import (PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
                                TextoArticulado, TipoNota, TipoTextoArticulado,
-                               TipoVide, Vide)
+                               TipoVide, Vide, TipoPublicacao,
+                               VeiculoPublicacao, Publicacao)
 from compilacao.utils import YES_NO_CHOICES, FormLayout, to_column, to_row
 
 
@@ -19,7 +20,7 @@ class UpLoadImportFileForm(forms.Form):
         required=True,
         label=_('Arquivo formato ODF para Importanção'))
 
-nota_error_messages = {
+error_messages = {
     'required': _('Este campo é obrigatório'),
     'invalid': _('URL inválida.')
 }
@@ -30,11 +31,16 @@ ta_error_messages = {
 
 
 class TipoTaForm(ModelForm):
-    sigla = forms.CharField(label='Sigla')
-    descricao = forms.CharField(label='Descrição')
+    sigla = forms.CharField(
+        label=TipoTextoArticulado._meta.get_field(
+            'sigla').verbose_name)
+    descricao = forms.CharField(
+        label=TipoTextoArticulado._meta.get_field(
+            'descricao').verbose_name)
 
     participacao_social = forms.NullBooleanField(
-        label=_('Participação Social'),
+        label=TipoTextoArticulado._meta.get_field(
+            'participacao_social').verbose_name,
         widget=forms.Select(choices=YES_NO_CHOICES),
         required=True)
 
@@ -64,15 +70,22 @@ class TipoTaForm(ModelForm):
 
 class TaForm(ModelForm):
     tipo_ta = forms.ModelChoiceField(
-        label=_('Tipo do Texto Articulado'),
+        label=TipoTextoArticulado._meta.verbose_name,
         queryset=TipoTextoArticulado.objects.all(),
         required=True,
         empty_label=None)
-    numero = forms.IntegerField(label=_('Número'), required=True)
-    ano = forms.IntegerField(label=_('Ano'), required=True)
+    numero = forms.IntegerField(
+        label=TextoArticulado._meta.get_field(
+            'numero').verbose_name,
+        required=True)
+    ano = forms.IntegerField(
+        label=TextoArticulado._meta.get_field(
+            'ano').verbose_name,
+        required=True)
 
     data = forms.DateField(
-        label=_('Data'),
+        label=TextoArticulado._meta.get_field(
+            'data').verbose_name,
         input_formats=['%d/%m/%Y'],
         required=True,
         widget=forms.DateInput(
@@ -89,7 +102,8 @@ class TaForm(ModelForm):
         error_messages=ta_error_messages,
         required=False)
     participacao_social = forms.NullBooleanField(
-        label=_('Participação Social'),
+        label=TextoArticulado._meta.get_field(
+            'participacao_social').verbose_name,
         widget=forms.Select(choices=PARTICIPACAO_SOCIAL_CHOICES),
         required=False)
 
@@ -117,9 +131,11 @@ class TaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = FormLayout(
             Fieldset(_('Identificação Básica'), row1, css_class="large-12"),
-            Fieldset(_('Ementa'), Column('ementa'), css_class="large-12"),
+            Fieldset(TextoArticulado._meta.get_field(
+                'ementa').verbose_name, Column('ementa'), css_class="large-12"),
             Fieldset(
-                _('Observações'), Column('observacao'), css_class="large-12"),
+                TextoArticulado._meta.get_field(
+                    'observacao').verbose_name, Column('observacao'), css_class="large-12"),
 
         )
 
@@ -143,11 +159,11 @@ class NotaForm(ModelForm):
     texto = forms.CharField(
         label='',
         widget=forms.Textarea,
-        error_messages=nota_error_messages)
+        error_messages=error_messages)
     url_externa = forms.URLField(
         label='',
         required=False,
-        error_messages=nota_error_messages)
+        error_messages=error_messages)
     publicidade = forms.ChoiceField(
         required=True,
         label=_('Publicidade'),
@@ -166,7 +182,7 @@ class NotaForm(ModelForm):
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
-        error_messages=nota_error_messages
+        error_messages=error_messages
     )
     efetividade = forms.DateField(
         label=_('Efetividade'),
@@ -174,7 +190,7 @@ class NotaForm(ModelForm):
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
-        error_messages=nota_error_messages)
+        error_messages=error_messages)
     dispositivo = forms.ModelChoiceField(queryset=Dispositivo.objects.all(),
                                          widget=forms.HiddenInput())
     pk = forms.IntegerField(widget=forms.HiddenInput(),
@@ -210,7 +226,7 @@ class NotaForm(ModelForm):
             ('publicidade', 3),
             ('publicacao', 3),
             ('efetividade', 3),
-            (Button('submit', 'Salvar',
+            (Button('submit', _('Salvar'),
                     css_class='button primary radius'), 3)
         ])
 
@@ -235,7 +251,7 @@ class VideForm(ModelForm):
         widget=forms.HiddenInput())
 
     tipo_ta = forms.ModelChoiceField(
-        label='Tipo do Texto Articulado',
+        label=_('Tipo do Texto Articulado'),
         queryset=TipoTextoArticulado.objects.all(),
         required=False)
     num_ta = forms.IntegerField(
@@ -248,10 +264,10 @@ class VideForm(ModelForm):
         widget=forms.Textarea,
         required=False)
     tipo = forms.ModelChoiceField(
-        label=_('Tipo do Vide'),
+        label=TipoVide._meta.verbose_name,
         queryset=TipoVide.objects.all(),
         required=True,
-        error_messages=nota_error_messages)
+        error_messages=error_messages)
 
     busca_dispositivo = forms.CharField(
         label=_('Buscar Dispositivo a Referenciar'),
@@ -269,7 +285,7 @@ class VideForm(ModelForm):
         error_messages = {
             NON_FIELD_ERRORS: {
                 'unique_together':
-                "Ja existe um Vide deste tipo para o Dispositivo Referido ",
+                _("Ja existe um Vide deste tipo para o Dispositivo Referido "),
             }
         }
 
@@ -324,3 +340,86 @@ class VideForm(ModelForm):
         )
 
         super(VideForm, self).__init__(*args, **kwargs)
+
+
+class PublicacaoForm(ModelForm):
+
+    tipo_publicacao = forms.ModelChoiceField(
+        label=TipoPublicacao._meta.verbose_name,
+        queryset=TipoPublicacao.objects.all())
+
+    veiculo_publicacao = forms.ModelChoiceField(
+        label=VeiculoPublicacao._meta.verbose_name,
+        queryset=VeiculoPublicacao.objects.all())
+
+    url_externa = forms.CharField(
+        label=Publicacao._meta.get_field('url_externa').verbose_name,
+        required=False)
+
+    data = forms.DateField(
+        label=Publicacao._meta.get_field('data').verbose_name,
+        input_formats=['%d/%m/%Y'],
+        required=True,
+        widget=forms.DateInput(
+            format='%d/%m/%Y'),
+        error_messages=error_messages
+    )
+    numero = forms.IntegerField(
+        label=Publicacao._meta.get_field(
+            'numero').verbose_name,
+        required=False)
+    ano = forms.IntegerField(
+        label=Publicacao._meta.get_field(
+            'ano').verbose_name)
+    edicao = forms.IntegerField(
+        label=Publicacao._meta.get_field(
+            'edicao').verbose_name,
+        required=False)
+    pagina_inicio = forms.IntegerField(
+        label=Publicacao._meta.get_field(
+            'pagina_inicio').verbose_name,
+        required=False)
+    pagina_fim = forms.IntegerField(
+        label=Publicacao._meta.get_field(
+            'pagina_fim').verbose_name,
+        required=False)
+    ta = forms.ModelChoiceField(queryset=TextoArticulado.objects.all(),
+                                widget=forms.HiddenInput())
+
+    class Meta:
+        model = Publicacao
+        fields = ['tipo_publicacao',
+                  'veiculo_publicacao',
+                  'url_externa',
+                  'data',
+                  'numero',
+                  'ano',
+                  'edicao',
+                  'pagina_inicio',
+                  'pagina_fim',
+                  'ta']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([
+            ('tipo_publicacao', 3),
+            ('data', 3),
+            ('ano', 2),
+            ('numero', 2),
+            ('edicao', 2),
+        ])
+
+        row2 = to_row([
+            ('veiculo_publicacao', 3),
+            ('pagina_inicio', 2),
+            ('pagina_fim', 2),
+            ('url_externa', 5),
+        ])
+
+        self.helper = FormHelper()
+        self.helper.layout = FormLayout(
+            Fieldset(Publicacao._meta.verbose_name,
+                     row1, row2, css_class="large-12"))
+
+        super(PublicacaoForm, self).__init__(*args, **kwargs)
+        pass
