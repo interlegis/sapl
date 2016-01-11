@@ -9,6 +9,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+import os
 
 from .models import CasaLegislativa
 
@@ -67,6 +68,11 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                                required=False,
                                widget=forms.TextInput(
                                    attrs={'class': 'telefone'}))
+
+    logotipo = forms.ImageField(label='Logotipo',
+                                required=False,
+                                widget=forms.FileInput
+                                )
 
     cep = forms.CharField(label='Cep',
                           required=True,
@@ -138,6 +144,11 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 HTML("""{% if form.logotipo.value %}
                         <img class="img-responsive"
                              src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
+                        <input type="submit"
+                               name="remover"
+                               id="remover"
+                               class="button primary"
+                               value="Remover"/>
                          {% endif %}""", ),
                 row6,
                 row7,
@@ -174,6 +185,12 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
             except ObjectDoesNotExist:
                 casa_save = form.save(commit=False)
             else:
+                if "remover" in request.POST:
+                   try:
+                      os.unlink(casa.logotipo.path)
+                   except OSError:
+                      pass # Should log this error!!!!!
+                   casa.logotipo = None
                 casa_save = CasaLegislativaTabelaAuxForm(
                     request.POST,
                     request.FILES,
