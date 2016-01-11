@@ -12,6 +12,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+import os
 from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
@@ -272,6 +273,11 @@ class ParlamentaresForm (ModelForm):
                                      widget=forms.TextInput(
                                          attrs={'class': 'telefone'}))
 
+    fotografia = forms.ImageField(label='Fotografia',
+                                required=False,
+                                widget=forms.FileInput
+                                )
+
     class Meta:
         model = Parlamentar
         fields = ['nome_parlamentar',
@@ -357,7 +363,17 @@ class ParlamentaresForm (ModelForm):
             Fieldset('Cadastro do Parlamentar',
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     row11, row12, row13, row14,
+                     row11, row12, row13, 
+                     HTML("""{% if form.fotografia.value %}
+                        <img class="img-responsive"
+                             src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
+                        <input type="submit"
+                               name="remover"
+                               id="remover"
+                               class="button primary"
+                               value="Remover"/>
+                         {% endif %}""", ),
+                     row14,                     
                      ButtonHolder(
                          Submit('submit', 'Salvar',
                                 css_class='button primary'),
@@ -449,6 +465,15 @@ class ParlamentaresEditarView(FormMixin, GenericView):
             elif 'excluir' in request.POST:
                 Mandato.objects.get(parlamentar=parlamentar).delete()
                 parlamentar.delete()
+            elif "remover" in request.POST:
+                   try:
+                      os.unlink(parlamentar.fotografia.path)
+                   except OSError:
+                      pass # Should log this error!!!!!
+                   parlamentar = form.save(commit=False)
+                   parlamentar.fotografia = None
+                   parlamentar.save()
+
 
             return self.form_valid(form)
         else:
