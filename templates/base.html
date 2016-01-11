@@ -88,12 +88,12 @@
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Relatórios</a></li> -->
                   </ul>
                 </li>
-<!--                 <li class="nav__item has-dropdown"><a class="nav__link">Normas Jurídicas</a>
+                 <li class="nav__item has-dropdown"><a class="nav__link">{% trans 'Legislação'%}</a>
                   <ul class="nav__sub-nav dropdown">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Pesquisar</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'normajuridica:list'%}">{% trans 'Normas Jurídicas'%}</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Índice de Assuntos</a></li>
                   </ul>
-                </li> -->
+                </li>
                 <li class="nav__item has-dropdown"><a class="nav__link">Sistema</a>
                   <ul class="nav__sub-nav dropdown">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="/sistema">Tabelas Auxiliares</a></li>
@@ -236,6 +236,7 @@
            $('.rg').mask("0.000.000", {placeholder:"_.___.___"});
            $('.titulo_eleitor').mask("0000.0000.0000.0000", {placeholder:"____.____.____.____"});
            $('.hora').mask("00:00", {placeholder:"hh:mm"});
+           $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
         });
       </script>
 

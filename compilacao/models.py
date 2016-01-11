@@ -420,7 +420,7 @@ class TipoPublicacao(models.Model):
         verbose_name_plural = _('Tipos de Publicação')
 
     def __str__(self):
-        return self.sigla + ' - ' + self.nome
+        return self.nome
 
 
 class VeiculoPublicacao(models.Model):
@@ -444,7 +444,9 @@ class Publicacao(TimestampedMixin):
     tipo_publicacao = models.ForeignKey(
         TipoPublicacao, verbose_name=_('Tipo de Publicação'))
 
-    data = models.DateTimeField(verbose_name=_('Data de Publicação'))
+    data = models.DateField(verbose_name=_('Data de Publicação'))
+    hora = models.TimeField(
+        blank=True, null=True, verbose_name=_('Horário de Publicação'))
 
     numero = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
@@ -469,10 +471,10 @@ class Publicacao(TimestampedMixin):
         verbose_name_plural = _('Publicações')
 
     def __str__(self):
-        return '%s\n%s: %s' % (
-            self.ta,
+        return _('%s realizada em %s \n %s') % (
             self.tipo_publicacao,
-            defaultfilters.date(self.data, "d \d\e F \d\e Y"))
+            defaultfilters.date(self.data, "d \d\e F \d\e Y"),
+            self.ta)
 
 
 class Dispositivo(BaseModel, TimestampedMixin):

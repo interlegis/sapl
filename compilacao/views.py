@@ -1552,7 +1552,7 @@ class PublicacaoListView(ListView):
 
     @property
     def title(self):
-        return _('%s de %s' % (
+        return _('%s da %s' % (
             self.model._meta.verbose_name_plural,
             self.ta))
 
@@ -1641,4 +1641,5 @@ class PublicacaoDeleteView(CompMixin, DeleteView):
                                 'ta_id': self.kwargs['ta_id']})
 
     def get_success_url(self):
-        return reverse_lazy('ta_pub_list')
+        return reverse_lazy('ta_pub_list',
+                            kwargs={'ta_id': self.kwargs['ta_id']})

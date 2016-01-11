@@ -19,19 +19,19 @@
             </ul></li>
     </ul>
     {% endblock actions %}
-    <dl class="sub-nav left">
+    <ul class="button-group left">
         {% block sections_nav %}
             {% if object.content_object%}
-                <dd><a href="{% url object|urldetail_content_type object.content_object.pk %}" class="button secondary" title="{% trans 'Ir para '%}{{object.content_object}}">Início</a></dd>
+                <li><a href="{% url object|urldetail_content_type object.content_object.pk %}" class="tiny button secondary" title="{% trans 'Ir para '%}{{object.content_object}}">Início</a></li>
             {%else%}
-                <dd><a href="{% url 'ta_detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
+                <li><a href="{% url 'ta_detail' object.pk %}" class="tiny button secondary">{% trans 'Início' %}</a></li>
             {%endif%}
-                <dd><a href="{% url 'ta_pub_list' object.pk %}" class="button secondary">{% model_verbose_name_plural 'Publicacao' %}</a></dd>
+                <li><a href="{% url 'ta_pub_list' object.pk %}" class="tiny button secondary">{% model_verbose_name_plural 'Publicacao' %}</a></li>
 
-                <dd><a href="{% url 'ta_text' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
-                <dd><a href="{% url 'ta_text_edit' object.pk %}" class="button secondary">{% trans 'Edição do Texto' %}</a></dd>
+                <li><a href="{% url 'ta_text' object.pk %}" class="tiny button secondary">{% trans 'Texto' %}</a></li>
+                <li><a href="{% url 'ta_text_edit' object.pk %}" class="tiny button secondary">{% trans 'Edição do Texto' %}</a></li>
          {% endblock %}
-    </dl>
+    </ul>
 </div>
 
 {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}

@@ -364,6 +364,11 @@ class PublicacaoForm(ModelForm):
             format='%d/%m/%Y'),
         error_messages=error_messages
     )
+    hora = forms.TimeField(
+        label=Publicacao._meta.get_field('hora').verbose_name,
+        required=False,
+        widget=forms.TextInput(
+            attrs={'class': 'hora_hms'}))
     numero = forms.IntegerField(
         label=Publicacao._meta.get_field(
             'numero').verbose_name,
@@ -392,6 +397,7 @@ class PublicacaoForm(ModelForm):
                   'veiculo_publicacao',
                   'url_externa',
                   'data',
+                  'hora',
                   'numero',
                   'ano',
                   'edicao',
@@ -402,24 +408,28 @@ class PublicacaoForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row([
-            ('tipo_publicacao', 3),
-            ('data', 3),
+            ('tipo_publicacao', 4),
+            ('veiculo_publicacao', 6),
             ('ano', 2),
+        ])
+
+        row2 = to_row([
+            ('data', 4),
+            ('hora', 4),
             ('numero', 2),
             ('edicao', 2),
         ])
 
-        row2 = to_row([
-            ('veiculo_publicacao', 3),
+        row3 = to_row([
             ('pagina_inicio', 2),
             ('pagina_fim', 2),
-            ('url_externa', 5),
+            ('url_externa', 8),
         ])
 
         self.helper = FormHelper()
         self.helper.layout = FormLayout(
             Fieldset(Publicacao._meta.verbose_name,
-                     row1, row2, css_class="large-12"))
+                     row1, row2, row3, css_class="large-12"))
 
         super(PublicacaoForm, self).__init__(*args, **kwargs)
         pass
