@@ -259,7 +259,7 @@ class ParlamentaresForm (ModelForm):
                               attrs={'class': 'telefone'}))
 
     cep_residencia = forms.CharField(label='CEP',
-                                     required=True,
+                                     required=False,
                                      widget=forms.TextInput(
                                          attrs={'class': 'cep'}))
 
