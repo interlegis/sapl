@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -21,15 +21,14 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from compilacao import utils
-from compilacao.forms import NotaForm, TaForm, TipoTaForm, VideForm,\
-    PublicacaoForm
+from compilacao.forms import (NotaForm, PublicacaoForm, TaForm, TipoTaForm,
+                              VideForm)
 from compilacao.models import (Dispositivo, Nota,
-                               PerfilEstruturalTextoArticulado,
+                               PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
-                               VeiculoPublicacao, Vide, Publicacao)
-from compilacao.utils import build_crud, NO_ENTRIES_MSG
-
+                               VeiculoPublicacao, Vide)
+from compilacao.utils import NO_ENTRIES_MSG, build_crud
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',

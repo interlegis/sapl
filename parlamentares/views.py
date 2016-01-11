@@ -1,3 +1,4 @@
+import os
 from re import sub
 
 from crispy_forms.helper import FormHelper
@@ -12,7 +13,6 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
-import os
 from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
@@ -274,9 +274,9 @@ class ParlamentaresForm (ModelForm):
                                          attrs={'class': 'telefone'}))
 
     fotografia = forms.ImageField(label='Fotografia',
-                                required=False,
-                                widget=forms.FileInput
-                                )
+                                  required=False,
+                                  widget=forms.FileInput
+                                  )
 
     class Meta:
         model = Parlamentar
@@ -363,7 +363,7 @@ class ParlamentaresForm (ModelForm):
             Fieldset('Cadastro do Parlamentar',
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     row11, row12, row13, 
+                     row11, row12, row13,
                      HTML("""{% if form.fotografia.value %}
                         <img class="img-responsive"
                              src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
@@ -373,7 +373,7 @@ class ParlamentaresForm (ModelForm):
                                class="button primary"
                                value="Remover"/>
                          {% endif %}""", ),
-                     row14,                     
+                     row14,
                      ButtonHolder(
                          Submit('submit', 'Salvar',
                                 css_class='button primary'),
@@ -466,14 +466,13 @@ class ParlamentaresEditarView(FormMixin, GenericView):
                 Mandato.objects.get(parlamentar=parlamentar).delete()
                 parlamentar.delete()
             elif "remover" in request.POST:
-                   try:
-                      os.unlink(parlamentar.fotografia.path)
-                   except OSError:
-                      pass # Should log this error!!!!!
-                   parlamentar = form.save(commit=False)
-                   parlamentar.fotografia = None
-                   parlamentar.save()
-
+                try:
+                    os.unlink(parlamentar.fotografia.path)
+                except OSError:
+                    pass  # Should log this error!!!!!
+                parlamentar = form.save(commit=False)
+                parlamentar.fotografia = None
+                parlamentar.save()
 
             return self.form_valid(form)
         else:

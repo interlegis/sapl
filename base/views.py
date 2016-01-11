@@ -1,3 +1,5 @@
+import os
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -9,7 +11,6 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
-import os
 
 from .models import CasaLegislativa
 
@@ -186,15 +187,15 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                 casa_save = form.save(commit=False)
             else:
                 if "remover" in request.POST:
-                   try:
-                      os.unlink(casa.logotipo.path)
-                   except OSError:
-                      pass # Should log this error!!!!!
-                   casa.logotipo = None
-                casa_save = CasaLegislativaTabelaAuxForm(
-                    request.POST,
-                    request.FILES,
-                    instance=casa).save(commit=False)
+                    try:
+                        os.unlink(casa.logotipo.path)
+                    except OSError:
+                        pass  # Should log this error!!!!!
+                    casa.logotipo = None
+                    casa_save = CasaLegislativaTabelaAuxForm(
+                                          request.POST,
+                                          request.FILES,
+                                          instance=casa).save(commit=False)
             casa_save.save()
             return self.form_valid(form)
         else:
