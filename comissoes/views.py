@@ -1,12 +1,11 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, MultiField, Div, Field
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
-
 
 import sapl
 from parlamentares.models import Filiacao, Parlamentar
@@ -66,7 +65,6 @@ comissao_crud = build_crud(
 
 
 class CadastrarComissaoForm(ModelForm):
-    
 
     class Meta:
 
@@ -103,61 +101,60 @@ class CadastrarComissaoForm(ModelForm):
         row2 = sapl.layout.to_row(
             [('tipo', 3),
              ('data_criacao', 3),
-             ('unidade_deliberativa',3),
-             ('data_extincao',3)])
+             ('unidade_deliberativa', 3),
+             ('data_extincao', 3)])
 
         row3 = sapl.layout.to_row(
-            [('local_reuniao',4),
-             ('agenda_reuniao',4),
-             ('telefone_reuniao',4)])
-              
+            [('local_reuniao', 4),
+             ('agenda_reuniao', 4),
+             ('telefone_reuniao', 4)])
 
         row4 = sapl.layout.to_row(
             [('endereco_secretaria', 4),
-            ('telefone_secretaria', 4),
-            ('fax_secretaria', 4)])
+             ('telefone_secretaria', 4),
+             ('fax_secretaria', 4)])
 
         row5 = sapl.layout.to_row(
-            [('secretario',6),
-             ('email',6)])
+            [('secretario', 6),
+             ('email', 6)])
 
         row6 = sapl.layout.to_row(
             [('finalidade', 12)])
 
         row7 = sapl.layout.to_row(
             [('apelido_temp', 9),
-             ('data_instalacao_temp',3)])
+             ('data_instalacao_temp', 3)])
 
         row8 = sapl.layout.to_row(
-            [('data_final_prevista_temp',4),
-             ('data_prorrogada_temp',4),
-             ('data_fim_comissao',4)])
+            [('data_final_prevista_temp', 4),
+             ('data_prorrogada_temp', 4),
+             ('data_fim_comissao', 4)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-              'Cadastrar Comissão',
-              Fieldset(
-                'Dados Básicos',
-                row1,
-                row2
-              ),
-              Fieldset(
-               'Dados Complementares',
-                row3,
-                row4,
-                row5,
-                row6
-              ),
-              Fieldset(
-                'Temporária',
-                row7,
-                row8
-              ),
-              ButtonHolder(
-                Submit('submit', 'Salvar',
-                     css_class='button primary')
-              )
+                'Cadastrar Comissão',
+                Fieldset(
+                    'Dados Básicos',
+                    row1,
+                    row2
+                ),
+                Fieldset(
+                    'Dados Complementares',
+                    row3,
+                    row4,
+                    row5,
+                    row6
+                ),
+                Fieldset(
+                    'Temporária',
+                    row7,
+                    row8
+                ),
+                ButtonHolder(
+                    Submit('submit', 'Salvar',
+                           css_class='button primary')
+                )
             )
         )
         super(CadastrarComissaoForm, self).__init__(*args, **kwargs)
@@ -185,7 +182,6 @@ class CadastrarComissaoView(FormMixin, GenericView):
 
     def get_success_url(self):
         return reverse('comissao:list')
-
 
 
 class ComposicaoForm(forms.Form):

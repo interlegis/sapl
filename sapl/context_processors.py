@@ -3,7 +3,7 @@ from base.models import CasaLegislativa
 
 
 # TODO: this need to be cached and retrieved once!!!
-def query_database():    
+def query_database():
     return CasaLegislativa.objects.first()
 
 
@@ -29,4 +29,4 @@ def parliament_info(request):
         context['state'] = casa_legislativa.uf
         context['logotipo'] = casa_legislativa.logotipo
 
-    return context;
+    return context

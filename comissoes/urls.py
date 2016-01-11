@@ -1,10 +1,11 @@
 from django.conf.urls import include, url
 
-from comissoes.views import (ComissaoParlamentarEditView,
+from comissoes.views import (CadastrarComissaoView,
+                             ComissaoParlamentarEditView,
                              ComissaoParlamentarIncluirView, ComposicaoView,
                              MateriasView, ReunioesView, cargo_crud,
                              comissao_crud, periodo_composicao_crud,
-                             tipo_comissao_crud,CadastrarComissaoView)
+                             tipo_comissao_crud)
 
 comissao_url_patterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao$',

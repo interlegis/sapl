@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 
+from sapl import settings
 from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           ExpedienteOrdemDiaView, ExpedienteView,
                           ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
@@ -16,8 +17,6 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
                           VotacaoView, sessao_crud, tipo_expediente_crud,
                           tipo_resultado_votacao_crud, tipo_sessao_crud)
-
-from sapl import settings
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',
@@ -98,7 +97,7 @@ urlpatterns = [
                              sessao_crud.namespace, sessao_crud.namespace)),
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT}),
-    url(r'^sistema/sessao-plenaria/tipo/', include(tipo_sessao_crud.urls)),    
+    url(r'^sistema/sessao-plenaria/tipo/', include(tipo_sessao_crud.urls)),
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
         include(tipo_resultado_votacao_crud.urls)),
     url(r'^sistema/sessao-plenaria/tipo-expediente/',

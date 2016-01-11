@@ -1,8 +1,7 @@
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 
-
-from .views import HelpView, CasaLegislativaTableAuxView
+from .views import CasaLegislativaTableAuxView, HelpView
 
 urlpatterns = [
     url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),
@@ -11,5 +10,4 @@ urlpatterns = [
         name='help_base'),
     url(r'^casa-legislativa$',
         CasaLegislativaTableAuxView.as_view(), name='casa_legislativa'),
-    
 ]

@@ -1,6 +1,5 @@
-import sapl
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, HTML, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -9,9 +8,9 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from .models import CasaLegislativa
+import sapl
 
-from sapl import settings
+from .models import CasaLegislativa
 
 
 class HelpView(TemplateView):
@@ -60,9 +59,8 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                            widget=forms.Select(
                                attrs={'class': 'selector'}))
 
-
-    informacao_geral = forms.CharField(widget=forms.Textarea, 
-                                       label='Informação Geral', 
+    informacao_geral = forms.CharField(widget=forms.Textarea,
+                                       label='Informação Geral',
                                        required=False)
 
     telefone = forms.CharField(label='Telefone',
@@ -78,7 +76,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
     fax = forms.CharField(label='Fax',
                           required=False,
                           widget=forms.TextInput(
-                              attrs={'class': 'telefone'}))    
+                              attrs={'class': 'telefone'}))
 
     class Meta:
 
@@ -138,7 +136,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row4,
                 row5,
                 HTML("""{% if form.logotipo.value %}
-                        <img class="img-responsive" 
+                        <img class="img-responsive"
                              src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
                          {% endif %}""", ),
                 row6,
@@ -177,7 +175,9 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                 casa_save = form.save(commit=False)
             else:
                 casa_save = CasaLegislativaTabelaAuxForm(
-                    request.POST, request.FILES, instance=casa).save(commit=False) 
+                    request.POST,
+                    request.FILES,
+                    instance=casa).save(commit=False)
             casa_save.save()
             return self.form_valid(form)
         else:
