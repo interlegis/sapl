@@ -23,7 +23,7 @@
 		        	<li class="edt-tinymce"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:tinymce" title="{% trans 'Editar o texto com TinyMCE'%}">E+</a></li>
 		        {%endif%}
 	        	<li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
-	        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura da Norma'%}">C</a></li>
+	        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura do Texto Articulado'%}">C</a></li>
 			</ul>
 			<ul class="btns-action actions_right">
 				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Reduzir nível do Dispositivo'%}">&#10092;</a></li>
@@ -35,7 +35,7 @@
 			</ul>
 
 	        <ul class="btns-action actions_left">
-	        	<li><a class="btn-left btn-action" pk="{{dpt.pk}}"  title="TODO: Vides...">Vd</a></li>
+	        	<li><a href ="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="btn-left btn-action" pk="{{dpt.pk}}"  title="{% trans 'Ir para Texto'%}">T</a></li>
 	        </ul>
 			<ul class="btns-action actions_bottom">
 				{% for perfil in perfil_estrutural_list%}
@@ -46,10 +46,10 @@
 			<ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
 				{% if dpt.dispositivo_subsequente == None %}
 					{% for inserts in view|select_provaveis_inserts:request %}
-						<li class="{{inserts|get_field:'action'}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts|get_field:'icone'|safe}}<span>{{inserts|get_field:'tipo_insert'}}</span></a>
+						<li class="{{inserts|lookup:'action'}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts|lookup:'icone'|safe}}<span>{{inserts|lookup:'tipo_insert'}}</span></a>
 							<ul id="afe{{dpt.id}}" >
-								{% for item in inserts|get_field:'itens' %}
-									<li><a class="btn-inserts btn-action" action="{{inserts|get_field:'action'}}" pk="{{item|get_field:'dispositivo_base'}}" variacao="{{item|get_field:'variacao'}}" tipo_pk="{{item|get_field:'tipo_pk'}}">{{item|get_field:'provavel'}}</a></li>
+								{% for item in inserts|lookup:'itens' %}
+									<li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item|lookup:'dispositivo_base'}}" variacao="{{item|lookup:'variacao'}}" tipo_pk="{{item|lookup:'tipo_pk'}}">{{item|lookup:'provavel'}}</a></li>
 								{% endfor %}
 							</ul>
 						</li>
@@ -107,16 +107,16 @@
 		<div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
 			{% spaceless %}
 				<div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
-				{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-					<a class="link_alterador" href="{%url 'comp_edit' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
+				{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+					<a class="link_alterador" href="{%url 'ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
 						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
 						{% nota_automatica dpt %}
 						{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
 					</a>
 				{% endif %}
 			{% endspaceless %}
-			{% if view.is_norma_alteradora and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
-				{%with node=dpt template_name='compilacao/edit_bloco_alteracao.html' %}
+			{% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+				{%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
 					{%include template_name%}
 				{%endwith%}
 			{% endif%}

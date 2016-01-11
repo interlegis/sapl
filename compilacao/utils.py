@@ -1,16 +1,75 @@
 from braces.views import FormMessagesMixin
 from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import Column, Fieldset, Row
+from crispy_forms_foundation.layout.base import HTML, Div, Layout
+from crispy_forms_foundation.layout.buttons import Submit
 from django import forms
 from django.conf.urls import url
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
-                                  UpdateView)
-
-from sapl.layout import SaplFormLayout
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.list import ListView
 
 NO_ENTRIES_MSG = _('Não existem registros')
+
+
+def to_column(name_span):
+    fieldname, span = name_span
+    return Column(fieldname, css_class='large-%d' % span)
+
+
+def to_row(names_spans):
+    return Row(*list(map(to_column, names_spans)))
+
+
+def to_fieldsets(fields):
+    for field in fields:
+        if isinstance(field, list):
+            legend, *row_specs = field
+            rows = [to_row(name_span_list) for name_span_list in row_specs]
+            yield Fieldset(legend, *rows)
+        else:
+            yield field
+
+
+def make_choices(*choice_pairs):
+    assert len(choice_pairs) % 2 == 0
+    ipairs = iter(choice_pairs)
+    choices = list(zip(ipairs, ipairs))
+    yield choices
+    for key, value in choices:
+        yield key
+
+YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
+
+
+def int_to_roman(int_value):
+    # if isinstance(int_value, type(1)):
+    #    raise TypeError("expected integer, got %s" % type(int_value))
+    if not 0 < int_value < 4000:
+        raise ValueError("Argument must be between 1 and 3999")
+    ints = (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1)
+    nums = ('M', 'CM', 'D', 'CD', 'C', 'XC',
+            'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
+    result = ""
+    for i in range(len(ints)):
+        count = int(int_value / ints[i])
+        result += nums[i] * count
+        int_value -= ints[i] * count
+    return result
+
+
+def int_to_letter(int_value):
+    result = ''
+    int_value -= 1
+    while int_value >= 26:
+        rest = int_value % 26
+        int_value = int(int_value / 26) - 1
+        result = chr(rest + 65) + result
+    result = chr(int_value + 65) + result
+    return result
 
 
 def from_to(start, end):
@@ -64,6 +123,21 @@ def get_field_display(obj, fieldname):
     return verbose_name, display
 
 
+class FormLayout(Layout):
+
+    def __init__(self, *fields):
+        buttons = Div(
+            HTML('<a href="{{ view.cancel_url }}"'
+                 ' class="button radius alert">%s</a>' % _('Cancelar')),
+            Submit('submit', _('Enviar'),
+                   css_class='button radius success right'),
+            css_class='radius clearfix'
+        )
+        _fields = list(to_fieldsets(fields)) + \
+            [Row(Column(buttons, css_class='clearfix'))]
+        super(FormLayout, self).__init__(*_fields)
+
+
 class Crud(object):
     pass
 
@@ -83,7 +157,7 @@ def build_crud(model, help_path, layout):
         def __init__(self, *args, **kwargs):
             super(CrispyForm, self).__init__(*args, **kwargs)
             self.helper = FormHelper()
-            self.helper.layout = SaplFormLayout(*layout)
+            self.helper.layout = FormLayout(*layout)
 
     crud.model_form = CrispyForm
 
@@ -120,7 +194,7 @@ def build_crud(model, help_path, layout):
 
         def get_template_names(self):
             names = super(BaseMixin, self).get_template_names()
-            names.append("crud/%s.html" %
+            names.append("compilacao/%s.html" %
                          self.template_name_suffix.lstrip('_'))
             return names
 

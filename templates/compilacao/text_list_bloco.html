@@ -1,6 +1,8 @@
 {% load i18n %}
 {% load compilacao_filters %}
 
+<div class="display"></div>
+
 {% for dpt in object_list %}
 	{% if dpt.nivel == view.flag_nivel_old %}
 			</div>
@@ -11,26 +13,27 @@
 
 	{% if forloop.first and view|isinst:'DispositivoView' %}
 	{% else %}
-		<div class="dpt {%if dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}bloco_alteracao{%endif%}">
+		<div class="dpt {%if dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}bloco_alteracao{%endif%}" nivel="{{dpt.nivel}}">
 	{% endif%}
 
 	{% spaceless %}
 	<div class="{{ dpt.tipo_dispositivo.class_css }}">
-		<div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}">
-			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}
-			{% if dpt.norma_publicada_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-				<a class="link_alterador" href="{%url 'compilacao' dpt.norma_publicada.pk %}#{{dpt.dispositivo_atualizador_id}}">
+		<div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
+			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}<span class="dtxt" id="d{% if not dpt.dispositivo_subsequente and dpt.dispositivo_substituido %}a{%endif%}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido.pk}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}</span>
+			{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+				<a class="link_alterador" href="{%url 'ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
 					{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
 					{% nota_automatica dpt %}
 					{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
 				</a>
 			{% endif %}
 			{% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
-				{% if perms.compilacao.add_nota or perms.compilacao.add_vide %}
+				{% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
 		            <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">{# TODO: User - dne - Dispostivo Nota Editor -  tratar permissão de usuário#}
 		                <ul class="btns-action">
-			                {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adcionar Nota'%}">&nbsp;</a></li>{% endif %}
-							{% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adcionar Vide'%}">V</a></li>{% endif %}
+							{% if perms.compilacao.change_dispositivo %}<li><a href = "{% url 'ta_text_edit' dpt.ta.pk%}#{{dpt.pk}}" class="btn-action" title="{% trans 'Editar Dispositivo'%}">Ed</a></li>{% endif %}
+			                {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adicionar Nota'%}">N</a></li>{% endif %}
+							{% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adicionar Vide'%}">V</a></li>{% endif %}
 		                </ul>
 						<div class="dne-form"></div>
 		            </div>
@@ -41,8 +44,11 @@
 		{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
 			<div class="dn" id="dn{{dpt.pk}}" pk="{{dpt.pk}}">{# Dispostivo Nota e Vides #}
 						<ul class="dnl">{# Dispostivo Nota Lista#}
-							{% if cita and dpt.pk in cita %}
-								{% for vide in dpt.cita.all %}
+
+
+                            {% if cita and cita|lookup:dpt.pk %}
+                                {% for vide in cita|lookup:dpt.pk %}
+
 									{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
 									<li class="dnli" id="nt{{vide.pk}}">
 
@@ -63,10 +69,10 @@
 											</ul>
 										<div class="ntitulo">Vide: </div>
 										<div class="ntexto">
-											{% if dpt.is_relative_auto_insert %}
-												<a href="{%url 'compilacao' vide.dispositivo_ref.dispositivo_pai.norma.pk%}#{{vide.dispositivo_ref.dispositivo_pai.pk }}">{{ vide.dispositivo_ref.dispositivo_pai}}</a>
+											{% if vide.dispositivo_ref.dispositivo_pai.nivel != 0 and vide.dispositivo_ref.dispositivo_pai.tipo_dispositivo.dispositivo_de_articulacao %}
+												<a href="{%url 'ta_text' vide.dispositivo_ref.dispositivo_pai.ta.pk%}#{{vide.dispositivo_ref.dispositivo_pai.pk }}">{{ vide.dispositivo_ref.dispositivo_pai}}</a>
 											{% else %}
-												<a href="{%url 'compilacao' vide.dispositivo_ref.norma.pk%}#{{vide.dispositivo_ref.pk }}">{{ vide.dispositivo_ref}}</a>
+												<a href="{%url 'ta_text' vide.dispositivo_ref.ta.pk%}#{{vide.dispositivo_ref.pk }}">{{ vide.dispositivo_ref}}</a>
 											{% endif %}
 											{% if vide.texto %} - {{vide.texto}}{% endif %}
 										</div>
@@ -74,8 +80,9 @@
 								{% endfor %}
 							{% endif %}
 
-							{% if citado and dpt.pk in citado %}
-								{% for vide in dpt.citado.all %}
+							{% if citado and citado|lookup:dpt.pk %}
+								{% if cita and cita|lookup:dpt.pk %}<li class="bullet">&#8226;</li>{%endif%}
+								{% for vide in citado|lookup:dpt.pk %}
 									{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
 									<li class="dnli" id="nt{{vide.pk}}">
 										<ul>
@@ -85,24 +92,19 @@
 										</ul>
 										<div class="ntitulo">Citado em: </div>
 										<div class="ntexto">
-												{% if dpt.is_relative_auto_insert %}
-													<a href="{%url 'compilacao' vide.dispositivo_base.dispositivo_pai.norma.pk%}#{{vide.dispositivo_base.dispositivo_pai.pk }}">{{ vide.dispositivo_base.dispositivo_pai}}</a>
+												{% if vide.dispositivo_base.dispositivo_pai.nivel != 0 and vide.dispositivo_base.dispositivo_pai.tipo_dispositivo.dispositivo_de_articulacao%}
+													<a href="{%url 'ta_text' vide.dispositivo_base.dispositivo_pai.ta.pk%}#{{vide.dispositivo_base.dispositivo_pai.pk }}">{{ vide.dispositivo_base.dispositivo_pai}}</a>
 												{% else %}
-													<a href="{%url 'compilacao' vide.dispositivo_base.norma.pk%}#{{vide.dispositivo_base.pk }}">{{ vide.dispositivo_base}}</a>
+													<a href="{%url 'ta_text' vide.dispositivo_base.ta.pk%}#{{vide.dispositivo_base.pk }}">{{ vide.dispositivo_base}}</a>
 												{% endif %}
 												{% if vide.texto %} - {{vide.texto}}{% endif %}
 										</div>
 									</li>
-
 								{% endfor %}
 							{% endif %}
-
-
-					{%if notas and dpt.pk in notas and dpt.pk in cita or dpt.pk in citado and notas%}<li class="bullet">&#8226;</li>{%endif%}
-
-					{% if notas and dpt.pk in notas %}
-
-						{% for nota in dpt.notas.all %}
+					{%if notas and notas|lookup:dpt.pk and cita and cita|lookup:dpt.pk or notas and notas|lookup:dpt.pk and citado and citado|lookup:dpt.pk %}<li class="bullet">&#8226;</li>{%endif%}
+					{% if notas and notas|lookup:dpt.pk %}
+						{% for nota in notas|lookup:dpt.pk  %}
 
 							{% if user.is_superuser or nota.publicidade == nota.NPUBL or nota.publicidade == nota.NINST and user.is_authenticated or nota.publicidade = nota.NPRIV and nota.owner == user %}
 								{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
@@ -127,16 +129,11 @@
 
 									{%if nota.titulo %}
 										<div class="ntitulo">
-											{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
-												{{nota.titulo}} -
-											{%if nota.url_externa %}</a>{%endif%}
+											{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}{{nota.titulo}} - {%if nota.url_externa %}</a>{%endif%}
 										</div>
 									{%endif%}
-
 									<div class="ntexto">
-									{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}
-										{{ nota.texto}}
-										{%if nota.url_externa %}</a>{%endif%}
+									{%if nota.url_externa %}<a target="_blank" href="{{nota.url_externa}}">{%endif%}{{ nota.texto}}{%if nota.url_externa %}</a>{%endif%}
 									</div>
 
 		{%comment%}
@@ -148,9 +145,6 @@
 		{%endcomment%}
 								</li>
 							{% endif %}
-
-
-
 						{% endfor %}
 					{% endif %}
 				</ul>
@@ -158,8 +152,8 @@
 		{% endif%}
 	</div>
 	{% endspaceless %}
-	{% if view.is_norma_alteradora and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
-		{%with node=dpt template_name='compilacao/index_bloco_alteracao.html' %}
+	{% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+		{%with node=dpt template_name='compilacao/text_list_blocoalteracao.html' %}
 			{%include template_name%}
 		{%endwith%}
 	{% endif%}

@@ -1,0 +1,30 @@
+{% extends "compilacao/textoarticulado_detail.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+{% load staticfiles %}
+{% load sass_tags %}
+{% load crispy_forms_tags %}
+
+
+{% block head_content %}{{block.super}}
+      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+      <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
+{% endblock %}
+
+
+{% block title%}
+  <h1><b>Edição:</b> {{ view.title }} - <i>{% trans 'Texto Multivigente' %}</i></h1>
+{% endblock %}
+
+ 
+{% block base_content %}{{block.super}}
+
+
+<div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
+
+<div class="cpe">
+    {% include 'compilacao/text_edit_bloco.html'%}
+</div>
+
+{% endblock base_content %}

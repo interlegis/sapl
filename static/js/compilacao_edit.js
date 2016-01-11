@@ -131,6 +131,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 				if (flag_actions_vibible == null || flag_actions_vibible)
                 	clearEditSelected();
 
+				//$( '#dpt' + pk_refresh+' > .bloco' ).addClass('displaynone' );
 				$( '#dpt' + pk_refresh ).prepend( data );
 			}
 
@@ -166,8 +167,8 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 			if (flag_actions_vibible == null || flag_actions_vibible) {
 				$('#dpt'+pk_edit).addClass('dpt-selected');
 				$('html, body').animate({
-					scrollTop: $('#dpt' + pk_edit ).offset().top - window.innerHeight / 10
-				}, 300);
+					scrollTop: $('#dpt' + pk_edit ).offset().top - window.innerHeight / 9
+				}, 0);
 			}
 		}
 
@@ -217,6 +218,8 @@ function refreshScreenFocusPk(data) {
 }
 
 function clearEditSelected() {
+	$('.bloco' ).removeClass('displaynone' );
+
 	$(".container").removeClass('class_color_container');
 	tinymce.remove();
 	$('.dpt-selected').removeClass('dpt-selected');

@@ -8,33 +8,30 @@
 {% endif %}
 
 {% for dpt in object_list %}
-    {% ifchanged dpt.norma%}
+    {% ifchanged dpt.ta%}
         {% if not forloop.first %}</ul>{% endif %}
-        <div class="norma_title">{{dpt.norma}}</div>
+        <div class="ta_title">{{dpt.ta}}</div>
         <ul>
     {% endifchanged %}
 
-	{% if dpt.is_relative_auto_insert and dpt.dispositivo_pai and dpt.dispositivo_pai.nivel != 0 %}
-
+	{% if dpt.is_relative_auto_insert and dpt.dispositivo_pai.nivel != 0 %}
 		<li>
 			<div class="iteminput">
 				<input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
 			</div>
 			<div class="itemlabel">
 				<label for="r{{dpt.dispositivo_pai.pk}}">{{dpt.dispositivo_pai.rotulo|safe}} - {{dpt.texto|safe}}</label>
-				<a target="_blank" href="{% url 'compilacao' dpt.norma.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+				<a target="_blank" href="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
  			</div>
 		</li>
-	{% endif%}
-
-	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao and not dpt.is_relative_auto_insert %}
-	    <li>
+	{% elif not dpt.tipo_dispositivo.dispositivo_de_articulacao  %}
+		<li>
 	        <div class="iteminput">
 	            <input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
 	        </div>
 	        <div class="itemlabel">
 	            <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {{dpt.texto|safe}}</label>
-				<a target="_blank" href="{% url 'compilacao' dpt.norma.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+				<a target="_blank" href="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
 	        </div>
 	    </li>
 	{% endif%}

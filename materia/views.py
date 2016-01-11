@@ -13,10 +13,11 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
+from vanilla.views import GenericView
 
 import sapl
 from comissoes.models import Comissao, Composicao
+from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
@@ -508,10 +509,10 @@ class MateriaAnexadaView(FormMixin, GenericView):
                     error = 'A matéria a ser anexada não pode ser do mesmo \
                             tipo da matéria principal.'
                     return self.render_to_response(
-                                {'error': error,
-                                 'form': form,
-                                 'materialegislativa': mat_principal,
-                                 'anexadas': anexadas})
+                        {'error': error,
+                         'form': form,
+                         'materialegislativa': mat_principal,
+                         'anexadas': anexadas})
 
                 anexada = Anexada()
                 anexada.materia_principal = mat_principal
@@ -527,17 +528,17 @@ class MateriaAnexadaView(FormMixin, GenericView):
                 error = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
                 return self.render_to_response(
-                          {'error': error,
-                           'form': form,
-                           'materialegislativa': mat_principal,
-                           'anexadas': anexadas})
+                    {'error': error,
+                     'form': form,
+                     'materialegislativa': mat_principal,
+                     'anexadas': anexadas})
 
             return self.form_valid(form)
         else:
             return self.render_to_response(
-                        {'form': form,
-                         'materialegislativa': mat_principal,
-                         'anexadas': anexadas})
+                {'form': form,
+                 'materialegislativa': mat_principal,
+                 'anexadas': anexadas})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -615,14 +616,14 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                     error = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
                     return self.render_to_response(
-                                {'error': error,
-                                 'form': form,
-                                 'materialegislativa': mat_principal})
+                        {'error': error,
+                         'form': form,
+                         'materialegislativa': mat_principal})
 
         else:
             return self.render_to_response(
-                        {'form': form,
-                         'materialegislativa': mat_principal})
+                {'form': form,
+                 'materialegislativa': mat_principal})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -950,7 +951,7 @@ class NumeracaoForm(ModelForm):
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     data_materia = forms.DateField(label='Data',
                                    required=False,
@@ -1090,7 +1091,7 @@ class DocumentoAcessorioForm(ModelForm):
         required=True,
         queryset=TipoDocumento.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     data = forms.DateField(label='Data',
                            required=False,
@@ -1519,7 +1520,7 @@ class TramitacaoEditView(FormMixin, GenericView):
         if form.is_valid():
             if 'excluir' in request.POST:
                 if tramitacao == Tramitacao.objects.filter(
-                  materia=materia).last():
+                        materia=materia).last():
                     tramitacao.delete()
                     return self.form_valid(form)
                 else:
@@ -1765,7 +1766,7 @@ class ProposicaoForm(ModelForm):
                 ButtonHolder(
                     Submit('sumbmit', 'Salvar',
                            css_class='button primary')
-                        ), css_class='columns large-2'))
+                ), css_class='columns large-2'))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -1836,7 +1837,7 @@ class ProposicaoListView(ListView):
         page_obj = context['page_obj']
 
         context['page_range'] = sapl.crud.make_pagination(
-                page_obj.number, paginator.num_pages)
+            page_obj.number, paginator.num_pages)
         return context
 
 
@@ -1852,7 +1853,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         required=False,
         queryset=Autor.objects.all().order_by('tipo'),
         empty_label='Selecione',
-        )
+    )
 
     # relatores são os parlamentares ativos?
     relator = forms.ModelChoiceField(
@@ -1861,14 +1862,14 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         queryset=Parlamentar.objects.filter(
             ativo=True).order_by('nome_parlamentar'),
         empty_label='Selecione',
-        )
+    )
 
     tipo = forms.ModelChoiceField(
         label='Tipo de Matéria',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     data_apresentacao = forms.DateField(label=u'Data de Apresentação',
                                         input_formats=['%d/%m/%Y'],
@@ -1894,20 +1895,20 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         required=False,
         queryset=UnidadeTramitacao.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     situacao = forms.ModelChoiceField(
         label='Situação',
         required=False,
         queryset=StatusTramitacao.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     tramitacao = forms.ChoiceField(required=False,
                                    label='Tramitando',
                                    choices=em_tramitacao(),
                                    widget=forms.Select(
-                                      attrs={'class': 'selector'}))
+                                       attrs={'class': 'selector'}))
 
     # TODO: Verificar se esses campos estão corretos
     # assunto? # -> usado 'ementa' em 'assunto'
@@ -1979,13 +1980,13 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
 
         if request.POST['data_apresentacao']:
             kwargs['data_apresentacao'] = datetime.strptime(
-                    request.POST['data_apresentacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+                request.POST['data_apresentacao'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
 
         if request.POST['data_publicacao']:
             kwargs['data_publicacao'] = datetime.strptime(
-                    request.POST['data_publicacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+                request.POST['data_publicacao'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
 
         if request.POST['tramitacao']:
             kwargs['em_tramitacao'] = request.POST['tramitacao']
@@ -2018,3 +2019,11 @@ class PesquisaMateriaListView(FormMixin, ListView):
         context['page_range'] = sapl.crud.make_pagination(
             page_obj.number, paginator.num_pages)
         return context
+
+
+class MateriaTaView(IntegracaoTaView):
+    model = MateriaLegislativa
+
+
+class ProposicaoTaView(IntegracaoTaView):
+    model = Proposicao

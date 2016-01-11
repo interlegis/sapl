@@ -1,39 +1,44 @@
 from collections import OrderedDict
 from datetime import datetime, timedelta
-from os.path import sys
+import sys
 
+from braces.views import FormMessagesMixin
+from django import forms
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormMixin, UpdateView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
-from vanilla.model_views import CreateView
 
-from compilacao import forms
-from compilacao.file2dispositivo import Parser
+from compilacao import utils
+from compilacao.forms import NotaForm, TaForm, TipoTaForm, VideForm,\
+    PublicacaoForm
 from compilacao.models import (Dispositivo, Nota,
-                               PerfilEstruturalTextosNormativos,
-                               TipoDispositivo, TipoNota, TipoPublicacao,
-                               TipoVide, VeiculoPublicacao, Vide)
-from norma.models import NormaJuridica
-from sapl.crud import build_crud
+                               PerfilEstruturalTextoArticulado,
+                               TextoArticulado, TipoDispositivo, TipoNota,
+                               TipoPublicacao, TipoTextoArticulado, TipoVide,
+                               VeiculoPublicacao, Vide, Publicacao)
+from compilacao.utils import build_crud, NO_ENTRIES_MSG
+
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
-    'norma_publicada',
-    'norma',
+    'ta_publicado',
+    'ta',
     'dispositivo_atualizador',
     'dispositivo_atualizador__dispositivo_pai',
-    'dispositivo_atualizador__dispositivo_pai__norma',
-    'dispositivo_atualizador__dispositivo_pai__norma__tipo',
+    'dispositivo_atualizador__dispositivo_pai__ta',
+    'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
     'dispositivo_pai',
     'dispositivo_pai__tipo_dispositivo')
 
@@ -59,13 +64,6 @@ tipo_publicacao_crud = build_crud(
          [('sigla', 2), ('nome', 10)]],
     ])
 
-perfil_estr_txt_norm = build_crud(
-    PerfilEstruturalTextosNormativos, 'perfil_estrutural', [
-
-        [_('Perfil Estrutural de Textos Normativos'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
-
 
 veiculo_publicacao_crud = build_crud(
     VeiculoPublicacao, 'veiculo_publicacao', [
@@ -74,51 +72,263 @@ veiculo_publicacao_crud = build_crud(
          [('sigla', 2), ('nome', 10)]],
     ])
 
-tipo_dispositivo_crud = build_crud(
-    TipoDispositivo, 'tipo_dispositivo', [
 
-        [_('Dados Básicos'),
-         [('nome', 8), ('class_css', 4)]],
+class IntegracaoTaView(TemplateView):
 
-        [_('Configurações para Edição do Rótulo'),
-         [('rotulo_prefixo_texto', 3),
-          ('rotulo_sufixo_texto', 3),
-          ('rotulo_ordinal', 3),
-          ('contagem_continua', 3)],
+    def get(self, *args, **kwargs):
+        item = get_object_or_404(self.model, pk=kwargs['pk'])
+        related_object_type = ContentType.objects.get_for_model(item)
 
-         ],
+        ta = TextoArticulado.objects.filter(
+            object_id=item.pk,
+            content_type=related_object_type)
 
-        [_('Configurações para Renderização de Rótulo e Texto'),
-         [('rotulo_prefixo_html', 6),
-          ('rotulo_sufixo_html', 6), ],
+        if not ta.exists():
+            ta = TextoArticulado()
+            tipo_ta = TipoTextoArticulado.objects.filter(
+                content_type=related_object_type)[:1]
+            if tipo_ta.exists():
+                ta.tipo_ta = tipo_ta[0]
+            ta.content_object = item
+        else:
+            ta = ta[0]
 
-         [('texto_prefixo_html', 4),
-          ('dispositivo_de_articulacao', 4),
-          ('texto_sufixo_html', 4)],
-         ],
+        if hasattr(item, 'ementa') and item.ementa:
+            ta.ementa = item.ementa
+        else:
+            ta.ementa = 'Integração com %s sem ementa.' % item
 
-        [_('Configurações para Nota Automática'),
-         [('nota_automatica_prefixo_html', 6),
-          ('nota_automatica_sufixo_html', 6),
-          ],
-         ],
+        if hasattr(item, 'observacao') and item.observacao:
+            ta.observacao = item.observacao
+        else:
+            ta.observacao = 'Integração com %s sem observacao.' % item
 
-        [_('Configurações para Variações Numéricas'),
+        if hasattr(item, 'numero') and item.numero:
+            ta.numero = item.numero
+        else:
+            ta.numero = int('%s%s%s' % (
+                int(datetime.now().year),
+                int(datetime.now().month),
+                int(datetime.now().day)))
 
-         [('formato_variacao0', 12)],
-         [('rotulo_separador_variacao01', 5), ('formato_variacao1', 7), ],
-         [('rotulo_separador_variacao12', 5), ('formato_variacao2', 7), ],
-         [('rotulo_separador_variacao23', 5), ('formato_variacao3', 7), ],
-         [('rotulo_separador_variacao34', 5), ('formato_variacao4', 7), ],
-         [('rotulo_separador_variacao45', 5), ('formato_variacao5', 7), ],
+        if hasattr(item, 'ano') and item.ano:
+            ta.ano = item.ano
+        else:
+            ta.ano = datetime.now().year
 
-         ],
+        if hasattr(item, 'data_apresentacao'):
+            ta.data = item.data_apresentacao
+        elif hasattr(item, 'data'):
+            ta.data = item.data
+        else:
+            ta.data = datetime.now()
 
-    ])
+        ta.save()
+
+        return redirect(to=reverse_lazy('ta_text', kwargs={'ta_id': ta.pk}))
+
+    class Meta:
+        abstract = True
 
 
-class CompilacaoView(ListView):
-    template_name = 'compilacao/index.html'
+def get_integrations_view_names():
+    result = []
+    modules = sys.modules
+    for key, value in modules.items():
+        if key.endswith('.views'):
+            for v in value.__dict__.values():
+                if hasattr(v, '__bases__'):
+                    for base in v.__bases__:
+                        if base == IntegracaoTaView:
+                            result.append(v)
+    return result
+
+
+def choice_extenal_views():
+    integrations_view_names = get_integrations_view_names()
+    result = [(None, '-------------'), ]
+    for item in integrations_view_names:
+        ct = ContentType.objects.filter(
+            model=item.model.__name__.lower(),
+            app_label=item.model._meta.app_label)
+        if ct.exists():
+            result.append((
+                ct[0].pk,
+                item.model._meta.verbose_name_plural))
+    return result
+
+
+class CompMixin(object):
+
+    @property
+    def title(self):
+        try:
+            return self.get_object()
+        except:
+            return self.object
+
+
+class TipoTaListView(ListView):
+    model = TipoTextoArticulado
+    paginate_by = 10
+    verbose_name = model._meta.verbose_name
+
+    @property
+    def title(self):
+        return self.model._meta.verbose_name_plural
+
+    @property
+    def create_url(self):
+        return reverse_lazy('tipo_ta_create')
+
+
+class TipoTaCreateView(FormMessagesMixin, CreateView):
+    model = TipoTextoArticulado
+    form_class = TipoTaForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        form.fields['content_type'] = forms.ChoiceField(
+            choices=choice_extenal_views(),
+            label=_('Modelo Integrado'), required=False)
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.object.id})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy('tipo_ta_list')
+
+
+class TipoTaDetailView(CompMixin, DetailView):
+    model = TipoTextoArticulado
+
+
+class TipoTaUpdateView(CompMixin, UpdateView):
+    model = TipoTextoArticulado
+    form_class = TipoTaForm
+    template_name = "compilacao/form.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        form.fields['content_type'] = forms.ChoiceField(
+            choices=choice_extenal_views(),
+            label=_('Modelo Integrado'), required=False)
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+
+class TipoTaDeleteView(CompMixin, DeleteView):
+    model = TipoTextoArticulado
+    template_name = "compilacao/confirm_delete.html"
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_success_url(self):
+        return reverse_lazy('tipo_ta_list')
+
+
+class TaListView(ListView):
+    model = TextoArticulado
+    paginate_by = 10
+    verbose_name = model._meta.verbose_name
+
+    @property
+    def title(self):
+        return self.model._meta.verbose_name_plural
+
+    @property
+    def create_url(self):
+        return reverse_lazy('ta_create')
+
+    def get_context_data(self, **kwargs):
+        context = super(TaListView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = utils.make_pagination(
+            page_obj.number, paginator.num_pages)
+        return context
+
+
+class TaDetailView(DetailView):
+    model = TextoArticulado
+
+    @property
+    def title(self):
+        if self.get_object().content_object:
+            return _(
+                'Metadados para o Texto Articulado da %s - %s') % (
+                self.get_object().content_object._meta.verbose_name_plural,
+                self.get_object().content_object)
+        else:
+            return self.get_object()
+
+
+class TaCreateView(FormMessagesMixin, CreateView):
+    model = TextoArticulado
+    form_class = TaForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get_success_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.object.id})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy('ta_list')
+
+
+class TaUpdateView(CompMixin, UpdateView):
+    model = TextoArticulado
+    form_class = TaForm
+    template_name = "compilacao/form.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        # if self.object and self.object.content_object:
+        #    form.fields['tipo_ta'].required = False
+        #    form.fields['tipo_ta'].widget.attrs['disabled'] = 'disabled'
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+
+class TaDeleteView(CompMixin, DeleteView):
+    model = TextoArticulado
+    template_name = "compilacao/confirm_delete.html"
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_success_url(self):
+        return reverse_lazy('ta_list')
+
+
+class TextView(ListView, CompMixin):
+    template_name = 'compilacao/text_list.html'
 
     flag_alteradora = -1
 
@@ -130,20 +340,88 @@ class CompilacaoView(ListView):
     inicio_vigencia = None
     fim_vigencia = None
 
+    def get(self, request, *args, **kwargs):
+        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        self.object = ta
+        if ta.content_object:
+            item = ta.content_object
+            self.object = item
+            if hasattr(item, 'ementa') and item.ementa:
+                ta.ementa = item.ementa
+            else:
+                ta.ementa = 'Integração com %s sem ementa.' % item
+
+            if hasattr(item, 'observacao') and item.observacao:
+                ta.observacao = item.observacao
+            else:
+                ta.observacao = 'Integração com %s sem observacao.' % item
+
+            if hasattr(item, 'numero') and item.numero:
+                ta.numero = item.numero
+            else:
+                ta.numero = int('%s%s%s' % (
+                    int(datetime.now().year),
+                    int(datetime.now().month),
+                    int(datetime.now().day)))
+
+            if hasattr(item, 'ano') and item.ano:
+                ta.ano = item.ano
+            else:
+                ta.ano = datetime.now().year
+
+            if hasattr(item, 'data_apresentacao'):
+                ta.data = item.data_apresentacao
+            elif hasattr(item, 'data'):
+                ta.data = item.data
+            else:
+                ta.data = datetime.now()
+            ta.save()
+
+        return super(TextView, self).get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
-        context = super(CompilacaoView, self).get_context_data(**kwargs)
+        context = super(TextView, self).get_context_data(**kwargs)
 
-        vides = Vide.objects.filter(
-            Q(dispositivo_base__norma_id=self.kwargs['norma_id']) |
-            Q(dispositivo_ref__norma_id=self.kwargs['norma_id']))
+        context['object'] = TextoArticulado.objects.get(
+            pk=self.kwargs['ta_id'])
 
-        context['cita'] = [v.dispositivo_base_id for v in vides]
-        context['citado'] = [v.dispositivo_ref_id for v in vides]
+        cita = Vide.objects.filter(
+            Q(dispositivo_base__ta_id=self.kwargs['ta_id'])).\
+            select_related(
+            'dispositivo_ref',
+            'dispositivo_ref__ta',
+            'dispositivo_ref__dispositivo_pai',
+            'dispositivo_ref__dispositivo_pai__ta', 'tipo')
+
+        context['cita'] = {}
+        for c in cita:
+            if str(c.dispositivo_base_id) not in context['cita']:
+                context['cita'][str(c.dispositivo_base_id)] = []
+            context['cita'][str(c.dispositivo_base_id)].append(c)
+
+        citado = Vide.objects.filter(
+            Q(dispositivo_ref__ta_id=self.kwargs['ta_id'])).\
+            select_related(
+            'dispositivo_base',
+            'dispositivo_base__ta',
+            'dispositivo_base__dispositivo_pai',
+            'dispositivo_base__dispositivo_pai__ta', 'tipo')
+
+        context['citado'] = {}
+        for c in citado:
+            if str(c.dispositivo_ref_id) not in context['citado']:
+                context['citado'][str(c.dispositivo_ref_id)] = []
+            context['citado'][str(c.dispositivo_ref_id)].append(c)
 
         notas = Nota.objects.filter(
-            dispositivo__norma_id=self.kwargs['norma_id'])
+            dispositivo__ta_id=self.kwargs['ta_id']).select_related(
+            'owner', 'tipo')
 
-        context['notas'] = [n.dispositivo_id for n in notas]
+        context['notas'] = {}
+        for n in notas:
+            if str(n.dispositivo_id) not in context['notas']:
+                context['notas'][str(n.dispositivo_id)] = []
+            context['notas'][str(n.dispositivo_id)].append(n)
         return context
 
     def get_queryset(self):
@@ -165,38 +443,29 @@ class CompilacaoView(ListView):
             return Dispositivo.objects.filter(
                 inicio_vigencia__lte=self.fim_vigencia,
                 ordem__gt=0,
-                norma_id=self.kwargs['norma_id'],
+                ta_id=self.kwargs['ta_id'],
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         else:
 
             r = Dispositivo.objects.filter(
                 ordem__gt=0,
-                norma_id=self.kwargs['norma_id'],
-            ).select_related(
-                'tipo_dispositivo',
-                'norma_publicada',
-                'norma',
-                'dispositivo_atualizador',
-                'dispositivo_atualizador__dispositivo_pai',
-                'dispositivo_atualizador__dispositivo_pai__norma',
-                'dispositivo_atualizador__dispositivo_pai__norma__tipo',
-                'dispositivo_pai',
-                'dispositivo_pai__tipo_dispositivo')
+                ta_id=self.kwargs['ta_id'],
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
             return r
 
     def get_vigencias(self):
         itens = Dispositivo.objects.filter(
-            norma_id=self.kwargs['norma_id'],
+            ta_id=self.kwargs['ta_id'],
         ).order_by(
             'inicio_vigencia'
         ).distinct(
             'inicio_vigencia'
         ).select_related(
-            'norma_publicada',
-            'norma',
-            'norma_publicada__tipo',
-            'norma__tipo',)
+            'ta_publicado',
+            'ta',
+            'ta_publicado__tipo_ta',
+            'ta__tipo_ta',)
 
         ajuste_datas_vigencia = []
 
@@ -223,7 +492,7 @@ class CompilacaoView(ListView):
                 continue
 
             if idx + 1 < length:
-                ano = item.norma_publicada.ano
+                ano = item.ta_publicado.ano
                 if ano in self.itens_de_vigencia:
                     self.itens_de_vigencia[ano].append(item)
                 else:
@@ -239,21 +508,17 @@ class CompilacaoView(ListView):
 
         return self.itens_de_vigencia
 
-    def get_norma(self):
-        return NormaJuridica.objects.select_related('tipo').get(
-            pk=self.kwargs['norma_id'])
-
-    def is_norma_alteradora(self):
+    def is_ta_alterador(self):
         if self.flag_alteradora == -1:
             self.flag_alteradora = Dispositivo.objects.select_related(
-                'dispositivos_alterados_pela_norma_set'
-            ).filter(norma_id=self.kwargs['norma_id']).count()
+                'dispositivos_alterados_pelo_texto_articulado_set'
+            ).filter(ta_id=self.kwargs['ta_id']).count()
         return self.flag_alteradora > 0
 
 
-class DispositivoView(CompilacaoView):
+class DispositivoView(TextView):
     # template_name = 'compilacao/index.html'
-    template_name = 'compilacao/index_bloco.html'
+    template_name = 'compilacao/text_list_bloco.html'
 
     def get_queryset(self):
         self.flag_alteradora = -1
@@ -271,31 +536,24 @@ class DispositivoView(CompilacaoView):
         proximo_bloco = Dispositivo.objects.filter(
             ordem__gt=bloco.ordem,
             nivel__lte=bloco.nivel,
-            norma_id=self.kwargs['norma_id'])[:1]
+            ta_id=self.kwargs['ta_id'])[:1]
 
         if proximo_bloco.count() == 0:
             itens = Dispositivo.objects.filter(
                 ordem__gte=bloco.ordem,
-                norma_id=self.kwargs['norma_id']
+                ta_id=self.kwargs['ta_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         else:
             itens = Dispositivo.objects.filter(
                 ordem__gte=bloco.ordem,
                 ordem__lt=proximo_bloco[0].ordem,
-                norma_id=self.kwargs['norma_id']
+                ta_id=self.kwargs['ta_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         return itens
 
 
-def handle_uploaded_file(f, outfilepath):
-    with open(outfilepath, 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-
-
-class CompilacaoEditView(CompilacaoView, FormMixin):
-
-    template_name = 'compilacao/edit.html'
+class TextEditView(TextView):
+    template_name = 'compilacao/text_edit.html'
 
     flag_alteradora = -1
 
@@ -304,55 +562,14 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
 
     pk_edit = 0
     pk_view = 0
-
-    def post(self, request, *args, **kwargs):
-        form = forms.UpLoadImportFileForm(request.POST, request.FILES)
-        message = "Arquivo Submetido com sucesso"
-
-        self.object_list = self.get_queryset()
-
-        if form.is_valid():
-            try:
-                f = request.FILES['import_file']
-                outfilepath = '/tmp/' + f.name
-                handle_uploaded_file(f, outfilepath)
-
-                p = Parser()
-                p.parser(outfilepath)
-
-            except Exception as e:
-                print(e)
-
-            context = self.get_context_data(
-                object_list=self.object_list,
-                form=form,
-                message=message,
-                view=self,
-                parser_list=p.parser_list)
-            return render(request, self.template_name, context)
-        else:
-            context = self.get_context_data(
-                object_list=self.object_list,
-                form=form,
-                message=form.errors,
-                view=self)
-            return self.form_invalid(context)
-
-        return self.render_to_response({'form': form})
-
-    def form_invalid(self, context):
-        return self.render_to_response(context)
-
+    """
     def get(self, request, *args, **kwargs):
 
         self.object_list = self.get_queryset()
-        form_class = forms.UpLoadImportFileForm
-        self.form = self.get_form(form_class)
         context = self.get_context_data(
-            object_list=self.object_list,
-            form=self.form)
+            object_list=self.object_list)
 
-        return self.render_to_response(context)
+        return self.render_to_response(context)"""
 
     def get_queryset(self):
         self.pk_edit = 0
@@ -363,12 +580,12 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
         self.flag_nivel_old = -1
 
         result = Dispositivo.objects.filter(
-            norma_id=self.kwargs['norma_id']
+            ta_id=self.kwargs['ta_id']
         ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
         if not result.exists():
 
-            norma = NormaJuridica.objects.get(pk=self.kwargs['norma_id'])
+            ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
 
             td = TipoDispositivo.objects.filter(class_css='articulacao')[0]
             a = Dispositivo()
@@ -376,10 +593,10 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
             a.ordem = Dispositivo.INTERVALO_ORDEM
             a.ordem_bloco_atualizador = 0
             a.set_numero_completo([1, 0, 0, 0, 0, 0, ])
-            a.norma = norma
+            a.ta = ta
             a.tipo_dispositivo = td
-            a.inicio_vigencia = norma.data_publicacao
-            a.inicio_eficacia = norma.data_publicacao
+            a.inicio_vigencia = ta.data
+            a.inicio_eficacia = ta.data
             a.timestamp = datetime.now()
             a.save()
 
@@ -389,12 +606,12 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
             e.ordem = a.ordem + Dispositivo.INTERVALO_ORDEM
             e.ordem_bloco_atualizador = 0
             e.set_numero_completo([1, 0, 0, 0, 0, 0, ])
-            e.norma = norma
+            e.ta = ta
             e.tipo_dispositivo = td
-            e.inicio_vigencia = norma.data_publicacao
-            e.inicio_eficacia = norma.data_publicacao
+            e.inicio_vigencia = ta.data
+            e.inicio_eficacia = ta.data
             e.timestamp = datetime.now()
-            e.texto = norma.ementa
+            e.texto = ta.ementa
             e.dispositivo_pai = a
             e.save()
 
@@ -407,7 +624,7 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
             a.save()
 
             result = Dispositivo.objects.filter(
-                norma_id=self.kwargs['norma_id']
+                ta_id=self.kwargs['ta_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
         return result
@@ -417,11 +634,11 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
             return None
 
         if perfil_id:
-            perfil = PerfilEstruturalTextosNormativos.objects.get(
+            perfil = PerfilEstruturalTextoArticulado.objects.get(
                 pk=perfil_id)
             request.session['perfil_estrutural'] = perfil.pk
         else:
-            perfis = PerfilEstruturalTextosNormativos.objects.filter(
+            perfis = PerfilEstruturalTextoArticulado.objects.filter(
                 padrao=True)[:1]
 
             if not perfis.exists():
@@ -430,8 +647,8 @@ class CompilacaoEditView(CompilacaoView, FormMixin):
                 request.session['perfil_estrutural'] = perfis[0].pk
 
 
-class DispositivoEditView(CompilacaoEditView):
-    template_name = 'compilacao/edit_bloco.html'
+class DispositivoEditView(TextEditView):
+    template_name = 'compilacao/text_edit_bloco.html'
 
     def post(self, request, *args, **kwargs):
 
@@ -449,22 +666,25 @@ class DispositivoEditView(CompilacaoEditView):
 
         if texto != '':
             dnext = Dispositivo.objects.filter(
-                norma_id=d.norma_id,
+                ta_id=d.ta_id,
                 ordem__gt=d.ordem,
                 texto='',
                 tipo_dispositivo__dispositivo_de_articulacao=False)[:1]
 
             if not dnext.exists():
-                return self.get(request, *args, **kwargs)
-
-            if dnext[0].nivel > d.nivel:
-                pais = [d.pk, ]
+                dnext = []
+                dnext[0] = d
             else:
-                if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
-                    pais = [dnext[0].dispositivo_pai_id, ]
+
+                if dnext[0].nivel > d.nivel:
+                    pais = [d.pk, ]
                 else:
-                    pais = [
-                        dnext[0].dispositivo_pai_id, d.dispositivo_pai_id, ]
+                    if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
+                        pais = [dnext[0].dispositivo_pai_id, ]
+                    else:
+                        pais = [
+                            dnext[0].dispositivo_pai_id,
+                            d.dispositivo_pai_id]
             data = {'pk': dnext[0].pk, 'pai': pais}
         else:
             data = {'pk': d.pk, 'pai': [d.pk, ]}
@@ -472,7 +692,7 @@ class DispositivoEditView(CompilacaoEditView):
         return JsonResponse(data, safe=False)
 
     def get_queryset_perfil_estrutural(self):
-        perfis = PerfilEstruturalTextosNormativos.objects.all()
+        perfis = PerfilEstruturalTextoArticulado.objects.all()
         return perfis
 
     def get(self, request, *args, **kwargs):
@@ -527,18 +747,18 @@ class DispositivoEditView(CompilacaoEditView):
         proximo_bloco = Dispositivo.objects.filter(
             ordem__gt=bloco.ordem,
             nivel__lte=bloco.nivel,
-            norma_id=self.kwargs['norma_id'])[:1]
+            ta_id=self.kwargs['ta_id'])[:1]
 
         if proximo_bloco.count() == 0:
             itens = Dispositivo.objects.filter(
                 ordem__gte=bloco.ordem,
-                norma_id=self.kwargs['norma_id']
+                ta_id=self.kwargs['ta_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         else:
             itens = Dispositivo.objects.filter(
                 ordem__gte=bloco.ordem,
                 ordem__lt=proximo_bloco[0].ordem,
-                norma_id=self.kwargs['norma_id']
+                ta_id=self.kwargs['ta_id']
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         return itens
 
@@ -560,7 +780,7 @@ class DispositivoEditView(CompilacaoEditView):
             prox_possivel = Dispositivo.objects.filter(
                 ordem__gt=base.ordem,
                 nivel__lte=base.nivel,
-                norma_id=base.norma_id)[:1]
+                ta_id=base.ta_id)[:1]
 
             if prox_possivel.exists():
                 prox_possivel = prox_possivel[0]
@@ -783,7 +1003,7 @@ class ActionsEditMixin(object):
         base = Dispositivo.objects.get(pk=context['dispositivo_id'])
 
         base_anterior = Dispositivo.objects.order_by('-ordem').filter(
-            norma_id=base.norma_id,
+            ta_id=base.ta_id,
             ordem__lt=base.ordem
         )[:1]
         base.delete()
@@ -820,7 +1040,7 @@ class ActionsEditMixin(object):
                 qtdp = tipoauto.quantidade_permitida
                 if qtdp >= 0:
                     qtdp -= Dispositivo.objects.filter(
-                        norma_id=base.norma_id,
+                        ta_id=base.ta_id,
                         tipo_dispositivo_id=tipoauto.filho_permitido.pk
                     ).count()
                     if qtdp > 0:
@@ -855,7 +1075,7 @@ class ActionsEditMixin(object):
                         '-ordem').filter(
                         ordem__lte=base.ordem,
                         tipo_dispositivo_id=tipo.pk,
-                        norma_id=base.norma_id)[:1]
+                        ta_id=base.ta_id)[:1]
 
                     if not ultimo_irmao.exists():
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
@@ -878,7 +1098,7 @@ class ActionsEditMixin(object):
 
                 if pp.exists() and pp[0].quantidade_permitida >= 0:
                     qtd_existente = Dispositivo.objects.filter(
-                        norma_id=dp.norma_id,
+                        ta_id=dp.ta_id,
                         tipo_dispositivo_id=dp.tipo_dispositivo_id).count()
 
                     if qtd_existente >= pp[0].quantidade_permitida:
@@ -931,7 +1151,7 @@ class ActionsEditMixin(object):
             if not dp.tipo_dispositivo.dispositivo_de_alteracao:
                 possiveis_filhos = Dispositivo.objects.filter(
                     ordem__gt=dp.ordem,
-                    norma_id=dp.norma_id)
+                    ta_id=dp.ta_id)
 
                 for filho in possiveis_filhos:
 
@@ -1005,18 +1225,18 @@ class ActionsEditMixin(object):
                 proxima_articulacao = Dispositivo.objects.filter(
                     ordem__gt=dp.ordem,
                     nivel=0,
-                    norma_id=dp.norma_id)[:1]
+                    ta_id=dp.ta_id)[:1]
 
                 if not proxima_articulacao.exists():
                     filhos_continuos = list(Dispositivo.objects.filter(
                         ordem__gt=dp.ordem,
-                        norma_id=dp.norma_id,
+                        ta_id=dp.ta_id,
                         tipo_dispositivo__contagem_continua=True))
                 else:
                     filhos_continuos = list(Dispositivo.objects.filter(
                         Q(ordem__gt=dp.ordem) &
                         Q(ordem__lt=proxima_articulacao[0].ordem),
-                        norma_id=dp.norma_id,
+                        ta_id=dp.ta_id,
                         tipo_dispositivo__contagem_continua=True))
 
                 for filho in filhos_continuos:
@@ -1071,13 +1291,13 @@ class ActionsEditMixin(object):
 
                 if proxima_articulacao is not None:
                     parents = Dispositivo.objects.filter(
-                        norma_id=dp.norma_id,
+                        ta_id=dp.ta_id,
                         ordem__gte=dp.ordem,
                         ordem__lt=proxima_articulacao.ordem,
                         nivel__lte=dp.nivel)
                 else:
                     parents = Dispositivo.objects.filter(
-                        norma_id=dp.norma_id,
+                        ta_id=dp.ta_id,
                         ordem__gte=dp.ordem,
                         nivel__lte=dp.nivel)
 
@@ -1118,8 +1338,8 @@ class DispositivoSuccessUrlMixin(object):
     def get_success_url(self):
         return reverse(
             'dispositivo', kwargs={
-                'norma_id': self.kwargs[
-                    'norma_id'],
+                'ta_id': self.kwargs[
+                    'ta_id'],
                 'dispositivo_id': self.kwargs[
                     'dispositivo_id']})
 
@@ -1127,9 +1347,6 @@ class DispositivoSuccessUrlMixin(object):
 class NotaMixin(DispositivoSuccessUrlMixin):
 
     def get_modelo_nota(self, request):
-        # TODO: permitir edição apenas das notas do usuário conectado
-        # TODO: tratar revalidação no método post
-        # TODO: não mostrar botão de edição na interface
         if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
             tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
             return True, tn.modelo
@@ -1150,9 +1367,9 @@ class NotaMixin(DispositivoSuccessUrlMixin):
         return super(NotaMixin, self).dispatch(*args, **kwargs)
 
 
-class NotasCreateView(NotaMixin, FormMixin, CreateView):
+class NotasCreateView(NotaMixin, CreateView):
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.NotaForm
+    form_class = NotaForm
 
     def get(self, request, *args, **kwargs):
         flag_action, modelo_nota = self.get_modelo_nota(request)
@@ -1163,10 +1380,10 @@ class NotasCreateView(NotaMixin, FormMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         try:
-            norma_id = kwargs.pop('norma_id')
+            ta_id = kwargs.pop('ta_id')
             dispositivo_id = kwargs.pop('dispositivo_id')
-            form = forms.NotaForm(request.POST, request.FILES, **kwargs)
-            kwargs['norma_id'] = norma_id
+            form = NotaForm(request.POST, request.FILES, **kwargs)
+            kwargs['ta_id'] = ta_id
             kwargs['dispositivo_id'] = dispositivo_id
 
             if form.is_valid():
@@ -1179,13 +1396,13 @@ class NotasCreateView(NotaMixin, FormMixin, CreateView):
                 return self.form_invalid(form)
         except Exception as e:
             print(e)
-        return HttpResponse("post")
+        return HttpResponse("error post")
 
 
 class NotasEditView(NotaMixin, UpdateView):
     model = Nota
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.NotaForm
+    form_class = NotaForm
 
     def get(self, request, *args, **kwargs):
         flag_action, modelo_nota = self.get_modelo_nota(request)
@@ -1221,16 +1438,18 @@ class VideMixin(DispositivoSuccessUrlMixin):
         return super(VideMixin, self).dispatch(*args, **kwargs)
 
 
-class VideCreateView(VideMixin, FormMixin, CreateView):
+class VideCreateView(VideMixin, CreateView):
+    model = Vide
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.VideForm
+    form_class = VideForm
 
-    def post(self, request, *args, **kwargs):
+    def post_old(self, request, *args, **kwargs):
         try:
-            norma_id = kwargs.pop('norma_id')
+            self.object = None
+            ta_id = kwargs.pop('ta_id')
             dispositivo_id = kwargs.pop('dispositivo_id')
-            form = forms.VideForm(request.POST, request.FILES, **kwargs)
-            kwargs['norma_id'] = norma_id
+            form = VideForm(request.POST, request.FILES, **kwargs)
+            kwargs['ta_id'] = ta_id
             kwargs['dispositivo_id'] = dispositivo_id
 
             if form.is_valid():
@@ -1242,13 +1461,13 @@ class VideCreateView(VideMixin, FormMixin, CreateView):
                 return self.form_invalid(form)
         except Exception as e:
             print(e)
-        return HttpResponse("post")
+        return HttpResponse("error post")
 
 
 class VideEditView(VideMixin, UpdateView):
     model = Vide
     template_name = 'compilacao/ajax_form.html'
-    form_class = forms.VideForm
+    form_class = VideForm
 
 
 class VideDeleteView(VideMixin, TemplateView):
@@ -1297,22 +1516,22 @@ class DispositivoSearchFragmentFormView(ListView):
                          Q(texto_atualizador__icontains=item))
                     n = 50
 
-            if 'tipo_norma' in self.request.GET:
-                tipo_norma = self.request.GET['tipo_norma']
-                if tipo_norma:
-                    q = q & Q(norma__tipo_id=tipo_norma)
+            if 'tipo_ta' in self.request.GET:
+                tipo_ta = self.request.GET['tipo_ta']
+                if tipo_ta:
+                    q = q & Q(ta__tipo_ta_id=tipo_ta)
                     n = 50
 
-            if 'num_norma' in self.request.GET:
-                num_norma = self.request.GET['num_norma']
-                if num_norma:
-                    q = q & Q(norma__numero=num_norma)
+            if 'num_ta' in self.request.GET:
+                num_ta = self.request.GET['num_ta']
+                if num_ta:
+                    q = q & Q(ta__numero=num_ta)
                     n = 50
 
-            if 'ano_norma' in self.request.GET:
-                ano_norma = self.request.GET['ano_norma']
-                if ano_norma:
-                    q = q & Q(norma__ano=ano_norma)
+            if 'ano_ta' in self.request.GET:
+                ano_ta = self.request.GET['ano_ta']
+                if ano_ta:
+                    q = q & Q(ta__ano=ano_ta)
                     n = 50
 
             if 'initial_ref' in self.request.GET:
@@ -1325,3 +1544,102 @@ class DispositivoSearchFragmentFormView(ListView):
 
         except Exception as e:
             print(e)
+
+
+class PublicacaoListView(ListView):
+    model = Publicacao
+    verbose_name = model._meta.verbose_name
+
+    @property
+    def title(self):
+        return _('%s da %s' % (
+            self.model._meta.verbose_name_plural,
+            self.ta))
+
+    @property
+    def ta(self):
+        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        return ta
+
+    @property
+    def create_url(self):
+        return reverse_lazy(
+            'ta_pub_create',
+            kwargs={'ta_id': self.kwargs['ta_id']})
+
+    def get_queryset(self):
+        pubs = Publicacao.objects.filter(ta_id=self.kwargs['ta_id'])
+        return pubs
+
+    def get_context_data(self, **kwargs):
+        context = super(PublicacaoListView, self).get_context_data(**kwargs)
+        context['NO_ENTRIES_MSG'] = NO_ENTRIES_MSG
+        return context
+
+
+class PublicacaoCreateView(FormMessagesMixin, CreateView):
+    model = Publicacao
+    form_class = PublicacaoForm
+    template_name = "compilacao/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'ta_pub_detail',
+            kwargs={
+                'pk': self.object.id,
+                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'ta_pub_list',
+            kwargs={'ta_id': self.kwargs['ta_id']})
+
+    def get_initial(self):
+        return {'ta': self.kwargs['ta_id']}
+
+
+class PublicacaoDetailView(CompMixin, DetailView):
+    model = Publicacao
+
+
+class PublicacaoUpdateView(CompMixin, UpdateView):
+    model = Publicacao
+    form_class = PublicacaoForm
+    template_name = "compilacao/form.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        # if self.object and self.object.content_object:
+        #    form.fields['tipo_ta'].required = False
+        #    form.fields['tipo_ta'].widget.attrs['disabled'] = 'disabled'
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('ta_pub_detail',
+                            kwargs={
+                                'pk': self.object.id,
+                                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def cancel_url(self):
+        return self.get_success_url()
+
+
+class PublicacaoDeleteView(CompMixin, DeleteView):
+    model = Publicacao
+    template_name = "compilacao/confirm_delete.html"
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('ta_pub_detail',
+                            kwargs={
+                                'pk': self.object.id,
+                                'ta_id': self.kwargs['ta_id']})
+
+    def get_success_url(self):
+        return reverse_lazy('ta_pub_list',
+                            kwargs={'ta_id': self.kwargs['ta_id']})

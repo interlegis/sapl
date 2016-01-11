@@ -10,9 +10,10 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
+from vanilla.views import GenericView
 
 import sapl
+from compilacao.views import IntegracaoTaView
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
 
@@ -218,3 +219,7 @@ class NormaIncluirView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
+
+
+class NormaTaView(IntegracaoTaView):
+    model = NormaJuridica

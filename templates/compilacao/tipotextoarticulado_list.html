@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+
+{% block base_content %}
+
+<dl class="sub-nav">
+  <dd><a href="{{ view.create_url }}">
+      {% trans 'Adicionar'%} {%model_verbose_name 'TipoTextoArticulado'%}
+  </a></dd> 
+  {% block more_buttons %}
+
+  {% endblock more_buttons %}
+</dl>
+
+{% if not object_list %}
+  <p>{{ NO_ENTRIES_MSG }}</p>
+{% else %}
+	<table class="table table-hover" width=100%>
+	    <thead>
+	        <tr>
+	            <th>{% fieldclass_verbose_name 'TipoTextoArticulado' 'sigla' %}</th>
+	            <th>{% fieldclass_verbose_name 'TipoTextoArticulado' 'descricao' %}</th>
+	            <th>{% fieldclass_verbose_name 'TipoTextoArticulado' 'content_type' %}</th>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        {% for tipo_ta in object_list %}
+	        <tr>
+	            <td><a href="{% url 'tipo_ta_detail' tipo_ta.pk %}">{{ tipo_ta.sigla }}</a></td>
+	            <td>{{ tipo_ta.descricao }}</td>
+	            <td>{{ tipo_ta.content_type }}</td>
+	        </tr>
+	        {% endfor %}
+	    </tbody>
+	</table>
+	
+	{% if is_paginated %}
+	<div class="pagination-centered">
+	  <ul class="pagination" role="menubar" aria-label="Pagination">
+	    {% if page_obj.has_previous %}
+	    <li>
+	      <a href="?page={{ page_obj.previous_page_number }}">
+	        <span class="arrow">&laquo;</span>
+	      </a>
+	    </li>
+	    {% else %}
+	    <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
+	    {% endif %}
+	
+	    {% for page in page_range %}
+	        {% if page %}
+	            <li {% if page == page_obj.number %}class="current"{% endif %}>
+	              <a href="?page={{ page }}">{{ page }}</a>
+	            </li>
+	            {% else %}
+	            <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
+	        {% endif %}
+	    {% endfor %}
+	
+	    {% if page_obj.has_next %}
+	    <li>
+	      <a href="?page={{ page_obj.next_page_number }}">
+	        <span class="arrow">&raquo;</span>
+	      </a>
+	    </li>
+	    {% else %}
+	    <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
+	    {% endif %}
+	  </ul>
+	</div>
+	{% endif %}
+{% endif %}
+{% endblock %}

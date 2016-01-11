@@ -59,8 +59,8 @@ INSTALLED_APPS = (
     'crispy_forms_foundation',
     'sass_processor',
 )
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
+# if DEBUG:
+#    INSTALLED_APPS += ('debug_toolbar',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -117,7 +117,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
-USE_I18N = False
+USE_I18N = True
 USE_L10N = False
 USE_TZ = True
 # DATE_FORMAT = 'N j, Y'
@@ -160,6 +160,7 @@ BOWER_INSTALLED_APPS = (
     'jquery-ui',
     'jquery-runner',
     'jQuery-Mask-Plugin',
+    'jsdiff',
 )
 
 # Additional search paths for SASS files when using the @import statement

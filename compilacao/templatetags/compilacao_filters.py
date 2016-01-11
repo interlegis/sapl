@@ -1,3 +1,4 @@
+from compressor.utils import get_class
 from django import template
 from django.core.signing import Signer
 from django.db.models import Q
@@ -22,8 +23,9 @@ def get_tipos_dispositivo(pk_atual):
 
 
 @register.filter
-def get_field(value_dict, key):
-    return value_dict[key]
+def lookup(d, key):
+    skey = str(key)
+    return d[str(key)] if skey in d else []
 
 
 @register.simple_tag
@@ -42,7 +44,7 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 
 @register.simple_tag
 def nota_automatica(dispositivo):
-    if dispositivo.norma_publicada is not None:
+    if dispositivo.ta_publicado is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
             return 'Revogado pelo %s.' % d
@@ -151,3 +153,33 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
         d = d.dispositivo_pai
 
     return result
+
+
+@register.simple_tag
+def field_verbose_name(instance, field_name):
+    return instance._meta.get_field(field_name).verbose_name
+
+
+@register.simple_tag
+def fieldclass_verbose_name(class_name, field_name):
+    cls = get_class(
+        'compilacao.models.' + class_name)
+    return cls._meta.get_field(
+        field_name).verbose_name
+
+
+@register.simple_tag
+def model_verbose_name(class_name):
+    model = get_class('compilacao.models.' + class_name)
+    return model._meta.verbose_name
+
+
+@register.simple_tag
+def model_verbose_name_plural(class_name):
+    model = get_class('compilacao.models.' + class_name)
+    return model._meta.verbose_name_plural
+
+
+@register.filter
+def urldetail_content_type(obj):
+    return '%s:detail' % obj.content_type.model
