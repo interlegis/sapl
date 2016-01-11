@@ -1,8 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
-{% block actions %}  {% endblock %}
-{% block sections_nav %}
+{% block actions %}
   <dl class="sub-nav left">
     <dd><a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Incluir Parlamentar' %}</a></dd>
   </dl>
-{% endblock sections_nav %}
+{% endblock actions %}

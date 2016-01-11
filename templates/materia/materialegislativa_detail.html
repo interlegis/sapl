@@ -2,16 +2,16 @@
 {% load i18n %}
 
 {% block sections_nav %}
-  <dl class="sub-nav left">
-    <dd><a href="{% url 'materialegislativa:detail' materialegislativa.id %}" class="button secondary">{% trans 'Início' %}</a></dd>
-    <dd><a href="{% url 'materia_anexada' materialegislativa.id %}" class="button secondary">{% trans 'Anexada' %}</a></dd>
-    <dd><a href="{% url 'autoria' materialegislativa.id %}" class="button secondary">{% trans 'Autoria' %}</a></dd>
-    <dd><a href="{% url 'despacho_inicial' materialegislativa.id %}" class="button secondary">{% trans 'Despacho Inicial' %}</a></dd>
-    <dd><a href="{% url 'documento_acessorio' materialegislativa.id %}" class="button secondary">{% trans 'Documento Acessório' %}</a></dd>
-    <dd><a href="{% url 'legislacao_citada' materialegislativa.id %}" class="button secondary">{% trans 'Legislação Citada' %}</a></dd>
-    <dd><a href="{% url 'numeracao' materialegislativa.id %}" class="button secondary">{% trans 'Numeração' %}</a></dd>
-    <dd><a href="{% url 'tramitacao_materia' materialegislativa.id %}" class="button secondary">{% trans 'Tramitação' %}</a></dd>
-    <dd><a href="{% url 'relatoria' materialegislativa.id %}" class="button secondary">{% trans 'Relatoria' %}</a></dd>
+  <dl class="sub-nav">
+    <dd><a href="{% url 'materialegislativa:detail' materialegislativa.id %}">{% trans 'Início' %}</a></dd>
+    <dd><a href="{% url 'materia_anexada' materialegislativa.id %}">{% trans 'Anexada' %}</a></dd>
+    <dd><a href="{% url 'autoria' materialegislativa.id %}">{% trans 'Autoria' %}</a></dd>
+    <dd><a href="{% url 'despacho_inicial' materialegislativa.id %}">{% trans 'Despacho Inicial' %}</a></dd>
+    <dd><a href="{% url 'documento_acessorio' materialegislativa.id %}">{% trans 'Documento Acessório' %}</a></dd>
+    <dd><a href="{% url 'legislacao_citada' materialegislativa.id %}">{% trans 'Legislação Citada' %}</a></dd>
+    <dd><a href="{% url 'numeracao' materialegislativa.id %}">{% trans 'Numeração' %}</a></dd>
+    <dd><a href="{% url 'tramitacao_materia' materialegislativa.id %}">{% trans 'Tramitação' %}</a></dd>
+    <dd><a href="{% url 'relatoria' materialegislativa.id %}">{% trans 'Relatoria' %}</a></dd>
 
     {% comment %}
         Opção adicionada para chamar o TextoArticulado da matéria.
@@ -19,6 +19,6 @@
             e a view MateriaTaView(IntegracaoTaView) em views.py
            Em nada mais a integração interfere em MateriaLegislativa
     {% endcomment %}
-    <dd><a href="{% url 'materia_ta' materialegislativa.id %}" class="button secondary">{% trans 'Texto' %}</a></dd>
+    <dd><a href="{% url 'materia_ta' materialegislativa.id %}">{% trans 'Texto' %}</a></dd>
   </dl>
 {% endblock sections_nav %}

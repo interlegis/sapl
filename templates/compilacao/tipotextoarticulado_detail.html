@@ -1,6 +1,9 @@
 {% extends "base.html" %} {% load i18n %} {% load compilacao_filters %}
 
 {% block base_content %} {# FIXME is this the best markup to use? #}
+
+    {% block sections_nav %}
+     {% endblock %}
 <div class="clearfix">
     {% block actions %}
     <ul class="button-group right">
@@ -8,32 +11,29 @@
         <li><a href="{% url 'tipo_ta_delete' object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
     </ul>
     {% endblock actions %}
-    <dl class="sub-nav left">
-        {% block sections_nav %}
-         {% endblock %}
-    </dl>
+
 </div>
 
 	{% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
 	<fieldset>
 	    <legend>{%trans 'Identificação Básica'%}</legend>
-	
+
 	    <div class="row">
-	
+
 	        <div class="columns large-2">
 	            <div id="div_id_tipo" class="holder">
 	                <label>{% field_verbose_name object 'sigla' %}</label>
 	                <p>{{ object.sigla}}</p>
 	            </div>
 	        </div>
-	 
+
 	        <div class="columns large-4">
 	            <div id="div_id_numero" class="holder">
 	                <label>{% field_verbose_name object 'descricao' %}</label>
 	                <p>{{ object.descricao}}</p>
 	            </div>
 	        </div>
-	
+
             <div class="columns large-3">
                 <div id="div_id_ano" class="holder">
                     <label>{% field_verbose_name object 'content_type' %}</label>

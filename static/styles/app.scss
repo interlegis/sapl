@@ -175,7 +175,7 @@ position: relative;
 display: table;
 width: 100%;
 height: 100%;
-background-color: #e9eaed;
+background-color: #fafafa;
 color: #444444;
 }
 
@@ -202,10 +202,15 @@ box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
 	vertical-align: top;
 }
 
-    .masthead > .container {
-    padding-top: 20px;
-    border-bottom: 20px solid $primary-color;
-    background-color: #ffffff;
+    .masthead .container {
+    	padding: 10px 0;
+	    background-color: #e3e3e3;
+    }
+
+	.masthead > .container {
+		padding: 0px;
+		max-width: none;
+	    border-bottom: 1px solid $primary-color;
     }
 
     .masthead__logo {
@@ -219,19 +224,19 @@ box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
 
         .masthead__logo img {
         width: auto;
-        height: 95px;
+        height: 85px;
         }
 
     .masthead__heading {
     display: inline-block;
-    margin-left: 15px;
-    vertical-align: middle;
+    margin-left: 10px;
+    vertical-align: top;
     }
 
         .masthead__heading h1 {
         color: #333333;
         text-shadow: 1px 1px 3px #dadada;
-        font-size: 150%;
+        font-size: 130%;
         }
 
         .masthead__heading h2 {
@@ -239,8 +244,50 @@ box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
         color: #444444;
         text-shadow: 1px 1px 3px #dadada;
         font-weight: normal;
-        font-size: 100%;
+        font-size: 90%;
         }
+
+
+	.masthead .sub-nav {
+	    display: block;
+	    overflow: hidden;
+	    padding-top: 0.25rem;
+	    width: auto;
+	    position: absolute;
+	    bottom: -1px;
+	    margin: 0;
+		right: 0;
+
+
+		dd {
+			margin: 0;
+			border: 1px solid transparent;
+			border-bottom: 1px solid $primary-color;
+			border-top: 2px solid transparent;
+			border-radius: 5px 5px 0px 0px;
+
+			a {
+    			color: #18577A;
+				background-color: transparent;
+				display: inline-block;
+				padding: 2px 6px 0;
+				position: relative;
+				font-size: 90%;
+				&:hover {
+					color: #444;
+					background-color: transparent;
+				}
+			}
+
+			&:hover, &.active {
+				background: #fff;
+				border: 1px solid $primary-color;
+				border-bottom: 1px solid #fff;
+				border-top: 2px solid $primary-color;
+
+			}
+		}
+	}
 
 .content {
 position: relative;
