@@ -248,12 +248,12 @@ class ParlamentaresForm (ModelForm):
                                          attrs={'class': 'titulo_eleitor'}))
 
     telefone = forms.CharField(label='Telefone',
-                               required=True,
+                               required=False,
                                widget=forms.TextInput(
                                    attrs={'class': 'telefone'}))
 
     fax = forms.CharField(label='Fax',
-                          required=True,
+                          required=False,
                           widget=forms.TextInput(
                               attrs={'class': 'telefone'}))
 
@@ -263,12 +263,12 @@ class ParlamentaresForm (ModelForm):
                                          attrs={'class': 'cep'}))
 
     telefone_residencia = forms.CharField(label='Telefone',
-                                          required=True,
+                                          required=False,
                                           widget=forms.TextInput(
                                               attrs={'class': 'telefone'}))
 
     fax_residencia = forms.CharField(label='Fax',
-                                     required=True,
+                                     required=False,
                                      widget=forms.TextInput(
                                          attrs={'class': 'telefone'}))
 
