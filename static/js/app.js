@@ -1,7 +1,7 @@
 
 tinymce.init({selector:'textarea'});
 $(document).foundation();
- 
+
 $(document).ready(function(){
 
 

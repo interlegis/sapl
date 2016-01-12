@@ -19,7 +19,7 @@ $top-bar-dropdown-radius: $global-radius;
 		~ .top-bar-section {
 			.has-dropdown.moved > .dropdown,
 			.dropdown {
-			  top: $topbar-height;
+				top: $topbar-height;
 			}
 		}
 	}
@@ -27,10 +27,10 @@ $top-bar-dropdown-radius: $global-radius;
 
 // Restyles to foundation top bar menu, in order to behave aesthetically different
 /*
-   XXX
-   Is there a better way to implement these styles using best practices without the
-   need to override this much of foundation? Or at least avoid too much nesting and
-   specificity (better use of BEM and ITCSS)?
+XXX
+Is there a better way to implement these styles using best practices without the
+need to override this much of foundation? Or at least avoid too much nesting and
+specificity (better use of BEM and ITCSS)?
 */
 
 .nav {
@@ -48,7 +48,7 @@ $top-bar-dropdown-radius: $global-radius;
 					@include side-radius(bottom, rem-calc($top-bar-dropdown-radius));
 				}
 				box-shadow: 0 10px 18px rgba(0, 0, 0, 0.19),
-							0 2px 6px rgba(0, 0, 0, 0.23);
+				0 2px 6px rgba(0, 0, 0, 0.23);
 				// For the transition effect.
 				opacity: 0;
 				// Show the dropdown accurately while it animates.
@@ -60,8 +60,8 @@ $top-bar-dropdown-radius: $global-radius;
 				transform: translateY(rem-calc(25px));
 				// This transition is actually for when we hover-out of the dropdown.
 				transition: transform 0.1s linear,
-							opacity 0.1s linear,
-							clip 0s 0.3s;
+				opacity 0.1s linear,
+				clip 0s 0.3s;
 				// The triangle pip
 				&::before {
 					@include css-triangle(rem-calc(6px), $topbar-dropdown-bg, bottom);
@@ -94,9 +94,9 @@ $top-bar-dropdown-radius: $global-radius;
 					pointer-events: auto;
 					// Animating with a beautiful cubic-bezier curve, or Google's "Swift out" easing :)
 					transition: transform 0.3s cubic-bezier(0.55,0,0.1,1),
-								opacity 0.3s cubic-bezier(0.55,0,0.1,1),
-								// Here we make sure the clipping is set before any other transition.
-								clip 0s 0s;
+					opacity 0.3s cubic-bezier(0.55,0,0.1,1),
+					// Here we make sure the clipping is set before any other transition.
+					clip 0s 0s;
 					// Don't forget to properly animate our bridge, so it keeps only between our gap.
 					&::after {
 						top: rem-calc(-10px);
@@ -113,295 +113,320 @@ $top-bar-dropdown-radius: $global-radius;
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
 @-webkit-keyframes fadeIn {
-0% {opacity: 0;}
-100% {opacity: 1;}
+	0% {opacity: 0;}
+	100% {opacity: 1;}
 }
 @keyframes fadeIn {
-0% {opacity: 0;}
-100% {opacity: 1;}
+	0% {opacity: 0;}
+	100% {opacity: 1;}
 }
 
 html, body {
-margin: 0;
-padding: 0;
-height: 100%;
+	margin: 0;
+	padding: 0;
+	height: 100%;
 }
 
 h1, h2, h3, h4, h5, h6, form, dl, dt, dd, p, div, img, a {
-margin: 0;
-padding: 0;
+	margin: 0;
+	padding: 0;
 }
 
 img {
-border: none;
+	border: none;
 }
 
 a {
-background-color: transparent;
-color: $primary-color;
-text-decoration: none;
-transition: 0.2s;
+	background-color: transparent;
+	color: $primary-color;
+	text-decoration: none;
+	transition: 0.2s;
 }
 
 h1 {
-color: $primary-color;
-font-size: 120%;
+	color: $primary-color;
+	font-size: 120%;
 }
 
 h2 {
-color: $primary-color;
-font-size: 110%;
+	color: $primary-color;
+	font-size: 110%;
 }
 
 h1 a, h2 a, h3 a, h1 a:hover, h2 a:hover, h3 a:hover {
-color: $primary-color;
+	color: $primary-color;
 }
 
 .fadein {
--webkit-animation: fadeIn 0.25s ease-in-out;
--moz-animation: fadeIn 0.25s ease-in-out;
--o-animation: fadeIn 0.25s ease-in-out;
+	-webkit-animation: fadeIn 0.25s ease-in-out;
+	-moz-animation: fadeIn 0.25s ease-in-out;
+	-o-animation: fadeIn 0.25s ease-in-out;
 }
 
 .container {
-position: relative;
-margin: 0 auto;
-padding: 20px;
-max-width: 960px;
+	position: relative;
+	margin: 0 auto;
+	padding: 20px;
+	max-width: 960px;
 }
 
 .page {
-position: relative;
-display: table;
-width: 100%;
-height: 100%;
-background-color: #fafafa;
-color: #444444;
+	position: relative;
+	display: table;
+	width: 100%;
+	height: 100%;
+	background-color: #fafafa;
+	color: #444444;
 }
 
-    .page__row {
-    display: table-row;
-    box-sizing: content-box;
-    }
+.page__row {
+	display: table-row;
+	box-sizing: content-box;
+}
 
-        /* XXX find a better way to fix main layout box-sizing */
-        .page__row > .container > *{
-        box-sizing: border-box;
-        }
+/* XXX find a better way to fix main layout box-sizing */
+.page__row > .container > *{
+	box-sizing: border-box;
+}
 
 .navigation {
-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.23);
 }
 
-    .navigation > .container {
-    padding: 0px;
-    max-width: 960px;
-    }
+.navigation > .container {
+	padding: 0px;
+	max-width: 960px;
+}
 
 .icon-bar {
 	vertical-align: top;
 }
 
-    .masthead .container {
-    	padding: 10px 0;
-	    background-color: #e3e3e3;
-    }
-
-	.masthead > .container {
-		padding: 0px;
-		max-width: none;
-	    border-bottom: 1px solid $primary-color;
-    }
-
-    .masthead__logo {
-    display: inline-block;
-    vertical-align: middle;
-    }
-
-        .masthead__logo a {
-        display: block;
-        }
-
-        .masthead__logo img {
-        width: auto;
-        height: 85px;
-        }
-
-    .masthead__heading {
-    display: inline-block;
-    margin-left: 10px;
-    vertical-align: top;
-    }
-
-        .masthead__heading h1 {
-        color: #333333;
-        text-shadow: 1px 1px 3px #dadada;
-        font-size: 130%;
-        }
-
-        .masthead__heading h2 {
-        padding-left: 2px;
-        color: #444444;
-        text-shadow: 1px 1px 3px #dadada;
-        font-weight: normal;
-        font-size: 90%;
-        }
-
-
-	.masthead .sub-nav {
-	    display: block;
-	    overflow: hidden;
-	    padding-top: 0.25rem;
-	    width: auto;
-	    position: absolute;
-	    bottom: -1px;
-	    margin: 0;
-		right: 0;
-
-
-		dd {
-			margin: 0;
-			border: 1px solid transparent;
-			border-bottom: 1px solid $primary-color;
-			border-top: 2px solid transparent;
-			border-radius: 5px 5px 0px 0px;
-
-			a {
-    			color: #18577A;
-				background-color: transparent;
-				display: inline-block;
-				padding: 2px 6px 0;
-				position: relative;
-				font-size: 90%;
-				&:hover {
-					color: #444;
-					background-color: transparent;
-				}
-			}
-
-			&:hover, &.active {
-				background: #fff;
-				border: 1px solid $primary-color;
-				border-bottom: 1px solid #fff;
-				border-top: 2px solid $primary-color;
-
-			}
-		}
-	}
-
-.content {
-position: relative;
-display: table-cell;
-overflow: hidden;
-height: 100%;
-text-align: left;
-font-size: 100%;
+.masthead .container {
+	padding: 10px 0;
+	background-color: #e3e3e3;
 }
 
-    .content > .container {
-    height: 100%;
-    background-color: #ffffff;
-    }
+.masthead > .container {
+	padding: 0px;
+	max-width: none;
+	border-bottom: 1px solid $primary-color;
+}
+
+.masthead__logo {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.masthead__logo a {
+	display: block;
+}
+
+.masthead__logo img {
+	width: auto;
+	height: 85px;
+}
+
+.masthead__heading {
+	display: inline-block;
+	margin-left: 10px;
+	margin-top:10px;
+	vertical-align: top;
+}
+
+.masthead__heading h1 {
+	color: #333333;
+	text-shadow: 1px 1px 3px #dadada;
+	font-size: 130%;
+}
+
+.masthead__heading h2 {
+	padding-left: 2px;
+	color: #444444;
+	text-shadow: 1px 1px 3px #dadada;
+	font-weight: normal;
+	font-size: 90%;
+}
+
+
+.masthead .sub-nav {
+	display: block;
+	overflow: visible;
+	padding-top: 0.25rem;
+	width: auto;
+	position: absolute;
+	bottom: -1px;
+	margin: 0;
+	right: 0.5em;
+
+
+	dd {
+		margin: 0;
+		border: 1px solid transparent;
+		border-bottom: 1px solid $primary-color;
+		border-top: 2px solid transparent;
+		border-radius: 5px 5px 0px 0px;
+		transition: all 0.5s cubic-bezier(0.55,0,0.1,1);
+
+		ul {
+			margin-right: -3px;
+		&::after, &::before  {
+			border: 0px;
+		}
+			li {
+				margin: 0;
+				display: block;
+				padding: 0.3rem;
+				color: #555555;
+				width: 100%;
+				a {
+					display: block;
+				}
+
+				&:hover, &.active {
+					background: #eee;
+
+				}
+			}
+		}
+
+		a {
+			color: #18577A;
+			background-color: transparent;
+			display: inline-block;
+			padding: 2px 6px 0;
+			position: relative;
+			font-size: 90%;
+			&:hover {
+				color: #444;
+				background-color: transparent;
+			}
+		}
+
+		&:hover, &.active {
+			background: #fff;
+			border: 1px solid $primary-color;
+			border-bottom: 1px solid #fff;
+			border-top: 2px solid $primary-color;
+			transition: all 0.5s cubic-bezier(0.55,0,0.1,1);
+
+		}
+	}
+}
+
+.content {
+	position: relative;
+	display: table-cell;
+	overflow: hidden;
+	height: 100%;
+	text-align: left;
+	font-size: 100%;
+}
+
+.content > .container {
+	height: 100%;
+	background-color: #ffffff;
+}
 /* Layout */
 
 .footer {
-width: 100%;
-background-color: $secondary-color;
-color: #ffffff;
-text-align: center;
+	width: 100%;
+	background-color: $secondary-color;
+	color: #ffffff;
+	text-align: center;
 }
 
-    .footer__block {
-    position: relative;
-    display: inline-block;
-    margin: 5px 0;
-    padding: 0 20px;
-    vertical-align: middle;
-    font-size: 70%;
-    }
+.footer__block {
+	position: relative;
+	display: inline-block;
+	margin: 5px 0;
+	padding: 0 20px;
+	vertical-align: middle;
+	font-size: 70%;
+}
 
-        .footer__block a {
-        color: rgb(255, 255, 255);
-        font-weight: 600;
-        }
+.footer__block a {
+	color: rgb(255, 255, 255);
+	font-weight: 600;
+}
 
-        .footer__block a:hover {
-        text-decoration: underline;
-        }
+.footer__block a:hover {
+	text-decoration: underline;
+}
 
-        .footer__block small {
-        font-size: 100%;
-        }
+.footer__block small {
+	font-size: 100%;
+}
 
-        .footer__logo {
-        display: block;
-        font-size: 0;
-        margin-bottom: 10px;
-        }
+.footer__logo {
+	display: block;
+	font-size: 0;
+	margin-bottom: 10px;
+}
 
-        .footer__logo > img {
-        height: 32px;
-        }
+.footer__logo > img {
+	height: 32px;
+}
 
-    .footer__block--about {
-    padding-left: 0;
-    max-width: 195px;
-    }
+.footer__block--about {
+	padding-left: 0;
+	max-width: 195px;
+}
 
-    .footer__block--license {
-    max-width: 285px;
-    }
+.footer__block--license {
+	max-width: 285px;
+}
 
-    .footer__block--parliament-info {
-    border: 0;
-    padding-right: 0;
-    max-width: 385px;
-    }
+.footer__block--parliament-info {
+	border: 0;
+	padding-right: 0;
+	max-width: 385px;
+}
 
-        .footer__block--parliament-info > abbr {
-        border: 0;
-        font-size: inherit;
-        cursor: inherit;
-        color: inherit;
-        }
+.footer__block--parliament-info > abbr {
+	border: 0;
+	font-size: inherit;
+	cursor: inherit;
+	color: inherit;
+}
 
-    .footer__block--separator::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    margin: auto;
-    height: 50px;
-    width: 1px;
-    background-color: white;
-    }
+.footer__block--separator::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	margin: auto;
+	height: 50px;
+	width: 1px;
+	background-color: white;
+}
 
 @media (max-width: 480px) {
 
-    .masthead {
-    text-align: center
-    }
+	.masthead {
+		text-align: center
+	}
 
-    .masthead__logo {
-    display: block;
-    margin: 10px;
-    }
+	.masthead__logo {
+		display: block;
+		margin: 10px;
+	}
 
-    .masthead__heading {
-    margin-left: 0;
-    }
+	.masthead__heading {
+		margin-left: 0;
+	}
 
-    .masthead__logo > img{
-    height: 80px;
-    }
+	.masthead__logo > img{
+		height: 80px;
+	}
 
-    .masthead__heading h1 {
-    font-size: 90%;
-    }
+	.masthead__heading h1 {
+		font-size: 90%;
+	}
 
-    .masthead__heading h2 {
-    font-size: 70%;
-    }
+	.masthead__heading h2 {
+		font-size: 70%;
+	}
 
 }
