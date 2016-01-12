@@ -11,6 +11,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
+from django.core.exceptions import ObjectDoesNotExist
 
 import sapl
 from sapl.crud import build_crud
@@ -785,13 +786,40 @@ class FiliacaoView(FormMixin, GenericView):
 
         if form.is_valid():
             filiacao = form.save(commit=False)
-
             pid = kwargs['pk']
             parlamentar = Parlamentar.objects.get(id=pid)
-            filiacao.parlamentar = parlamentar
 
-            filiacao.save()
-            return self.form_valid(form)
+            candidato_filiado = Filiacao.objects.filter(
+                                    parlamentar=parlamentar)
+
+            candidato_desfiliou = Filiacao.objects.filter(
+                    parlamentar=parlamentar,
+                    data_desfiliacao=None)
+
+            if not candidato_filiado:
+                filiacao = form.save(commit=False)
+                filiacao.parlamentar = parlamentar
+                filiacao.save()
+                return self.form_valid(form)
+            else:
+
+                if candidato_desfiliou:
+                    filiacoes = Filiacao.objects.filter(
+                                parlamentar=parlamentar)
+                    return self.render_to_response(
+                        {'parlamentar': parlamentar,
+                         'filiacoes': filiacoes,
+                         'form': form,
+                         'legislatura_id': parlamentar.mandato_set.last(
+                         ).legislatura.id,
+                         'mensagem_erro': "Você não pode se filiar a algum partido\
+                         sem antes se desfiliar do partido anterior"})
+
+                else:
+                    filiacao = form.save(commit=False)
+                    filiacao.parlamentar = parlamentar
+                    filiacao.save()
+                    return self.form_valid(form)
         else:
             pid = kwargs['pk']
             parlamentar = Parlamentar.objects.get(id=pid)
