@@ -785,6 +785,10 @@ class FiliacaoView(FormMixin, GenericView):
         form = FiliacaoForm(request.POST)
 
         if form.is_valid():
+
+            data_filiacao = form.cleaned_data['data']
+            data_desfiliacao = form.cleaned_data['data_desfiliacao']
+
             filiacao = form.save(commit=False)
             pid = kwargs['pk']
             parlamentar = Parlamentar.objects.get(id=pid)
@@ -792,7 +796,7 @@ class FiliacaoView(FormMixin, GenericView):
             candidato_filiado = Filiacao.objects.filter(
                                     parlamentar=parlamentar)
 
-            candidato_desfiliou = Filiacao.objects.filter(
+            candidato_nao_desfiliou = Filiacao.objects.filter(
                     parlamentar=parlamentar,
                     data_desfiliacao=None)
 
@@ -803,7 +807,7 @@ class FiliacaoView(FormMixin, GenericView):
                 return self.form_valid(form)
             else:
 
-                if candidato_desfiliou:
+                if candidato_nao_desfiliou:
                     filiacoes = Filiacao.objects.filter(
                                 parlamentar=parlamentar)
                     return self.render_to_response(
@@ -814,6 +818,18 @@ class FiliacaoView(FormMixin, GenericView):
                          ).legislatura.id,
                          'mensagem_erro': "Você não pode se filiar a algum partido\
                          sem antes se desfiliar do partido anterior"})
+
+                if data_desfiliacao and data_desfiliacao < data_filiacao:
+                    filiacoes = Filiacao.objects.filter(
+                                parlamentar=parlamentar)
+                    return self.render_to_response(
+                        {'parlamentar': parlamentar,
+                         'filiacoes': filiacoes,
+                         'form': form,
+                         'legislatura_id': parlamentar.mandato_set.last(
+                         ).legislatura.id,
+                         'mensagem_erro': "A data de filiação não pode\
+                          anterior à data de desfiliação"})
 
                 else:
                     filiacao = form.save(commit=False)
