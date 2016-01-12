@@ -10,7 +10,8 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           OradorExpedienteView, PainelView,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoCadastroView, SessaoListView, VotacaoEditView,
+                          SessaoCadastroView, SessaoListView, 
+                          SessaoPlenariaView, VotacaoEditView,
                           VotacaoExpedienteEditView, VotacaoExpedienteView,
                           VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
@@ -90,13 +91,17 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
     url(r'^cadastro$', SessaoCadastroView.as_view(), name='sessao_cadastro'),
 ]
+
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
+
+sessao_rest = [url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest'),]
 
 urlpatterns = [
     url(r'^sessao/', include(urlpatterns_sessao,
                              sessao_crud.namespace, sessao_crud.namespace)),
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT}),
+    url(r'^rest/', include(sessao_rest)),
     url(r'^sistema/sessao-plenaria/tipo/', include(tipo_sessao_crud.urls)),
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
         include(tipo_resultado_votacao_crud.urls)),
