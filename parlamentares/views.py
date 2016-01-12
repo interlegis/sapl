@@ -11,7 +11,6 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
-from django.core.exceptions import ObjectDoesNotExist
 
 import sapl
 from sapl.crud import build_crud

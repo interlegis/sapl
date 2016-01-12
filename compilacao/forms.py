@@ -9,9 +9,9 @@ from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from compilacao.models import (PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
-                               TextoArticulado, TipoNota, TipoTextoArticulado,
-                               TipoVide, Vide, TipoPublicacao,
-                               VeiculoPublicacao, Publicacao)
+                               Publicacao, TextoArticulado, TipoNota,
+                               TipoPublicacao, TipoTextoArticulado, TipoVide,
+                               VeiculoPublicacao, Vide)
 from compilacao.utils import YES_NO_CHOICES, FormLayout, to_column, to_row
 
 
@@ -131,11 +131,12 @@ class TaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = FormLayout(
             Fieldset(_('Identificação Básica'), row1, css_class="large-12"),
-            Fieldset(TextoArticulado._meta.get_field(
-                'ementa').verbose_name, Column('ementa'), css_class="large-12"),
             Fieldset(
-                TextoArticulado._meta.get_field(
-                    'observacao').verbose_name, Column('observacao'), css_class="large-12"),
+                TextoArticulado._meta.get_field('ementa').verbose_name,
+                Column('ementa'), css_class="large-12"),
+            Fieldset(
+                TextoArticulado._meta.get_field('observacao').verbose_name,
+                Column('observacao'), css_class="large-12"),
 
         )
 

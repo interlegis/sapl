@@ -10,7 +10,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           OradorExpedienteView, PainelView,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoCadastroView, SessaoListView, 
+                          SessaoCadastroView, SessaoListView,
                           SessaoPlenariaView, VotacaoEditView,
                           VotacaoExpedienteEditView, VotacaoExpedienteView,
                           VotacaoNominalEditView,
@@ -94,7 +94,9 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
 
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
 
-sessao_rest = [url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest'),]
+sessao_rest = [
+    url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest')
+]
 
 urlpatterns = [
     url(r'^sessao/', include(urlpatterns_sessao,
