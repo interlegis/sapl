@@ -181,22 +181,23 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
         form = CasaLegislativaTabelaAuxForm(request.POST, request.FILES)
 
         if form.is_valid():
-            try:
-                casa = CasaLegislativa.objects.first()
-            except ObjectDoesNotExist:
-                casa_save = form.save(commit=False)
-            else:
+            casa = CasaLegislativa.objects.first()
+            if casa is not None:
                 if "remover" in request.POST:
                     try:
                         os.unlink(casa.logotipo.path)
                     except OSError:
                         pass  # Should log this error!!!!!
                     casa.logotipo = None
-                    casa_save = CasaLegislativaTabelaAuxForm(
-                                          request.POST,
-                                          request.FILES,
-                                          instance=casa).save(commit=False)
-            casa_save.save()
+                casa_save = CasaLegislativaTabelaAuxForm(
+                    request.POST,
+                    request.FILES,
+                    instance=casa
+                ).save(commit=False)
+                casa_save.save()
+            elif casa is None:
+                form.save()
+
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form})
