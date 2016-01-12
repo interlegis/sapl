@@ -143,13 +143,14 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row4,
                 row5,
                 HTML("""{% if form.logotipo.value %}
-                        <img class="img-responsive"
+                        <img class="img-responsive" width="225" height="300"
                              src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
+                             <br /><br />
                         <input type="submit"
                                name="remover"
                                id="remover"
                                class="button primary"
-                               value="Remover"/>
+                               value="Remover Logo"/>
                          {% endif %}""", ),
                 row6,
                 row7,
@@ -197,7 +198,6 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                 casa_save.save()
             elif casa is None:
                 form.save()
-
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form})

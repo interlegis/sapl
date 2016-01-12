@@ -365,13 +365,14 @@ class ParlamentaresForm (ModelForm):
                      row6, row7, row8, row9, row10,
                      row11, row12, row13,
                      HTML("""{% if form.fotografia.value %}
-                        <img class="img-responsive"
+                        <img class="img-responsive" width="225" height="300"
                              src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
+                             <br /><br />
                         <input type="submit"
                                name="remover"
                                id="remover"
                                class="button primary"
-                               value="Remover"/>
+                               value="Remover Foto"/>
                          {% endif %}""", ),
                      row14,
                      ButtonHolder(
