@@ -3,10 +3,5 @@
 {% load crispy_forms_tags %}
 {% block detail_content %}
 	<div>{{ message }} </div>
-	<form method="POST">
-		{% csrf_token %}
-		{% crispy form %}
-		</br>
-		<input type="submit" value="Anular" class="button primary" />
-	</form>
+    {% crispy form %}
 {% endblock detail_content %}

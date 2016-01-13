@@ -2,7 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, HTML, Field, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -326,7 +326,12 @@ class AnularProcoloAdmForm(forms.Form):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Identificação do Protocolo',
-                     row1, row2)
+                     row1,
+                     row2,
+                     HTML("&nbsp;"),
+                     ButtonHolder(Submit('submit', 'Anular',
+                                    css_class='button primary'))
+            )
         )
         super(AnularProcoloAdmForm, self).__init__(
             *args, **kwargs)
@@ -361,7 +366,8 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
             ano = request.POST['ano_protocolo']
             justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
                 request.POST['justificativa_anulacao']))
-            user_anulacao = "NOUSER"  # TODO get user from session
+
+            user_anulacao = request.user.username
             ip_addr = get_client_ip(request)
 
             try:
