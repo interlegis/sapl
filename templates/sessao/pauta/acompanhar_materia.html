@@ -1,0 +1,22 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %} {% endblock %}
+{% block detail_content %}
+
+<h1>Acompanhamento de Matéria</h1>
+<hr>
+<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+	<li><b>Tipo:</b> {{materia.tipo.sigla}} - {{materia.tipo.descricao}}</li>
+	<li><b>Número:</b> {{materia.numero}}</li>
+	<li><b>Ano:</b> {{materia.ano}}</li>
+
+</ul>
+<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
+	<li><b>Ementa:</b> {{materia.ementa|safe}}</li>
+</ul>
+
+{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
+{% crispy form %}
+
+{% endblock %}

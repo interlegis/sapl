@@ -17,7 +17,9 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
                           VotacaoView, sessao_crud, tipo_expediente_crud,
-                          tipo_resultado_votacao_crud, tipo_sessao_crud)
+                          tipo_resultado_votacao_crud, tipo_sessao_crud,
+                          PautaExpedienteDetail, PautaOrdemDetail,
+                          AcompanharMateriaView)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',
@@ -90,6 +92,12 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/pauta-sessao-detail$',
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
     url(r'^cadastro$', SessaoCadastroView.as_view(), name='sessao_cadastro'),
+    url(r'^pauta-sessao/(?P<pk>\d+)/expediente/$',
+        PautaExpedienteDetail.as_view(), name='pauta_expediente_detail'),
+    url(r'^pauta-sessao/(?P<pk>\d+)/ordem/$',
+        PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
+    url(r'^pauta-sessao/(?P<pk>\d+)/acompanhar-materia/$',
+        AcompanharMateriaView.as_view(), name='acompanhar_materia'),
 ]
 
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace

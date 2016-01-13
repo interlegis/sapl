@@ -2,7 +2,7 @@ from datetime import datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, Column
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -15,7 +15,9 @@ from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
 import sapl
-from materia.models import Autoria, TipoMateriaLegislativa
+from materia.models import (Autoria, TipoMateriaLegislativa,
+                            DocumentoAcessorio, Tramitacao)
+from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 from sessao.serializers import SessaoPlenariaSerializer
@@ -25,7 +27,7 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     VotoParlamentar, AcompanharMateria)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
@@ -2275,7 +2277,8 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
 
-            mat = {'ementa': ementa,
+            mat = {'id': m.id,
+                   'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
@@ -2321,7 +2324,8 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
                 materia_id=o.materia_id)
             autor = [str(x.autor) for x in autoria]
 
-            mat = {'ementa': ementa,
+            mat = {'id': o.id,
+                   'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
@@ -2441,3 +2445,113 @@ class SessaoCadastroView(FormMixin, sessao_crud.CrudDetailView):
 class SessaoPlenariaView(generics.ListAPIView):
     queryset = SessaoPlenaria.objects.all()
     serializer_class = SessaoPlenariaSerializer
+
+
+class PautaExpedienteDetail(sessao_crud.CrudDetailView):
+    template_name = "sessao/pauta/expediente.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+
+        expediente = ExpedienteMateria.objects.get(id=pk)
+        doc_ace = DocumentoAcessorio.objects.filter(
+            materia=expediente.materia)
+        tramitacao = Tramitacao.objects.filter(
+            materia=expediente.materia)
+
+        return self.render_to_response(
+            {'expediente': expediente,
+             'doc_ace': doc_ace,
+             'tramitacao': tramitacao})
+
+
+class PautaOrdemDetail(sessao_crud.CrudDetailView):
+    template_name = "sessao/pauta/ordem.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+
+        ordem = OrdemDia.objects.get(id=pk)
+        norma = NormaJuridica.objects.filter(
+            materia=ordem.materia)
+        doc_ace = DocumentoAcessorio.objects.filter(
+            materia=ordem.materia)
+        tramitacao = Tramitacao.objects.filter(
+            materia=ordem.materia)
+
+        return self.render_to_response(
+            {'ordem': ordem,
+             'norma': norma,
+             'doc_ace': doc_ace,
+             'tramitacao': tramitacao})
+
+
+class AcompanharMateriaForm(ModelForm):
+
+    class Meta:
+        model = AcompanharMateria
+        fields = ['email']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row([('email', 10)])
+
+        row1.append(
+            Column(
+                ButtonHolder(
+                    Submit('Submit', 'Cadastrar',
+                           css_class='button primary')
+                    ), css_class='columns-large-2'
+                )
+            )
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Acompanhamento de Matéria por e-mail', row1
+            )
+        )
+        super(AcompanharMateriaForm, self).__init__(*args, **kwargs)
+
+
+class AcompanharMateriaView(FormMixin, sessao_crud.CrudDetailView):
+    template_name = "sessao/pauta/acompanhar_materia.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+        return self.render_to_response(
+            {'form': AcompanharMateriaForm(),
+             'materia': materia})
+
+    def post(self, request, *args, **kwargs):
+        form = AcompanharMateriaForm(request.POST)
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+
+        if form.is_valid():
+
+            email = form.cleaned_data['email']
+            usuario = request.user
+            try:
+                AcompanharMateria.objects.get(
+                    email=email,
+                    materia_cadastrada=materia)
+            except ObjectDoesNotExist:
+                acompanhar = form.save(commit=False)
+                acompanhar.materia_cadastrada = materia
+                acompanhar.usuario = usuario.username
+                acompanhar.save()
+            else:
+                return self.render_to_response(
+                    {'form': form,
+                     'materia': materia,
+                     'error': 'Essa matéria já está sendo acompanhada por este e-mail.'})
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'materia': materia})
+
+    def get_success_url(self):
+        return reverse('sessaoplenaria:list_pauta_sessao')
