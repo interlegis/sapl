@@ -16,6 +16,8 @@
 {% endblock %}
 {% block detail_content %}
 	
+{% if mensagem_erro %} <h5 align="center"><font color="#FF0000">{{ mensagem_erro }}</font></h5> {% endif %}
+	
 {% crispy form %}
 
 {% endblock detail_content %}

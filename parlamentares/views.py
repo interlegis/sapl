@@ -11,6 +11,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
+from django.core.exceptions import ObjectDoesNotExist
 
 import sapl
 from sapl.crud import build_crud
@@ -780,6 +781,17 @@ class FiliacaoView(FormMixin, GenericView):
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
 
+    # Função usada para todos os caso de erro na filiação    
+    def error_message(self, parlamentar, form, mensagem):
+        filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
+        return self.render_to_response(
+            {'parlamentar': parlamentar,
+             'filiacoes': filiacoes,
+             'form': form,
+             'legislatura_id': parlamentar.mandato_set.last(
+             ).legislatura.id,
+             'mensagem_erro': mensagem})
+
     def post(self, request, *args, **kwargs):
         form = FiliacaoForm(request.POST)
 
@@ -796,40 +808,51 @@ class FiliacaoView(FormMixin, GenericView):
                                     parlamentar=parlamentar)
 
             candidato_nao_desfiliou = Filiacao.objects.filter(
-                    parlamentar=parlamentar,
-                    data_desfiliacao=None)
+                                      parlamentar=parlamentar,
+                                      data_desfiliacao=None)
 
+            # Vê se o candidato já se filiou alguma vez a algum partido
             if not candidato_filiado:
                 filiacao = form.save(commit=False)
                 filiacao.parlamentar = parlamentar
                 filiacao.save()
                 return self.form_valid(form)
             else:
-
+                # Dá erro caso não tenha se desfiliado do anterior
                 if candidato_nao_desfiliou:
-                    filiacoes = Filiacao.objects.filter(
-                                parlamentar=parlamentar)
-                    return self.render_to_response(
-                        {'parlamentar': parlamentar,
-                         'filiacoes': filiacoes,
-                         'form': form,
-                         'legislatura_id': parlamentar.mandato_set.last(
-                         ).legislatura.id,
-                         'mensagem_erro': "Você não pode se filiar a algum partido\
-                         sem antes se desfiliar do partido anterior"})
+                    mensagem = "Você não pode se filiar a algum partido\
+                    sem antes se desfiliar do partido anterior"
+                    return self.error_message(parlamentar, form, mensagem)
 
+                # Dá erro caso a data de desfiliação seja anterior a de
+                # filiação
                 if data_desfiliacao and data_desfiliacao < data_filiacao:
-                    filiacoes = Filiacao.objects.filter(
-                                parlamentar=parlamentar)
-                    return self.render_to_response(
-                        {'parlamentar': parlamentar,
-                         'filiacoes': filiacoes,
-                         'form': form,
-                         'legislatura_id': parlamentar.mandato_set.last(
-                         ).legislatura.id,
-                         'mensagem_erro': "A data de filiação não pode\
-                          anterior à data de desfiliação"})
+                    mensagem = "A data de filiação não pode\
+                    anterior à data de desfiliação"
+                    return self.error_message(parlamentar, form, mensagem)
 
+                # Esse bloco garante que não haverá intersecção entre os
+                # períodos de filiação
+                todas_filiacoes = candidato_filiado
+                for i in range(len(todas_filiacoes)):
+                    data_init = todas_filiacoes[i].data
+                    data_fim = todas_filiacoes[i].data_desfiliacao
+                    if data_filiacao >= data_init and data_filiacao < data_fim:
+                        mensagem = "A data de filiação e\
+                        desfiliação não podem estar no intervalo\
+                        de outro período de filiação"
+                        return self.error_message(parlamentar, form, mensagem)
+
+                    if (data_desfiliacao and
+                       data_desfiliacao < data_fim and
+                       data_desfiliacao > data_init):
+
+                        mensagem = "A data de filiação e\
+                        desfiliação não podem estar no intervalo\
+                        de outro período de filiação"
+                        return self.error_message(parlamentar, form, mensagem)
+
+                # Salva a nova filiação caso tudo esteja correto
                 else:
                     filiacao = form.save(commit=False)
                     filiacao.parlamentar = parlamentar
@@ -838,15 +861,8 @@ class FiliacaoView(FormMixin, GenericView):
         else:
             pid = kwargs['pk']
             parlamentar = Parlamentar.objects.get(id=pid)
-            filiacoes = Filiacao.objects.filter(
-                parlamentar=parlamentar)
-
-            return self.render_to_response(
-                {'parlamentar': parlamentar,
-                 'filiacoes': filiacoes,
-                 'form': form,
-                 'legislatura_id': parlamentar.mandato_set.last(
-                 ).legislatura.id})
+            mensagem = ""
+            return self.error_message(parlamentar, form, mensagem)
 
 
 class FiliacaoEditView(FormMixin, GenericView):
@@ -866,17 +882,90 @@ class FiliacaoEditView(FormMixin, GenericView):
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
 
+    def error_message(self, parlamentar, form, mensagem):
+        return self.render_to_response(
+                {'form': form,
+                 'parlamentar': parlamentar,
+                 'legislatura_id': parlamentar.mandato_set.last(
+                 ).legislatura_id,
+                 'mensagem_erro': mensagem})
+
     def post(self, request, *args, **kwargs):
         filiacao = Filiacao.objects.get(id=kwargs['dk'])
         form = FiliacaoEditForm(request.POST, instance=filiacao)
         parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
 
         if form.is_valid():
+
+            data_filiacao = form.cleaned_data['data']
+            data_desfiliacao = form.cleaned_data['data_desfiliacao']
+
+            filiacao = form.save(commit=False)
+            pid = kwargs['pk']
+            parlamentar = Parlamentar.objects.get(id=pid)
+
+            candidato_filiado = Filiacao.objects.filter(
+                                    parlamentar=parlamentar)
+
+            candidato_nao_desfiliou = Filiacao.objects.filter(
+                                      parlamentar=parlamentar,
+                                      data_desfiliacao=None)
+
+            # Vê se o candidato já se filiou alguma vez a algum partido
+            if not candidato_filiado:
+                filiacao = form.save(commit=False)
+                filiacao.parlamentar = parlamentar
+                filiacao.save()
+                return self.form_valid(form)
+            else:
+                # Dá erro caso não tenha se desfiliado do anterior
+                if candidato_nao_desfiliou:
+                    mensagem = "Você não pode se filiar a algum partido\
+                    sem antes se desfiliar do partido anterior"
+                    return self.error_message(parlamentar, form, mensagem)
+
+                # Dá erro caso a data de desfiliação seja anterior a de
+                # filiação
+                if data_desfiliacao and data_desfiliacao < data_filiacao:
+                    mensagem = "A data de filiação não pode\
+                    anterior à data de desfiliação"
+                    return self.error_message(parlamentar, form, mensagem)
+
+                # Esse bloco garante que não haverá intersecção entre os
+                # períodos de filiação
+                todas_filiacoes = candidato_filiado
+                id_filiacao_atual = int(kwargs['dk'])
+                for i in range(len(todas_filiacoes)):
+                    if todas_filiacoes[i].id != id_filiacao_atual:
+                        data_init = todas_filiacoes[i].data
+                        data_fim = todas_filiacoes[i].data_desfiliacao
+                        if (data_filiacao >= data_init and
+                           data_filiacao < data_fim):
+
+                            mensagem = "A data de filiação e\
+                            desfiliação não podem estar no intervalo\
+                            de outro período de filiação"
+                            return self.error_message(parlamentar,
+                                                      form,
+                                                      mensagem)
+
+                        if (data_desfiliacao and
+                           data_desfiliacao < data_fim and
+                           data_desfiliacao > data_init):
+
+                            mensagem = "A data de filiação e\
+                            desfiliação não podem estar no intervalo\
+                            de outro período de filiação"
+                            return self.error_message(parlamentar,
+                                                      form,
+                                                      mensagem)
+
             if 'Salvar' in request.POST:
                 filiacao.save()
             elif 'Excluir' in request.POST:
                 filiacao.delete()
             return self.form_valid(form)
+
         else:
             return self.render_to_response(
                 {'form': form,
