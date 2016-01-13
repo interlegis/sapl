@@ -20,7 +20,6 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
-from compilacao import utils
 from compilacao.forms import (NotaForm, PublicacaoForm, TaForm, TipoTaForm,
                               VideForm)
 from compilacao.models import (Dispositivo, Nota,
@@ -28,7 +27,7 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from compilacao.utils import NO_ENTRIES_MSG, build_crud
+from sapl.crud import NO_ENTRIES_MSG, build_crud, make_pagination
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -69,6 +68,57 @@ veiculo_publicacao_crud = build_crud(
 
         [_('Veículo de Publicação'),
          [('sigla', 2), ('nome', 10)]],
+    ])
+
+
+perfil_estr_txt_norm = build_crud(
+    PerfilEstruturalTextoArticulado, 'perfil_estrutural', [
+
+        [_('Perfil Estrutural de Textos Articulados'),
+         [('sigla', 2), ('nome', 10)]],
+    ])
+
+
+tipo_dispositivo_crud = build_crud(
+    TipoDispositivo, 'tipo_dispositivo', [
+
+        [_('Dados Básicos'),
+         [('nome', 8), ('class_css', 4)]],
+
+        [_('Configurações para Edição do Rótulo'),
+         [('rotulo_prefixo_texto', 3),
+          ('rotulo_sufixo_texto', 3),
+          ('rotulo_ordinal', 3),
+          ('contagem_continua', 3)],
+
+         ],
+
+        [_('Configurações para Renderização de Rótulo e Texto'),
+         [('rotulo_prefixo_html', 6),
+          ('rotulo_sufixo_html', 6), ],
+
+         [('texto_prefixo_html', 4),
+          ('dispositivo_de_articulacao', 4),
+          ('texto_sufixo_html', 4)],
+         ],
+
+        [_('Configurações para Nota Automática'),
+         [('nota_automatica_prefixo_html', 6),
+          ('nota_automatica_sufixo_html', 6),
+          ],
+         ],
+
+        [_('Configurações para Variações Numéricas'),
+
+         [('formato_variacao0', 12)],
+         [('rotulo_separador_variacao01', 5), ('formato_variacao1', 7), ],
+         [('rotulo_separador_variacao12', 5), ('formato_variacao2', 7), ],
+         [('rotulo_separador_variacao23', 5), ('formato_variacao3', 7), ],
+         [('rotulo_separador_variacao34', 5), ('formato_variacao4', 7), ],
+         [('rotulo_separador_variacao45', 5), ('formato_variacao5', 7), ],
+
+         ],
+
     ])
 
 
@@ -259,7 +309,7 @@ class TaListView(ListView):
         context = super(TaListView, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
-        context['page_range'] = utils.make_pagination(
+        context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
 
@@ -1551,7 +1601,7 @@ class PublicacaoListView(ListView):
 
     @property
     def title(self):
-        return _('%s da %s' % (
+        return _('%s de %s' % (
             self.model._meta.verbose_name_plural,
             self.ta))
 

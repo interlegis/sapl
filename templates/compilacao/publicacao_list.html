@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
+{% load common_tags %}
 
 {% block base_content %}
 
 <dl class="sub-nav">
   <dd><a href="{{ view.create_url }}">
-      {% trans 'Adicionar'%} {%model_verbose_name 'Publicacao'%}
+      {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
   </a></dd>
   {% block more_buttons %}
     <dd><a href="{% url 'ta_text' view.kwargs|lookup:'ta_id' %}">{% trans 'Voltar'  %}</a></dd>
@@ -20,13 +21,13 @@
 <table class="table">
     <thead>
         <tr>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'data' %}</th>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'hora' %}</th>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'numero' %}</th>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'ano' %}</th>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'edicao' %}</th>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'veiculo_publicacao' %}</th>
-            <th>{% fieldclass_verbose_name 'Publicacao' 'tipo_publicacao' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'data' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'hora' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'numero' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'ano' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'edicao' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'veiculo_publicacao' %}</th>
+            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'tipo_publicacao' %}</th>
         </tr>
     </thead>
     <tbody>
@@ -44,40 +45,5 @@
     </tbody>
 </table>
 {%endif%}
-
-{% if is_paginated %}
-<div class="pagination-centered">
-  <ul class="pagination" role="menubar" aria-label="Pagination">
-    {% if page_obj.has_previous %}
-    <li>
-      <a href="?page={{ page_obj.previous_page_number }}">
-        <span class="arrow">&laquo;</span>
-      </a>
-    </li>
-    {% else %}
-    <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
-    {% endif %}
-
-    {% for page in page_range %}
-        {% if page %}
-            <li {% if page == page_obj.number %}class="current"{% endif %}>
-              <a href="?page={{ page }}">{{ page }}</a>
-            </li>
-            {% else %}
-            <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
-        {% endif %}
-    {% endfor %}
-
-    {% if page_obj.has_next %}
-    <li>
-      <a href="?page={{ page_obj.next_page_number }}">
-        <span class="arrow">&raquo;</span>
-      </a>
-    </li>
-    {% else %}
-    <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
-    {% endif %}
-  </ul>
-</div>
-{% endif %}
+{% include 'paginacao.html'%}
 {% endblock %}

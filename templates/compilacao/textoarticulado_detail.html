@@ -1,35 +1,41 @@
-{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %}
-
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+{% load common_tags %}
 
     {% block sections_nav %}
-      <dl class="sub-nav">
-        {% if object.content_object%}
-            <dd><a href="{% url object|urldetail_content_type object.content_object.pk %}"title="{% trans 'Ir para '%}{{object.content_object}}">Início</a></dd>
-        {%else%}
-            <dd><a href="{% url 'ta_detail' object.pk %}" {% trans 'Início' %}</a></dd>
-        {%endif%}
-            <dd><a href="{% url 'ta_pub_list' object.pk %}">{% model_verbose_name_plural 'Publicacao' %}</a></dd>
+	    {%if object %}
+	      <dl class="sub-nav">
+	        {% if object.content_object%}
+	            <dd><a href="{% url object|urldetail_content_type object.content_object.pk %}"title="{% trans 'Ir para '%}{{object.content_object}}">Início</a></dd>
+	        {%else%}
+	            <dd><a href="{% url 'ta_detail' object.pk %}">{% trans 'Início' %}</a></dd>
+	        {%endif%}
+	        
+            <dd><a href="{% url 'ta_pub_list' object.pk %}">{% model_verbose_name_plural 'compilacao.models.Publicacao' %}</a></dd>
 
             <dd><a href="{% url 'ta_text' object.pk %}">{% trans 'Texto' %}</a></dd>
-            <dd><a href="{% url 'ta_text_edit' object.pk %}">{% trans 'Edição do Texto' %}</a></li>
-
-           </dl>
+            <dd><a href="{% url 'ta_text_edit' object.pk %}">{% trans 'Edição do Texto' %}</a></dd>
+          </dl>
+	     {%endif %}
      {% endblock %}
 
 {% block base_content %} {# FIXME is this the best markup to use? #}
 <div class="clearfix">
     {% block actions %}
     <ul class="button-group right">
-        <li><a href="{% url 'ta_edit' object.pk %}" class="button tiny">{% trans 'Edição dos Metadados do Texto Articulado' %}</a></li>
-        <li><a href="{% url 'ta_delete' object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
-
+    
+        {%if object %}
+            <li><a href="{% url 'ta_edit' object.pk %}" class="button tiny">{% trans 'Edição dos Metadados do Texto Articulado' %}</a></li>
+            <li><a href="{% url 'ta_delete' object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
+        {%endif%}
         <li><a href="#" class="button tiny" data-dropdown="drop"><i class="fi-widget"></i></a>
             <ul id="drop" class="tiny f-dropdown" data-dropdown-content>
-                <li><a href="{% url 'tipo_ta_list' %}">{%model_verbose_name_plural 'TipoTextoArticulado'%}</a></li>
-                <li><a href="{% url 'tipopublicacao:list' %}">{%model_verbose_name_plural 'TipoPublicacao'%}</a></li>
-                <li><a href="{% url 'veiculopublicacao:list' %}">{%model_verbose_name_plural 'VeiculoPublicacao'%}</a></li>
-          		<li><a href="{% url 'tiponota:list' %}">{%model_verbose_name_plural 'TipoNota'%}</a></li>
-          		<li><a href="{% url 'tipovide:list' %}">{%model_verbose_name_plural 'TipoVide'%}</a></li>
+                <li><a href="{% url 'tipo_ta_list' %}">{%model_verbose_name_plural 'compilacao.models.TipoTextoArticulado'%}</a></li>
+                <li><a href="{% url 'tipopublicacao:list' %}">{%model_verbose_name_plural 'compilacao.models.TipoPublicacao'%}</a></li>
+                <li><a href="{% url 'veiculopublicacao:list' %}">{%model_verbose_name_plural 'compilacao.models.VeiculoPublicacao'%}</a></li>
+          		<li><a href="{% url 'tiponota:list' %}">{%model_verbose_name_plural 'compilacao.models.TipoNota'%}</a></li>
+          		<li><a href="{% url 'tipovide:list' %}">{%model_verbose_name_plural 'compilacao.models.TipoVide'%}</a></li>
           		<li><a href="#">TODO: Tipo de Dispositivo</a></li>
                 <li><a href="#">TODO: Perfil Estrutural de Textos Articulados</a></li>
             </ul></li>
