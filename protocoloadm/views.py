@@ -454,7 +454,17 @@ class ProtocoloDocumentForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset('Protocolo - Opção de Numeração', row1),
             Fieldset('Identificação de Documento',
-                     row2, row3, row4, row5, row6)
+                     row2,
+                     row3,
+                     row4,
+                     row5,
+                     row6,
+                     HTML("&nbsp;"),
+                     ButtonHolder(Submit('submit', 'Protocolar Documento',
+                                         css_class='button primary'
+                                         )
+                                  )
+                     )
         )
         super(ProtocoloDocumentForm, self).__init__(
             *args, **kwargs)
@@ -561,7 +571,16 @@ class ProtocoloMateriaForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset('Protocolo - Opção de Numeração', row1),
             Fieldset('Identificação da Matéria',
-                     row2, row3, row4, row5)
+                     row2,
+                     row3,
+                     row4,
+                     row5,
+                     HTML("&nbsp;"),
+                     ButtonHolder(Submit('submit', 'Protocolar Matéria',
+                                         css_class='button primary'
+                                         )
+                                  )
+                     )
         )
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
