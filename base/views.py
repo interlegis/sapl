@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
@@ -13,6 +14,11 @@ from vanilla import GenericView
 import sapl
 
 from .models import CasaLegislativa
+
+
+@lru_cache(maxsize=1)
+def get_casalegislativa():
+    return CasaLegislativa.objects.first()
 
 
 class HelpView(TemplateView):
@@ -199,6 +205,10 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                 casa_save.save()
             else:
                 form.save()
+
+            # Invalida cache de consulta
+            get_casalegislativa.cache_clear()
+
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form})

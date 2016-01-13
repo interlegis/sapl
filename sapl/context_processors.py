@@ -1,10 +1,5 @@
 
-from base.models import CasaLegislativa
-
-
-# TODO: this need to be cached and retrieved once!!!
-def query_database():
-    return CasaLegislativa.objects.first()
+from base.views import get_casalegislativa
 
 
 def parliament_info(request):
@@ -21,7 +16,7 @@ def parliament_info(request):
         'url_email': '#',
     }
 
-    casa_legislativa = query_database()
+    casa_legislativa = get_casalegislativa()
 
     if casa_legislativa:
         context['parliament_type'] = casa_legislativa.nome

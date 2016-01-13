@@ -2,7 +2,8 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, HTML, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import (HTML, ButtonHolder, Field, Fieldset, Layout,
+                                 Submit)
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -330,8 +331,10 @@ class AnularProcoloAdmForm(forms.Form):
                      row2,
                      HTML("&nbsp;"),
                      ButtonHolder(Submit('submit', 'Anular',
-                                    css_class='button primary'))
-            )
+                                         css_class='button primary'
+                                         )
+                                  )
+                     )
         )
         super(AnularProcoloAdmForm, self).__init__(
             *args, **kwargs)

@@ -1488,8 +1488,8 @@ class TramitacaoView(FormMixin, GenericView):
                      'error': 'A origem da nova tramitação \
                         deve ser igual ao destino da última adicionada!'})
 
-            corpo_email = ('A tramitação da matéria\
-                %s foi alterada.' % materia)
+            corpo_email = ('A tramitação da matéria %s foi alterada.' % materia
+                           )
             destinatarios = AcompanharMateria.objects.values_list(
                 'email', flat=True).filter(
                 materia_cadastrada=materia)
