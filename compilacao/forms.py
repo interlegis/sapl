@@ -12,7 +12,8 @@ from compilacao.models import (PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
                                Publicacao, TextoArticulado, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from compilacao.utils import YES_NO_CHOICES, FormLayout, to_column, to_row
+from sapl.layout import SaplFormLayout, to_column, to_row
+from sapl.utils import YES_NO_CHOICES
 
 
 class UpLoadImportFileForm(forms.Form):
@@ -62,7 +63,7 @@ class TipoTaForm(ModelForm):
         ])
 
         self.helper = FormHelper()
-        self.helper.layout = FormLayout(
+        self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, css_class="large-12"))
         super(TipoTaForm, self).__init__(*args, **kwargs)
@@ -129,7 +130,7 @@ class TaForm(ModelForm):
         ])
 
         self.helper = FormHelper()
-        self.helper.layout = FormLayout(
+        self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'), row1, css_class="large-12"),
             Fieldset(
                 TextoArticulado._meta.get_field('ementa').verbose_name,
@@ -428,7 +429,7 @@ class PublicacaoForm(ModelForm):
         ])
 
         self.helper = FormHelper()
-        self.helper.layout = FormLayout(
+        self.helper.layout = SaplFormLayout(
             Fieldset(Publicacao._meta.verbose_name,
                      row1, row2, row3, css_class="large-12"))
 

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block sections_nav %}
     <dl class="sub-nav left">
-        <dd><a href="{% url 'normajuridica:detail' object.pk %}" class="button secondary">{% trans 'Início' %}</a></dd>
+        <dd><a href="{% url 'normajuridica:detail' object.pk %}">{% trans 'Início' %}</a></dd>
 
         {% comment %}
             Opção adicionada para chamar o TextoArticulado da norma.
@@ -10,7 +10,7 @@
                 e a view NormaTa(IntegracaoTaView) em views.py
                Em nada mais a integração interfere em Norma Jurídica
         {% endcomment %}
-        <dd><a href="{% url 'norma_ta' object.pk %}" class="button secondary">{% trans 'Texto' %}</a></dd>
+        <dd><a href="{% url 'norma_ta' object.pk %}">{% trans 'Texto' %}</a></dd>
     </dl>
 
 {% endblock sections_nav %}

@@ -9,8 +9,8 @@ from django.db.models.aggregates import Max
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao import utils
-from compilacao.utils import YES_NO_CHOICES
+from compilacao.utils import int_to_letter, int_to_roman
+from sapl import utils
 
 
 class TimestampedMixin(models.Model):
@@ -268,13 +268,13 @@ class TipoDispositivo(BaseModel):
         max_length=100,
         verbose_name=_('Sufixo html da nota automática'))
     contagem_continua = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
+        choices=utils.YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
     dispositivo_de_articulacao = models.BooleanField(
-        choices=YES_NO_CHOICES,
+        choices=utils.YES_NO_CHOICES,
         default=False,
         verbose_name=_('Dispositivo de Articulação (Sem Texto)'))
     dispositivo_de_alteracao = models.BooleanField(
-        choices=YES_NO_CHOICES,
+        choices=utils.YES_NO_CHOICES,
         default=False,
         verbose_name=_('Dispositivo de Alteração'))
     formato_variacao0 = models.CharField(
@@ -368,7 +368,7 @@ class PerfilEstruturalTextoArticulado(BaseModel):
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     padrao = models.BooleanField(
         default=False,
-        choices=YES_NO_CHOICES, verbose_name=_('Padrão'))
+        choices=utils.YES_NO_CHOICES, verbose_name=_('Padrão'))
 
     class Meta:
         verbose_name = _('Perfil Estrutural de Texto Articulado')
@@ -388,10 +388,12 @@ class TipoDispositivoRelationship(BaseModel):
     perfil = models.ForeignKey(PerfilEstruturalTextoArticulado)
     filho_de_insercao_automatica = models.BooleanField(
         default=False,
-        choices=YES_NO_CHOICES, verbose_name=_('Filho de Inserção Automática'))
+        choices=utils.YES_NO_CHOICES,
+        verbose_name=_('Filho de Inserção Automática'))
     permitir_variacao = models.BooleanField(
         default=True,
-        choices=YES_NO_CHOICES, verbose_name=_('Permitir Variação Numérica'))
+        choices=utils.YES_NO_CHOICES,
+        verbose_name=_('Permitir Variação Numérica'))
 
     quantidade_permitida = models.IntegerField(
         default=-1,
@@ -549,12 +551,12 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     inconstitucionalidade = models.BooleanField(
         default=False,
-        choices=YES_NO_CHOICES,
+        choices=utils.YES_NO_CHOICES,
         verbose_name=_('Inconstitucionalidade'))
     # Relevant attribute only in altering norms
     visibilidade = models.BooleanField(
         default=False,
-        choices=YES_NO_CHOICES,
+        choices=utils.YES_NO_CHOICES,
         verbose_name=_('Visibilidade no Texto Articulado Publicado'))
 
     tipo_dispositivo = models.ForeignKey(
@@ -839,16 +841,16 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 result = separadores[i] + str(numero[i]) + result
             elif formato[i] == TipoDispositivo.FNCI:
                 result = separadores[i] + \
-                    utils.int_to_roman(numero[i]) + result
+                    int_to_roman(numero[i]) + result
             elif formato[i] == TipoDispositivo.FNCi:
                 result = separadores[i] + \
-                    utils.int_to_roman(numero[i]).lower() + result
+                    int_to_roman(numero[i]).lower() + result
             elif formato[i] == TipoDispositivo.FNCA:
                 result = separadores[i] + \
-                    utils.int_to_letter(numero[i]) + result
+                    int_to_letter(numero[i]) + result
             elif formato[i] == TipoDispositivo.FNCa:
                 result = separadores[i] + \
-                    utils.int_to_letter(numero[i]).lower() + result
+                    int_to_letter(numero[i]).lower() + result
             elif formato[i] == TipoDispositivo.FNC8:
                 result = separadores[i] + '*' + result
             elif formato[i] == TipoDispositivo.FNCN:

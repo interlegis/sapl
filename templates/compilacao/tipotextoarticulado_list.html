@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
+{% load common_tags %}
 
 {% block base_content %}
 
 <dl class="sub-nav">
   <dd><a href="{{ view.create_url }}">
-      {% trans 'Adicionar'%} {%model_verbose_name 'TipoTextoArticulado'%}
+      {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TipoTextoArticulado'%}
   </a></dd> 
   {% block more_buttons %}
 
@@ -19,9 +20,9 @@
 	<table class="table table-hover" width=100%>
 	    <thead>
 	        <tr>
-	            <th>{% fieldclass_verbose_name 'TipoTextoArticulado' 'sigla' %}</th>
-	            <th>{% fieldclass_verbose_name 'TipoTextoArticulado' 'descricao' %}</th>
-	            <th>{% fieldclass_verbose_name 'TipoTextoArticulado' 'content_type' %}</th>
+	            <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'sigla' %}</th>
+	            <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'descricao' %}</th>
+	            <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'content_type' %}</th>
 	        </tr>
 	    </thead>
 	    <tbody>
@@ -34,41 +35,6 @@
 	        {% endfor %}
 	    </tbody>
 	</table>
-	
-	{% if is_paginated %}
-	<div class="pagination-centered">
-	  <ul class="pagination" role="menubar" aria-label="Pagination">
-	    {% if page_obj.has_previous %}
-	    <li>
-	      <a href="?page={{ page_obj.previous_page_number }}">
-	        <span class="arrow">&laquo;</span>
-	      </a>
-	    </li>
-	    {% else %}
-	    <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
-	    {% endif %}
-	
-	    {% for page in page_range %}
-	        {% if page %}
-	            <li {% if page == page_obj.number %}class="current"{% endif %}>
-	              <a href="?page={{ page }}">{{ page }}</a>
-	            </li>
-	            {% else %}
-	            <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
-	        {% endif %}
-	    {% endfor %}
-	
-	    {% if page_obj.has_next %}
-	    <li>
-	      <a href="?page={{ page_obj.next_page_number }}">
-	        <span class="arrow">&raquo;</span>
-	      </a>
-	    </li>
-	    {% else %}
-	    <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
-	    {% endif %}
-	  </ul>
-	</div>
-	{% endif %}
-{% endif %}
+	{%endif%}
+{% include 'paginacao.html'%}
 {% endblock %}

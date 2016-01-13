@@ -1,4 +1,5 @@
 {% load compilacao_filters %}
+{% load common_tags %}
 {% for ch in dpt.pk|get_bloco_atualizador %}
 {% spaceless %}
 	<div class="dpt" id="d{{ch.id}}">
