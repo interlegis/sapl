@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 def get_sessao_media_path(instance, subpath, filename):
-    return './casa/%s/%s/%s' % (instance.codigo, subpath, filename)
+    return './casa/%s/%s' % (subpath, filename)
 
 
 def get_casa_media_path(instance, filename):

@@ -183,8 +183,9 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
 
         if form.is_valid():
             casa = CasaLegislativa.objects.first()
-            if casa is not None:
-                if "remover" in request.POST:
+            if casa:
+                if ("remover" in request.POST or
+                   (form.cleaned_data['logotipo'] and casa.logotipo)):
                     try:
                         os.unlink(casa.logotipo.path)
                     except OSError:
@@ -196,7 +197,7 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                     instance=casa
                 ).save(commit=False)
                 casa_save.save()
-            elif casa is None:
+            else:
                 form.save()
             return self.form_valid(form)
         else:
