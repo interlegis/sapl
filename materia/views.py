@@ -5,6 +5,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.shortcuts import redirect
@@ -14,7 +15,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
-from django.core.mail import send_mail
 
 import sapl
 from comissoes.models import Comissao, Composicao
@@ -22,6 +22,7 @@ from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
+from sessao.models import AcompanharMateria
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -29,7 +30,6 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
-from sessao.models import AcompanharMateria
 
 origem_crud = build_crud(
     Origem, 'origem', [
@@ -1488,7 +1488,8 @@ class TramitacaoView(FormMixin, GenericView):
                      'error': 'A origem da nova tramitação \
                         deve ser igual ao destino da última adicionada!'})
 
-            corpo_email = ('A tramitação da matéria %s foi alterada.' % materia)
+            corpo_email = ('A tramitação da matéria\
+                %s foi alterada.' % materia)
             destinatarios = AcompanharMateria.objects.values_list(
                 'email', flat=True).filter(
                 materia_cadastrada=materia)
@@ -1496,7 +1497,7 @@ class TramitacaoView(FormMixin, GenericView):
                       corpo_email,
                       'sapl-test@interlegis.leg.br',
                       destinatarios,
-              fail_silently=True)
+                      fail_silently=True)
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,

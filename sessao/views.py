@@ -2,7 +2,7 @@ from datetime import datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit, Column
+from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -15,19 +15,19 @@ from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
 import sapl
-from materia.models import (Autoria, TipoMateriaLegislativa,
-                            DocumentoAcessorio, Tramitacao)
+from materia.models import (Autoria, DocumentoAcessorio,
+                            TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 from sessao.serializers import SessaoPlenariaSerializer
 
-from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
-                     IntegranteMesa, MateriaLegislativa, Orador,
-                     OradorExpediente, OrdemDia, PresencaOrdemDia,
+from .models import (AcompanharMateria, CargoMesa, ExpedienteMateria,
+                     ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
+                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar, AcompanharMateria)
+                     VotoParlamentar)
 
 tipo_sessao_crud = build_crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
@@ -2546,7 +2546,8 @@ class AcompanharMateriaView(FormMixin, sessao_crud.CrudDetailView):
                 return self.render_to_response(
                     {'form': form,
                      'materia': materia,
-                     'error': 'Essa matéria já está sendo acompanhada por este e-mail.'})
+                     'error': 'Essa matéria já está\
+                     sendo acompanhada por este e-mail.'})
             return self.form_valid(form)
         else:
             return self.render_to_response(

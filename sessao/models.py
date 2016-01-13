@@ -5,7 +5,6 @@ from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
 from sapl.utils import YES_NO_CHOICES, make_choices
-from django.contrib.auth.models import User
 
 
 class TipoSessaoPlenaria(models.Model):

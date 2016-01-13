@@ -61,8 +61,9 @@ INSTALLED_APPS = (
     'crispy_forms_foundation',
     'sass_processor',
 )
+
 if DEBUG:
-   INSTALLED_APPS += ('debug_toolbar',)
+    INSTALLED_APPS += ('debug_toolbar',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

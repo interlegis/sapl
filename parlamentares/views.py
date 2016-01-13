@@ -11,7 +11,6 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
-from django.core.exceptions import ObjectDoesNotExist
 
 import sapl
 from sapl.crud import build_crud
@@ -781,7 +780,7 @@ class FiliacaoView(FormMixin, GenericView):
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
 
-    # Função usada para todos os caso de erro na filiação    
+    # Função usada para todos os caso de erro na filiação
     def error_message(self, parlamentar, form, mensagem):
         filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
         return self.render_to_response(
@@ -805,11 +804,11 @@ class FiliacaoView(FormMixin, GenericView):
             parlamentar = Parlamentar.objects.get(id=pid)
 
             candidato_filiado = Filiacao.objects.filter(
-                                    parlamentar=parlamentar)
+                parlamentar=parlamentar)
 
             candidato_nao_desfiliou = Filiacao.objects.filter(
-                                      parlamentar=parlamentar,
-                                      data_desfiliacao=None)
+                parlamentar=parlamentar,
+                data_desfiliacao=None)
 
             # Vê se o candidato já se filiou alguma vez a algum partido
             if not candidato_filiado:
@@ -844,8 +843,8 @@ class FiliacaoView(FormMixin, GenericView):
                         return self.error_message(parlamentar, form, mensagem)
 
                     if (data_desfiliacao and
-                       data_desfiliacao < data_fim and
-                       data_desfiliacao > data_init):
+                            data_desfiliacao < data_fim and
+                            data_desfiliacao > data_init):
 
                         mensagem = "A data de filiação e\
                         desfiliação não podem estar no intervalo\
@@ -884,11 +883,11 @@ class FiliacaoEditView(FormMixin, GenericView):
 
     def error_message(self, parlamentar, form, mensagem):
         return self.render_to_response(
-                {'form': form,
-                 'parlamentar': parlamentar,
-                 'legislatura_id': parlamentar.mandato_set.last(
-                 ).legislatura_id,
-                 'mensagem_erro': mensagem})
+            {'form': form,
+             'parlamentar': parlamentar,
+             'legislatura_id': parlamentar.mandato_set.last(
+             ).legislatura_id,
+             'mensagem_erro': mensagem})
 
     def post(self, request, *args, **kwargs):
         filiacao = Filiacao.objects.get(id=kwargs['dk'])
@@ -905,11 +904,11 @@ class FiliacaoEditView(FormMixin, GenericView):
             parlamentar = Parlamentar.objects.get(id=pid)
 
             candidato_filiado = Filiacao.objects.filter(
-                                    parlamentar=parlamentar)
+                parlamentar=parlamentar)
 
             candidato_nao_desfiliou = Filiacao.objects.filter(
-                                      parlamentar=parlamentar,
-                                      data_desfiliacao=None)
+                parlamentar=parlamentar,
+                data_desfiliacao=None)
 
             # Vê se o candidato já se filiou alguma vez a algum partido
             if not candidato_filiado:
@@ -940,7 +939,7 @@ class FiliacaoEditView(FormMixin, GenericView):
                         data_init = todas_filiacoes[i].data
                         data_fim = todas_filiacoes[i].data_desfiliacao
                         if (data_filiacao >= data_init and
-                           data_filiacao < data_fim):
+                                data_filiacao < data_fim):
 
                             mensagem = "A data de filiação e\
                             desfiliação não podem estar no intervalo\
@@ -950,8 +949,8 @@ class FiliacaoEditView(FormMixin, GenericView):
                                                       mensagem)
 
                         if (data_desfiliacao and
-                           data_desfiliacao < data_fim and
-                           data_desfiliacao > data_init):
+                                data_desfiliacao < data_fim and
+                                data_desfiliacao > data_init):
 
                             mensagem = "A data de filiação e\
                             desfiliação não podem estar no intervalo\

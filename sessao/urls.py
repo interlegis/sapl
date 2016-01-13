@@ -1,13 +1,14 @@
 from django.conf.urls import include, url
 
 from sapl import settings
-from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
-                          ExpedienteOrdemDiaView, ExpedienteView,
-                          ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
-                          ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
-                          MateriaOrdemDiaView, MesaView,
-                          OradorExpedienteDelete, OradorExpedienteEdit,
-                          OradorExpedienteView, PainelView,
+from sessao.views import (AcompanharMateriaView, EditExpedienteOrdemDiaView,
+                          EditMateriaOrdemDiaView, ExpedienteOrdemDiaView,
+                          ExpedienteView, ExplicacaoDelete, ExplicacaoEdit,
+                          ExplicacaoView, ListExpedienteOrdemDiaView,
+                          ListMateriaOrdemDiaView, MateriaOrdemDiaView,
+                          MesaView, OradorExpedienteDelete,
+                          OradorExpedienteEdit, OradorExpedienteView,
+                          PainelView, PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
                           SessaoCadastroView, SessaoListView,
@@ -17,9 +18,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
                           VotacaoView, sessao_crud, tipo_expediente_crud,
-                          tipo_resultado_votacao_crud, tipo_sessao_crud,
-                          PautaExpedienteDetail, PautaOrdemDetail,
-                          AcompanharMateriaView)
+                          tipo_resultado_votacao_crud, tipo_sessao_crud)
 
 urlpatterns_sessao = sessao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/expediente$',
