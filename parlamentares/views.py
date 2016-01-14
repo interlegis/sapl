@@ -158,7 +158,6 @@ class ParlamentaresView(GenericView):
         form = ParlamentaresListForm()
 
         if not Legislatura.objects.all():
-            nao_tem_legislatura = True
             mensagem = "Cadastre alguma Legislatura antes\
             de cadastrar algum Parlamentar"
             messages.add_message(request, messages.INFO, mensagem)
@@ -667,7 +666,7 @@ class MesaDiretoraView(FormMixin, GenericView):
         if (not Legislatura.objects.all() or
                 not SessaoLegislativa.objects.all()):
             return self.validation(request)
-        import ipdb; ipdb.set_trace()
+
         mesa = SessaoLegislativa.objects.filter(
             legislatura=Legislatura.objects.last()).first(
         ).composicaomesa_set.all()
