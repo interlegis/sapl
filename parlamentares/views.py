@@ -618,10 +618,6 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
                  ).legislatura_id})
 
 
-class MesaDiretoraForm(forms.Form):
-    pass
-
-
 class MesaDiretoraView(FormMixin, GenericView):
     template_name = "mesa_diretora/mesa_diretora.html"
 
@@ -629,26 +625,39 @@ class MesaDiretoraView(FormMixin, GenericView):
         return reverse('mesa_diretora')
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa)
-    def validation(self, form, request):
+    def validation(self, request):
         mensagem = "Não há nenhuma Sessão Legislativa cadastrada.\
         Só é possível compor uma Mesa Diretora quando há uma Sessão\
         Legislativa cadastrada."
         messages.add_message(request, messages.INFO, mensagem)
 
         return self.render_to_response(
-                {'form': form,
-                 'legislaturas': Legislatura.objects.all(
+                {'legislaturas': Legislatura.objects.all(
                  ).order_by('-data_inicio'),
                  'legislatura_selecionada': Legislatura.objects.last(),
                  'cargos_vagos': CargoMesa.objects.all()})
 
+    def confirm_add(self, request):
+        mensagem = "Parlamentar incluido."
+        messages.add_message(request, messages.INFO, mensagem)
+
+        return self.render_to_response(
+                {'legislaturas': Legislatura.objects.all(
+                 ).order_by('-data_inicio'),
+                 'legislatura_selecionada': Legislatura.objects.get(
+                     id=int(request.POST['legislatura'])),
+                 'sessoes': SessaoLegislativa.objects.filter(
+                     legislatura_id=int(request.POST['legislatura'])),
+                 'sessao_selecionada': SessaoLegislativa.objects.get(
+                     id=int(request.POST['sessao'])),
+                 })
+
     def get(self, request, *args, **kwargs):
-        form = MesaDiretoraForm()
 
         if (not Legislatura.objects.all() or
                 not SessaoLegislativa.objects.all()):
-            return self.validation(form, request)
-
+            return self.validation(request)
+        import ipdb; ipdb.set_trace()
         mesa = SessaoLegislativa.objects.filter(
             legislatura=Legislatura.objects.last()).first(
         ).composicaomesa_set.all()
@@ -665,9 +674,8 @@ class MesaDiretoraView(FormMixin, GenericView):
                 parlamentares_ocupados))
 
         return self.render_to_response(
-            {'form': form,
-             'legislaturas': Legislatura.objects.all(
-             ).order_by('-data_inicio'),
+            {'legislaturas': Legislatura.objects.all(
+                ).order_by('-data_inicio'),
              'legislatura_selecionada': Legislatura.objects.last(),
              'sessoes': SessaoLegislativa.objects.filter(
                  legislatura=Legislatura.objects.last()),
@@ -679,64 +687,63 @@ class MesaDiretoraView(FormMixin, GenericView):
              })
 
     def post(self, request, *args, **kwargs):
-        form = MesaDiretoraForm(request.POST)
+
+        mesa = SessaoLegislativa.objects.filter(
+            legislatura_id=int(request.POST['legislatura'])).first(
+        ).composicaomesa_set.all()
+
+        cargos_ocupados = [m.cargo for m in mesa]
+        cargos = CargoMesa.objects.all()
+        cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+
+        parlamentares = Legislatura.objects.get(
+            id=int(request.POST['legislatura'])).mandato_set.all()
+        parlamentares_ocupados = [m.parlamentar for m in mesa]
+        parlamentares_vagos = list(
+            set(
+                [p.parlamentar for p in parlamentares]) - set(
+                parlamentares_ocupados))
 
         if 'Incluir' in request.POST:
 
             if (not Legislatura.objects.all() or
                     not SessaoLegislativa.objects.all()):
-                return self.validation(form, request)
+                return self.validation(request)
 
             composicao = ComposicaoMesa()
             composicao.sessao_legislativa = SessaoLegislativa.objects.get(
-                id=form.data['sessao'])
+                id=int(request.POST['sessao']))
             composicao.parlamentar = Parlamentar.objects.get(
-                id=form.data['parlamentar'])
+                id=int(request.POST['parlamentar']))
             composicao.cargo = CargoMesa.objects.get(
-                id=form.data['cargo'])
+                id=int(request.POST['cargo']))
             composicao.save()
-            return self.form_valid(form)
+
+            return self.form_valid(form=None)
         elif 'Excluir' in request.POST:
 
             if (not Legislatura.objects.all() or
                     not SessaoLegislativa.objects.all()):
-                return self.validation(form, request)
+                return self.validation(request)
 
             if 'composicao_mesa' in request.POST:
                 ids = request.POST['composicao_mesa'].split(':')
-                ComposicaoMesa.objects.filter(
-                    sessao_legislativa=form.data['sessao'],
-                    parlamentar=ids[0],
-                    cargo=ids[1]
-                ).delete()
-            return self.form_valid(form)
+                ComposicaoMesa.objects.get(
+                        sessao_legislativa_id=int(request.POST['sessao']),
+                        parlamentar_id=int(ids[0]),
+                        cargo_id=int(ids[1])
+                    ).delete()
+            return self.form_valid(form=None)
         else:
-            mesa = SessaoLegislativa.objects.filter(
-                legislatura_id=int(form.data['legislatura'])).first(
-            ).composicaomesa_set.all()
-
-            cargos_ocupados = [m.cargo for m in mesa]
-            cargos = CargoMesa.objects.all()
-            cargos_vagos = list(set(cargos) - set(cargos_ocupados))
-
-            parlamentares = Legislatura.objects.get(
-                id=int(form.data['legislatura'])).mandato_set.all()
-            parlamentares_ocupados = [m.parlamentar for m in mesa]
-            parlamentares_vagos = list(
-                set(
-                    [p.parlamentar for p in parlamentares]) - set(
-                    parlamentares_ocupados))
-
             return self.render_to_response(
-                {'form': form,
-                 'legislaturas': Legislatura.objects.all(
+                {'legislaturas': Legislatura.objects.all(
                  ).order_by('-data_inicio'),
                  'legislatura_selecionada': Legislatura.objects.get(
-                     id=int(form.data['legislatura'])),
+                     id=int(request.POST['legislatura'])),
                  'sessoes': SessaoLegislativa.objects.filter(
-                     legislatura_id=int(form.data['legislatura'])),
+                     legislatura_id=int(request.POST['legislatura'])),
                  'sessao_selecionada': SessaoLegislativa.objects.get(
-                     id=int(form.data['sessao'])),
+                     id=int(request.POST['sessao'])),
                  'composicao_mesa': mesa,
                  'parlamentares': parlamentares_vagos,
                  'cargos_vagos': cargos_vagos
