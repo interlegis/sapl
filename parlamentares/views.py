@@ -33,11 +33,7 @@ legislatura_crud = build_crud(
     Legislatura, 'tabelas_auxiliares#legislatura', [
 
         [_('Legislatura'),
-         [('id', 3),
-            ('data_inicio', 2),
-            ('data_fim', 2),
-            ('data_eleicao', 2)],
-            [('data_inicio', 4), ('data_fim', 4), ('data_eleicao', 4)]],
+         [('data_inicio', 4), ('data_fim', 4), ('data_eleicao', 4)]],
     ])
 
 coligacao_crud = build_crud(
