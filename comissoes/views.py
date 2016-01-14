@@ -254,9 +254,6 @@ class ParticipacaoCadastroForm(ModelForm):
         empty_label='Selecione',
     )
 
-    titular = forms.BooleanField(
-        widget=forms.RadioSelect(choices=YES_OR_NO), required=True)
-
     data_designacao = forms.DateField(label=u'Data Designação',
                                       input_formats=['%d/%m/%Y'],
                                       required=True,
@@ -339,7 +336,7 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
                         # Pensar em forma melhor para não duplicar código
                         participacao = form.save(commit=False)
                         parlamentar = Parlamentar.objects.get(
-                            id=int(form.cleaned_data['parlamentar_id']))
+                            id=form.cleaned_data['parlamentar_id'].id)
 
                         participacao.composicao = composicao
                         participacao.parlamentar = parlamentar
@@ -348,7 +345,7 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
             else:
                 participacao = form.save(commit=False)
                 parlamentar = Parlamentar.objects.get(
-                    id=int(form.cleaned_data['parlamentar_id']))
+                    id=form.cleaned_data['parlamentar_id'].id)
 
                 participacao.composicao = composicao
                 participacao.parlamentar = parlamentar
