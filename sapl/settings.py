@@ -58,7 +58,6 @@ INSTALLED_APPS = (
     'djangobower',
     'bootstrap3',  # basically for django_admin_bootstrapped
     'crispy_forms',
-    'crispy_forms_foundation',
     'sass_processor',
 )
 
@@ -159,16 +158,14 @@ MEDIA_URL = '/media/'
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
-CRISPY_TEMPLATE_PACK = 'foundation-5'
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'foundation-5'
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap3'
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 BOWER_COMPONENTS_ROOT = BASE_DIR.child("bower")
 BOWER_INSTALLED_APPS = (
-    'foundation',
-    'foundation-datepicker',
+    'bootstrap-sass',
     'components-font-awesome',
-    'foundation-icon-fonts',
     'tinymce',
     'jquery-ui',
     'jquery-runner',
@@ -177,10 +174,11 @@ BOWER_INSTALLED_APPS = (
 )
 
 # Additional search paths for SASS files when using the @import statement
-SASS_PROCESSOR_INCLUDE_DIRS = (
-    BOWER_COMPONENTS_ROOT.child('bower_components', 'foundation', 'scss'),
+SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
+    'bower_components', 'bootstrap-sass', 'assets', 'stylesheets'),
 )
 
+# FIXME update cripy-forms and remove this
 # hack to suppress many annoying warnings from crispy_forms
 # see sapl.temp_suppress_crispy_form_warnings
 LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
