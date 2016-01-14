@@ -1,11 +1,7 @@
 {% extends "comissoes/comissao_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-
+{% block actions %}{% endblock %}
 {% block detail_content %}
-	<h2>Incluir Parlamentar</h2>
-	
-	{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
-
 	{% crispy form %}
 {% endblock detail_content %}
