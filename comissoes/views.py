@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -8,7 +9,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
-from parlamentares.models import Filiacao, Parlamentar
+from parlamentares.models import Filiacao
 from sapl.crud import build_crud
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
@@ -327,28 +328,25 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
             if cargo.nome == 'Presidente':
                 for p in Participacao.objects.filter(composicao=composicao):
                     if p.cargo.nome == 'Presidente':
+                        msg = 'Esse cargo já está sendo ocupado!'
+                        messages.add_message(request, messages.INFO, msg)
                         return self.render_to_response(
                             {'form': form,
                              'composicao_id': self.kwargs['id'],
-                             'error': 'Esse cargo já está sendo ocupado!',
                              'comissao': comissao})
                     else:
                         # Pensar em forma melhor para não duplicar código
                         participacao = form.save(commit=False)
-                        parlamentar = Parlamentar.objects.get(
-                            id=form.cleaned_data['parlamentar_id'].id)
-
                         participacao.composicao = composicao
-                        participacao.parlamentar = parlamentar
+                        participacao.parlamentar = (
+                            form.cleaned_data['parlamentar_id'].parlamentar)
 
                         participacao.save()
             else:
                 participacao = form.save(commit=False)
-                parlamentar = Parlamentar.objects.get(
-                    id=form.cleaned_data['parlamentar_id'].id)
-
                 participacao.composicao = composicao
-                participacao.parlamentar = parlamentar
+                participacao.parlamentar = (
+                    form.cleaned_data['parlamentar_id'].parlamentar)
 
                 participacao.save()
             return self.form_valid(form)
