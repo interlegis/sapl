@@ -2,6 +2,8 @@
 {% load i18n %}
 {% block actions %}
   <dl class="sub-nav left">
+  {% if nao_tem_legislatura %}
     <dd><a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Incluir Parlamentar' %}</a></dd>
+  {% endif %} 
   </dl>
 {% endblock actions %}

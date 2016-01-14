@@ -70,13 +70,12 @@ sessao_legislativa_crud = build_crud(
     SessaoLegislativa, 'sessao_legislativa', [
 
         [_('Sessão Legislativa'),
-         [('numero', 4),
-            ('tipo', 4),
-            ('legislatura', 4),
-            ('data_inicio', 6),
-            ('data_fim', 6),
-            ('data_inicio_intervalo', 6),
-            ('data_fim_intervalo', 6)]],
+         [('numero', 2),
+            ('tipo', 2),
+            ('data_inicio', 2),
+            ('data_fim', 2),
+            ('data_inicio_intervalo', 2),
+            ('data_fim_intervalo', 2)]],
     ])
 
 
@@ -157,6 +156,17 @@ class ParlamentaresView(GenericView):
 
     def get(self, request, *args, **kwargs):
         form = ParlamentaresListForm()
+
+        if not Legislatura.objects.all():
+            nao_tem_legislatura = True
+            mensagem = "Cadastre alguma Legislatura antes\
+            de cadastrar algum Parlamentar"
+            messages.add_message(request, messages.INFO, mensagem)
+            return self.render_to_response(
+                {'legislaturas': [],
+                 'legislatura_id': 0,
+                 'form': form,
+                 })
 
         legislaturas = Legislatura.objects.all().order_by(
             '-data_inicio', '-data_fim')
