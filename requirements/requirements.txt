@@ -14,5 +14,5 @@ libsass
 psycopg2
 pytz
 PyYAML
-trml2pdf>=0.3
+git+git://github.com/interlegis/trml2pdf.git
 Unipath
