@@ -4,6 +4,7 @@ from re import sub
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.html import strip_tags
@@ -631,8 +632,26 @@ class MesaDiretoraView(FormMixin, GenericView):
     def get_success_url(self):
         return reverse('mesa_diretora')
 
+    # Essa função avisa quando se pode compor uma Mesa Legislativa)
+    def validation(self, form, request):
+        mensagem = "Não há nenhuma Sessão Legislativa cadastrada.\
+        Só é possível compor uma Mesa Diretora quando há uma Sessão\
+        Legislativa cadastrada."
+        messages.add_message(request, messages.INFO, mensagem)
+
+        return self.render_to_response(
+                {'form': form,
+                 'legislaturas': Legislatura.objects.all(
+                 ).order_by('-data_inicio'),
+                 'legislatura_selecionada': Legislatura.objects.last(),
+                 'cargos_vagos': CargoMesa.objects.all()})
+
     def get(self, request, *args, **kwargs):
         form = MesaDiretoraForm()
+
+        if (not Legislatura.objects.all() or
+                not SessaoLegislativa.objects.all()):
+            return self.validation(form, request)
 
         mesa = SessaoLegislativa.objects.filter(
             legislatura=Legislatura.objects.last()).first(
@@ -667,6 +686,11 @@ class MesaDiretoraView(FormMixin, GenericView):
         form = MesaDiretoraForm(request.POST)
 
         if 'Incluir' in request.POST:
+
+            if (not Legislatura.objects.all() or
+                    not SessaoLegislativa.objects.all()):
+                return self.validation(form, request)
+
             composicao = ComposicaoMesa()
             composicao.sessao_legislativa = SessaoLegislativa.objects.get(
                 id=form.data['sessao'])
@@ -677,6 +701,11 @@ class MesaDiretoraView(FormMixin, GenericView):
             composicao.save()
             return self.form_valid(form)
         elif 'Excluir' in request.POST:
+
+            if (not Legislatura.objects.all() or
+                    not SessaoLegislativa.objects.all()):
+                return self.validation(form, request)
+
             if 'composicao_mesa' in request.POST:
                 ids = request.POST['composicao_mesa'].split(':')
                 ComposicaoMesa.objects.filter(
