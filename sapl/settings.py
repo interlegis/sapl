@@ -125,6 +125,10 @@ EMAIL_PORT = 587
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 LANGUAGE_CODE = 'pt-br'
+LANGUAGES = (
+    ('pt-br', u'Português'),
+)
+
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_L10N = False
