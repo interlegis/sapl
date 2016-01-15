@@ -1,3 +1,4 @@
+import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -6,11 +7,9 @@ from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-import sapl
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
@@ -204,7 +203,8 @@ class ComposicaoView(FormMixin, GenericView):
             msg = ''
         else:
             composicao_id = 0
-            msg = 'Ainda não há composição nessa comissão.'
+            msg = 'Ainda não há uma composição formada!'
+            messages.add_message(request, messages.INFO, msg)
 
         return self.render_to_response({
             'participacoes': participacoes,
@@ -212,8 +212,7 @@ class ComposicaoView(FormMixin, GenericView):
             'composicao_id': composicao_id,
             'form': form,
             'pk': self.kwargs['pk'],
-            'comissao': Comissao.objects.get(id=self.kwargs['pk']),
-            'error': msg})
+            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
 
     def post(self, request, *args, **kwargs):
         form = ComposicaoForm(request.POST)

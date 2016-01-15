@@ -5,9 +5,7 @@
 <h2>Composição</h2>
 {% block detail_content %}
 
-{% if error %} 
-	<h5 align="center"><font color="#FF0000">{{ error }}</font></h5>
-{% else %}
+{% if composicao_id != 0 %}
 	<table>
 		<tr>
 			<th>Nome</th>
