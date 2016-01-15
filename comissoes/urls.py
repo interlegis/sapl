@@ -3,9 +3,9 @@ from django.conf.urls import include, url
 from comissoes.views import (CadastrarComissaoView,
                              ComissaoParlamentarEditView,
                              ComissaoParlamentarIncluirView, ComposicaoView,
-                             MateriasView, ReunioesView, cargo_crud,
-                             comissao_crud, periodo_composicao_crud,
-                             tipo_comissao_crud, MateriasTramitacaoListView)
+                             MateriasTramitacaoListView, MateriasView,
+                             ReunioesView, cargo_crud, comissao_crud,
+                             periodo_composicao_crud, tipo_comissao_crud)
 
 comissao_url_patterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao$',

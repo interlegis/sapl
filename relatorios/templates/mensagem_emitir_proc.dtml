@@ -1,0 +1,9 @@
+<html>
+<script language="javascript">
+function alerta(){
+alert("O resultado da pesquisa é muito grande para gerar o arquivo .pdf,\npor favor,preencha os filtros");}
+alerta()
+history.back()
+</script>
+</html>
+

@@ -1,4 +1,3 @@
-import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -8,13 +7,15 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
+from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
-from vanilla import GenericView
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
-from materia.models import Tramitacao
 
 cargo_crud = build_crud(
     CargoComissao, 'cargo_comissao', [
