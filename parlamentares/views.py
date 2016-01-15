@@ -879,6 +879,14 @@ class FiliacaoView(FormMixin, GenericView):
                         de outro período de filiação"
                         return self.error_message(parlamentar, form, mensagem)
 
+                    if (data_desfiliacao and
+                            data_filiacao <= data_init and
+                            data_desfiliacao >= data_fim):
+                        mensagem = "A data de filiação e\
+                        desfiliação não podem estar no intervalo\
+                        de outro período de filiação"
+                        return self.error_message(parlamentar, form, mensagem)
+
                 # Salva a nova filiação caso tudo esteja correto
                 else:
                     filiacao = form.save(commit=False)
@@ -938,6 +946,10 @@ class FiliacaoEditView(FormMixin, GenericView):
                 parlamentar=parlamentar,
                 data_desfiliacao=None)
 
+            if 'Excluir' in request.POST:
+                filiacao.delete()
+                return self.form_valid(form)
+
             # Vê se o candidato já se filiou alguma vez a algum partido
             if not candidato_filiado:
                 filiacao = form.save(commit=False)
@@ -980,6 +992,15 @@ class FiliacaoEditView(FormMixin, GenericView):
                                 data_desfiliacao < data_fim and
                                 data_desfiliacao > data_init):
 
+                            mensagem = "A data de filiação e\
+                            desfiliação não podem estar no intervalo\
+                            de outro período de filiação"
+                            return self.error_message(parlamentar,
+                                                      form,
+                                                      mensagem)
+                        if (data_desfiliacao and
+                                data_filiacao <= data_init and
+                                data_desfiliacao >= data_fim):
                             mensagem = "A data de filiação e\
                             desfiliação não podem estar no intervalo\
                             de outro período de filiação"
