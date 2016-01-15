@@ -5,11 +5,13 @@ from comissoes.views import (CadastrarComissaoView,
                              ComissaoParlamentarIncluirView, ComposicaoView,
                              MateriasView, ReunioesView, cargo_crud,
                              comissao_crud, periodo_composicao_crud,
-                             tipo_comissao_crud)
+                             tipo_comissao_crud, MateriasTramitacaoListView)
 
 comissao_url_patterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao$',
         ComposicaoView.as_view(), name='composicao'),
+    url(r'^(?P<pk>\d+)/materias-em-tramitacao$',
+        MateriasTramitacaoListView.as_view(), name='materias_em_tramitacao'),
     url(r'^(?P<pk>\d+)/composicao/(?P<id>\d+)/parlamentar$',
         ComissaoParlamentarIncluirView.as_view(),
         name='comissao_parlamentar'),

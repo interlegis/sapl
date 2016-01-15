@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
@@ -13,6 +14,7 @@ from vanilla import GenericView
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
+from materia.models import Tramitacao
 
 cargo_crud = build_crud(
     CargoComissao, 'cargo_comissao', [
@@ -373,3 +375,20 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
         return self.render_to_response({'form': form,
                                         'comissao': comissao,
                                         'composicao_id': self.kwargs['id']})
+
+
+class MateriasTramitacaoListView(ListView):
+    template_name = "comissoes/materias_em_tramitacao.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        tramitacoes = Tramitacao.objects.filter(
+            unidade_tramitacao_local__comissao=pk)
+        return tramitacoes
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            MateriasTramitacaoListView, self).get_context_data(**kwargs)
+        context['comissao'] = Comissao.objects.get(id=self.kwargs['pk'])
+        return context
