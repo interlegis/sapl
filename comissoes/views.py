@@ -370,11 +370,36 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
         participacao = Participacao.objects.get(id=participacao_id)
         comissao = Comissao.objects.get(id=self.kwargs['pk'])
         form = ParticipacaoCadastroForm(
-            initial={'parlamentar_id': participacao.parlamentar.id},
+            initial={'parlamentar_id': (Filiacao.objects.get(
+                parlamentar__id=participacao.parlamentar.id).id)},
             instance=participacao)
         return self.render_to_response({'form': form,
                                         'comissao': comissao,
                                         'composicao_id': self.kwargs['id']})
+
+    def post(self, request, *args, **kwargs):
+        form = ParticipacaoCadastroForm(request.POST)
+        if form.is_valid():
+            participacao = ParticipacaoCadastroForm(
+                    request.POST,
+                    request.FILES,
+                    instance=Participacao.objects.get(id=kwargs['id'])
+                ).save(commit=False)
+
+            participacao.composicao = Composicao.objects.get(
+                    id=kwargs['cd'])
+            participacao.parlamentar = (
+                form.cleaned_data['parlamentar_id'].parlamentar)
+            participacao.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'composicao_id': self.kwargs['id']})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('comissao:composicao', kwargs={'pk': pk})
 
 
 class MateriasTramitacaoListView(ListView):

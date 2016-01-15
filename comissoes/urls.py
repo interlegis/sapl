@@ -15,7 +15,7 @@ comissao_url_patterns = comissao_crud.urlpatterns + [
     url(r'^(?P<pk>\d+)/composicao/(?P<id>\d+)/parlamentar$',
         ComissaoParlamentarIncluirView.as_view(),
         name='comissao_parlamentar'),
-    url(r'^(?P<pk>\d+)/composicao/parlamentar/(?P<id>\d+)/edit$',
+    url(r'^(?P<pk>\d+)/composicao/(?P<cd>\d+)/parlamentar/(?P<id>\d+)/edit$',
         ComissaoParlamentarEditView.as_view(),
         name='comissao_parlamentar_edit'),
     url(r'^(?P<pk>\d+)/materias$',

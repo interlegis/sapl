@@ -31,7 +31,7 @@
 		{% for participacao in participacoes %}
 			{% if participacao.composicao_id == composicao_id %}
 				<tr>
-					<td><a href="{% url 'comissao:comissao_parlamentar_edit' pk participacao.id %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
+					<td><a href="{% url 'comissao:comissao_parlamentar_edit' pk composicao_id participacao.id %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
 					<td>{{participacao.cargo}}</td>
 					<td>{{participacao.titular|yesno:"Sim,Não"}}</td>	
 					<td>{{participacao.data_designacao|date:"d/m/Y"}}</td>
