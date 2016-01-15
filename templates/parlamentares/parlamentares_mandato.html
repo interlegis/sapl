@@ -33,11 +33,11 @@
 			{% for m in mandatos %}
 				<tr>
 					<td><a href="{% url 'parlamentares_mandato_edit' parlamentar.id m.id %}">{{m.legislatura}}</a></td>
-					<td>{{m.coligacao}}</td>
-					<td>{{m.data_fim_mandato}}</td>
-					<td>{{m.data_expedicao_diploma}}</td>
-					<td>{{m.votos_recebidos}}</td>
-					<td>{{m.observacao}}</td>
+					<td>{{m.coligacao|default_if_none:""}}</td>
+					<td>{{m.data_fim_mandato|default_if_none:""}}</td>
+					<td>{{m.data_expedicao_diploma|default_if_none:""}}</td>
+					<td>{{m.votos_recebidos|default_if_none:""}}</td>
+					<td>{{m.observacao|default_if_none:""}}</td>
 				</tr>
 			{% endfor %}
 	</table>
