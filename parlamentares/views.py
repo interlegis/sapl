@@ -70,12 +70,13 @@ sessao_legislativa_crud = build_crud(
     SessaoLegislativa, 'sessao_legislativa', [
 
         [_('Sessão Legislativa'),
-         [('numero', 2),
-            ('tipo', 2),
-            ('data_inicio', 2),
-            ('data_fim', 2),
-            ('data_inicio_intervalo', 2),
-            ('data_fim_intervalo', 2)]],
+            [('numero', 4),
+             ('tipo', 4),
+             ('legislatura', 4),
+             ('data_inicio', 6),
+             ('data_fim', 6),
+             ('data_inicio_intervalo', 6),
+             ('data_fim_intervalo', 6)]],
     ])
 
 
