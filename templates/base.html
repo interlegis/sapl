@@ -15,17 +15,11 @@
       <link rel="icon" href="{% static 'img/favicon.ico' %}"  type="image/png" >
 
       {# Styles #}
-      <link rel="stylesheet" href="{% static 'foundation-datepicker/css/foundation-datepicker.min.css' %}">
       <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-      <link rel="stylesheet" href="{% static 'foundation-icon-fonts/foundation-icons.css' %}">
       <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
 
       {# Scripts #}
       {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/modernizr.js' %}"></script>
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
-      <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'foundation-datepicker/js/foundation-datepicker.js' %}"></script>
       <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
       <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
     {% endblock %}
@@ -34,49 +28,53 @@
   <body>
     <div class="page fadein">
 
-      {# Navigation #}
       {% block navigation %}
-        <div id="navigation" class="navigation fixed contain-to-grid">
-          <nav class="top-bar" data-topbar role="navigation">
-            <ul class="title-area left">
-              <li class="name"></li>
-              <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
-            </ul>
 
-            <div class="nav right">
-              <div class="icon-bar three-up">
-                <a class="item" tabindex="0" role="button" aria-label="{% trans 'Pesquisa' %}">
-                  <img src="{% static 'img/search.png' %}">
-                </a>
-                <a class="item" tabindex="0" role="button" aria-label="{% trans 'Manual' %}">
-                  <img src="{% static 'img/manual.png' %}">
-                </a>
-                <a class="item" tabindex="0" role="button" aria-label="{% trans 'Usuário' %}">
-                  <img src="{% static 'img/user.png' %}">
-                </a>
-              </div>
-            </div>
+      <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a href="#" class="pull-left logo">
+              {% if logotipo %}
+                <img src="{{ MEDIA_URL }}{{ logotipo }}" alt="Logo">
+              {% else %}
+                <img src="{% static 'img/logo.png' %}" alt="Logo">
+              {% endif %}
+              <a class="navbar-brand" href="#">
+                {{ parliament_type  }} {% trans 'de' %} {{ city  }} - {{ state  }}
+              </a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
 
-            <section class="top-bar-section">
-              <ul class="nav left">
-                <li class="nav__item has-dropdown"><a class="nav__link">Institucional</a>
-                  <ul class="nav__sub-nav dropdown">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Institucional <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'mesa_diretora' %}">Mesa Diretora</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'comissao:list' %}">Comissões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares' %}">Parlamentares</a></li>
                   </ul>
                 </li>
-                <li class="nav__item has-dropdown"><a class="nav__link">Protocolo</a>
-                  <ul class="nav__sub-nav dropdown">
+
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Protocolo <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'protocolo' %}">Pesquisar</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="/materia">Protocolo Legislativo</a></li> -->
                     {# <li class="nav__sub-item"><a class="nav__sub-link" href="">Protocolo Geral</a></li> #}
                     {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'proposicao' %}">Proposições</a></li> #}
                   </ul>
                 </li>
-                <li class="nav__item has-dropdown"><a class="nav__link">Atividade Legislativa</a>
-                  <ul class="nav__sub-nav dropdown">
+
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Atividade Legislativa <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'list_proposicao' %}">Proposições</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materialegislativa:list' %}">Matérias Legislativas</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessaoplenaria:list_sessao' %}">Sessões Plenárias</a></li>
@@ -88,14 +86,18 @@
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Relatórios</a></li> -->
                   </ul>
                 </li>
-                 <li class="nav__item has-dropdown"><a class="nav__link">{% trans 'Legislação'%}</a>
-                  <ul class="nav__sub-nav dropdown">
+
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans 'Legislação'%} <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'normajuridica:list'%}">{% trans 'Normas Jurídicas'%}</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Índice de Assuntos</a></li>
                   </ul>
                 </li>
-                <li class="nav__item has-dropdown"><a class="nav__link">Sistema</a>
-                  <ul class="nav__sub-nav dropdown">
+
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Sistema <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="/sistema">Tabelas Auxiliares</a></li>
 <!--                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Publicador LexML</a></li>
@@ -107,10 +109,11 @@
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Troca de Senha</a></li> -->
                   </ul>
                 </li>
-              </ul>
-            </section>
-          </nav>
+
+            </ul>
+          </div><!--/.nav-collapse -->
         </div>
+      </nav>
       {% endblock navigation %}
 
       {# Header #}
@@ -215,19 +218,15 @@
     </div>
 
     {% block foot_js %}
-      <script type="text/javascript" src="{% static 'foundation/js/foundation.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/fastclick.js' %}"></script>
+      <!-- Bootstrap core JavaScript ================================================== -->
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
+
       <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-
-
       <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 
-      <script>
-
-      </script>
-
-      {% block extra_js %}
-      {% endblock %}
+      {% block extra_js %}{% endblock %}
 
     {% endblock foot_js %}
   </body>

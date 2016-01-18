@@ -1,0 +1,10 @@
+
+$logo-height: 0.8 * $navbar-height;
+$logo-margin: ($navbar-height - $logo-height) / 2;
+
+.logo img {
+	width: $logo-height;
+	height: $logo-height;
+	margin: $logo-margin $navbar-padding-horizontal;
+}
+
