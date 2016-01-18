@@ -8,11 +8,6 @@
 		<dd><a href="{% url 'parlamentares_mandato' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Mandatos' %}</a></dd>
 		<dd><a href="{% url 'parlamentares_filiacao' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Filiações Partidárias' %}</a></dd>
 		<dd><a href="{% url 'parlamentares_dependentes' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Dependentes' %}</a></dd>
-	{% else %}
-		<dd><a href="" id="incluir-parlamentar" class="button secondary" disabled="">{% trans 'Inicio' %}</a></dd>
-		<dd><a href="" id="incluir-parlamentar" class="button secondary" disabled="">{% trans 'Mandatos' %}</a></dd>
-		<dd><a href="" id="incluir-parlamentar" class="button secondary" disabled="">{% trans 'Filiações Partidárias' %}</a></dd>
-		<dd><a href="" id="incluir-parlamentar" class="button secondary" disabled="">{% trans 'Dependentes' %}</a></dd>
 	{% endif %}
 </dl>
 {% endblock sections_nav %}
