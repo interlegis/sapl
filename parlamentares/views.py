@@ -1,6 +1,7 @@
 import os
 from re import sub
 
+import sapl
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
 from django import forms
@@ -11,10 +12,8 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-import sapl
 from sapl.crud import build_crud
+from vanilla import GenericView
 
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
@@ -809,15 +808,15 @@ class FiliacaoView(FormMixin, GenericView):
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
 
     # Função usada para todos os caso de erro na filiação
-    def error_message(self, parlamentar, form, mensagem):
+    def error_message(self, parlamentar, form, mensagem, request):
         filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
+        messages.add_message(request, messages.INFO, mensagem)
         return self.render_to_response(
             {'parlamentar': parlamentar,
              'filiacoes': filiacoes,
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura.id,
-             'mensagem_erro': mensagem})
+             ).legislatura.id})
 
     def post(self, request, *args, **kwargs):
         form = FiliacaoForm(request.POST)
@@ -849,14 +848,16 @@ class FiliacaoView(FormMixin, GenericView):
                 if candidato_nao_desfiliou:
                     mensagem = "Você não pode se filiar a algum partido\
                     sem antes se desfiliar do partido anterior"
-                    return self.error_message(parlamentar, form, mensagem)
+                    return self.error_message(
+                        parlamentar, form, mensagem, request)
 
                 # Dá erro caso a data de desfiliação seja anterior a de
                 # filiação
                 if data_desfiliacao and data_desfiliacao < data_filiacao:
-                    mensagem = "A data de filiação não pode\
+                    mensagem = "A data de filiação não pode ser\
                     anterior à data de desfiliação"
-                    return self.error_message(parlamentar, form, mensagem)
+                    return self.error_message(
+                        parlamentar, form, mensagem, request)
 
                 # Esse bloco garante que não haverá intersecção entre os
                 # períodos de filiação
@@ -868,7 +869,8 @@ class FiliacaoView(FormMixin, GenericView):
                         mensagem = "A data de filiação e\
                         desfiliação não podem estar no intervalo\
                         de outro período de filiação"
-                        return self.error_message(parlamentar, form, mensagem)
+                        return self.error_message(
+                            parlamentar, form, mensagem, request)
 
                     if (data_desfiliacao and
                             data_desfiliacao < data_fim and
@@ -877,7 +879,8 @@ class FiliacaoView(FormMixin, GenericView):
                         mensagem = "A data de filiação e\
                         desfiliação não podem estar no intervalo\
                         de outro período de filiação"
-                        return self.error_message(parlamentar, form, mensagem)
+                        return self.error_message(
+                            parlamentar, form, mensagem, request)
 
                     if (data_desfiliacao and
                             data_filiacao <= data_init and
@@ -885,7 +888,8 @@ class FiliacaoView(FormMixin, GenericView):
                         mensagem = "A data de filiação e\
                         desfiliação não podem estar no intervalo\
                         de outro período de filiação"
-                        return self.error_message(parlamentar, form, mensagem)
+                        return self.error_message(
+                            parlamentar, form, mensagem, request)
 
                 # Salva a nova filiação caso tudo esteja correto
                 else:
@@ -897,7 +901,8 @@ class FiliacaoView(FormMixin, GenericView):
             pid = kwargs['pk']
             parlamentar = Parlamentar.objects.get(id=pid)
             mensagem = ""
-            return self.error_message(parlamentar, form, mensagem)
+            return self.error_message(
+                parlamentar, form, mensagem, request)
 
 
 class FiliacaoEditView(FormMixin, GenericView):
@@ -917,13 +922,13 @@ class FiliacaoEditView(FormMixin, GenericView):
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
 
-    def error_message(self, parlamentar, form, mensagem):
+    def error_message(self, parlamentar, form, mensagem, request):
+        messages.add_message(request, messages.INFO, mensagem)
         return self.render_to_response(
             {'form': form,
              'parlamentar': parlamentar,
              'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura_id,
-             'mensagem_erro': mensagem})
+             ).legislatura_id})
 
     def post(self, request, *args, **kwargs):
         filiacao = Filiacao.objects.get(id=kwargs['dk'])
@@ -961,14 +966,16 @@ class FiliacaoEditView(FormMixin, GenericView):
                 if candidato_nao_desfiliou:
                     mensagem = "Você não pode se filiar a algum partido\
                     sem antes se desfiliar do partido anterior"
-                    return self.error_message(parlamentar, form, mensagem)
+                    return self.error_message(
+                        parlamentar, form, mensagem, request)
 
                 # Dá erro caso a data de desfiliação seja anterior a de
                 # filiação
                 if data_desfiliacao and data_desfiliacao < data_filiacao:
                     mensagem = "A data de filiação não pode\
                     anterior à data de desfiliação"
-                    return self.error_message(parlamentar, form, mensagem)
+                    return self.error_message(
+                        parlamentar, form, mensagem, request)
 
                 # Esse bloco garante que não haverá intersecção entre os
                 # períodos de filiação
@@ -986,7 +993,8 @@ class FiliacaoEditView(FormMixin, GenericView):
                             de outro período de filiação"
                             return self.error_message(parlamentar,
                                                       form,
-                                                      mensagem)
+                                                      mensagem,
+                                                      request)
 
                         if (data_desfiliacao and
                                 data_desfiliacao < data_fim and
@@ -997,7 +1005,8 @@ class FiliacaoEditView(FormMixin, GenericView):
                             de outro período de filiação"
                             return self.error_message(parlamentar,
                                                       form,
-                                                      mensagem)
+                                                      mensagem,
+                                                      request)
                         if (data_desfiliacao and
                                 data_filiacao <= data_init and
                                 data_desfiliacao >= data_fim):
@@ -1006,7 +1015,8 @@ class FiliacaoEditView(FormMixin, GenericView):
                             de outro período de filiação"
                             return self.error_message(parlamentar,
                                                       form,
-                                                      mensagem)
+                                                      mensagem,
+                                                      request)
 
             if 'Salvar' in request.POST:
                 filiacao.save()
