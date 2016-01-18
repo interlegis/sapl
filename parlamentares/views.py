@@ -947,10 +947,6 @@ class FiliacaoEditView(FormMixin, GenericView):
             candidato_filiado = Filiacao.objects.filter(
                 parlamentar=parlamentar)
 
-            candidato_nao_desfiliou = Filiacao.objects.filter(
-                parlamentar=parlamentar,
-                data_desfiliacao=None)
-
             if 'Excluir' in request.POST:
                 filiacao.delete()
                 return self.form_valid(form)
@@ -962,12 +958,6 @@ class FiliacaoEditView(FormMixin, GenericView):
                 filiacao.save()
                 return self.form_valid(form)
             else:
-                # Dá erro caso não tenha se desfiliado do anterior
-                if candidato_nao_desfiliou:
-                    mensagem = "Você não pode se filiar a algum partido\
-                    sem antes se desfiliar do partido anterior"
-                    return self.error_message(
-                        parlamentar, form, mensagem, request)
 
                 # Dá erro caso a data de desfiliação seja anterior a de
                 # filiação
