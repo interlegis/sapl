@@ -32,9 +32,6 @@
 		
 		<fieldset>
 			<legend>Adicionar Relator</legend>
-			{% if error_localizacao %}
-				<h5 align="center"><font color="#FF0000">{{ error_localizacao }}</font></h5>
-			{% else %}
 				<form method="POST">
 					{% csrf_token %}
 

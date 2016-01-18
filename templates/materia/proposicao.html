@@ -5,7 +5,6 @@
 {% block actions %}<!-- Remvoer botões 'Editar' e 'Excluir' -->{% endblock %}
 
 {% block detail_content %}
-	{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
 	{% crispy form %}
 {% endblock %}
 

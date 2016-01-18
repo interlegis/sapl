@@ -859,11 +859,11 @@ class LegislacaoCitadaView(FormMixin, GenericView):
                     numero=form.cleaned_data['numero'],
                     ano=form.cleaned_data['ano'])
             except ObjectDoesNotExist:
-                error = 'Norma Juridica não existe.'
+                msg = 'Norma Juridica não existe.'
+                messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response({'form': form,
                                                 'materialegislativa': materia,
-                                                'legislacao': legislacao_list,
-                                                'error': error})
+                                                'legislacao': legislacao_list})
             legislacao.materia = materia
             legislacao.norma = norma
             legislacao.disposicoes = form.cleaned_data['disposicao']
@@ -925,11 +925,11 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
                         numero=form.cleaned_data['numero'],
                         ano=form.cleaned_data['ano'])
                 except ObjectDoesNotExist:
-                    error = 'Norma Juridica não existe.'
+                    msg = 'Norma Juridica não existe.'
+                    messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'form': form,
                          'materialegislativa': materia,
-                         'error': error,
                          'legislacao': legislacao,
                          'tipos_norma': TipoNormaJuridica.objects.all()})
                 legislacao.materia = materia
@@ -1373,11 +1373,12 @@ class RelatoriaView(FormMixin, GenericView):
             comissao = Comissao.objects.get(
                 id=localizacao.unidade_tramitacao_destino_id)
         except ObjectDoesNotExist:
+            msg = 'O local atual deve  ser uma Comissão!'
+            messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'materialegislativa': materia,
                  'form': form,
-                 'relatorias': relatorias,
-                 'error_localizacao': 'O local atual deve  ser uma Comissão!'})
+                 'relatorias': relatorias})
         else:
             composicao = Composicao.objects.filter(comissao=comissao).last()
             parlamentares = composicao.participacao_set.all()
@@ -1490,12 +1491,13 @@ class TramitacaoView(FormMixin, GenericView):
                 tramitacao.materia = materia
                 tramitacao.save()
             else:
+                msg = 'A origem da nova tramitação \
+                        deve ser igual ao destino da última adicionada!'
+                messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'form': form,
                      'materialegislativa': materia,
-                     'tramitacoes': tramitacoes_list,
-                     'error': 'A origem da nova tramitação \
-                        deve ser igual ao destino da última adicionada!'})
+                     'tramitacoes': tramitacoes_list})
 
             corpo_email = ('A tramitação da matéria %s foi alterada.' % materia
                            )
@@ -1546,15 +1548,17 @@ class TramitacaoEditView(FormMixin, GenericView):
                     tramitacao.delete()
                     return self.form_valid(form)
                 else:
+                    msg = 'Somente a útlima tramitação pode ser\
+                    deletada!'
+                    messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'materialegislativa': materia,
                          'form': form,
                          'tramitacao': tramitacao,
                          'turno': Tramitacao.TURNO_CHOICES,
                          'status': StatusTramitacao.objects.all(),
-                         'unidade_tramitacao': UnidadeTramitacao.objects.all(),
-                         'error': 'Somente a última tramitação\
-                          pode ser deletada!'})
+                         'unidade_tramitacao': UnidadeTramitacao.objects.all()
+                         })
             elif 'salvar' in request.POST:
                 tramitacao.status = form.cleaned_data['status']
                 tramitacao.turno = form.cleaned_data['turno']
@@ -1639,14 +1643,15 @@ class AutoriaView(GenericView):
                      'autores': Autor.objects.all(),
                      'tipo_autor_id': int(form.data['tipo_autor'])})
             else:
+                msg = 'Essa autoria já foi adicionada!'
+                messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'materialegislativa': materia,
                      'form': form,
                      'autorias': autorias,
                      'tipo_autores': TipoAutor.objects.all(),
                      'autores': Autor.objects.all(),
-                     'tipo_autor_id': int(form.data['tipo_autor']),
-                     'error': 'Essa autoria já foi adicionada!'})
+                     'tipo_autor_id': int(form.data['tipo_autor'])})
         else:
             return self.render_to_response(
                 {'materialegislativa': materia,
@@ -1714,14 +1719,15 @@ class AutoriaEditView(GenericView):
                      'autores': Autor.objects.all(),
                      'tipo_autor_id': int(form.data['tipo_autor'])})
             else:
+                msg = 'Essa autoria já foi adicionada!'
+                messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'materialegislativa': materia,
                      'form': form,
                      'autorias': autorias,
                      'tipo_autores': TipoAutor.objects.all(),
                      'autores': Autor.objects.all(),
-                     'tipo_autor_id': int(form.data['tipo_autor']),
-                     'error': 'Essa autoria já foi adicionada!'})
+                     'tipo_autor_id': int(form.data['tipo_autor'])})
         else:
             return self.render_to_response(
                 {'materialegislativa': materia,
@@ -1827,9 +1833,9 @@ class ProposicaoView(FormMixin, GenericView):
                         ano=int(form.data['ano_materia']),
                         numero=int(form.data['numero_materia']))
                 except ObjectDoesNotExist:
-                    return self.render_to_response(
-                        {'form': form,
-                         'error': 'Matéria adicionada não existe!'})
+                    msg = 'Matéria adicionada não existe!'
+                    messages.add_message(request, messages.INFO, msg)
+                    return self.render_to_response({'form': form})
                 else:
                     proposicao.autor = materia.autoria_set.first().autor
                     proposicao.materia = materia
