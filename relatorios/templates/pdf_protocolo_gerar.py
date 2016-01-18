@@ -125,12 +125,14 @@ def principal(sessao,imagem,data,lst_protocolos,dic_cabecalho,lst_rodape,dic_fil
     tmp_data+='</document>\n'
     tmp_pdf=parseString(tmp_data)
 
-    if hasattr(context.temp_folder,arquivoPdf):
-        context.temp_folder.manage_delObjects(ids=arquivoPdf)
-    context.temp_folder.manage_addFile(arquivoPdf)
-    arq=context.temp_folder[arquivoPdf]
-    arq.manage_edit(title='Arquivo PDF temporário.',filedata=tmp_pdf,content_type='application/pdf')
+    return tmp_pdf
 
-    return "/temp_folder/"+arquivoPdf
+#     if hasattr(context.temp_folder,arquivoPdf):
+#         context.temp_folder.manage_delObjects(ids=arquivoPdf)
+#     context.temp_folder.manage_addFile(arquivoPdf)
+#     arq=context.temp_folder[arquivoPdf]
+#     arq.manage_edit(title='Arquivo PDF temporário.',filedata=tmp_pdf,content_type='application/pdf')
 
-return principal(sessao,imagem,data,lst_protocolos,dic_cabecalho,lst_rodape,dic_filtro)
+#     return "/temp_folder/"+arquivoPdf
+
+# return principal(sessao,imagem,data,lst_protocolos,dic_cabecalho,lst_rodape,dic_filtro)

@@ -1,10 +1,13 @@
 from datetime import datetime
 
-from django.http import HttpResponse
-
 from base.models import CasaLegislativa
 from base.views import ESTADOS
-from materia.models import Autoria, MateriaLegislativa, Tramitacao
+from comissoes.models import Comissao
+from django.http import HttpResponse
+from materia.models import (Autor, Autoria, MateriaLegislativa, Tramitacao,
+                            Numeracao)
+from parlamentares.models import Parlamentar
+from protocoloadm.models import Protocolo, DocumentoAdministrativo
 
 from .templates import pdf_capa_processo_gerar, pdf_materia_gerar
 
@@ -156,62 +159,69 @@ def relatorio_materia(request):
     return response
 
 
-def get_processos(prot):
-    pass
+def get_capa_processo(prot):
+    protocolos = []
+    for p in prot:
+        dic = {}
+        dic['numero'] = str(p.numero)
+        dic['ano'] = str(p.ano)
+        dic['data'] = str(p.data) + ' - ' + str(p.hora)
+        dic['txt_assunto'] = p.assunto_ementa
+        dic['txt_interessado'] = p.interessado
+        dic['nom_autor'] = " "
+        dic['titulo'] = " "
 
-    # protocolos = []
+        if p.autor is not None:
+            for autor in Autor.objects.filter(id=p.autor.id):
+                if autor.tipo == 'Parlamentar':
+                    for parlamentar in Parlamentar.objects.filter(
+                            id=p.autor.parlamentar.id):
+                        dic['nom_autor'] = parlamentar.nome_completo or ' '
+                elif autor.tipo == 'Comissao':
+                    for comissao in Comissao.objects.filter(
+                            id=p.autor.comissao.id):
+                        dic['nom_autor'] = comissao.nome or ' '
+                else:
+                    dic['nom_autor'] = autor.nome or ' '
+        else:
+            dic['nom_autor'] = p.interessado
 
-    # for p in prot:
-    #     dic={}
-    #     dic['titulo']=str(protocolo.cod_protocolo)
-    #     dic['ano']=str(protocolo.ano_protocolo)
-    #     dic['data']=context.pysc.iso_to_port_pysc(protocolo.dat_protocolo)+' - '+protocolo.hor_protocolo
-    #     dic['txt_assunto']=protocolo.txt_assunto_ementa
-    #     dic['txt_interessado']=protocolo.txt_interessado
-    #     dic['nom_autor'] = " " 
-        # if protocolo.cod_autor!=None:
-#            for autor in context.zsql.autor_obter_zsql(cod_autor=protocolo.cod_autor):
-#                 if autor.des_tipo_autor=='Parlamentar':
-#                     for parlamentar in context.zsql.parlamentar_obter_zsql(cod_parlamentar=autor.cod_parlamentar):
-#                         dic['nom_autor']=parlamentar.nom_completo
-#                 elif autor.des_tipo_autor=='Comissao':
-#                     for comissao in context.zsql.comissao_obter_zsql(cod_comissao=autor.cod_comissao):
-#                         dic['nom_autor']=comissao.nom_comissao
-#                 else:
-#                     dic['nom_autor']=autor.nom_autor
-#         else:
-#             dic['nom_autor']=protocolo.txt_interessado
+        dic['natureza'] = ''
+        if p.tipo_processo == 0:
+            dic['natureza'] = 'Administrativo'
+        if p.tipo_processo == 1:
+            dic['natureza'] = 'Legislativo'
 
-#         dic['natureza']=''
-#         if protocolo.tip_processo==0:
-#            dic['natureza']='Administrativo'
-#         if protocolo.tip_processo==1:
-#            dic['natureza']='Legislativo'
-  
-#         dic['ident_processo']=protocolo.des_tipo_materia or protocolo.des_tipo_documento
+        dic['ident_processo'] = str(p.tipo_materia) or str(p.tipo_documento)
 
-#         dic['sgl_processo']=protocolo.sgl_tipo_materia or protocolo.sgl_tipo_documento
+        dic['sgl_processo'] = str(p.tipo_materia) or str(p.tipo_documento)
 
-#         dic['num_materia']=''
-#         for materia in context.zsql.materia_obter_zsql(num_protocolo=protocolo.cod_protocolo,ano_ident_basica=protocolo.ano_protocolo):
-#                dic['num_materia']=str(materia.num_ident_basica)+'/'+ str(materia.ano_ident_basica)
+        dic['num_materia'] = ''
+        for materia in MateriaLegislativa.objects.filter(
+                numero_protocolo=p.numero, ano=p.ano):
+            dic['num_materia'] = str(materia.numero) + '/' + str(materia.ano)
 
-#         dic['num_documento']=''
-#         for documento in context.zsql.documento_administrativo_obter_zsql(num_protocolo=protocolo.cod_protocolo):
-#                dic['num_documento']=str(documento.num_documento)+'/'+ str(documento.ano_documento)
+        dic['num_documento'] = ''
+        for documento in DocumentoAdministrativo.objects.filter(
+                numero=p.numero):
+            dic['num_documento'] = str(
+                documento.numero) + '/' + str(documento.ano)
 
-#         dic['num_processo']=dic['num_materia'] or dic['num_documento']
+        dic['num_processo'] = dic['num_materia'] or dic['num_documento']
 
-#         dic['numeracao']=''
-#         for materia_num in context.zsql.materia_obter_zsql(num_protocolo=protocolo.cod_protocolo,ano_ident_basica=protocolo.ano_protocolo):
-#            for numera in context.zsql.numeracao_obter_zsql(cod_materia=materia_num.cod_materia,ind_excluido=0):
-#                dic['numeracao']='PROCESSO N&#176; ' +str(numera.num_materia)+'/'+ str(numera.ano_materia)
+        dic['numeracao'] = ''
+        for materia_num in MateriaLegislativa.objects.filter(
+                numero_protocolo=p.numero, ano=p.ano):
+            for numera in Numeracao.objects.filter(materia=materia_num):
+                dic['numeracao'] = 'PROCESSO N&#176; ' + \
+                    str(numera.numero) + '/' + str(numera.ano)
 
-#         dic['anulado']=''
-#         if protocolo.ind_anulado==1:
-#            dic['anulado']='Nulo'
+        dic['anulado'] = ''
+        if p.anulado == 1:
+            dic['anulado'] = 'Nulo'
 
-#         protocolos.append(dic)
+        protocolos.append(dic)
+    return protocolos
 
 
 def relatorio_processo(request):
@@ -228,17 +238,16 @@ def relatorio_processo(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
+    protocolos = Protocolo.objects.all()[:50]
+    protocolos_pdf = get_capa_processo(protocolos)
 
-
-    protocolos = get_processo(protocolos)
-
-    pdf = pdf_materia_gerar.principal(None,
-                                      imagem,
-                                      None,
-                                      protocolos,
-                                      cabecalho,
-                                      rodape)
+    pdf = pdf_capa_processo_gerar.principal(None,
+                                            imagem,
+                                            None,
+                                            protocolos_pdf,
+                                            cabecalho,
+                                            rodape)
 
     response.write(pdf)
 
-    return response    
+    return response
