@@ -1,21 +1,7 @@
-{% extends "crud/detail.html" %}
+{% extends "parlamentares/parlamentares_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block actions %}
-  <dl class="sub-nav left">
-
-    <dd><a href="{% url 'parlamentares_editar' legislatura_id parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Inicio' %}</a></dd>
-
-    <dd><a href="{% url 'parlamentares_mandato' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Mandatos' %}</a></dd>
-
-    <dd><a href="{% url 'parlamentares_filiacao' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Filiações Partidárias' %}</a></dd>
-
-    <dd><a href="{% url 'parlamentares_dependentes' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Dependentes' %}</a></dd>
-
-  </dl>
-{% endblock %}
+{% block actions %}{% endblock %}
 {% block detail_content %}
-	
-{% crispy form %}
-
+	{% crispy form %}
 {% endblock detail_content %}
