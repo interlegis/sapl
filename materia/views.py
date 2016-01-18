@@ -1,9 +1,13 @@
 from datetime import date, datetime
 from re import sub
 
+import sapl
+from comissoes.models import Comissao, Composicao
+from compilacao.views import IntegracaoTaView
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
 from django import forms
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
@@ -14,15 +18,11 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
-from vanilla.views import GenericView
-
-import sapl
-from comissoes.models import Comissao, Composicao
-from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
 from sessao.models import AcompanharMateria
+from vanilla.views import GenericView
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
@@ -467,7 +467,16 @@ class MateriaAnexadaForm(ModelForm):
              ('data_desanexacao', 6)])
 
         self.helper = FormHelper()
-        self.helper.layout = Layout(row1, row2)
+        self.helper.layout = Layout(
+            Fieldset(
+                'Anexar Matéria',
+                row1, row2,
+                ButtonHolder(
+                    Submit('submit', 'Anexar',
+                           css_class='button primary')
+                )
+            )
+        )
         super(MateriaAnexadaForm, self).__init__(
             *args, **kwargs)
 
@@ -508,11 +517,11 @@ class MateriaAnexadaView(FormMixin, GenericView):
 
                 if mat_principal.tipo == mat_anexada.tipo:
 
-                    error = 'A matéria a ser anexada não pode ser do mesmo \
+                    msg = 'A matéria a ser anexada não pode ser do mesmo \
                             tipo da matéria principal.'
+                    messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
-                        {'error': error,
-                         'form': form,
+                        {'form': form,
                          'materialegislativa': mat_principal,
                          'anexadas': anexadas})
 
@@ -527,11 +536,11 @@ class MateriaAnexadaView(FormMixin, GenericView):
                 anexada.save()
 
             except ObjectDoesNotExist:
-                error = 'A matéria a ser anexada não existe no cadastro \
+                msg = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
+                messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
-                    {'error': error,
-                     'form': form,
+                    {'form': form,
                      'materialegislativa': mat_principal,
                      'anexadas': anexadas})
 
@@ -596,11 +605,11 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
 
                     if mat_principal.tipo == mat_anexada.tipo:
 
-                        error = 'A matéria a ser anexada não pode ser do mesmo \
+                        msg = 'A matéria a ser anexada não pode ser do mesmo \
                             tipo da matéria principal.'
+                        messages.add_message(request, messages.INFO, msg)
                         return self.render_to_response(
-                            {'error': error,
-                             'form': form,
+                            {'form': form,
                              'materialegislativa': mat_principal
                              })
 
@@ -615,11 +624,11 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                     return self.form_valid(form)
 
                 except ObjectDoesNotExist:
-                    error = 'A matéria a ser anexada não existe no cadastro \
+                    msg = 'A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.'
+                    messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
-                        {'error': error,
-                         'form': form,
+                        {'form': form,
                          'materialegislativa': mat_principal})
 
         else:
