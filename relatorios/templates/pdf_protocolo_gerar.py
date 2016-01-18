@@ -7,7 +7,6 @@
    versão: 1.0
 """
 import time
-from cStringIO import StringIO
 
 from trml2pdf import parseString
 

@@ -7,7 +7,6 @@
    versão: 1.0
 """
 import time
-from cStringIO import StringIO
 
 from trml2pdf import parseString
 
@@ -135,18 +134,20 @@ def principal(sessao,imagem,data,lst_materias,dic_cabecalho,lst_rodape,dic_filtr
 	tmp_data+=paraStyle()
         tmp_data+=materias(lst_materias)
 	tmp_data+='</document>\n'
+    tmp_pdf = parseString(tmp_data)
 	
-	try:  
-  	  tmp_pdf=parseString(unicode(tmp_data, 'utf-8'))  
-  	except:  
-  	  tmp_pdf=parseString(unicode(tmp_data, 'utf-8'))
+	return tmp_pdf
+# 	try:  
+#   	  tmp_pdf=parseString(unicode(tmp_data, 'utf-8'))  
+#   	except:  
+#   	  tmp_pdf=parseString(unicode(tmp_data, 'utf-8'))
 
-        if hasattr(context.temp_folder,arquivoPdf):
-            context.temp_folder.manage_delObjects(ids=arquivoPdf)
-        context.temp_folder.manage_addFile(arquivoPdf)
-        arq=context.temp_folder[arquivoPdf]
-        arq.manage_edit(title='Arquivo PDF temporário.',filedata=tmp_pdf,content_type='application/pdf')
+#         if hasattr(context.temp_folder,arquivoPdf):
+#             context.temp_folder.manage_delObjects(ids=arquivoPdf)
+#         context.temp_folder.manage_addFile(arquivoPdf)
+#         arq=context.temp_folder[arquivoPdf]
+#         arq.manage_edit(title='Arquivo PDF temporário.',filedata=tmp_pdf,content_type='application/pdf')
 
-        return "/temp_folder/"+arquivoPdf
+#         return "/temp_folder/"+arquivoPdf
 
-return principal(sessao,imagem,data,lst_materias,dic_cabecalho,lst_rodape,dic_filtro)
+# return principal(sessao,imagem,data,lst_materias,dic_cabecalho,lst_rodape,dic_filtro)

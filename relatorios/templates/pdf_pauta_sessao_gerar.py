@@ -4,7 +4,6 @@
    versão: 1.0
 """
 import time
-from cStringIO import StringIO
 
 from trml2pdf import parseString
 
@@ -185,12 +184,13 @@ def principal(cabecalho, rodape, sessao, imagem, inf_basicas_dic):
     tmp+='</document>\n'
     tmp_pdf=parseString(tmp)
 
-    if hasattr(context.temp_folder,arquivoPdf):
-        context.temp_folder.manage_delObjects(ids=arquivoPdf)
-    context.temp_folder.manage_addFile(arquivoPdf)
-    arq=context.temp_folder[arquivoPdf]
-    arq.manage_edit(title='Arquivo PDF temporario.',filedata=tmp_pdf,content_type='application/pdf')
+    return tmp_pdf
+#     if hasattr(context.temp_folder,arquivoPdf):
+#         context.temp_folder.manage_delObjects(ids=arquivoPdf)
+#     context.temp_folder.manage_addFile(arquivoPdf)
+#     arq=context.temp_folder[arquivoPdf]
+#     arq.manage_edit(title='Arquivo PDF temporario.',filedata=tmp_pdf,content_type='application/pdf')
 
-    return "/temp_folder/"+arquivoPdf
+#     return "/temp_folder/"+arquivoPdf
 
-return principal(cabecalho, rodape, sessao, imagem, inf_basicas_dic)
+# return principal(cabecalho, rodape, sessao, imagem, inf_basicas_dic)

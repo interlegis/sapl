@@ -7,7 +7,6 @@
    versão: 1.0
 """
 import time
-from cStringIO import StringIO
 
 from trml2pdf import parseString
 
@@ -333,18 +332,19 @@ def principal(imagem, dic_rodape,dic_inf_basicas,dic_orig_externa,lst_mat_anexad
     tmp+='</document>\n'
     tmp_pdf=parseString(tmp)
 
-    if hasattr(context.temp_folder,arquivoPdf):
-        context.temp_folder.manage_delObjects(ids=arquivoPdf)
-    context.temp_folder.manage_addFile(arquivoPdf)
-    arq=context.temp_folder[arquivoPdf]
-    arq.manage_edit(title='Arquivo PDF temporário.',filedata=tmp_pdf,content_type='application/pdf')
+    return tmp_pdf
+#     if hasattr(context.temp_folder,arquivoPdf):
+#         context.temp_folder.manage_delObjects(ids=arquivoPdf)
+#     context.temp_folder.manage_addFile(arquivoPdf)
+#     arq=context.temp_folder[arquivoPdf]
+#     arq.manage_edit(title='Arquivo PDF temporário.',filedata=tmp_pdf,content_type='application/pdf')
 
-#   try:  
-#     tmp_pdf=parseString(unicode(tmp, 'utf-8'))  
-#   except:  
-#     tmp_pdf=parseString(unicode(tmp, 'utf-8'))
+# #   try:  
+# #     tmp_pdf=parseString(unicode(tmp, 'utf-8'))  
+# #   except:  
+# #     tmp_pdf=parseString(unicode(tmp, 'utf-8'))
 
-    return "/temp_folder/"+arquivoPdf
+#     return "/temp_folder/"+arquivoPdf
 
-return principal(imagem, dic_rodape,dic_inf_basicas,dic_orig_externa,lst_mat_anexadas,lst_autoria,lst_des_iniciais,
-                 dic_tramitacoes,lst_relatorias,lst_numeracoes,lst_leg_citadas,lst_acessorios,sessao)
+# return principal(imagem, dic_rodape,dic_inf_basicas,dic_orig_externa,lst_mat_anexadas,lst_autoria,lst_des_iniciais,
+#                  dic_tramitacoes,lst_relatorias,lst_numeracoes,lst_leg_citadas,lst_acessorios,sessao)
