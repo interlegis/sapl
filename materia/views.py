@@ -387,7 +387,7 @@ class FormularioSimplificadoView(FormMixin, GenericView):
     template_name = "materia/formulario_simplificado.html"
 
     def get_success_url(self):
-        return reverse('formulario_simplificado')
+        return reverse('materialegislativa:list')
 
     def get(self, request, *args, **kwargs):
         form = FormularioSimplificadoForm()
@@ -398,7 +398,7 @@ class FormularioSimplificadoView(FormMixin, GenericView):
 
         if form.is_valid:
             materia = form.save(commit=False)
-            if request.FILES['texto_original']:
+            if 'texto_original' in request.FILES:
                 materia.texto_original = request.FILES['texto_original']
             materia.save()
             return self.form_valid(form)
