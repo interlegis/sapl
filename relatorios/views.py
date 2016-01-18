@@ -6,7 +6,7 @@ from base.models import CasaLegislativa
 from base.views import ESTADOS
 from materia.models import Autoria, MateriaLegislativa, Tramitacao
 
-from .templates import pdf_materia_gerar
+from .templates import pdf_capa_processo_gerar, pdf_materia_gerar
 
 
 def get_cabecalho(casa):
@@ -126,15 +126,12 @@ def get_materias(mats):
 
 
 def relatorio_materia(request):
-    # Create the HttpResponse object with the appropriate PDF headers.
+    '''
+        pdf_materia_gerar.py
+    '''
+
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="somefilename.pdf"'
-
-    # Create the PDF object, using the response object as its "file."
-    # p = canvas.Canvas(response)
-
-    # Draw things on the PDF. Here's where the PDF generation happens.
-    # See the ReportLab documentation for the full list of functionality.
 
     casa = CasaLegislativa.objects.first()
 
@@ -142,6 +139,7 @@ def relatorio_materia(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
+    # TODO pesquisar baseado em filtros
     mats = MateriaLegislativa.objects.all()[:50]
 
     materias = get_materias(mats)
@@ -157,19 +155,90 @@ def relatorio_materia(request):
 
     return response
 
-    # p.drawString(100, 30, imagem)
 
-    # Close the PDF object cleanly, and we're done.
-    # p.showPage()
-    # p.save()
+def get_processos(prot):
+    pass
 
-# filename = "advert-%s.pdf" % id
-# response = HttpResponse(mimetype='application/pdf')
-# response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    # protocolos = []
 
-# t = loader.get_template('print/pdf/advert.rml')
-# c = Context({
-#   'filename' : filename,
-#   'advert' : advert,
-#   'request' : request,
-# })
+    # for p in prot:
+    #     dic={}
+    #     dic['titulo']=str(protocolo.cod_protocolo)
+    #     dic['ano']=str(protocolo.ano_protocolo)
+    #     dic['data']=context.pysc.iso_to_port_pysc(protocolo.dat_protocolo)+' - '+protocolo.hor_protocolo
+    #     dic['txt_assunto']=protocolo.txt_assunto_ementa
+    #     dic['txt_interessado']=protocolo.txt_interessado
+    #     dic['nom_autor'] = " " 
+        # if protocolo.cod_autor!=None:
+#            for autor in context.zsql.autor_obter_zsql(cod_autor=protocolo.cod_autor):
+#                 if autor.des_tipo_autor=='Parlamentar':
+#                     for parlamentar in context.zsql.parlamentar_obter_zsql(cod_parlamentar=autor.cod_parlamentar):
+#                         dic['nom_autor']=parlamentar.nom_completo
+#                 elif autor.des_tipo_autor=='Comissao':
+#                     for comissao in context.zsql.comissao_obter_zsql(cod_comissao=autor.cod_comissao):
+#                         dic['nom_autor']=comissao.nom_comissao
+#                 else:
+#                     dic['nom_autor']=autor.nom_autor
+#         else:
+#             dic['nom_autor']=protocolo.txt_interessado
+
+#         dic['natureza']=''
+#         if protocolo.tip_processo==0:
+#            dic['natureza']='Administrativo'
+#         if protocolo.tip_processo==1:
+#            dic['natureza']='Legislativo'
+  
+#         dic['ident_processo']=protocolo.des_tipo_materia or protocolo.des_tipo_documento
+
+#         dic['sgl_processo']=protocolo.sgl_tipo_materia or protocolo.sgl_tipo_documento
+
+#         dic['num_materia']=''
+#         for materia in context.zsql.materia_obter_zsql(num_protocolo=protocolo.cod_protocolo,ano_ident_basica=protocolo.ano_protocolo):
+#                dic['num_materia']=str(materia.num_ident_basica)+'/'+ str(materia.ano_ident_basica)
+
+#         dic['num_documento']=''
+#         for documento in context.zsql.documento_administrativo_obter_zsql(num_protocolo=protocolo.cod_protocolo):
+#                dic['num_documento']=str(documento.num_documento)+'/'+ str(documento.ano_documento)
+
+#         dic['num_processo']=dic['num_materia'] or dic['num_documento']
+
+#         dic['numeracao']=''
+#         for materia_num in context.zsql.materia_obter_zsql(num_protocolo=protocolo.cod_protocolo,ano_ident_basica=protocolo.ano_protocolo):
+#            for numera in context.zsql.numeracao_obter_zsql(cod_materia=materia_num.cod_materia,ind_excluido=0):
+#                dic['numeracao']='PROCESSO N&#176; ' +str(numera.num_materia)+'/'+ str(numera.ano_materia)
+
+#         dic['anulado']=''
+#         if protocolo.ind_anulado==1:
+#            dic['anulado']='Nulo'
+
+#         protocolos.append(dic)
+
+
+def relatorio_processo(request):
+    '''
+        pdf_capa_processo_gerar.py
+    '''
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.pdf"'
+
+    casa = CasaLegislativa.objects.first()
+
+    cabecalho = get_cabecalho(casa)
+    rodape = get_rodape(casa)
+    imagem = get_imagem(casa)
+
+
+
+    protocolos = get_processo(protocolos)
+
+    pdf = pdf_materia_gerar.principal(None,
+                                      imagem,
+                                      None,
+                                      protocolos,
+                                      cabecalho,
+                                      rodape)
+
+    response.write(pdf)
+
+    return response    
