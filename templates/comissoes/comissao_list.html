@@ -1,0 +1,32 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+	<dl class="sub-nav">
+		<dd><a href="{% url 'comissao:cadastrar_comissao' %}">
+			{% blocktrans with verbose_name=view.verbose_name %} Adicionar Comissão {% endblocktrans %}
+		</a></dd>
+	</dl>
+	{% block detail_content %}
+		<table width="100%">
+			<tr>
+				<th>Nome</th>
+				<th>Sigla</th>
+				<th>Tipo</th>
+				<th>Data de Criação</th>
+			</tr>
+			{% for comissao in page_obj %}
+				<tr>
+					<td>
+						<a href="{% url 'comissao:detail' comissao.id %}">{{comissao}}</a>
+					</td>
+					<td>{{comissao.sigla}}</td>
+					<td>{{comissao.tipo}}</td>
+					<td>{{comissao.data_criacao}}</td>
+				</tr>
+			{% endfor %}
+		</table>
+	    {% include "paginacao.html" %}
+	{% endblock %}
+{% endblock %}
