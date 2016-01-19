@@ -12,7 +12,7 @@ import time
 from trml2pdf import parseString
 
 
-def cabecalho(inf_basicas_dic, imagem):
+def cabecalho(dic_cabecalho, imagem):
     """Gera o codigo rml do cabecalho"""
     tmp_data = ''
     tmp_data += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
@@ -20,7 +20,7 @@ def cabecalho(inf_basicas_dic, imagem):
     tmp_data += '\t\t\t\t<lines>2cm 25.4cm 19cm 25.4cm</lines>\n'
     tmp_data += '\t\t\t\t<setFont name="Helvetica-Bold" size="15"/>\n'
     tmp_data += '\t\t\t\t<drawString x="5cm" y="27.2cm">' + \
-        inf_basicas_dic['nom_casa'] + '</drawString>\n'
+        dic_cabecalho['nom_casa'] + '</drawString>\n'
     tmp_data += '\t\t\t\t<setFont name="Helvetica" size="12"/>\n'
     tmp_data += '\t\t\t\t<drawString x="5cm" y="26.6cm">Sistema de Apoio ao Processo Legislativo</drawString>\n'
     tmp_data += '\t\t\t\t<setFont name="Helvetica-Bold" size="13"/>\n'
