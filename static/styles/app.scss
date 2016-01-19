@@ -10,19 +10,30 @@
 }
 
 .masthead {
-//  border-bottom: 1px solid #D6E1E5;
   padding: 10px;
-    h1 {
-			font-size: 22px;
-      margin: 10px;
-    }
+  .nav {
+    margin-top: 65px;
+  }
+  .navbar-brand {
+    color: $headings-color;
+    font-size: 24px;
     img {
       margin-right: $navbar-padding-horizontal;
     }
+    small {
+      color: #93A4AA;
+      font-size: 75%;
+      line-height: 25px;
+    }
+  }
 }
 
 .navbar {
   margin-bottom: 0;
+}
+
+.navbar-brand {
+  padding: 0px;
 }
 
 // TODO: ajust all the hx sizes from drunken parrot
