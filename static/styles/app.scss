@@ -1,3 +1,35 @@
-@import "bootstrap";
+
+//@import "bootstrap";
+@import "bootstrap/variables.scss";
 @import "header";
 
+.vcenter {
+  display: inline-block;
+  vertical-align: middle;
+  float: none;
+}
+
+.masthead {
+//  border-bottom: 1px solid #D6E1E5;
+  padding: 10px;
+    h1 {
+			font-size: 22px;
+      margin: 10px;
+    }
+    img {
+      margin-right: $navbar-padding-horizontal;
+    }
+}
+
+.navbar {
+  margin-bottom: 0;
+}
+
+// TODO: ajust all the hx sizes from drunken parrot
+h1,
+.h1 {
+  font-size: 30px;
+}
+.page-header {
+    margin: 20px 0px 10px;
+}

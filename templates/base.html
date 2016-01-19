@@ -16,7 +16,10 @@
 
       {# Styles #}
       <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
+      <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
       <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
+
 
       {# Scripts #}
       {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
@@ -39,15 +42,6 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a href="#" class="pull-left logo">
-              {% if logotipo %}
-                <img src="{{ MEDIA_URL }}{{ logotipo }}" alt="Logo">
-              {% else %}
-                <img src="{% static 'img/logo.png' %}" alt="Logo">
-              {% endif %}
-              <a class="navbar-brand" href="#">
-                {{ parliament_type  }} {% trans 'de' %} {{ city  }} - {{ state  }}
-              </a>
           </div>
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
@@ -118,35 +112,23 @@
 
       {# Header #}
       {% block main_header %}
-        <header id="masthead" class="masthead page__row">
-            <div class="container">
-                <div class="container">
-                    <a class="masthead__logo" href="#">
-                        {% if logotipo %}
-                            <img src="{{ MEDIA_URL }}{{ logotipo }}" alt="Logo">
-                        {% else %}
-                            <img src="{% static 'img/logo.png' %}" alt="Logo">
-                        {% endif %}
-                    </a>
-                    <div class="masthead__heading">
-                        {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
-                        <h1>{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}</h1>
-                        <h2>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</h2>
-                    </div>
-
-
-                    {% block sections_nav %}
-                    {% endblock sections_nav %}
-
-
-                </div>
-            </div>
-        </header>
+      <header class="masthead">
+        <div class="container">
+          <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+               alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
+          <h1 class="vcenter">
+            {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
+            {{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}
+            <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
+          </h1>
+        </div>
+      </header>
       {% endblock main_header %}
 
       {# Main content #}
       {% block content_container %}
         <main id="content" class="content page__row">
+
           <div class="container">
 
             {# Feedback messages #}
@@ -169,16 +151,17 @@
 
                 {% block title %}
                   {% if view.title %}
-                    <h1>{{ view.title|linebreaksbr  }}</h1>
+                    <h1 class="page-header">{{ view.title|linebreaksbr }}</h1>
                   {% endif %}
                 {% endblock %}
 
               </div>
             {% endblock base_header %}
 
+            {% block sections_nav %}{% endblock %}
+
             {# Content per se #}
-            {% block base_content %}
-            {% endblock base_content %}
+            {% block base_content %}{% endblock %}
 
           </div>
         </main>
