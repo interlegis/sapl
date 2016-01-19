@@ -1,5 +1,4 @@
 
-//@import "bootstrap";
 @import "bootstrap/variables.scss";
 @import "header";
 
@@ -36,11 +35,50 @@
   padding: 0px;
 }
 
-// TODO: ajust all the hx sizes from drunken parrot
-h1,
-.h1 {
+// ADJUST DRUNKEN PARROT STYLES ########################################
+h1, .h1 {
   font-size: 30px;
 }
+h2, .h2 {
+  font-size: 24px;
+}
+h3, .h3 {
+  font-size: 20px;
+}
+h4, .h4 {
+  font-size: 16px;
+}
+h5, .h5 {
+  font-size: 14px;
+}
+h6, .h6 {
+  font-size: 12px;
+}
+
 .page-header {
     margin: 20px 0px 10px;
 }
+
+// #### CRUD DETAIL ########################################
+p.control-label {
+  font-weight: bold;
+}
+
+// copied from bootstrap _forms.scss legend
+// using @extend would require importing parts of bootstrap again and overriding drunken parrot css
+//   @import "bootstrap/mixins.scss";
+//   @import "bootstrap/forms.scss";
+
+.legend {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin-bottom: $line-height-computed;
+  font-size: ($font-size-base * 1.5);
+  line-height: inherit;
+  color: $legend-color;
+  border: 0;
+  border-bottom: 1px solid $legend-border-color;
+}
+
+

@@ -11,27 +11,26 @@
         <dd><a href="{{ view.delete_url }}" class="button alert">{% trans 'Excluir' %}</a></dd>
       </dl>
     {% endblock actions %}
-
   </div>
 
   {% block detail_content %}
     {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
     {% for fieldset in view.fieldsets %}
-    <fieldset>
-      <legend>{{ fieldset.legend }}</legend>
-      {% for row in fieldset.rows %}
-      <div class="row">
-          {% for column in row %}
-          <div class="columns large-{{ column.span }}">
-              <div id="div_id_{{ column.id }}" class="holder">
-                  <label>{{ column.verbose_name }}</label> {# TODO replace labels, probably (are they correct here?) #}
-                  <p>{{ column.text }}</p>
-              </div>
+    <h2 class="legend">{{ fieldset.legend }}</h2>
+    {% for row in fieldset.rows %}
+    <div class="row-fluid">
+      {% for column in row %}
+      <div class="col-sm-{{ column.span }}">
+        <div id="div_id_{{ column.id }}" class="form-group">
+          <p class="control-label">{{ column.verbose_name }}</p>
+          <div class="controls">
+            <p class="form-control-static">{{ column.text }}</p>
           </div>
-          {% endfor %}
+        </div>
       </div>
       {% endfor %}
-    </fieldset>
+    </div>
+    {% endfor %}
     {% endfor %}
   {% endblock detail_content %}
 
