@@ -13,7 +13,8 @@ from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
 from sessao.models import OrdemDia, SessaoPlenaria
 
 from .templates import (pdf_capa_processo_gerar,
-                        pdf_documento_administrativo_gerar, pdf_materia_gerar)
+                        pdf_documento_administrativo_gerar, pdf_espelho_gerar,
+                        pdf_materia_gerar)
 
 
 def get_cabecalho(casa):
@@ -434,3 +435,94 @@ def get_documento_administrativo(docs):
 
         documentos.append(dic)
     return documentos
+
+
+def relatorio_espelho(request):
+    '''
+        pdf_espelho_gerar.py
+    '''
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.pdf"'
+
+    casa = CasaLegislativa.objects.first()
+
+    cabecalho = get_cabecalho(casa)
+    rodape = get_rodape(casa)
+    imagem = get_imagem(casa)
+
+    mats = MateriaLegislativa.objects.all()[:50]
+    mat_pdf = get_espelho(mats)
+
+    pdf = pdf_espelho_gerar.principal(
+        None,
+        imagem,
+        None,
+        mat_pdf,
+        cabecalho,
+        rodape)
+    response.write(pdf)
+
+    return response
+
+
+def get_espelho(mats):
+    materias = []
+    for m in mats:
+        dic = {}
+        dic['titulo'] = str(m)
+        dic['materia'] = str(m.numero) + '/' + str(m.ano)
+        dic['dat_apresentacao'] = str(m.data_apresentacao)
+        dic['txt_ementa'] = m.ementa
+
+        dic['nom_autor'] = ' '
+        for autoria in Autoria.objects.filter(materia=m, primeiro_autor=True):
+            for autor in Autor.objects.filter(id=autoria.autor.id):
+                if autor.tipo == 'Parlamentar':
+                    for parlamentar in Parlamentar.objects.filter(
+                            id=autor.parlamentar.id):
+                        dic['nom_autor'] = parlamentar.nome_completo
+                elif autor.tipo == 'Comissao':
+                    for comissao in Comissao.objects.filter(
+                            id=autor.comissao.id):
+                        dic['nom_autor'] = str(comissao)
+                else:
+                    dic['nom_autor'] = autor.nome
+
+        des_status = ''
+        txt_tramitacao = ''
+        data_ultima_acao = ''
+
+        dic['localizacao_atual'] = " "
+        for tramitacao in Tramitacao.objects.filter(materia=m):
+            if tramitacao.unidade_tramitacao_destino:
+                cod_unid_tram = tramitacao.unidade_tramitacao_destino
+            else:
+                cod_unid_tram = tramitacao.unidade_tramitacao_local
+
+            for unidade_tramitacao in UnidadeTramitacao.objects.filter(
+                    id=cod_unid_tram.id):
+                if unidade_tramitacao.orgao:
+                    dic['localizacao_atual'] = unidade_tramitacao.orgao
+                elif unidade_tramitacao.parlamentar:
+                    dic['localizacao_atual'] = unidade_tramitacao.parlamentar
+                else:
+                    dic['localizacao_atual'] = unidade_tramitacao.comissao
+
+            des_status = tramitacao.status
+            txt_tramitacao = tramitacao.texto
+            data_ultima_acao = tramitacao.data_tramitacao
+
+        dic['des_situacao'] = des_status
+        dic['ultima_acao'] = txt_tramitacao
+        dic['data_ultima_acao'] = data_ultima_acao
+
+        dic['norma_juridica_vinculada'] = 'Não há nenhuma\
+                                           norma jurídica vinculada'
+        # TODO
+        # for norma in context.zsql.materia_buscar_norma_juridica_zsql(cod_materia=materia.cod_materia):
+        #     dic['norma_juridica_vinculada'] = norma.des_norma + " " + \
+        #         str(norma.num_norma) + "/" + str(norma.ano_norma)
+
+        materias.append(dic)
+    return materias

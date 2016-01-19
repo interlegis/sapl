@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from .views import (relatorio_documento_administrativo, relatorio_materia,
-                    relatorio_ordem_dia, relatorio_processo)
+                    relatorio_ordem_dia, relatorio_processo, relatorio_espelho)
 
 urlpatterns = [
     url(r'^relatorios/materia$', relatorio_materia, name='relatorio_materia'),
@@ -12,5 +12,7 @@ urlpatterns = [
     url(r'^relatorios/relatorio_documento_administrativo$',
         relatorio_documento_administrativo,
         name='relatorio_documento_administrativo'),
+    url(r'^relatorios/espelho$', relatorio_espelho,
+        name='relatorio_espelho'),
 
 ]
