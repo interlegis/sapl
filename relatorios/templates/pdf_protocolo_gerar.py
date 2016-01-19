@@ -11,7 +11,7 @@ import time
 from trml2pdf import parseString
 
 
-def cabecalho(inf_basicas_dic,imagem):
+def cabecalho(dic_cabecalho,imagem):
     """Gera o codigo rml do cabecalho"""
     tmp_data=''
     tmp_data+='\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + imagem + '"/>\n'

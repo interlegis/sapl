@@ -13,8 +13,10 @@ from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
 from sessao.models import OrdemDia, SessaoPlenaria
 
 from .templates import (pdf_capa_processo_gerar,
-                        pdf_documento_administrativo_gerar, pdf_espelho_gerar,
-                        pdf_materia_gerar)
+                        pdf_documento_administrativo_gerar, 
+                        pdf_espelho_gerar,
+                        pdf_materia_gerar,
+                        pdf_protocolo_gerar)
 
 
 def get_cabecalho(casa):
@@ -436,7 +438,6 @@ def get_documento_administrativo(docs):
         documentos.append(dic)
     return documentos
 
-
 def relatorio_espelho(request):
     '''
         pdf_espelho_gerar.py
@@ -464,7 +465,6 @@ def relatorio_espelho(request):
     response.write(pdf)
 
     return response
-
 
 def get_espelho(mats):
     materias = []
@@ -526,3 +526,78 @@ def get_espelho(mats):
 
         materias.append(dic)
     return materias
+
+
+def get_protocolos(prots):
+
+    protocolos = []
+    for protocolo in prots:
+        dic = {}
+
+        dic['titulo'] = str(protocolo.numero) + '/' + str(protocolo.ano)
+
+        dic['data'] = protocolo.data.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' + protocolo.hora.strftime("%H:%m")
+
+        dic['txt_assunto'] = protocolo.assunto_ementa
+
+        dic['txt_interessado'] = protocolo.interessado
+
+        dic['nom_autor'] = " " 
+        
+        if protocolo.autor:
+           if protocolo.autor.parlamentar:
+                dic['nom_autor'] = protocolo.autor.parlamentar.nome_completo
+           elif protocolo.autor.comissao:
+                dic['nom_autor'] = protocolo.autor.comissao.nome
+        
+        dic['natureza'] = ''
+        
+        if protocolo.tipo_documento:
+           dic['natureza'] = 'Administrativo'
+           dic['processo'] = protocolo.tipo_documento.descricao
+        elif protocolo.tipo_materia:
+           dic['natureza'] = 'Legislativo'
+           dic['processo'] = protocolo.tipo_materia.descricao
+        else:
+           dic['natureza'] = 'Indefinida'
+           dic['processo'] = ''
+  
+        dic['anulado'] = ''
+        if protocolo.anulado:
+           dic['anulado']='Nulo'
+
+        protocolos.append(dic)
+
+    return protocolos
+
+
+def relatorio_protocolo(request):
+    '''
+        pdf_protocolo_gerar.py
+    '''
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="somefilename.pdf"'
+
+    casa = CasaLegislativa.objects.first()
+
+    cabecalho = get_cabecalho(casa)
+    rodape = get_rodape(casa)
+    imagem = get_imagem(casa)
+
+    protocolos = Protocolo.objects.all()[:50]
+
+    protocolo_data = get_protocolos(protocolos)
+
+    pdf = pdf_protocolo_gerar.principal(None,
+                                        imagem,
+                                        None,
+                                        protocolo_data,
+                                        cabecalho,
+                                        rodape)
+
+    response.write(pdf)
+
+    return response    
+
+
