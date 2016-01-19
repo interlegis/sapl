@@ -19,7 +19,7 @@
 				<tr>
 					<td><a href="{% url 'parlamentares_dependentes_edit' parlamentar.id d.id %}">{{d.nome}}</a></td>
 					<td>{{d.tipo }}</td>
-					<td>{{d.data_nascimento}}</td>
+					<td>{{d.data_nascimento|default_if_none:""}}</td>
 				</tr>
 			{% endfor %}
 	</table>
