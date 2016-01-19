@@ -212,10 +212,10 @@ def principal(sessao, imagem, dat_ordem, lst_splen, lst_pauta, dic_cabecalho, ls
 
     return tmp_pdf
 
-# #    try:
-# #        tmp_pdf=parseString(unicode(tmp, 'utf-8'))
-# #    except:
-# #        tmp_pdf=parseString(unicode(tmp, 'utf-8'))
+# try:
+# tmp_pdf=parseString(unicode(tmp, 'utf-8'))
+# except:
+# tmp_pdf=parseString(unicode(tmp, 'utf-8'))
 
 #     if hasattr(context.temp_folder, arquivoPdf):
 #         context.temp_folder.manage_delObjects(ids=arquivoPdf)
@@ -226,4 +226,5 @@ def principal(sessao, imagem, dat_ordem, lst_splen, lst_pauta, dic_cabecalho, ls
 
 #     return "/temp_folder/" + arquivoPdf
 
-# return principal(sessao, imagem, dat_ordem, lst_splen, lst_pauta, dic_cabecalho, lst_rodape)
+# return principal(sessao, imagem, dat_ordem, lst_splen, lst_pauta,
+# dic_cabecalho, lst_rodape)
