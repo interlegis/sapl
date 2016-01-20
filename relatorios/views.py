@@ -7,19 +7,21 @@ from base.views import ESTADOS
 from comissoes.models import Comissao
 from materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
                             Tramitacao, UnidadeTramitacao)
+
 from django.http import HttpResponse
-from sessao.models import OrdemDia
 
 from parlamentares.models import Parlamentar
 from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                  TramitacaoAdministrativo)
+
 from sessao.models import OrdemDia, SessaoPlenaria
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar,
                         pdf_espelho_gerar,
                         pdf_materia_gerar,
-                        pdf_protocolo_gerar)
+                        pdf_protocolo_gerar,
+                        pdf_etiqueta_protocolo_gerar)
 
 
 def get_cabecalho(casa):
@@ -612,3 +614,83 @@ def relatorio_protocolo(request):
     response.write(pdf)
 
     return response
+
+
+def relatorio_etiqueta_protocolo(request):
+    '''
+        pdf__etiqueta_protocolo_gerar.py
+    '''
+
+    response = HttpResponse(content_type='application/pdf')
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_etiqueta_protocolo.pdf"'
+
+    casa = CasaLegislativa.objects.first()
+
+    cabecalho = get_cabecalho(casa)
+    rodape = get_rodape(casa)
+    imagem = get_imagem(casa)
+
+    protocolos = Protocolo.objects.all()[:50]
+
+    protocolo_data = get_etiqueta_protocolos(protocolos)
+
+    pdf = pdf_etiqueta_protocolo_gerar.principal(None,
+                                                 imagem,
+                                                 None,
+                                                 protocolo_data,
+                                                 cabecalho,
+                                                 rodape)
+
+    response.write(pdf)
+
+    return response
+
+
+def get_etiqueta_protocolos(prots):
+
+    protocolos = []
+    for p in prots:
+        dic = {}
+
+        dic['titulo'] = str(p.numero) + '/' + str(p.ano)
+        dic['data'] = p.data.strftime(
+            "%d/%m/%Y") + ' - <b>Horário:</b>' + p.hora.strftime("%H:%m")
+        dic['txt_assunto'] = p.assunto_ementa
+        dic['txt_interessado'] = p.interessado
+
+        dic['nom_autor'] = ' '
+
+        if p.autor:
+            if p.autor.parlamentar:
+                dic['nom_autor'] = p.autor.parlamentar.nome_completo
+            elif p.autor.comissao:
+                dic['nom_autor'] = p.autor.comissao.nome
+
+        dic['natureza'] = ''
+        if p.tipo_processo == 0:
+            dic['natureza'] = 'Administrativo'
+        if p.tipo_processo == 1:
+            dic['natureza'] = 'Legislativo'
+
+        dic['num_materia'] = ''
+        for materia in MateriaLegislativa.objects.filter(
+                numero_protocolo=p.numero, ano=p.ano):
+            dic['num_materia'] = str(materia)
+
+        dic['num_documento'] = ''
+        for documento in DocumentoAdministrativo.objects.filter(
+                numero_protocolo=p.numero):
+            dic['num_documento'] = str(documento)
+
+        dic['ident_processo'] = dic['num_materia'] or dic['num_documento']
+
+        dic['processo'] = (str(p.tipo_materia) or
+                           str(p.tipo_documento))
+
+        dic['anulado'] = ''
+        if p.anulado:
+            dic['anulado'] = 'Nulo'
+
+        protocolos.append(dic)
+    return protocolos
