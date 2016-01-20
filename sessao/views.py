@@ -1833,9 +1833,9 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
-        ordem_id = kwargs['mid']
+        expediente_id = kwargs['mid']
 
-        expediente = ExpedienteMateria.objects.get(id=ordem_id)
+        expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
         materia = {'materia': expediente.materia,
                    'ementa': sub(
@@ -1847,8 +1847,8 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
 
-        ordem_id = kwargs['mid']
-        expediente = ExpedienteMateria.objects.get(id=ordem_id)
+        expediente_id = kwargs['mid']
+        expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
         form = VotacaoNominalForm(request.POST)
 
@@ -1859,7 +1859,7 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
 
         if form.is_valid():
             materia_id = kwargs['oid']
-            ordem_id = kwargs['mid']
+            expediente_id = kwargs['mid']
 
             votos_sim = 0
             votos_nao = 0
@@ -1887,7 +1887,7 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
                 votacao.numero_abstencoes = abstencoes
                 votacao.observacao = request.POST['observacao']
                 votacao.materia_id = materia_id
-                votacao.ordem_id = ordem_id
+                votacao.expediente = expediente
                 votacao.tipo_resultado_votacao_id = int(
                     request.POST['resultado_votacao'])
                 votacao.save()
@@ -1896,7 +1896,7 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             else:
                 votacao = RegistroVotacao.objects.get(
                     materia_id=materia_id,
-                    ordem_id=ordem_id)
+                    expediente_id=expediente)
 
                 for votos in request.POST.getlist('voto_parlamentar'):
                     v = votos.split(':')
@@ -1916,14 +1916,14 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
                     voto_parlamentar.votacao_id = votacao.id
                     voto_parlamentar.save()
 
-                    ordem = ExpedienteMateria.objects.get(
+                    expediente = ExpedienteMateria.objects.get(
                         sessao_plenaria_id=self.object.id,
                         materia_id=materia_id)
                     resultado = TipoResultadoVotacao.objects.get(
                         id=request.POST['resultado_votacao'])
-                    ordem.resultado = resultado.nome
-                    ordem.votacao_aberta = False
-                    ordem.save()
+                    expediente.resultado = resultado.nome
+                    expediente.votacao_aberta = False
+                    expediente.save()
 
             return self.form_valid(form)
         else:
@@ -1959,12 +1959,12 @@ class VotacaoNominalExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
         context = self.get_context_data(object=self.object)
 
         materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
+        expediente_id = kwargs['mid']
 
         votacao = RegistroVotacao.objects.get(
             materia_id=materia_id,
-            ordem_id=ordem_id)
-        ordem = ExpedienteMateria.objects.get(id=ordem_id)
+            expediente_id=expediente_id)
+        expediente = ExpedienteMateria.objects.get(id=expediente_id)
         votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
 
         list_votos = []
@@ -1974,9 +1974,9 @@ class VotacaoNominalExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
 
         context.update({'votos': list_votos})
 
-        materia = {'materia': ordem.materia,
+        materia = {'materia': expediente.materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(ordem.observacao))}
+                       '&nbsp;', ' ', strip_tags(expediente.observacao))}
         context.update({'materia': materia})
 
         votacao_existente = {'observacao': sub(
@@ -1992,19 +1992,19 @@ class VotacaoNominalExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
         form = VotacaoEdit(request.POST)
 
         materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
+        expediente_id = kwargs['mid']
 
         if(int(request.POST['anular_votacao']) == 1):
             registro = RegistroVotacao.objects.get(
                 materia_id=materia_id,
-                ordem_id=ordem_id)
+                expediente_id=expediente_id)
 
-            ordem = ExpedienteMateria.objects.get(
+            expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
-            ordem.resultado = None
-            ordem.votacao_aberta = False
-            ordem.save()
+            expediente.resultado = None
+            expediente.votacao_aberta = False
+            expediente.save()
 
             try:
                 votacao = VotoParlamentar.objects.filter(
@@ -2049,12 +2049,13 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         else:
             titulo = "Não definida"
 
-        ordem_id = kwargs['mid']
-        ordem = ExpedienteMateria.objects.get(id=ordem_id)
+        expediente_id = kwargs['mid']
+        expediente = ExpedienteMateria.objects.get(id=expediente_id)
         qtde_presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=self.object.id).count()
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': expediente.materia,
+                   'ementa': expediente.observacao}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -2075,12 +2076,13 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         else:
             titulo = "Não definida"
 
-        ordem_id = kwargs['mid']
-        ordem = ExpedienteMateria.objects.get(id=ordem_id)
+        expediente_id = kwargs['mid']
+        expediente = ExpedienteMateria.objects.get(id=expediente_id)
         qtde_presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=self.object.id).count()
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': expediente.materia,
+                   'ementa': expediente.observacao}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -2088,13 +2090,13 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         # ====================================================
 
         if 'cancelar-votacao' in request.POST:
-            ordem.votacao_aberta = False
-            ordem.save()
+            expediente.votacao_aberta = False
+            expediente.save()
             return self.form_valid(form)
 
         if form.is_valid():
             materia_id = kwargs['oid']
-            ordem_id = kwargs['mid']
+            expediente_id = kwargs['mid']
 
             qtde_presentes = SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=self.object.id).count()
@@ -2116,21 +2118,21 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
                     votacao.numero_abstencoes = int(request.POST['abstencoes'])
                     votacao.observacao = request.POST['observacao']
                     votacao.materia_id = materia_id
-                    votacao.ordem_id = ordem_id
+                    votacao.expediente_id = expediente_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
                     votacao.save()
                 except:
                     return self.form_invalid(form)
                 else:
-                    ordem = ExpedienteMateria.objects.get(
+                    expediente = ExpedienteMateria.objects.get(
                         sessao_plenaria_id=self.object.id,
                         materia_id=materia_id)
                     resultado = TipoResultadoVotacao.objects.get(
                         id=request.POST['resultado_votacao'])
-                    ordem.resultado = resultado.nome
-                    ordem.votacao_aberta = False
-                    ordem.save()
+                    expediente.resultado = resultado.nome
+                    expediente.votacao_aberta = False
+                    expediente.save()
 
                 return self.form_valid(form)
         else:
@@ -2154,29 +2156,17 @@ class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
 
     template_name = 'sessao/votacao/votacao_edit.html'
 
-    def post(self, request, *args, **kwargs):
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sessaoplenaria:expedienteordemdia_list',
+                       kwargs={'pk': pk})
 
-        self.object = self.get_object()
-        form = VotacaoEdit(request.POST)
-
-        materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
-
-        if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                ordem_id=ordem_id).delete()
-
-            ordem = ExpedienteMateria.objects.get(
-                sessao_plenaria_id=self.object.id,
-                materia_id=materia_id)
-            ordem.votacao_aberta = False
-            ordem.resultado = None
-            ordem.save()
-
-        return self.form_valid(form)
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
 
     def get(self, request, *args, **kwargs):
+        # import ipdb; ipdb.set_trace()
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
@@ -2190,16 +2180,17 @@ class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
             titulo = "Não definida"
 
         materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
+        expediente_id = kwargs['mid']
 
-        ordem = ExpedienteMateria.objects.get(id=ordem_id)
+        expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': expediente.materia,
+                   'ementa': expediente.observacao}
         context.update({'materia': materia})
 
         votacao = RegistroVotacao.objects.get(
             materia_id=materia_id,
-            ordem_id=ordem_id)
+            expediente_id=expediente_id)
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'tipo_resultado':
@@ -2209,14 +2200,27 @@ class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
 
         return self.render_to_response(context)
 
-    def get_tipos_votacao(self):
-        for tipo in TipoResultadoVotacao.objects.all():
-            yield tipo
+    def post(self, request, *args, **kwargs):
 
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
-                       kwargs={'pk': pk})
+        self.object = self.get_object()
+        form = VotacaoEdit(request.POST)
+
+        materia_id = kwargs['oid']
+        expediente_id = kwargs['mid']
+
+        if(int(request.POST['anular_votacao']) == 1):
+            RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                expediente_id=expediente_id).delete()
+
+            expediente = ExpedienteMateria.objects.get(
+                sessao_plenaria_id=self.object.id,
+                materia_id=materia_id)
+            expediente.votacao_aberta = False
+            expediente.resultado = None
+            expediente.save()
+
+        return self.form_valid(form)
 
 
 class SessaoListView(ListView):
