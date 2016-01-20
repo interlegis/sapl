@@ -7,13 +7,16 @@ from base.views import ESTADOS
 from comissoes.models import Comissao
 from materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
                             Tramitacao, UnidadeTramitacao)
+from django.http import HttpResponse
+from sessao.models import OrdemDia
+
 from parlamentares.models import Parlamentar
 from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                  TramitacaoAdministrativo)
 from sessao.models import OrdemDia, SessaoPlenaria
 
 from .templates import (pdf_capa_processo_gerar,
-                        pdf_documento_administrativo_gerar, 
+                        pdf_documento_administrativo_gerar,
                         pdf_espelho_gerar,
                         pdf_materia_gerar,
                         pdf_protocolo_gerar)
@@ -141,7 +144,8 @@ def relatorio_materia(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_materia.pdf"'
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_materia.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -237,7 +241,8 @@ def relatorio_processo(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_processo.pdf"'
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_processo.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -348,7 +353,9 @@ def relatorio_ordem_dia(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_ordem_dia.pdf"'
+
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_ordem_dia.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -378,7 +385,8 @@ def relatorio_documento_administrativo(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_documento_administrativo.pdf"'
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_documento_administrativo.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -438,13 +446,15 @@ def get_documento_administrativo(docs):
         documentos.append(dic)
     return documentos
 
+
 def relatorio_espelho(request):
     '''
         pdf_espelho_gerar.py
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_espelho.pdf"'
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_espelho.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -465,6 +475,7 @@ def relatorio_espelho(request):
     response.write(pdf)
 
     return response
+
 
 def get_espelho(mats):
     materias = []
@@ -536,35 +547,36 @@ def get_protocolos(prots):
 
         dic['titulo'] = str(protocolo.numero) + '/' + str(protocolo.ano)
 
-        dic['data'] = protocolo.data.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' + protocolo.hora.strftime("%H:%m")
+        dic['data'] = protocolo.data.strftime(
+            "%d/%m/%Y") + ' - <b>Horário:</b>' + protocolo.hora.strftime("%H:%m")
 
         dic['txt_assunto'] = protocolo.assunto_ementa
 
         dic['txt_interessado'] = protocolo.interessado
 
-        dic['nom_autor'] = " " 
-        
+        dic['nom_autor'] = " "
+
         if protocolo.autor:
-           if protocolo.autor.parlamentar:
+            if protocolo.autor.parlamentar:
                 dic['nom_autor'] = protocolo.autor.parlamentar.nome_completo
-           elif protocolo.autor.comissao:
+            elif protocolo.autor.comissao:
                 dic['nom_autor'] = protocolo.autor.comissao.nome
-        
+
         dic['natureza'] = ''
-        
+
         if protocolo.tipo_documento:
-           dic['natureza'] = 'Administrativo'
-           dic['processo'] = protocolo.tipo_documento.descricao
+            dic['natureza'] = 'Administrativo'
+            dic['processo'] = protocolo.tipo_documento.descricao
         elif protocolo.tipo_materia:
-           dic['natureza'] = 'Legislativo'
-           dic['processo'] = protocolo.tipo_materia.descricao
+            dic['natureza'] = 'Legislativo'
+            dic['processo'] = protocolo.tipo_materia.descricao
         else:
-           dic['natureza'] = 'Indefinida'
-           dic['processo'] = ''
-  
+            dic['natureza'] = 'Indefinida'
+            dic['processo'] = ''
+
         dic['anulado'] = ''
         if protocolo.anulado:
-           dic['anulado']='Nulo'
+            dic['anulado'] = 'Nulo'
 
         protocolos.append(dic)
 
@@ -577,7 +589,8 @@ def relatorio_protocolo(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="relatorio_protocolo.pdf"'
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_protocolo.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -598,6 +611,4 @@ def relatorio_protocolo(request):
 
     response.write(pdf)
 
-    return response    
-
-
+    return response

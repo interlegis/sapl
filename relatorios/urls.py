@@ -16,5 +16,5 @@ urlpatterns = [
     url(r'^relatorios/espelho$', relatorio_espelho,
         name='relatorio_espelho'),
     url(r'^relatorios/protocolo$',
-    	relatorio_protocolo, name='relatorio_protocolo')
+        relatorio_protocolo, name='relatorio_protocolo')
 ]
