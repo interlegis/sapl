@@ -3,7 +3,8 @@ from django.conf.urls import url
 from .views import (relatorio_documento_administrativo, relatorio_materia,
                     relatorio_ordem_dia, relatorio_processo,
                     relatorio_protocolo, relatorio_espelho,
-                    relatorio_etiqueta_protocolo)
+                    relatorio_etiqueta_protocolo,
+                    relatorio_pauta_sessao)
 
 urlpatterns = [
     url(r'^relatorios/materia$', relatorio_materia, name='relatorio_materia'),
@@ -19,5 +20,7 @@ urlpatterns = [
     url(r'^relatorios/protocolo$',
         relatorio_protocolo, name='relatorio_protocolo'),
     url(r'^relatorios/etiqueta_protocolo$',
-        relatorio_etiqueta_protocolo, name='relatorio_etiqueta_protocolo')
+        relatorio_etiqueta_protocolo, name='relatorio_etiqueta_protocolo'),
+    url(r'^relatorios/pauta_sessao$',
+        relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
 ]

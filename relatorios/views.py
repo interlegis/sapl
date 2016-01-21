@@ -8,20 +8,19 @@ from comissoes.models import Comissao
 from materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
                             Tramitacao, UnidadeTramitacao)
 
-from django.http import HttpResponse
-
 from parlamentares.models import Parlamentar
 from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                  TramitacaoAdministrativo)
 
-from sessao.models import OrdemDia, SessaoPlenaria
+from sessao.models import (ExpedienteMateria, OrdemDia, SessaoPlenaria)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar,
                         pdf_espelho_gerar,
                         pdf_materia_gerar,
                         pdf_protocolo_gerar,
-                        pdf_etiqueta_protocolo_gerar)
+                        pdf_etiqueta_protocolo_gerar,
+                        pdf_pauta_sessao_gerar)
 
 
 def get_cabecalho(casa):
@@ -694,3 +693,184 @@ def get_etiqueta_protocolos(prots):
 
         protocolos.append(dic)
     return protocolos
+
+
+def relatorio_pauta_sessao(request):
+    '''
+        pdf__pauta_sessao_gerar.py
+    '''
+
+    response = HttpResponse(content_type='application/pdf')
+    response[
+        'Content-Disposition'] = 'attachment; filename="relatorio_pauta_sessao.pdf"'
+
+    casa = CasaLegislativa.objects.first()
+
+    cabecalho = get_cabecalho(casa)
+    rodape = get_rodape(casa)
+    imagem = get_imagem(casa)
+
+    sessao = SessaoPlenaria.objects.first()
+    lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(
+        sessao, casa)
+    pdf = pdf_pauta_sessao_gerar.principal(cabecalho,
+                                           rodape,
+                                           sessao,
+                                           imagem,
+                                           inf_basicas_dic,
+                                           lst_expediente_materia,
+                                           lst_votacao)
+
+    response.write(pdf)
+
+    return response
+
+
+def get_pauta_sessao(sessao, casa):
+
+    inf_basicas_dic = {}
+    inf_basicas_dic["nom_sessao"] = sessao.tipo.nome
+    inf_basicas_dic["num_sessao_plen"] = sessao.numero
+    inf_basicas_dic["num_legislatura"] = sessao.legislatura
+    inf_basicas_dic["num_sessao_leg"] = sessao.legislatura
+    inf_basicas_dic["dat_inicio_sessao"] = sessao.data_inicio
+    inf_basicas_dic["hr_inicio_sessao"] = sessao.hora_inicio
+    inf_basicas_dic["dat_fim_sessao"] = sessao.data_fim
+    inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
+    inf_basicas_dic["nom_camara"] = casa.nome
+
+    lst_expediente_materia = []
+    for expediente_materia in ExpedienteMateria.objects.filter(
+            data_ordem=sessao.data_inicio, sessao_plenaria=sessao):
+
+        materia = MateriaLegislativa.objects.filter(
+            id=expediente_materia.materia.id).first()
+
+        dic_expediente_materia = {}
+        dic_expediente_materia["num_ordem"] = str(
+            expediente_materia.numero_ordem)
+        dic_expediente_materia["id_materia"] = str(
+            materia.numero) + "/" + str(materia.ano)
+        dic_expediente_materia["txt_ementa"] = materia.ementa
+        dic_expediente_materia["ordem_observacao"] = str(
+            expediente_materia.observacao)
+
+        dic_expediente_materia["des_numeracao"] = ' '
+
+        numeracao = Numeracao.objects.filter(materia=materia)
+        if numeracao is not None:
+            numeracao = numeracao.first()
+            dic_expediente_materia["des_numeracao"] = str(numeracao)
+
+        dic_expediente_materia["nom_autor"] = ' '
+        autoria = Autoria.objects.filter(
+            materia=materia, primeiro_autor=True).first()
+
+        if autoria is not None:
+            autor = Autor.objects.filter(id=autoria.autor.id)
+
+            if autor is not None:
+                autor = autor.first()
+
+            if autor.tipo == 'Parlamentar':
+                parlamentar = Parlamentar.objects.filter(
+                    id=autor.parlamentar.id)
+                dic_expediente_materia["nom_autor"] = str(
+                    parlamentar.nome_completo)
+            elif autor.tipo == 'Comissao':
+                comissao = Comissao.objects.filter(id=autor.comissao.id)
+                dic_expediente_materia["nom_autor"] = str(comissao)
+            else:
+                dic_expediente_materia["nom_autor"] = str(autor.nome)
+        elif autoria is None:
+            dic_expediente_materia["nom_autor"] = 'Desconhecido'
+
+        dic_expediente_materia["des_turno"] = ' '
+        dic_expediente_materia["des_situacao"] = ' '
+
+        tramitacao = Tramitacao.objects.filter(materia=materia)
+        if tramitacao is not None:
+            tramitacao = tramitacao.first()
+
+            if tramitacao.turno != '':
+                for turno in [("P", "Primeiro"),
+                              ("S", "Segundo"),
+                              ("U", "Único"),
+                              ("F", "Final"),
+                              ("L", "Suplementar"),
+                              ("A", "Votação Única em Regime de Urgência"),
+                              ("B", "1ª Votação"),
+                              ("C", "2ª e 3ª Votações")]:
+                    if tramitacao.turno == turno.first():
+                        dic_expediente_materia["des_turno"] = turno.first()
+
+            dic_expediente_materia["des_situacao"] = tramitacao.status
+            if dic_expediente_materia["des_situacao"] is None:
+                dic_expediente_materia["des_situacao"] = ' '
+        lst_expediente_materia.append(dic_expediente_materia)
+
+    lst_votacao = []
+    for votacao in OrdemDia.objects.filter(
+            data_ordem=sessao.data_inicio, sessao_plenaria=sessao):
+        materia = MateriaLegislativa.objects.filter(
+            id=votacao.materia.id).first()
+        dic_votacao = {}
+        dic_votacao["num_ordem"] = votacao.numero_ordem
+        dic_votacao["id_materia"] = str(
+            materia.numero) + "/" + str(materia.ano)
+        dic_votacao["txt_ementa"] = materia.ementa
+        dic_votacao["ordem_observacao"] = votacao.observacao
+
+        dic_votacao["des_numeracao"] = ' '
+        numeracao = Numeracao.objects.filter(materia=materia)
+        # if numeracao is not None:
+        #     numeracao = numeracao.first()
+        #     dic_votacao["des_numeracao"] = str(
+        #         numeracao.numero) + '/' + str(numeracao.ano)
+
+        dic_votacao["nom_autor"] = ' '
+        autoria = Autoria.objects.filter(
+            materia=materia, primeiro_autor=True).first()
+
+        if autoria is not None:
+            autor = Autor.objects.filter(id=autoria.autor.id)
+            if autor is not None:
+                autor = autor.first()
+
+            if autor.tipo == 'Parlamentar':
+                parlamentar = Parlamentar.objects.filter(
+                    id=autor.parlamentar.id)
+                dic_votacao["nom_autor"] = str(parlamentar.nome_completo)
+            elif autor.tipo == 'Comissao':
+                comissao = Comissao.objects.filter(
+                    id=autor.comissao.id)
+                dic_votacao["nom_autor"] = str(comissao)
+            else:
+                dic_votacao["nom_autor"] = str(autor.nome)
+        elif autoria is None:
+            dic_votacao["nom_autor"] = 'Desconhecido'
+
+        dic_votacao["des_turno"] = ' '
+        dic_votacao["des_situacao"] = ' '
+        tramitacao = Tramitacao.objects.filter(materia=materia)
+        if tramitacao is not None:
+            tramitacao = tramitacao.first()
+            if tramitacao.turno != '':
+                for turno in [("P", "Primeiro"),
+                              ("S", "Segundo"),
+                              ("U", "Único"),
+                              ("L", "Suplementar"),
+                              ("A", "Votação Única em Regime de Urgência"),
+                              ("B", "1ª Votação"),
+                              ("C", "2ª e 3ª Votações")]:
+                    if tramitacao.turno == turno.first():
+                        dic_votacao["des_turno"] = turno.first()
+
+            dic_votacao["des_situacao"] = tramitacao.status
+            if dic_votacao["des_situacao"] is None:
+                dic_votacao["des_situacao"] = ' '
+        lst_votacao.append(dic_votacao)
+
+    return (lst_expediente_materia,
+            lst_votacao,
+            inf_basicas_dic)
