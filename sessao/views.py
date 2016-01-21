@@ -2094,6 +2094,8 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             expediente.save()
             return self.form_valid(form)
 
+        # import ipdb; ipdb.set_trace()
+
         if form.is_valid():
             materia_id = kwargs['oid']
             expediente_id = kwargs['mid']

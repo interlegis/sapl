@@ -4,7 +4,8 @@ from .views import (relatorio_documento_administrativo, relatorio_materia,
                     relatorio_ordem_dia, relatorio_processo,
                     relatorio_protocolo, relatorio_espelho,
                     relatorio_etiqueta_protocolo,
-                    relatorio_pauta_sessao)
+                    relatorio_pauta_sessao,
+                    relatorio_sessao_plenaria)
 
 urlpatterns = [
     url(r'^relatorios/materia$', relatorio_materia, name='relatorio_materia'),
@@ -17,6 +18,8 @@ urlpatterns = [
         name='relatorio_documento_administrativo'),
     url(r'^relatorios/espelho$', relatorio_espelho,
         name='relatorio_espelho'),
+    url(r'^relatorios/sessao_plenaria$',
+        relatorio_sessao_plenaria, name='relatorio_sessao_plenaria'),
     url(r'^relatorios/protocolo$',
         relatorio_protocolo, name='relatorio_protocolo'),
     url(r'^relatorios/etiqueta_protocolo$',
