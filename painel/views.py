@@ -10,7 +10,7 @@ from parlamentares.models import Filiacao
 from sapl.crud import build_crud
 from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
                            SessaoPlenaria, SessaoPlenariaPresenca,
-                           VotoParlamentar)
+                           VotoParlamentar, ExpedienteMateria)
 
 from .models import Cronometro
 
@@ -72,6 +72,7 @@ def get_cronometro_status(request, name):
         cronometro = ''
     return cronometro
 
+# ##############################ORDEM DO DIA##################################
 
 def get_materia_aberta(pk):
     try:
@@ -150,6 +151,88 @@ def get_presentes(pk, response, materia):
     return response
 
 
+# ########################EXPEDIENTE############################################
+
+
+def get_materia_expediente_aberta(pk):
+    try:
+        materia = ExpedienteMateria.objects.filter(
+            sessao_plenaria_id=pk, votacao_aberta=True).first()
+        return materia
+    except ObjectDoesNotExist:
+        return False
+
+
+def get_last_materia_expediente(pk):
+    try:
+        materia = ExpedienteMateria.objects.filter(
+            sessao_plenaria_id=pk).order_by('-data_ordem').first()
+        return materia
+    except ObjectDoesNotExist:
+        return None
+
+
+def get_presentes_expediente(pk, response, materia):
+    filiacao = Filiacao.objects.filter(
+        data_desfiliacao__isnull=True, parlamentar__ativo=True)
+    parlamentar_partido = {}
+    for f in filiacao:
+        parlamentar_partido[
+            f.parlamentar.nome_parlamentar] = f.partido.sigla
+
+    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(
+        sessao_plenaria_id=pk)
+    presentes_sessao_plenaria = [
+        p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
+    num_presentes_sessao_plen = len(presentes_sessao_plenaria)
+
+    presenca_expediente = SessaoPlenariaPresenca.objects.filter(
+        sessao_plenaria_id=pk)
+    presentes_expediente = []
+    for p in presenca_expediente:
+        nome_parlamentar = p.parlamentar.nome_parlamentar
+
+        try:
+            parlamentar_partido[nome_parlamentar]
+        except KeyError:
+            presentes_expediente.append(
+                {'id': p.id,
+                 'nome': nome_parlamentar,
+                 'partido': 'Sem Registro',
+                 })
+        else:
+            presentes_expediente.append(
+                {'id': p.id,
+                 'nome': nome_parlamentar,
+                 'partido': parlamentar_partido[nome_parlamentar],
+                 })
+    num_presentes_expediente = len(presentes_expediente)
+
+    if materia.tipo_votacao == 1:
+        tipo_votacao = 'Simbólica'
+    elif materia.tipo_votacao == 2:
+        tipo_votacao = 'Nominal'
+    elif materia.tipo_votacao == 3:
+        tipo_votacao = 'Secreta'
+
+    response.update({
+        'presentes_expediente': presentes_expediente,
+        'num_presentes_expediente': num_presentes_expediente,
+        'presentes_sessao_plenaria': presentes_sessao_plenaria,
+        'num_presentes_sessao_plenaria': num_presentes_sessao_plen,
+        'status_painel': 'ABERTO',
+        'msg_painel': 'Votação aberta!',
+        'numero_votos_sim': 0,
+        'numero_votos_nao': 0,
+        'numero_abstencoes': 0,
+        'total_votos': 0,
+        'tipo_resultado': tipo_votacao})
+
+    return response
+
+
+# ##########################GENERAL FUNCTIONS#############################
+
 def response_null_materia(response):
     response.update({
         'status_painel': 'FECHADO',
@@ -220,22 +303,45 @@ def get_dados_painel(request, pk):
         "cronometro_ordem": cronometro_ordem,
     }
 
-    materia = get_materia_aberta(pk)
-    if materia:
-        return JsonResponse(get_presentes(pk, response, materia))
-    else:
-        materia = get_last_materia(pk)
-        if materia:
-            if materia.resultado:
-                if materia.tipo_votacao in [1, 3]:
-                    return JsonResponse(
-                        get_votos(get_presentes(
-                            pk, response, materia), materia))
-                elif materia.tipo_votacao == 2:
-                    return JsonResponse(
-                        get_votos_nominal(get_presentes(
-                            pk, response, materia), materia))
-            else:
-                return JsonResponse(get_presentes(pk, response, materia))
+    ordem_dia = get_materia_aberta(pk)
+    expediente = get_materia_expediente_aberta(pk)
+
+    if ordem_dia:
+        return JsonResponse(get_presentes(pk, response, ordem_dia))
+    elif expediente:
+        return JsonResponse(get_presentes_expediente(pk, response, expediente))
+
+    ultima_ordem = get_last_materia(pk)
+
+    if ultima_ordem:
+        if ultima_ordem.resultado:
+            if ultima_ordem.tipo_votacao in [1, 3]:
+                return JsonResponse(
+                    get_votos(get_presentes(
+                        pk, response, ultima_ordem), ultima_ordem))
+            elif ultima_ordem.tipo_votacao == 2:
+                return JsonResponse(
+                    get_votos_nominal(get_presentes(
+                        pk, response, ultima_ordem), ultima_ordem))
         else:
-            return response_null_materia(response)
+            return JsonResponse(get_presentes(pk, response, ultima_ordem))
+
+    ultimo_expediente = get_last_materia_expediente(pk)
+
+    if ultimo_expediente:
+        if ultimo_expediente.resultado:
+            if ultimo_expediente.tipo_votacao in [1, 3]:
+                return JsonResponse(
+                    get_votos(get_presentes(
+                              pk, response, ultimo_expediente),
+                              ultimo_expediente))
+            elif ultimo_expediente.tipo_votacao == 2:
+                return JsonResponse(
+                    get_votos_nominal(get_presentes(
+                                      pk, response, ultimo_expediente),
+                                      ultimo_expediente))
+        else:
+            return JsonResponse(get_presentes(pk, response,
+                                              ultimo_expediente))
+    else:
+        return response_null_materia(response)
