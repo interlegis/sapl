@@ -5,7 +5,7 @@ from .views import (relatorio_documento_administrativo, relatorio_materia,
                     relatorio_protocolo, relatorio_espelho,
                     relatorio_etiqueta_protocolo,
                     relatorio_pauta_sessao,
-                    relatorio_sessao_plenaria)
+                    relatorio_sessao_plenaria,)
 
 urlpatterns = [
     url(r'^relatorios/materia$', relatorio_materia, name='relatorio_materia'),
