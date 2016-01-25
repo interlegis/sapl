@@ -1,15 +1,15 @@
 from django.conf.urls import url
 
-from .views import (relatorio_documento_administrativo, relatorio_espelho,
+from .views import (relatorio_capa_processo,
+                    relatorio_documento_administrativo, relatorio_espelho,
                     relatorio_etiqueta_protocolo, relatorio_materia,
                     relatorio_ordem_dia, relatorio_pauta_sessao,
-                    relatorio_processo, relatorio_protocolo,
-                    relatorio_sessao_plenaria)
+                    relatorio_protocolo, relatorio_sessao_plenaria)
 
 urlpatterns = [
     url(r'^relatorios/materia$', relatorio_materia, name='relatorio_materia'),
-    url(r'^relatorios/cap_processo$',
-        relatorio_processo, name='relatorio_cap_processo'),
+    url(r'^relatorios/capa_processo$',
+        relatorio_capa_processo, name='relatorio_capa_processo'),
     url(r'^relatorios/ordem_dia$', relatorio_ordem_dia,
         name='relatorio_ordem_dia'),
     url(r'^relatorios/relatorio_documento_administrativo$',

@@ -20,8 +20,20 @@ from sessao.models import (ExpedienteMateria, ExpedienteSessao, Orador,
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
-                        pdf_pauta_sessao_gerar, pdf_protocolo_gerar,
-                        pdf_sessao_plenaria_gerar)
+                        pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
+                        pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
+
+
+def get_kwargs_params(request, fields):
+    kwargs = {}
+    for i in fields:
+        if '__icontains' in i:
+            x = i[:-11]  # remove '__icontains'
+        else:
+            x = i
+        if x in request.GET:
+            kwargs[i] = request.GET[x]
+    return kwargs
 
 
 def get_cabecalho(casa):
@@ -155,8 +167,15 @@ def relatorio_materia(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    # TODO pesquisar baseado em filtros
-    mats = MateriaLegislativa.objects.all()[:50]
+    kwargs = get_kwargs_params(request, ['numero',
+                                         'ano',
+                                         'autor',
+                                         'tipo_autor',
+                                         'relator',
+                                         'interessado__icontains'
+                                         ])
+
+    mats = MateriaLegislativa.objects.filter(**kwargs)
 
     materias = get_materias(mats)
 
@@ -237,7 +256,7 @@ def get_capa_processo(prot):
     return protocolos
 
 
-def relatorio_processo(request):
+def relatorio_capa_processo(request):
     '''
         pdf_capa_processo_gerar.py
     '''
@@ -253,9 +272,15 @@ def relatorio_processo(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    protocolos = Protocolo.objects.all()[:50]
+    kwargs = get_kwargs_params(request, ['numero',
+                                         'ano',
+                                         'tipo_protocolo',
+                                         'tipo_processo',
+                                         'assunto__icontains',
+                                         # 'interessado__icontains'
+                                         ])
+    protocolos = Protocolo.objects.filter(**kwargs)
     protocolos_pdf = get_capa_processo(protocolos)
-
     pdf = pdf_capa_processo_gerar.principal(None,
                                             imagem,
                                             None,
@@ -269,6 +294,8 @@ def relatorio_processo(request):
 
 
 def get_ordem_dia(ordem, sessao):
+
+    # TODO: fazer implementação de ordem dia
     pass
 
 
@@ -289,16 +316,19 @@ def relatorio_ordem_dia(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    ordem = OrdemDia.objects.all()[:50]
+    kwargs = get_kwargs_params(request, ['numero_ordem'])
+
+    ordem = OrdemDia.objects.filter(**kwargs)
+
     sessao = SessaoPlenaria.objects.first()
     ordem_pdf = get_ordem_dia(ordem, sessao)
 
-    pdf = pdf_capa_processo_gerar.principal(None,
-                                            imagem,
-                                            None,
-                                            ordem_pdf,
-                                            cabecalho,
-                                            rodape)
+    pdf = pdf_ordem_dia_gerar.principal(None,
+                                        imagem,
+                                        None,
+                                        ordem_pdf,
+                                        cabecalho,
+                                        rodape)
 
     response.write(pdf)
 
@@ -954,6 +984,7 @@ def relatorio_pauta_sessao(request):
     imagem = get_imagem(casa)
 
     sessao = SessaoPlenaria.objects.first()
+
     lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(
         sessao, casa)
     pdf = pdf_pauta_sessao_gerar.principal(cabecalho,

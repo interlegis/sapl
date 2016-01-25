@@ -1050,7 +1050,6 @@ class TramitacaoAdmEditView(FormMixin, GenericView):
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        print(kwargs)
         tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
         form = TramitacaoAdmForm(request.POST, instance=tramitacao)
 
