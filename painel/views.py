@@ -243,6 +243,14 @@ def response_null_materia(response):
 
 
 def get_votos(response, materia):
+
+    if materia.tipo_votacao == 1:
+        tipo_votacao = 'Simbólica'
+    elif materia.tipo_votacao == 2:
+        tipo_votacao = 'Nominal'
+    elif materia.tipo_votacao == 3:
+        tipo_votacao = 'Secreta'
+
     registro = RegistroVotacao.objects.filter(
         ordem=materia, materia=materia.materia).last()
     total = (registro.numero_votos_sim +
@@ -253,6 +261,7 @@ def get_votos(response, materia):
         'numero_votos_nao': registro.numero_votos_nao,
         'numero_abstencoes': registro.numero_abstencoes,
         'total_votos': total,
+        'tipo_votacao': tipo_votacao,
         'tipo_resultado': registro.tipo_resultado_votacao.nome
     })
     return response
@@ -260,6 +269,13 @@ def get_votos(response, materia):
 
 def get_votos_nominal(response, materia):
     votos = {}
+
+    if materia.tipo_votacao == 1:
+        tipo_votacao = 'Simbólica'
+    elif materia.tipo_votacao == 2:
+        tipo_votacao = 'Nominal'
+    elif materia.tipo_votacao == 3:
+        tipo_votacao = 'Secreta'
 
     registro = RegistroVotacao.objects.get(
         ordem=materia, materia=materia.materia)
@@ -282,6 +298,7 @@ def get_votos_nominal(response, materia):
         'numero_votos_nao': registro.numero_votos_nao,
         'numero_abstencoes': registro.numero_abstencoes,
         'total_votos': total,
+        'tipo_votacao': tipo_votacao,
         'tipo_resultado': registro.tipo_resultado_votacao.nome,
         'votos': votos
     })
