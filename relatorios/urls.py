@@ -1,11 +1,10 @@
 from django.conf.urls import url
 
-from .views import (relatorio_documento_administrativo, relatorio_materia,
-                    relatorio_ordem_dia, relatorio_processo,
-                    relatorio_protocolo, relatorio_espelho,
-                    relatorio_etiqueta_protocolo,
-                    relatorio_pauta_sessao,
-                    relatorio_sessao_plenaria,)
+from .views import (relatorio_documento_administrativo, relatorio_espelho,
+                    relatorio_etiqueta_protocolo, relatorio_materia,
+                    relatorio_ordem_dia, relatorio_pauta_sessao,
+                    relatorio_processo, relatorio_protocolo,
+                    relatorio_sessao_plenaria)
 
 urlpatterns = [
     url(r'^relatorios/materia$', relatorio_materia, name='relatorio_materia'),

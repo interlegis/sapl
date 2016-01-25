@@ -8,9 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 from painel.models import Painel
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
-from sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
-                           SessaoPlenaria, SessaoPlenariaPresenca,
-                           VotoParlamentar, ExpedienteMateria)
+from sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
+                           RegistroVotacao, SessaoPlenaria,
+                           SessaoPlenariaPresenca, VotoParlamentar)
 
 from .models import Cronometro
 
@@ -73,6 +73,7 @@ def get_cronometro_status(request, name):
     return cronometro
 
 # ##############################ORDEM DO DIA##################################
+
 
 def get_materia_aberta(pk):
     try:
