@@ -179,9 +179,7 @@ def relatorio_materia(request):
 
     materias = get_materias(mats)
 
-    pdf = pdf_materia_gerar.principal(None,
-                                      imagem,
-                                      None,
+    pdf = pdf_materia_gerar.principal(imagem,
                                       materias,
                                       cabecalho,
                                       rodape)
@@ -281,9 +279,7 @@ def relatorio_capa_processo(request):
                                          ])
     protocolos = Protocolo.objects.filter(**kwargs)
     protocolos_pdf = get_capa_processo(protocolos)
-    pdf = pdf_capa_processo_gerar.principal(None,
-                                            imagem,
-                                            None,
+    pdf = pdf_capa_processo_gerar.principal(imagem,
                                             protocolos_pdf,
                                             cabecalho,
                                             rodape)
@@ -323,9 +319,7 @@ def relatorio_ordem_dia(request):
     sessao = SessaoPlenaria.objects.first()
     ordem_pdf = get_ordem_dia(ordem, sessao)
 
-    pdf = pdf_ordem_dia_gerar.principal(None,
-                                        imagem,
-                                        None,
+    pdf = pdf_ordem_dia_gerar.principal(imagem,
                                         ordem_pdf,
                                         cabecalho,
                                         rodape)
@@ -355,9 +349,7 @@ def relatorio_documento_administrativo(request):
     doc_pdf = get_documento_administrativo(docs)
 
     pdf = pdf_documento_administrativo_gerar.principal(
-        None,
         imagem,
-        None,
         doc_pdf,
         cabecalho,
         rodape)
@@ -423,9 +415,7 @@ def relatorio_espelho(request):
     mat_pdf = get_espelho(mats)
 
     pdf = pdf_espelho_gerar.principal(
-        None,
         imagem,
-        None,
         mat_pdf,
         cabecalho,
         rodape)
@@ -870,13 +860,19 @@ def relatorio_protocolo(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    protocolos = Protocolo.objects.all()[:50]
+    kwargs = get_kwargs_params(request, ['numero',
+                                         'ano',
+                                         'tipo_protocolo',
+                                         'tipo_processo',
+                                         'autor',
+                                         'assunto__icontains',
+                                         'interessado__icontains'])
+
+    protocolos = Protocolo.objects.filter(**kwargs)
 
     protocolo_data = get_protocolos(protocolos)
 
-    pdf = pdf_protocolo_gerar.principal(None,
-                                        imagem,
-                                        None,
+    pdf = pdf_protocolo_gerar.principal(imagem,
                                         protocolo_data,
                                         cabecalho,
                                         rodape)
@@ -902,13 +898,19 @@ def relatorio_etiqueta_protocolo(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    protocolos = Protocolo.objects.all()[:50]
+    kwargs = get_kwargs_params(request, ['numero',
+                                         'ano',
+                                         'tipo_protocolo',
+                                         'tipo_processo',
+                                         'autor',
+                                         'assunto__icontains',
+                                         'interessado__icontains'])
+
+    protocolos = Protocolo.objects.filter(**kwargs)
 
     protocolo_data = get_etiqueta_protocolos(protocolos)
 
-    pdf = pdf_etiqueta_protocolo_gerar.principal(None,
-                                                 imagem,
-                                                 None,
+    pdf = pdf_etiqueta_protocolo_gerar.principal(imagem,
                                                  protocolo_data,
                                                  cabecalho,
                                                  rodape)

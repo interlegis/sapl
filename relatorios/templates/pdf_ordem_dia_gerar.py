@@ -177,7 +177,7 @@ def pauta(lst_splen, lst_pauta):
     return tmp
 
 
-def principal(sessao, imagem, dat_ordem, lst_splen, lst_pauta, dic_cabecalho, lst_rodape):
+def principal(imagem, lst_splen, lst_pauta, dic_cabecalho, lst_rodape):
     """Funcao principal que gera a estrutura global do arquivo rml contendo o relatorio de uma ordem do dia.
     ordem_dia_[data da ordem do dia do relatório].pdf
     Retorna:

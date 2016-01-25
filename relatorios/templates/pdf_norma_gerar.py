@@ -91,7 +91,7 @@ def normas(lst_normas):
     tmp_data+='\t</story>\n'
     return tmp_data
 
-def principal(sessao,imagem,data,lst_normas,dic_cabecalho,lst_rodape,dic_filtro={}):
+def principal(imagem, lst_normas, dic_cabecalho, lst_rodape):
     """Funcao pricipal que gera a estrutura global do arquivo rml"""
 
     arquivoPdf=str(int(time.time()*100))+".pdf"
