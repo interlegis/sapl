@@ -1679,49 +1679,51 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
                     nao_votou += 1
 
             try:
-                votacao = RegistroVotacao()
-                votacao.numero_votos_sim = votos_sim
-                votacao.numero_votos_nao = votos_nao
-                votacao.numero_abstencoes = abstencoes
-                votacao.observacao = request.POST['observacao']
-                votacao.materia_id = materia_id
-                votacao.ordem_id = ordem_id
-                votacao.tipo_resultado_votacao_id = int(
-                    request.POST['resultado_votacao'])
-                votacao.save()
-            except:
-                return self.form_invalid(form)
-            else:
                 votacao = RegistroVotacao.objects.get(
                     materia_id=materia_id,
                     ordem_id=ordem_id)
+            except ObjectDoesNotExist:
+                pass
+            else:
+                votacao.delete()
 
-                for votos in request.POST.getlist('voto_parlamentar'):
-                    v = votos.split(':')
-                    voto = v[0]
-                    parlamentar_id = v[1]
+            votacao = RegistroVotacao()
+            votacao.numero_votos_sim = votos_sim
+            votacao.numero_votos_nao = votos_nao
+            votacao.numero_abstencoes = abstencoes
+            votacao.observacao = request.POST['observacao']
+            votacao.materia_id = materia_id
+            votacao.ordem_id = ordem_id
+            votacao.tipo_resultado_votacao_id = int(
+                request.POST['resultado_votacao'])
+            votacao.save()
 
-                    voto_parlamentar = VotoParlamentar()
-                    if(voto == 'sim'):
-                        voto_parlamentar.voto = 'Sim'
-                    elif(voto == 'nao'):
-                        voto_parlamentar.voto = 'Não'
-                    elif(voto == 'abstencao'):
-                        voto_parlamentar.voto = 'Abstenção'
-                    elif(voto == 'nao_votou'):
-                        voto_parlamentar.voto = 'Não Votou'
-                    voto_parlamentar.parlamentar_id = parlamentar_id
-                    voto_parlamentar.votacao_id = votacao.id
-                    voto_parlamentar.save()
+            for votos in request.POST.getlist('voto_parlamentar'):
+                v = votos.split(':')
+                voto = v[0]
+                parlamentar_id = v[1]
 
-                    ordem = OrdemDia.objects.get(
-                        sessao_plenaria_id=self.object.id,
-                        materia_id=materia_id)
-                    resultado = TipoResultadoVotacao.objects.get(
-                        id=request.POST['resultado_votacao'])
-                    ordem.resultado = resultado.nome
-                    ordem.votacao_aberta = False
-                    ordem.save()
+                voto_parlamentar = VotoParlamentar()
+                if(voto == 'sim'):
+                    voto_parlamentar.voto = 'Sim'
+                elif(voto == 'nao'):
+                    voto_parlamentar.voto = 'Não'
+                elif(voto == 'abstencao'):
+                    voto_parlamentar.voto = 'Abstenção'
+                elif(voto == 'nao_votou'):
+                    voto_parlamentar.voto = 'Não Votou'
+                voto_parlamentar.parlamentar_id = parlamentar_id
+                voto_parlamentar.votacao_id = votacao.id
+                voto_parlamentar.save()
+
+                ordem = OrdemDia.objects.get(
+                    sessao_plenaria_id=self.object.id,
+                    materia_id=materia_id)
+                resultado = TipoResultadoVotacao.objects.get(
+                    id=request.POST['resultado_votacao'])
+                ordem.resultado = resultado.nome
+                ordem.votacao_aberta = False
+                ordem.save()
 
             return self.form_valid(form)
         else:

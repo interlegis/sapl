@@ -100,28 +100,42 @@
                     presentes_ordem_dia = data["presentes_expediente"]
                   }
 
-                  jQuery.each(presentes_ordem_dia, function(index, parlamentar) {                     
-/*                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido + ' ' + parlamentar.voto }).appendTo(presentes);*/
-                       $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);                      
-                  });
 
-                  //console.debug(presentes_ordem_dia)              
-
-                  var votacao = $("#votacao")
-
-                  if (data["num_presentes_ordem_dia"] != null) {
-                    num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
-                  }
-                  else if (data["num_presentes_expediente"] != null){
-                    num_presentes_ordem_dia = data["num_presentes_expediente"]
+                  /*Esse IF faz mostrar o voto de cada parlamentar na votação Nominal*/
+                  if( (data["tipo_resultado"]=="Aprovado por unanimidade") || (data["tipo_resultado"]=="Aprovado por maioria") || (data["tipo_resultado"]=="Rejeitado")){
+                    if(data["tipo_votacao"]=="Nominal") {
+                        jQuery.each(data["votos"], function(index, parlamentar) {
+                           $('<li />', {text: parlamentar.parlamentar + ' / ' + parlamentar.partido + '/ Voto: ' + parlamentar.voto}).appendTo(presentes);                     
+                        });
+                    }
                   } 
 
-                  votacao.children().remove()
-                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
-                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
-                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
-                  votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
-                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
+
+                  else{
+                    jQuery.each(presentes_ordem_dia, function(index, parlamentar) {                     
+  /*                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido + ' ' + parlamentar.voto }).appendTo(presentes);*/
+                         $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);                      
+                    });
+                }
+
+                //console.debug(presentes_ordem_dia)              
+
+                var votacao = $("#votacao")
+
+                if (data["num_presentes_ordem_dia"] != null) {
+                  num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
+                }
+                else if (data["num_presentes_expediente"] != null){
+                  num_presentes_ordem_dia = data["num_presentes_expediente"]
+                } 
+
+                votacao.children().remove()
+                votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
+                votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
+                votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
+                votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
+                votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
+                
 
                   var discurso_current = data["cronometro_discurso"];                  
                   if (discurso_current != discurso_previous) {

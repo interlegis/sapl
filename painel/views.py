@@ -283,11 +283,28 @@ def get_votos_nominal(response, materia):
     votos_parlamentares = VotoParlamentar.objects.filter(
         votacao_id=registro.id)
 
+    filiacao = Filiacao.objects.filter(
+        data_desfiliacao__isnull=True, parlamentar__ativo=True)
+    parlamentar_partido = {}
+    for f in filiacao:
+        parlamentar_partido[
+            f.parlamentar.nome_parlamentar] = f.partido.sigla
+
     for v in votos_parlamentares:
-        votos.update({v.parlamentar.id: {
-            'parlamentar': v.parlamentar.nome_parlamentar,
-            'voto': str(v.voto)
-        }})
+        try:
+            parlamentar_partido[v.parlamentar.nome_parlamentar]
+        except KeyError:
+            votos.update({v.parlamentar.id: {
+                'parlamentar': v.parlamentar.nome_parlamentar,
+                'voto': str(v.voto),
+                'partido': 'Sem Registro'
+            }})
+        else:
+            votos.update({v.parlamentar.id: {
+                'parlamentar': v.parlamentar.nome_parlamentar,
+                'voto': str(v.voto),
+                'partido': parlamentar_partido[v.parlamentar.nome_parlamentar]
+            }})
 
     total = (registro.numero_votos_sim +
              registro.numero_votos_nao +
