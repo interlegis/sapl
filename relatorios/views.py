@@ -622,17 +622,17 @@ def get_sessao_plenaria(sessao, casa):
     lst_oradores_expediente = []
     for orador_expediente in OradorExpediente.objects.filter(
             sessao_plenaria=sessao):
-        for parlamentar in Parlamentar.objects.filter(
-                id=orador_expediente.parlamentar.id):
-            dic_oradores_expediente = {}
-            dic_oradores_expediente["num_ordem"] = (
-                orador_expediente.numero_ordem)
-            dic_oradores_expediente["nom_parlamentar"] = (
-                parlamentar.nome_parlamentar)
-            dic_oradores_expediente['sgl_partido'] = (
-                Filiacao.objects.filter(
-                    parlamentar=parlamentar).first().partido.sigla)
-            lst_oradores_expediente.append(dic_oradores_expediente)
+        parlamentar = Parlamentar.objects.get(
+            id=orador_expediente.parlamentar.id)
+        dic_oradores_expediente = {}
+        dic_oradores_expediente["num_ordem"] = (
+            orador_expediente.numero_ordem)
+        dic_oradores_expediente["nom_parlamentar"] = (
+            parlamentar.nome_parlamentar)
+        dic_oradores_expediente['sgl_partido'] = (
+            Filiacao.objects.filter(
+                parlamentar=parlamentar).first().partido.sigla)
+        lst_oradores_expediente.append(dic_oradores_expediente)
 
     # Lista presença na ordem do dia
     lst_presenca_ordem_dia = []
@@ -646,7 +646,6 @@ def get_sessao_plenaria(sessao, casa):
             dic_presenca_ordem_dia['sgl_partido'] = (
                 Filiacao.objects.filter(
                     parlamentar=parlamentar).first().partido.sigla)
-            lst_oradores_expediente.append(dic_oradores_expediente)
             lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
 
     # Lista das matérias da Ordem do Dia, incluindo o resultado das votacoes
@@ -753,7 +752,7 @@ def get_sessao_plenaria(sessao, casa):
             lst_oradores)
 
 
-def relatorio_sessao_plenaria(request):
+def relatorio_sessao_plenaria(request, pk):
     '''
         pdf_sessao_plenaria_gerar.py
     '''
@@ -768,8 +767,8 @@ def relatorio_sessao_plenaria(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    # protocolos = Protocolo.objects.all()[:50]
-    sessao = SessaoPlenaria.objects.first()
+    sessao = SessaoPlenaria.objects.get(id=pk)
+
     (inf_basicas_dic,
      lst_mesa,
      lst_presenca_sessao,

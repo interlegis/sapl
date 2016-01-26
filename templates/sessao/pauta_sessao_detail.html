@@ -4,6 +4,8 @@
 {% block actions %}{% endblock %}
 
 {% block detail_content %}
+<br>
+<div align=right><a href="{% url 'relatorio_sessao_plenaria' object.id %}">> PDF</a></li></div>
 <fieldset>
 	<legend>Pauta da Sessão</legend>
 	<h5 align="center">{{ sessaoplenaria }}</h5>
