@@ -78,7 +78,7 @@ def get_cronometro_status(request, name):
 def get_materia_aberta(pk):
     try:
         materia = OrdemDia.objects.filter(
-            sessao_plenaria_id=pk, votacao_aberta=True).first()
+            sessao_plenaria_id=pk, votacao_aberta=True).last()
         return materia
     except ObjectDoesNotExist:
         return False
@@ -87,7 +87,7 @@ def get_materia_aberta(pk):
 def get_last_materia(pk):
     try:
         materia = OrdemDia.objects.filter(
-            sessao_plenaria_id=pk).order_by('-data_ordem').first()
+            sessao_plenaria_id=pk).last()
         return materia
     except ObjectDoesNotExist:
         return None
@@ -158,7 +158,7 @@ def get_presentes(pk, response, materia):
 def get_materia_expediente_aberta(pk):
     try:
         materia = ExpedienteMateria.objects.filter(
-            sessao_plenaria_id=pk, votacao_aberta=True).first()
+            sessao_plenaria_id=pk, votacao_aberta=True).last()
         return materia
     except ObjectDoesNotExist:
         return False
@@ -167,7 +167,7 @@ def get_materia_expediente_aberta(pk):
 def get_last_materia_expediente(pk):
     try:
         materia = ExpedienteMateria.objects.filter(
-            sessao_plenaria_id=pk).order_by('-data_ordem').first()
+            sessao_plenaria_id=pk).last()
         return materia
     except ObjectDoesNotExist:
         return None
