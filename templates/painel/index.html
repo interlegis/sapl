@@ -101,22 +101,17 @@
                   }
 
 
-                  /*Esse IF faz mostrar o voto de cada parlamentar na votação Nominal*/
-                  if( (data["tipo_resultado"]=="Aprovado por unanimidade") || (data["tipo_resultado"]=="Aprovado por maioria") || (data["tipo_resultado"]=="Rejeitado")){
-                    if(data["tipo_votacao"]=="Nominal") {
-                        jQuery.each(data["votos"], function(index, parlamentar) {
-                           $('<li />', {text: parlamentar.parlamentar + ' / ' + parlamentar.partido + '/ Voto: ' + parlamentar.voto}).appendTo(presentes);                     
-                        });
-                    }
-                  } 
-
-
-                  else{
+                  if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
+                      if(data["tipo_votacao"] == "Nominal") {
+                          jQuery.each(data["votos"], function(index, parlamentar) {
+                             $('<li />', {text: parlamentar.parlamentar + ' / ' + parlamentar.partido + '/ Voto: ' + parlamentar.voto}).appendTo(presentes);                     
+                          });
+                      }
+                  }else{
                     jQuery.each(presentes_ordem_dia, function(index, parlamentar) {                     
-  /*                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido + ' ' + parlamentar.voto }).appendTo(presentes);*/
-                         $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);                      
+                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);                      
                     });
-                }
+                  }
 
                 //console.debug(presentes_ordem_dia)              
 
