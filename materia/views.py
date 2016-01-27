@@ -2023,6 +2023,18 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
         if request.POST['assunto']:
             kwargs['ementa'] = request.POST['assunto']
 
+        if request.POST['autor']:
+            kwargs['autoria'] = request.POST['autor']
+
+        # if request.POST['relator']:
+        #     kwargs['relatoria'] = request.POST['relator']
+
+        if request.POST['localizacao']:
+            kwargs['local_origem_externa'] = request.POST['localizacao']
+
+        if request.POST['situacao']:
+            kwargs['tipo_id'] = request.POST['situacao']
+
         request.session['kwargs'] = kwargs
         return redirect('pesquisar_materia_list')
 
