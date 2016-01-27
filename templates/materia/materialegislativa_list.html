@@ -5,4 +5,8 @@
   <dd><a href="{% url 'formulario_simplificado' %}">
     {% blocktrans with verbose_name=view.verbose_name %} Formulário Simplificado {% endblocktrans %}
   </a></dd>
+
+  <dd><a href="{% url 'pesquisar_materia' %}">
+    {% blocktrans with verbose_name=view.verbose_name %} Pesquisar Matéria {% endblocktrans %}
+  </a></dd>
 {% endblock more_buttons %}
