@@ -235,7 +235,8 @@ class RegistroVotacao(models.Model):
     tipo_resultado_votacao = models.ForeignKey(
         TipoResultadoVotacao, verbose_name=_('Resultado da Votação'))
     materia = models.ForeignKey(MateriaLegislativa)
-    ordem = models.ForeignKey(OrdemDia)
+    ordem = models.ForeignKey(OrdemDia, blank=True, null=True)
+    expediente = models.ForeignKey(ExpedienteMateria, blank=True, null=True)
     numero_votos_sim = models.PositiveIntegerField(verbose_name=_('Sim'))
     numero_votos_nao = models.PositiveIntegerField(verbose_name=_('Não'))
     numero_abstencoes = models.PositiveIntegerField(

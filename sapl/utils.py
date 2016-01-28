@@ -28,6 +28,10 @@ def register_all_models_in_admin(module_name):
             admin.site.register(model, CustomModelAdmin)
 
 
+def xstr(s):
+    return '' if s is None else str(s)
+
+
 def make_choices(*choice_pairs):
     assert len(choice_pairs) % 2 == 0
     ipairs = iter(choice_pairs)

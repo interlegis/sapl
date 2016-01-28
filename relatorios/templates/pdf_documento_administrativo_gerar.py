@@ -112,7 +112,7 @@ def documentos(lst_documentos):
     return tmp_data
 
 
-def principal(sessao, imagem, data, lst_documentos, dic_cabecalho, lst_rodape, dic_filtro={}):
+def principal(imagem, lst_documentos, dic_cabecalho, lst_rodape):
     """Funcao pricipal que gera a estrutura global do arquivo rml"""
 
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"

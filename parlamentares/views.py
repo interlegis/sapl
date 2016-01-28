@@ -158,7 +158,6 @@ class ParlamentaresView(GenericView):
     def get(self, request, *args, **kwargs):
         form = ParlamentaresListForm()
 
-        # import ipdb; ipdb.set_trace()
         if not Legislatura.objects.all():
             mensagem = "Cadastre alguma Legislatura antes\
             de cadastrar algum Parlamentar"

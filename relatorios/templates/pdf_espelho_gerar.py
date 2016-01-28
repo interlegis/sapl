@@ -122,7 +122,7 @@ def materias(lst_materias):
 	return tmp_data
 
 
-def principal(sessao, imagem, data, lst_materias, dic_cabecalho, lst_rodape, dic_filtro={}):
+def principal(imagem, lst_materias, dic_cabecalho, lst_rodape):
 	"""Funcao pricipal que gera a estrutura global do arquivo rml"""
 
 #	if sessao:
