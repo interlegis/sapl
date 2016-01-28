@@ -1704,13 +1704,13 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
                 parlamentar_id = v[1]
 
                 voto_parlamentar = VotoParlamentar()
-                if(voto == 'sim'):
+                if voto == 'sim':
                     voto_parlamentar.voto = 'Sim'
-                elif(voto == 'nao'):
+                elif voto == 'nao':
                     voto_parlamentar.voto = 'Não'
-                elif(voto == 'abstencao'):
+                elif voto == 'abstencao':
                     voto_parlamentar.voto = 'Abstenção'
-                elif(voto == 'nao_votou'):
+                elif voto == 'nao_votou':
                     voto_parlamentar.voto = 'Não Votou'
                 voto_parlamentar.parlamentar_id = parlamentar_id
                 voto_parlamentar.votacao_id = votacao.id
