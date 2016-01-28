@@ -492,6 +492,10 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
                     ano=date.today().year).aggregate(Max('numero'))
             else:
                 numeracao = Protocolo.objects.all().aggregate(Max('numero'))
+
+            if numeracao is None:
+                numeracao['numero__max'] = 0
+
             protocolo = Protocolo()
             protocolo.numero = numeracao['numero__max'] + 1
             protocolo.ano = datetime.now().year
@@ -617,6 +621,9 @@ class ProtocoloMateriaView(FormMixin, GenericView):
                     ano=date.today().year).aggregate(Max('numero'))
             else:
                 numeracao = Protocolo.objects.all().aggregate(Max('numero'))
+
+            if numeracao is None:
+                numero['numero__max'] = 0
 
             protocolo = Protocolo()
 
