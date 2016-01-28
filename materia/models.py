@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
-from sapl.utils import YES_NO_CHOICES, make_choices
+from sapl.utils import YES_NO_CHOICES, make_choices, xstr
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -506,7 +506,7 @@ class UnidadeTramitacao(models.Model):
 
     def __str__(self):
         return _('%(orgao)s - %(comissao)s') % {
-            'orgao': self.orgao, 'comissao': self.comissao
+            'orgao': xstr(self.orgao), 'comissao': xstr(self.comissao)
         }
 
 
