@@ -2,7 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
+from crispy_forms.layout import Column, Fieldset, Layout
 from django import forms
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
@@ -18,6 +18,7 @@ from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
 import sapl
+from sapl.layout import form_actions
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
@@ -296,10 +297,7 @@ class FormularioSimplificadoForm(ModelForm):
                     'Identificação Básica',
                     row1, row2, row3, row4
                 ),
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(FormularioSimplificadoForm, self).__init__(*args, **kwargs)
@@ -375,10 +373,7 @@ class FormularioCadastroForm(ModelForm):
                     'indexacao',
                     'observacao'
                 ),
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(FormularioCadastroForm, self).__init__(*args, **kwargs)
@@ -472,10 +467,7 @@ class MateriaAnexadaForm(ModelForm):
             Fieldset(
                 'Anexar Matéria',
                 row1, row2,
-                ButtonHolder(
-                    Submit('submit', 'Anexar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(MateriaAnexadaForm, self).__init__(
@@ -654,10 +646,7 @@ class DespachoInicialFom(ModelForm):
             Fieldset(
                 'Adicionar Despacho Inicial',
                 'comissao',
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(DespachoInicialFom, self).__init__(*args, **kwargs)
@@ -823,10 +812,7 @@ class LegislacaoCitadaForm(ModelForm):
             Fieldset(
                 'Incluir Legislação Citada',
                 row1, row2, row3, row4,
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(LegislacaoCitadaForm, self).__init__(*args, **kwargs)
@@ -1001,10 +987,7 @@ class NumeracaoForm(ModelForm):
             Fieldset(
                 'Incluir Numeração',
                 row1, row2,
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(NumeracaoForm, self).__init__(*args, **kwargs)
@@ -1146,10 +1129,7 @@ class DocumentoAcessorioForm(ModelForm):
             Fieldset(
                 'Incluir Documento Acessório',
                 row1, row2, row3,
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(DocumentoAcessorioForm, self).__init__(*args, **kwargs)
@@ -1452,10 +1432,7 @@ class TramitacaoForm(ModelForm):
             Fieldset('Incluir Tramitação',
                      row1, row2, row3, row4, row5,
                      ),
-            ButtonHolder(
-                Submit('submit', 'Salvar',
-                       css_class='button primary')
-            )
+            form_actions()
         )
         super(TramitacaoForm, self).__init__(
             *args, **kwargs)
@@ -1791,11 +1768,7 @@ class ProposicaoForm(ModelForm):
             [('texto_original', 10)])
 
         row4.append(
-            Column(
-                ButtonHolder(
-                    Submit('sumbmit', 'Salvar',
-                           css_class='button primary')
-                ), css_class='columns large-2'))
+            Column(form_actions(), css_class='columns large-2'))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -1971,10 +1944,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset('Pesquisa Básica',
                      row1, row2, row3, row4, row5, row6, row7),
-            ButtonHolder(
-                Submit('submit', 'Pesquisar',
-                       css_class='button primary')
-            )
+            form_actions(save_label='Pesquisar')
         )
         super(MateriaLegislativaPesquisaForm, self).__init__(
             *args, **kwargs)

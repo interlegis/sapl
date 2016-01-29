@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -10,6 +10,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+from sapl.layout import form_actions
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
@@ -154,10 +155,7 @@ class CadastrarComissaoForm(ModelForm):
                     row7,
                     row8
                 ),
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(CadastrarComissaoForm, self).__init__(*args, **kwargs)
@@ -302,10 +300,7 @@ class ParticipacaoCadastroForm(ModelForm):
                 'Formulário de Cadastro',
                 row1, row2, row3, row4
             ),
-            ButtonHolder(
-                Submit('submit', 'Salvar',
-                       css_class='button primary')
-            )
+            form_actions()
         )
         super(ParticipacaoCadastroForm, self).__init__(*args, **kwargs)
 

@@ -2,8 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, ButtonHolder, Field, Fieldset, Layout,
-                                 Submit)
+from crispy_forms.layout import (HTML, Field, Fieldset, Layout)
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -20,6 +19,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+from sapl.layout import form_actions
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
 
@@ -330,10 +330,7 @@ class AnularProcoloAdmForm(forms.Form):
                      row1,
                      row2,
                      HTML("&nbsp;"),
-                     ButtonHolder(Submit('submit', 'Anular',
-                                         css_class='button primary'
-                                         )
-                                  )
+                     form_actions(save_label='Anular')
                      )
         )
         super(AnularProcoloAdmForm, self).__init__(
@@ -460,10 +457,7 @@ class ProtocoloDocumentForm(forms.Form):
                      row5,
                      row6,
                      HTML("&nbsp;"),
-                     ButtonHolder(Submit('submit', 'Protocolar Documento',
-                                         css_class='button primary'
-                                         )
-                                  )
+                     form_actions(save_label='Protocolar Documento')
                      )
         )
         super(ProtocoloDocumentForm, self).__init__(
@@ -576,10 +570,7 @@ class ProtocoloMateriaForm(forms.Form):
                      row4,
                      row5,
                      HTML("&nbsp;"),
-                     ButtonHolder(Submit('submit', 'Protocolar Matéria',
-                                         css_class='button primary'
-                                         )
-                                  )
+                     form_actions(save_label='Protocolar Matéria')
                      )
         )
         super(ProtocoloMateriaForm, self).__init__(
@@ -887,10 +878,7 @@ class ModelFormDocumentoAcessorioAdministrativo(ModelForm):
                 'autor',
                 'arquivo',
                 'assunto',
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(ModelFormDocumentoAcessorioAdministrativo, self).__init__(
@@ -1002,10 +990,7 @@ class TramitacaoAdmForm(ModelForm):
                      'data_fim_prazo',
                      'texto'),
             Field('documento', type="hidden"),
-            ButtonHolder(
-                Submit('submit', 'Salvar',
-                       css_class='button primary')
-            )
+            form_actions()
         )
         super(TramitacaoAdmForm, self).__init__(
             *args, **kwargs)

@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -12,6 +12,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+from sapl.layout import form_actions
 
 from .models import CasaLegislativa
 
@@ -161,10 +162,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row6,
                 row7,
                 row8,
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(CasaLegislativaTabelaAuxForm, self).__init__(*args, **kwargs)

@@ -2,7 +2,7 @@ from datetime import datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Column, Fieldset, Layout, Submit
+from crispy_forms.layout import Column, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -15,6 +15,7 @@ from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
 import sapl
+from sapl.layout import form_actions
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica
@@ -2410,10 +2411,7 @@ class SessaoForm(ModelForm):
                 row3,
                 row4,
                 row5,
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(SessaoForm, self).__init__(*args, **kwargs)
@@ -2505,12 +2503,7 @@ class AcompanharMateriaForm(ModelForm):
         row1 = sapl.layout.to_row([('email', 10)])
 
         row1.append(
-            Column(
-                ButtonHolder(
-                    Submit('Submit', 'Cadastrar',
-                           css_class='button primary')
-                    ), css_class='columns-large-2'
-                )
+            Column(form_actions(save_label='Cadastrar'), css_class='columns-large-2')
             )
 
         self.helper = FormHelper()

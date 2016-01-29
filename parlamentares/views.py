@@ -2,7 +2,7 @@ import os
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -14,6 +14,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+from sapl.layout import form_actions
 from sapl.crud import build_crud
 
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
@@ -383,10 +384,7 @@ class ParlamentaresForm (ModelForm):
                                value="Remover Foto"/>
                          {% endif %}""", ),
                      row14,
-                     ButtonHolder(
-                         Submit('submit', 'Salvar',
-                                css_class='button primary'),
-                     ))
+                     form_actions())
 
         )
         super(ParlamentaresForm, self).__init__(
@@ -399,12 +397,10 @@ class ParlamentaresEditForm(ParlamentaresForm):
         super(ParlamentaresEditForm, self).__init__(
             *args, **kwargs)
 
-        self.helper.layout[0][-1:] = ButtonHolder(
-            Submit('salvar', 'Salvar',
-                   css_class='button primary'),
+        self.helper.layout[0][-1:] = form_actions(more=[
             HTML('&nbsp;'),
             Submit('excluir', 'Excluir',
-                   css_class='button primary'),)
+                   css_class='btn btn-primary')])
 
 
 class ParlamentaresCadastroView(FormMixin, GenericView):
@@ -521,10 +517,7 @@ class DependenteForm(ModelForm):
         self.helper.layout = Layout(
             Fieldset('Cadastro de Dependentes',
                      row1, row2, row3,
-                     ButtonHolder(
-                         Submit('Salvar', 'Salvar',
-                                css_class='button primary'),
-                     ))
+                     form_actions())
 
         )
         super(DependenteForm, self).__init__(
@@ -537,12 +530,10 @@ class DependenteEditForm(DependenteForm):
         super(DependenteEditForm, self).__init__(
             *args, **kwargs)
 
-        self.helper.layout[0][-1:] = ButtonHolder(
-            Submit('Salvar', 'Salvar',
-                   css_class='button primary'),
+        self.helper.layout[0][-1:] = form_actions(more=[
             HTML('&nbsp;'),
-            Submit('Excluir', 'Excluir',
-                   css_class='button primary'),)
+            Submit('excluir', 'Excluir',
+                   css_class='btn btn-primary')])
 
 
 class ParlamentaresDependentesView(FormMixin, GenericView):
@@ -643,10 +634,10 @@ class MesaDiretoraView(FormMixin, GenericView):
         messages.add_message(request, messages.INFO, mensagem)
 
         return self.render_to_response(
-                {'legislaturas': Legislatura.objects.all(
-                 ).order_by('-data_inicio'),
-                 'legislatura_selecionada': Legislatura.objects.last(),
-                 'cargos_vagos': CargoMesa.objects.all()})
+            {'legislaturas': Legislatura.objects.all(
+            ).order_by('-data_inicio'),
+                'legislatura_selecionada': Legislatura.objects.last(),
+                'cargos_vagos': CargoMesa.objects.all()})
 
     def get(self, request, *args, **kwargs):
 
@@ -671,16 +662,16 @@ class MesaDiretoraView(FormMixin, GenericView):
 
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
-                ).order_by('-data_inicio'),
-             'legislatura_selecionada': Legislatura.objects.last(),
-             'sessoes': SessaoLegislativa.objects.filter(
-                 legislatura=Legislatura.objects.last()),
-             'sessao_selecionada': SessaoLegislativa.objects.filter(
-                 legislatura=Legislatura.objects.last()).first(),
-             'composicao_mesa': mesa,
-             'parlamentares': parlamentares_vagos,
-             'cargos_vagos': cargos_vagos
-             })
+            ).order_by('-data_inicio'),
+                'legislatura_selecionada': Legislatura.objects.last(),
+                'sessoes': SessaoLegislativa.objects.filter(
+                legislatura=Legislatura.objects.last()),
+                'sessao_selecionada': SessaoLegislativa.objects.filter(
+                legislatura=Legislatura.objects.last()).first(),
+                'composicao_mesa': mesa,
+                'parlamentares': parlamentares_vagos,
+                'cargos_vagos': cargos_vagos
+            })
 
     def post(self, request, *args, **kwargs):
         if 'Incluir' in request.POST:
@@ -708,10 +699,10 @@ class MesaDiretoraView(FormMixin, GenericView):
             if 'composicao_mesa' in request.POST:
                 ids = request.POST['composicao_mesa'].split(':')
                 composicao = ComposicaoMesa.objects.get(
-                            sessao_legislativa_id=int(request.POST['sessao']),
-                            parlamentar_id=int(ids[0]),
-                            cargo_id=int(ids[1])
-                            )
+                    sessao_legislativa_id=int(request.POST['sessao']),
+                    parlamentar_id=int(ids[0]),
+                    cargo_id=int(ids[1])
+                )
                 composicao.delete()
             return self.form_valid(form=None)
         else:
@@ -731,17 +722,17 @@ class MesaDiretoraView(FormMixin, GenericView):
                     parlamentares_ocupados))
             return self.render_to_response(
                 {'legislaturas': Legislatura.objects.all(
-                 ).order_by('-data_inicio'),
-                 'legislatura_selecionada': Legislatura.objects.get(
-                     id=int(request.POST['legislatura'])),
-                 'sessoes': SessaoLegislativa.objects.filter(
-                     legislatura_id=int(request.POST['legislatura'])),
-                 'sessao_selecionada': SessaoLegislativa.objects.get(
-                     id=int(request.POST['sessao'])),
-                 'composicao_mesa': mesa,
-                 'parlamentares': parlamentares_vagos,
-                 'cargos_vagos': cargos_vagos
-                 })
+                ).order_by('-data_inicio'),
+                    'legislatura_selecionada': Legislatura.objects.get(
+                    id=int(request.POST['legislatura'])),
+                    'sessoes': SessaoLegislativa.objects.filter(
+                    legislatura_id=int(request.POST['legislatura'])),
+                    'sessao_selecionada': SessaoLegislativa.objects.get(
+                    id=int(request.POST['sessao'])),
+                    'composicao_mesa': mesa,
+                    'parlamentares': parlamentares_vagos,
+                    'cargos_vagos': cargos_vagos
+                })
 
 
 class FiliacaoForm(ModelForm):
@@ -762,10 +753,7 @@ class FiliacaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Adicionar Filiação', row1,
-                     ButtonHolder(
-                         Submit('Salvar', 'Salvar',
-                                css_class='button primary'),
-                     ))
+                     form_actions())
 
         )
         super(FiliacaoForm, self).__init__(
@@ -778,12 +766,10 @@ class FiliacaoEditForm(FiliacaoForm):
         super(FiliacaoEditForm, self).__init__(
             *args, **kwargs)
 
-        self.helper.layout[0][-1:] = ButtonHolder(
-            Submit('Salvar', 'Salvar',
-                   css_class='button primary'),
+        self.helper.layout[0][-1:] = form_actions(more=[
             HTML('&nbsp;'),
-            Submit('Excluir', 'Excluir',
-                   css_class='button primary'),)
+            Submit('excluir', 'Excluir',
+                   css_class='btn btn-primary')])
 
 
 class FiliacaoView(FormMixin, GenericView):
@@ -1050,10 +1036,7 @@ class MandatoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Adicionar Mandato', row1, row2, row3,
-                     ButtonHolder(
-                         Submit('Salvar', 'Salvar',
-                                css_class='button primary'),
-                     ))
+                     form_actions())
 
         )
         super(MandatoForm, self).__init__(
@@ -1066,12 +1049,10 @@ class MandatoEditForm(MandatoForm):
         super(MandatoEditForm, self).__init__(
             *args, **kwargs)
 
-        self.helper.layout[0][-1:] = ButtonHolder(
-            Submit('Salvar', 'Salvar',
-                   css_class='button primary'),
+        self.helper.layout[0][-1:] = form_actions(more=[
             HTML('&nbsp;'),
-            Submit('Excluir', 'Excluir',
-                   css_class='button primary'),)
+            Submit('excluir', 'Excluir',
+                   css_class='btn btn-primary')])
 
 
 class MandatoView(FormMixin, GenericView):

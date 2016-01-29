@@ -229,7 +229,7 @@ class NotaForm(ModelForm):
             ('publicacao', 3),
             ('efetividade', 3),
             (Button('submit', _('Salvar'),
-                    css_class='button primary radius'), 3)
+                    css_class='btn btn-primary'), 3)
         ])
 
         self.helper = FormHelper()
@@ -313,7 +313,7 @@ class VideForm(ModelForm):
                             Button(
                                 'submit',
                                 'Salvar',
-                                css_class='button primary radius'), 12)))
+                                css_class='btn btn-primary'), 12)))
                     ), 4)),
                 to_column((
                     Div(
@@ -331,7 +331,7 @@ class VideForm(ModelForm):
                                 Button(
                                     'buscar',
                                     'Buscar',
-                                    css_class='button btn-busca radius'), 2))
+                                    css_class='btn btn-primary btn-busca'), 2))
 
                             ),
                         to_column(
