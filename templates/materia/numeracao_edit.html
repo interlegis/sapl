@@ -5,47 +5,47 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{materialegislativa.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{materialegislativa.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{materialegislativa.ano}}</b></div>
+    </div>
 		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
 			<legend>Editar Numeração</legend>
 				<form method="POST">
 					{% csrf_token %}
-					<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-						<li>
-							<label>Tipo Matéria*</label>
-							<select name="tipo_materialegislativa">
-								{% for t in tipos %}
-									<option value="{{t.id}}" {% if t.id == numeracao.tipo_materialegislativa_id %} selected {% endif %}>
-										{{t.sigla}} - {{t.descricao}}
-									</option>
-								{% endfor %}
-							</select>
-						</li>
-					</ul>
+          <div class="row">
+            <div class="col-md-12">
+              <label>Tipo Matéria*</label>
+              <select name="tipo_materialegislativa">
+                {% for t in tipos %}
+                <option value="{{t.id}}" {% if t.id == numeracao.tipo_materialegislativa_id %} selected {% endif %}>
+                {{t.sigla}} - {{t.descricao}}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
 
-					<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-						<li>
-							<label>Número*</select>label>
-							<input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materialegislativa}}" />
-						</li>
-						<li>
-							<label>Ano*</label>		
-							<input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materialegislativa}}" />
-						</li>
-						<li>
-							<label>Data</label>
-							<input type="text" name="data_materialegislativa" class="dateinput" value="{{numeracao.data_materialegislativa|date:'d/m/Y'}}" />
-						</li>
+					<div class="row">
+            <div class="col-md-4">
+              <label>Número*</select>label>
+              <input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materialegislativa}}" />
+            </div>
+            <div class="col-md-4">
+              <label>Ano*</label>
+              <input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materialegislativa}}" />
+            </div>
+            <div class="col-md-4">
+              <label>Data</label>
+              <input type="text" name="data_materialegislativa" class="dateinput" value="{{numeracao.data_materialegislativa|date:'d/m/Y'}}" />
+            </div>
 					<ul>
 
 					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
-					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
 				</form>
 		</fieldset>
 	</fieldset>

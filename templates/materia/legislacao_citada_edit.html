@@ -5,11 +5,11 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{materialegislativa.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{materialegislativa.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{materialegislativa.ano}}</b></div>
+    </div>
 		Ementa: <b>{{materialegislativa.ementa}}</b>
 
 		<fieldset>
@@ -17,80 +17,80 @@
 			<form method="POST">
 				{% csrf_token %}
 
-				<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-					<li>
-						<label>Tipo Norma*</label>
-						<select name="tipo">
-							{% for tipo in tipos_norma %}
-								<option value="{{tipo.id}}" {% if tipo == legislacao.norma.tipo %} selected {% endif %}>
-									{{tipo.sigla}} - {{tipo.descricao}}
-								</option>
-							{% endfor %}
-						</select>
-					</li>
-					<li>
-						<label>Número*</label>
-						<input type="text" name="numero" value="{{legislacao.norma.numero}}" />
-					</li>
-					<li>
-						<label>Ano*</label>
-						<input type="text" name="ano" value="{{legislacao.norma.ano}}" />
-					</li>
-				</ul>
+        <div class="row">
+          <div class="col-md-4">
+            <label>Tipo Norma*</label>
+            <select name="tipo">
+              {% for tipo in tipos_norma %}
+              <option value="{{tipo.id}}" {% if tipo == legislacao.norma.tipo %} selected {% endif %}>
+              {{tipo.sigla}} - {{tipo.descricao}}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label>Número*</label>
+            <input type="text" name="numero" value="{{legislacao.norma.numero}}" />
+          </div>
+          <div class="col-md-4">
+            <label>Ano*</label>
+            <input type="text" name="ano" value="{{legislacao.norma.ano}}" />
+          </div>
+        </div>
 
-				<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-					<li>
-						<label>Disposição</label>
-						<input type="text" name="disposicao" value="{{legislacao.disposicoes}}" />
-					</li>
-					<li>
-						<label>Parte</label>
-						<input type="text" name="parte" value="{{legislacao.parte}}" />
-					</li>
-					<li>
-						<label>Livro</label>
-						<input type="text" name="livro" value="{{legislacao.livro}}" />
-					</li>
-					<li>
-						<label>Título</label>
-						<input type="text" name="titulo" value="{{legislacao.titulo}}" />
-					</li>
-				</ul>
+        <div class="row">
+          <div class="col-md-3">
+            <label>Disposição</label>
+            <input type="text" name="disposicao" value="{{legislacao.disposicoes}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Parte</label>
+            <input type="text" name="parte" value="{{legislacao.parte}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Livro</label>
+            <input type="text" name="livro" value="{{legislacao.livro}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Título</label>
+            <input type="text" name="titulo" value="{{legislacao.titulo}}" />
+          </div>
+        </div>
 
-				<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-					<li>
-						<label>Capítulo</label>
-						<input type="text" name="capitulo" value="{{legislacao.capitulo}}" />
-					</li>
-					<li>
-						<label>Seção</label>
-						<input type="text" name="secao" value="{{legislacao.secao}}" />
-					</li>
-					<li>
-						<label>Subseção</label>
-						<input type="text" name="subsecao" value="{{legislacao.subsecao}}" />
-					</li>
-					<li>
-						<label>Artigo</label>
-						<input type="text" name="artigo" value="{{legislacao.artigo}}" />
-					</li>
-				</ul>
+        <div class="row">
+          <div class="col-md-3">
+            <label>Capítulo</label>
+            <input type="text" name="capitulo" value="{{legislacao.capitulo}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Seção</label>
+            <input type="text" name="secao" value="{{legislacao.secao}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Subseção</label>
+            <input type="text" name="subsecao" value="{{legislacao.subsecao}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Artigo</label>
+            <input type="text" name="artigo" value="{{legislacao.artigo}}" />
+          </div>
+        </div>
 
-				<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-					<li>
-						<label>Inciso</label>
-						<input type="text" name="inciso" value="{{legislacao.inciso}}" />
-					</li>						
-					<li>
-						<label>Alínea</label>
-						<input type="text" name="alinea" value="{{legislacao.alinea}}" />
-					</li>
-					<li>
-						<label>Item</label>
-						<input type="text" name="item" value="{{legislacao.item}}" />
-					</li>
-				</ul>
-				
+        <div class="row">
+          <div class="col-md-3">
+            <label>Inciso</label>
+            <input type="text" name="inciso" value="{{legislacao.inciso}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Alínea</label>
+            <input type="text" name="alinea" value="{{legislacao.alinea}}" />
+          </div>
+          <div class="col-md-3">
+            <label>Item</label>
+            <input type="text" name="item" value="{{legislacao.item}}" />
+          </div>
+        </div>
+
 				<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
 				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
 			</form>

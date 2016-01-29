@@ -6,15 +6,15 @@
 
 <h1>Acompanhamento de Matéria</h1>
 <hr>
-<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-	<li><b>Tipo:</b> {{materia.tipo.sigla}} - {{materia.tipo.descricao}}</li>
-	<li><b>Número:</b> {{materia.numero}}</li>
-	<li><b>Ano:</b> {{materia.ano}}</li>
+<div class="row">
+  <div class="col-md-4"><b>Tipo:</b> {{materia.tipo.sigla}} - {{materia.tipo.descricao}}</div>
+  <div class="col-md-4"><b>Número:</b> {{materia.numero}}</div>
+  <div class="col-md-4"><b>Ano:</b> {{materia.ano}}</div>
 
-</ul>
-<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-	<li><b>Ementa:</b> {{materia.ementa|safe}}</li>
-</ul>
+</div>
+<div class="row">
+  <div class="col-md-12"><b>Ementa:</b> {{materia.ementa|safe}}</div>
+</div>
 
 {% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
 {% crispy form %}

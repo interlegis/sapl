@@ -21,16 +21,16 @@
 	<form method="POST" action="">
 	    {% csrf_token %}
 
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-		        <li>Ordem de pronunciamento</li>
-		        <li>Parlamentar</li>
-		        <li>URL Discurso</li>
-		</ul>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-	        <li><input type="text" id="numero_ordem" name="numero_ordem" value="{{explicacao.numero_ordem}}" /></li>
-	        <li><input type="text" id="parlamentar" name="parlamentar" value="{{explicacao.parlamentar.nome_parlamentar}}" disabled /></li>
-	        <li><input type="text" id="url_discurso" name="url_discurso" value="{{explicacao.url_discurso}}"/></li>
-		</ul>
+      <div class="row">
+        <div class="col-md-4">Ordem de pronunciamento</div>
+        <div class="col-md-4">Parlamentar</div>
+        <div class="col-md-4">URL Discurso</div>
+      </div>
+      <div class="row">
+        <div class="col-md-4"><input type="text" id="numero_ordem" name="numero_ordem" value="{{explicacao.numero_ordem}}" /></div>
+        <div class="col-md-4"><input type="text" id="parlamentar" name="parlamentar" value="{{explicacao.parlamentar.nome_parlamentar}}" disabled /></div>
+        <div class="col-md-4"><input type="text" id="url_discurso" name="url_discurso" value="{{explicacao.url_discurso}}"/></div>
+      </div>
 		<input type="submit" value="Salvar Orador" class="button primary" />
 	</form>
 </fieldset>

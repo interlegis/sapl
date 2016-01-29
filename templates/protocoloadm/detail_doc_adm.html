@@ -9,68 +9,68 @@
 				{% csrf_token %}
 				<fieldset>
 					<legend>Identificação Básica</legend>
-					<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-						<li><b>Tipo Documento</b></li>
-						<li><b>Número</b></li>
-						<li><b>Ano</b></li>
-					</ul>
-					<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-						<li>
-							<select name="tipo_documento" disabled>
-								{% for tipo in tipos_doc %}
-									{% if doc.tipo.id == tipo.id %}
-										<option value="{{ tipo }}" selected> {{ tipo.sigla }} - {{ tipo.descricao }} </option>
-									{% endif %}
-								{% endfor %}
-							</select>
-						</li>
-						<li><input type="text" name="numero" value="{{ doc.numero }}"/></li>
-						<li><input type="text" name="ano" value="{{ doc.ano }}"/></li>
-					</ul>
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li><b>Data</b></li>
-						<li><b>Núm. Protocolo</b></li>
-					</ul>
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li><input type="text" name="data" class="dateinput" value="{{ doc.data|date:"d/m/Y" }}"/></li>
-						<li><input type="text" name="numero_protocolo" value="{{ doc.numero_protocolo }}"/></li>
-					</ul>
-					<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-						<li><b>Assunto</b></li>
-					</ul>
-					<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-						<li><textarea rows="4" cols="50" name="assunto">{{ d.assunto }}</textarea></li>
-					</ul>
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li><b>Interessado</b></li>
-						<li><b>Em Tramitação?</b></li>
-					</ul>
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li><input type="text" name="interessado" value="{{ doc.interessado }}"/></li>
-						<li>
-							<select name="tramitacao">
-								<option value="True" {% if doc.tramitacao == True %} selected {% endif %} > Sim </option>
-								<option value="False" {% if doc.tramitacao == False %} selected {% endif %}> Não </option>
-							</select>
-						</li>
-					</ul>
+          <div class="row">
+            <div class="col-md-4"><b>Tipo Documento</b></div>
+            <div class="col-md-4"><b>Número</b></div>
+            <div class="col-md-4"><b>Ano</b></div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <select name="tipo_documento" disabled>
+                {% for tipo in tipos_doc %}
+                {% if doc.tipo.id == tipo.id %}
+                <option value="{{ tipo }}" selected> {{ tipo.sigla }} - {{ tipo.descricao }} </option>
+                {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4"><input type="text" name="numero" value="{{ doc.numero }}"/></div>
+            <div class="col-md-4"><input type="text" name="ano" value="{{ doc.ano }}"/></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><b>Data</b></div>
+            <div class="col-md-6"><b>Núm. Protocolo</b></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><input type="text" name="data" class="dateinput" value="{{ doc.data|date:"d/m/Y" }}"/></div>
+            <div class="col-md-6"><input type="text" name="numero_protocolo" value="{{ doc.numero_protocolo }}"/></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><b>Assunto</b></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><textarea rows="4" cols="50" name="assunto">{{ d.assunto }}</textarea></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><b>Interessado</b></div>
+            <div class="col-md-6"><b>Em Tramitação?</b></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><input type="text" name="interessado" value="{{ doc.interessado }}"/></div>
+            <div class="col-md-6">
+              <select name="tramitacao">
+                <option value="True" {% if doc.tramitacao == True %} selected {% endif %} > Sim </option>
+                <option value="False" {% if doc.tramitacao == False %} selected {% endif %}> Não </option>
+              </select>
+            </div>
+          </div>
 				</fieldset>
 				<fieldset>
 					<legend>Outras Informações</legend>
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li><b>Dias Prazo</b></li>
-						<li><b>Data Fim Prazo</b></li>
-					</ul>
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li><input type="text" name="dias_prazo" {% if doc.diasprazo != None %} value="{{ doc.dias_prazo }}" {% endif %} /></li>
-						<li><input type="text" name="data_fim_prazo" class="dateinput" {% if doc.data_fim_prazo != None %} value="{{ doc.data_fim_prazo }}" {% endif %} /></li>
-					</ul>
-					<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-						<li><b>Obervação</b></li>
-					</ul>
-					<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-						<li><textarea rows="4" cols="50" name="observacao">{{ documento.observacao }}</textarea></li>
-					</ul>
+          <div class="row">
+            <div class="col-md-6"><b>Dias Prazo</b></div>
+            <div class="col-md-6"><b>Data Fim Prazo</b></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><input type="text" name="dias_prazo" {% if doc.diasprazo != None %} value="{{ doc.dias_prazo }}" {% endif %} /></div>
+            <div class="col-md-6"><input type="text" name="data_fim_prazo" class="dateinput" {% if doc.data_fim_prazo != None %} value="{{ doc.data_fim_prazo }}" {% endif %} /></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><b>Obervação</b></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><textarea rows="4" cols="50" name="observacao">{{ documento.observacao }}</textarea></div>
+          </div>
 				</fieldset>
 				<input type="submit" value="Salvar" name="Salvar" class="primary button"/>
 				<input type="submit" value="Excluir" name="Excluir" class="primary button"/>

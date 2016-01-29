@@ -5,11 +5,11 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Documento Administrativo</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{doc.tipo.sigla}}</b></li>
-			<li>Número: <b>{{doc.numero}}</b></li>
-			<li>Ano: <b>{{doc.ano}}</b></li>
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{doc.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{doc.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{doc.ano}}</b></div>
+    </div>
 		Assunto: <b>{{doc.assunto}}</b>
 
 		<fieldset>

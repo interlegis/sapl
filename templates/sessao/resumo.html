@@ -5,116 +5,116 @@
 {% block detail_content %}
 <fieldset>
 	<legend>Resumo</legend>
-	
+
 	<fieldset>
 		<legend>Identificação Básica</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			{% for b in basica %}
-				<li>{{b}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for b in basica %}
+      <div class="col-md-4">{{b}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Conteúdo Multimídia</legend>
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-			<li>{{multimidia_audio}}</li>
-			<li>{{multimidia_video}}</li>
-		</ul>
+    <div class="row">
+      <div class="col-md-6">{{multimidia_audio}}</div>
+      <div class="col-md-6">{{multimidia_video}}</div>
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Mesa Diretora</legend>
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			{% for m in mesa %}
-				<li><b>{{m.cargo}}: </b>{{m.parlamentar.nome_parlamentar}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for m in mesa %}
+      <div class="col-md-12"><b>{{m.cargo}}: </b>{{m.parlamentar.nome_parlamentar}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Lista de Presença na Sessão</legend>
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			{% for p in presenca_sessao %}
-				<li>{{p}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for p in presenca_sessao %}
+      <div class="col-md-12">{{p}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Expedientes</legend>
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			{% for e in expedientes %}
-				<li>
-					<b>{{e.tipo}}:</b>
-					<br />
-					{{e.conteudo|safe}}
-				</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for e in expedientes %}
+      <div class="col-md-12">
+        <b>{{e.tipo}}:</b>
+        <br />
+        {{e.conteudo|safe}}
+      </div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Matérias do Expediente</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Matéria</li>
-			<li>Ementa</li>
-			<li>Resultado da Votação</li>
-		</ul>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			{% for m in materia_expediente %}
-				<li>
-					{{m.numero}} - {{m.titulo}}
-					<br />
-					<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-				</li>
-				<li>{{m.ementa|safe}}</li>
-				<li>{{m.resultado}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Matéria</div>
+      <div class="col-md-4">Ementa</div>
+      <div class="col-md-4">Resultado da Votação</div>
+    </div>
+    <div class="row">
+      {% for m in materia_expediente %}
+      <div class="col-md-4">
+        {{m.numero}} - {{m.titulo}}
+        <br />
+        <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+      </div>
+      <div class="col-md-4">{{m.ementa|safe}}</div>
+      <div class="col-md-4">{{m.resultado}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Oradores do Expediente</legend>
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li>Parlamentar</li>
-		<li>Discurso</li>
-		</ul>
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-			{% for o in oradores %}
-				<li><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</li>
-				<li>{{o.url_discurso}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      <div class="col-md-6">Parlamentar</div>
+      <div class="col-md-6">Discurso</div>
+    </div>
+    <div class="row">
+      {% for o in oradores %}
+      <div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</div>
+      <div class="col-md-6">{{o.url_discurso}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Lista de Presença na Ordem do Dia</legend>
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			{% for p in presenca_ordem %}
-				<li>{{p}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for p in presenca_ordem %}
+      <div class="col-md-12">{{p}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Matérias da Ordem do Dia</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Matéria</li>
-			<li>Ementa</li>
-			<li>Resultado da Votação</li>
-		</ul>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			{% for m in materias_ordem %}
-				<li>
-					{{m.numero}} - {{m.titulo}}
-					<br />
-					<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-				</li>
-				<li>{{m.ementa|safe}}</li>
-				<li>{{m.resultado}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Matéria</div>
+      <div class="col-md-4">Ementa</div>
+      <div class="col-md-4">Resultado da Votação</div>
+    </div>
+    <div class="row">
+      {% for m in materias_ordem %}
+      <div class="col-md-4">
+        {{m.numero}} - {{m.titulo}}
+        <br />
+        <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+      </div>
+      <div class="col-md-4">{{m.ementa|safe}}</div>
+      <div class="col-md-4">{{m.resultado}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 </fieldset>

@@ -5,11 +5,11 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{materialegislativa.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{materialegislativa.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{materialegislativa.ano}}</b></div>
+    </div>
 		Ementa: <b>{{materialegislativa.ementa}}</b>
 		<form method="POST">
 		{% csrf_token %}
@@ -23,7 +23,7 @@
 				</select>
 
 				<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
-				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
 			</fieldset>
 		</form>
 	</fieldset>
