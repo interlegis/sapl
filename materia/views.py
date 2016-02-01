@@ -1888,8 +1888,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
     relator = forms.ModelChoiceField(
         label='Relator',
         required=False,
-        queryset=Parlamentar.objects.filter(
-            ativo=True).order_by('nome_parlamentar'),
+        queryset=Parlamentar.objects.all().order_by('nome_parlamentar'),
         empty_label='Selecione',
     )
 
@@ -1992,30 +1991,74 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
 
     def post(self, request, *args, **kwargs):
         kwargs = {}
-
+        form = MateriaLegislativaPesquisaForm()
         # TODO: Autor, Relator, Localização, Origem
 
         if request.POST['tipo']:
             kwargs['tipo'] = request.POST['tipo']
 
         if request.POST['numero']:
-            kwargs['numero'] = request.POST['numero']
+            try:
+                int(request.POST['numero'])
+            except ValueError:
+                mensagem = "Insira um número inteiro em matéria!"
+                messages.add_message(request, messages.INFO, mensagem)
+                return self.render_to_response(
+                    {'form': form})
+            else:
+                kwargs['numero'] = request.POST['numero']
 
         if request.POST['ano']:
-            kwargs['ano'] = request.POST['ano']
+            try:
+                int(request.POST['ano'])
+            except ValueError:
+                mensagem = "Insira uma data válida em Ano da Matéria!"
+                messages.add_message(request, messages.INFO, mensagem)
+                return self.render_to_response(
+                    {'form': form})
+            else:
+                kwargs['ano'] = request.POST['ano']
 
         if request.POST['numero_protocolo']:
-            kwargs['numero_protocolo'] = request.POST['numero_protocolo']
+            try:
+                int(request.POST['numero_protocolo'])
+            except ValueError:
+                mensagem = "Insira um Número de Protocolo válido!"
+                messages.add_message(request, messages.INFO, mensagem)
+                return self.render_to_response(
+                    {'form': form})
+            else:
+                kwargs['numero_protocolo'] = request.POST['numero_protocolo']
 
         if request.POST['data_apresentacao']:
-            kwargs['data_apresentacao'] = datetime.strptime(
-                request.POST['data_apresentacao'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
+            try:
+                datetime.strptime(
+                    request.POST['data_apresentacao'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
+            except ValueError:
+                mensagem = "Insira uma Data de Apresentação válida!"
+                messages.add_message(request, messages.INFO, mensagem)
+                return self.render_to_response(
+                    {'form': form})
+            else:
+                kwargs['data_apresentacao'] = datetime.strptime(
+                    request.POST['data_apresentacao'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
 
         if request.POST['data_publicacao']:
-            kwargs['data_publicacao'] = datetime.strptime(
-                request.POST['data_publicacao'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
+            try:
+                datetime.strptime(
+                    request.POST['data_publicacao'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
+            except ValueError:
+                mensagem = "Insira uma Data de Publicação válida!"
+                messages.add_message(request, messages.INFO, mensagem)
+                return self.render_to_response(
+                    {'form': form})
+            else:
+                kwargs['data_publicacao'] = datetime.strptime(
+                    request.POST['data_publicacao'],
+                    '%d/%m/%Y').strftime('%Y-%m-%d')
 
         if request.POST['tramitacao']:
             kwargs['em_tramitacao'] = request.POST['tramitacao']
@@ -2026,8 +2069,8 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
         if request.POST['autor']:
             kwargs['autoria'] = request.POST['autor']
 
-        # if request.POST['relator']:
-        #     kwargs['relatoria'] = request.POST['relator']
+        if request.POST['relator']:
+            kwargs['relatoria'] = request.POST['relator']
 
         if request.POST['localizacao']:
             kwargs['local_origem_externa'] = request.POST['localizacao']
@@ -2046,9 +2089,38 @@ class PesquisaMateriaListView(FormMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
+        # import ipdb; ipdb.set_trace()
         kwargs = self.request.session['kwargs']
-        return MateriaLegislativa.objects.filter(
-            **kwargs)
+        id_parlamentar = kwargs.get('relatoria')
+        if kwargs.get('relatoria'):
+            kwargs.pop('relatoria')
+            materias = MateriaLegislativa.objects.filter(**kwargs)
+            if not kwargs.get('autoria'):
+                return MateriaLegislativa.objects.filter(
+                    relatoria__parlamentar__id=id_parlamentar,
+                    relatoria__data_destituicao_relator__isnull=True,
+                    relatoria__materia__in=materias)
+            else:
+                id_parlamentar_autoria = kwargs.get('autoria')
+                kwargs.pop('autoria')
+                materias = MateriaLegislativa.objects.filter(**kwargs)
+                return MateriaLegislativa.objects.filter(
+                    relatoria__parlamentar__id=id_parlamentar,
+                    relatoria__data_destituicao_relator__isnull=True,
+                    autoria__autor__id=id_parlamentar_autoria,
+                    autoria__materia__in=materias,
+                    relatoria__materia__in=materias)
+
+        if kwargs.get('autoria'):
+            id_parlamentar = kwargs.get('autoria')
+            kwargs.pop('autoria')
+            materias = MateriaLegislativa.objects.filter(**kwargs)
+            return MateriaLegislativa.objects.filter(
+                    autoria__autor__id=id_parlamentar,
+                    autoria__materia__in=materias)
+
+        else:
+            return MateriaLegislativa.objects.filter(**kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(PesquisaMateriaListView, self).get_context_data(
@@ -2068,3 +2140,7 @@ class MateriaTaView(IntegracaoTaView):
 
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
+
+
+class RelatoriaTaView(IntegracaoTaView):
+    model = Relatoria

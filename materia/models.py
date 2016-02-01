@@ -505,9 +505,15 @@ class UnidadeTramitacao(models.Model):
         verbose_name_plural = _('Unidades de Tramitação')
 
     def __str__(self):
-        return _('%(orgao)s - %(comissao)s') % {
-            'orgao': xstr(self.orgao), 'comissao': xstr(self.comissao)
-        }
+        if not self.orgao and self.comissao:
+            return _('%(comissao)s') % {
+                'comissao': self.comissao}
+        if self.orgao and not self.comissao:
+            return _('%(orgao)s') % {
+                'orgao': self.orgao}
+        else:
+            return _('%(orgao)s - %(comissao)s') % {
+             'orgao': xstr(self.orgao), 'comissao': xstr(self.comissao)}
 
 
 class Tramitacao(models.Model):
