@@ -23,15 +23,14 @@ def to_fieldsets(fields):
 
 
 def form_actions(more=[], save_label=_('Salvar')):
-    return FormActions(
-        Submit('save', save_label, css_class='btn btn-primary'), *more)
+    return FormActions(Submit('save', save_label), *more)
 
 
 class SaplFormLayout(Layout):
 
     def __init__(self, *fields):
-        buttons = form_actions(
+        buttons = form_actions(more=[
             HTML('<a href="{{ view.cancel_url }}"'
-                 ' class="btn btn-inverse">%s</a>' % _('Cancelar')))
+                 ' class="btn btn-inverse">%s</a>' % _('Cancelar'))])
         _fields = list(to_fieldsets(fields)) + [to_row([(buttons, 12)])]
         super(SaplFormLayout, self).__init__(*_fields)
