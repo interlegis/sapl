@@ -1,48 +1,7 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
+{% load i18n menus %}
 {% block actions %} {% endblock %}
+
 {% block sections_nav %}
-
-<ul class="nav nav-pills navbar-right">
-
-  <li class="dropdown">
-    <a class="dropdown-toggle" data-toggle="dropdown" href="#fakeLink">
-      {% trans 'Abertura' %}
-      <span class="fa-chevron-down fa"></span>
-    </a>
-    <ul class="dropdown-menu" role="menu">
-      <li><a href="{% url 'sessaoplenaria:detail' object.pk %}">{% trans 'Dados Básicos' %}</a></li>
-      <li><a href="{% url 'sessaoplenaria:mesa' object.pk %}">{% trans 'Mesa' %}</a></li>
-      <li><a href="{% url 'sessaoplenaria:presenca' object.pk %}">{% trans 'Presença' %}</a></li>
-      <li><a href="{% url 'sessaoplenaria:explicacao' object.pk %}">{% trans 'Explicações Pessoais' %}</a></li>
-    </ul>
-  </li>
-
-  <li class="dropdown">
-    <a class="dropdown-toggle" data-toggle="dropdown" href="#fakeLink">
-      {% trans 'Expedientes' %}
-      <span class="fa-chevron-down fa"></span>
-    </a>
-    <ul class="dropdown-menu" role="menu">
-      <li><a href="{% url 'sessaoplenaria:expediente' object.pk %}">{% trans 'Expediente Diversos' %}</a></li>
-      <li><a href="{% url 'sessaoplenaria:expedienteordemdia_list' object.pk %}">{% trans 'Matérias Expediente' %}</a></li>
-      <li><a href="{% url 'sessaoplenaria:oradorexpediente' object.pk %}">{% trans 'Oradores do Expediente' %}</a></li>
-    </ul>
-  </li>
-
-  <li class="dropdown">
-    <a class="dropdown-toggle" data-toggle="dropdown" href="#fakeLink">
-      {% trans 'Ordem do Dia' %}
-      <span class="fa-chevron-down fa"></span>
-    </a>
-    <ul class="dropdown-menu" role="menu">
-      <li><a href="{% url 'sessaoplenaria:materiaordemdia_list' object.pk %}">{% trans 'Matérias Ordem do Dia' %}</a></li>
-      <li><a href="{% url 'sessaoplenaria:presencaordemdia' object.pk %}">{% trans 'Presença Ordem do Dia' %}</a></li>
-    </ul>
-  </li>
-
-  <li><a href="{% url 'sessaoplenaria:painel' object.pk %}">{% trans 'Painel Eletrônico' %}</a></li>
-  <li><a href="{% url 'sessaoplenaria:resumo' object.pk %}">{% trans 'Resumo' %}</a></li>
-
-</ul>
+  {% subnav "sessao/subnav.yaml" %}
 {% endblock sections_nav %}
