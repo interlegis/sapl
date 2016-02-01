@@ -2503,7 +2503,7 @@ class AcompanharMateriaForm(ModelForm):
         row1 = sapl.layout.to_row([('email', 10)])
 
         row1.append(
-            Column(form_actions(save_label='Cadastrar'), css_class='columns-large-2')
+            Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
             )
 
         self.helper = FormHelper()

@@ -5,7 +5,7 @@ from django.utils.translation import ugettext as _
 
 def to_column(name_span):
     fieldname, span = name_span
-    return Div(fieldname, css_class='col-sm-%d' % span)
+    return Div(fieldname, css_class='col-md-%d' % span)
 
 
 def to_row(names_spans):

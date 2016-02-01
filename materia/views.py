@@ -1768,7 +1768,7 @@ class ProposicaoForm(ModelForm):
             [('texto_original', 10)])
 
         row4.append(
-            Column(form_actions(), css_class='columns large-2'))
+            Column(form_actions(), css_class='col-md-2'))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(

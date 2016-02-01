@@ -65,7 +65,7 @@ class TipoTaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
-                     row1, css_class="large-12"))
+                     row1, css_class="col-md-12"))
         super(TipoTaForm, self).__init__(*args, **kwargs)
 
 
@@ -131,13 +131,13 @@ class TaForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
-            Fieldset(_('Identificação Básica'), row1, css_class="large-12"),
+            Fieldset(_('Identificação Básica'), row1, css_class="col-md-12"),
             Fieldset(
                 TextoArticulado._meta.get_field('ementa').verbose_name,
-                Column('ementa'), css_class="large-12"),
+                Column('ementa'), css_class="col-md-12"),
             Fieldset(
                 TextoArticulado._meta.get_field('observacao').verbose_name,
-                Column('observacao'), css_class="large-12"),
+                Column('observacao'), css_class="col-md-12"),
 
         )
 
@@ -222,7 +222,7 @@ class NotaForm(ModelForm):
                     'titulo',
                     placeholder=_('Título da Nota (opcional)')
                 ),
-                css_class='columns large-8'))
+                css_class='col-md-8'))
 
         row3 = to_row([
             ('publicidade', 3),
@@ -431,7 +431,7 @@ class PublicacaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(Publicacao._meta.verbose_name,
-                     row1, row2, row3, css_class="large-12"))
+                     row1, row2, row3, css_class="col-md-12"))
 
         super(PublicacaoForm, self).__init__(*args, **kwargs)
         pass

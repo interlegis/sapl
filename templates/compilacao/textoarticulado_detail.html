@@ -11,7 +11,7 @@
 	        {%else%}
 	            <dd><a href="{% url 'ta_detail' object.pk %}">{% trans 'Início' %}</a></dd>
 	        {%endif%}
-	        
+
             <dd><a href="{% url 'ta_pub_list' object.pk %}">{% model_verbose_name_plural 'compilacao.models.Publicacao' %}</a></dd>
 
             <dd><a href="{% url 'ta_text' object.pk %}">{% trans 'Texto' %}</a></dd>
@@ -24,7 +24,7 @@
 <div class="clearfix">
     {% block actions %}
     <ul class="button-group right">
-    
+
         {%if object %}
             <li><a href="{% url 'ta_edit' object.pk %}" class="button tiny">{% trans 'Edição dos Metadados do Texto Articulado' %}</a></li>
             <li><a href="{% url 'ta_delete' object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
@@ -50,7 +50,7 @@
 
     <div class="row">
 
-        <div class="columns large-3">
+        <div class="col-md-3">
             <div id="div_id_tipo" class="holder">
                 <label>{% field_verbose_name object 'tipo_ta' %}</label>
                 <p>{{ object.tipo_ta}}</p>
@@ -58,7 +58,7 @@
         </div>
 
         {% if object.content_object and object.content_object.tipo%}
-        <div class="columns large-3">
+        <div class="col-md-3">
             <div id="div_id_tipo" class="holder">
                 <label>{% field_verbose_name object.content_object 'tipo' %}</label>
                 <p>{{ object.content_object.tipo}}</p>
@@ -66,21 +66,21 @@
         </div>
         {%endif%}
 
-        <div class="columns large-2">
+        <div class="col-md-2">
             <div id="div_id_numero" class="holder">
                 <label>{% field_verbose_name object 'numero' %}</label>
                 <p>{{ object.numero}}</p>
             </div>
         </div>
 
-        <div class="columns large-2">
+        <div class="col-md-2">
             <div id="div_id_ano" class="holder">
                 <label>{% field_verbose_name object 'ano' %}</label>
                 <p>{{ object.ano}}</p>
             </div>
         </div>
 
-        <div class="columns large-2">
+        <div class="col-md-2">
             <div id="div_id_data" class="holder">
                 <label>{% field_verbose_name object 'data' %}</label>
                 <p>{{ object.data}}</p>
@@ -89,7 +89,7 @@
     </div>
     <br>
     <div class="row">
-        <div class="columns large-12">
+        <div class="col-md-12">
             <div id="div_id_ementa" class="holder">
                 <label>{% field_verbose_name object 'ementa' %}</label>
                 <p>{{ object.ementa|safe}}</p>

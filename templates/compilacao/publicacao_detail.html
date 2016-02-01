@@ -20,19 +20,19 @@
         <legend>{%trans 'Identificação Básica'%}</legend>
 
         <div class="row">
-            <div class="columns large-4">
+            <div class="col-md-4">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'tipo_publicacao' %}</label>
                     <p>{{ object.tipo_publicacao}}</p>
                 </div>
             </div>
-            <div class="columns large-6">
+            <div class="col-md-6">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'veiculo_publicacao' %}</label>
                     <p>{{ object.veiculo_publicacao}}</p>
                 </div>
             </div>
-            <div class="columns large-2">
+            <div class="col-md-2">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'ano' %}</label>
                     <p>{{ object.ano}}</p>
@@ -40,25 +40,25 @@
             </div>
         </div>
         <div class="row">
-            <div class="columns large-4">
+            <div class="col-md-4">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'data' %}</label>
                     <p>{{ object.data}}</p>
                 </div>
             </div>
-            <div class="columns large-4">
+            <div class="col-md-4">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'hora' %}</label>
                     <p>{{ object.hora|time:"H:i:s"}}</p>
                 </div>
             </div>
-            <div class="columns large-2">
+            <div class="col-md-2">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'numero' %}</label>
                     <p>{{ object.numero|default:''}}</p>
                 </div>
             </div>
-            <div class="columns large-2">
+            <div class="col-md-2">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'edicao' %}</label>
                     <p>{{ object.edicao|default:''}}</p>
@@ -66,25 +66,25 @@
             </div>
         </div>
         <div class="row">
-            <div class="columns large-2">
+            <div class="col-md-2">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'pagina_inicio' %}</label>
                     <p>{{ object.pagina_inicio|default:''}}</p>
                 </div>
             </div>
-            <div class="columns large-2">
+            <div class="col-md-2">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'pagina_fim' %}</label>
                     <p>{{ object.pagina_fim|default:''}}</p>
                 </div>
             </div>
-            <div class="columns large-8">
+            <div class="col-md-8">
                 <div id="div_id_tipo" class="holder">
                     <label>{% field_verbose_name object 'url_externa' %}</label>
                     <p>{{ object.url_externa|default:''}}</p>
                 </div>
             </div>
-                        
+
         </div>
     </fieldset>
     {% endblock detail_content %}
