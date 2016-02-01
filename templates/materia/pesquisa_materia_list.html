@@ -11,7 +11,7 @@
 				<td>
 					<strong><a href="{% url 'materialegislativa:detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
 					{{ m.ementa }}</br>
-					<strong>Localização Atual:</strong> {{m.local_origem_externa}}</br>
+					<strong>Localização Atual:</strong> {{m.local_origem_externa|default_if_none:"Não Informada"}}</br>
 			</tr>
 		{% endfor %}
 	</table>
