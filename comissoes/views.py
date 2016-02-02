@@ -213,7 +213,7 @@ class ComposicaoView(FormMixin, GenericView):
             'composicao_id': composicao_id,
             'form': form,
             'pk': self.kwargs['pk'],
-            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
+            'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
     def post(self, request, *args, **kwargs):
         form = ComposicaoForm(request.POST)
@@ -228,7 +228,7 @@ class ComposicaoView(FormMixin, GenericView):
             'composicao_id': int(form.data['periodo']),
             'form': form,
             'pk': self.kwargs['pk'],
-            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
+            'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
 
 class MateriasView(comissao_crud.CrudDetailView):
@@ -411,5 +411,5 @@ class MateriasTramitacaoListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
-        context['comissao'] = Comissao.objects.get(id=self.kwargs['pk'])
+        context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context
