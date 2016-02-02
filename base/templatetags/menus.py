@@ -11,6 +11,10 @@ TEMPLATES_DIR = BASE_DIR.child("templates")
 
 @register.inclusion_tag('menus/subnav.html', takes_context=True)
 def subnav(context, path=None):
+    """Renders a subnavigation for views of a certain object.
+
+    If not provided, path defaults to <app_name>/subnav.yaml
+    """
     obj = context['object']
     if not path:
         path = '%s/subnav.yaml' % obj.__class__._meta.app_label
