@@ -32,6 +32,7 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
+
 origem_crud = build_crud(
     Origem, 'origem', [
 
@@ -2067,16 +2068,16 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
             kwargs['ementa'] = request.POST['assunto']
 
         if request.POST['autor']:
-            kwargs['autoria'] = request.POST['autor']
+            kwargs['autoria__autor__id'] = request.POST['autor']
 
         if request.POST['relator']:
-            kwargs['relatoria'] = request.POST['relator']
+            kwargs['relatoria__parlamentar__id'] = request.POST['relator']
 
         if request.POST['localizacao']:
             kwargs['local_origem_externa'] = request.POST['localizacao']
 
         if request.POST['situacao']:
-            kwargs['tipo_id'] = request.POST['situacao']
+            kwargs['tramitacao__status'] = request.POST['situacao']
 
         request.session['kwargs'] = kwargs
         return redirect('pesquisar_materia_list')
@@ -2090,37 +2091,38 @@ class PesquisaMateriaListView(FormMixin, ListView):
 
     def get_queryset(self):
         # import ipdb; ipdb.set_trace()
+
         kwargs = self.request.session['kwargs']
-        id_parlamentar = kwargs.get('relatoria')
-        if kwargs.get('relatoria'):
-            kwargs.pop('relatoria')
-            materias = MateriaLegislativa.objects.filter(**kwargs)
-            if not kwargs.get('autoria'):
-                return MateriaLegislativa.objects.filter(
-                    relatoria__parlamentar__id=id_parlamentar,
-                    relatoria__data_destituicao_relator__isnull=True,
-                    relatoria__materia__in=materias)
-            else:
-                id_parlamentar_autoria = kwargs.get('autoria')
-                kwargs.pop('autoria')
-                materias = MateriaLegislativa.objects.filter(**kwargs)
-                return MateriaLegislativa.objects.filter(
-                    relatoria__parlamentar__id=id_parlamentar,
-                    relatoria__data_destituicao_relator__isnull=True,
-                    autoria__autor__id=id_parlamentar_autoria,
-                    autoria__materia__in=materias,
-                    relatoria__materia__in=materias)
+        return MateriaLegislativa.objects.filter(**kwargs)
 
-        if kwargs.get('autoria'):
-            id_parlamentar = kwargs.get('autoria')
-            kwargs.pop('autoria')
-            materias = MateriaLegislativa.objects.filter(**kwargs)
-            return MateriaLegislativa.objects.filter(
-                    autoria__autor__id=id_parlamentar,
-                    autoria__materia__in=materias)
+        # kwargs = self.request.session['kwargs']
+        # id_parlamentar = kwargs.get('relatoria')
+        # if kwargs.get('relatoria'):
+        #     kwargs.pop('relatoria')
+        #     materias = MateriaLegislativa.objects.filter(**kwargs)
+        #     if not kwargs.get('autoria'):
+        #         return MateriaLegislativa.objects.filter(
+        #             relatoria__parlamentar__id=id_parlamentar,
+        #             relatoria__data_destituicao_relator__isnull=True,
+        #             relatoria__materia__in=materias)
+        #     else:
+        #         id_parlamentar_autoria = kwargs.get('autoria')
+        #         kwargs.pop('autoria')
+        #         materias = MateriaLegislativa.objects.filter(**kwargs)
+        #         return MateriaLegislativa.objects.filter(
+        #             relatoria__parlamentar__id=id_parlamentar,
+        #             relatoria__data_destituicao_relator__isnull=True,
+        #             autoria__autor__id=id_parlamentar_autoria,
+        #             autoria__materia__in=materias,
+        #             relatoria__materia__in=materias)
 
-        else:
-            return MateriaLegislativa.objects.filter(**kwargs)
+        # if kwargs.get('autoria'):
+        #     id_parlamentar = kwargs.get('autoria')
+        #     kwargs.pop('autoria')
+        #     materias = MateriaLegislativa.objects.filter(**kwargs)
+        #     return MateriaLegislativa.objects.filter(
+        #             autoria__autor__id=id_parlamentar,
+        #             autoria__materia__in=materias)
 
     def get_context_data(self, **kwargs):
         context = super(PesquisaMateriaListView, self).get_context_data(
@@ -2140,7 +2142,3 @@ class MateriaTaView(IntegracaoTaView):
 
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
-
-
-class RelatoriaTaView(IntegracaoTaView):
-    model = Relatoria
