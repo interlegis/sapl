@@ -493,7 +493,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
             else:
                 numeracao = Protocolo.objects.all().aggregate(Max('numero'))
 
-            if numeracao is None:
+            if numeracao['numero__max'] is None:
                 numeracao['numero__max'] = 0
 
             protocolo = Protocolo()
