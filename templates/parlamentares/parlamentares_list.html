@@ -19,7 +19,7 @@
 	<fieldset>
 		<legend>Parlamentares</legend>
 		<table>
-			<tr>	
+			<tr>
 				<th>Nome do Parlamentar</th>
 				<th>Partido</th>
 				<th>Ativo?</th>
@@ -27,10 +27,10 @@
 
 			{% for p in parlamentares %}
 				<tr>
-					<td><a href="{% url 'parlamentares_editar' legislatura_id p.id %}">
+					<td><a href="{% url 'parlamentares_editar' p.id %}">
 						{{p.nome}}
-					</a></td>	
-					<td>{{p.partido}}</td>					
+					</a></td>
+					<td>{{p.partido}}</td>
 					<td>{{p.ativo|yesno:"Sim,Não"}}</td>
 				</tr>
 			{% endfor %}
