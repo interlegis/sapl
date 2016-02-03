@@ -450,7 +450,7 @@ class ParlamentaresEditarView(FormMixin, GenericView):
         parlamentar = Parlamentar.objects.get(pk=pk)
         form = ParlamentaresEditForm(instance=parlamentar)
         return self.render_to_response(
-            {'form': form, 'parlamentar': parlamentar})
+            {'form': form, 'object': parlamentar})
 
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -550,7 +550,7 @@ class ParlamentaresDependentesView(FormMixin, GenericView):
         form = DependenteForm()
 
         return self.render_to_response(
-            {'parlamentar': parlamentar,
+            {'object': parlamentar,
              'dependentes': dependentes,
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
@@ -574,7 +574,7 @@ class ParlamentaresDependentesView(FormMixin, GenericView):
                 parlamentar=parlamentar).order_by('nome', 'tipo')
 
             return self.render_to_response(
-                {'parlamentar': parlamentar,
+                {'object': parlamentar,
                  'dependentes': dependentes,
                  'form': form,
                  'legislatura_id': parlamentar.mandato_set.last(
@@ -594,7 +594,7 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
         form = DependenteEditForm(instance=dependente)
         return self.render_to_response(
             {'form': form,
-             'parlamentar': parlamentar,
+             'object': parlamentar,
              'legislatura_id': dependente.parlamentar.mandato_set.last(
              ).legislatura_id})
 
@@ -612,7 +612,7 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'parlamentar': parlamentar,
+                 'object': parlamentar,
                  'legislatura_id': dependente.parlamentar.mandato_set.last(
                  ).legislatura_id})
 
@@ -785,7 +785,7 @@ class FiliacaoView(FormMixin, GenericView):
         form = FiliacaoForm()
 
         return self.render_to_response(
-            {'parlamentar': parlamentar,
+            {'object': parlamentar,
              'filiacoes': filiacoes,
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
@@ -795,7 +795,7 @@ class FiliacaoView(FormMixin, GenericView):
         filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
         messages.add_message(request, messages.INFO, mensagem)
         return self.render_to_response(
-            {'parlamentar': parlamentar,
+            {'object': parlamentar,
              'filiacoes': filiacoes,
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last(
@@ -901,7 +901,7 @@ class FiliacaoEditView(FormMixin, GenericView):
         form = FiliacaoEditForm(instance=filiacao)
         return self.render_to_response(
             {'form': form,
-             'parlamentar': parlamentar,
+             'object': parlamentar,
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
 
@@ -909,7 +909,7 @@ class FiliacaoEditView(FormMixin, GenericView):
         messages.add_message(request, messages.INFO, mensagem)
         return self.render_to_response(
             {'form': form,
-             'parlamentar': parlamentar,
+             'object': parlamentar,
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
 
@@ -1000,7 +1000,7 @@ class FiliacaoEditView(FormMixin, GenericView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'parlamentar': parlamentar,
+                 'object': parlamentar,
                  'legislatura_id': parlamentar.mandato_set.last(
                  ).legislatura_id})
 
@@ -1068,7 +1068,7 @@ class MandatoView(FormMixin, GenericView):
         form = MandatoForm()
 
         return self.render_to_response(
-            {'parlamentar': parlamentar,
+            {'object': parlamentar,
              'mandatos': mandatos,
              'form': form,
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
@@ -1092,7 +1092,7 @@ class MandatoView(FormMixin, GenericView):
                 parlamentar=parlamentar)
 
             return self.render_to_response(
-                {'parlamentar': parlamentar,
+                {'object': parlamentar,
                  'mandatos': mandatos,
                  'form': form,
                  'legislatura_id': parlamentar.mandato_set.last(
@@ -1112,7 +1112,7 @@ class MandatoEditView(FormMixin, GenericView):
         form = MandatoEditForm(instance=mandato)
         return self.render_to_response(
             {'form': form,
-             'parlamentar': parlamentar,
+             'object': parlamentar,
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
 
@@ -1130,6 +1130,6 @@ class MandatoEditView(FormMixin, GenericView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'parlamentar': parlamentar,
+                 'object': parlamentar,
                  'legislatura_id': parlamentar.mandato_set.last(
                  ).legislatura_id})
