@@ -2074,7 +2074,8 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
             kwargs['relatoria__parlamentar__id'] = request.POST['relator']
 
         if request.POST['localizacao']:
-            kwargs['local_origem_externa'] = request.POST['localizacao']
+            local = request.POST['localizacao']
+            kwargs['tramitacao__unidade_tramitacao_destino'] = local
 
         if request.POST['situacao']:
             kwargs['tramitacao__status'] = request.POST['situacao']
@@ -2093,7 +2094,38 @@ class PesquisaMateriaListView(FormMixin, ListView):
         # import ipdb; ipdb.set_trace()
 
         kwargs = self.request.session['kwargs']
-        return MateriaLegislativa.objects.filter(**kwargs)
+        lista_materias = MateriaLegislativa.objects.filter(**kwargs)
+        materias = []
+
+        if (kwargs.get('tramitacao__unidade_tramitacao_destino') and
+                kwargs.get('tramitacao__status')):
+            local = int(kwargs['tramitacao__unidade_tramitacao_destino'])
+            status = int(kwargs['tramitacao__status'])
+            for m in lista_materias:
+                l = m.tramitacao_set.last().unidade_tramitacao_destino_id
+                s = m.tramitacao_set.last().status_id
+                if l == local and s == status:
+                    materias.append(m)
+            return materias
+
+        if kwargs.get('tramitacao__unidade_tramitacao_destino'):
+            local = int(kwargs['tramitacao__unidade_tramitacao_destino'])
+            for m in lista_materias:
+                l = m.tramitacao_set.last().unidade_tramitacao_destino_id
+                if l == local:
+                    materias.append(m)
+            return materias
+
+        if kwargs.get('tramitacao__status'):
+            status = int(kwargs['tramitacao__status'])
+            for m in lista_materias:
+                s = m.tramitacao_set.last().status_id
+                if s == status:
+                    materias.append(m)
+            return materias
+
+        else:
+            return lista_materias
 
         # kwargs = self.request.session['kwargs']
         # id_parlamentar = kwargs.get('relatoria')
