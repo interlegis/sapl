@@ -485,7 +485,7 @@ class MateriaAnexadaView(FormMixin, GenericView):
         anexadas = Anexada.objects.filter(
             materia_principal_id=kwargs['pk'])
 
-        return self.render_to_response({'materialegislativa': materia,
+        return self.render_to_response({'object': materia,
                                         'anexadas': anexadas,
                                         'form': form})
 
@@ -567,7 +567,7 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
         form = MateriaAnexadaForm(initial=data)
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'data': data,
              'get_tipos_materia': TipoMateriaLegislativa.objects.all()})
@@ -662,7 +662,7 @@ class DespachoInicialView(FormMixin, GenericView):
         form = DespachoInicialFom()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'despachos': despacho})
 
@@ -679,7 +679,7 @@ class DespachoInicialView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'despachos': despacho})
 
     def get_success_url(self):
@@ -696,7 +696,7 @@ class DespachoInicialEditView(FormMixin, GenericView):
         form = DespachoInicialFom()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'despacho': despacho,
              'comissoes': Comissao.objects.all()})
@@ -717,7 +717,7 @@ class DespachoInicialEditView(FormMixin, GenericView):
                 return self.form_valid(form)
         else:
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'despacho': despacho,
                  'comissoes': Comissao.objects.all()})
@@ -828,7 +828,7 @@ class LegislacaoCitadaView(FormMixin, GenericView):
         form = LegislacaoCitadaForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'legislacao': legislacao})
 
@@ -850,7 +850,7 @@ class LegislacaoCitadaView(FormMixin, GenericView):
                 msg = 'Norma Juridica não existe.'
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response({'form': form,
-                                                'materialegislativa': materia,
+                                                'object': materia,
                                                 'legislacao': legislacao_list})
             legislacao.materia = materia
             legislacao.norma = norma
@@ -871,7 +871,7 @@ class LegislacaoCitadaView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'legislacao': legislacao_list})
 
     def get_success_url(self):
@@ -892,7 +892,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
         form = LegislacaoCitadaForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'legislacao': legislacao,
              'tipos_norma': TipoNormaJuridica.objects.all()})
@@ -917,7 +917,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'form': form,
-                         'materialegislativa': materia,
+                         'object': materia,
                          'legislacao': legislacao,
                          'tipos_norma': TipoNormaJuridica.objects.all()})
                 legislacao.materia = materia
@@ -940,7 +940,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'materialegislativa': materia})
+                 'object': materia})
 
 
 class NumeracaoForm(ModelForm):
@@ -1003,7 +1003,7 @@ class NumeracaoView(FormMixin, GenericView):
         form = NumeracaoForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'numeracao': numeracao})
 
@@ -1028,7 +1028,7 @@ class NumeracaoView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'numeracao': numeracao_list})
 
     def get_success_url(self):
@@ -1045,7 +1045,7 @@ class NumeracaoEditView(FormMixin, GenericView):
         form = NumeracaoForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'numeracao': numeracao,
              'tipos': TipoMateriaLegislativa.objects.all()})
@@ -1072,7 +1072,7 @@ class NumeracaoEditView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'numeracao': numeracao})
 
     def get_success_url(self):
@@ -1145,7 +1145,7 @@ class DocumentoAcessorioView(FormMixin, GenericView):
         form = DocumentoAcessorioForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'docs': docs})
 
@@ -1171,7 +1171,7 @@ class DocumentoAcessorioView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'docs': docs_list})
 
     def get_success_url(self):
@@ -1188,7 +1188,7 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
         form = DocumentoAcessorioForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'doc': documento,
              'tipos': TipoDocumento.objects.all()})
@@ -1215,7 +1215,7 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'doc': documento})
 
     def get_success_url(self):
@@ -1267,7 +1267,7 @@ class RelatoriaEditView(FormMixin, GenericView):
         parlamentares = composicao.participacao_set.all()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'relatoria': relatoria,
              'tipo_fim_relatorias': TipoFimRelatoria.objects.all(),
@@ -1299,7 +1299,7 @@ class RelatoriaEditView(FormMixin, GenericView):
                 return self.form_valid(form)
         else:
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'relatoria': relatoria,
                  'tipo_fim_relatorias': TipoFimRelatoria.objects.all(),
@@ -1335,7 +1335,7 @@ class RelatoriaView(FormMixin, GenericView):
             parlamentares = composicao.participacao_set.all()
 
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'relatorias': relatorias,
                  'comissao': comissao,
@@ -1358,14 +1358,14 @@ class RelatoriaView(FormMixin, GenericView):
             msg = 'O local atual deve  ser uma Comissão!'
             messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'relatorias': relatorias})
         else:
             composicao = Composicao.objects.filter(comissao=comissao).last()
             parlamentares = composicao.participacao_set.all()
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'relatorias': relatorias,
                  'comissao': comissao,
@@ -1449,7 +1449,7 @@ class TramitacaoView(FormMixin, GenericView):
         form = TramitacaoForm
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'tramitacoes': tramitacoes})
 
@@ -1475,7 +1475,7 @@ class TramitacaoView(FormMixin, GenericView):
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'form': form,
-                     'materialegislativa': materia,
+                     'object': materia,
                      'tramitacoes': tramitacoes_list})
 
             corpo_email = ('A tramitação da matéria %s foi alterada.' % materia
@@ -1491,7 +1491,7 @@ class TramitacaoView(FormMixin, GenericView):
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
-                                            'materialegislativa': materia,
+                                            'object': materia,
                                             'tramitacoes': tramitacoes_list})
 
     def get_success_url(self):
@@ -1508,7 +1508,7 @@ class TramitacaoEditView(FormMixin, GenericView):
         form = TramitacaoForm
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'tramitacao': tramitacao,
              'turno': Tramitacao.TURNO_CHOICES,
@@ -1531,7 +1531,7 @@ class TramitacaoEditView(FormMixin, GenericView):
                     deletada!'
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
-                        {'materialegislativa': materia,
+                        {'object': materia,
                          'form': form,
                          'tramitacao': tramitacao,
                          'turno': Tramitacao.TURNO_CHOICES,
@@ -1553,7 +1553,7 @@ class TramitacaoEditView(FormMixin, GenericView):
                 return self.form_valid(form)
         else:
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'tramitacao': tramitacao,
                  'turno': Tramitacao.TURNO_CHOICES,
@@ -1580,7 +1580,7 @@ class AutoriaView(GenericView):
         form = AutoriaForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'autorias': autorias,
              'tipo_autores': TipoAutor.objects.all(),
@@ -1615,7 +1615,7 @@ class AutoriaView(GenericView):
                 autoria.save()
 
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'autorias': autorias,
                      'tipo_autores': TipoAutor.objects.all(),
@@ -1625,7 +1625,7 @@ class AutoriaView(GenericView):
                 msg = 'Essa autoria já foi adicionada!'
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'autorias': autorias,
                      'tipo_autores': TipoAutor.objects.all(),
@@ -1633,7 +1633,7 @@ class AutoriaView(GenericView):
                      'tipo_autor_id': int(form.data['tipo_autor'])})
         else:
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'autorias': autorias,
                  'tipo_autores': TipoAutor.objects.all(),
@@ -1655,7 +1655,7 @@ class AutoriaEditView(GenericView):
         form = AutoriaForm()
 
         return self.render_to_response(
-            {'materialegislativa': materia,
+            {'object': materia,
              'form': form,
              'autorias': autorias,
              'tipo_autores': TipoAutor.objects.all(),
@@ -1691,7 +1691,7 @@ class AutoriaEditView(GenericView):
                 autoria.save()
 
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'autorias': autorias,
                      'tipo_autores': TipoAutor.objects.all(),
@@ -1701,7 +1701,7 @@ class AutoriaEditView(GenericView):
                 msg = 'Essa autoria já foi adicionada!'
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'autorias': autorias,
                      'tipo_autores': TipoAutor.objects.all(),
@@ -1709,7 +1709,7 @@ class AutoriaEditView(GenericView):
                      'tipo_autor_id': int(form.data['tipo_autor'])})
         else:
             return self.render_to_response(
-                {'materialegislativa': materia,
+                {'object': materia,
                  'form': form,
                  'autorias': autorias,
                  'tipo_autores': TipoAutor.objects.all(),
