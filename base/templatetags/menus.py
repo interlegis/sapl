@@ -15,12 +15,16 @@ def subnav(context, path=None):
 
     If not provided, path defaults to <app_name>/subnav.yaml
     """
-    obj = context['object']
-    if not path:
-        path = '%s/subnav.yaml' % obj.__class__._meta.app_label
-    yaml_filename = os.path.join(TEMPLATES_DIR, path)
-    menu = yaml.load(open(yaml_filename, 'r'))
-    resolve_urls_inplace(menu, obj.pk)
+    # TODO: 118n !!!!!!!!!!!!!!
+    # How to internationalize yaml files????
+    menu = None
+    if 'object' in context:
+        obj = context['object']
+        default_path = '%s/subnav.yaml' % obj.__class__._meta.app_label
+        path = os.path.join(TEMPLATES_DIR, path or default_path)
+        if os.path.exists(path):
+            menu = yaml.load(open(path, 'r'))
+            resolve_urls_inplace(menu, obj.pk)
     return dict(menu=menu)
 
 

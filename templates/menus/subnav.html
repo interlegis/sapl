@@ -1,4 +1,6 @@
 {% load i18n %}
+
+{% if menu %}
 <ul class="nav nav-pills navbar-right">
 
   {% for item in menu %}
@@ -18,3 +20,4 @@
   {% endfor %}
 
 </ul>
+{% endif %}
