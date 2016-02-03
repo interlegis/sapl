@@ -54,7 +54,7 @@ urlpatterns = [
         MandatoEditView.as_view(),
         name='parlamentares_mandato_edit'),
 
-    url(r'^parlamentares/(?P<pk>\d+)/(?P<pid>\d+)/editar$',
+    url(r'^parlamentares/(?P<pk>\d+)/editar$',
         ParlamentaresEditarView.as_view(), name='parlamentares_editar'),
 
     url(r'^mesa-diretora/$',
