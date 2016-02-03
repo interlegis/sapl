@@ -174,7 +174,6 @@ def build_crud(model, help_path, layout):
             If the form is invalid, re-render the context data with the
             data-filled form and errors.
             """
-            print(form.errors)
             return self.render_to_response(self.get_context_data(form=form))
 
         def get_success_url(self):
