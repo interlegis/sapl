@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -10,6 +10,7 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+from sapl.layout import form_actions
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
@@ -154,10 +155,7 @@ class CadastrarComissaoForm(ModelForm):
                     row7,
                     row8
                 ),
-                ButtonHolder(
-                    Submit('submit', 'Salvar',
-                           css_class='button primary')
-                )
+                form_actions()
             )
         )
         super(CadastrarComissaoForm, self).__init__(*args, **kwargs)
@@ -215,7 +213,7 @@ class ComposicaoView(FormMixin, GenericView):
             'composicao_id': composicao_id,
             'form': form,
             'pk': self.kwargs['pk'],
-            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
+            'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
     def post(self, request, *args, **kwargs):
         form = ComposicaoForm(request.POST)
@@ -230,7 +228,7 @@ class ComposicaoView(FormMixin, GenericView):
             'composicao_id': int(form.data['periodo']),
             'form': form,
             'pk': self.kwargs['pk'],
-            'comissao': Comissao.objects.get(id=self.kwargs['pk'])})
+            'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
 
 class MateriasView(comissao_crud.CrudDetailView):
@@ -302,10 +300,7 @@ class ParticipacaoCadastroForm(ModelForm):
                 'Formulário de Cadastro',
                 row1, row2, row3, row4
             ),
-            ButtonHolder(
-                Submit('submit', 'Salvar',
-                       css_class='button primary')
-            )
+            form_actions()
         )
         super(ParticipacaoCadastroForm, self).__init__(*args, **kwargs)
 
@@ -416,5 +411,5 @@ class MateriasTramitacaoListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
-        context['comissao'] = Comissao.objects.get(id=self.kwargs['pk'])
+        context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context

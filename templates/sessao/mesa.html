@@ -7,38 +7,38 @@
 	<form method="POST">
 	    {% csrf_token %}
 
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>
-				<select multiple size="5" name="composicao_mesa">
-					{% for i in integrantes %}
-						<option value="{{i.parlamentar.id}}:{{i.cargo.id}}">
-							{{i.parlamentar.nome_parlamentar}} || {{i.cargo.descricao}}
-						</option>
-					{% endfor %}
-				</select>
-			</li>
-			
-			<li>
-				{% if view.get_cargos_mesa %}<input type="submit" name="Incluir" Value="Incluir" class="button primary" />{% endif %}
-				<br />
-				<br />
-				<input type="submit" name="Excluir" Value="Excluir" class="button primary" />
-			</li>
-			{% if view.get_cargos_mesa %}
-			<li>
-				<select name="parlamentar" id="parlamentar">
-			        {% for parlamentar in view.get_candidatos_mesa %}
-			        	<option value="{{parlamentar.id}}" name="parlamentar" id="parlamentar">{{parlamentar.nome_parlamentar}}</option>        
-			        {% endfor %}
-				</select>
-				<select name="cargo" id="cargo">
-			        {% for cargo in view.get_cargos_mesa %}
-			        	<option value="{{cargo.id}}" name="cargo" id="cargo">{{cargo.descricao}}</option>        
-			        {% endfor %}
-				</select>
-			</li>
-			{% endif %}
-		</ul>
+      <div class="row">
+        <div class="col-md-4">
+          <select multiple size="5" name="composicao_mesa">
+            {% for i in integrantes %}
+            <option value="{{i.parlamentar.id}}:{{i.cargo.id}}">
+            {{i.parlamentar.nome_parlamentar}} || {{i.cargo.descricao}}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          {% if view.get_cargos_mesa %}<input type="submit" name="Incluir" Value="Incluir" class="button primary" />{% endif %}
+          <br />
+          <br />
+          <input type="submit" name="Excluir" Value="Excluir" class="button primary" />
+        </div>
+        {% if view.get_cargos_mesa %}
+        <div class="col-md-4">
+          <select name="parlamentar" id="parlamentar">
+            {% for parlamentar in view.get_candidatos_mesa %}
+            <option value="{{parlamentar.id}}" name="parlamentar" id="parlamentar">{{parlamentar.nome_parlamentar}}</option>
+            {% endfor %}
+          </select>
+          <select name="cargo" id="cargo">
+            {% for cargo in view.get_cargos_mesa %}
+            <option value="{{cargo.id}}" name="cargo" id="cargo">{{cargo.descricao}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
 	</form>
 </fieldset>
 {% endblock detail_content %}

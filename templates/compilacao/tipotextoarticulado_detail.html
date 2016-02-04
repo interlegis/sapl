@@ -21,27 +21,27 @@
 
 	    <div class="row">
 
-	        <div class="columns large-2">
+	        <div class="col-md-2">
 	            <div id="div_id_tipo" class="holder">
 	                <label>{% field_verbose_name object 'sigla' %}</label>
 	                <p>{{ object.sigla}}</p>
 	            </div>
 	        </div>
 
-	        <div class="columns large-4">
+	        <div class="col-md-4">
 	            <div id="div_id_numero" class="holder">
 	                <label>{% field_verbose_name object 'descricao' %}</label>
 	                <p>{{ object.descricao}}</p>
 	            </div>
 	        </div>
 
-            <div class="columns large-3">
+            <div class="col-md-3">
                 <div id="div_id_ano" class="holder">
                     <label>{% field_verbose_name object 'content_type' %}</label>
                     <p>{{ object.content_type|default:""}}</p>
                 </div>
             </div>
-            <div class="columns large-3">
+            <div class="col-md-3">
                 <div id="div_id_ano" class="holder">
                     <label>{% field_verbose_name object 'participacao_social' %}</label>
                     <p>{{ object.get_participacao_social_display}}</p>

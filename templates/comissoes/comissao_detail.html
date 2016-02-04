@@ -1,9 +1,0 @@
-{% extends "crud/detail.html" %}
-{% load i18n %}
-{% block sections_nav %}
-  <dl class="sub-nav left">
-    <dd><a href="{% url 'comissao:detail' comissao.id %}" class="button secondary">{% trans 'Início' %}</a></dd>
-    <dd><a href="{% url 'comissao:composicao' comissao.id %}" class="button secondary">{% trans 'Composição' %}</a></dd>
-    <dd><a href="{% url 'comissao:materias_em_tramitacao' comissao.id %}" class="button secondary">{% trans 'Matérias em Tramitação' %}</a></dd>
-  </dl>
-{% endblock sections_nav %}

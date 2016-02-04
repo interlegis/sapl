@@ -1,19 +1,9 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block actions %}
-  <dl class="sub-nav left">
+  <div class="actions btn-group pull-right" role="group">
     {% if legislatura_id != 0 %}
-    	<dd><a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Incluir Parlamentar' %}</a></dd>
+    <a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="btn btn-default">{% trans 'Incluir Parlamentar' %}</a>
     {% endif %}
-  </dl>
+  </div>
 {% endblock actions %}
-{% block sections_nav %}
-<dl class="sub-nav left">
-	{% if parlamentar %}
-		<dd><a href="{% url 'parlamentares_editar' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Inicio' %}</a></dd>
-		<dd><a href="{% url 'parlamentares_mandato' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Mandatos' %}</a></dd>
-		<dd><a href="{% url 'parlamentares_filiacao' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Filiações Partidárias' %}</a></dd>
-		<dd><a href="{% url 'parlamentares_dependentes' parlamentar.id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Dependentes' %}</a></dd>
-	{% endif %}
-</dl>
-{% endblock sections_nav %}

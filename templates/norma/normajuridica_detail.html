@@ -1,16 +1,16 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block sections_nav %}
-    <dl class="sub-nav left">
-        <dd><a href="{% url 'normajuridica:detail' object.pk %}">{% trans 'Início' %}</a></dd>
+<div class="actions btn-group pull-right" role="group">
+  <a href="{% url 'normajuridica:detail' object.pk %}" class="btn btn-default">{% trans 'Início' %}</a>
 
-        {% comment %}
-            Opção adicionada para chamar o TextoArticulado da norma.
-                para integração foram necessárias apenas criar a url norma_ta em urls.py
-                e a view NormaTa(IntegracaoTaView) em views.py
-               Em nada mais a integração interfere em Norma Jurídica
-        {% endcomment %}
-        <dd><a href="{% url 'norma_ta' object.pk %}">{% trans 'Texto' %}</a></dd>
-    </dl>
+  {% comment %}
+  Opção adicionada para chamar o TextoArticulado da norma.
+  para integração foram necessárias apenas criar a url norma_ta em urls.py
+  e a view NormaTa(IntegracaoTaView) em views.py
+  Em nada mais a integração interfere em Norma Jurídica
+  {% endcomment %}
+  <a href="{% url 'norma_ta' object.pk %}" class="btn btn-default">{% trans 'Texto' %}</a>
+</div>
 
 {% endblock sections_nav %}

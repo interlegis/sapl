@@ -3,12 +3,12 @@
 {% load crispy_forms_tags %}
 
 {% block base_content %}
-	<dl class="sub-nav">
-		<h2>Sessões Plenárias</h2>
-		<dd><a href="{% url 'sessaoplenaria:sessao_cadastro' %}">
-			{% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
-		</a></dd>
-	</dl>
+<div class="actions btn-group pull-right" role="group">
+  <h2>Sessões Plenárias</h2>
+  <a href="{% url 'sessaoplenaria:sessao_cadastro' %}" class="btn btn-default">
+    {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
+  </a>
+</div>
 	{% block detail_content %}
 		<table width="100%">
 			{% for sessao in page_obj %}

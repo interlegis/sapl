@@ -5,56 +5,56 @@
 {% block detail_content %}
 	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
 
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-<!--   		<li><a href="{% url 'painel_principal' object.pk %}">Iniciar painel presidente</a></li> -->
-  		<li><a href="{% url 'painel_principal' object.pk %}">Iniciar painel completo</a></li>
-<!--   		<li><a href="{% url 'painel_mensagem' %}">Iniciar painel mensagem</a></li>
-  		<li><a href="{% url 'painel_parlamentares' %}">Iniciar painel parlamentares</a></li>
-  		<li><a href="{% url 'painel_votacao' %}">Iniciar painel votação</a></li> -->
-  		<li><a href="{% url 'painel_controlador' %}">Controlador Painel</a></li>
-	</ul>
+  <div class="row">
+    <!--   		<div class="col-md-6"><a href="{% url 'painel_principal' object.pk %}">Iniciar painel presidente</a></div> -->
+    <div class="col-md-6"><a href="{% url 'painel_principal' object.pk %}">Iniciar painel completo</a></div>
+    <!--   		<div class="col-md-6"><a href="{% url 'painel_mensagem' %}">Iniciar painel mensagem</a></div>
+    <div class="col-md-6"><a href="{% url 'painel_parlamentares' %}">Iniciar painel parlamentares</a></div>
+    <div class="col-md-6"><a href="{% url 'painel_votacao' %}">Iniciar painel votação</a></div> -->
+    <div class="col-md-6"><a href="{% url 'painel_controlador' %}">Controlador Painel</a></div>
+  </div>
 	<br />
 	<h5>Operação do Painel Eletrônico</h5>
 	<h8><span id="relogio"></span></h8>
 	<br /><br />
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><h5>Cronômetro do Discurso</h5></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-12"><h5>Cronômetro do Discurso</h5></div>
+  </div>
 
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><input size="2" id="discurso" name="discurso" value="" readyonly="true"></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-12"><input size="2" id="discurso" name="discurso" value="" readyonly="true"></div>
+  </div>
 
-	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li><button type="button" id="discursoStart">Iniciar</button></li>
-		<li><button type="button" id="discursoReset">Reiniciar</button></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-6"><button type="button" id="discursoStart">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="discursoReset">Reiniciar</button></div>
+  </div>
 
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><h5>Cronômetro do Aparte</h5></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-12"><h5>Cronômetro do Aparte</h5></div>
+  </div>
 
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><input size="2" id="aparte" name="aparte" value="" readyonly="true"></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-12"><input size="2" id="aparte" name="aparte" value="" readyonly="true"></div>
+  </div>
 
-	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li><button type="button" id="aparteStart">Iniciar</button></li>
-		<li><button type="button" id="aparteReset">Reiniciar</button></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-6"><button type="button" id="aparteStart">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="aparteReset">Reiniciar</button></div>
+  </div>
 
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><h5>Cronômetro da Questão de Ordem </h5></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-12"><h5>Cronômetro da Questão de Ordem </h5></div>
+  </div>
 
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li><input size="2" id="ordem" name="ordem" value="" readyonly="true"></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-12"><input size="2" id="ordem" name="ordem" value="" readyonly="true"></div>
+  </div>
 
-	<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li><button type="button" id="ordemStart">Iniciar</button></li>
-		<li><button type="button" id="ordemReset">Reiniciar</button></li>
-	</ul>
+  <div class="row">
+    <div class="col-md-6"><button type="button" id="ordemStart">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="ordemReset">Reiniciar</button></div>
+  </div>
 
 {% endblock detail_content %}
 
@@ -95,11 +95,11 @@ $(function() {
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();		
+		audioAlertFinish.play();
 	});
 
     $('#discursoStart').click(function() {
-		
+
 		if ($('#discursoStart').text() == 'Iniciar'){
 
 			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );

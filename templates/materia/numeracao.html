@@ -5,12 +5,12 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
-		Ementa: <b>{{materialegislativa.ementa}}</b>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
+    </div>
+		Ementa: <b>{{object.ementa}}</b>
 
 		<fieldset>
 			<legend>Numeração</legend>

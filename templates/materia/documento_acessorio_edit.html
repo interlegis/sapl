@@ -5,53 +5,53 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
-		Ementa: <b>{{materialegislativa.ementa}}</b>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
+    </div>
+		Ementa: <b>{{object.ementa}}</b>
 
 		<fieldset>
 			<legend>Editar Documento Acessório</legend>
 				<form method="POST">
 					{% csrf_token %}
-					<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-						<li>
-							<labe>Tipo*</labe>
-							<select name="tipo">
-								{% for t in tipos %}
-									<option value="{{t.id}}" {% if t.id == doc.tipo.id %} selected {% endif %}>
-										{{t.descricao}}
-									</option>
-								{% endfor %}
-							</select>
-						</li>
+          <div class="row">
+            <div class="col-md-4">
+              <labe>Tipo*</labe>
+              <select name="tipo">
+                {% for t in tipos %}
+                <option value="{{t.id}}" {% if t.id == doc.tipo.id %} selected {% endif %}>
+                {{t.descricao}}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
 
-						<li>
-							<labe>Data</labe>
-							<input type="text" name="data" class="dateinput" value="{{doc.data|date:'d/m/Y'}}" />
-						</li>
+            <div class="col-md-4">
+              <labe>Data</labe>
+              <input type="text" name="data" class="dateinput" value="{{doc.data|date:'d/m/Y'}}" />
+            </div>
 
-						<li>
-							<labe>Nome*</labe>
-							<input type="text" name="nome" value="{{doc.nome}}" />
-						</li>
-					</ul>
+            <div class="col-md-4">
+              <labe>Nome*</labe>
+              <input type="text" name="nome" value="{{doc.nome}}" />
+            </div>
+          </div>
 
-					<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-						<li>
-							<labe>Autor*</labe>			
-							<input type="text" name="autor" value="{{doc.autor}}" />
-						</li>
-						
-						<li>
-							<labe>Ementa*</labe>		
-							<input type="text" name="ementa" value="{{doc.ementa}}" />
-						</li>
-					</ul>
+          <div class="row">
+            <div class="col-md-6">
+              <labe>Autor*</labe>
+              <input type="text" name="autor" value="{{doc.autor}}" />
+            </div>
+
+            <div class="col-md-6">
+              <labe>Ementa*</labe>
+              <input type="text" name="ementa" value="{{doc.ementa}}" />
+            </div>
+          </div>
 					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
-					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />		
+					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
 				</form>
 		</fieldset>
 	</fieldset>

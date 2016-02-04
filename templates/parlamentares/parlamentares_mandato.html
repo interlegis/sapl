@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 {% block actions %}{% endblock %}
 {% block detail_content %}
-	
+
 <strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
 
 <fieldset>
@@ -20,7 +20,7 @@
 		</tr>
 			{% for m in mandatos %}
 				<tr>
-					<td><a href="{% url 'parlamentares_mandato_edit' parlamentar.id m.id %}">{{m.legislatura}}</a></td>
+					<td><a href="{% url 'parlamentares_mandato_edit' object.id m.id %}">{{m.legislatura}}</a></td>
 					<td>{{m.coligacao|default_if_none:""}}</td>
 					<td>{{m.data_fim_mandato|default_if_none:""}}</td>
 					<td>{{m.data_expedicao_diploma|default_if_none:""}}</td>

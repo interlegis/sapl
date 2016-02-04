@@ -1,0 +1,8 @@
+- title: Início
+  url: parlamentares_editar
+- title: Mandatos
+  url: parlamentares_mandato
+- title: Filiações Partidárias
+  url: parlamentares_filiacao
+- title: Dependentes
+  url: parlamentares_dependentes

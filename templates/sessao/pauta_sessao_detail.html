@@ -9,78 +9,78 @@
 <fieldset>
 	<legend>Pauta da Sessão</legend>
 	<h5 align="center">{{ sessaoplenaria }}</h5>
-	
+
 	<fieldset>
 		<legend>Identificação Básica</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			{% for b in basica %}
-				<li>{{b}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for b in basica %}
+      <div class="col-md-4">{{b}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Expedientes</legend>
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-			{% for e in expedientes %}
-				<li><b>{{e.tipo}}:</b></li>
-				<li>{{e.conteudo|safe}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      {% for e in expedientes %}
+      <div class="col-md-6"><b>{{e.tipo}}:</b></div>
+      <div class="col-md-6">{{e.conteudo|safe}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Matérias do Expediente</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Matéria</li>
-			<li>Ementa</li>
-			<li>Resultado da Votação</li>
-		</ul>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			{% for m in materia_expediente %}
-				<li>
-					{{m.numero}} - <a href="{% url 'sessaoplenaria:pauta_expediente_detail' m.id %}">{{m.titulo}}</a>
-					<br />
-					<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-				</li>
-				<li>{{m.ementa|safe}}</li>
-				<li>{{m.situacao}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Matéria</div>
+      <div class="col-md-4">Ementa</div>
+      <div class="col-md-4">Resultado da Votação</div>
+    </div>
+    <div class="row">
+      {% for m in materia_expediente %}
+      <div class="col-md-4">
+        {{m.numero}} - <a href="{% url 'sessaoplenaria:pauta_expediente_detail' m.id %}">{{m.titulo}}</a>
+        <br />
+        <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+      </div>
+      <div class="col-md-4">{{m.ementa|safe}}</div>
+      <div class="col-md-4">{{m.situacao}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Oradores do Expediente</legend>
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-		<li>Parlamentar</li>
-		<li>Discurso</li>
-		</ul>
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-			{% for o in oradores %}
-				<li><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</li>
-				<li>{{o.url_discurso}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      <div class="col-md-6">Parlamentar</div>
+      <div class="col-md-6">Discurso</div>
+    </div>
+    <div class="row">
+      {% for o in oradores %}
+      <div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</div>
+      <div class="col-md-6">{{o.url_discurso}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 	<fieldset>
 		<legend>Matérias da Ordem do Dia</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Matéria</li>
-			<li>Ementa</li>
-			<li>Resultado da Votação</li>
-		</ul>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			{% for m in materias_ordem %}
-				<li>
-					{{m.numero}} - <a href="{% url 'sessaoplenaria:pauta_ordem_detail' m.id %}">{{m.titulo}}</a>
-					<br />
-					<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-				</li>
-				<li>{{m.ementa|safe}}</li>
-				<li>{{m.situacao}}</li>
-			{% endfor %}
-		</ul>
+    <div class="row">
+      <div class="col-md-4">Matéria</div>
+      <div class="col-md-4">Ementa</div>
+      <div class="col-md-4">Resultado da Votação</div>
+    </div>
+    <div class="row">
+      {% for m in materias_ordem %}
+      <div class="col-md-4">
+        {{m.numero}} - <a href="{% url 'sessaoplenaria:pauta_ordem_detail' m.id %}">{{m.titulo}}</a>
+        <br />
+        <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+      </div>
+      <div class="col-md-4">{{m.ementa|safe}}</div>
+      <div class="col-md-4">{{m.situacao}}</div>
+      {% endfor %}
+    </div>
 	</fieldset>
 
 </fieldset>

@@ -1,0 +1,32 @@
+- title: Abertura
+  children:
+    - title: Dados Básicos
+      url: sessaoplenaria:detail
+    - title: Mesa
+      url: sessaoplenaria:mesa
+    - title: Presença
+      url: sessaoplenaria:presenca
+    - title: Explicações Pessoais
+      url: sessaoplenaria:explicacao
+
+- title: Expedientes
+  children:
+    - title: Expediente Diversos
+      url: sessaoplenaria:expediente
+    - title: Matérias Expediente
+      url: sessaoplenaria:expedienteordemdia_list
+    - title: Oradores do Expediente
+      url: sessaoplenaria:oradorexpediente
+
+- title: Ordem do Dia
+  children:
+    - title: Matérias Ordem do Dia
+      url: sessaoplenaria:materiaordemdia_list
+    - title: Presença Ordem do Dia
+      url: sessaoplenaria:presencaordemdia
+
+- title: Painel Eletrônico
+  url: sessaoplenaria:painel
+
+- title: Resumo
+  url: sessaoplenaria:resumo

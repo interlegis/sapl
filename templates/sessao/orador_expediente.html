@@ -6,22 +6,22 @@
 
 <fieldset>
 	<legend>Oradores do Expediente</legend>
-	<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-	        <li>Ordem de pronunciamento</li>
-	        <li>Parlamentar</li>
-	        <li>URL Discurso</li>
-		    <li>Editar/Excluir</li>
-	</ul>
+  <div class="row">
+    <div class="col-md-3">Ordem de pronunciamento</div>
+    <div class="col-md-3">Parlamentar</div>
+    <div class="col-md-3">URL Discurso</div>
+    <div class="col-md-3">Editar/Excluir</div>
+  </div>
 		{% for numero_ordem, url_discurso, parlamentar in view.get_oradores %}
-		    <ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-		        <li>{{numero_ordem}}</li>
-	            <li>{{parlamentar.nome_parlamentar }}</li>
-		        <li>{% if not url_discurso %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</li>
-	            <li>
-	            	<a id="editar-orador" href="{% url 'sessaoplenaria:oradoreditar' object.pk parlamentar.id %}">Editar</a>
-	              / <a id="excluir-orador" href="{% url 'sessaoplenaria:oradorexcluir' object.pk parlamentar.id %}">Excluir</a>
-	            </li>
-		    </ul>
+    <div class="row">
+      <div class="col-md-3">{{numero_ordem}}</div>
+      <div class="col-md-3">{{parlamentar.nome_parlamentar }}</div>
+      <div class="col-md-3">{% if not url_discurso %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</div>
+      <div class="col-md-3">
+        <a id="editar-orador" href="{% url 'sessaoplenaria:oradoreditar' object.pk parlamentar.id %}">Editar</a>
+        / <a id="excluir-orador" href="{% url 'sessaoplenaria:oradorexcluir' object.pk parlamentar.id %}">Excluir</a>
+      </div>
+    </div>
 		{% endfor %}
 </fieldset>
 
@@ -42,22 +42,22 @@
 	<form method="POST" action="">
 	    {% csrf_token %}
 
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-		        <li>Ordem de pronunciamento</li>
-		        <li>Parlamentar</li>
-		        <li>URL Discurso</li>
-		</ul>
-		
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-	        <li><input type="text" id="numero_ordem" name="numero_ordem"/></li>
+      <div class="row">
+        <div class="col-md-4">Ordem de pronunciamento</div>
+        <div class="col-md-4">Parlamentar</div>
+        <div class="col-md-4">URL Discurso</div>
+      </div>
 
-	        <li><select name="parlamentar" id="parlamentar">
-	        {% for parlamentar in view.get_candidatos_orador %}
-	        	<option value="{{parlamentar.id}}">{{parlamentar.nome_parlamentar}}</option>        
-	        {% endfor %}
-	        </select></li>
-	        <li><input type="text" id="url_discurso" name="url_discurso" /></li>
-		</ul>
+      <div class="row">
+        <div class="col-md-4"><input type="text" id="numero_ordem" name="numero_ordem"/></div>
+
+        <div class="col-md-4"><select name="parlamentar" id="parlamentar">
+            {% for parlamentar in view.get_candidatos_orador %}
+            <option value="{{parlamentar.id}}">{{parlamentar.nome_parlamentar}}</option>
+            {% endfor %}
+        </select></div>
+        <div class="col-md-4"><input type="text" id="url_discurso" name="url_discurso" /></div>
+      </div>
 		<input type="submit" value="Adicionar Orador" name="adicionar" id="adicionar" class="button primary" />
 		<input type="submit" value="Reordenar Oradores" name="reordenar" id="reordenar" class="button primary"/>
 	</form>

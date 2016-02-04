@@ -1,0 +1,25 @@
+- title: Início
+  url: materialegislativa:detail
+- title: Anexada
+  url: materia_anexada
+- title: Autoria
+  url: autoria
+- title: Despacho Inicial
+  url: despacho_inicial
+- title: Documento Acessório
+  url: documento_acessorio
+- title: Legislação Citada
+  url: legislacao_citada
+- title: Numeração
+  url: numeracao
+- title: Tramitação
+  url: tramitacao_materia
+- title: Relatoria
+  url: relatoria
+
+#  Opção adicionada para chamar o TextoArticulado da matéria.
+#   para integração foram necessárias apenas criar a url materia_ta em urls.py
+#   e a view MateriaTaView(IntegracaoTaView) em views.py
+#  Em nada mais a integração interfere em MateriaLegislativa
+- title: Texto
+  url: materia_ta
