@@ -136,9 +136,11 @@
 
             {# Feedback messages #}
             {% for message in messages %}
-              <div data-alert class="alert-box {% if message.tags == 'error' %}alert{% else %}{{ message.tags }}{% endif %} radius">
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>
                 {{ message|safe }}
-                <a href="#" class="close">&times;</a>
               </div>
             {% endfor %}
 
