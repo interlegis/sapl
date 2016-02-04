@@ -5,14 +5,14 @@
 
 {% block base_content %}
 
-<dl class="sub-nav">
-  <dd><a href="{{ view.create_url }}">
-      {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TipoTextoArticulado'%}
-  </a></dd> 
+<div class="actions btn-group pull-right" role="group">
+  <a href="{{ view.create_url }}" class="btn btn-default">
+    {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TipoTextoArticulado'%}
+  </a>
   {% block more_buttons %}
 
   {% endblock more_buttons %}
-</dl>
+</div>
 
 {% if not object_list %}
   <p>{{ NO_ENTRIES_MSG }}</p>

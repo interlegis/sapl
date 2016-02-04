@@ -6,10 +6,10 @@
   {# FIXME is this the best markup to use? #}
   <div class="clearfix">
     {% block actions %}
-      <dl class="sub-nav right">
-        <dd><a href="{{ view.update_url }}" class="button">{% trans 'Editar' %}</a></dd>
-        <dd><a href="{{ view.delete_url }}" class="button alert">{% trans 'Excluir' %}</a></dd>
-      </dl>
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+    </div>
     {% endblock actions %}
   </div>
 

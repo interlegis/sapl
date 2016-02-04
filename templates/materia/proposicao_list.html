@@ -7,9 +7,9 @@
 {% block sections_nav %}
 	<h2><b>Proposições</b></h2>
 	<br />
-    <dl class="sub-nav left">
-    	<dd><a href="{% url 'adicionar_proposicao' %}" class="button secondary">Nova Proposição</a></dd>
-    </dl>
+  <div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'adicionar_proposicao' %}" class="btn btn-default">Nova Proposição</a>
+  </div>
 {% endblock %}
 
 {% block detail_content %}
@@ -20,7 +20,7 @@
 			<th>Descrição</th>
 			<th>Incorporada?</th>
 		</tr>
-		
+
 		{% for proposicao in page_obj %}
 			<tr>
 				{% if proposicao.data_envio %}

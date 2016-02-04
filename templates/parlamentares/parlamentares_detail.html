@@ -1,9 +1,9 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block actions %}
-  <dl class="sub-nav left">
+  <div class="actions btn-group pull-right" role="group">
     {% if legislatura_id != 0 %}
-    	<dd><a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="button secondary">{% trans 'Incluir Parlamentar' %}</a></dd>
+    <a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="btn btn-default">{% trans 'Incluir Parlamentar' %}</a>
     {% endif %}
-  </dl>
+  </div>
 {% endblock actions %}

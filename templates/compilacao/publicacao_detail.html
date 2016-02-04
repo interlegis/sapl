@@ -9,10 +9,10 @@
         <li><a href="{% url 'ta_pub_delete' object.ta.pk object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
     </ul>
     {% endblock actions %}
-    <dl class="sub-nav left">
-        {% block sections_nav %}
-         {% endblock %}
-    </dl>
+    <div class="actions btn-group pull-right" role="group">
+      {% block sections_nav %}
+      {% endblock %}
+    </div>
 </div>
 
     {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
