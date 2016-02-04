@@ -9,7 +9,7 @@ django-compressor
 django-crispy-forms
 django-extra-views
 django-vanilla-views
-git+git://github.com/interlegis/django-sass-processor.git
+django-sass-processor
 libsass
 psycopg2
 pytz
