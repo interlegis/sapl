@@ -21,7 +21,7 @@ import sapl
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
-from parlamentares.models import Parlamentar
+from parlamentares.models import Parlamentar, Partido
 from sapl.crud import build_crud
 from sessao.models import AcompanharMateria
 
@@ -1592,6 +1592,11 @@ class AutoriaForm(forms.Form):
     tipo_autor = forms.CharField()
     nome_autor = forms.CharField()
     primeiro_autor = forms.CharField()
+    partido_autor = forms.ModelChoiceField(
+        label='Partido (Autor)',
+        required=False,
+        queryset=Partido.objects.all(),
+        empty_label='Selecione')
 
 
 class AutoriaView(GenericView):
@@ -1606,6 +1611,7 @@ class AutoriaView(GenericView):
             {'materialegislativa': materia,
              'form': form,
              'autorias': autorias,
+             'partido_autor': Partido.objects.all(),
              'tipo_autores': TipoAutor.objects.all(),
              'autores': Autor.objects.all(),
              'tipo_autor_id': TipoAutor.objects.first().id})
@@ -1624,23 +1630,29 @@ class AutoriaView(GenericView):
             autor = Autor.objects.get(
                 id=int(form.data['nome_autor']))
 
+            filiacao_autor = Partido.objects.get(
+                sigla=form.data['partido_autor'])
+
             try:
                 autoria = Autoria.objects.get(
                     autor=autor,
-                    materia=materia
+                    materia=materia,
+                    partido=filiacao_autor
                 )
             except ObjectDoesNotExist:
-
                 autoria = Autoria()
                 autoria.autor = autor
                 autoria.materia = materia
+                autoria.partido = filiacao_autor
                 autoria.primeiro_autor = primeiro
+
                 autoria.save()
 
                 return self.render_to_response(
                     {'materialegislativa': materia,
                      'form': form,
                      'autorias': autorias,
+                     'partido_autor': Partido.objects.all(),
                      'tipo_autores': TipoAutor.objects.all(),
                      'autores': Autor.objects.all(),
                      'tipo_autor_id': int(form.data['tipo_autor'])})
@@ -1659,6 +1671,7 @@ class AutoriaView(GenericView):
                 {'materialegislativa': materia,
                  'form': form,
                  'autorias': autorias,
+                 'partido_autor': Partido.objects.all(),
                  'tipo_autores': TipoAutor.objects.all(),
                  'autores': Autor.objects.all(),
                  'tipo_autor_id': int(form.data['tipo_autor'])})
@@ -1668,7 +1681,7 @@ class AutoriaView(GenericView):
         return reverse('autoria', kwargs={'pk': pk})
 
 
-class AutoriaEditView(GenericView):
+class AutoriaEditView(GenericView, FormMixin):
     template_name = "materia/autoria_edit.html"
 
     def get(self, request, *args, **kwargs):
@@ -1682,6 +1695,7 @@ class AutoriaEditView(GenericView):
              'form': form,
              'autorias': autorias,
              'tipo_autores': TipoAutor.objects.all(),
+             'partido': Partido.objects.all(),
              'autores': Autor.objects.all(),
              'tipo_autor_id': autor.tipo.id,
              'autor_id': autor.id})
@@ -1691,7 +1705,7 @@ class AutoriaEditView(GenericView):
         autorias = Autoria.objects.filter(materia=materia)
         form = AutoriaForm(request.POST)
 
-        if 'salvar' in request.POST:
+        if form.is_valid():
             if int(form.data['primeiro_autor']) == 1:
                 primeiro = True
             else:
@@ -1700,41 +1714,26 @@ class AutoriaEditView(GenericView):
             autor = Autor.objects.get(
                 id=int(form.data['nome_autor']))
 
-            try:
-                autoria = Autoria.objects.get(
-                    autor=autor,
-                    materia=materia
-                )
-            except ObjectDoesNotExist:
+            filiacao_autor = Partido.objects.get(
+                sigla=form.data['partido'])
 
-                autoria = Autoria()
-                autoria.autor = autor
-                autoria.materia = materia
-                autoria.primeiro_autor = primeiro
+            autoria = Autoria.objects.get(materia=materia, autor__id=autor.id)
+            autoria.autor = autor
+            autoria.partido = filiacao_autor
+            autoria.materia = materia
+            autoria.primeiro_autor = primeiro
+
+            if 'salvar' in request.POST:
                 autoria.save()
 
-                return self.render_to_response(
-                    {'materialegislativa': materia,
-                     'form': form,
-                     'autorias': autorias,
-                     'tipo_autores': TipoAutor.objects.all(),
-                     'autores': Autor.objects.all(),
-                     'tipo_autor_id': int(form.data['tipo_autor'])})
-            else:
-                msg = 'Essa autoria já foi adicionada!'
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response(
-                    {'materialegislativa': materia,
-                     'form': form,
-                     'autorias': autorias,
-                     'tipo_autores': TipoAutor.objects.all(),
-                     'autores': Autor.objects.all(),
-                     'tipo_autor_id': int(form.data['tipo_autor'])})
+            return self.form_valid(form)
+
         else:
             return self.render_to_response(
                 {'materialegislativa': materia,
                  'form': form,
                  'autorias': autorias,
+                 'partido': Partido.objects.all(),
                  'tipo_autores': TipoAutor.objects.all(),
                  'autores': Autor.objects.all(),
                  'tipo_autor_id': int(form.data['tipo_autor'])})
@@ -1939,6 +1938,19 @@ class MateriaLegislativaPesquisaForm(forms.Form):
                                    widget=forms.Select(
                                        attrs={'class': 'selector'}))
 
+    tipo_autor = forms.ModelChoiceField(
+        label='Tipo Autor',
+        required=False,
+        queryset=TipoAutor.objects.all(),
+        empty_label='Selecione',
+    )
+
+    partido_autor = forms.ModelChoiceField(
+        label='Partido (Autor)',
+        required=False,
+        queryset=Partido.objects.all(),
+        empty_label='Selecione')
+
     # TODO: Verificar se esses campos estão corretos
     # assunto? # -> usado 'ementa' em 'assunto'
     # localizacao atual? #
@@ -1960,17 +1972,20 @@ class MateriaLegislativaPesquisaForm(forms.Form):
             [('autor', 6),
              ('relator', 6)])
         row5 = sapl.layout.to_row(
+            [('tipo_autor', 6),
+             ('partido_autor', 6)])
+        row6 = sapl.layout.to_row(
             [('localizacao', 6),
              ('situacao', 6)])
-        row6 = sapl.layout.to_row(
-            [('tramitacao', 12)])
         row7 = sapl.layout.to_row(
+            [('tramitacao', 12)])
+        row8 = sapl.layout.to_row(
             [('assunto', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Pesquisa Básica',
-                     row1, row2, row3, row4, row5, row6, row7),
+                     row1, row2, row3, row4, row5, row6, row7, row8),
             ButtonHolder(
                 Submit('submit', 'Pesquisar',
                        css_class='button primary')
@@ -2080,6 +2095,12 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
         if request.POST['situacao']:
             kwargs['tramitacao__status'] = request.POST['situacao']
 
+        if request.POST['tipo_autor']:
+            kwargs['autoria__autor__tipo'] = request.POST['tipo_autor']
+
+        if request.POST['partido_autor']:
+            kwargs['autoria__partido'] = request.POST['partido_autor']
+
         request.session['kwargs'] = kwargs
         return redirect('pesquisar_materia_list')
 
@@ -2091,8 +2112,6 @@ class PesquisaMateriaListView(FormMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # import ipdb; ipdb.set_trace()
-
         kwargs = self.request.session['kwargs']
         lista_materias = MateriaLegislativa.objects.filter(**kwargs)
         materias = []

@@ -14,15 +14,16 @@
 
 		<fieldset>
 			<legend>Editar Autoria</legend>
-			<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+			<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
 				<li>Tipo do Autor</li>
 				<li>Nome Autor</li>
 				<li>Primeiro Autor</li>
+				<li>Partido do Autor</li>
 			</ul>
 			<form method="POST">
 				{% csrf_token %}
 
-				<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
+				<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
 					<li>
 						<select name="tipo_autor" onChange="form.submit();">
 							{% for tipo in tipo_autores %}
@@ -49,6 +50,18 @@
 						<select name="primeiro_autor">
 							<option value="1">Sim</option>
 							<option value="0" selected>Não</option>
+						</select>
+					</li>
+
+					<li>
+						<select name="partido">
+							{% for p in partido %}
+								{% if tipo_autor_id == 1 %}
+									<option value="{{p.sigla}}">
+										{{p}}
+									</option>
+								{% endif %}
+							{% endfor %}
 						</select>
 					</li>
 				</ul>
