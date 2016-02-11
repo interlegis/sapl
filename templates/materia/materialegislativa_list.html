@@ -2,11 +2,13 @@
 {% load i18n %}
 
 {% block more_buttons %}
-  <dd><a href="{% url 'formulario_simplificado' %}">
+  <a href="{% url 'formulario_simplificado' %}" class="btn btn-default">
     {% blocktrans with verbose_name=view.verbose_name %} Formulário Simplificado {% endblocktrans %}
-  </a></dd>
+  </a>
 
-  <dd><a href="{% url 'pesquisar_materia' %}">
+  <a href="{% url 'pesquisar_materia' %}" class="btn btn-default">
     {% blocktrans with verbose_name=view.verbose_name %} Pesquisar Matéria {% endblocktrans %}
-  </a></dd>
+  </a>
+
+  
 {% endblock more_buttons %}
