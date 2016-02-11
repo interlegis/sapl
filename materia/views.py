@@ -1336,31 +1336,42 @@ class RelatoriaView(FormMixin, GenericView):
     def post(self, request, *args, **kwargs):
         form = RelatoriaForm(request.POST)
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatorias = Relatoria.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_designacao_relator')
-        localizacao = Tramitacao.objects.filter(
-            materia=materia).last()
-        comissao = Comissao.objects.get(
-            id=localizacao.unidade_tramitacao_destino_id)
 
-        if form.is_valid():
-            relatoria = form.save(commit=False)
-            relatoria.materia = materia
-            relatoria.comissao = comissao
-            relatoria.save()
-            return self.form_valid(form)
-        else:
-
-            composicao = Composicao.objects.get(comissao=comissao)
-            parlamentares = composicao.participacao_set.all()
-
+        if not materia.tramitacao_set.all():
+            msg = 'Adicione alguma Tramitação antes de adicionar uma Comissão!'
+            messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'materialegislativa': materia,
                  'form': form,
-                 'relatorias': relatorias,
-                 'comissao': comissao,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
-                 'parlamentares': parlamentares})
+                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
+                 })
+        else:
+            if form.is_valid():
+                relatorias = Relatoria.objects.filter(
+                    materia_id=kwargs['pk']).order_by(
+                        '-data_designacao_relator')
+                localizacao = Tramitacao.objects.filter(
+                    materia=materia).last()
+                comissao = Comissao.objects.get(
+                    id=localizacao.unidade_tramitacao_destino_id)
+
+                relatoria = form.save(commit=False)
+                relatoria.materia = materia
+                relatoria.comissao = comissao
+                relatoria.save()
+                return self.form_valid(form)
+            else:
+
+                composicao = Composicao.objects.get(comissao=comissao)
+                parlamentares = composicao.participacao_set.all()
+
+                return self.render_to_response(
+                    {'materialegislativa': materia,
+                     'form': form,
+                     'relatorias': relatorias,
+                     'comissao': comissao,
+                     'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
+                     'parlamentares': parlamentares})
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -1371,26 +1382,37 @@ class RelatoriaView(FormMixin, GenericView):
         localizacao = Tramitacao.objects.filter(
             materia=materia).last()
 
-        try:
-            comissao = Comissao.objects.get(
-                id=localizacao.unidade_tramitacao_destino_id)
-        except ObjectDoesNotExist:
-            msg = 'O local atual deve  ser uma Comissão!'
+        if not materia.tramitacao_set.all():
+            msg = 'Adicione alguma Tramitação antes de adicionar uma Comissão!'
             messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'materialegislativa': materia,
                  'form': form,
-                 'relatorias': relatorias})
-        else:
-            composicao = Composicao.objects.filter(comissao=comissao).last()
-            parlamentares = composicao.participacao_set.all()
-            return self.render_to_response(
-                {'materialegislativa': materia,
-                 'form': form,
                  'relatorias': relatorias,
-                 'comissao': comissao,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
-                 'parlamentares': parlamentares})
+                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
+                 })
+        else:
+            try:
+                comissao = Comissao.objects.get(
+                    id=localizacao.unidade_tramitacao_destino_id)
+            except ObjectDoesNotExist:
+                msg = 'O local atual deve  ser uma Comissão!'
+                messages.add_message(request, messages.INFO, msg)
+                return self.render_to_response(
+                    {'materialegislativa': materia,
+                     'form': form,
+                     'relatorias': relatorias})
+            else:
+                composicao = Composicao.objects.filter(
+                    comissao=comissao).last()
+                parlamentares = composicao.participacao_set.all()
+                return self.render_to_response(
+                    {'materialegislativa': materia,
+                     'form': form,
+                     'relatorias': relatorias,
+                     'comissao': comissao,
+                     'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
+                     'parlamentares': parlamentares})
 
 
 class TramitacaoForm(ModelForm):
