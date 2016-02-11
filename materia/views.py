@@ -1876,7 +1876,13 @@ def em_tramitacao():
             (False, 'Não')]
 
 
+def ordenacao_materias():
+    return [(1, 'Crescente'),
+            (2, 'Decrescente')]
+
+
 class MateriaLegislativaPesquisaForm(forms.Form):
+
     autor = forms.ModelChoiceField(
         label='Autor',
         required=False,
@@ -1918,6 +1924,12 @@ class MateriaLegislativaPesquisaForm(forms.Form):
     ano = forms.CharField(required=False, label=u'Ano da Matéria')
     assunto = forms.CharField(required=False, label=u'Assunto')
 
+    ordem = forms.ChoiceField(required=False,
+                              label='Ordenação',
+                              choices=ordenacao_materias(),
+                              widget=forms.Select(
+                                       attrs={'class': 'selector'}))
+
     localizacao = forms.ModelChoiceField(
         label='Localização Atual',
         required=False,
@@ -1951,6 +1963,12 @@ class MateriaLegislativaPesquisaForm(forms.Form):
         queryset=Partido.objects.all(),
         empty_label='Selecione')
 
+    local_origem_externa = forms.ModelChoiceField(
+        label='Localização de Origem',
+        required=False,
+        queryset=Origem.objects.all(),
+        empty_label='Selecione')
+
     # TODO: Verificar se esses campos estão corretos
     # assunto? # -> usado 'ementa' em 'assunto'
     # localizacao atual? #
@@ -1970,15 +1988,17 @@ class MateriaLegislativaPesquisaForm(forms.Form):
              ('data_publicacao', 6)])
         row4 = sapl.layout.to_row(
             [('autor', 6),
-             ('relator', 6)])
+             ('partido_autor', 6)])
         row5 = sapl.layout.to_row(
             [('tipo_autor', 6),
-             ('partido_autor', 6)])
+             ('relator', 6)])
         row6 = sapl.layout.to_row(
-            [('localizacao', 6),
-             ('situacao', 6)])
+            [('local_origem_externa', 6),
+             ('localizacao', 6)])
         row7 = sapl.layout.to_row(
-            [('tramitacao', 12)])
+            [('tramitacao', 4),
+             ('situacao', 4),
+             ('ordem', 4)])
         row8 = sapl.layout.to_row(
             [('assunto', 12)])
 
@@ -2079,8 +2099,10 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
         if request.POST['tramitacao']:
             kwargs['em_tramitacao'] = request.POST['tramitacao']
 
+        # Pega "palavras-chaves" que podem ter na ementa, icontains NÃO é
+        # case-sensitive
         if request.POST['assunto']:
-            kwargs['ementa'] = request.POST['assunto']
+            kwargs['ementa__icontains'] = request.POST['assunto']
 
         if request.POST['autor']:
             kwargs['autoria__autor__id'] = request.POST['autor']
@@ -2101,6 +2123,13 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
         if request.POST['partido_autor']:
             kwargs['autoria__partido'] = request.POST['partido_autor']
 
+        if request.POST['ordem']:
+            kwargs['ordem'] = request.POST['ordem']
+
+        if request.POST['local_origem_externa']:
+            kwargs['local_origem_externa'] = request.POST[
+                                            'local_origem_externa']
+
         request.session['kwargs'] = kwargs
         return redirect('pesquisar_materia_list')
 
@@ -2113,9 +2142,20 @@ class PesquisaMateriaListView(FormMixin, ListView):
 
     def get_queryset(self):
         kwargs = self.request.session['kwargs']
-        lista_materias = MateriaLegislativa.objects.filter(**kwargs)
+
+        ordem = int(kwargs.pop('ordem'))
+        if ordem == 1:
+            lista_materias = MateriaLegislativa.objects.filter(
+                                      **kwargs).order_by(
+                                      'ano', 'numero').distinct()
+        else:
+            lista_materias = MateriaLegislativa.objects.filter(
+                                    **kwargs).order_by(
+                                      '-ano', '-numero').distinct()
+
         materias = []
 
+        # Garante que a pesquisa retornará a última tramitação
         if (kwargs.get('tramitacao__unidade_tramitacao_destino') and
                 kwargs.get('tramitacao__status')):
             local = int(kwargs['tramitacao__unidade_tramitacao_destino'])
@@ -2145,35 +2185,6 @@ class PesquisaMateriaListView(FormMixin, ListView):
 
         else:
             return lista_materias
-
-        # kwargs = self.request.session['kwargs']
-        # id_parlamentar = kwargs.get('relatoria')
-        # if kwargs.get('relatoria'):
-        #     kwargs.pop('relatoria')
-        #     materias = MateriaLegislativa.objects.filter(**kwargs)
-        #     if not kwargs.get('autoria'):
-        #         return MateriaLegislativa.objects.filter(
-        #             relatoria__parlamentar__id=id_parlamentar,
-        #             relatoria__data_destituicao_relator__isnull=True,
-        #             relatoria__materia__in=materias)
-        #     else:
-        #         id_parlamentar_autoria = kwargs.get('autoria')
-        #         kwargs.pop('autoria')
-        #         materias = MateriaLegislativa.objects.filter(**kwargs)
-        #         return MateriaLegislativa.objects.filter(
-        #             relatoria__parlamentar__id=id_parlamentar,
-        #             relatoria__data_destituicao_relator__isnull=True,
-        #             autoria__autor__id=id_parlamentar_autoria,
-        #             autoria__materia__in=materias,
-        #             relatoria__materia__in=materias)
-
-        # if kwargs.get('autoria'):
-        #     id_parlamentar = kwargs.get('autoria')
-        #     kwargs.pop('autoria')
-        #     materias = MateriaLegislativa.objects.filter(**kwargs)
-        #     return MateriaLegislativa.objects.filter(
-        #             autoria__autor__id=id_parlamentar,
-        #             autoria__materia__in=materias)
 
     def get_context_data(self, **kwargs):
         context = super(PesquisaMateriaListView, self).get_context_data(
