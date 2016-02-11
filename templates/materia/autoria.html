@@ -3,92 +3,91 @@
 {% load crispy_forms_tags %}
 {% block actions %} {% endblock %}
 {% block detail_content %}
-	<fieldset>
-		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
-		Ementa: <b>{{materialegislativa.ementa}}</b>
+  <fieldset>
+    <legend>Matéria Legislativa</legend>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
+    </div>
+    Ementa: <b>{{object.ementa}}</b>
 
-		<fieldset>
-			<legend>Autorias</legend>
-			<table>
-				<tr>
-					<th>Nome Autor</th>
-					<th>Tipo Autor</th>
-					<th>Primeiro Autor</th>
-					<th>Partido Autor</th>
-				</tr>
-					{% for a in autorias %}
-						<tr>
-							<td><a href="{% url 'autoria_edit' materialegislativa.id a.autor.id %}">{{a.autor}}</a></td>
-							<td>{{a.autor.tipo.descricao}}</td>
-							<td>{{a.primeiro_autor|yesno:"Sim,Não"}}</td>
-							<td>{{a.partido.sigla|default_if_none:"Não Informado"}}</td>
-						</tr>
-					{% endfor %}
-			</table>
-		</fieldset>
+    <fieldset>
+      <legend>Autorias</legend>
+      <table>
+        <tr>
+          <th>Nome Autor</th>
+          <th>Tipo Autor</th>
+          <th>Primeiro Autor</th>
+          <th>Partido Autor</th>
+        </tr>
+          {% for a in autorias %}
+            <tr>
+              <td><a href="{% url 'autoria_edit' materialegislativa.id a.autor.id %}">{{a.autor}}</a></td>
+              <td>{{a.autor.tipo.descricao}}</td>
+              <td>{{a.primeiro_autor|yesno:"Sim,Não"}}</td>
+              <td>{{a.partido.sigla|default_if_none:"Não Informado"}}</td>
+            </tr>
+          {% endfor %}
+      </table>
+    </fieldset>
 
-		<fieldset>
-			<legend>Adicionar Autoria</legend>
-			<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-				<li>Tipo do Autor</li>
-				<li>Nome Autor</li>
-				<li>Primeiro Autor</li>
-				<li>Partido Autor</li>
-			</ul>
-			<form method="POST">
-				{% csrf_token %}
+    <fieldset>
+      <legend>Adicionar Autoria</legend>
+      <div class="row">
+        <div class="col-md-3">Tipo do Autor</div>
+        <div class="col-md-3">Nome Autor</div>
+        <div class="col-md-3">Primeiro Autor</div>
+        <div class="col-md-3">Partido Autor</div>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
 
-				<ul class="small-block-grid-4 medium-block-grid-4 large-block-grid-4">
-					<li>
-						<select name="tipo_autor" onChange="form.submit();">
-							{% for tipo in tipo_autores %}
-								<option value="{{tipo.id}}" {% if tipo.id == tipo_autor_id %} selected {% endif %}>
-									{{tipo.descricao}}
-								</option>
-							{% endfor %}
-						</select>
-					</li>
+        <div class="row">
+          <div class="col-md-3">
+            <select name="tipo_autor" onChange="form.submit();">
+              {% for tipo in tipo_autores %}
+              <option value="{{tipo.id}}" {% if tipo.id == tipo_autor_id %} selected {% endif %}>
+              {{tipo.descricao}}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
 
-					<li>
-						<select name="nome_autor">
-							{% for a in autores %}
-								{% if a.tipo_id == tipo_autor_id %}
-									<option value="{{a.id}}">
-										{{a}}
-									</option>
-								{% endif %}
-							{% endfor %}
-						</select>
-					</li>
+          <div class="col-md-3">
+            <select name="nome_autor">
+              {% for a in autores %}
+              {% if a.tipo_id == tipo_autor_id %}
+              <option value="{{a.id}}">
+              {{a}}
+              </option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
 
+          <div class="col-md-3">
+            <select name="primeiro_autor">
+              <option value="1">Sim</option>
+              <option value="0" selected>Não</option>
+            </select>
+          </div>
 
-					<li>
-						<select name="primeiro_autor">
-							<option value="1">Sim</option>
-							<option value="0" selected>Não</option>
-						</select>
-					</li>
+          <div class="col-md-3">
+            <select name="partido_autor">
+              {% for p in partido_autor %}
+                {% if tipo_autor_id == 1 %}
+                  <option value="{{p.sigla}}">
+                    {{p}}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
 
-					<li>
-						<select name="partido_autor">
-							{% for p in partido_autor %}
-								{% if tipo_autor_id == 1 %}
-									<option value="{{p.sigla}}">
-										{{p}}
-									</option>
-								{% endif %}
-							{% endfor %}
-						</select>
-					</li>
-
-				</ul>
-				<input type="submit" name="salvar" value="Salvar" class="button primary">
-			</form>
-		</fieldset>
-	</fieldset>
+        <input type="submit" name="salvar" value="Salvar" class="button primary">
+      </form>
+    </fieldset>
+  </fieldset>
 {% endblock %}

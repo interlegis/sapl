@@ -1,0 +1,6 @@
+- title: Início
+  url: comissao:detail
+- title: Composição
+  url: comissao:composicao
+- title: Matérias em Tramitação
+  url: comissao:materias_em_tramitacao

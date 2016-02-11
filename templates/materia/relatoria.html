@@ -5,12 +5,12 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-		<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-			<li>Tipo: <b>{{materialegislativa.tipo.sigla}}</b></li>
-			<li>Número: <b>{{materialegislativa.numero}}</b></li>
-			<li>Ano: <b>{{materialegislativa.ano}}</b></li>
-		</ul>
-		Ementa: <b>{{materialegislativa.ementa}}</b>
+    <div class="row">
+      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
+      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
+      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
+    </div>
+		Ementa: <b>{{object.ementa}}</b>
 
 		<fieldset>
 			<legend>Relatorias</legend>
@@ -29,48 +29,48 @@
 					{% endfor %}
 			</table>
 		</fieldset>
-		
+
 		<fieldset>
 			<legend>Adicionar Relator</legend>
 				<form method="POST">
 					{% csrf_token %}
 
-					<ul class='small-block-grid-1 medium-block-grid-1 large-block-grid-1'>
-						<li>
-							Localização Atual
-							<input type="text" name="comissao" disabled value="{{comissao.nome}}" />
-						</li>
-					</ul>
-					<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>
-						<li>
-							Data Designação*
-							<input type="text" name="data_designacao_relator" class ="dateinput" />
-						</li>
-						<li>
-							Data Destituição
-							<input type="text" name="data_destituicao_relator" class ="dateinput" />
-						</li>
-					</ul>
-					<ul class='small-block-grid-2 medium-block-grid-2 large-block-grid-2'>
-						<li>
-							Parlamentar*
-							<select name="parlamentar">
-								<option value=""> ---------- </option>
-								{% for p in parlamentares %}
-									<option value="{{p.parlamentar_id}}"> {{p.parlamentar}} </option>
-								{% endfor %}
-							</select>
-						</li>
-						<li>
-							Motivo Fim Relatoria
-							<select name="tipo_fim_relatoria">
-								<option value=""> ---------- </option>
-								{% for t in tipo_fim_relatoria %}
-									<option value="{{t.id}}"> {{t.descricao}} </option>
-								{% endfor %}
-							</select>
-						</li>
-					</ul>
+          <div class="row">
+            <div class="col-md-12">
+              Localização Atual
+              <input type="text" name="comissao" disabled value="{{comissao.nome}}" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              Data Designação*
+              <input type="text" name="data_designacao_relator" class ="dateinput" />
+            </div>
+            <div class="col-md-6">
+              Data Destituição
+              <input type="text" name="data_destituicao_relator" class ="dateinput" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              Parlamentar*
+              <select name="parlamentar">
+                <option value=""> ---------- </option>
+                {% for p in parlamentares %}
+                <option value="{{p.parlamentar_id}}"> {{p.parlamentar}} </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              Motivo Fim Relatoria
+              <select name="tipo_fim_relatoria">
+                <option value=""> ---------- </option>
+                {% for t in tipo_fim_relatoria %}
+                <option value="{{t.id}}"> {{t.descricao}} </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
 					<input type="submit" name="salvar" value="Salvar" class="primary button"/>
 				</form>
 		</fieldset>

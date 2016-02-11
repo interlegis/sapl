@@ -5,15 +5,15 @@
 
 {% block base_content %}
 
-<dl class="sub-nav">
-  <dd><a href="{{ view.create_url }}">
-      {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
-  </a></dd>
+<div class="actions btn-group pull-right" role="group">
+  <a href="{{ view.create_url }}" class="btn btn-default">
+    {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
+  </a>
   {% block more_buttons %}
-    <dd><a href="{% url 'ta_text' view.kwargs|lookup:'ta_id' %}">{% trans 'Voltar'  %}</a></dd>
+  <a href="{% url 'ta_text' view.kwargs|lookup:'ta_id' %}" class="btn btn-default">{% trans 'Voltar'  %}</a>
 
   {% endblock more_buttons %}
-</dl>
+</div>
 
 {% if not object_list %}
   <p>{{ NO_ENTRIES_MSG }}</p>

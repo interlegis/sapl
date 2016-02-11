@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 {% block actions %}{% endblock %}
 {% block detail_content %}
-	
+
 <strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
 
 <fieldset>
@@ -17,7 +17,7 @@
 		</tr>
 			{% for d in dependentes %}
 				<tr>
-					<td><a href="{% url 'parlamentares_dependentes_edit' parlamentar.id d.id %}">{{d.nome}}</a></td>
+					<td><a href="{% url 'parlamentares_dependentes_edit' object.id d.id %}">{{d.nome}}</a></td>
 					<td>{{d.tipo }}</td>
 					<td>{{d.data_nascimento|default_if_none:""}}</td>
 				</tr>

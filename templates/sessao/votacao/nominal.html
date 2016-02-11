@@ -15,42 +15,42 @@
 
 		<fieldset>
 			<legend>Votos</legend>
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				{% for parlamentar in view.get_parlamentares %}
-					<li>{{parlamentar.nome_parlamentar}}</li>
-					<li>
-						<select id="voto_parlamentar" name="voto_parlamentar">
-							<option value="sim:{{parlamentar.id}}">Sim</option>
-							<option value="nao:{{parlamentar.id}}">Não</option>
-							<option value="abstencao:{{parlamentar.id}}">Abstenção</option>
-							<option value="nao_votou:{{parlamentar.id}}">Não Votou</option>
-						</select>
-					</li>
-				{% endfor %}
-			</ul>
+      <div class="row">
+        {% for parlamentar in view.get_parlamentares %}
+        <div class="col-md-6">{{parlamentar.nome_parlamentar}}</div>
+        <div class="col-md-6">
+          <select id="voto_parlamentar" name="voto_parlamentar">
+            <option value="sim:{{parlamentar.id}}">Sim</option>
+            <option value="nao:{{parlamentar.id}}">Não</option>
+            <option value="abstencao:{{parlamentar.id}}">Abstenção</option>
+            <option value="nao_votou:{{parlamentar.id}}">Não Votou</option>
+          </select>
+        </div>
+        {% endfor %}
+      </div>
 		</fieldset>
 
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			<li>
-				Resultado da Votação
-				<select id="resultado_votacao" name="resultado_votacao">
-					{% for tipo in view.get_tipos_votacao %}
-						<option value="{{tipo.id}}">{{tipo.nome}}</option>
-					{% endfor %}
-				</select>
-			</li>
-		</ul>
+    <div class="row">
+      <div class="col-md-12">
+        Resultado da Votação
+        <select id="resultado_votacao" name="resultado_votacao">
+          {% for tipo in view.get_tipos_votacao %}
+          <option value="{{tipo.id}}">{{tipo.nome}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
 
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			<li>
-				Observações
-				<textarea id="observacao" name="observacao" cols="10" rows="10"></textarea>
-			</li>
-		</ul>
+    <div class="row">
+      <div class="col-md-12">
+        Observações
+        <textarea id="observacao" name="observacao" cols="10" rows="10"></textarea>
+      </div>
+    </div>
 
 		<br /><br />
 		<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="button primary" />
-		<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="button primary" />		
+		<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="button primary" />
 	</fieldset>
 </form>
 {% endblock detail_content %}

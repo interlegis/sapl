@@ -2,7 +2,7 @@ from datetime import datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Fieldset, Layout, Submit
+from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms import ModelForm
@@ -13,6 +13,7 @@ from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
 import sapl
+from sapl.layout import form_actions
 from compilacao.views import IntegracaoTaView
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
@@ -163,9 +164,7 @@ class NormaJuridicaForm(ModelForm):
             Fieldset('Cadastro de Norma Jurídica',
                      Fieldset('Identificação Básica',
                               row1, row2, row3, row4, row5, row6, row7, row8),
-                     ButtonHolder(
-                         Submit('submit', 'Salvar',
-                                css_class='button primary'))
+                     form_actions()
                      )
         )
         super(NormaJuridicaForm, self).__init__(*args, **kwargs)

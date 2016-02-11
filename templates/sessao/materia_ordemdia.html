@@ -26,49 +26,49 @@
 <form method="POST">
 	{% csrf_token %}
 		<input type="hidden" name="error_message" id="error_message" />
-	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-		<li>Data da Sessão: <input type="text" value='{{data_sessao|date:"d/m/Y"}}' disabled /></li>
-		<input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value='{{data_sessao|date:"d/m/Y"}}' />
-		<li>
-			Tipo da Sessão: <select id="tipo_sessao" name="tipo_sessao" >
-			<option value=""></option>
-			{% for tipo in tipo_sessao %}
-				<option value="{{tipo.id}}">{{tipo.nome}}</option>
-			{% endfor %}	  	
-			</select>
-		</li>
-		<li> Número Ordem: <input type="text" id="numero_ordem" name="numero_ordem"/> </li>
-	</ul>
+    <div class="row">
+      <div class="col-md-4">Data da Sessão: <input type="text" value='{{data_sessao|date:"d/m/Y"}}' disabled /></div>
+      <input type="hidden" id="data_sessao" name="data_sessao" length="10" maxlength="10" value='{{data_sessao|date:"d/m/Y"}}' />
+      <div class="col-md-4">
+        Tipo da Sessão: <select id="tipo_sessao" name="tipo_sessao" >
+          <option value=""></option>
+          {% for tipo in tipo_sessao %}
+          <option value="{{tipo.id}}">{{tipo.nome}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4"> Número Ordem: <input type="text" id="numero_ordem" name="numero_ordem"/> </div>
+    </div>
 
-	<ul class="small-block-grid-3 medium-block-grid-3 large-block-grid-3">
-		<li>
-			Tipo Matéria: 
-			<select id="tipo_materia" name="tipo_materia">
-				<option value=""></option>	  	
-				{% for tipo in tipo_materia %}
-					<option value="{{tipo.id}}">{{tipo.descricao}}</option>
-				{% endfor %}
-			</select>
-		</li>
-		<li>Número Matéria: <input type="text" id="numero_materia" name="numero_materia"/></li>
-		<li>Ano Matéria: <input type="text" id="ano_materia" name="ano_materia" value="{{ano_materia}}" /></li>
-	</ul>
+    <div class="row">
+      <div class="col-md-4">
+        Tipo Matéria:
+        <select id="tipo_materia" name="tipo_materia">
+          <option value=""></option>
+          {% for tipo in tipo_materia %}
+          <option value="{{tipo.id}}">{{tipo.descricao}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">Número Matéria: <input type="text" id="numero_materia" name="numero_materia"/></div>
+      <div class="col-md-4">Ano Matéria: <input type="text" id="ano_materia" name="ano_materia" value="{{ano_materia}}" /></div>
+    </div>
 
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li>
-			Tipo Votação:
-			<select id="tipo_votacao" name="tipo_votacao">
-				<option value=""></option>	  	
-				{% for id, descricao in tipo_votacao %}
-					<option value="{{id}}">{{descricao}}</option>
-				{% endfor %}  	
-			</select>
-		</li>
-	</ul>
-	
-	<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-		<li> Ementa: <textarea id="observacao" name="observacao" cols="10" rows="10"></textarea> </li>
-	</ul>
+    <div class="row">
+      <div class="col-md-12">
+        Tipo Votação:
+        <select id="tipo_votacao" name="tipo_votacao">
+          <option value=""></option>
+          {% for id, descricao in tipo_votacao %}
+          <option value="{{id}}">{{descricao}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12"> Ementa: <textarea id="observacao" name="observacao" cols="10" rows="10"></textarea> </div>
+    </div>
 
 	<input type="submit" value="Salvar" class="button primary" />
 

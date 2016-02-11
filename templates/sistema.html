@@ -1,102 +1,89 @@
 {% extends "base.html" %}
 {% load i18n crispy_forms_tags %}
 
-{% block head_content %}
-  {{ block.super }}
-	<style>
-		h5{
-			color: #000080;
-		}
-		ul{
-			color: #2EB82E;
-			font-size: 90%;
-		}
-	</style>
-{% endblock head_content %}
-
 {% block base_content %}
 
-	<h5>Configuração Inicial</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'casa_legislativa' %}">Casa Legislativa</a></li>
-	</ul>
+	<h2>Configuração Inicial</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'casa_legislativa' %}">Casa Legislativa</a></div>
+  </div>
 
-	<h5>Módulo Parlamentares</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'legislatura:list' %}">Legislatura</a></li>
-  		<li><a href="{% url 'tipoafastamento:list' %}">Tipo de Afastamento</a></li>
-  		<li><a href="{% url 'tipodependente:list' %}">Tipo de Dependente</a></li>
-  		<li><a href="{% url 'situacaomilitar:list' %}">Tipo de Situação Militar</a></li>
-  		<li><a href="{% url 'nivelinstrucao:list' %}">Nível de Intrução</a></li>
-  		<li><a href="{% url 'partido:list' %}">Partido</a></li>
-  		<li><a href="{% url 'coligacao:list' %}">Coligação</a></li>
-	</ul>
+	<h2>Módulo Parlamentares</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'legislatura:list' %}">Legislatura</a></div>
+    <div class="col-md-6"><a href="{% url 'tipoafastamento:list' %}">Tipo de Afastamento</a></div>
+    <div class="col-md-6"><a href="{% url 'tipodependente:list' %}">Tipo de Dependente</a></div>
+    <div class="col-md-6"><a href="{% url 'situacaomilitar:list' %}">Tipo de Situação Militar</a></div>
+    <div class="col-md-6"><a href="{% url 'nivelinstrucao:list' %}">Nível de Intrução</a></div>
+    <div class="col-md-6"><a href="{% url 'partido:list' %}">Partido</a></div>
+    <div class="col-md-6"><a href="{% url 'coligacao:list' %}">Coligação</a></div>
+  </div>
 
-	<h5>Módulo Mesa Diretora</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'sessaolegislativa:list' %}">Sessão Legislativa</a></li>
-  		<li><a href="{% url 'cargomesa:list' %}">Cargo da Mesa</a></li>
-	</ul>
+	<h2>Módulo Mesa Diretora</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'sessaolegislativa:list' %}">Sessão Legislativa</a></div>
+    <div class="col-md-6"><a href="{% url 'cargomesa:list' %}">Cargo da Mesa</a></div>
+  </div>
 
-	<h5>Módulo Comissões</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'cargocomissao:list' %}">Cargo de Comissão</a></li>
-  		<li><a href="{% url 'periodo:list' %}">Período de Composição</a></li>
-  		<li><a href="{% url 'tipocomissao:list' %}">Tipo de Composição</a></li>
-	</ul>
+	<h2>Módulo Comissões</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'cargocomissao:list' %}">Cargo de Comissão</a></div>
+    <div class="col-md-6"><a href="{% url 'periodo:list' %}">Período de Composição</a></div>
+    <div class="col-md-6"><a href="{% url 'tipocomissao:list' %}">Tipo de Composição</a></div>
+  </div>
 
-	<h5>Módulo Bancadas</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="#">Bancadas</a></li>
-  		<li><a href="#">Cargo de Bancada</a></li>
-	</ul>
+	<h2>Módulo Bancadas</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="#">Bancadas</a></div>
+    <div class="col-md-6"><a href="#">Cargo de Bancada</a></div>
+  </div>
 
-	<h5>Módulo Proposições</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'tipoproposicao:list' %}">Tipo de Proposição</a></li>
-  		<li><a href="{% url 'autor:list' %}">Autor</a></li>
-	</ul>
+	<h2>Módulo Proposições</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'tipoproposicao:list' %}">Tipo de Proposição</a></div>
+    <div class="col-md-6"><a href="{% url 'autor:list' %}">Autor</a></div>
+  </div>
 
-	<h5>Módulo Matéria Legislativa</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'tipomaterialegislativa:list' %}">Tipo de Matéria Legislativa</a></li>
-  		<li><a href="{% url 'regimetramitacao:list' %}">Regime de Tramitação</a></li>
-  		<li><a href="{% url 'tipoautor:list' %}">Tipo de Autor</a></li>
-  		<li><a href="{% url 'tipodocumento:list' %}">Tipo de Documento</a></li>
-  		<li><a href="{% url 'tipofimrelatoria:list' %}">Tipo de fim de Relatoria</a></li>
-  		<li><a href="{% url 'unidadetramitacao:list' %}">Unidade de Tramitação</a></li>
-  		<li><a href="{% url 'origem:list' %}">Origem</a></li>
-  		<li><a href="{% url 'autor:list' %}">Autor</a></li>
-  		<li><a href="{% url 'statustramitacao:list' %}">Status da Tramitação</a></li>
-  		<li><a href="{% url 'orgao:list' %}">Órgão</a></li>
-	</ul>
+	<h2>Módulo Matéria Legislativa</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'tipomaterialegislativa:list' %}">Tipo de Matéria Legislativa</a></div>
+    <div class="col-md-6"><a href="{% url 'regimetramitacao:list' %}">Regime de Tramitação</a></div>
+    <div class="col-md-6"><a href="{% url 'tipoautor:list' %}">Tipo de Autor</a></div>
+    <div class="col-md-6"><a href="{% url 'tipodocumento:list' %}">Tipo de Documento</a></div>
+    <div class="col-md-6"><a href="{% url 'tipofimrelatoria:list' %}">Tipo de fim de Relatoria</a></div>
+    <div class="col-md-6"><a href="{% url 'unidadetramitacao:list' %}">Unidade de Tramitação</a></div>
+    <div class="col-md-6"><a href="{% url 'origem:list' %}">Origem</a></div>
+    <div class="col-md-6"><a href="{% url 'autor:list' %}">Autor</a></div>
+    <div class="col-md-6"><a href="{% url 'statustramitacao:list' %}">Status da Tramitação</a></div>
+    <div class="col-md-6"><a href="{% url 'orgao:list' %}">Órgão</a></div>
+  </div>
 
-	<h5>Módulo Normas Jurídicas</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="">Tipo de Norma Jurídica</a></li>
-  		<li><a href="">Assunto de Norma Jurídica</a></li>
-	</ul>
+	<h2>Módulo Normas Jurídicas</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="">Tipo de Norma Jurídica</a></div>
+    <div class="col-md-6"><a href="">Assunto de Norma Jurídica</a></div>
+  </div>
 
-	<h5>Módulo Sessão Plenária</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'tiposessaoplenaria:list' %}">Tipo de Sessão Plenária</a></li>
-  		<li><a href="{% url 'tiporesultadovotacao:list' %}">Tipo de Resultado da Votação</a></li>
-  		<li><a href="#">Cadastro dos endereços dos computadores dos parlamentares</a></li>
-  		<li><a href="{% url 'tipoexpediente:list' %}">Tipo de Expediente</a></li>
-  		<li><a href="#">Propriedades do Painel Eletrônico</a></li>
-	</ul>
+	<h2>Módulo Sessão Plenária</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'tiposessaoplenaria:list' %}">Tipo de Sessão Plenária</a></div>
+    <div class="col-md-6"><a href="{% url 'tiporesultadovotacao:list' %}">Tipo de Resultado da Votação</a></div>
+    <div class="col-md-6"><a href="#">Cadastro dos endereços dos computadores dos parlamentares</a></div>
+    <div class="col-md-6"><a href="{% url 'tipoexpediente:list' %}">Tipo de Expediente</a></div>
+    <div class="col-md-6"><a href="#">Propriedades do Painel Eletrônico</a></div>
+  </div>
 
-	<h5>Módulo LexML</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="{% url 'lexmlprovedor:list' %}">Provedor</a></li>
-  		<li><a href="{% url 'lexmlpublicador:list' %}">Publicador</a></li>
-	</ul>
+	<h2>Módulo LexML</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="{% url 'lexmlprovedor:list' %}">Provedor</a></div>
+    <div class="col-md-6"><a href="{% url 'lexmlpublicador:list' %}">Publicador</a></div>
+  </div>
 
-	<h5>Módulo Administrativo</h5>
-	<ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-2">
-  		<li><a href="#">Tipo de Documento</a></li>
-  		<li><a href="#">Tipo de Instituição</a></li>
-  		<li><a href="#">Status de Tramitação</a></li>
-	</ul>
+	<h2>Módulo Administrativo</h2>
+  <div class="row">
+    <div class="col-md-6"><a href="#">Tipo de Documento</a></div>
+    <div class="col-md-6"><a href="#">Tipo de Instituição</a></div>
+    <div class="col-md-6"><a href="#">Status de Tramitação</a></div>
+  </div>
 
 {% endblock base_content %}

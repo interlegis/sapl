@@ -5,20 +5,20 @@
 	<form method="POST">
 	  {% csrf_token %}
 
-		<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-			<li>Presença</li>
-			<li>Parlamentar</li>
-		</ul>
+    <div class="row">
+      <div class="col-md-6">Presença</div>
+      <div class="col-md-6">Parlamentar</div>
+    </div>
 
-		<ul class="small-block-grid-1 medium-block-grid-1 large-block-grid-1">
-			<li><input type="checkbox" onClick="checkAll(this)" /> Marcar/Desmarcar Todos</li>
-		</ul>
+    <div class="row">
+      <div class="col-md-12"><input type="checkbox" onClick="checkAll(this)" /> Marcar/Desmarcar Todos</div>
+    </div>
 
 		{% for parlamentar, check in view.get_parlamentares %}
-			<ul class="small-block-grid-2 medium-block-grid-2 large-block-grid-2">
-				<li><input type="checkbox" name="presenca" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/></li>
-				<li><label for="parlamentar">{{ parlamentar }}</label></li>
-			</ul>
+    <div class="row">
+      <div class="col-md-6"><input type="checkbox" name="presenca" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/></div>
+      <div class="col-md-6"><label for="parlamentar">{{ parlamentar }}</label></div>
+    </div>
 		{% endfor %}
 
 		<br />

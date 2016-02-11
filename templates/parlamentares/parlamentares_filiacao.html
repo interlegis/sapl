@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 {% block actions %}{% endblock %}
 {% block detail_content %}
-	
+
 <strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
 
 <fieldset>
@@ -17,7 +17,7 @@
 		</tr>
 			{% for f in filiacoes %}
 				<tr>
-					<td><a href="{% url 'parlamentares_filiacao_edit' parlamentar.id f.id %}">{{f.partido.sigla}}</a></td>
+					<td><a href="{% url 'parlamentares_filiacao_edit' object.id f.id %}">{{f.partido.sigla}}</a></td>
 					<td>{{f.data}}</td>
 					<td>{{f.data_desfiliacao|default_if_none:""}}</td>
 				</tr>

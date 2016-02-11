@@ -1,0 +1,23 @@
+{% load i18n %}
+
+{% if menu %}
+<ul class="nav nav-pills navbar-right">
+
+  {% for item in menu %}
+  {% if item.children %}
+    <li class="dropdown">
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#fakeLink">
+        {% trans item.title %}
+        <span class="fa-chevron-down fa"></span>
+      </a>
+      <ul class="dropdown-menu" role="menu">{% for subitem in item.children %}
+        <li><a href="{{ subitem.url }}">{% trans subitem.title %}</a></li>{% endfor %}
+      </ul>
+    </li>
+  {% else %}
+    <li><a href="{{ item.url }}">{% trans item.title %}</a></li>
+  {% endif %}
+  {% endfor %}
+
+</ul>
+{% endif %}
