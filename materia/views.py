@@ -1372,18 +1372,12 @@ class RelatoriaView(FormMixin, GenericView):
                  'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
                  })
         else:
-            composicao = Composicao.objects.filter(comissao=comissao).last()
-            parlamentares = composicao.participacao_set.all()
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatorias': relatorias,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
-                 })
-        else:
             try:
                 comissao = Comissao.objects.get(
                     id=localizacao.unidade_tramitacao_destino_id)
+                composicao = Composicao.objects.filter(
+                        comissao=comissao).last()
+                parlamentares = composicao.participacao_set.all()
             except ObjectDoesNotExist:
                 msg = 'O local atual deve  ser uma Comissão!'
                 messages.add_message(request, messages.INFO, msg)
