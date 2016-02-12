@@ -458,7 +458,7 @@ class ParlamentaresEditarView(FormMixin, GenericView):
         form = ParlamentaresEditForm(request.POST, instance=parlamentar)
 
         if form.is_valid():
-            if 'salvar' in request.POST:
+            if 'save' in request.POST:
                 parlamentar = form.save(commit=False)
                 if 'fotografia' in request.FILES:
                     parlamentar.fotografia = request.FILES['fotografia']
