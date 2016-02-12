@@ -18,6 +18,8 @@
 							<!-- TODO: convert if-else to custom tag -->
 							<strong>Natureza do Processo:</strong>{% if p.tipo_protocolo == 0 %} Administrativo {% elif p.tipo_protocolo == 1 %} Matéria Legislativa {% endif %}</br>
 							<strong>Classificação:</strong> {{ p.tipo_documento }} </br>
+							<p></p>
+						</td>
 					</tr>
 				{% endfor %}
 			</table>
