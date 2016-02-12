@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.crud import build_crud
+from crud import build_crud
 
 from .models import LexmlProvedor, LexmlPublicador
 

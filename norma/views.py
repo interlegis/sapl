@@ -8,8 +8,8 @@ from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
 from compilacao.views import IntegracaoTaView
+from crud import build_crud
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.crud import build_crud
 
 from .forms import NormaJuridicaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,

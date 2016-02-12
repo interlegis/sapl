@@ -5,9 +5,9 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
+from crud import build_crud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
-from sapl.crud import build_crud
 
 from .forms import (CadastrarComissaoForm, ComposicaoForm,
                     ParticipacaoCadastroForm)

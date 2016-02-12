@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from sapl.crud import build_crud
+from crud import build_crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
                     FiliacaoForm, MandatoEditForm, MandatoForm,

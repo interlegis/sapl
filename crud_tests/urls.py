@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 
 from comissoes.models import Comissao
 from comissoes.urls import comissao_url_patterns
-from sapl.crud import build_crud
+from crud import build_crud
 
 crud = build_crud(
     Comissao, '', [

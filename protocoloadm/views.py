@@ -15,8 +15,8 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
+from crud import build_crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
-from sapl.crud import build_crud
 from sapl.utils import create_barcode
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
@@ -118,7 +118,7 @@ class ProtocoloListView(FormMixin, ListView):
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = sapl.crud.make_pagination(
+        context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
 
@@ -322,7 +322,6 @@ class ComprovanteProtocoloView(TemplateView):
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
-
         # numero is string, padd with zeros left via .zfill()
         base64_data = create_barcode(numero.zfill(6))
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
