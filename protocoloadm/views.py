@@ -151,6 +151,7 @@ class ProtocoloForm(forms.Form):
                                               ('', 'Ambos')],
                                           widget=forms.RadioSelect(
                                               renderer=HorizontalRadioRenderer)
+
                                           )
 
     tipo_documento = forms.ModelChoiceField(
