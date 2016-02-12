@@ -458,7 +458,7 @@ class ParlamentaresEditarView(FormMixin, GenericView):
         form = ParlamentaresEditForm(request.POST, instance=parlamentar)
 
         if form.is_valid():
-            if 'save' in request.POST:
+            if 'salvar' in request.POST:
                 parlamentar = form.save(commit=False)
                 if 'fotografia' in request.FILES:
                     parlamentar.fotografia = request.FILES['fotografia']
@@ -604,7 +604,7 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
         parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
 
         if form.is_valid():
-            if 'Salvar' in request.POST:
+            if 'salvar' in request.POST:
                 dependente.save()
             elif 'Excluir' in request.POST:
                 dependente.delete()
@@ -991,7 +991,7 @@ class FiliacaoEditView(FormMixin, GenericView):
                                                       mensagem,
                                                       request)
 
-            if 'Salvar' in request.POST:
+            if 'salvar' in request.POST:
                 filiacao.save()
             elif 'Excluir' in request.POST:
                 filiacao.delete()
@@ -1122,7 +1122,7 @@ class MandatoEditView(FormMixin, GenericView):
         parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
 
         if form.is_valid():
-            if 'Salvar' in request.POST:
+            if 'salvar' in request.POST:
                 mandato.save()
             elif 'Excluir' in request.POST:
                 mandato.delete()
