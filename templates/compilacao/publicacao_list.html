@@ -10,8 +10,7 @@
     {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
   </a>
   {% block more_buttons %}
-  <a href="{% url 'ta_text' view.kwargs|lookup:'ta_id' %}" class="btn btn-default">{% trans 'Voltar'  %}</a>
-
+  <a href="{% url 'ta_text' view.kwargs.ta_id %}" class="btn btn-default">{% trans 'Voltar'  %}</a>
   {% endblock more_buttons %}
 </div>
 

@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -29,6 +29,7 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from sapl.crud import NO_ENTRIES_MSG, build_crud, make_pagination
 
+
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
     'ta_publicado',
@@ -38,7 +39,9 @@ DISPOSITIVO_SELECT_RELATED = (
     'dispositivo_atualizador__dispositivo_pai__ta',
     'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
     'dispositivo_pai',
-    'dispositivo_pai__tipo_dispositivo')
+    'dispositivo_pai__tipo_dispositivo',
+    'ta_publicado',
+    'ta',)
 
 tipo_nota_crud = build_crud(
     TipoNota, 'tipo_nota', [
@@ -193,17 +196,18 @@ def get_integrations_view_names():
     return result
 
 
-def choice_extenal_views():
+def choice_models_in_extenal_views():
     integrations_view_names = get_integrations_view_names()
     result = [(None, '-------------'), ]
     for item in integrations_view_names:
-        ct = ContentType.objects.filter(
-            model=item.model.__name__.lower(),
-            app_label=item.model._meta.app_label)
-        if ct.exists():
-            result.append((
-                ct[0].pk,
-                item.model._meta.verbose_name_plural))
+        if hasattr(item, 'model') and hasattr(item, 'model_type_foreignkey'):
+            ct = ContentType.objects.filter(
+                model=item.model.__name__.lower(),
+                app_label=item.model._meta.app_label)
+            if ct.exists():
+                result.append((
+                    ct[0].pk,
+                    item.model._meta.verbose_name_plural))
     return result
 
 
@@ -242,7 +246,7 @@ class TipoTaCreateView(FormMessagesMixin, CreateView):
         self.object = None
         form = self.get_form()
         form.fields['content_type'] = forms.ChoiceField(
-            choices=choice_extenal_views(),
+            choices=choice_models_in_extenal_views(),
             label=_('Modelo Integrado'), required=False)
 
         return self.render_to_response(self.get_context_data(form=form))
@@ -268,7 +272,7 @@ class TipoTaUpdateView(CompMixin, UpdateView):
         self.object = self.get_object()
         form = self.get_form()
         form.fields['content_type'] = forms.ChoiceField(
-            choices=choice_extenal_views(),
+            choices=choice_models_in_extenal_views(),
             label=_('Modelo Integrado'), required=False)
         return self.render_to_response(self.get_context_data(form=form))
 
@@ -321,7 +325,8 @@ class TaDetailView(DetailView):
     def title(self):
         if self.get_object().content_object:
             return _(
-                'Metadados para o Texto Articulado da %s - %s') % (
+                'Metadados para o Texto Articulado de %s\n'
+                '<small>%s</small>') % (
                 self.get_object().content_object._meta.verbose_name_plural,
                 self.get_object().content_object)
         else:
@@ -444,9 +449,9 @@ class TextView(ListView, CompMixin):
 
         context['cita'] = {}
         for c in cita:
-            if str(c.dispositivo_base_id) not in context['cita']:
-                context['cita'][str(c.dispositivo_base_id)] = []
-            context['cita'][str(c.dispositivo_base_id)].append(c)
+            if c.dispositivo_base_id not in context['cita']:
+                context['cita'][c.dispositivo_base_id] = []
+            context['cita'][c.dispositivo_base_id].append(c)
 
         citado = Vide.objects.filter(
             Q(dispositivo_ref__ta_id=self.kwargs['ta_id'])).\
@@ -458,9 +463,9 @@ class TextView(ListView, CompMixin):
 
         context['citado'] = {}
         for c in citado:
-            if str(c.dispositivo_ref_id) not in context['citado']:
-                context['citado'][str(c.dispositivo_ref_id)] = []
-            context['citado'][str(c.dispositivo_ref_id)].append(c)
+            if c.dispositivo_ref_id not in context['citado']:
+                context['citado'][c.dispositivo_ref_id] = []
+            context['citado'][c.dispositivo_ref_id].append(c)
 
         notas = Nota.objects.filter(
             dispositivo__ta_id=self.kwargs['ta_id']).select_related(
@@ -468,9 +473,19 @@ class TextView(ListView, CompMixin):
 
         context['notas'] = {}
         for n in notas:
-            if str(n.dispositivo_id) not in context['notas']:
-                context['notas'][str(n.dispositivo_id)] = []
-            context['notas'][str(n.dispositivo_id)].append(n)
+            if n.dispositivo_id not in context['notas']:
+                context['notas'][n.dispositivo_id] = []
+            context['notas'][n.dispositivo_id].append(n)
+
+        tas_pub = [d.ta_publicado for d in self.object_list if d.ta_publicado]
+        tas_pub = set(tas_pub)
+        ta_pub_list = {}
+        for ta in tas_pub:
+            ta_pub_list[ta.pk] = str(ta)
+        context['ta_pub_list'] = ta_pub_list
+
+        # context['vigencias'] = self.get_vigencias()
+
         return context
 
     def get_queryset(self):
@@ -601,7 +616,7 @@ class DispositivoView(TextView):
         return itens
 
 
-class TextEditView(TextView):
+class TextEditView(ListView, CompMixin):
     template_name = 'compilacao/text_edit.html'
 
     flag_alteradora = -1
@@ -611,14 +626,27 @@ class TextEditView(TextView):
 
     pk_edit = 0
     pk_view = 0
-    """
+
     def get(self, request, *args, **kwargs):
 
-        self.object_list = self.get_queryset()
-        context = self.get_context_data(
-            object_list=self.object_list)
+        return ListView.get(self, request, *args, **kwargs)
 
-        return self.render_to_response(context)"""
+    def get_context_data(self, **kwargs):
+        context = super(TextEditView, self).get_context_data(**kwargs)
+
+        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        self.object = ta
+
+        context['object'] = self.object
+
+        tas_pub = [d.ta_publicado for d in self.object_list if d.ta_publicado]
+        tas_pub = set(tas_pub)
+        ta_pub_list = {}
+        for ta in tas_pub:
+            ta_pub_list[ta.pk] = str(ta)
+        context['ta_pub_list'] = ta_pub_list
+
+        return context
 
     def get_queryset(self):
         self.pk_edit = 0
@@ -1487,30 +1515,58 @@ class VideMixin(DispositivoSuccessUrlMixin):
         return super(VideMixin, self).dispatch(*args, **kwargs)
 
 
+def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
+    result = [(None, '-------------'), ]
+
+    if not id_tipo_ta:
+        return result
+
+    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
+
+    integrations_view_names = get_integrations_view_names()
+    for item in integrations_view_names:
+        if hasattr(item, 'model_type_foreignkey'):
+            if (tipo_ta.content_type.model == item.model.__name__.lower() and
+                    tipo_ta.content_type.app_label ==
+                    item.model._meta.app_label):
+                for i in item.model_type_foreignkey.objects.all():
+                    result.append((i.pk, i))
+    return result
+
+
 class VideCreateView(VideMixin, CreateView):
     model = Vide
     template_name = 'compilacao/ajax_form.html'
     form_class = VideForm
 
-    def post_old(self, request, *args, **kwargs):
-        try:
-            self.object = None
-            ta_id = kwargs.pop('ta_id')
-            dispositivo_id = kwargs.pop('dispositivo_id')
-            form = VideForm(request.POST, request.FILES, **kwargs)
-            kwargs['ta_id'] = ta_id
-            kwargs['dispositivo_id'] = dispositivo_id
+    def get(self, request, *args, **kwargs):
+        self.object = None
 
-            if form.is_valid():
-                vd = form.save(commit=False)
-                vd.save()
-                self.kwargs['pk'] = vd.pk
-                return self.form_valid(form)
-            else:
-                return self.form_invalid(form)
-        except Exception as e:
-            print(e)
-        return HttpResponse("error post")
+        if 'action' in request.GET and request.GET['action'] == 'get_tipos':
+            result = choice_model_type_foreignkey_in_extenal_views(
+                id_tipo_ta=request.GET['tipo_ta'])
+
+            itens = []
+            for i in result:
+                item = {}
+                item[i[0] if i[0] else ''] = str(i[1])
+                itens.append(item)
+            return JsonResponse(itens, safe=False)
+
+        form = self.get_form()
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_form_kwargs(self):
+
+        kwargs = super(VideCreateView, self).get_form_kwargs()
+
+        if 'choice_model_type_foreignkey_in_extenal_views' not in kwargs:
+            kwargs.update({
+                'choice_model_type_foreignkey_in_extenal_views':
+                choice_model_type_foreignkey_in_extenal_views
+            })
+
+        return kwargs
 
 
 class VideEditView(VideMixin, UpdateView):
@@ -1589,7 +1645,59 @@ class DispositivoSearchFragmentFormView(ListView):
                     q = q & Q(pk=initial_ref)
                     n = 50
 
-            return Dispositivo.objects.filter(q)[:n]
+            result = Dispositivo.objects.filter(q).select_related('ta')
+
+            if 'tipo_model' not in self.request.GET:
+                return result[:n]
+
+            tipo_model = self.request.GET['tipo_model']
+            if not tipo_model:
+                return result[:n]
+
+            integrations_view_names = get_integrations_view_names()
+
+            tipo_ta = TipoTextoArticulado.objects.get(pk=tipo_ta)
+
+            model_class = None
+            for item in integrations_view_names:
+                if hasattr(item, 'model_type_foreignkey') and\
+                        hasattr(item, 'model'):
+                    if (tipo_ta.content_type.model ==
+                        item.model.__name__.lower() and
+                            tipo_ta.content_type.app_label ==
+                            item.model._meta.app_label):
+
+                        model_class = item.model
+                        model_type_class = item.model_type_foreignkey
+                        tipo_model = item.model_type_foreignkey.objects.get(
+                            pk=tipo_model)
+                        break
+
+            if not model_class:
+                return result[:n]
+
+            column_field = ''
+            for field in model_class._meta.fields:
+                if field.related_model == model_type_class:
+                    column_field = field.column
+                    break
+
+            if not column_field:
+                return result[:n]
+
+            r = []
+
+            for d in result:
+                if not d.ta.content_object or\
+                        not hasattr(d.ta.content_object, column_field):
+                    continue
+
+                if tipo_model.pk == getattr(d.ta.content_object, column_field):
+                    r.append(d)
+
+                if len(r) == n:
+                    break
+            return r
 
         except Exception as e:
             print(e)

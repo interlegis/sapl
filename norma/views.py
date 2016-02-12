@@ -15,6 +15,7 @@ from .forms import NormaJuridicaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
+
 assunto_norma_crud = build_crud(
     AssuntoNorma, 'assunto_norma_juridica', [
 
@@ -125,3 +126,4 @@ class NormaIncluirView(FormMixin, GenericView):
 
 class NormaTaView(IntegracaoTaView):
     model = NormaJuridica
+    model_type_foreignkey = TipoNormaJuridica

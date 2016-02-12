@@ -29,8 +29,7 @@ def model_verbose_name_plural(class_name):
 
 @register.filter
 def lookup(d, key):
-    skey = str(key)
-    return d[str(key)] if skey in d else []
+    return d[key] if key in d else []
 
 
 @register.filter

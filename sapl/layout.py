@@ -23,7 +23,8 @@ def to_fieldsets(fields):
 
 
 def form_actions(more=[], save_label=_('Salvar')):
-    return FormActions(Submit('salvar', save_label), *more)
+    return FormActions(
+        Submit('salvar', save_label, css_class='pull-right'), *more)
 
 
 class SaplFormLayout(Layout):

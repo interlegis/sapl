@@ -14,7 +14,6 @@
 		<div class="dpt" id="dpt{{dpt.pk}}" pk="{{dpt.pk}}">
 	{% endif%}
 
-
 	{% if view|render_actions_head:dpt %}
 	<div class="csform">
 		<form method="post" action="" action_ajax="{{dpt.pk}}/refresh">
@@ -47,10 +46,10 @@
 			<ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
 				{% if dpt.dispositivo_subsequente == None %}
 					{% for inserts in view|select_provaveis_inserts:request %}
-						<li class="{{inserts|lookup:'action'}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts|lookup:'icone'|safe}}<span>{{inserts|lookup:'tipo_insert'}}</span></a>
+						<li class="{{inserts.action}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span></a>
 							<ul id="afe{{dpt.id}}" >
-								{% for item in inserts|lookup:'itens' %}
-									<li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item|lookup:'dispositivo_base'}}" variacao="{{item|lookup:'variacao'}}" tipo_pk="{{item|lookup:'tipo_pk'}}">{{item|lookup:'provavel'}}</a></li>
+								{% for item in inserts.itens %}
+									<li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel}}</a></li>
 								{% endfor %}
 							</ul>
 						</li>
@@ -111,7 +110,7 @@
 				{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 					<a class="link_alterador" href="{%url 'ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
 						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
-						{% nota_automatica dpt %}
+						{% nota_automatica dpt  ta_pub_list %}
 						{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
 					</a>
 				{% endif %}

@@ -7,8 +7,8 @@
 {% for dpt in object_list %}
 	{% if dpt.nivel == view.flag_nivel_old %}
 			</div>
-		{% elif dpt.nivel < view.flag_nivel_old %}
-			{% close_div view.flag_nivel_old dpt.nivel 0 %}
+	{% elif dpt.nivel < view.flag_nivel_old %}
+		{% close_div view.flag_nivel_old dpt.nivel 0 %}
 	{% endif%}
 
 
@@ -20,23 +20,27 @@
 	{% spaceless %}
 	<div class="{{ dpt.tipo_dispositivo.class_css }}">
 		<div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
-			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}<span class="dtxt" id="d{% if not dpt.dispositivo_subsequente and dpt.dispositivo_substituido %}a{%endif%}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido.pk}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto%}{{ dpt.texto|safe }}{%else%}&nbsp;{%endif%}</span>
-			{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+
+			{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
+			<a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>
+			{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
+			<span class="dtxt" id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{%endif%}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido_id|default:''}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{%endif%}{%endif%}</span>
+			{% if dpt.ta_publicado_id and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
 				<a class="link_alterador" href="{%url 'ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
 					{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
-					{% nota_automatica dpt %}
+					{% nota_automatica dpt ta_pub_list %}
 					{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
 				</a>
 			{% endif %}
 			{% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
 				{% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
-		            <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">{# TODO: User - dne - Dispostivo Nota Editor -  tratar permissão de usuário#}
+		            <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">
 		                <ul class="btns-action">
 							{% if perms.compilacao.change_dispositivo %}<li><a href = "{% url 'ta_text_edit' dpt.ta.pk%}#{{dpt.pk}}" class="btn-action" title="{% trans 'Editar Dispositivo'%}">Ed</a></li>{% endif %}
 			                {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adicionar Nota'%}">N</a></li>{% endif %}
 							{% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adicionar Vide'%}">V</a></li>{% endif %}
 		                </ul>
-						<div class="dne-form"></div>
+						<div class="dne-form clearfix"></div>
 		            </div>
 				 {% endif %}
 			{% endif%}
@@ -107,7 +111,7 @@
 					{% if notas and notas|lookup:dpt.pk %}
 						{% for nota in notas|lookup:dpt.pk  %}
 
-							{% if user.is_superuser or nota.publicidade == nota.NPUBL or nota.publicidade == nota.NINST and user.is_authenticated or nota.publicidade = nota.NPRIV and nota.owner == user %}
+							{% if user.is_superuser or nota.publicidade == nota.NPUBL or nota.publicidade == nota.NINST and user.is_authenticated or nota.publicidade == nota.NPRIV and nota.owner == user %}
 								{%if not forloop.first %}<li class="bullet">&#8226;</li>{%endif%}
 								<li class="dnli" id="nt{{nota.pk}}">
 									<ul>
@@ -153,7 +157,7 @@
 		{% endif%}
 	</div>
 	{% endspaceless %}
-	{% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+	{% if ta_pub_list and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
 		{%with node=dpt template_name='compilacao/text_list_blocoalteracao.html' %}
 			{%include template_name%}
 		{%endwith%}

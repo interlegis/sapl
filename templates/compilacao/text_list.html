@@ -5,94 +5,90 @@
 {% load staticfiles %}
 {% load sass_tags %}
 
-{% block head_content %}{{block.super}}
-      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-      <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
-
-      {% if perms.compilacao.add_nota %}
-          <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
-      {% endif %}
+{% block head_content %}
+    {{block.super}}
+    <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
 
- 
+{% block base_content %}
+{% block actions %}
+    <div class="clearfix">
+        <div class="actions btn-group pull-right" role="group">
+            <a href="{% url 'ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        </div>
+    </div>
+{% endblock actions %}
 
-{% block base_content %}{{block.super}}
+{% block detail_content %}{{block.super}}
+{% endblock %}
 
 <div class="cp">
-    {% if object_list %}
-	    <ul class="button-group right">
-	    <li><a class="button tiny" id="btn_font_menos" title="Diminuir tamanho da letra">a</a></li>
-	    <li><a class="button tiny" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a></li>
-        </ul>
-	{% endif %}
 
-		{% for key, values in view.get_vigencias.items %}
-			{% if forloop.first %}
-<section class="vigencias">
-	<nav class="top-bar" data-topbar="" role="navigation">
-		<section class="top-bar-section">
-			<ul class="nav left">
-				{%endif%}
-				<li class="nav__item has-dropdown">
-					{% if forloop.first %}
-						{% for dispositivo in values %}
-							<a class="nav__link {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}selected{%endif%}" href="{%url 'ta_vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
-						{% endfor %}
-					{% elif forloop.last %}
-						{% for dispositivo in values %}
-							<a class="nav__link {% if view.inicio_vigencia == None %}selected{%endif%}" href="{%url 'ta_text' dispositivo.ta.pk %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{{dispositivo.ta_publicado}}">{% trans 'Texto Atual'%}</a>
-						{% endfor %}
-					{% else %}
-						<a class="nav__link {% if view.inicio_vigencia.year == key %}selected{%endif%}">{{ key }}</a>
-					{%endif%}
+{% if object_list %}
+    <div class="clearfix">
+        <div class="actions btn-group pull-right" role="group">
+            <a class="btn btn-default" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
+            <a class="btn btn-default" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
+        </div>
+    </div>
+{% endif %}
 
-					{% if not forloop.first and not forloop.last %}
-						<ul class="nav__sub-nav dropdown">
-							{% for dispositivo in values %}
-								<li class="nav__sub-item">
-									{% if not forloop.parentloop.first %}
-										<a class="nav__sub-link" href="{%url 'ta_vigencia' dispositivo.ta.pk dispositivo|get_sign_vigencia %}" title="{{ dispositivo.ta_publicado }}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
-									{%endif%}
-								</li>
-							{% endfor %}
-						</ul>
-					{%endif%}
-				</li>
-				{% if forloop.last %}
-			</ul>
+{% for key, values in view.get_vigencias.items %}
+    {% if forloop.first %}
+        <ul class="nav nav-pills">
+    {% endif %}
+	{% if forloop.first %}
+		{% for dispositivo in values %}
+			<li class="{% if view.inicio_vigencia == dispositivo.inicio_vigencia %}active{%endif%}"><a href="{%url 'ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
+		{% endfor %}
+	{% elif forloop.last %}
+		{% for dispositivo in values %}
+			<li class="{% if not view.inicio_vigencia%}active{% endif %}"><a href="{%url 'ta_text' dispositivo.ta_id %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{% if dispositivo.ta_publicado_id in ta_pub_list %}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{{dispositivo.ta_publicado}}{%endif%}">{% trans 'Texto Atual'%}</a>
 
-            {% comment %}
-            	<ul class="nav left tipo-vigencias">
-    				<li><a class="selected" onclick="textoMultiVigente(this);" title="">{% trans 'Texto Multivigente'%}</a></li>
-    				<li><a onclick="textoVigente(this, true);">{% trans 'Texto Vigente COM Links para Textos Alteradores'%}</a></li>
-    				<li><a onclick="textoVigente(this, false);">{% trans 'Texto Vigente SEM Links para Textos Alteradores'%}</a></li>
-    			</ul>
+            {% if forloop.last %}
+                </ul>
+                {% if view.inicio_vigencia and view.fim_vigencia %}
+                	<span class="vigencia-active">{% trans 'Vigência entre'%} <b>{{view.inicio_vigencia}}</b> {% trans 'e'%} <b>{{view.fim_vigencia}}</b>.</span>
+                {% else%}
+                    <span class="vigencia-active">{% trans 'Vigência a partir de '%} <b>{{dispositivo.inicio_vigencia}}.</b></span>
+                {%endif%}
+            {% endif%}
+		{% endfor %}
+	{% else %}
+            <li class="{% if view.inicio_vigencia.year == key %}active{% endif %}"><a data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{ key }}</a>
+	{%endif%}
+            	{% if not forloop.first and not forloop.last %}
+            		<ul class="dropdown-menu">
+            			{% for dispositivo in values %}
+            				<li>
+            					{% if not forloop.parentloop.first %}
+            						<a href="{%url 'ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{{dispositivo.ta_publicado}}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+            					{% endif %}
+            				</li>
+            			{% endfor %}
+            		</ul>
+            	{% endif %}
+        	</li>
+{% endfor %}
 
-            {% endcomment %}
-
-            <ul class="tipo-vigencias">
-                <li><a class="selected" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a></li>
-                <li><a onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a></li>
-                <li><a onclick="textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a></li>
-                <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
-            </ul>
-
-
-
-
-		</section>
-	</nav>
-</section>
-				{%endif%}
-			{% endfor %}
-<br>
-{% if view.inicio_vigencia != None and view.fim_vigencia != None %}
-	{% trans 'Vigência entre'%} <b>{{view.inicio_vigencia}}</b> {% trans 'e'%} <b>{{view.fim_vigencia}}</b>.
-{%endif%}
+<ul class="tipo-vigencias">
+    <li><a class="selected" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a></li>
+    <li><a onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a></li>
+    <li><a onclick="textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a></li>
+    <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
+</ul>
 
 {% include 'compilacao/text_list_bloco.html'%}
 </div>
 {% endblock base_content %}
+
+
+
+{% block foot_js %}
+    {{block.super}}
+    <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+    {% if perms.compilacao.add_nota %}
+        <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
+    {% endif %}
+{% endblock %}

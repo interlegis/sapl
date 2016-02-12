@@ -1,46 +1,62 @@
 
-function onEventsDneExec(pk) {
+function onEventsDneExec(pk, model) {
 
 	$('html, body').animate({
 		scrollTop: $('#dne' + pk ).offset().top - window.innerHeight / 5
 	}, 300);
 
-	$('.dateinput').fdatepicker({
-		// TODO localize
-		format: 'dd/mm/yyyy',
-		language: 'pt',
-		endDate: '31/12/2100',
-		todayBtn: true
-	});
+	refreshDatePicker()
 
-	$('#dne'+pk+" .primary").click(onSubmitEditForm);
+	$('#dne'+pk+" #button-id-submit-form").click(onSubmitEditForm);
 	$('#dne'+pk+" .btn-close-container").click(function(){
 		$(this).closest('.dne-nota').removeClass('dne-nota');
 		$(this).closest('.dne-form').html('');
 	});
 
-	$('#dne'+pk+" select[name='tipo']").change(function(event) {
-		var url = '';
-		url = 'text/'+pk+'/nota/create?action=modelo_nota&id_tipo='+this.value;
-		$.get(url).done(function( data ) {
-			$('#dne'+pk+" textarea[name='texto']").val(data);
+	if (model == 'nota') {
+		$('#dne'+pk+" select[name='tipo']").change(function(event) {
+			var url = '';
+			url = 'text/'+pk+'/nota/create?action=modelo_nota&id_tipo='+this.value;
+			$.get(url).done(function( data ) {
+				$('#dne'+pk+" textarea[name='texto']").val(data);
+			});
 		});
-	});
+	}
+	else if (model == 'vide') {
+		$('#dne'+pk+" select[name='tipo_ta']").change(function(event) {
+			var url = '';
+			url = 'text/'+pk+'/vide/create?action=get_tipos&tipo_ta='+this.value;
 
-	$('#dne'+pk+" select[name='tipo_norma']"
-	).change(onChangeParamNorma);
+			$('#dne'+pk+" label[for='id_tipo_model']").html('Tipos de ' + this.children[this.selectedIndex].innerHTML);
 
-	$('#dne'+pk+" input[name='num_norma'], "
-		+ '#dne'+pk+" input[name='ano_norma'], "
-		+ '#dne'+pk+" input[name='busca_dispositivo']"
-	).change(onChangeParamNorma);
 
-	$('#dne'+pk+" .btn-busca").click(onChangeParamNorma);
+			var select = $('#dne'+pk+" select[name='tipo_model']");
+			select.empty();
+			$('<option value="">Carregando...</option>').appendTo(select);
 
-	onChangeParamNorma();
+			$.get(url).done(function( data ) {
+				select.empty();
+				for(var item in data) {
+					for (var i in data[item])
+				  		$('<option value="'+i+'">'+data[item][i]+'</option>').appendTo(select);
+				}
+
+
+			});
+		});
+		$('#dne'+pk+" input[name='num_norma'], "
+			+ '#dne'+pk+" input[name='ano_norma'], "
+			+ '#dne'+pk+" input[name='busca_dispositivo']"
+		).change(onChangeParamNorma);
+
+		$('#dne'+pk+" .btn-busca").click(onChangeParamNorma);
+
+		onChangeParamNorma();
+	}
 }
 var onChangeParamNorma = function(event) {
 	var tipo_ta = $("select[name='tipo_ta']").val();
+	var tipo_model = $("select[name='tipo_model']").val();
 	var num_ta = $("input[name='num_ta']").val();
 	var ano_ta = $("input[name='ano_ta']").val();
 	var busca_dispositivo = $("input[name='busca_dispositivo']").val();
@@ -55,6 +71,7 @@ var onChangeParamNorma = function(event) {
 
 	var formData = {
 		'tipo_ta'            : tipo_ta,
+		'tipo_model'            : tipo_model,
 		'num_ta'             : num_ta,
 		'ano_ta'             : ano_ta,
 		'busca'               	: busca_dispositivo,
@@ -98,7 +115,7 @@ var onSubmitEditForm = function(event) {
 			if (typeof data == "string") {
 				if (data.indexOf('<form') >= 0) {
 					$('#dne'+id_dispositivo+' .dne-form').html(data);
-					onEventsDneExec(id_dispositivo);
+					onEventsDneExec(id_dispositivo, model);
 				}
 				else {
 					$('#dne'+id_dispositivo+' .dne-form').closest('.dpt').html(data)
@@ -152,7 +169,7 @@ function getForm(_this) {
 
 	$.get(url).done(function( data ) {
 		$('#dne'+id_dispositivo+' .dne-form').html(data);
-		onEventsDneExec(id_dispositivo);
+		onEventsDneExec(id_dispositivo, model);
 	}).fail(function() {
 		onReadyNotasVides();
 	});

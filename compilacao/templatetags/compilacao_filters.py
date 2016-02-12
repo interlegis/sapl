@@ -36,15 +36,15 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 
 
 @register.simple_tag
-def nota_automatica(dispositivo):
+def nota_automatica(dispositivo, ta_pub_list):
     if dispositivo.ta_publicado is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
-            return 'Revogado pelo %s.' % d
-        elif not dispositivo.dispositivo_substituido:
-            return 'Inclusão feita pelo %s.' % d
+            return 'Revogado pelo %s - %s.' % (d, ta_pub_list[dispositivo.ta_publicado_id])
+        elif not dispositivo.dispositivo_substituido_id:
+            return 'Inclusão feita pelo %s - %s.' % (d, ta_pub_list[dispositivo.ta_publicado_id])
         else:
-            return 'Alteração feita pelo %s.' % d
+            return 'Alteração feita pelo %s - %s.' % (d, ta_pub_list[dispositivo.ta_publicado_id])
     return ''
 
 

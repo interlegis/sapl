@@ -30,7 +30,11 @@ function textoMultiVigente(item, diff) {
 		if ($(ldpts[i]).hasClass('displaynone'))
 			continue;
 		if (isElementInViewport( ldpts[i])) {
-			elv = ldpts[i];
+            if (i+1 < ldpts.length)
+			    elv = ldpts[i+1];
+            else {
+                elv = ldpts[i];
+            }
 			break;
 		}
 	}
@@ -112,7 +116,11 @@ function textoVigente(item, link) {
 		if ($(ldpts[i]).hasClass('displaynone'))
 			continue;
 		if (isElementInViewport( ldpts[i])) {
-			elv = ldpts[i];
+            if (i+1 < ldpts.length)
+			    elv = ldpts[i+1];
+            else {
+                elv = ldpts[i];
+            }
 			break;
 		}
 	}

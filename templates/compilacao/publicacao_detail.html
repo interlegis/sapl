@@ -1,19 +1,24 @@
 {% extends "base.html" %} {% load i18n %} {% load compilacao_filters %}
 {% load common_tags %}
 
-{% block base_content %} {# FIXME is this the best markup to use? #}
-<div class="clearfix">
+
+
+{% block base_content %}
+
+
+  <div class="clearfix">
     {% block actions %}
-    <ul class="button-group right">
-        <li><a href="{% url 'ta_pub_edit' object.ta.pk object.pk %}" class="button tiny">{% trans 'Editar' %}</a></li>
-        <li><a href="{% url 'ta_pub_delete' object.ta.pk object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
-    </ul>
+    <div class="actions btn-group pull-right" role="group">
+        <a href="{% url 'ta_pub_edit' object.ta.pk object.pk %}" class="btn btn-default">{% trans 'Editar' %}</a>
+        <a href="{% url 'ta_pub_delete' object.ta.pk object.pk %}" class="btn btn-default">{% trans 'Excluir' %}</a>
+    </div>
     {% endblock actions %}
+  </div>
+
     <div class="actions btn-group pull-right" role="group">
       {% block sections_nav %}
       {% endblock %}
     </div>
-</div>
 
     {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
     <fieldset>
