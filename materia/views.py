@@ -1325,27 +1325,36 @@ class RelatoriaView(FormMixin, GenericView):
                  'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
                  })
         else:
-            if form.is_valid():
-                relatorias = Relatoria.objects.filter(
+            relatorias = Relatoria.objects.filter(
                     materia_id=kwargs['pk']).order_by(
                         '-data_designacao_relator')
-                localizacao = Tramitacao.objects.filter(
+            localizacao = Tramitacao.objects.filter(
                     materia=materia).last()
-                comissao = Comissao.objects.get(
-                    id=localizacao.unidade_tramitacao_destino_id)
+            comissao = Comissao.objects.get(
+                    id=localizacao.unidade_tramitacao_destino.comissao.id)
 
+            if form.is_valid():
                 relatoria = form.save(commit=False)
                 relatoria.materia = materia
                 relatoria.comissao = comissao
                 relatoria.save()
                 return self.form_valid(form)
             else:
+                try:
+                    composicao = Composicao.objects.get(comissao=comissao)
+                except ObjectDoesNotExist:
+                    msg = 'Não há composição nesta Comissão!'
+                    messages.add_message(request, messages.INFO, msg)
+                    return self.render_to_response(
+                        {'object': materia,
+                         'form': form,
+                         'relatorias': relatorias,
+                         'comissao': comissao})
 
-                composicao = Composicao.objects.get(comissao=comissao)
                 parlamentares = composicao.participacao_set.all()
 
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'relatorias': relatorias,
                      'comissao': comissao,
@@ -1373,15 +1382,23 @@ class RelatoriaView(FormMixin, GenericView):
         else:
             try:
                 comissao = Comissao.objects.get(
-                    id=localizacao.unidade_tramitacao_destino_id)
+                    id=localizacao.unidade_tramitacao_destino.comissao.id)
                 composicao = Composicao.objects.filter(
                         comissao=comissao).last()
+                if not composicao:
+                    msg = 'Não há composição nesta Comissão!'
+                    messages.add_message(request, messages.INFO, msg)
+                    return self.render_to_response(
+                        {'object': materia,
+                         'form': form,
+                         'relatorias': relatorias,
+                         'comissao': comissao})
                 parlamentares = composicao.participacao_set.all()
             except ObjectDoesNotExist:
                 msg = 'O local atual deve  ser uma Comissão!'
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'relatorias': relatorias})
             else:
@@ -1389,7 +1406,7 @@ class RelatoriaView(FormMixin, GenericView):
                     comissao=comissao).last()
                 parlamentares = composicao.participacao_set.all()
                 return self.render_to_response(
-                    {'materialegislativa': materia,
+                    {'object': materia,
                      'form': form,
                      'relatorias': relatorias,
                      'comissao': comissao,
