@@ -12,12 +12,11 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
-import sapl
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
+from crud import build_crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
-from sapl.crud import build_crud
 from sessao.models import AcompanharMateria
 
 from .forms import (AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
@@ -879,12 +878,12 @@ class RelatoriaView(FormMixin, GenericView):
                  })
         else:
             relatorias = Relatoria.objects.filter(
-                    materia_id=kwargs['pk']).order_by(
-                        '-data_designacao_relator')
+                materia_id=kwargs['pk']).order_by(
+                    '-data_designacao_relator')
             localizacao = Tramitacao.objects.filter(
-                    materia=materia).last()
+                materia=materia).last()
             comissao = Comissao.objects.get(
-                    id=localizacao.unidade_tramitacao_destino.comissao.id)
+                id=localizacao.unidade_tramitacao_destino.comissao.id)
 
             if form.is_valid():
                 relatoria = form.save(commit=False)
@@ -1251,7 +1250,7 @@ class ProposicaoListView(ListView):
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = sapl.crud.make_pagination(
+        context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
 
@@ -1434,7 +1433,7 @@ class PesquisaMateriaListView(FormMixin, ListView):
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = sapl.crud.make_pagination(
+        context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
 

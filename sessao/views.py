@@ -11,11 +11,11 @@ from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
 import sapl
+from crud import build_crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
-from sapl.crud import build_crud
 from sessao.serializers import SessaoPlenariaSerializer
 
 from .forms import (AcompanharMateriaForm, ExpedienteForm, ListMateriaForm,
@@ -2184,7 +2184,7 @@ class SessaoListView(ListView):
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = sapl.crud.make_pagination(
+        context['page_range'] = make_pagination(
                 page_obj.number, paginator.num_pages)
         return context
 

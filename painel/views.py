@@ -5,9 +5,9 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
+from crud import build_crud
 from painel.models import Painel
 from parlamentares.models import Filiacao
-from sapl.crud import build_crud
 from sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                            RegistroVotacao, SessaoPlenaria,
                            SessaoPlenariaPresenca, VotoParlamentar)

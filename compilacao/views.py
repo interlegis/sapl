@@ -27,7 +27,7 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from sapl.crud import NO_ENTRIES_MSG, build_crud, make_pagination
+from crud import NO_ENTRIES_MSG, build_crud, make_pagination
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
