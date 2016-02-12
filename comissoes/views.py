@@ -10,10 +10,10 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
-from sapl.layout import form_actions
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 from sapl.crud import build_crud
+from sapl.layout import form_actions
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)

@@ -13,10 +13,10 @@ from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
 import sapl
-from sapl.layout import form_actions
 from compilacao.views import IntegracaoTaView
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from sapl.layout import form_actions
 
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)

@@ -15,12 +15,12 @@ from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
 import sapl
-from sapl.layout import form_actions
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
+from sapl.layout import form_actions
 from sessao.serializers import SessaoPlenariaSerializer
 
 from .models import (AcompanharMateria, CargoMesa, ExpedienteMateria,

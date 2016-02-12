@@ -14,8 +14,8 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
-from sapl.layout import form_actions
 from sapl.crud import build_crud
+from sapl.layout import form_actions
 
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,

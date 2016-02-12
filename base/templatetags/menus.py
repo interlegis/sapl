@@ -3,6 +3,7 @@ import os
 import yaml
 from django import template
 from django.core.urlresolvers import reverse
+
 from sapl.settings import BASE_DIR
 
 register = template.Library()

@@ -2,7 +2,7 @@ from datetime import date, datetime
 from re import sub
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, Field, Fieldset, Layout)
+from crispy_forms.layout import HTML, Field, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -19,9 +19,9 @@ from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
 import sapl
-from sapl.layout import form_actions
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from sapl.layout import form_actions
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -614,7 +614,7 @@ class ProtocoloMateriaView(FormMixin, GenericView):
                 numeracao = Protocolo.objects.all().aggregate(Max('numero'))
 
             if numeracao is None:
-                numero['numero__max'] = 0
+                numeracao['numero__max'] = 0
 
             protocolo = Protocolo()
 

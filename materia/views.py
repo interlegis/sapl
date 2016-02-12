@@ -18,12 +18,12 @@ from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
 import sapl
-from sapl.layout import form_actions
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
 from sapl.crud import build_crud
+from sapl.layout import form_actions
 from sessao.models import AcompanharMateria
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
@@ -32,7 +32,6 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
-
 
 origem_crud = build_crud(
     Origem, 'origem', [

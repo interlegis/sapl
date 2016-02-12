@@ -1,5 +1,5 @@
 from crispy_forms.bootstrap import FormActions
-from crispy_forms.layout import Submit, Layout, Div, Fieldset, HTML
+from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django.utils.translation import ugettext as _
 
 
