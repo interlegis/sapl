@@ -3,12 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-		<form method="post">
-			{% csrf_token %}
-			<fieldset>
-			<legend>Pesquisa Avançada</legend>
-				{% crispy form %}
-				<input type="submit" value="Pesquisar" name="pesquisa" class="button primary"/>
-			</fieldset>
-		</form>
+	<legend>Pesquisa Avançada</legend>
+		{% crispy form %}
+	</fieldset>
 {% endblock detail_content %}

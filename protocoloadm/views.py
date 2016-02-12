@@ -149,8 +149,8 @@ class ProtocoloForm(forms.Form):
                                               ('0', 'Administrativo'),
                                               ('1', 'Legislativo'),
                                               ('', 'Ambos')],
-                                          widget=forms.RadioSelect(
-                                              renderer=HorizontalRadioRenderer)
+                                          # widget=forms.RadioSelect(
+                                          #     renderer=HorizontalRadioRenderer)
 
                                           )
 
@@ -203,7 +203,7 @@ class ProtocoloForm(forms.Form):
             [('natureza_processo', 12)])
 
         self.helper = FormHelper()
-        self.helper.layout = Layout(row1, row2, row3, row4, row5)
+        self.helper.layout = Layout(row1, row2, row3, row4, row5, form_actions(save_label='Pesquisar'))
         super(ProtocoloForm, self).__init__(
             *args, **kwargs)
 
