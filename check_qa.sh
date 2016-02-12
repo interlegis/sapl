@@ -4,4 +4,4 @@
 
 ./manage.py check
 flake8 --exclude='ipython_log.py*,migrations,templates' .
-isort --check-only --skip='migrations' --skip='templates' --skip='ipython_log.py' -rc .
+isort --recursive --check-only --skip='migrations' --skip='templates' --skip='ipython_log.py' .
