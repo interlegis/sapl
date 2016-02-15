@@ -3,8 +3,8 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from django.http import HttpResponse
 
+from base.forms import ESTADOS
 from base.models import CasaLegislativa
-from base.views import ESTADOS
 from comissoes.models import Comissao
 from materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
                             Tramitacao, UnidadeTramitacao)

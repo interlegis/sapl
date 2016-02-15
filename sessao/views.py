@@ -1,12 +1,8 @@
 from datetime import datetime
 from re import sub
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Fieldset, Layout
-from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.forms import ModelForm
 from django.forms.util import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
@@ -20,9 +16,12 @@ from materia.models import (Autoria, DocumentoAcessorio,
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sapl.crud import build_crud
-from sapl.layout import form_actions
 from sessao.serializers import SessaoPlenariaSerializer
 
+from .forms import (AcompanharMateriaForm, ExpedienteForm, ListMateriaForm,
+                    MateriaOrdemDiaForm, MesaForm, OradorDeleteForm,
+                    OradorForm, PresencaForm, SessaoForm, VotacaoEditForm,
+                    VotacaoForm, VotacaoNominalForm)
 from .models import (AcompanharMateria, CargoMesa, ExpedienteMateria,
                      ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
@@ -102,11 +101,6 @@ registro_votacao_crud = build_crud(
             [('tipo_resultado_votacao', 12)],
             [('observacao', 12)]],
     ])
-
-
-class PresencaForm(forms.Form):
-    presenca = forms.CharField(required=False, initial=False)
-    parlamentar = forms.CharField(required=False, max_length=20)
 
 
 class PresencaView(FormMixin, sessao_crud.CrudDetailView):
@@ -217,10 +211,6 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
-
-
-class ListMateriaForm(forms.Form):
-    error_message = forms.CharField(required=False, label='votacao_aberta')
 
 
 class ListMateriaOrdemDiaView(sessao_crud.CrudDetailView):
@@ -424,18 +414,6 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
                 ordem.votacao_aberta = True
                 ordem.save()
         return self.get(self, request, args, kwargs)
-
-
-class MateriaOrdemDiaForm(forms.Form):
-    data_sessao = forms.CharField(required=True, label='Data da Sessão')
-    numero_ordem = forms.IntegerField(required=True, label='Número Ordem')
-    tipo_votacao = forms.IntegerField(required=True, label='Tipo Votação')
-    tipo_sessao = forms.IntegerField(required=True, label='Tipo da Sessão')
-    ano_materia = forms.IntegerField(required=True, label='Ano Matéria')
-    numero_materia = forms.IntegerField(required=True, label='Número Matéria')
-    tipo_materia = forms.IntegerField(required=True, label='Tipo Matéria')
-    observacao = forms.CharField(required=False, label='Ementa')
-    error_message = forms.CharField(required=False, label='Matéria')
 
 
 class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
@@ -761,18 +739,6 @@ class EditExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class OradorForm(forms.Form):
-    numero_ordem = forms.IntegerField(
-        required=True,
-        label='Ordem de pronunciamento')
-    parlamentar = forms.CharField(required=False, max_length=20)
-    url_discurso = forms.CharField(required=False, max_length=100)
-
-
-class OradorDeleteForm(forms.Form):
-    pass
-
-
 class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/delete_orador.html'
     form_class = OradorDeleteForm
@@ -926,11 +892,6 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
-
-
-class MesaForm(forms.Form):
-    parlamentar = forms.IntegerField(required=True)
-    cargo = forms.IntegerField(required=True)
 
 
 class MesaView(FormMixin, sessao_crud.CrudDetailView):
@@ -1198,10 +1159,6 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class ExpedienteForm(forms.Form):
-    conteudo = forms.CharField(required=False, widget=forms.Textarea)
-
-
 class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/expediente.html'
     form_class = ExpedienteForm
@@ -1419,17 +1376,6 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
 
 
-class VotacaoForm(forms.Form):
-    votos_sim = forms.CharField(required=True, label='Sim')
-    votos_nao = forms.CharField(required=True, label='Não')
-    abstencoes = forms.CharField(required=True, label='Abstenções')
-    total_votos = forms.CharField(required=False, label='total')
-
-
-class VotacaoEdit(forms.Form):
-    pass
-
-
 class VotacaoEditView(FormMixin, sessao_crud.CrudDetailView):
 
     '''
@@ -1441,7 +1387,7 @@ class VotacaoEditView(FormMixin, sessao_crud.CrudDetailView):
     def post(self, request, *args, **kwargs):
 
         self.object = self.get_object()
-        form = VotacaoEdit(request.POST)
+        form = VotacaoEditForm(request.POST)
 
         materia_id = kwargs['oid']
         ordem_id = kwargs['mid']
@@ -1621,10 +1567,6 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalForm(forms.Form):
-    pass
-
-
 class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
 
@@ -1790,7 +1732,7 @@ class VotacaoNominalEditView(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = VotacaoEdit(request.POST)
+        form = VotacaoEditForm(request.POST)
 
         materia_id = kwargs['oid']
         ordem_id = kwargs['mid']
@@ -1992,7 +1934,7 @@ class VotacaoNominalExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = VotacaoEdit(request.POST)
+        form = VotacaoEditForm(request.POST)
 
         materia_id = kwargs['oid']
         expediente_id = kwargs['mid']
@@ -2208,7 +2150,7 @@ class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
     def post(self, request, *args, **kwargs):
 
         self.object = self.get_object()
-        form = VotacaoEdit(request.POST)
+        form = VotacaoEditForm(request.POST)
 
         materia_id = kwargs['oid']
         expediente_id = kwargs['mid']
@@ -2347,76 +2289,6 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class SessaoForm(ModelForm):
-
-    hora_inicio = forms.CharField(label='Horário Inicio',
-                                  required=True,
-                                  widget=forms.TextInput(
-                                   attrs={'class': 'hora'}))
-
-    hora_fim = forms.CharField(label='Horário Fim',
-                               required=True,
-                               widget=forms.TextInput(
-                                attrs={'class': 'hora'}))
-
-    class Meta:
-        model = SessaoPlenaria
-        fields = ['numero',
-                  'tipo',
-                  'legislatura',
-                  'sessao_legislativa',
-                  'data_inicio',
-                  'hora_inicio',
-                  'iniciada',
-                  'data_fim',
-                  'hora_fim',
-                  'finalizada',
-                  'upload_pauta',
-                  'upload_ata',
-                  'url_audio',
-                  'url_video']
-
-    def __init__(self, *args, **kwargs):
-
-        row1 = sapl.layout.to_row(
-            [('numero', 3),
-             ('tipo', 3),
-             ('legislatura', 3),
-             ('sessao_legislativa', 3)])
-
-        row2 = sapl.layout.to_row(
-            [('data_inicio', 4),
-             ('hora_inicio', 4),
-             ('iniciada', 4)])
-
-        row3 = sapl.layout.to_row(
-            [('data_fim', 4),
-             ('hora_fim', 4),
-             ('finalizada', 4)])
-
-        row4 = sapl.layout.to_row(
-            [('upload_pauta', 6),
-             ('upload_ata', 6)])
-
-        row5 = sapl.layout.to_row(
-            [('url_audio', 6),
-             ('url_video', 6)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                'Dados Básicos',
-                row1,
-                row2,
-                row3,
-                row4,
-                row5,
-                form_actions()
-            )
-        )
-        super(SessaoForm, self).__init__(*args, **kwargs)
-
-
 class SessaoCadastroView(FormMixin, sessao_crud.CrudDetailView):
 
     template_name = "sessao/sessao_cadastro.html"
@@ -2490,29 +2362,6 @@ class PautaOrdemDetail(sessao_crud.CrudDetailView):
              'norma': norma,
              'doc_ace': doc_ace,
              'tramitacao': tramitacao})
-
-
-class AcompanharMateriaForm(ModelForm):
-
-    class Meta:
-        model = AcompanharMateria
-        fields = ['email']
-
-    def __init__(self, *args, **kwargs):
-
-        row1 = sapl.layout.to_row([('email', 10)])
-
-        row1.append(
-            Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
-            )
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                'Acompanhamento de Matéria por e-mail', row1
-            )
-        )
-        super(AcompanharMateriaForm, self).__init__(*args, **kwargs)
 
 
 class AcompanharMateriaView(FormMixin, sessao_crud.CrudDetailView):
