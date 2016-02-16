@@ -313,6 +313,17 @@ class ProtocoloMostrarView(TemplateView):
         return self.render_to_response({"protocolo": protocolo})
 
 
+class ComprovanteProtocoloView(TemplateView):
+
+    template_name = "protocoloadm/comprovante.html"
+
+    def get(self, request, *args, **kwargs):
+        numero = self.kwargs['pk']
+        ano = self.kwargs['ano']
+        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        return self.render_to_response({"protocolo": protocolo})
+
+
 class ProtocoloMateriaView(FormMixin, GenericView):
 
     template_name = "protocoloadm/protocolar_materia.html"

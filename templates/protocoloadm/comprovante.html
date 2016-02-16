@@ -1,0 +1,78 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block detail_content %}
+	<style>
+		table {
+			width: 100%;
+		}
+		table, th, td {
+			border: 1px solid black;
+			border-collapse: borda-prot;
+		}
+		th, td {
+			padding: 5px;
+		}
+	</style>
+
+	<div align="center">
+		<input type="submit" value="Imprimir" onclick="window.print();" class="btn btn-success"/>
+		<input type="submit" value="Fechar" onclick="window.close();" class="btn btn-success"/>
+	</div>
+
+	<br />
+
+	<table>
+		<tr><td colspan="2" align="center">
+				<img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}" alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
+				<div>
+					<b>{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}</b>
+					<br />
+					{% trans 'Sistema de Apoio ao Processo Legislativo' %}
+				</div>
+			</td> 
+		</tr>
+		<tr> <td colspan="2" align="center"><b>COMPROVANTE DE PROTOCOLO</b></td> </tr>
+
+		<tr>
+			<td>Código de Barra</td>
+			<td align="center">Autenticação ??</td>
+		</tr>
+
+		<tr>
+			<th>Número / Ano</th>
+			<td>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }}</td>
+		</tr>
+		<tr>
+			<th>Data / Horário</th>
+			<td>{{ protocolo.data|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:m:s" }}</td>
+		</tr>
+		<tr>
+			<th>Ementa</th>
+			<td>{{ protocolo.assunto_ementa }}</td>
+		</tr>
+		<tr>
+			<th>Interessado</th>
+			<td>{{ protocolo.interessado }}</td>
+		</tr>
+		<tr>
+			<th>Natureza</th>
+			<td>
+			{% if protocolo.tipo_protocolo == 0 %} Administrativo {% elif protocolo.tipo_protocolo == 1 %} Matéria Legislativa {% endif %}
+			</td>
+		</tr>
+		<tr>
+			<th>Tipo Documento</th>
+			<td>{{ protocolo.tipo_documento }}</td>
+		</tr>
+		<tr>
+			<th>Número Páginas</th>
+			<td>{{ protocolo.numero_paginas }}</td>
+		</tr>
+		<tr>
+			<th>Número Páginas</th>
+			<td>{{ protocolo.numero_paginas }}</td>
+		</tr>
+	</table>
+{% endblock detail_content %}

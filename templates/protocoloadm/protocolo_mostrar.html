@@ -12,10 +12,12 @@
 	<strong>Classificação:</strong> {{ protocolo.tipo_documento }} </br>
 	<strong>Número de Páginas:</strong> {{ protocolo.numero_paginas }} </br>
 	<strong>Observação:</strong>{{ protocolo.observacao|default:"Não há" }}</br>
-	<form method="POST" action="">
-		{% csrf_token %}
-		<strong>Documento Vinculado:</strong></br>
-		<a href="" class="secondary button">Criar Documento</a>
-		<input type="submit" value="Comprovante" class="secondary button">
-	</form>
+
+	<br />
+
+	<strong>Documento Vinculado:</strong></br>
+	<a href="" class="secondary button">Criar Documento</a>
+	<br />
+	<a href="{% url 'comprovante_protocolo' protocolo.numero protocolo.ano %}" target="popup" onclick="window.open('{% url 'comprovante_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=800, height=600')">Comprovante
+	</a>
 {% endblock detail_content %}
