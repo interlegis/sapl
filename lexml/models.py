@@ -9,19 +9,16 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
     email_responsavel = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name=_('E-mail do responsável'))
     nome_responsavel = models.CharField(
         max_length=255,
         blank=True,
-        null=True,
         verbose_name=_('Nome do responsável'))
     tipo = models.CharField(max_length=50)
     id_responsavel = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Id do responsável'))
     xml = models.TextField(
         blank=True,
-        null=True,
         verbose_name=_('XML fornecido pela equipe do LexML:'))
 
     class Meta:
@@ -40,17 +37,14 @@ class LexmlPublicador(models.Model):
     email_responsavel = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name=_('E-mail do responsável'))
     sigla = models.CharField(
         max_length=255,
         blank=True,
-        null=True,
         verbose_name=_('Sigla do Publicador'))
     nome_responsavel = models.CharField(
         max_length=255,
         blank=True,
-        null=True,
         verbose_name=_('Nome do responsável'))
     tipo = models.CharField(max_length=50)
     id_responsavel = models.PositiveIntegerField(

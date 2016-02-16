@@ -48,15 +48,15 @@ class SessaoPlenaria(models.Model):
     hora_inicio = models.CharField(
         max_length=5, verbose_name=_('Horário (hh:mm)'))
     hora_fim = models.CharField(
-        max_length=5, blank=True, null=True, verbose_name=_('Horário (hh:mm)'))
+        max_length=5, blank=True, verbose_name=_('Horário (hh:mm)'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     data_fim = models.DateField(
         blank=True, null=True, verbose_name=_('Encerramento'))
     url_audio = models.CharField(
-        max_length=150, blank=True, null=True,
+        max_length=150, blank=True,
         verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
     url_video = models.CharField(
-        max_length=150, blank=True, null=True,
+        max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
         blank=True,
@@ -102,9 +102,9 @@ class AbstractOrdemDia(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Ementa'))
+        blank=True, verbose_name=_('Ementa'))
     numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
-    resultado = models.TextField(blank=True, null=True)
+    resultado = models.TextField(blank=True)
     tipo_votacao = models.PositiveIntegerField(
         verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
     votacao_aberta = models.NullBooleanField(
@@ -142,7 +142,7 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     tipo = models.ForeignKey(TipoExpediente)
     conteudo = models.TextField(
-        blank=True, null=True, verbose_name=_('Conteúdo do expediente'))
+        blank=True, verbose_name=_('Conteúdo do expediente'))
 
     class Meta:
         verbose_name = _('Expediente de Sessão Plenaria')
@@ -171,7 +171,7 @@ class AbstractOrador(models.Model):  # Oradores
     numero_ordem = models.PositiveIntegerField(
         verbose_name=_('Ordem de pronunciamento'))
     url_discurso = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name=_('URL Vídeo'))
+        max_length=150, blank=True, verbose_name=_('URL Vídeo'))
 
     class Meta:
         abstract = True
@@ -242,7 +242,7 @@ class RegistroVotacao(models.Model):
     numero_abstencoes = models.PositiveIntegerField(
         verbose_name=_('Abstenções'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observações'))
+        blank=True, verbose_name=_('Observações'))
 
     class Meta:
         verbose_name = _('Votação')

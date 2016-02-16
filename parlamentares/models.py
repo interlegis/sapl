@@ -149,11 +149,11 @@ class Municipio(models.Model):  # Localidade
         ('EX', 'Exterior'),
     )
 
-    nome = models.CharField(max_length=50, blank=True, null=True)
+    nome = models.CharField(max_length=50, blank=True)
     uf = models.CharField(
-        max_length=2, blank=True, null=True, choices=UF_CHOICES)
+        max_length=2, blank=True, choices=UF_CHOICES)
     regiao = models.CharField(
-        max_length=2, blank=True, null=True, choices=REGIAO_CHOICES)
+        max_length=2, blank=True, choices=REGIAO_CHOICES)
 
     class Meta:
         verbose_name = _('Município')
@@ -223,56 +223,50 @@ class Parlamentar(models.Model):
     data_nascimento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Nascimento'))
     cpf = models.CharField(
-        max_length=14, blank=True, null=True, verbose_name=_('C.P.F'))
+        max_length=14, blank=True, verbose_name=_('C.P.F'))
     rg = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('R.G.'))
+        max_length=15, blank=True, verbose_name=_('R.G.'))
     titulo_eleitor = models.CharField(
         max_length=15,
         blank=True,
-        null=True,
         verbose_name=_('Título de Eleitor'))
     numero_gab_parlamentar = models.CharField(
-        max_length=10, blank=True, null=True, verbose_name=_('Nº Gabinete'))
+        max_length=10, blank=True, verbose_name=_('Nº Gabinete'))
     telefone = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Telefone'))
+        max_length=50, blank=True, verbose_name=_('Telefone'))
     fax = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Fax'))
+        max_length=50, blank=True, verbose_name=_('Fax'))
     endereco_residencia = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         verbose_name=_('Endereço Residencial'))
     municipio_residencia = models.ForeignKey(
         Municipio, blank=True, null=True, verbose_name=_('Município'))
     cep_residencia = models.CharField(
-        max_length=9, blank=True, null=True, verbose_name=_('CEP'))
+        max_length=9, blank=True, verbose_name=_('CEP'))
     telefone_residencia = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name=_('Telefone Residencial'))
     fax_residencia = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name=_('Fax Residencial'))
     endereco_web = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('HomePage'))
+        max_length=100, blank=True, verbose_name=_('HomePage'))
     profissao = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Profissão'))
+        max_length=50, blank=True, verbose_name=_('Profissão'))
     email = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         verbose_name=_('Correio Eletrônico'))
     locais_atuacao = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         verbose_name=_('Locais de Atuação'))
     ativo = models.BooleanField(verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
-        blank=True, null=True, verbose_name=_('Biografia'))
+        blank=True, verbose_name=_('Biografia'))
     fotografia = models.ImageField(
         blank=True,
         null=True,
@@ -313,13 +307,12 @@ class Dependente(models.Model):
     data_nascimento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Nascimento'))
     cpf = models.CharField(
-        max_length=14, blank=True, null=True, verbose_name=_('CPF'))
+        max_length=14, blank=True, verbose_name=_('CPF'))
     rg = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('RG'))
+        max_length=15, blank=True, verbose_name=_('RG'))
     titulo_eleitor = models.CharField(
         max_length=15,
         blank=True,
-        null=True,
         verbose_name=_('Nº Título Eleitor'))
 
     class Meta:
@@ -353,7 +346,7 @@ class TipoAfastamento(models.Model):
         choices=YES_NO_CHOICES, verbose_name=_('Indicador'))
     fim_mandato = models.BooleanField(verbose_name=_('Indicador'))
     dispositivo = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Dispositivo'))
+        max_length=50, blank=True, verbose_name=_('Dispositivo'))
 
     class Meta:
         verbose_name = _('Tipo de Afastamento')
@@ -379,7 +372,7 @@ class Mandato(models.Model):
     data_expedicao_diploma = models.DateField(
         blank=True, null=True, verbose_name=_('Expedição do Diploma'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observação'))
+        blank=True, verbose_name=_('Observação'))
 
     class Meta:
         verbose_name = _('Mandato')

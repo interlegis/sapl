@@ -34,7 +34,7 @@ class DocumentoAdministrativo(models.Model):
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
     interessado = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Interessado'))
+        max_length=50, blank=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor, blank=True, null=True)
     dias_prazo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Dias Prazo'))
@@ -43,7 +43,7 @@ class DocumentoAdministrativo(models.Model):
     tramitacao = models.BooleanField(verbose_name=_('Em Tramitação?'))
     assunto = models.TextField(verbose_name=_('Assunto'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observação'))
+        blank=True, verbose_name=_('Observação'))
     texto_integral = models.FileField(
         blank=True,
         null=True,
@@ -72,10 +72,10 @@ class DocumentoAcessorioAdministrativo(models.Model):
         verbose_name=_('Arquivo'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Autor'))
+        max_length=50, blank=True, verbose_name=_('Autor'))
     assunto = models.TextField(
-        blank=True, null=True, verbose_name=_('Assunto'))
-    indexacao = models.TextField(blank=True, null=True)
+        blank=True, verbose_name=_('Assunto'))
+    indexacao = models.TextField(blank=True)
 
     class Meta:
         verbose_name = _('Documento Acessório')
@@ -96,9 +96,9 @@ class Protocolo(models.Model):
         verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
-        max_length=60, blank=True, null=True, verbose_name=_('Interessado'))
+        max_length=60, blank=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor, blank=True, null=True)
-    assunto_ementa = models.TextField(blank=True, null=True)
+    assunto_ementa = models.TextField(blank=True)
     tipo_documento = models.ForeignKey(
         TipoDocumentoAdministrativo,
         blank=True,
@@ -112,12 +112,12 @@ class Protocolo(models.Model):
     numero_paginas = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número de Páginas'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observação'))
+        blank=True, verbose_name=_('Observação'))
     anulado = models.BooleanField()
-    user_anulacao = models.CharField(max_length=20, blank=True, null=True)
-    ip_anulacao = models.CharField(max_length=15, blank=True, null=True)
+    user_anulacao = models.CharField(max_length=20, blank=True)
+    ip_anulacao = models.CharField(max_length=15, blank=True)
     justificativa_anulacao = models.CharField(
-        max_length=60, blank=True, null=True)
+        max_length=60, blank=True)
     timestamp_anulacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -172,7 +172,7 @@ class TramitacaoAdministrativo(models.Model):
         verbose_name=_('Unidade Destino'))
     ultima = models.BooleanField()
     texto = models.TextField(
-        blank=True, null=True, verbose_name=_('Texto da Ação'))
+        blank=True, verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim do Prazo'))
 

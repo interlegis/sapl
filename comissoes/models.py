@@ -17,7 +17,6 @@ class TipoComissao(models.Model):
     dispositivo_regimental = models.CharField(
         max_length=50,
         blank=True,
-        null=True,
         verbose_name=_('Dispositivo Regimental'))
 
     class Meta:
@@ -36,7 +35,7 @@ class Comissao(models.Model):
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data de Extinção'))
     apelido_temp = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Apelido'))
+        max_length=100, blank=True, verbose_name=_('Apelido'))
     data_instalacao_temp = models.DateField(
         blank=True, null=True, verbose_name=_('Data Instalação'))
     data_final_prevista_temp = models.DateField(
@@ -46,35 +45,31 @@ class Comissao(models.Model):
     data_fim_comissao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Término'))
     secretario = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name=_('Secretário'))
+        max_length=30, blank=True, verbose_name=_('Secretário'))
     telefone_reuniao = models.CharField(
         max_length=15,
         blank=True,
-        null=True,
         verbose_name=_('Tel. Sala Reunião'))
     endereco_secretaria = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         verbose_name=_('Endereço Secretaria'))
     telefone_secretaria = models.CharField(
         max_length=15,
         blank=True,
-        null=True,
         verbose_name=_('Tel. Secretaria'))
     fax_secretaria = models.CharField(
-        max_length=15, blank=True, null=True, verbose_name=_('Fax Secretaria'))
+        max_length=15, blank=True, verbose_name=_('Fax Secretaria'))
     agenda_reuniao = models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         verbose_name=_('Data/Hora Reunião'))
     local_reuniao = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Local Reunião'))
+        max_length=100, blank=True, verbose_name=_('Local Reunião'))
     finalidade = models.TextField(
-        blank=True, null=True, verbose_name=_('Finalidade'))
+        blank=True, verbose_name=_('Finalidade'))
     email = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('E-mail'))
+        max_length=100, blank=True, verbose_name=_('E-mail'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
         verbose_name=_('Unidade Deliberativa'))
@@ -136,10 +131,9 @@ class Participacao(models.Model):  # ComposicaoComissao
     motivo_desligamento = models.CharField(
         max_length=150,
         blank=True,
-        null=True,
         verbose_name=_('Motivo Desligamento'))
     observacao = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name=_('Observação'))
+        max_length=150, blank=True, verbose_name=_('Observação'))
 
     class Meta:
         verbose_name = _('Participação em Comissão')

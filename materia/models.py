@@ -67,7 +67,7 @@ class MateriaLegislativa(models.Model):
     data_apresentacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Apresentação'))
     tipo_apresentacao = models.CharField(
-        max_length=1, blank=True, null=True,
+        max_length=1, blank=True,
         verbose_name=_('Tipo de Apresentação'),
         choices=TIPO_APRESENTACAO_CHOICES)
     regime_tramitacao = models.ForeignKey(
@@ -81,7 +81,7 @@ class MateriaLegislativa(models.Model):
         related_name='+',
         verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
-        max_length=5, blank=True, null=True, verbose_name=_('Número'))
+        max_length=5, blank=True, verbose_name=_('Número'))
     ano_origem_externa = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_('Ano'))
     data_origem_externa = models.DateField(
@@ -89,7 +89,7 @@ class MateriaLegislativa(models.Model):
     local_origem_externa = models.ForeignKey(
         Origem, blank=True, null=True, verbose_name=_('Local Origem'))
     apelido = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Apelido'))
+        max_length=50, blank=True, verbose_name=_('Apelido'))
     dias_prazo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
@@ -98,15 +98,15 @@ class MateriaLegislativa(models.Model):
     polemica = models.NullBooleanField(
         blank=True, verbose_name=_('Matéria Polêmica?'))
     objeto = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name=_('Objeto'))
+        max_length=150, blank=True, verbose_name=_('Objeto'))
     complementar = models.NullBooleanField(
         blank=True, verbose_name=_('É Complementar?'))
     ementa = models.TextField(verbose_name=_('Ementa'))
     indexacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Indexação'))
+        blank=True, verbose_name=_('Indexação'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observação'))
-    resultado = models.TextField(blank=True, null=True)
+        blank=True, verbose_name=_('Observação'))
+    resultado = models.TextField(blank=True)
     # XXX novo
     anexadas = models.ManyToManyField(
         'self',
@@ -195,9 +195,9 @@ class Autor(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
     tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo'))
     nome = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Autor'))
-    cargo = models.CharField(max_length=50, blank=True, null=True)
-    username = models.CharField(max_length=50, blank=True, null=True)
+        max_length=50, blank=True, verbose_name=_('Autor'))
+    cargo = models.CharField(max_length=50, blank=True)
+    username = models.CharField(max_length=50, blank=True)
 
     class Meta:
         verbose_name = _('Autor')
@@ -266,9 +266,9 @@ class DocumentoAcessorio(models.Model):
     nome = models.CharField(max_length=30, verbose_name=_('Descrição'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Autor'))
-    ementa = models.TextField(blank=True, null=True, verbose_name=_('Ementa'))
-    indexacao = models.TextField(blank=True, null=True)
+        max_length=50, blank=True, verbose_name=_('Autor'))
+    ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
+    indexacao = models.TextField(blank=True)
 
     class Meta:
         verbose_name = _('Documento Acessório')
@@ -303,7 +303,7 @@ class Numeracao(models.Model):
     numero_materia = models.CharField(max_length=5, verbose_name=_('Número'))
     ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     data_materia = models.DateField(
-        blank=True, null=True, verbose_name=_('Data'))
+        blank=True, verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Numeração')
@@ -323,9 +323,9 @@ class Orgao(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=('Unidade Deliberativa'))
     endereco = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name=_('Endereço'))
+        max_length=100, blank=True, verbose_name=_('Endereço'))
     telefone = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name=_('Telefone'))
+        max_length=50, blank=True, verbose_name=_('Telefone'))
 
     class Meta:
         verbose_name = _('Órgão')
@@ -382,10 +382,10 @@ class Parecer(models.Model):
 
     relatoria = models.ForeignKey(Relatoria)
     materia = models.ForeignKey(MateriaLegislativa)
-    tipo_conclusao = models.CharField(max_length=3, blank=True, null=True)
+    tipo_conclusao = models.CharField(max_length=3, blank=True)
     tipo_apresentacao = models.CharField(
         max_length=1, choices=APRESENTACAO_CHOICES)
-    parecer = models.TextField(blank=True, null=True)
+    parecer = models.TextField(blank=True)
 
     class Meta:
         verbose_name = _('Parecer')
@@ -439,13 +439,11 @@ class Proposicao(models.Model):
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
-        null=True,
         verbose_name=_('Justificativa da Devolução'))
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
     # ind_enviado and ind_devolvido collapsed as char field (status)
     status = models.CharField(blank=True,
-                              null=True,
                               max_length=1,
                               choices=(('E', 'Enviada'),
                                        ('D', 'Devolvida'),
@@ -553,10 +551,10 @@ class Tramitacao(models.Model):
         verbose_name=_('Unidade Destino'))
     urgente = models.BooleanField(verbose_name=_('Urgente ?'))
     turno = models.CharField(
-        max_length=1, blank=True, null=True, verbose_name=_('Turno'),
+        max_length=1, blank=True, verbose_name=_('Turno'),
         choices=TURNO_CHOICES)
     texto = models.TextField(
-        blank=True, null=True, verbose_name=_('Texto da Ação'))
+        blank=True, verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
 
