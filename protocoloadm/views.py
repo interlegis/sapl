@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from re import sub
 
+import sapl
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -12,16 +13,15 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
-from vanilla import GenericView
-
-import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
 from sapl.utils import create_barcode
+from vanilla import GenericView
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
-                    ProposicaoSimpleForm, ProtocoloDocumentForm, ProtocoloForm,
-                    ProtocoloMateriaForm, TramitacaoAdmForm)
+                    DocumentoAdministrativoForm, ProposicaoSimpleForm,
+                    ProtocoloDocumentForm, ProtocoloForm, ProtocoloMateriaForm,
+                    TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
@@ -303,6 +303,59 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
             return self.form_invalid(form)
 
 
+def criar_documento(protocolo):
+    doc = {}
+
+    numero = Protocolo.objects.filter(
+        tipo_documento=protocolo.tipo_documento,
+        ano=protocolo.ano,
+        anulado=False).aggregate(Max('numero'))
+
+    doc['tipo'] = protocolo.tipo_documento
+    doc['ano'] = protocolo.ano
+    doc['data'] = protocolo.data
+    doc['numero_protocolo'] = protocolo.numero
+    doc['assunto'] = protocolo.assunto_ementa
+    doc['interessado'] = protocolo.interessado
+    doc['numero'] = numero['numero__max']
+    if doc['numero'] is None:
+        doc['numero'] = 1
+
+    return doc
+
+
+class CriarDocumentoProtocolo(FormMixin, GenericView):
+    template_name = "protocoloadm/criar_documento.html"
+
+    def get(self, request, *args, **kwargs):
+
+        numero = self.kwargs['pk']
+        ano = self.kwargs['ano']
+        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        form = DocumentoAdministrativoForm(
+            initial=criar_documento(protocolo))
+        return self.render_to_response({
+            'protocolo': protocolo,
+            'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = DocumentoAdministrativoForm(request.POST)
+
+        if form.is_valid():
+            doc = form.save(commit=False)
+            if 'texto_integral' in request.FILES:
+                doc.texto_integral = request.FILES['texto_integral']
+            doc.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form})
+
+    def get_success_url(self):
+        return reverse('criar_documento', kwargs={
+            'pk': self.kwargs['pk'],
+            'ano': self.kwargs['ano']})
+
+
 class ProtocoloMostrarView(TemplateView):
 
     template_name = "protocoloadm/protocolo_mostrar.html"
@@ -331,8 +384,8 @@ class ComprovanteProtocoloView(TemplateView):
 
         if not protocolo.anulado:
             autenticacao = str(protocolo.tipo_processo) + \
-                           protocolo.data.strftime("%y/%m/%d") + \
-                           str(protocolo.numero).zfill(6)
+                protocolo.data.strftime("%y/%m/%d") + \
+                str(protocolo.numero).zfill(6)
 
         return self.render_to_response({"protocolo": protocolo,
                                         "barcode": barcode,

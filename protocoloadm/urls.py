@@ -20,7 +20,8 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 protocolo_materia_crud,
                                 status_tramitacao_administrativo_crud,
                                 tipo_documento_administrativo_crud,
-                                tramitacao_administrativo_crud)
+                                tramitacao_administrativo_crud,
+                                CriarDocumentoProtocolo)
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/', include(documento_administrativo_crud.urls)),
@@ -66,6 +67,8 @@ urlpatterns = [
 
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
+    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar_documento$',
+        CriarDocumentoProtocolo.as_view(), name='criar_documento'),
 
 
     # TODO: move to Proposicoes app
