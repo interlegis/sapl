@@ -571,55 +571,42 @@ class PesquisarDocumentoAdministrativo(TemplateView):
 class DetailDocumentoAdministrativo(DetailView):
     template_name = "protocoloadm/detail_doc_adm.html"
 
-    def get_tipos_doc(self):
-        return TipoDocumentoAdministrativo.objects.all()
-
     def get(self, request, *args, **kwargs):
-        doc = DocumentoAdministrativo.objects.get(id=kwargs['pk'])
+        documento = DocumentoAdministrativo.objects.get(
+            id=self.kwargs['pk'])
+
+        doc = {}
+        doc['tipo'] = documento.tipo
+        doc['ano'] = documento.ano
+        doc['data'] = documento.data
+        doc['numero_protocolo'] = documento.numero
+        doc['assunto'] = documento.assunto
+        doc['interessado'] = documento.interessado
+        doc['numero'] = documento.numero
+        doc['tramitacao'] = documento.tramitacao
+        doc['texto_integral'] = documento.texto_integral
+        doc['dias_prazo'] = documento.dias_prazo
+        doc['data_fim_prazo'] = documento.data_fim_prazo
+        doc['observacao'] = documento.observacao
+
+        form = DocumentoAdministrativoForm(
+            initial=doc)
         return self.render_to_response({
-            'pk': kwargs['pk'],
-            'doc': doc,
-            'tipos_doc': TipoDocumentoAdministrativo.objects.all()
-        })
+            'form': form,
+            'pk': kwargs['pk']})
 
     def post(self, request, *args, **kwargs):
-
         if 'Salvar' in request.POST:
-            documento = DocumentoAdministrativo.objects.get(id=kwargs['pk'])
+            form = DocumentoAdministrativoForm(request.POST)
 
-            if request.POST['numero']:
-                documento.numero = request.POST['numero']
-
-            if request.POST['ano']:
-                documento.ano = request.POST['ano']
-
-            if request.POST['data']:
-                documento.data = datetime.strptime(
-                    request.POST['data'], "%d/%m/%Y")
-
-            if request.POST['numero_protocolo']:
-                documento.numero_protocolo = request.POST['numero_protocolo']
-
-            if request.POST['assunto']:
-                documento.assunto = request.POST['assunto']
-
-            if request.POST['interessado']:
-                documento.interessado = request.POST['interessado']
-
-            if request.POST['tramitacao']:
-                documento.tramitacao = request.POST['tramitacao']
-
-            if request.POST['dias_prazo']:
-                documento.dias_prazo = request.POST['dias_prazo']
-
-            if request.POST['data_fim_prazo']:
-                documento.data_fim_prazo = datetime.strptime(
-                    request.POST['data_fim_prazo'], "%d/%m/%Y")
-
-            if request.POST['observacao']:
-                documento.observacao = request.POST['observacao']
-
-            documento.save()
+            if form.is_valid():
+                doc = form.save(commit=False)
+                if 'texto_integral' in request.FILES:
+                    doc.texto_integral = request.FILES['texto_integral']
+                doc.save()
+                return self.form_valid(form)
+            else:
+                return self.render_to_response({'form': form})
         elif 'Excluir' in request.POST:
             DocumentoAdministrativo.objects.get(
                 id=kwargs['pk']).delete()
@@ -627,7 +614,8 @@ class DetailDocumentoAdministrativo(DetailView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse('pesq_doc_adm')
+        return reverse('detail_doc_adm', kwargs={
+            'pk': self.kwargs['pk']})
 
 
 class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):

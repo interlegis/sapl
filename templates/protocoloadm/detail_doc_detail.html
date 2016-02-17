@@ -1,10 +1,10 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
-
+{% block actions %} {% endblock %}
 {% block sections_nav %}
-<div class="actions btn-group pull-right" role="group">
-  <a href="#" class="btn btn-default">{% trans 'Inicio' %}</a>
-  <a href="#" class="btn btn-default">{% trans 'Documento Acessório' %}</a>
-  <a href="{% url 'tramitacao_adm' pk %}" class="btn btn-default">{% trans 'Tramitação' %}</a>
-</div>
+	<div class="actions btn-group pull-right" role="group">
+	  <a href="{% url 'detail_doc_adm' pk %}" class="btn btn-default">{% trans 'Inicio' %}</a>
+	  <a href="{% url 'doc_ace_adm' pk %}" class="btn btn-default">{% trans 'Documento Acessório' %}</a>
+	  <a href="{% url 'tramitacao_adm' pk %}" class="btn btn-default">{% trans 'Tramitação' %}</a>
+	</div>
 {% endblock sections_nav %}

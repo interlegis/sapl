@@ -439,11 +439,11 @@ class DocumentoAdministrativoForm(ModelForm):
                                        attrs={'class': 'selector'}))
 
     assunto = forms.CharField(
-        label='Descrição', required=False,
+        label='Assunto', required=False,
         widget=forms.Textarea())
 
     observacao = forms.CharField(
-        label='Descrição', required=False,
+        label='Observação', required=False,
         widget=forms.Textarea())
 
     class Meta:
