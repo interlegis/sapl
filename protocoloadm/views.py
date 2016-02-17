@@ -351,9 +351,8 @@ class CriarDocumentoProtocolo(FormMixin, GenericView):
             return self.render_to_response({'form': form})
 
     def get_success_url(self):
-        return reverse('criar_documento', kwargs={
-            'pk': self.kwargs['pk'],
-            'ano': self.kwargs['ano']})
+        return reverse('detail_doc_adm', kwargs={
+            'pk': self.kwargs['pk']})
 
 
 class ProtocoloMostrarView(TemplateView):
