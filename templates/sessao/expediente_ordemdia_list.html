@@ -58,7 +58,7 @@ Matérias do Expediente
       {% csrf_token %}
       <input type="hidden" name="error_message" id="error_message" />
       <input type="hidden" id="ordem_id" name="ordem_id" value="{{ m.ordem_id }}">
-      <input type="submit" id="abrir-votacao" name="abrir-votacao" value="Abrir Votação" class="button primary">
+      <input type="submit" id="abrir-votacao" name="abrir-votacao" value="Abrir Votação" class="btn primary">
     </form>
     {% endif %}
     {% endif %}
@@ -67,15 +67,15 @@ Matérias do Expediente
 </div>
 
 	</br>
-	<a href="{% url 'sessaoplenaria:expedienteordemdia_create' object.pk %}" class="button primary">
+	<a href="{% url 'sessaoplenaria:expedienteordemdia_create' object.pk %}" class="btn primary">
 		{% trans 'Adicionar Matérias' %}
 	</a></dd>
 
-	<button>Incluir várias matérias</button>
+	<button class="btn primary">Incluir várias matérias</button>
 	<form method="POST" action="{% url 'sessaoplenaria:expedienteordemdia_list' object.pk %}">
 		{% csrf_token %}
 		<input type="hidden" name="error_message" id="error_message" />
-		<input type="submit" id="expediente_reorder" name="expediente_reorder" value="Reordenar Matérias do Expediente" class="button primary" />
+		<input type="submit" id="expediente_reorder" name="expediente_reorder" value="Reordenar Matérias do Expediente" class="btn primary" />
 	</form>
 
 
