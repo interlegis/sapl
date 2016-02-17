@@ -32,6 +32,23 @@ def xstr(s):
     return '' if s is None else str(s)
 
 
+def create_barcode(value):
+    ''' 
+        creates a base64 encoded barcode PNG image
+    '''
+    from base64 import b64encode
+    from reportlab.graphics.barcode import createBarcodeDrawing
+
+    barcode = createBarcodeDrawing('Code128',
+                                   value=value,
+                                   barWidth=170,
+                                   height=50,
+                                   fontSize=2,
+                                   humanReadable=True)
+    data = b64encode(barcode.asString('png'))
+    return data.decode('utf-8')
+
+
 def make_choices(*choice_pairs):
     assert len(choice_pairs) % 2 == 0
     ipairs = iter(choice_pairs)

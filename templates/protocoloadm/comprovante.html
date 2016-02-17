@@ -36,8 +36,14 @@
 		<tr> <td colspan="2" align="center"><b>COMPROVANTE DE PROTOCOLO</b></td> </tr>
 
 		<tr>
-			<td>Código de Barra</td>
-			<td align="center">Autenticação ??</td>
+			<td>
+				<center>
+					<img src="{{barcode}}" height="50px" width="170px">
+					<br>
+					{{ protocolo.numero|stringformat:'06d' }}
+				</center>
+			</td>
+			<td align="center">Autenticação: {{ autenticacao }}</td>
 		</tr>
 
 		<tr>

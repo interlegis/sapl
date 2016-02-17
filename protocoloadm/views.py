@@ -17,6 +17,7 @@ from vanilla import GenericView
 import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
+from sapl.utils import create_barcode
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     ProposicaoSimpleForm, ProtocoloDocumentForm, ProtocoloForm,
@@ -321,7 +322,21 @@ class ComprovanteProtocoloView(TemplateView):
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
-        return self.render_to_response({"protocolo": protocolo})
+
+        # numero is string, padd with zeros left via .zfill()
+        base64_data = create_barcode(numero.zfill(6))
+        barcode = 'data:image/png;base64,{0}'.format(base64_data)
+
+        autenticacao = "** NULO **"
+
+        if not protocolo.anulado:
+            autenticacao = str(protocolo.tipo_processo) + \
+                           protocolo.data.strftime("%y/%m/%d") + \
+                           str(protocolo.numero).zfill(6)
+
+        return self.render_to_response({"protocolo": protocolo,
+                                        "barcode": barcode,
+                                        "autenticacao": autenticacao})
 
 
 class ProtocoloMateriaView(FormMixin, GenericView):
