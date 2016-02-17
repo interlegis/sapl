@@ -473,7 +473,7 @@ class Publicacao(TimestampedMixin):
         verbose_name_plural = _('Publicações')
 
     def __str__(self):
-        return _('%s realizada em %s \n %s') % (
+        return _('%s realizada em %s \n <small>%s</small>') % (
             self.tipo_publicacao,
             defaultfilters.date(self.data, "d \d\e F \d\e Y"),
             self.ta)
@@ -624,9 +624,8 @@ class Dispositivo(BaseModel, TimestampedMixin):
         )
 
     def __str__(self):
-        return '%(rotulo)s - %(ta)s' % {
-            'rotulo': (self.rotulo if self.rotulo else self.tipo_dispositivo),
-            'ta': self.ta}
+        return '%(rotulo)s' % {
+            'rotulo': (self.rotulo if self.rotulo else self.tipo_dispositivo)}
 
     def rotulo_padrao(self, local_insert=0, for_insert_in=0):
         """
@@ -1145,19 +1144,24 @@ class Vide(TimestampedMixin):
         return _('Vide %s') % self.texto
 
 
+NPRIV = 1
+NINST = 2
+NPUBL = 3
+NOTAS_PUBLICIDADE_CHOICES = (
+    # Only the owner of the note has visibility.
+    (NPRIV, _('Nota Privada')),
+    # All authenticated users have visibility.
+    (NINST, _('Nota Institucional')),
+    # All users have visibility.
+    (NPUBL, _('Nota Pública')),
+)
+
+
 class Nota(TimestampedMixin):
+
     NPRIV = 1
     NINST = 2
     NPUBL = 3
-
-    PUBLICIDADE_CHOICES = (
-        # Only the owner of the note has visibility.
-        (NPRIV, _('Nota Privada')),
-        # All authenticated users have visibility.
-        (NINST, _('Nota Institucional')),
-        # All users have visibility.
-        (NPUBL, _('Nota Pública')),
-    )
 
     titulo = models.CharField(
         verbose_name=_('Título'),
@@ -1181,7 +1185,7 @@ class Nota(TimestampedMixin):
 
     owner = models.ForeignKey(User, verbose_name=_('Dono da Nota'))
     publicidade = models.PositiveSmallIntegerField(
-        choices=PUBLICIDADE_CHOICES,
+        choices=NOTAS_PUBLICIDADE_CHOICES,
         verbose_name=_('Nível de Publicidade'))
 
     class Meta:

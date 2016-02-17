@@ -125,3 +125,4 @@ class NormaIncluirView(FormMixin, GenericView):
 
 class NormaTaView(IntegracaoTaView):
     model = NormaJuridica
+    model_type_foreignkey = TipoNormaJuridica

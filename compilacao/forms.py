@@ -1,25 +1,19 @@
+from crispy_forms.bootstrap import FieldWithButtons, FormActions, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (HTML, Column, Div, Fieldset,
-                                            Layout, Row)
-from crispy_forms_foundation.layout.buttons import Button
-from crispy_forms_foundation.layout.fields import Field
+from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
+                                 Layout, Row)
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import (PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
+from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
+                               PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
                                Publicacao, TextoArticulado, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
 from sapl.layout import SaplFormLayout, to_column, to_row
 from sapl.utils import YES_NO_CHOICES
-
-
-class UpLoadImportFileForm(forms.Form):
-    import_file = forms.FileField(
-        required=True,
-        label=_('Arquivo formato ODF para Importanção'))
 
 error_messages = {
     'required': _('Este campo é obrigatório'),
@@ -145,41 +139,30 @@ class TaForm(ModelForm):
 
 
 class NotaForm(ModelForm):
-    NPRIV = 1
-    NINST = 2
-    NPUBL = 3
 
-    PUBLICIDADE_CHOICES = (
-        # Only the owner of the note has visibility.
-        (NPRIV, _('Nota Privada')),
-        # All authenticated users have visibility.
-        (NINST, _('Nota Institucional')),
-        # All users have visibility.
-        (NPUBL, _('Nota Pública')),
-    )
-    titulo = forms.CharField(label='&nbsp;', required=False)
+    titulo = forms.CharField(
+        label=Nota._meta.get_field('titulo').verbose_name, required=False)
     texto = forms.CharField(
-        label='',
+        label=Nota._meta.get_field('texto').verbose_name,
         widget=forms.Textarea,
         error_messages=error_messages)
     url_externa = forms.URLField(
-        label='',
+        label=Nota._meta.get_field('url_externa').verbose_name,
         required=False,
         error_messages=error_messages)
     publicidade = forms.ChoiceField(
         required=True,
-        label=_('Publicidade'),
-        choices=PUBLICIDADE_CHOICES,
+        label=Nota._meta.get_field('publicidade').verbose_name,
+        choices=NOTAS_PUBLICIDADE_CHOICES,
         widget=forms.Select(attrs={'class': 'selector'}))
 
     tipo = forms.ModelChoiceField(
-        required=False,
-        label=_('Tipo da Nota'),
+        label=Nota._meta.get_field('tipo').verbose_name,
         queryset=TipoNota.objects.all(),
         empty_label=None)
 
     publicacao = forms.DateField(
-        label=_('Publicação'),
+        label=Nota._meta.get_field('publicacao').verbose_name,
         input_formats=['%d/%m/%Y'],
         required=True,
         widget=forms.DateInput(
@@ -187,7 +170,7 @@ class NotaForm(ModelForm):
         error_messages=error_messages
     )
     efetividade = forms.DateField(
-        label=_('Efetividade'),
+        label=Nota._meta.get_field('efetividade').verbose_name,
         input_formats=['%d/%m/%Y'],
         required=True,
         widget=forms.DateInput(
@@ -225,20 +208,39 @@ class NotaForm(ModelForm):
                 css_class='col-md-8'))
 
         row3 = to_row([
-            ('publicidade', 3),
+            ('publicidade', 6),
             ('publicacao', 3),
             ('efetividade', 3),
-            (Button('submit', _('Salvar'),
-                    css_class='btn btn-primary'), 3)
         ])
+
+        buttons = FormActions(
+            HTML('<a class="btn btn-inverse btn-close-container">'
+                 '%s</a>' % _('Cancelar')),
+            Button(
+                'submit-form',
+                'Salvar',
+                css_class='btn btn-primary pull-right')
+        )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Div(HTML(_('Notas')), css_class='title_form'),
-            row1,
-            Field('texto', placeholder=_('Adicionar Nota')),
-            Field('url_externa', placeholder=_('URL Externa (opcional)')),
-            row3
+
+            Div(
+                Div(HTML(_('Notas')), css_class='panel-heading'),
+                Div(
+                    row1,
+                    to_row([(Field(
+                        'texto',
+                        placeholder=_('Adicionar Nota')), 12)]),
+                    to_row([(Field(
+                        'url_externa',
+                        placeholder=_('URL Externa (opcional)')), 12)]),
+                    row3,
+                    to_row([(buttons, 12)]),
+                    css_class="panel-body"
+                ),
+                css_class="panel panel-primary"
+            )
         )
 
         super(NotaForm, self).__init__(*args, **kwargs)
@@ -256,6 +258,11 @@ class VideForm(ModelForm):
         label=_('Tipo do Texto Articulado'),
         queryset=TipoTextoArticulado.objects.all(),
         required=False)
+
+    tipo_model = forms.ChoiceField(
+        choices=[],
+        label=_('Tipos de...'), required=False)
+
     num_ta = forms.IntegerField(
         label=_('Núm Texto Articulado'), required=False)
     ano_ta = forms.IntegerField(
@@ -293,53 +300,62 @@ class VideForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
+        buttons = FormActions(
+            HTML('<a class="btn btn-inverse btn-close-container">'
+                 '%s</a>' % _('Cancelar')),
+            Button(
+                'submit-form',
+                'Salvar',
+                css_class='btn-primary pull-right')
+        )
+
+        fields_form = Div(
+            Row(to_column((Field(
+                'tipo',
+                placeholder=_('Selecione um Tipo de Vide')), 12))),
+            Row(to_column((Field(
+                'texto',
+                placeholder=_('Texto Adicional ao Vide')), 12))),
+            Row(to_column((buttons, 12))))
+
+        fields_search = Div(
+            Row(
+                to_column(('tipo_ta', 6)),
+                to_column(('tipo_model', 6))),
+            Row(
+                to_column(('num_ta', 6)),
+                to_column(('ano_ta', 6))),
+            Row(to_column((FieldWithButtons(
+                Field(
+                    'busca_dispositivo',
+                    placeholder=_('Digite palavras, letras, '
+                                  'números ou algo'
+                                  ' que estejam '
+                                  'no rótulo ou no texto.')),
+                StrictButton("Buscar", css_class='btn-busca')), 12))),
+            Row(to_column(
+                (Div(css_class='container-busca'), 12)))
+        )
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
-
-            Div(HTML(_('Vides')), css_class='title_form'),
-
-            Row(
-                to_column((
-                    Div(
-                        Div(to_column((Field(
-                            'tipo',
-                            placeholder=_('Selecione um Tipo de Vide')), 12))),
-                        Div(to_column((
-                            Field(
-                                'texto',
-                                placeholder=_(
-                                    'Texto Adicional ao Vide')), 12))),
-                        Div(to_column((
-                            Button(
-                                'submit',
-                                'Salvar',
-                                css_class='btn btn-primary'), 12)))
-                    ), 4)),
-                to_column((
-                    Div(
-                        Div(to_column(('tipo_ta', 6))),
-                        Div(to_column(('num_ta', 3)),
-                            to_column(('ano_ta', 3))),
-                        Div(to_column(
-                            (Field(
-                                'busca_dispositivo',
-                                placeholder=_('Digite palavras, letras, '
-                                              'números ou algo'
-                                              ' que estejam '
-                                              'no rótulo ou no texto.')), 10)),
-                            to_column((
-                                Button(
-                                    'buscar',
-                                    'Buscar',
-                                    css_class='btn btn-primary btn-busca'), 2))
-
-                            ),
-                        to_column(
-                            (Div(css_class='container-busca'), 12))
-                    ), 8)
-                )
+            Div(
+                Div(HTML(_('Vides')), css_class='panel-heading'),
+                Div(
+                    to_column((
+                        fields_form, 4)),
+                    to_column((
+                        fields_search, 8)), css_class="panel-body"
+                ),
+                css_class="panel panel-primary"
             )
         )
+
+        if 'choice_model_type_foreignkey_in_extenal_views' in kwargs:
+            ch = kwargs.pop('choice_model_type_foreignkey_in_extenal_views')
+            if 'data' in kwargs:
+                choice = ch(kwargs['data']['tipo_ta'])
+                self.base_fields['tipo_model'].choices = choice
 
         super(VideForm, self).__init__(*args, **kwargs)
 

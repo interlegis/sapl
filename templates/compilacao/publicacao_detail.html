@@ -1,92 +1,91 @@
-{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %}
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
 {% load common_tags %}
 
-{% block base_content %} {# FIXME is this the best markup to use? #}
-<div class="clearfix">
+{% block base_content %}
+  <div class="clearfix">
     {% block actions %}
-    <ul class="button-group right">
-        <li><a href="{% url 'ta_pub_edit' object.ta.pk object.pk %}" class="button tiny">{% trans 'Editar' %}</a></li>
-        <li><a href="{% url 'ta_pub_delete' object.ta.pk object.pk %}" class="button alert tiny">{% trans 'Excluir' %}</a></li>
-    </ul>
-    {% endblock actions %}
     <div class="actions btn-group pull-right" role="group">
-      {% block sections_nav %}
-      {% endblock %}
+        <a href="{% url 'compilacao:ta_pub_edit' object.ta.pk object.pk %}" class="btn btn-default">{% trans 'Editar' %}</a>
+        <a href="{% url 'compilacao:ta_pub_delete' object.ta.pk object.pk %}" class="btn btn-default">{% trans 'Excluir' %}</a>
     </div>
-</div>
+    {% endblock actions %}
+  </div>
+  <div class="actions btn-group pull-right" role="group">
+    {% block sections_nav %}
+    {% endblock %}
+  </div>
 
-    {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
+  {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
     <fieldset>
-        <legend>{%trans 'Identificação Básica'%}</legend>
-
-        <div class="row">
-            <div class="col-md-4">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'tipo_publicacao' %}</label>
-                    <p>{{ object.tipo_publicacao}}</p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'veiculo_publicacao' %}</label>
-                    <p>{{ object.veiculo_publicacao}}</p>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'ano' %}</label>
-                    <p>{{ object.ano}}</p>
-                </div>
-            </div>
+      <legend>{%trans 'Identificação Básica'%}</legend>
+      <div class="row">
+        <div class="col-md-4">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'tipo_publicacao' %}</label>
+            <p>{{ object.tipo_publicacao}}</p>
+          </div>
         </div>
-        <div class="row">
-            <div class="col-md-4">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'data' %}</label>
-                    <p>{{ object.data}}</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'hora' %}</label>
-                    <p>{{ object.hora|time:"H:i:s"}}</p>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'numero' %}</label>
-                    <p>{{ object.numero|default:''}}</p>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'edicao' %}</label>
-                    <p>{{ object.edicao|default:''}}</p>
-                </div>
-            </div>
+        <div class="col-md-6">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'veiculo_publicacao' %}</label>
+            <p>{{ object.veiculo_publicacao}}</p>
+          </div>
         </div>
-        <div class="row">
-            <div class="col-md-2">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'pagina_inicio' %}</label>
-                    <p>{{ object.pagina_inicio|default:''}}</p>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'pagina_fim' %}</label>
-                    <p>{{ object.pagina_fim|default:''}}</p>
-                </div>
-            </div>
-            <div class="col-md-8">
-                <div id="div_id_tipo" class="holder">
-                    <label>{% field_verbose_name object 'url_externa' %}</label>
-                    <p>{{ object.url_externa|default:''}}</p>
-                </div>
-            </div>
-
+        <div class="col-md-2">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'ano' %}</label>
+            <p>{{ object.ano}}</p>
+          </div>
         </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'data' %}</label>
+            <p>{{ object.data}}</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'hora' %}</label>
+            <p>{{ object.hora|time:"H:i:s"}}</p>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'numero' %}</label>
+            <p>{{ object.numero|default:''}}</p>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'edicao' %}</label>
+            <p>{{ object.edicao|default:''}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'pagina_inicio' %}</label>
+            <p>{{ object.pagina_inicio|default:''}}</p>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'pagina_fim' %}</label>
+            <p>{{ object.pagina_fim|default:''}}</p>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'url_externa' %}</label>
+            <p>{{ object.url_externa|default:''}}</p>
+          </div>
+        </div>
+      </div>
     </fieldset>
-    {% endblock detail_content %}
-
+  {% endblock detail_content %}
 {% endblock base_content %}

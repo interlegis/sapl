@@ -13,7 +13,7 @@ function refreshMask() {
     $('.rg').mask("0.000.000", {placeholder:"_.___.___"});
     $('.titulo_eleitor').mask("0000.0000.0000.0000", {placeholder:"____.____.____.____"});
     $('.hora').mask("00:00", {placeholder:"hh:mm"});
-    $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});    
+    $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
 }
 
 $(document).ready(function(){

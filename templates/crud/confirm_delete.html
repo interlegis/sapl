@@ -1,21 +1,24 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block title %}
+  {% with object as title %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
 {% block base_content %}
-<form action="" method="post">{% csrf_token %}
-  <div class="callout panel text-center radius clearfix">
-
-  <p>
-    {% blocktrans %}
-      Tem certeza que deseja apagar <br/> "{{ object }}"?
-    {% endblocktrans %}
-  </p>
-
-  <div class="button-group">
-    <a href="{{ view.detail_url }}" class="button button radius alert">{% trans 'Cancelar'  %}</a>
-    <input name="submit" value="{% trans 'Confirmar' %}" class="submit button button radius success" type="submit"></li>
-  </div>
-
-  </div>
-</form>
+  <form action="" method="post">{% csrf_token %}
+    <div class="panel panel-danger">
+      <div class="panel-heading  text-center">
+        {% blocktrans %}
+          Confirma exclusão de "{{ object }}"?
+        {% endblocktrans %}
+      </div>
+      <div class="panel-body text-center">
+        <a href="{{ view.detail_url }}" class="btn btn-inverse">{% trans 'Cancelar'  %}</a>
+        <input name="submit" value="{% trans 'Confirmar' %}" class="btn btn-danger" type="submit"></li>
+      </div>
+    </div>
+  </form>
 {% endblock %}

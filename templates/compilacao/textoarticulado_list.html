@@ -4,43 +4,39 @@
 {% load common_tags %}
 
 {% block base_content %}
-    {% block actions %}{{block.super}}
+  {% block detail_content %}
+  {% endblock detail_content %}
 
-    {% endblock actions %}
-{% block detail_content %}
-{% endblock detail_content %}
-<div class="actions btn-group pull-right" role="group">
-  <a href="{{ view.create_url }}" class="btn btn-default">
-    {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TextoArticulado'%}
-  </a>
+  {% block actions %}
+    <div class="actions btn-group pull-right clearfix" role="group">
+      <a href="{{ view.create_url }}" class="btn btn-default">
+        {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TextoArticulado'%}
+      </a>
+      {% include 'compilacao/textoarticulado_menu_config.html' %}
+    </div>
+  {% endblock actions %}
 
-
-  {% block more_buttons %}
-
-  {% endblock more_buttons %}
-</div>
-
-<table class="table table-striped table-hover">
+  <table class="table table-striped table-hover">
     <thead>
-        <tr>
-            <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'tipo_ta' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'numero' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'ano' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'data' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'ementa' %}</th>
-        </tr>
+      <tr>
+        <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'tipo_ta' %}</th>
+        <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'numero' %}</th>
+        <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'ano' %}</th>
+        <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'data' %}</th>
+        <th>{% fieldclass_verbose_name 'compilacao.models.TextoArticulado' 'ementa' %}</th>
+      </tr>
     </thead>
     <tbody>
-        {% for ta in object_list %}
+      {% for ta in object_list %}
         <tr>
-            <td><a href="{% url 'ta_detail' ta.pk %}">{{ ta.tipo_ta }}</a></td>
-            <td>{{ ta.numero }}</td>
-            <td>{{ ta.ano }}</td>
-            <td>{{ ta.data }}</td>
-            <td>{{ ta.ementa|safe }}</td>
+          <td><a href="{% url 'compilacao:ta_detail' ta.pk %}">{{ ta.tipo_ta }}</a></td>
+          <td>{{ ta.numero }}</td>
+          <td>{{ ta.ano }}</td>
+          <td>{{ ta.data }}</td>
+          <td>{{ ta.ementa|safe }}</td>
         </tr>
-        {% endfor %}
+      {% endfor %}
     </tbody>
-</table>
-{% include 'paginacao.html'%}
+  </table>
+  {% include 'paginacao.html'%}
 {% endblock %}

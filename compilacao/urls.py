@@ -16,6 +16,7 @@ urlpatterns_compilacao = [
 
     url(r'^(?P<ta_id>[0-9]+)/text$',
         views.TextView.as_view(), name='ta_text'),
+
     url(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.+)/$',
         views.TextView.as_view(), name='ta_vigencia'),
 
@@ -85,17 +86,19 @@ urlpatterns_compilacao = [
     url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)/delete$',
         views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
 
-    url(r'^config/tipo-nota/',
-        include(tipo_nota_crud.urls)),
-    url(r'^config/tipo-vide/',
-        include(tipo_vide_crud.urls)),
-    url(r'^config/tipo-publicacao/',
-        include(tipo_publicacao_crud.urls)),
-    url(r'^config/veiculo-publicacao/',
-        include(veiculo_publicacao_crud.urls)),
 
 ]
 
 urlpatterns = [
-    url(r'^ta/', include(urlpatterns_compilacao)),
+    url(r'^ta/', include(urlpatterns_compilacao, 'compilacao', 'compilacao')),
+
+    url(r'^ta/config/tipo-nota/',
+        include(tipo_nota_crud.urls)),
+    url(r'^ta/config/tipo-vide/',
+        include(tipo_vide_crud.urls)),
+    url(r'^ta/config/tipo-publicacao/',
+        include(tipo_publicacao_crud.urls)),
+    url(r'^ta/config/veiculo-publicacao/',
+        include(veiculo_publicacao_crud.urls)),
+
 ]

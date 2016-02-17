@@ -154,9 +154,13 @@
                 {% endblock %}
 
                 {% block title %}
-                  {% if view.title %}
-                    <h1 class="page-header">{{ view.title|linebreaksbr }}</h1>
-                  {% endif %}
+                  <h1 class="page-header">
+                    {% if view.title %}
+                      {{ view.title|safe|linebreaksbr }}
+                    {% else %}
+                      {{ title|safe|linebreaksbr }}
+                    {% endif %}
+                    </h1>
                 {% endblock %}
 
               </div>
@@ -217,15 +221,18 @@
     {% block foot_js %}
       <!-- Bootstrap core JavaScript ================================================== -->
       <!-- Placed at the end of the document so the pages load faster -->
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
+
       <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
       <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
 
-      <script src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
-
       <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
+
       <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 
       {% block extra_js %}{% endblock %}

@@ -1486,7 +1486,9 @@ class ProposicaoView(FormMixin, GenericView):
 
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
+    model_type_foreignkey = TipoMateriaLegislativa
 
 
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
+    model_type_foreignkey = TipoProposicao

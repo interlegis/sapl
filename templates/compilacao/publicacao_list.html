@@ -5,45 +5,44 @@
 
 {% block base_content %}
 
-<div class="actions btn-group pull-right" role="group">
-  <a href="{{ view.create_url }}" class="btn btn-default">
-    {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
-  </a>
-  {% block more_buttons %}
-  <a href="{% url 'ta_text' view.kwargs|lookup:'ta_id' %}" class="btn btn-default">{% trans 'Voltar'  %}</a>
+  <div class="actions btn-group pull-right" role="group">
+    <a href="{{ view.create_url }}" class="btn btn-default">
+      {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
+    </a>
+    <a href="{% url 'compilacao:ta_text' view.kwargs.ta_id %}" class="btn btn-default">
+      {% trans 'Voltar'  %}
+    </a>
+  </div>
 
-  {% endblock more_buttons %}
-</div>
-
-{% if not object_list %}
-  <p>{{ NO_ENTRIES_MSG }}</p>
-{% else %}
-<table class="table">
-    <thead>
+  {% if not object_list %}
+    <p>{{ NO_ENTRIES_MSG }}</p>
+  {% else %}
+    <table class="table">
+      <thead>
         <tr>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'data' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'hora' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'numero' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'ano' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'edicao' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'veiculo_publicacao' %}</th>
-            <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'tipo_publicacao' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'data' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'hora' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'numero' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'ano' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'edicao' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'veiculo_publicacao' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.Publicacao' 'tipo_publicacao' %}</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for pub in object_list %}
-        <tr>
-            <td><a href="{% url 'ta_pub_detail' view.kwargs.ta_id pub.pk%}">{{ pub.data }}</a></td>
+          <tr>
+            <td><a href="{% url 'compilacao:ta_pub_detail' view.kwargs.ta_id pub.pk%}">{{ pub.data }}</a></td>
             <td>{{ pub.hora|time:'H:i:s' }}</td>
             <td>{{ pub.numero|default:'' }}</td>
             <td>{{ pub.ano|default:'' }}</td>
             <td>{{ pub.edicao|default:'' }}</td>
             <td>{{ pub.veiculo_publicacao }}</td>
             <td>{{ pub.tipo_publicacao}}</td>
-        </tr>
+          </tr>
         {% endfor %}
-    </tbody>
-</table>
-{%endif%}
-{% include 'paginacao.html'%}
+      </tbody>
+    </table>
+  {%endif%}
+  {% include 'paginacao.html'%}
 {% endblock %}
