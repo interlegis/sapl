@@ -1,0 +1,43 @@
+{% load i18n %}
+<!DOCTYPE html>
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="pt-br">
+<!--<![endif]-->
+  <body>
+
+    <main id="content" class="content page__row">
+
+      <div class="container">
+
+        {# Feedback messages #}
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade in" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+            {{ message|safe }}
+          </div>
+        {% endfor %}
+
+        {# Content header #}
+        {% block base_header %}
+          <div class="clearfix">
+
+            {% block title %}
+              {% if view.title %}
+                <h1 class="page-header">{{ view.title|linebreaksbr }}</h1>
+              {% endif %}
+            {% endblock %}
+
+          </div>
+        {% endblock base_header %}
+
+        {# Content per se #}
+        {% block base_content %}{% endblock %}
+
+      </div>
+    </main>
+
+  </body>
+</html>

@@ -160,7 +160,6 @@ def assert_on_detail_page(res, stub_name):
     assert 'Excluir' in res
 
 
-@pytest.mark.urls('sapl.teststubs.urls_for_list_test')
 @pytest.mark.parametrize("num_entries, page_size, ranges, page_list", [
     (0, 6, [], []),
     (5, 5, [(0, 5)], []),
@@ -172,13 +171,17 @@ def test_flux_list_paginate_detail(
 
     entries_labels = []
     for i in range(num_entries):
-        # letter = next(letters)
         name, continent = 'name %s' % i, 'continent %s' % i
-        entries_labels.append([name, continent])
-        mommy.make(Country, name=name, continent__name=continent)
+        population, is_cold = i, i % 2 == 0
+        entries_labels.append([
+            name, continent, str(population), 'Yes' if is_cold else 'No'])
+        mommy.make(Country,
+                   name=name,
+                   continent__name=continent,
+                   population=population,
+                   is_cold=is_cold)
 
-    from .teststubs.urls_for_list_test import crud
-    crud.CrudListView.paginate_by = page_size
+    country_crud.CrudListView.paginate_by = page_size
 
     res = app.get('/countries/')
 
@@ -195,8 +198,8 @@ def test_flux_list_paginate_detail(
             table = res.html.find('table')
             assert table
             header, *trs = table.findAll('tr')
-            assert header.text.strip().split() == [
-                'name', 'Sigla', 'continent']
+            assert [c.text for c in header.findChildren('th')] == [
+                'name', 'continent', 'population', 'is cold']
             rows = [[td.text.strip() for td in tr.findAll('td')]
                     for tr in trs]
 
@@ -264,11 +267,11 @@ def test_flux_list_create_detail(app, cancel, make_invalid_submit):
 
         # now fill out some fields
         form = res.form
-        stub_name = '### name Especial ###'
+        stub_name = '### name ###'
         form['name'] = stub_name
-        form['sigla'] = 'SIGLA'
         form['continent'] = stub_continent.id
-        form['data_criacao'] = '1/1/2001'
+        form['population'] = 23000
+        form['is_cold'] = True
         res = form.submit()
 
         # on redirect to detail page
