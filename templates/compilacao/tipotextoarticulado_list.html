@@ -4,37 +4,35 @@
 {% load common_tags %}
 
 {% block base_content %}
+  {% block actions %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{{ view.create_url }}" class="btn btn-default">
+        {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TipoTextoArticulado'%}
+      </a>
+    </div>
+  {% endblock actions %}
 
-<div class="actions btn-group pull-right" role="group">
-  <a href="{{ view.create_url }}" class="btn btn-default">
-    {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.TipoTextoArticulado'%}
-  </a>
-  {% block more_buttons %}
-
-  {% endblock more_buttons %}
-</div>
-
-{% if not object_list %}
-  <p>{{ NO_ENTRIES_MSG }}</p>
-{% else %}
-	<table class="table table-striped table-hover" width=100%>
-	    <thead>
-	        <tr>
-	            <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'sigla' %}</th>
-	            <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'descricao' %}</th>
-	            <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'content_type' %}</th>
-	        </tr>
-	    </thead>
-	    <tbody>
-	        {% for tipo_ta in object_list %}
-	        <tr>
-	            <td><a href="{% url 'tipo_ta_detail' tipo_ta.pk %}">{{ tipo_ta.sigla }}</a></td>
-	            <td>{{ tipo_ta.descricao }}</td>
-	            <td>{{ tipo_ta.content_type }}</td>
-	        </tr>
-	        {% endfor %}
-	    </tbody>
-	</table>
-	{%endif%}
-{% include 'paginacao.html'%}
+  {% if not object_list %}
+    <p>{{ NO_ENTRIES_MSG }}</p>
+  {% else %}
+    <table class="table table-striped table-hover" width=100%>
+      <thead>
+        <tr>
+          <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'sigla' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'descricao' %}</th>
+          <th>{% fieldclass_verbose_name 'compilacao.models.TipoTextoArticulado' 'content_type' %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tipo_ta in object_list %}
+          <tr>
+            <td><a href="{% url 'compilacao:tipo_ta_detail' tipo_ta.pk %}">{{ tipo_ta.sigla }}</a></td>
+            <td>{{ tipo_ta.descricao }}</td>
+            <td>{{ tipo_ta.content_type }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {%endif%}
+  {% include 'paginacao.html'%}
 {% endblock %}

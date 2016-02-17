@@ -1,13 +1,13 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
@@ -28,7 +28,6 @@ from compilacao.models import (Dispositivo, Nota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
 from sapl.crud import NO_ENTRIES_MSG, build_crud, make_pagination
-
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -177,7 +176,8 @@ class IntegracaoTaView(TemplateView):
 
         ta.save()
 
-        return redirect(to=reverse_lazy('ta_text', kwargs={'ta_id': ta.pk}))
+        return redirect(to=reverse_lazy('compilacao:ta_text',
+                                        kwargs={'ta_id': ta.pk}))
 
     class Meta:
         abstract = True
@@ -232,7 +232,7 @@ class TipoTaListView(ListView):
 
     @property
     def create_url(self):
-        return reverse_lazy('tipo_ta_create')
+        return reverse_lazy('compilacao:tipo_ta_create')
 
 
 class TipoTaCreateView(FormMessagesMixin, CreateView):
@@ -252,11 +252,12 @@ class TipoTaCreateView(FormMessagesMixin, CreateView):
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.object.id})
+        return reverse_lazy('compilacao:tipo_ta_detail',
+                            kwargs={'pk': self.object.id})
 
     @property
     def cancel_url(self):
-        return reverse_lazy('tipo_ta_list')
+        return reverse_lazy('compilacao:tipo_ta_list')
 
 
 class TipoTaDetailView(CompMixin, DetailView):
@@ -277,23 +278,26 @@ class TipoTaUpdateView(CompMixin, UpdateView):
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('compilacao:tipo_ta_detail',
+                            kwargs={'pk': self.kwargs['pk']})
 
     @property
     def cancel_url(self):
-        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('compilacao:tipo_ta_detail',
+                            kwargs={'pk': self.kwargs['pk']})
 
 
 class TipoTaDeleteView(CompMixin, DeleteView):
     model = TipoTextoArticulado
-    template_name = "compilacao/confirm_delete.html"
+    template_name = "crud/confirm_delete.html"
 
     @property
     def detail_url(self):
-        return reverse_lazy('tipo_ta_detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('compilacao:tipo_ta_detail',
+                            kwargs={'pk': self.kwargs['pk']})
 
     def get_success_url(self):
-        return reverse_lazy('tipo_ta_list')
+        return reverse_lazy('compilacao:tipo_ta_list')
 
 
 class TaListView(ListView):
@@ -307,7 +311,7 @@ class TaListView(ListView):
 
     @property
     def create_url(self):
-        return reverse_lazy('ta_create')
+        return reverse_lazy('compilacao:ta_create')
 
     def get_context_data(self, **kwargs):
         context = super(TaListView, self).get_context_data(**kwargs)
@@ -341,11 +345,12 @@ class TaCreateView(FormMessagesMixin, CreateView):
     form_invalid_message = _('O registro não foi criado.')
 
     def get_success_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.object.id})
+        return reverse_lazy('compilacao:ta_detail',
+                            kwargs={'pk': self.object.id})
 
     @property
     def cancel_url(self):
-        return reverse_lazy('ta_list')
+        return reverse_lazy('compilacao:ta_list')
 
 
 class TaUpdateView(CompMixin, UpdateView):
@@ -362,23 +367,26 @@ class TaUpdateView(CompMixin, UpdateView):
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('compilacao:ta_detail',
+                            kwargs={'pk': self.kwargs['pk']})
 
     @property
     def cancel_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('compilacao:ta_detail',
+                            kwargs={'pk': self.kwargs['pk']})
 
 
 class TaDeleteView(CompMixin, DeleteView):
     model = TextoArticulado
-    template_name = "compilacao/confirm_delete.html"
+    template_name = "crud/confirm_delete.html"
 
     @property
     def detail_url(self):
-        return reverse_lazy('ta_detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('compilacao:ta_detail',
+                            kwargs={'pk': self.kwargs['pk']})
 
     def get_success_url(self):
-        return reverse_lazy('ta_list')
+        return reverse_lazy('compilacao:ta_list')
 
 
 class TextView(ListView, CompMixin):
@@ -750,7 +758,8 @@ class DispositivoEditView(TextEditView):
 
             if not dnext.exists():
                 dnext = []
-                dnext[0] = d
+                dnext.append(d)
+                pais = [d.dispositivo_pai_id, ]
             else:
 
                 if dnext[0].nivel > d.nivel:
@@ -1413,8 +1422,8 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
 class DispositivoSuccessUrlMixin(object):
 
     def get_success_url(self):
-        return reverse(
-            'dispositivo', kwargs={
+        return reverse_lazy(
+            'compilacao:dispositivo', kwargs={
                 'ta_id': self.kwargs[
                     'ta_id'],
                 'dispositivo_id': self.kwargs[
@@ -1456,6 +1465,7 @@ class NotasCreateView(NotaMixin, CreateView):
         return super(NotasCreateView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        self.object = None
         try:
             ta_id = kwargs.pop('ta_id')
             dispositivo_id = kwargs.pop('dispositivo_id')
@@ -1721,7 +1731,7 @@ class PublicacaoListView(ListView):
     @property
     def create_url(self):
         return reverse_lazy(
-            'ta_pub_create',
+            'compilacao:ta_pub_create',
             kwargs={'ta_id': self.kwargs['ta_id']})
 
     def get_queryset(self):
@@ -1743,7 +1753,7 @@ class PublicacaoCreateView(FormMessagesMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy(
-            'ta_pub_detail',
+            'compilacao:ta_pub_detail',
             kwargs={
                 'pk': self.object.id,
                 'ta_id': self.kwargs['ta_id']})
@@ -1751,7 +1761,7 @@ class PublicacaoCreateView(FormMessagesMixin, CreateView):
     @property
     def cancel_url(self):
         return reverse_lazy(
-            'ta_pub_list',
+            'compilacao:ta_pub_list',
             kwargs={'ta_id': self.kwargs['ta_id']})
 
     def get_initial(self):
@@ -1776,7 +1786,7 @@ class PublicacaoUpdateView(CompMixin, UpdateView):
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
-        return reverse_lazy('ta_pub_detail',
+        return reverse_lazy('compilacao:ta_pub_detail',
                             kwargs={
                                 'pk': self.object.id,
                                 'ta_id': self.kwargs['ta_id']})
@@ -1788,15 +1798,15 @@ class PublicacaoUpdateView(CompMixin, UpdateView):
 
 class PublicacaoDeleteView(CompMixin, DeleteView):
     model = Publicacao
-    template_name = "compilacao/confirm_delete.html"
+    template_name = "crud/confirm_delete.html"
 
     @property
     def detail_url(self):
-        return reverse_lazy('ta_pub_detail',
+        return reverse_lazy('compilacao:ta_pub_detail',
                             kwargs={
                                 'pk': self.object.id,
                                 'ta_id': self.kwargs['ta_id']})
 
     def get_success_url(self):
-        return reverse_lazy('ta_pub_list',
+        return reverse_lazy('compilacao:ta_pub_list',
                             kwargs={'ta_id': self.kwargs['ta_id']})

@@ -154,9 +154,13 @@
                 {% endblock %}
 
                 {% block title %}
-                  {% if view.title %}
-                    <h1 class="page-header">{{ view.title|safe|linebreaksbr }}</h1>
-                  {% endif %}
+                  <h1 class="page-header">
+                    {% if view.title %}
+                      {{ view.title|safe|linebreaksbr }}
+                    {% else %}
+                      {{ title|safe|linebreaksbr }}
+                    {% endif %}
+                    </h1>
                 {% endblock %}
 
               </div>
@@ -219,14 +223,10 @@
       <!-- Placed at the end of the document so the pages load faster -->
       <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
 
-      <script src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
 
-      {# Scripts #}
-      {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
       <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
 

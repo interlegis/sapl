@@ -7,7 +7,7 @@
 {% load common_tags %}
 
 {% block head_content %}{{block.super}}
-      <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
 
 {% block title%}
@@ -15,29 +15,27 @@
 {% endblock %}
 
 <div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
+{% block actions %}
+  <div class="clearfix">
+    <div class="actions btn-toolbar pull-right" role="toolbar">
+      <div class="actions btn-group" role="group">
+        <a href="{% url 'compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+      </div>
+      {% include 'compilacao/textoarticulado_menu_config.html' %}
+    </div>
+  </div>
+{% endblock actions %}
 
 {% block base_content %}{{block.super}}
 
-<div class="cp cpe">
-    {% include 'compilacao/text_edit_bloco.html'%}
-</div>
+  <div class="cp cpe">
+      {% include 'compilacao/text_edit_bloco.html'%}
+  </div>
 
 {% endblock base_content %}
-{% block actions %}
-<div class="clearfix">
-    <div class="actions btn-toolbar pull-right" role="toolbar">
-        <div class="actions btn-group" role="group">
-            <a href="{% url 'ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
-        </div>
-
-            {% include 'compilacao/textoarticulado_menu_config.html' %}
-
-    </div>
-</div>
-{% endblock actions %}
 
 {% block foot_js %}
-    {{block.super}}
-    <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
+  {{block.super}}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
 {% endblock %}

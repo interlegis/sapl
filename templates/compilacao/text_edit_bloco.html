@@ -3,132 +3,128 @@
 {% load common_tags %}
 
 {% for dpt in object_list %}
-	{% if dpt.nivel == view.flag_nivel_old %}
-			</div>
-	{% elif dpt.nivel < view.flag_nivel_old %}
-			{% close_div view.flag_nivel_old dpt.nivel 0 %}
-	{% endif%}
+  {% if dpt.nivel == view.flag_nivel_old %}
+      </div>
+  {% elif dpt.nivel < view.flag_nivel_old %}
+      {% close_div view.flag_nivel_old dpt.nivel 0 %}
+  {% endif%}
 
-	{% if forloop.first and view|isinst:'DispositivoEditView' %}
-	{% else %}
-		<div class="dpt" id="dpt{{dpt.pk}}" pk="{{dpt.pk}}">
-	{% endif%}
+  {% if forloop.first and view|isinst:'DispositivoEditView' %}
+  {% else %}
+    <div class="dpt" id="dpt{{dpt.pk}}" pk="{{dpt.pk}}">
+  {% endif%}
 
-	{% if view|render_actions_head:dpt %}
-	<div class="csform">
-		<form method="post" action="" action_ajax="{{dpt.pk}}/refresh">
-	    	<ul class="btns-action actions_top">
-		    	{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-		        	<li class="edt-textarea"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:textarea" title="{% trans 'Edição simples apenas do texto'%}">E</a></li>
-		        	<li class="edt-tinymce"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:tinymce" title="{% trans 'Editar o texto com TinyMCE'%}">E+</a></li>
-		        {%endif%}
-	        	<li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
-	        	<li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura do Texto Articulado'%}">C</a></li>
-			</ul>
-			<ul class="btns-action actions_right">
-				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Reduzir nível do Dispositivo'%}">&#10092;</a></li>
-				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Aumentar nível do Dispositivo'%}">&#10093;</a></li>
-				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Subir uma posição'%}">&#8593;</a></li>
-				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Descer uma posição'%}">&#8595;</a></li>
-				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Subir uma posição com todos os subniveis'%}">&#8648;</a></li>
-				<li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Descer uma posição com todos os subniveis'%}">&#8650;</a></li>
-			</ul>
+  {% if view|render_actions_head:dpt %}
+    <div class="csform">
+      <form method="post" action="" action_ajax="{{dpt.pk}}/refresh">
+        <ul class="btns-action actions_top">
+          {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+            <li class="edt-textarea"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:textarea" title="{% trans 'Edição simples apenas do texto'%}">E</a></li>
+            <li class="edt-tinymce"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:tinymce" title="{% trans 'Editar o texto com TinyMCE'%}">E+</a></li>
+          {%endif%}
+          <li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
+          <li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura do Texto Articulado'%}">C</a></li>
+        </ul>
+        <ul class="btns-action actions_right">
+          <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Reduzir nível do Dispositivo'%}">&#10092;</a></li>
+          <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Aumentar nível do Dispositivo'%}">&#10093;</a></li>
+          <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Subir uma posição'%}">&#8593;</a></li>
+          <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Descer uma posição'%}">&#8595;</a></li>
+          <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Subir uma posição com todos os subniveis'%}">&#8648;</a></li>
+          <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Descer uma posição com todos os subniveis'%}">&#8650;</a></li>
+        </ul>
 
-	        <ul class="btns-action actions_left">
-	        	<li><a href ="{% url 'ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="btn-left btn-action" pk="{{dpt.pk}}"  title="{% trans 'Ir para Texto'%}">T</a></li>
-	        </ul>
-			<ul class="btns-action actions_bottom">
-				{% for perfil in perfil_estrutural_list%}
-					<li class="{%if request.session.perfil_estrutural == perfil.pk%}selected{%endif%}"><a class="btn-bottom btn-action" pk="{{dpt.pk}}" perfil_pk="{{perfil.pk}}" action="refresh:perfil" title="{{perfil.nome}}">{{perfil.sigla}}</a></li>
-				{% endfor %}
-	        </ul>
+        <ul class="btns-action actions_left">
+          <li><a href ="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="btn-left btn-action" pk="{{dpt.pk}}"  title="{% trans 'Ir para Texto'%}">T</a></li>
+        </ul>
+        <ul class="btns-action actions_bottom">
+          {% for perfil in perfil_estrutural_list%}
+            <li class="{%if request.session.perfil_estrutural == perfil.pk%}selected{%endif%}"><a class="btn-bottom btn-action" pk="{{dpt.pk}}" perfil_pk="{{perfil.pk}}" action="refresh:perfil" title="{{perfil.nome}}">{{perfil.sigla}}</a></li>
+          {% endfor %}
+        </ul>
 
-			<ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
-				{% if dpt.dispositivo_subsequente == None %}
-					{% for inserts in view|select_provaveis_inserts:request %}
-						<li class="{{inserts.action}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span></a>
-							<ul id="afe{{dpt.id}}" >
-								{% for item in inserts.itens %}
-									<li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel}}</a></li>
-								{% endfor %}
-							</ul>
-						</li>
-					{% endfor %}
-	        	{%endif%}
+        <ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
+          {% if dpt.dispositivo_subsequente == None %}
+            {% for inserts in view|select_provaveis_inserts:request %}
+              <li class="{{inserts.action}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span></a>
+                <ul id="afe{{dpt.id}}" >
+                  {% for item in inserts.itens %}
+                    <li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel}}</a></li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endfor %}
+          {%endif%}
 
+          {% if not dpt|is_relative_auto_insert:request %}
+            <li class="menu_excluir"><a {% if not dpt.dispositivos_filhos_set.exists %}class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}{%else%}class="btn-excluir"{%endif%}>&nbsp;<span>Excluir</span></a>
+              {% if dpt.dispositivos_filhos_set.exists %}
+                <ul>
+                  <li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo_todo" pk={{dpt.pk}}>TODO: Excluir apenas este dispositivo</a></li>
+                  <li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>Excluir toda a estrutura deste dispositivo</a></li>
+                </ul>
+              {% endif %}
+            </li>
+          {% endif %}
 
-				{% if not dpt|is_relative_auto_insert:request %}
-					<li class="menu_excluir"><a {% if not dpt.dispositivos_filhos_set.exists %}class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}{%else%}class="btn-excluir"{%endif%}>&nbsp;<span>Excluir</span></a>
-						{% if dpt.dispositivos_filhos_set.exists %}
-							<ul>
-								<li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo_todo" pk={{dpt.pk}}>TODO: Excluir apenas este dispositivo</a></li>
-								<li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>Excluir toda a estrutura deste dispositivo</a></li>
-							</ul>
-						{% endif %}
-					</li>
-				{% endif %}
+          <li><a onclick="onSubmitEditForm()" class="btn-salvar">&nbsp<span>Salvar</span></a></li>
+        </ul>
 
-	            <li><a onclick="onSubmitEditForm()" class="btn-salvar">&nbsp<span>Salvar</span></a></li>
-	        </ul>
+        <div class="fields">
+          {% csrf_token %}
 
-			<div class="fields">
-                {% csrf_token %}
+          {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+            <textarea id="editdi_texto" placeholder="{% trans "Insirir o texto do dispositivo aqui... Use, nos menus das bordas de edição, 'E+' ou 'E*' para outras opções de editores."%}" name="texto" rows="7">{{ dpt.texto|safe }}</textarea>
+          {%endif%}
+        </div>
 
+        <ul class="label_status" >
+          <li>Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
+          <li><a>.</a></li>
+        </ul>
 
-				{% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-					<textarea id="editdi_texto" placeholder="{% trans "Insirir o texto do dispositivo aqui... Use, nos menus das bordas de edição, 'E+' ou 'E*' para outras opções de editores."%}" name="texto" rows="7">{{ dpt.texto|safe }}</textarea>
-	        	{%endif%}
-
-	    	</div>
-
-	        <ul class="label_status" >
-		        <li>Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
-			        <li><a>.</a></li>
-	        </ul>
-
-            <ul class="btns-action actions_parents">
-			    <div>Em Edição:</div>
-				{%for parent in dpt.get_parents_asc %}
-					<li><a action="refresh" pk="{{parent.pk}}" ordem="{{parent.ordem}}" name="{{parent.pk}}" title="{{parent.texto|short_string:50}}" class="btn-parents btn-action">{{parent|nomenclatura}}</a></li>
-				{%endfor %}
-				<li class="selected"><a action="refresh" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.texto|short_string:50}}" class="btn-parents btn-action">{{dpt|nomenclatura}}</a></li>
-		    </ul>
-        </form>
+        <ul class="btns-action actions_parents">
+          <div>Em Edição:</div>
+          {%for parent in dpt.get_parents_asc %}
+            <li><a action="refresh" pk="{{parent.pk}}" ordem="{{parent.ordem}}" name="{{parent.pk}}" title="{{parent.texto|short_string:50}}" class="btn-parents btn-action">{{parent|nomenclatura}}</a></li>
+          {%endfor %}
+          <li class="selected"><a action="refresh" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.texto|short_string:50}}" class="btn-parents btn-action">{{dpt|nomenclatura}}</a></li>
+        </ul>
+      </form>
     </div>
-	{% endif%}
+  {% endif%}
 
-    {% if view.pk_view == 0 and view.pk_edit == 0 or view.pk_edit != view.pk_view %}
+  {% if view.pk_view == 0 and view.pk_edit == 0 or view.pk_edit != view.pk_view %}
+    {% if not dpt.rotulo and not dpt.texto %}
+      <div class="btns-action actions_left">
+        <a class="btn-edit" pk="{{dpt.pk}}"  title="Edição do dispositivo: {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}">E</a>
+      </div>
+    {% endif %}
+    <div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
+      {% spaceless %}
+        <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
+        {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+          <a class="link_alterador" href="compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+            {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+            {% nota_automatica dpt  ta_pub_list %}
+            {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+          </a>
+        {% endif %}
+      {% endspaceless %}
+      {% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+        {%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
+          {%include template_name%}
+        {%endwith%}
+      {% endif%}
+    </div>
+  {% endif%}
 
-		{% if not dpt.rotulo and not dpt.texto %}
-			<div class="btns-action actions_left">
-	            <a class="btn-edit" pk="{{dpt.pk}}"  title="Edição do dispositivo: {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}">E</a>
-	        </div>
-		{% endif %}
-		<div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
-			{% spaceless %}
-				<div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
-				{% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-					<a class="link_alterador" href="{%url 'ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
-						{{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
-						{% nota_automatica dpt  ta_pub_list %}
-						{{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
-					</a>
-				{% endif %}
-			{% endspaceless %}
-			{% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
-				{%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
-					{%include template_name%}
-				{%endwith%}
-			{% endif%}
-		</div>
-    {% endif%}
-
-	{% set_nivel_old view dpt.nivel %}
+  {% set_nivel_old view dpt.nivel %}
 
 {% endfor %}
 
 {% if view|isinst:'DispositivoEditView' %}
-	{% close_div view.flag_nivel_old view.flag_nivel_ini -1 %}
+  {% close_div view.flag_nivel_old view.flag_nivel_ini -1 %}
 {% else %}
-	{% close_div view.flag_nivel_old view.flag_nivel_ini 0 %}
+  {% close_div view.flag_nivel_old view.flag_nivel_ini 0 %}
 {% endif%}

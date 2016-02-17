@@ -1,8 +1,11 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block sections_nav %}
-<div class="actions btn-group pull-right" role="group">
-  <a href="{% url 'normajuridica:detail' object.pk %}" class="btn btn-default">{% trans 'Início' %}</a>
+
+<ul class="nav nav-pills navbar-right">
+  <li>
+    <a href="{% url 'normajuridica:detail' object.pk %}">{% trans 'Início' %}</a>
+  </li>
 
   {% comment %}
   Opção adicionada para chamar o TextoArticulado da norma.
@@ -10,7 +13,7 @@
   e a view NormaTa(IntegracaoTaView) em views.py
   Em nada mais a integração interfere em Norma Jurídica
   {% endcomment %}
-  <a href="{% url 'normajuridica:ta' object.pk %}" class="btn btn-default">{% trans 'Texto da Norma' %}</a>
-</div>
+  <li><a href="{% url 'normajuridica:ta' object.pk %}">{% trans 'Texto da Norma' %}</a></li>
+</ul>
 
 {% endblock sections_nav %}

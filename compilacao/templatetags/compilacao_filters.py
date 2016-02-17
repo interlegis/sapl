@@ -40,11 +40,14 @@ def nota_automatica(dispositivo, ta_pub_list):
     if dispositivo.ta_publicado is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
-            return 'Revogado pelo %s - %s.' % (d, ta_pub_list[dispositivo.ta_publicado_id])
+            return 'Revogado pelo %s - %s.' % (
+                d, ta_pub_list[dispositivo.ta_publicado_id])
         elif not dispositivo.dispositivo_substituido_id:
-            return 'Inclusão feita pelo %s - %s.' % (d, ta_pub_list[dispositivo.ta_publicado_id])
+            return 'Inclusão feita pelo %s - %s.' % (
+                d, ta_pub_list[dispositivo.ta_publicado_id])
         else:
-            return 'Alteração feita pelo %s - %s.' % (d, ta_pub_list[dispositivo.ta_publicado_id])
+            return 'Alteração feita pelo %s - %s.' % (
+                d, ta_pub_list[dispositivo.ta_publicado_id])
     return ''
 
 

@@ -1,20 +1,19 @@
-from crispy_forms.bootstrap import FormActions, StrictButton, FieldWithButtons
+from crispy_forms.bootstrap import FieldWithButtons, FormActions, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Button, Field, Column, HTML, Layout, Div, Row,\
-    Fieldset
+from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
+                                 Layout, Row)
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import (PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
+from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
+                               PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
                                Publicacao, TextoArticulado, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
-                               VeiculoPublicacao, Vide,
-                               NOTAS_PUBLICIDADE_CHOICES)
+                               VeiculoPublicacao, Vide)
 from sapl.layout import SaplFormLayout, to_column, to_row
 from sapl.utils import YES_NO_CHOICES
-
 
 error_messages = {
     'required': _('Este campo é obrigatório'),

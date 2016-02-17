@@ -15,7 +15,6 @@ from .forms import NormaJuridicaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
-
 assunto_norma_crud = build_crud(
     AssuntoNorma, 'assunto_norma_juridica', [
 
