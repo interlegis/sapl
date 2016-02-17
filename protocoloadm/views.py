@@ -17,7 +17,7 @@ from vanilla import GenericView
 import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
-from sapl.utils import create_barcode_128_as_base64_png
+from sapl.utils import create_barcode
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     ProposicaoSimpleForm, ProtocoloDocumentForm, ProtocoloForm,
@@ -324,7 +324,7 @@ class ComprovanteProtocoloView(TemplateView):
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
 
         # numero is string, padd with zeros left via .zfill()
-        base64_data = create_barcode_128_as_base64_png(numero.zfill(6))
+        base64_data = create_barcode(numero.zfill(6))
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
         return self.render_to_response({"protocolo": protocolo,

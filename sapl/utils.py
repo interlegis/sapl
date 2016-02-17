@@ -32,7 +32,10 @@ def xstr(s):
     return '' if s is None else str(s)
 
 
-def create_barcode_128_as_base64_png(value):
+def create_barcode(value):
+    ''' 
+        creates a base64 encoded barcode PNG image
+    '''
     from base64 import b64encode
     from reportlab.graphics.barcode import createBarcodeDrawing
 
