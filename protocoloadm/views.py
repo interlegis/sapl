@@ -327,8 +327,16 @@ class ComprovanteProtocoloView(TemplateView):
         base64_data = create_barcode(numero.zfill(6))
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
+        autenticacao = "** NULO **"
+
+        if not protocolo.anulado:
+            autenticacao = str(protocolo.tipo_processo) + \
+                           protocolo.data.strftime("%y/%m/%d") + \
+                           str(protocolo.numero).zfill(6)
+
         return self.render_to_response({"protocolo": protocolo,
-                                        "barcode": barcode})
+                                        "barcode": barcode,
+                                        "autenticacao": autenticacao})
 
 
 class ProtocoloMateriaView(FormMixin, GenericView):
