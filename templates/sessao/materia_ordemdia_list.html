@@ -56,7 +56,7 @@ Matérias da Ordem do Dia
     <form method="POST" action="{% url 'sessaoplenaria:materiaordemdia_list' object.pk %}">
       {% csrf_token %}
       <input type="hidden" id="ordem_id" name="ordem_id" value="{{ m.ordem_id }}">
-      <input type="submit" id="abrir-votacao" name="abrir-votacao" value="Abrir Votação" class="button primary">
+      <input type="submit" id="abrir-votacao" name="abrir-votacao" value="Abrir Votação" class="btn primary">
     </form>
     {% endif %}
     {% endif %}
@@ -65,14 +65,14 @@ Matérias da Ordem do Dia
 </div>
 
 </br>
-<a href="{% url 'sessaoplenaria:materiaordemdia_create' object.pk %}" class="button primary">
+<a href="{% url 'sessaoplenaria:materiaordemdia_create' object.pk %}" class="btn primary">
 		{% trans 'Adicionar Matérias' %}
 </a></dd>
-<button>Incluir várias matérias</button>
+<button class="btn primary">Incluir várias matérias</button>
 <form method="POST" action="{% url 'sessaoplenaria:materiaordemdia_list' object.pk %}">
 	{% csrf_token %}
 	<input type="hidden" name="error_message" id="error_message" />
-	<input type="submit" id="materia_reorder" name="materia_reorder" value="Reordenar Matérias da Ordem do Dia" class="button primary" />
+	<input type="submit" id="materia_reorder" name="materia_reorder" value="Reordenar Matérias da Ordem do Dia" class="btn primary" />
 </form>
 
 {% endblock detail_content %}
