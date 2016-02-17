@@ -3,6 +3,9 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-      {% crispy form %}
-      <button type="button" class="btn btn-danger" value="Excluir" name="Excluir">Excluir</button>
+  {% crispy form %}
+  <form  method="post">
+    {% csrf_token %}
+    <input type="submit" name="Excluir" value="Excluir" class="btn btn-danger" id="submit-id-excluir" />
+  </form>
 {% endblock %}
