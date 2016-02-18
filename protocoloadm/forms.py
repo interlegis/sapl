@@ -1,11 +1,12 @@
 from datetime import date
 
-import sapl
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Field, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
+
+import sapl
 from materia.models import TipoMateriaLegislativa
 from sapl.layout import form_actions
 
@@ -429,34 +430,6 @@ class TramitacaoAdmForm(ModelForm):
 
 class DocumentoAdministrativoForm(ModelForm):
 
-    data = forms.DateField(label=u'Data',
-                           input_formats=['%d/%m/%Y'],
-                           required=False,
-                           widget=forms.DateInput(
-                               format='%d/%m/%Y',
-                               attrs={'class': 'dateinput'}))
-
-    data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
-                                     input_formats=['%d/%m/%Y'],
-                                     required=False,
-                                     widget=forms.DateInput(
-                                         format='%d/%m/%Y',
-                                         attrs={'class': 'dateinput'}))
-
-    tramitacao = forms.ChoiceField(required=True,
-                                   label='Em Tramitação?',
-                                   choices=tramitacao(),
-                                   widget=forms.Select(
-                                       attrs={'class': 'selector'}))
-
-    assunto = forms.CharField(
-        label='Assunto', required=False,
-        widget=forms.Textarea())
-
-    observacao = forms.CharField(
-        label='Observação', required=False,
-        widget=forms.Textarea())
-
     class Meta:
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -470,46 +443,39 @@ class DocumentoAdministrativoForm(ModelForm):
                   'dias_prazo',
                   'data_fim_prazo',
                   'observacao',
-                  'texto_integral'
+                  'texto_integral',
                   ]
 
     def __init__(self, *args, **kwargs):
 
         row1 = sapl.layout.to_row(
-            [('tipo', 4),
-             ('numero', 4),
-             ('ano', 4)])
+            [('tipo', 4), ('numero', 4), ('ano', 4)])
 
         row2 = sapl.layout.to_row(
-            [('data', 6),
-             ('numero_protocolo', 6)])
+            [('data', 6), ('numero_protocolo', 6)])
 
         row3 = sapl.layout.to_row(
             [('assunto', 12)])
 
         row4 = sapl.layout.to_row(
-            [('interessado', 9),
-             ('tramitacao', 3)])
+            [('interessado', 9), ('tramitacao', 3)])
 
         row5 = sapl.layout.to_row(
             [('texto_integral', 12)])
 
         row6 = sapl.layout.to_row(
-            [('dias_prazo', 6),
-             ('data_fim_prazo', 6)])
+            [('dias_prazo', 6), ('data_fim_prazo', 6)])
 
         row7 = sapl.layout.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Formulário de Cadastro',
-                     Fieldset('Identificação Básica',
-                              row1, row2, row3, row4, row5),
-                     Fieldset('Outras Informações',
-                              row6, row7),
-                     form_actions(more=[Submit('Excluir', 'Excluir')]),
-                     ),
+            Fieldset('Identificação Básica',
+                     row1, row2, row3, row4, row5),
+            Fieldset('Outras Informações',
+                     row6, row7),
+            form_actions(more=[Submit('Excluir', 'Excluir')]),
         )
         super(DocumentoAdministrativoForm, self).__init__(
             *args, **kwargs)

@@ -328,14 +328,12 @@ class CriarDocumentoProtocolo(FormMixin, GenericView):
     template_name = "protocoloadm/criar_documento.html"
 
     def get(self, request, *args, **kwargs):
-
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
         form = DocumentoAdministrativoForm(
             initial=criar_documento(protocolo))
         return self.render_to_response({
-            'protocolo': protocolo,
             'form': form})
 
     def post(self, request, *args, **kwargs):

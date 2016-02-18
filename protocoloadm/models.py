@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import Autor, TipoMateriaLegislativa, UnidadeTramitacao
-from sapl.utils import make_choices
+from sapl.utils import YES_NO_CHOICES, make_choices
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -40,7 +40,9 @@ class DocumentoAdministrativo(models.Model):
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
-    tramitacao = models.BooleanField(verbose_name=_('Em Tramitação?'))
+    tramitacao = models.BooleanField(
+        verbose_name=_('Em Tramitação?'),
+        choices=YES_NO_CHOICES)
     assunto = models.TextField(verbose_name=_('Assunto'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
