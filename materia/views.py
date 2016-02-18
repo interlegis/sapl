@@ -773,10 +773,10 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
              'tipos': TipoDocumento.objects.all()})
 
     def post(self, request, *args, **kwargs):
+        import ipdb; ipdb.set_trace()
         form = DocumentoAcessorioForm(request.POST)
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
-
         if form.is_valid():
             if 'excluir' in request.POST:
                 documento.delete()

@@ -2,7 +2,7 @@ from datetime import date
 
 import sapl
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Field, Fieldset, Layout
+from crispy_forms.layout import Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -345,18 +345,29 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
                   'arquivo',
                   'assunto']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('nome', 4),
+             ('data', 4)])
+        row2 = sapl.layout.to_row(
+            [('autor', 12)])
+        row3 = sapl.layout.to_row(
+            [('arquivo', 12)])
+        row4 = sapl.layout.to_row(
+            [('assunto', 12)])
+
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 'Incluir Documento Acessório',
-                'tipo',
-                'nome',
-                'data',
-                'autor',
-                'arquivo',
-                'assunto',
-                form_actions()
+                row1, row2, row3, row4,
+                form_actions(more=more)
             )
         )
         super(DocumentoAcessorioAdministrativoForm, self).__init__(
@@ -497,7 +508,7 @@ class DocumentoAdministrativoForm(ModelForm):
                               row1, row2, row3, row4, row5),
                      Fieldset('Outras Informações',
                               row6, row7),
-                     form_actions(),
+                     form_actions(more=[Submit('Excluir', 'Excluir')]),
                      ),
         )
         super(DocumentoAdministrativoForm, self).__init__(

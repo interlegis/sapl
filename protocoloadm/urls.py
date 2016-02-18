@@ -1,8 +1,9 @@
 from django.conf.urls import include, url
-
 from protocoloadm.views import (AnularProtocoloAdmView,
                                 ComprovanteProtocoloView,
+                                CriarDocumentoProtocolo,
                                 DetailDocumentoAdministrativo,
+                                DocumentoAcessorioAdministrativoEditView,
                                 DocumentoAcessorioAdministrativoView,
                                 PesquisarDocumentoAdministrativo,
                                 ProposicaoDetailView, ProposicaoReceberView,
@@ -20,8 +21,7 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 protocolo_materia_crud,
                                 status_tramitacao_administrativo_crud,
                                 tipo_documento_administrativo_crud,
-                                tramitacao_administrativo_crud,
-                                CriarDocumentoProtocolo)
+                                tramitacao_administrativo_crud)
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/', include(documento_administrativo_crud.urls)),
@@ -55,6 +55,9 @@ urlpatterns = [
         DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
     url(r'^protocoloadm/doc-ace-adm/(?P<pk>\d+)',
         DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
+    url(r'^protocoloadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
+        DocumentoAcessorioAdministrativoEditView.as_view(),
+        name='doc_ace_adm_edit'),
 
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao$',
         TramitacaoAdmView.as_view(), name='tramitacao_adm'),

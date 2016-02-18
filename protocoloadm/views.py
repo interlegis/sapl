@@ -574,22 +574,8 @@ class DetailDocumentoAdministrativo(DetailView):
         documento = DocumentoAdministrativo.objects.get(
             id=self.kwargs['pk'])
 
-        doc = {}
-        doc['tipo'] = documento.tipo
-        doc['ano'] = documento.ano
-        doc['data'] = documento.data
-        doc['numero_protocolo'] = documento.numero
-        doc['assunto'] = documento.assunto
-        doc['interessado'] = documento.interessado
-        doc['numero'] = documento.numero
-        doc['tramitacao'] = documento.tramitacao
-        doc['texto_integral'] = documento.texto_integral
-        doc['dias_prazo'] = documento.dias_prazo
-        doc['data_fim_prazo'] = documento.data_fim_prazo
-        doc['observacao'] = documento.observacao
-
         form = DocumentoAdministrativoForm(
-            initial=doc)
+            instance=documento)
         return self.render_to_response({
             'form': form,
             'pk': kwargs['pk']})
@@ -609,12 +595,63 @@ class DetailDocumentoAdministrativo(DetailView):
         elif 'Excluir' in request.POST:
             DocumentoAdministrativo.objects.get(
                 id=kwargs['pk']).delete()
+            return HttpResponseRedirect(self.get_success_delete())
 
         return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_delete(self):
+        return reverse('pesq_doc_adm')
 
     def get_success_url(self):
         return reverse('detail_doc_adm', kwargs={
             'pk': self.kwargs['pk']})
+
+
+class DocumentoAcessorioAdministrativoEditView(FormMixin, GenericView):
+    template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        doc = DocumentoAdministrativo.objects.get(
+            id=kwargs['pk'])
+        doc_ace = DocumentoAcessorioAdministrativo.objects.get(
+            id=kwargs['ano'])
+        form = DocumentoAcessorioAdministrativoForm(instance=doc_ace,
+                                                    excluir=True)
+
+        return self.render_to_response({'pk': self.kwargs['pk'],
+                                        'doc': doc,
+                                        'doc_ace': doc_ace,
+                                        'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = DocumentoAcessorioAdministrativoForm(request.POST, excluir=True)
+        doc_ace = DocumentoAcessorioAdministrativo.objects.get(
+            id=kwargs['ano'])
+
+        if form.is_valid():
+            if 'Salvar' in request.POST:
+                if 'arquivo' in request.FILES:
+                    doc_ace.arquivo = request.FILES['arquivo']
+                doc_ace.documento = DocumentoAdministrativo.objects.get(
+                    id=kwargs['pk'])
+                doc_ace.tipo = TipoDocumentoAdministrativo.objects.get(
+                    id=form.data['tipo'])
+                doc_ace.nome = form.data['nome']
+                doc_ace.autor = form.data['autor']
+                doc_ace.data = datetime.strptime(
+                    form.data['data'], '%d/%m/%Y')
+                doc_ace.assunto = form.data['assunto']
+
+                doc_ace.save()
+            elif 'Excluir' in request.POST:
+                doc_ace.delete()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('doc_ace_adm', kwargs={'pk': pk})
 
 
 class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
@@ -625,10 +662,9 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
         doc = DocumentoAdministrativo.objects.get(
             id=kwargs['pk'])
         doc_ace_null = ''
-        try:
-            doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
-                documento_id=kwargs['pk'])
-        except ObjectDoesNotExist:
+        doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
+            documento_id=kwargs['pk'])
+        if not doc_acessorio:
             doc_ace_null = 'Nenhum documento acessório \
                  cadastrado para este processo.'
 
@@ -641,17 +677,13 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
     def post(self, request, *args, **kwargs):
         form = DocumentoAcessorioAdministrativoForm(request.POST)
         if form.is_valid():
-            doc_acessorio = DocumentoAcessorioAdministrativo()
-            doc_acessorio.tipo = form.cleaned_data['tipo']
-            doc_acessorio.nome = form.cleaned_data['nome']
-            doc_acessorio.data = form.cleaned_data['data']
-            doc_acessorio.autor = form.cleaned_data['autor']
-            doc_acessorio.assunto = form.cleaned_data['assunto']
-            doc_acessorio.arquivo = request.FILES['arquivo']
-            doc_acessorio.documento = DocumentoAdministrativo.objects.get(
+            doc_ace = form.save(commit=False)
+            if 'arquivo' in request.FILES:
+                doc_ace.arquivo = request.FILES['arquivo']
+            doc = DocumentoAdministrativo.objects.get(
                 id=kwargs['pk'])
-            doc_acessorio.save()
-
+            doc_ace.documento = doc
+            doc_ace.save()
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
