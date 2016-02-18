@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from re import sub
 
-import sapl
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -10,13 +9,15 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
+from vanilla import GenericView
+
+import sapl
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.crud import build_crud
 from sapl.utils import create_barcode
-from vanilla import GenericView
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
@@ -324,33 +325,18 @@ def criar_documento(protocolo):
     return doc
 
 
-class CriarDocumentoProtocolo(FormMixin, GenericView):
+class CriarDocumentoProtocolo(CreateView):
     template_name = "protocoloadm/criar_documento.html"
+    form_class = DocumentoAdministrativoForm
 
-    def get(self, request, *args, **kwargs):
+    def get_initial(self):
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
-        form = DocumentoAdministrativoForm(
-            initial=criar_documento(protocolo))
-        return self.render_to_response({
-            'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = DocumentoAdministrativoForm(request.POST)
-
-        if form.is_valid():
-            doc = form.save(commit=False)
-            if 'texto_integral' in request.FILES:
-                doc.texto_integral = request.FILES['texto_integral']
-            doc.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form})
+        return criar_documento(protocolo)
 
     def get_success_url(self):
-        return reverse('detail_doc_adm', kwargs={
-            'pk': self.kwargs['pk']})
+        return reverse('detail_doc_adm', kwargs={'pk': self.object.pk})
 
 
 class ProtocoloMostrarView(TemplateView):

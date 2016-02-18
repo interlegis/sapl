@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from materia.models import Autor, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import YES_NO_CHOICES, make_choices
+from uuid import uuid4
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -17,12 +18,8 @@ class TipoDocumentoAdministrativo(models.Model):
         return self.descricao
 
 
-def get_docadm_media_path(instance, subpath, filename):
-    return './docadm/%s/%s/%s' % (instance, subpath, filename)
-
-
 def texto_upload_path(instance, filename):
-    return get_docadm_media_path(instance, 'DocAdm', filename)
+    return '/'.join([instance._meta.model_name, str(uuid4()), filename])
 
 
 class DocumentoAdministrativo(models.Model):
