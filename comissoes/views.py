@@ -210,13 +210,13 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
         form = ParticipacaoCadastroForm(request.POST)
         if form.is_valid():
             participacao = ParticipacaoCadastroForm(
-                    request.POST,
-                    request.FILES,
-                    instance=Participacao.objects.get(id=kwargs['id'])
+                request.POST,
+                request.FILES,
+                instance=Participacao.objects.get(id=kwargs['id'])
                 ).save(commit=False)
 
             participacao.composicao = Composicao.objects.get(
-                    id=kwargs['cd'])
+                id=kwargs['cd'])
             participacao.parlamentar = (
                 form.cleaned_data['parlamentar_id'].parlamentar)
             participacao.save()

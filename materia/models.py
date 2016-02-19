@@ -512,7 +512,7 @@ class UnidadeTramitacao(models.Model):
                 'orgao': self.orgao}
         else:
             return _('%(orgao)s - %(comissao)s') % {
-             'orgao': xstr(self.orgao), 'comissao': xstr(self.comissao)}
+                'orgao': xstr(self.orgao), 'comissao': xstr(self.comissao)}
 
 
 class Tramitacao(models.Model):

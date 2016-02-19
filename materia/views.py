@@ -882,6 +882,7 @@ class RelatoriaView(FormMixin, GenericView):
                     '-data_designacao_relator')
             localizacao = Tramitacao.objects.filter(
                 materia=materia).last()
+
             comissao = Comissao.objects.get(
                 id=localizacao.unidade_tramitacao_destino.comissao.id)
 
@@ -936,7 +937,7 @@ class RelatoriaView(FormMixin, GenericView):
                 comissao = Comissao.objects.get(
                     id=localizacao.unidade_tramitacao_destino.comissao.id)
                 composicao = Composicao.objects.filter(
-                        comissao=comissao).last()
+                    comissao=comissao).last()
                 if not composicao:
                     msg = 'Não há composição nesta Comissão!'
                     messages.add_message(request, messages.INFO, msg)
@@ -1368,7 +1369,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
 
         if request.POST['local_origem_externa']:
             kwargs['local_origem_externa'] = request.POST[
-                                            'local_origem_externa']
+                'local_origem_externa']
 
         request.session['kwargs'] = kwargs
         return redirect('pesquisar_materia_list')
@@ -1386,12 +1387,10 @@ class PesquisaMateriaListView(FormMixin, ListView):
         ordem = int(kwargs.pop('ordem'))
         if ordem == 1:
             lista_materias = MateriaLegislativa.objects.filter(
-                                      **kwargs).order_by(
-                                      'ano', 'numero').distinct()
+                **kwargs).order_by('ano', 'numero').distinct()
         else:
             lista_materias = MateriaLegislativa.objects.filter(
-                                    **kwargs).order_by(
-                                      '-ano', '-numero').distinct()
+                **kwargs).order_by('-ano', '-numero').distinct()
 
         materias = []
 
