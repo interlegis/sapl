@@ -114,3 +114,9 @@ body {
 .pagination {
   padding-top: 25px;
 }
+
+// #### conserta radios e checkboxes escondidas pelo drunken parrot ############
+// FIXME ajustar após solução definitiva
+.checkbox input, .radio input {
+    display: initial;
+}
