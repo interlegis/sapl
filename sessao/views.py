@@ -2184,7 +2184,7 @@ class SessaoListView(ListView):
         page_obj = context['page_obj']
 
         context['page_range'] = make_pagination(
-                page_obj.number, paginator.num_pages)
+            page_obj.number, paginator.num_pages)
         return context
 
 
