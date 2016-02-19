@@ -365,7 +365,7 @@ class ComprovanteProtocoloView(TemplateView):
 
         if not protocolo.anulado:
             autenticacao = str(protocolo.tipo_processo) + \
-                protocolo.data.strftime("%y/%m/%d") + \
+                protocolo.data.strftime("%Y/%m/%d") + \
                 str(protocolo.numero).zfill(6)
 
         return self.render_to_response({"protocolo": protocolo,
