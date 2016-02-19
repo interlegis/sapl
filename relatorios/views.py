@@ -881,9 +881,9 @@ def relatorio_protocolo(request):
     return response
 
 
-def relatorio_etiqueta_protocolo(request):
+def relatorio_etiqueta_protocolo(request, nro, ano):
     '''
-        pdf__etiqueta_protocolo_gerar.py
+        pdf_etiqueta_protocolo_gerar.py
     '''
 
     response = HttpResponse(content_type='application/pdf')
@@ -897,17 +897,9 @@ def relatorio_etiqueta_protocolo(request):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    kwargs = get_kwargs_params(request, ['numero',
-                                         'ano',
-                                         'tipo_protocolo',
-                                         'tipo_processo',
-                                         'autor',
-                                         'assunto__icontains',
-                                         'interessado__icontains'])
+    protocolo = Protocolo.objects.filter(numero=nro, ano=ano)
 
-    protocolos = Protocolo.objects.filter(**kwargs)
-
-    protocolo_data = get_etiqueta_protocolos(protocolos)
+    protocolo_data = get_etiqueta_protocolos(protocolo)
 
     pdf = pdf_etiqueta_protocolo_gerar.principal(imagem,
                                                  protocolo_data,
@@ -926,8 +918,8 @@ def get_etiqueta_protocolos(prots):
         dic = {}
 
         dic['titulo'] = str(p.numero) + '/' + str(p.ano)
-        dic['data'] = p.data.strftime(
-            "%d/%m/%Y") + ' - <b>Horário:</b>' + p.hora.strftime("%H:%m")
+        dic['data'] = '<b>Data: </b>' + p.data.strftime(
+            "%d/%m/%Y") + ' - <b>Horário: </b>' + p.hora.strftime("%H:%m")
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado
 

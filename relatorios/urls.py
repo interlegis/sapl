@@ -21,7 +21,7 @@ urlpatterns = [
         relatorio_sessao_plenaria, name='relatorio_sessao_plenaria'),
     url(r'^relatorios/protocolo$',
         relatorio_protocolo, name='relatorio_protocolo'),
-    url(r'^relatorios/etiqueta_protocolo$',
+    url(r'^relatorios/(?P<nro>\d+)/(?P<ano>\d+)/etiqueta_protocolo$',
         relatorio_etiqueta_protocolo, name='relatorio_etiqueta_protocolo'),
     url(r'^relatorios/pauta_sessao$',
         relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
