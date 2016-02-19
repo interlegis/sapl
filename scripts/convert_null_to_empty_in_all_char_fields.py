@@ -1,5 +1,6 @@
-from sapl.utils import appconfs
 from django.db import models
+
+from sapl.utils import appconfs
 
 
 def convert_null_to_empty():

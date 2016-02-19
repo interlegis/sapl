@@ -33,7 +33,7 @@ def xstr(s):
 
 
 def create_barcode(value):
-    ''' 
+    '''
         creates a base64 encoded barcode PNG image
     '''
     from base64 import b64encode
