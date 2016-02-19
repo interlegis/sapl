@@ -51,7 +51,7 @@ def paraStyle():
     tmp_data = ''
     tmp_data += '\t<stylesheet>\n'
     tmp_data += '\t\t<blockTableStyle id="Standard_Outline">\n'
-    tmp_data += '\t\t\t<blockAlignment value="LEFT"/>\n'
+    tmp_data += '\t\t\t<blockAlignment value="CENTER"/>\n'
     tmp_data += '\t\t\t<blockValign value="TOP"/>\n'
     tmp_data += '\t\t</blockTableStyle>\n'
     tmp_data += '\t\t<initialize>\n'
@@ -86,8 +86,10 @@ def protocolos(lst_protocolos, dic_cabecalho):
             tmp_data += '\t\t<para style="P2">\n'
             tmp_data += '\t\t\t<font color="white"> </font>\n'
             tmp_data += '\t\t</para>\n'
-            tmp_data += '\t\t<barCode code="Code128" x="0.15cm" barHeight="0.34in" barWidth="0.018in">' + \
+            tmp_data += '<blockTable style="Standard_Outline"><tr><td>'
+            tmp_data += '<barCode code="Code128" x="0.15cm" barHeight="0.34in" barWidth="0.018in">' + \
                 dic['titulo'] + '</barCode>\n'
+            tmp_data += '</td></tr></blockTable>'
             tmp_data += '\t\t<para style="P2"><b>PROTOCOLO GERAL ' + \
                 dic['titulo'] + '</b></para>\n'
         if dic['data'] != None:
