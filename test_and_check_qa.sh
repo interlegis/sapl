@@ -3,4 +3,5 @@
 # QA checks: run this before every commit
 
 py.test
-./qa_check.sh
+py.test --ds=crud_tests.settings crud_tests
+./check_qa.sh
