@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
-from crud import build_crud
+from crud import Crud
 from painel.models import Painel
 from parlamentares.models import Filiacao
 from sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
@@ -14,7 +14,7 @@ from sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
 
 from .models import Cronometro
 
-cronometro_painel_crud = build_crud(
+cronometro_painel_crud = Crud(
     Cronometro, '', [
 
         [_('Cronometro'),

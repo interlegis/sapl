@@ -14,7 +14,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from crud import build_crud, make_pagination
+from crud import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode
 
@@ -27,14 +27,14 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-tipo_documento_administrativo_crud = build_crud(
+tipo_documento_administrativo_crud = Crud(
     TipoDocumentoAdministrativo, '', [
 
         [_('Tipo Documento Administrativo'),
          [('sigla', 4), ('descricao', 8)]],
     ])
 
-documento_administrativo_crud = build_crud(
+documento_administrativo_crud = Crud(
     DocumentoAdministrativo, '', [
 
         [_('Indentificação Básica'),
@@ -49,7 +49,7 @@ documento_administrativo_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-documento_acessorio_administrativo_crud = build_crud(
+documento_acessorio_administrativo_crud = Crud(
     DocumentoAcessorioAdministrativo, '', [
 
         [_('Documento Acessório'),
@@ -59,7 +59,7 @@ documento_acessorio_administrativo_crud = build_crud(
             [('assunto', 12)]],
     ])
 
-status_tramitacao_administrativo_crud = build_crud(
+status_tramitacao_administrativo_crud = Crud(
     StatusTramitacaoAdministrativo, '', [
 
         [_('Status Tramitação Administrativo'),
@@ -68,7 +68,7 @@ status_tramitacao_administrativo_crud = build_crud(
             ('descricao', 7)]],
     ])
 
-tramitacao_administrativo_crud = build_crud(
+tramitacao_administrativo_crud = Crud(
     TramitacaoAdministrativo, '', [
 
         [_('Tramitação'),
@@ -78,7 +78,7 @@ tramitacao_administrativo_crud = build_crud(
             [('texto', 12)]],
     ])
 
-protocolo_documento_crud = build_crud(
+protocolo_documento_crud = Crud(
     Protocolo, '', [
 
         [_('Indentificação Documento'),
@@ -89,7 +89,7 @@ protocolo_documento_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-protocolo_materia_crud = build_crud(
+protocolo_materia_crud = Crud(
     Protocolo, '', [
 
         [_('Indentificação da Matéria'),

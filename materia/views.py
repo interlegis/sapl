@@ -14,7 +14,7 @@ from vanilla.views import GenericView
 
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
-from crud import build_crud, make_pagination
+from crud import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
 from sessao.models import AcompanharMateria
@@ -31,42 +31,42 @@ from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-origem_crud = build_crud(
+origem_crud = Crud(
     Origem, 'origem', [
 
         [_('Origem'),
          [('nome', 8), ('sigla', 4)]],
     ])
 
-tipo_materia_crud = build_crud(
+tipo_materia_crud = Crud(
     TipoMateriaLegislativa, 'tipo_materia_legislativa', [
 
         [_('Tipo Matéria Legislativa'),
          [('sigla', 4), ('descricao', 8)]],
     ])
 
-regime_tramitacao_crud = build_crud(
+regime_tramitacao_crud = Crud(
     RegimeTramitacao, 'regime_tramitacao', [
 
         [_('Tipo de Documento'),
          [('descricao', 12)]],
     ])
 
-tipo_documento_crud = build_crud(
+tipo_documento_crud = Crud(
     TipoDocumento, 'tipo_documento', [
 
         [_('Regime Tramitação'),
          [('descricao', 12)]],
     ])
 
-tipo_fim_relatoria_crud = build_crud(
+tipo_fim_relatoria_crud = Crud(
     TipoFimRelatoria, 'fim_relatoria', [
 
         [_('Tipo Fim de Relatoria'),
          [('descricao', 12)]],
     ])
 
-materia_legislativa_crud = build_crud(
+materia_legislativa_crud = Crud(
     MateriaLegislativa, '', [
 
         [_('Identificação Básica'),
@@ -95,7 +95,7 @@ materia_legislativa_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-Anexada_crud = build_crud(
+Anexada_crud = Crud(
     Anexada, '', [
 
         [_('Matéria Legislativa'),
@@ -111,14 +111,14 @@ Anexada_crud = build_crud(
             [('data_anexacao', 6), ('data_desanexacao', 6)]],
     ])
 
-tipo_autor_crud = build_crud(
+tipo_autor_crud = Crud(
     TipoAutor, 'tipo_autor', [
 
         [_('Tipo Autor'),
          [('descricao', 12)]],
     ])
 
-autor_crud = build_crud(
+autor_crud = Crud(
     Autor, 'autor', [
 
         [_('Autor'),
@@ -126,7 +126,7 @@ autor_crud = build_crud(
             [('username', 12)]],
     ])
 
-autoria_crud = build_crud(
+autoria_crud = Crud(
     Autoria, '', [
 
         [_('Autoria'),
@@ -135,7 +135,7 @@ autoria_crud = build_crud(
             ('primeiro_autor', 4)]],
     ])
 
-documento_acessorio_crud = build_crud(
+documento_acessorio_crud = Crud(
     DocumentoAcessorio, '', [
 
         [_('Documento Acessório'),
@@ -146,7 +146,7 @@ documento_acessorio_crud = build_crud(
             [('txt_observacao_FIXME', 12)]],
     ])
 
-numeracao_crud = build_crud(
+numeracao_crud = Crud(
     Numeracao, '', [
 
         [_('Numeração'),
@@ -154,7 +154,7 @@ numeracao_crud = build_crud(
             [('ano_materia', 6), ('data_materia', 6)]],
     ])
 
-orgao_crud = build_crud(
+orgao_crud = Crud(
     Orgao, 'orgao', [
 
         [_('Órgão'),
@@ -165,7 +165,7 @@ orgao_crud = build_crud(
             ('unidade_deliberativa', 2)]],
     ])
 
-relatoria_crud = build_crud(
+relatoria_crud = Crud(
     Relatoria, '', [
 
         [_('Relatoria'),
@@ -174,7 +174,7 @@ relatoria_crud = build_crud(
             [('data_destituicao_relator', 6), ('tipo_fim_relatoria', 6)]],
     ])
 
-tipo_proposicao_crud = build_crud(
+tipo_proposicao_crud = Crud(
     TipoProposicao, 'tipo_proposicao', [
 
         [_('Tipo Proposição'),
@@ -183,7 +183,7 @@ tipo_proposicao_crud = build_crud(
             [('modelo', 12)]],
     ])
 
-proposicao_crud = build_crud(
+proposicao_crud = Crud(
     Proposicao, '', [
 
         [_('Proposição'),
@@ -195,7 +195,7 @@ proposicao_crud = build_crud(
             [('nom_arquivo_FIXME', 6), ('modelo_FIXME', 6)]],
     ])
 
-status_tramitacao_crud = build_crud(
+status_tramitacao_crud = Crud(
     StatusTramitacao, 'status_tramitacao', [
 
         [_('Status Tramitação'),
@@ -204,7 +204,7 @@ status_tramitacao_crud = build_crud(
             ('descricao', 7)]],
     ])
 
-unidade_tramitacao_crud = build_crud(
+unidade_tramitacao_crud = Crud(
     UnidadeTramitacao, 'unidade_tramitacao', [
 
         [_('Unidade Tramitação'),
@@ -213,7 +213,7 @@ unidade_tramitacao_crud = build_crud(
             [('parlamentar', 12)]],
     ])
 
-tramitacao_crud = build_crud(
+tramitacao_crud = Crud(
     Tramitacao, '', [
 
         [_('Tramitação'),

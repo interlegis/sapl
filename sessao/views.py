@@ -10,7 +10,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
-from crud import build_crud, make_pagination
+from crud import Crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica
@@ -28,14 +28,14 @@ from .models import (AcompanharMateria, CargoMesa, ExpedienteMateria,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
 
-tipo_sessao_crud = build_crud(
+tipo_sessao_crud = Crud(
     TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
 
         [_('Tipo de Sessão Plenária'),
          [('nome', 6), ('quorum_minimo', 6)]],
     ])
 
-sessao_crud = build_crud(
+sessao_crud = Crud(
     SessaoPlenaria, '', [
 
         [_('Dados Básicos'),
@@ -49,7 +49,7 @@ sessao_crud = build_crud(
             [('url_audio', 6), ('url_video', 6)]],
     ])
 
-expediente_materia_crud = build_crud(
+expediente_materia_crud = Crud(
     ExpedienteMateria, '', [
 
         [_('Cadastro de Matérias do Expediente'),
@@ -61,7 +61,7 @@ expediente_materia_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-ordem_dia_crud = build_crud(
+ordem_dia_crud = Crud(
     OrdemDia, '', [
 
         [_('Cadastro de Matérias da Ordem do Dia'),
@@ -73,21 +73,21 @@ ordem_dia_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-tipo_resultado_votacao_crud = build_crud(
+tipo_resultado_votacao_crud = Crud(
     TipoResultadoVotacao, 'tipo_resultado_votacao', [
 
         [_('Tipo de Resultado da Votação'),
          [('nome', 12)]],
     ])
 
-tipo_expediente_crud = build_crud(
+tipo_expediente_crud = Crud(
     TipoExpediente, 'tipo_expediente', [
 
         [_('Tipo de Expediente'),
          [('nome', 12)]],
     ])
 
-registro_votacao_crud = build_crud(
+registro_votacao_crud = Crud(
     RegistroVotacao, '', [
 
         [_('Votação Simbólica'),

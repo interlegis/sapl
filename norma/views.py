@@ -8,21 +8,21 @@ from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
 from compilacao.views import IntegracaoTaView
-from crud import build_crud
+from crud import Crud
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 
 from .forms import NormaJuridicaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
-assunto_norma_crud = build_crud(
+assunto_norma_crud = Crud(
     AssuntoNorma, 'assunto_norma_juridica', [
 
         [_('Assunto Norma Jurídica'),
          [('assunto', 6), ('descricao', 6)]],
     ])
 
-tipo_norma_crud = build_crud(
+tipo_norma_crud = Crud(
     TipoNormaJuridica, 'tipo_norma_juridica', [
 
         [_('Tipo Norma Jurídica'),
@@ -31,7 +31,7 @@ tipo_norma_crud = build_crud(
             ('equivalente_lexml', 4)]],
     ])
 
-norma_crud = build_crud(
+norma_crud = Crud(
 
     NormaJuridica, '', [
 
@@ -51,7 +51,7 @@ norma_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-norma_temporario_crud = build_crud(
+norma_temporario_crud = Crud(
     NormaJuridica, 'normajuridica', [
 
         [_('Identificação Básica'),
@@ -60,7 +60,7 @@ norma_temporario_crud = build_crud(
     ])
 
 
-legislacao_citada_crud = build_crud(
+legislacao_citada_crud = Crud(
     LegislacaoCitada, '', [
 
         [_('Legislação Citada'),

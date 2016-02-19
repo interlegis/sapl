@@ -1,10 +1,10 @@
 from django.utils.translation import ugettext_lazy as _
 
-from crud import build_crud
+from crud import Crud
 
 from .models import LexmlProvedor, LexmlPublicador
 
-lexml_provedor_crud = build_crud(
+lexml_provedor_crud = Crud(
     LexmlProvedor, 'lexml_provedor', [
 
         [_('Provedor Lexml'),
@@ -16,7 +16,7 @@ lexml_provedor_crud = build_crud(
 
     ])
 
-lexml_publicador_crud = build_crud(
+lexml_publicador_crud = Crud(
     LexmlPublicador, 'lexml_publicador', [
 
         [_('Publicador Lexml'),
