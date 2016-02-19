@@ -331,7 +331,7 @@ def test_flux_detail_delete_list(app, cancel):
     res = res.click('Excluir')
 
     # on delete page
-    assert 'Tem certeza que deseja apagar' in res
+    assert 'Confirma exclusão de' in res
     assert stub.name in res
 
     # test bifurcation !
