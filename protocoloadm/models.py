@@ -1,9 +1,10 @@
+from uuid import uuid4
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from materia.models import Autor, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import YES_NO_CHOICES, make_choices
-from uuid import uuid4
 
 
 class TipoDocumentoAdministrativo(models.Model):
