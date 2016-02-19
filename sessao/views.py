@@ -10,7 +10,6 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
-import sapl
 from crud import build_crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
