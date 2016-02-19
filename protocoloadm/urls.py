@@ -1,8 +1,9 @@
 from django.conf.urls import include, url
-
 from protocoloadm.views import (AnularProtocoloAdmView,
                                 ComprovanteProtocoloView,
+                                CriarDocumentoProtocolo,
                                 DetailDocumentoAdministrativo,
+                                DocumentoAcessorioAdministrativoEditView,
                                 DocumentoAcessorioAdministrativoView,
                                 PesquisarDocumentoAdministrativo,
                                 ProposicaoDetailView, ProposicaoReceberView,
@@ -54,6 +55,9 @@ urlpatterns = [
         DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
     url(r'^protocoloadm/doc-ace-adm/(?P<pk>\d+)',
         DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
+    url(r'^protocoloadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
+        DocumentoAcessorioAdministrativoEditView.as_view(),
+        name='doc_ace_adm_edit'),
 
     url(r'^protocoloadm/(?P<pk>\d+)/tramitacao$',
         TramitacaoAdmView.as_view(), name='tramitacao_adm'),
@@ -66,6 +70,8 @@ urlpatterns = [
 
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
+    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar_documento$',
+        CriarDocumentoProtocolo.as_view(), name='criar_documento'),
 
 
     # TODO: move to Proposicoes app

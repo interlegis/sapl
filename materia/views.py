@@ -775,7 +775,6 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
         form = DocumentoAcessorioForm(request.POST)
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
-
         if form.is_valid():
             if 'excluir' in request.POST:
                 documento.delete()

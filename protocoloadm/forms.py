@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Field, Fieldset, Layout
+from crispy_forms.layout import HTML, Field, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -11,12 +11,19 @@ from materia.models import TipoMateriaLegislativa
 from sapl.layout import form_actions
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+                     DocumentoAdministrativo, TipoDocumentoAdministrativo,
+                     TramitacaoAdministrativo)
 
 
 def get_range_anos():
     return [('', 'Selecione')] \
         + [(year, year) for year in range(date.today().year, 1960, -1)]
+
+
+def tramitacao():
+    return [('', '--------'),
+            (True, 'Sim'),
+            (False, 'Não')]
 
 
 TIPOS_PROTOCOLO = [('', 'Selecione'),
@@ -82,14 +89,14 @@ class ProtocoloForm(forms.Form):
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     autor = forms.ModelChoiceField(
         label='Autor',
         required=False,
         queryset=Autor.objects.all().order_by('tipo'),
         empty_label='Selecione',
-        )
+    )
 
     assunto = forms.CharField(label='Assunto', required=False)
 
@@ -248,7 +255,7 @@ class ProtocoloMateriaForm(forms.Form):
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-        )
+    )
 
     num_paginas = forms.CharField(label='Núm. Páginas', required=True)
     ementa = forms.CharField(
@@ -259,7 +266,7 @@ class ProtocoloMateriaForm(forms.Form):
         required=False,
         queryset=Autor.objects.all().order_by('tipo'),
         empty_label='Selecione',
-        )
+    )
 
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea,
@@ -339,18 +346,29 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
                   'arquivo',
                   'assunto']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4),
+             ('nome', 4),
+             ('data', 4)])
+        row2 = sapl.layout.to_row(
+            [('autor', 12)])
+        row3 = sapl.layout.to_row(
+            [('arquivo', 12)])
+        row4 = sapl.layout.to_row(
+            [('assunto', 12)])
+
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 'Incluir Documento Acessório',
-                'tipo',
-                'nome',
-                'data',
-                'autor',
-                'arquivo',
-                'assunto',
-                form_actions()
+                row1, row2, row3, row4,
+                form_actions(more=more)
             )
         )
         super(DocumentoAcessorioAdministrativoForm, self).__init__(
@@ -407,4 +425,57 @@ class TramitacaoAdmForm(ModelForm):
             form_actions()
         )
         super(TramitacaoAdmForm, self).__init__(
+            *args, **kwargs)
+
+
+class DocumentoAdministrativoForm(ModelForm):
+
+    class Meta:
+        model = DocumentoAdministrativo
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  'data',
+                  'numero_protocolo',
+                  'assunto',
+                  'interessado',
+                  'tramitacao',
+                  'dias_prazo',
+                  'data_fim_prazo',
+                  'observacao',
+                  'texto_integral',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row(
+            [('tipo', 4), ('numero', 4), ('ano', 4)])
+
+        row2 = sapl.layout.to_row(
+            [('data', 6), ('numero_protocolo', 6)])
+
+        row3 = sapl.layout.to_row(
+            [('assunto', 12)])
+
+        row4 = sapl.layout.to_row(
+            [('interessado', 9), ('tramitacao', 3)])
+
+        row5 = sapl.layout.to_row(
+            [('texto_integral', 12)])
+
+        row6 = sapl.layout.to_row(
+            [('dias_prazo', 6), ('data_fim_prazo', 6)])
+
+        row7 = sapl.layout.to_row(
+            [('observacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset('Identificação Básica',
+                     row1, row2, row3, row4, row5),
+            Fieldset('Outras Informações',
+                     row6, row7),
+            form_actions(more=[Submit('Excluir', 'Excluir')]),
+        )
+        super(DocumentoAdministrativoForm, self).__init__(
             *args, **kwargs)
