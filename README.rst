@@ -100,7 +100,7 @@ Best practices
 * Keep all code in standard PEP8 (without exceptions).
 
 * Before every ``git push``:
-  - Run ``git pull --rebase`` (almost allways).
+  - Run ``git pull --rebase`` (almost always).
   - In exceptional cases simply use ``git pull`` to produce a merge.
 
 * Before ``git commit``, always:
