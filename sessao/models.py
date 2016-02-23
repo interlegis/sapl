@@ -280,11 +280,3 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
-
-
-class AcompanharMateria(models.Model):
-    usuario = models.CharField(max_length=50)
-    email = models.CharField(
-        max_length=50, verbose_name=_('Endereço de email'))
-    data_cadastro = models.DateField(auto_now_add=True)
-    materia_cadastrada = models.ForeignKey(MateriaLegislativa)

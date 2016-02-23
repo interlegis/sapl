@@ -1,15 +1,15 @@
 import os
+from io import BytesIO
 from re import sub
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.forms.fields import ImageField
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
-from django.forms.fields import ImageField
-from io import BytesIO
-from django.core.exceptions import ValidationError
 
 from crud import build_crud
 

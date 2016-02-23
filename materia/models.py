@@ -132,10 +132,12 @@ class MateriaLegislativa(models.Model):
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
 
 
-class AcompanhamentoMateria(models.Model):  # AcompMateria
+class AcompanhamentoMateria(models.Model):
+    usuario = models.CharField(max_length=50)
     materia = models.ForeignKey(MateriaLegislativa)
     email = models.CharField(
         max_length=100, verbose_name=_('Endereço de E-mail'))
+    data_cadastro = models.DateField(auto_now_add=True)
     hash = models.CharField(max_length=8)
 
     class Meta:

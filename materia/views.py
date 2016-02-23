@@ -17,17 +17,17 @@ from compilacao.views import IntegracaoTaView
 from crud import build_crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
-from sessao.models import AcompanharMateria
 
-from .forms import (AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
+from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
+                    DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaPesquisaForm, NumeracaoForm,
                     ProposicaoForm, RelatoriaForm, TramitacaoForm)
-from .models import (Anexada, Autor, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
-                     Origem, Proposicao, RegimeTramitacao, Relatoria,
-                     StatusTramitacao, TipoAutor, TipoDocumento,
+from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
+                     Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,
+                     Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
@@ -1007,9 +1007,9 @@ class TramitacaoView(FormMixin, GenericView):
 
             corpo_email = ('A tramitação da matéria %s foi alterada.' % materia
                            )
-            destinatarios = AcompanharMateria.objects.values_list(
+            destinatarios = AcompanhamentoMateria.objects.values_list(
                 'email', flat=True).filter(
-                materia_cadastrada=materia)
+                materia=materia)
             send_mail('Mudança de Tramitação',
                       corpo_email,
                       'sapl-test@interlegis.leg.br',
@@ -1489,3 +1489,48 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
+
+
+class AcompanhamentoMateriaView(FormMixin,
+                                materia_legislativa_crud.CrudDetailView):
+    template_name = "materia/acompanhamento_materia.html"
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+        return self.render_to_response(
+            {'form': AcompanhamentoMateriaForm(),
+             'materia': materia})
+
+    def post(self, request, *args, **kwargs):
+        form = AcompanhamentoMateriaForm(request.POST)
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+
+        if form.is_valid():
+
+            email = form.cleaned_data['email']
+            usuario = request.user
+            try:
+                AcompanhamentoMateria.objects.get(
+                    email=email,
+                    materia=materia)
+            except ObjectDoesNotExist:
+                acompanhar = form.save(commit=False)
+                acompanhar.materia = materia
+                acompanhar.usuario = usuario.username
+                acompanhar.save()
+            else:
+                return self.render_to_response(
+                    {'form': form,
+                     'materia': materia,
+                     'error': 'Essa matéria já está\
+                     sendo acompanhada por este e-mail.'})
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'materia': materia})
+
+    def get_success_url(self):
+        return reverse('sessaoplenaria:list_pauta_sessao')

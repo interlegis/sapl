@@ -1,12 +1,12 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Fieldset, Layout
+from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
 
 import sapl
 from sapl.layout import form_actions
 
-from .models import AcompanharMateria, SessaoPlenaria
+from .models import SessaoPlenaria
 
 
 class PresencaForm(forms.Form):
@@ -64,29 +64,6 @@ class VotacaoForm(forms.Form):
 
 class VotacaoEditForm(forms.Form):
     pass
-
-
-class AcompanharMateriaForm(ModelForm):
-
-    class Meta:
-        model = AcompanharMateria
-        fields = ['email']
-
-    def __init__(self, *args, **kwargs):
-
-        row1 = sapl.layout.to_row([('email', 10)])
-
-        row1.append(
-            Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
-            )
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                'Acompanhamento de Matéria por e-mail', row1
-            )
-        )
-        super(AcompanharMateriaForm, self).__init__(*args, **kwargs)
 
 
 class SessaoForm(ModelForm):

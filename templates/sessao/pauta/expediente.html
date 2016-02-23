@@ -39,7 +39,7 @@
 </fieldset>
 
 <fieldset>
-	<legend>Tramitação{% if expediente.materia.em_tramitacao %}<a href="{% url 'sessaoplenaria:acompanhar_materia' expediente.materia.id %}"> >>> Acompanhar matéria <<<</a>{% endif %}</legend>
+	<legend>Tramitação{% if expediente.materia.em_tramitacao %}<a href="{% url 'acompanhar_materia' expediente.materia.id %}"> >>> Acompanhar matéria <<<</a>{% endif %}</legend>
 
 	{% for t in tramitacao %}
 		<b>Data: </b> {{t.data_tramitacao}}<br />

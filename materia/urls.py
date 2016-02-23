@@ -1,9 +1,10 @@
 from django.conf.urls import include, url
 
-from materia.views import (AutoriaEditView, AutoriaView,
-                           DespachoInicialEditView, DespachoInicialView,
-                           DocumentoAcessorioEditView, DocumentoAcessorioView,
-                           FormularioCadastroView, FormularioSimplificadoView,
+from materia.views import (AcompanhamentoMateriaView, AutoriaEditView,
+                           AutoriaView, DespachoInicialEditView,
+                           DespachoInicialView, DocumentoAcessorioEditView,
+                           DocumentoAcessorioView, FormularioCadastroView,
+                           FormularioSimplificadoView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
                            MateriaLegislativaPesquisaView, MateriaTaView,
@@ -96,4 +97,6 @@ urlpatterns = [
         MateriaLegislativaPesquisaView.as_view(), name='pesquisar_materia'),
     url(r'^materia/pesquisar-materia-list$',
         PesquisaMateriaListView.as_view(), name='pesquisar_materia_list'),
+    url(r'^materia/(?P<pk>\d+)/acompanhar-materia/$',
+        AcompanhamentoMateriaView.as_view(), name='acompanhar_materia'),
 ]

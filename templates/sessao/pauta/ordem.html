@@ -19,7 +19,7 @@
 
 <fieldset>
 	<legend>Norma Juridica Vinculada</legend>
-	
+
 	<!-- TODO -->
 	{% for n in norma %}
 		<b><a href="">{{n}}</a></b>
@@ -48,7 +48,7 @@
 </fieldset>
 
 <fieldset>
-	<legend>Tramitação{% if ordem.materia.em_tramitacao %}<a href="{% url 'sessaoplenaria:acompanhar_materia' ordem.materia.id %}"> >>> Acompanhar matéria <<<</a>{% endif %}</legend>
+	<legend>Tramitação{% if ordem.materia.em_tramitacao %}<a href="{% url 'acompanhar_materia' ordem.materia.id %}"> >>> Acompanhar matéria <<<</a>{% endif %}</legend>
 
 	{% for t in tramitacao %}
 		<b>Data: </b> {{t.data_tramitacao}}<br />
