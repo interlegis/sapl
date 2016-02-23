@@ -1,8 +1,12 @@
 from django.conf.urls import include, url
 
+<<<<<<< HEAD
 from materia.views import (AcompanhamentoConfirmarView,
                            AcompanhamentoExcluirView,
                            AcompanhamentoMateriaView, AutoriaEditView,
+=======
+from materia.views import (AcompanhamentoMateriaView, AutoriaEditView,
+>>>>>>> Move acompanhamento de matéria para a app de matéria.
                            AutoriaView, DespachoInicialEditView,
                            DespachoInicialView, DocumentoAcessorioEditView,
                            DocumentoAcessorioView, FormularioCadastroView,

@@ -1606,9 +1606,11 @@ class AcompanhamentoMateriaView(FormMixin,
                                 materia_legislativa_crud.CrudDetailView):
     template_name = "materia/acompanhamento_materia.html"
 
+
     def get_random_chars(self):
         s = ascii_letters + digits
         return ''.join(choice(s) for i in range(choice([6, 7])))
+
 
     def get(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
@@ -1616,6 +1618,7 @@ class AcompanhamentoMateriaView(FormMixin,
         return self.render_to_response(
             {'form': AcompanhamentoMateriaForm(),
              'materia': materia})
+
 
     def post(self, request, *args, **kwargs):
         form = AcompanhamentoMateriaForm(request.POST)
@@ -1626,6 +1629,7 @@ class AcompanhamentoMateriaView(FormMixin,
 
             email = form.cleaned_data['email']
             usuario = request.user
+
             hash_txt = self.get_random_chars()
 
             try:
@@ -1640,7 +1644,6 @@ class AcompanhamentoMateriaView(FormMixin,
                 acompanhar.usuario = usuario.username
                 acompanhar.confirmado = False
                 acompanhar.save()
-
             else:
                 return self.render_to_response(
                     {'form': form,
