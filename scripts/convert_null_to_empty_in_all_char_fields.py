@@ -1,10 +1,10 @@
 from django.db import models
 
-from sapl.utils import appconfs
+from sapl.utils import sapl_appconfs
 
 
 def convert_null_to_empty():
-    for app in appconfs:
+    for app in sapl_appconfs:
         for model in app.get_models():
             print('Convertendo null p/ vazio. model [%s]'
                   % model._meta.model_name)
