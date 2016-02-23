@@ -1,9 +1,14 @@
 from datetime import datetime
 from random import choice
 from re import sub
-from string import ascii_letters, digits
+from string import Template, ascii_letters, digits
 
+from base.models import CasaLegislativa
+from comissoes.models import Comissao, Composicao
+from compilacao.views import IntegracaoTaView
+from crud import build_crud, make_pagination
 from django.contrib import messages
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
@@ -13,13 +18,9 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
-from vanilla.views import GenericView
-
-from comissoes.models import Comissao, Composicao
-from compilacao.views import IntegracaoTaView
-from crud import build_crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
+from vanilla.views import GenericView
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -1003,6 +1004,92 @@ class RelatoriaView(FormMixin, GenericView):
                      'parlamentares': parlamentares})
 
 
+def criar_corpo(materia, hash_txt):
+
+    header_tpl = Template('''
+                            <html>
+                                <head></head>
+                                <body bgcolor='#ffffff'>
+                                    <p align='center'>
+                                        <img src="$image" width='81'
+                                        height='77'>
+                                    </p>
+                                    <h2 align='center'><b>$casa_legislativa</b>
+                                        <br/>
+                                        Sistema de Apoio ao
+                                         Processo Legislativo
+                                    </h2>
+                                    <p>A seguinte mat&eacute;ria de seu
+                                        interesse sofreu
+                                        tramita&ccedil;&atilde;o registrada em
+                                        $data_registro
+                                    </p>
+                            <h4>
+                                <a href='"+context.consultas.absolute_url()+
+                                "/materia/materia_mostrar_proc?cod_materia=
+                                $cod_materia'><b>{{descricao_materia}}</b></a>
+                                <br/><br/>
+                            ''')
+    casa = CasaLegislativa.objects.first()
+    header = header_tpl.substitute(image=static('img/logo.png'),
+                                   casa_legislativa=casa,
+                                   data_registro=datetime.now(),
+                                   cod_materia=materia.id,
+                                   descricao_materia=materia.ementa)
+
+    autoria = "<b>Autoria: </b>"
+
+    for autor in materia.autoria_set.all():
+        autoria += autor.nom_autor + "<br/> "
+
+    footer_tpl = Template('''
+                        </h4>
+                        <p></p>
+                        <p>
+                            <b>Data da a&ccedil;&atilde;o</b>: $data<br/>
+                            <b>Status</b>: $status<br/>
+                            <b>Texto da a&ccedil;&atilde;o</b>:
+                             $texto_acao</p>
+                            <hr>
+                            <p>
+                                <a href='$url?txt_hash=$hash_txt'>
+                                Clique aqui para excluir seu e-mail da
+                                 lista de envio</a>
+                            <p>
+                            <p>Esta &eacute; uma mensagem autom&aacute;tica.
+                             Por favor, n&atilde;o a responda.</p>
+                        </body>
+                        </html>
+                        ''')
+    url = reverse('acompanhar_excluir', kwargs={'pk': materia.id}) + \
+        "?hash="+hash_txt
+    footer = footer_tpl.substitute(
+        data=materia.tramitacao_set.last().data_tramitacao,
+        status=materia.tramitacao_set.last().status,
+        texto_acao=materia.tramitacao_set.last().texto,
+        hash_txt=hash_txt,
+        url=url)
+
+    html_email_body = header + autoria + footer
+
+    return html_email_body
+
+
+def enviar_emails(materia):
+
+    destinatarios = AcompanhamentoMateria.objects.filter(
+        materia=materia,
+        confirmado=True)
+
+    for destinatario in destinatarios:
+        corpo_email = criar_corpo(materia, destinatario.hash_txt)
+        send_mail('Mudança de Tramitação',
+                  corpo_email,
+                  'sapl-test@interlegis.leg.br',
+                  destinatario,
+                  fail_silently=True)
+
+
 class TramitacaoView(FormMixin, GenericView):
     template_name = "materia/tramitacao.html"
 
@@ -1042,16 +1129,7 @@ class TramitacaoView(FormMixin, GenericView):
                      'object': materia,
                      'tramitacoes': tramitacoes_list})
 
-            corpo_email = ('A tramitação da matéria %s foi alterada.' % materia
-                           )
-            destinatarios = AcompanhamentoMateria.objects.values_list(
-                'email', flat=True).filter(
-                materia=materia, confirmado = True)
-            send_mail('Mudança de Tramitação',
-                      corpo_email,
-                      'sapl-test@interlegis.leg.br',
-                      destinatarios,
-                      fail_silently=True)
+            self.enviar_emails(materia)
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
