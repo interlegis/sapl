@@ -95,7 +95,6 @@ Numeracao:
   data_materia: dat_materia
   materia: cod_materia
   numero_materia: num_materia
-  numero_ordem: num_ordem
   tipo_materia: tip_materia
 
 Orgao:
@@ -158,7 +157,6 @@ Tramitacao:
   status: cod_status
   texto: txt_tramitacao
   turno: sgl_turno
-  ultima: ind_ult_tramitacao
   unidade_tramitacao_destino: cod_unid_tram_dest
   unidade_tramitacao_local: cod_unid_tram_local
   urgente: ind_urgencia

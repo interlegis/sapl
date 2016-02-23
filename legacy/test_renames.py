@@ -1,21 +1,29 @@
 import comissoes
 import materia
+import norma
 import sessao
 
 from .migration import appconfs, get_renames, legacy_app
 
 RENAMING_IGNORED_MODELS = [
     comissoes.models.Composicao,
+    norma.models.AssuntoNormaRelationship,
+
+    # FIXME retirar daqui depois que a issue #218 for resolvida!!!!!!!
+    sessao.models.AcompanharMateria,
 ]
 
 RENAMING_IGNORED_FIELDS = [
     (comissoes.models.Participacao, {'composicao'}),
     (materia.models.Proposicao, {'documento'}),
     (materia.models.TipoProposicao, {'tipo_documento'}),
+    (materia.models.Tramitacao, {'ultima'}),
     (sessao.models.SessaoPlenaria, {'finalizada',
                                     'upload_pauta',
                                     'upload_ata',
                                     'iniciada'}),
+    (sessao.models.ExpedienteMateria, {'votacao_aberta'}),
+    (sessao.models.OrdemDia, {'votacao_aberta'}),
 ]
 
 

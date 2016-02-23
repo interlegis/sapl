@@ -2,18 +2,18 @@ from django.apps import apps
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
-# SAPL business apps
-#  This is a dependency order: each entry depends only on previous ones
-#  The order is important for migration code
-appconfs = [apps.get_app_config(n) for n in [
+# SAPL business apps in dependency order
+# (each entry depends only on previous ones)
+sapl_appconfs = [apps.get_app_config(n) for n in [
     'parlamentares',
     'comissoes',
-    'compilacao',
     'materia',
     'norma',
     'sessao',
     'lexml',
-    'protocoloadm', ]]
+    'protocoloadm',
+    'compilacao',
+]]
 
 
 def register_all_models_in_admin(module_name):
