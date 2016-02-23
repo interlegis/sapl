@@ -7,10 +7,11 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
@@ -759,6 +760,40 @@ class DocumentoAcessorioView(FormMixin, GenericView):
         return reverse('documento_acessorio', kwargs={'pk': pk})
 
 
+class AcompanhamentoConfirmarView(TemplateView):
+
+    def get_redirect_url(self):
+        return reverse("sessaoplenaria:list_pauta_sessao")
+
+    def get(self, request, *args, **kwargs):
+        materia_id = kwargs['pk']
+        hash_txt = request.GET.get('hash', '')
+
+        acompanhar = AcompanhamentoMateria.objects.get(
+                                                   materia_id=materia_id,
+                                                   hash=hash_txt)
+
+        acompanhar.confirmado = True
+        acompanhar.save()
+
+        return HttpResponseRedirect(self.get_redirect_url())
+
+
+class AcompanhamentoExcluirView(TemplateView):
+
+    def get_redirect_url(self):
+        return reverse("sessaoplenaria:list_pauta_sessao")
+
+    def get(self, request, *args, **kwargs):
+        materia_id = kwargs['pk']
+        hash_txt = request.GET.get('hash', '')
+
+        AcompanhamentoMateria.objects.get(materia_id=materia_id,
+                                          hash=hash_txt).delete()
+
+        return HttpResponseRedirect(self.get_redirect_url())
+
+
 class DocumentoAcessorioEditView(FormMixin, GenericView):
     template_name = "materia/documento_acessorio_edit.html"
 
@@ -1011,7 +1046,7 @@ class TramitacaoView(FormMixin, GenericView):
                            )
             destinatarios = AcompanhamentoMateria.objects.values_list(
                 'email', flat=True).filter(
-                materia=materia)
+                materia=materia, confirmado = True)
             send_mail('Mudança de Tramitação',
                       corpo_email,
                       'sapl-test@interlegis.leg.br',
@@ -1529,7 +1564,9 @@ class AcompanhamentoMateriaView(FormMixin,
                 acompanhar.hash = hash_txt
                 acompanhar.materia = materia
                 acompanhar.usuario = usuario.username
+                acompanhar.confirmado = False
                 acompanhar.save()
+
             else:
                 return self.render_to_response(
                     {'form': form,
