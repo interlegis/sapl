@@ -139,6 +139,7 @@ class AcompanhamentoMateria(models.Model):
         max_length=100, verbose_name=_('Endereço de E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)
     hash = models.CharField(max_length=8)
+    confirmado = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _('Acompanhamento de Matéria')
