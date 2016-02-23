@@ -1,14 +1,14 @@
 from django.conf.urls import include, url
 
 from sapl import settings
-from sessao.views import (AcompanharMateriaView, EditExpedienteOrdemDiaView,
-                          EditMateriaOrdemDiaView, ExpedienteOrdemDiaView,
-                          ExpedienteView, ExplicacaoDelete, ExplicacaoEdit,
-                          ExplicacaoView, ListExpedienteOrdemDiaView,
-                          ListMateriaOrdemDiaView, MateriaOrdemDiaView,
-                          MesaView, OradorExpedienteDelete,
-                          OradorExpedienteEdit, OradorExpedienteView,
-                          PainelView, PautaExpedienteDetail, PautaOrdemDetail,
+from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
+                          ExpedienteOrdemDiaView, ExpedienteView,
+                          ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
+                          ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
+                          MateriaOrdemDiaView, MesaView,
+                          OradorExpedienteDelete, OradorExpedienteEdit,
+                          OradorExpedienteView, PainelView,
+                          PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
                           SessaoCadastroView, SessaoListView,
@@ -95,8 +95,6 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         PautaExpedienteDetail.as_view(), name='pauta_expediente_detail'),
     url(r'^pauta-sessao/(?P<pk>\d+)/ordem/$',
         PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
-    url(r'^pauta-sessao/(?P<pk>\d+)/acompanhar-materia/$',
-        AcompanharMateriaView.as_view(), name='acompanhar_materia'),
 ]
 
 sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace

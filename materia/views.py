@@ -1,33 +1,39 @@
 from datetime import datetime
+from random import choice
 from re import sub
+from string import ascii_letters, digits
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.template import Context, loader
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
+from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from crud import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
-from sessao.models import AcompanharMateria
+from sapl.utils import get_base_url
 
-from .forms import (AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
+from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
+                    DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaPesquisaForm, NumeracaoForm,
                     ProposicaoForm, RelatoriaForm, TramitacaoForm)
-from .models import (Anexada, Autor, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
-                     Origem, Proposicao, RegimeTramitacao, Relatoria,
-                     StatusTramitacao, TipoAutor, TipoDocumento,
+from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
+                     Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,
+                     Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
@@ -757,6 +763,41 @@ class DocumentoAcessorioView(FormMixin, GenericView):
         return reverse('documento_acessorio', kwargs={'pk': pk})
 
 
+class AcompanhamentoConfirmarView(TemplateView):
+
+    def get_redirect_url(self):
+        return reverse("sessaoplenaria:list_pauta_sessao")
+
+    def get(self, request, *args, **kwargs):
+        materia_id = kwargs['pk']
+        hash_txt = request.GET.get('hash_txt', '')
+
+        acompanhar = AcompanhamentoMateria.objects.get(materia_id=materia_id,
+                                                       hash=hash_txt)
+        acompanhar.confirmado = True
+        acompanhar.save()
+
+        return HttpResponseRedirect(self.get_redirect_url())
+
+
+class AcompanhamentoExcluirView(TemplateView):
+
+    def get_redirect_url(self):
+        return reverse("sessaoplenaria:list_pauta_sessao")
+
+    def get(self, request, *args, **kwargs):
+        materia_id = kwargs['pk']
+        hash_txt = request.GET.get('hash_txt', '')
+
+        try:
+            AcompanhamentoMateria.objects.get(materia_id=materia_id,
+                                              hash=hash_txt).delete()
+        except ObjectDoesNotExist:
+            pass
+
+        return HttpResponseRedirect(self.get_redirect_url())
+
+
 class DocumentoAcessorioEditView(FormMixin, GenericView):
     template_name = "materia/documento_acessorio_edit.html"
 
@@ -966,6 +1007,195 @@ class RelatoriaView(FormMixin, GenericView):
                      'parlamentares': parlamentares})
 
 
+def load_email_templates(templates, context={}):
+
+    emails = []
+    for t in templates:
+        tpl = loader.get_template(t)
+        email = tpl.render(Context(context))
+        if t.endswith(".html"):
+            email = email.replace('\n', '').replace('\r', '')
+        emails.append(email)
+    return emails
+
+
+def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
+
+    if not casa_legislativa:
+        raise ValueError("Casa Legislativa é obrigatória")
+
+    if not materia:
+        raise ValueError("Matéria é obrigatória")
+
+    casa_nome = (casa_legislativa.nome + ' de ' +
+                 casa_legislativa.municipio + '-' +
+                 casa_legislativa.uf)
+
+    base_url = get_base_url(request)
+    materia_url = reverse('acompanhar_materia', kwargs={'pk': materia.id})
+    confirmacao_url = reverse('acompanhar_confirmar',
+                              kwargs={'pk': materia.id})
+
+    autores = []
+    for autoria in materia.autoria_set.all():
+        autores.append(autoria.autor.nome)
+
+    templates = load_email_templates(['email/acompanhar.txt',
+                                      'email/acompanhar.html'],
+                                     {"casa_legislativa": casa_nome,
+                                      "logotipo": casa_legislativa.logotipo,
+                                      "descricao_materia": materia.ementa,
+                                      "autoria": autores,
+                                      "hash_txt": hash_txt,
+                                      "base_url": base_url,
+                                      "materia": str(materia),
+                                      "materia_url": materia_url,
+                                      "confirmacao_url": confirmacao_url, })
+    return templates
+
+
+def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
+
+    if not casa_legislativa:
+        raise ValueError("Casa Legislativa é obrigatória")
+
+    if not materia:
+        raise ValueError("Matéria é obrigatória")
+
+    casa_nome = (casa_legislativa.nome + ' de ' +
+                 casa_legislativa.municipio + '-' +
+                 casa_legislativa.uf)
+
+    base_url = get_base_url(request)
+    url_materia = reverse('acompanhar_materia', kwargs={'pk': materia.id})
+    url_excluir = reverse('acompanhar_excluir', kwargs={'pk': materia.id})
+
+    autores = []
+    for autoria in materia.autoria_set.all():
+        autores.append(autoria.autor.nome)
+
+    templates = load_email_templates(['email/tramitacao.txt',
+                                      'email/tramitacao.html'],
+                                     {"casa_legislativa": casa_nome,
+                                      "data_registro": datetime.now().strftime(
+                                         "%d/%m/%Y"),
+                                      "cod_materia": materia.id,
+                                      "logotipo": casa_legislativa.logotipo,
+                                      "descricao_materia": materia.ementa,
+                                      "autoria": autores,
+                                      "data": materia.tramitacao_set.last(
+                                        ).data_tramitacao,
+                                      "status": materia.tramitacao_set.last(
+                                        ).status,
+                                      "texto_acao":
+                                         materia.tramitacao_set.last().texto,
+                                      "hash_txt": hash_txt,
+                                      "materia": str(materia),
+                                      "base_url": base_url,
+                                      "materia_url": url_materia,
+                                      "excluir_url": url_excluir})
+    return templates
+
+
+def enviar_emails(sender, recipients, messages):
+    '''
+        Recipients is a string list of email addresses
+
+        Messages is an array of dicts of the form:
+        {'recipient': 'address', # useless????
+         'subject': 'subject text',
+         'txt_message': 'text message',
+         'html_message': 'html message'
+        }
+    '''
+
+    if len(messages) == 1:
+        # sends an email simultaneously to all recipients
+        send_mail(messages[0]['subject'],
+                  messages[0]['txt_message'],
+                  sender,
+                  recipients,
+                  html_message=messages[0]['html_message'],
+                  fail_silently=False)
+
+    elif len(recipients) > len(messages):
+        raise ValueError("Message list should have size 1 \
+                         or equal recipient list size. \
+                         recipients: %s, messages: %s" % (recipients, messages)
+                         )
+
+    else:
+        # sends an email simultaneously to all reciepients
+        for (d, m) in zip(recipients, messages):
+            send_mail(m['subject'],
+                      m['txt_message'],
+                      sender,
+                      [d],
+                      html_message=m['html_message'],
+                      fail_silently=False)
+    return None
+
+
+def do_envia_email_confirmacao(request, materia, email):
+    #
+    # Envia email de confirmacao para atualizações de tramitação
+    #
+    destinatario = AcompanhamentoMateria.objects.get(materia=materia,
+                                                     email=email,
+                                                     confirmado=False)
+    casa = CasaLegislativa.objects.first()
+
+    sender = 'sapl-test@interlegis.leg.br'
+    subject = "[SAPL] " + str(materia) + " - Ative o Acompanhamento da Materia"
+    messages = []
+    recipients = []
+
+    email_texts = criar_email_confirmacao(request,
+                                          casa,
+                                          materia,
+                                          destinatario.hash,)
+    recipients.append(destinatario.email)
+    messages.append({
+             'recipient': destinatario.email,
+             'subject': subject,
+             'txt_message': email_texts[0],
+             'html_message': email_texts[1]
+     })
+
+    enviar_emails(sender, recipients, messages)
+    return None
+
+
+def do_envia_email_tramitacao(request, materia):
+    #
+    # Envia email de tramitacao para usuarios cadastrados
+    #
+    destinatarios = AcompanhamentoMateria.objects.filter(materia=materia,
+                                                         confirmado=True)
+    casa = CasaLegislativa.objects.first()
+
+    sender = 'sapl-test@interlegis.leg.br'
+    subject = "[SAPL] " + str(materia) + \
+              " - Acompanhamento de Materia Legislativa"
+    messages = []
+    recipients = []
+    for destinatario in destinatarios:
+        email_texts = criar_email_tramitacao(request,
+                                             casa,
+                                             materia,
+                                             destinatario.hash,)
+        recipients.append(destinatario.email)
+        messages.append({
+             'recipient': destinatario.email,
+             'subject': subject,
+             'txt_message': email_texts[0],
+             'html_message': email_texts[1]
+         })
+
+    enviar_emails(sender, recipients, messages)
+    return None
+
+
 class TramitacaoView(FormMixin, GenericView):
     template_name = "materia/tramitacao.html"
 
@@ -1005,16 +1235,8 @@ class TramitacaoView(FormMixin, GenericView):
                      'object': materia,
                      'tramitacoes': tramitacoes_list})
 
-            corpo_email = ('A tramitação da matéria %s foi alterada.' % materia
-                           )
-            destinatarios = AcompanharMateria.objects.values_list(
-                'email', flat=True).filter(
-                materia_cadastrada=materia)
-            send_mail('Mudança de Tramitação',
-                      corpo_email,
-                      'sapl-test@interlegis.leg.br',
-                      destinatarios,
-                      fail_silently=True)
+                do_envia_email_tramitacao(request, materia)
+
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
@@ -1489,3 +1711,61 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
+
+
+class AcompanhamentoMateriaView(materia_legislativa_crud.CrudDetailView):
+    template_name = "materia/acompanhamento_materia.html"
+
+    def get_random_chars(self):
+        s = ascii_letters + digits
+        return ''.join(choice(s) for i in range(choice([6, 7])))
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+
+        return self.render_to_response(
+            {'form': AcompanhamentoMateriaForm(),
+             'materia': materia})
+
+    def post(self, request, *args, **kwargs):
+        form = AcompanhamentoMateriaForm(request.POST)
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+
+        if form.is_valid():
+
+            email = form.cleaned_data['email']
+            usuario = request.user
+
+            hash_txt = self.get_random_chars()
+
+            try:
+                AcompanhamentoMateria.objects.get(
+                    email=email,
+                    materia=materia,
+                    hash=hash_txt)
+            except ObjectDoesNotExist:
+                acompanhar = form.save(commit=False)
+                acompanhar.hash = hash_txt
+                acompanhar.materia = materia
+                acompanhar.usuario = usuario.username
+                acompanhar.confirmado = False
+                acompanhar.save()
+
+                do_envia_email_confirmacao(request, materia, email)
+
+            else:
+                return self.render_to_response(
+                    {'form': form,
+                     'materia': materia,
+                     'error': 'Essa matéria já está\
+                     sendo acompanhada por este e-mail.'})
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'materia': materia})
+
+    def get_success_url(self):
+        return reverse('sessaoplenaria:list_pauta_sessao')

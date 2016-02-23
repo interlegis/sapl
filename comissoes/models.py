@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from model_utils import Choices
 
+from model_utils import Choices
 from parlamentares.models import Parlamentar
 from sapl.utils import YES_NO_CHOICES
 

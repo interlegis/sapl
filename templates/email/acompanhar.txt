@@ -1,0 +1,16 @@
+{{casa_legislativa}}
+
+Sistema de Apoio ao Processo Legislativo
+
+>Registramos seu pedido para acompanhamento por e-mail da matéria legislativa identificada a seguir:
+
+{{base_url}}{{materia_url}} - {{materia}} -  {{descricao_materia}}
+
+{{ementa}}
+
+Para garantia de sua privacidade, solicitamos que ative o recebimento das futuras mensagens acessando no link:
+
+{{base_url}}{{url_confirmar}}?hash_txt={{hash_txt}}
+
+Caso não tenha realizado o cadastramento em nosso sistema, favor desconsiderar a presente mensagem
+Esta é uma mensagem automática. Por favor, não responda.

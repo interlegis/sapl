@@ -1,0 +1,27 @@
+{{casa_legislativa}}
+
+Sistema de Apoio ao Processo Legislativo
+-----------------------------------------
+
+A seguinte matéria de seu interesse sofreu tramitação registrada em {{data_registro}}
+
+Matéria: {{materia}} - {{descricao_materia}}
+
+{{url_materia}}
+
+Autoria:
+{% for autor in autoria %}
+   {{ autor }}
+{% endfor %}
+
+Data da ação: {{data}}
+
+Status: {{status}}
+
+Texto da ação: {{texto_acao}}
+
+Acesse o link abaixo para excluir seu e-mail da lista de envio
+
+{{url_excluir_acompanhamento}}?hash_txt={{hash_txt}}
+
+Esta é uma mensagem automática. Por favor, não a responda.

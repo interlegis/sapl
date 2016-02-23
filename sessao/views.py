@@ -16,13 +16,13 @@ from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
 
-from .forms import (AcompanharMateriaForm, ExpedienteForm, ListMateriaForm,
-                    MateriaOrdemDiaForm, MesaForm, OradorDeleteForm,
-                    OradorForm, PresencaForm, SessaoForm, VotacaoEditForm,
-                    VotacaoForm, VotacaoNominalForm)
-from .models import (AcompanharMateria, CargoMesa, ExpedienteMateria,
-                     ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
-                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
+from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
+                    MesaForm, OradorDeleteForm, OradorForm, PresencaForm,
+                    SessaoForm, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
+from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
+                     IntegranteMesa, MateriaLegislativa, Orador,
+                     OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
@@ -2363,47 +2363,3 @@ class PautaOrdemDetail(sessao_crud.CrudDetailView):
              'norma': norma,
              'doc_ace': doc_ace,
              'tramitacao': tramitacao})
-
-
-class AcompanharMateriaView(sessao_crud.CrudDetailView):
-    template_name = "sessao/pauta/acompanhar_materia.html"
-
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-        materia = MateriaLegislativa.objects.get(id=pk)
-        return self.render_to_response(
-            {'form': AcompanharMateriaForm(),
-             'materia': materia})
-
-    def post(self, request, *args, **kwargs):
-        form = AcompanharMateriaForm(request.POST)
-        pk = self.kwargs['pk']
-        materia = MateriaLegislativa.objects.get(id=pk)
-
-        if form.is_valid():
-
-            email = form.cleaned_data['email']
-            usuario = request.user
-            try:
-                AcompanharMateria.objects.get(
-                    email=email,
-                    materia_cadastrada=materia)
-            except ObjectDoesNotExist:
-                acompanhar = form.save(commit=False)
-                acompanhar.materia_cadastrada = materia
-                acompanhar.usuario = usuario.username
-                acompanhar.save()
-            else:
-                return self.render_to_response(
-                    {'form': form,
-                     'materia': materia,
-                     'error': 'Essa matéria já está\
-                     sendo acompanhada por este e-mail.'})
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'materia': materia})
-
-    def get_success_url(self):
-        return reverse('sessaoplenaria:list_pauta_sessao')

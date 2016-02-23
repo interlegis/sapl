@@ -1,8 +1,8 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from model_utils import Choices
 
 from materia.models import MateriaLegislativa
+from model_utils import Choices
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
 from sapl.utils import YES_NO_CHOICES
@@ -281,11 +281,3 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
-
-
-class AcompanharMateria(models.Model):
-    usuario = models.CharField(max_length=50)
-    email = models.CharField(
-        max_length=50, verbose_name=_('Endereço de email'))
-    data_cadastro = models.DateField(auto_now_add=True)
-    materia_cadastrada = models.ForeignKey(MateriaLegislativa)

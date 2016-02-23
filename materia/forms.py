@@ -11,10 +11,11 @@ from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
 from sapl.layout import form_actions
 
-from .models import (Anexada, Autor, DespachoInicial, DocumentoAcessorio,
-                     MateriaLegislativa, Numeracao, Origem, Proposicao,
-                     Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
-                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autor, DespachoInicial,
+                     DocumentoAcessorio, MateriaLegislativa, Numeracao, Origem,
+                     Proposicao, Relatoria, StatusTramitacao, TipoAutor,
+                     TipoDocumento, TipoMateriaLegislativa, Tramitacao,
+                     UnidadeTramitacao)
 
 
 def get_range_anos():
@@ -107,6 +108,29 @@ class ProposicaoForm(ModelForm):
         )
         super(ProposicaoForm, self).__init__(
             *args, **kwargs)
+
+
+class AcompanhamentoMateriaForm(ModelForm):
+
+    class Meta:
+        model = AcompanhamentoMateria
+        fields = ['email']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = sapl.layout.to_row([('email', 10)])
+
+        row1.append(
+            Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
+            )
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Acompanhamento de Matéria por e-mail', row1
+            )
+        )
+        super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
 
 
 class DocumentoAcessorioForm(ModelForm):
