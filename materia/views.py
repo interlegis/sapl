@@ -1,5 +1,7 @@
 from datetime import datetime
+from random import choice
 from re import sub
+from string import ascii_letters, digits
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
@@ -1495,6 +1497,10 @@ class AcompanhamentoMateriaView(FormMixin,
                                 materia_legislativa_crud.CrudDetailView):
     template_name = "materia/acompanhamento_materia.html"
 
+    def get_random_chars(self):
+        s = ascii_letters + digits
+        return ''.join(choice(s) for i in range(choice([6, 7])))
+
     def get(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
         materia = MateriaLegislativa.objects.get(id=pk)
@@ -1511,12 +1517,16 @@ class AcompanhamentoMateriaView(FormMixin,
 
             email = form.cleaned_data['email']
             usuario = request.user
+            hash_txt = self.get_random_chars()
+
             try:
                 AcompanhamentoMateria.objects.get(
                     email=email,
-                    materia=materia)
+                    materia=materia,
+                    hash=hash_txt)
             except ObjectDoesNotExist:
                 acompanhar = form.save(commit=False)
+                acompanhar.hash = hash_txt
                 acompanhar.materia = materia
                 acompanhar.usuario = usuario.username
                 acompanhar.save()
