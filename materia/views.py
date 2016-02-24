@@ -1004,7 +1004,7 @@ class RelatoriaView(FormMixin, GenericView):
                      'parlamentares': parlamentares})
 
 
-def criar_corpo(materia, hash_txt):
+def criar_html_email(materia, hash_txt):
 
     header_tpl = Template('''
                             <html>
@@ -1025,22 +1025,24 @@ def criar_corpo(materia, hash_txt):
                                         $data_registro
                                     </p>
                             <h4>
-                                <a href='"+context.consultas.absolute_url()+
-                                "/materia/materia_mostrar_proc?cod_materia=
-                                $cod_materia'><b>{{descricao_materia}}</b></a>
+                                <a href='context.consultas.absolute_url()
+                                /materia/materia_mostrar_proc?cod_materia=
+                                $cod_materia'><b>$descricao_materia</b></a>
                                 <br/><br/>
                             ''')
     casa = CasaLegislativa.objects.first()
     header = header_tpl.substitute(image=static('img/logo.png'),
-                                   casa_legislativa=casa,
-                                   data_registro=datetime.now(),
+                                   casa_legislativa=casa.nome + ' de ' +\
+                                                    casa.municipio + '-' + \
+                                                    casa.uf,
+                                   data_registro=datetime.now().strftime("%d/%m/%Y"),
                                    cod_materia=materia.id,
                                    descricao_materia=materia.ementa)
 
-    autoria = "<b>Autoria: </b>"
+    autoria_html = "<b>Autoria: </b>"
 
-    for autor in materia.autoria_set.all():
-        autoria += autor.nom_autor + "<br/> "
+    for autoria in materia.autoria_set.all():
+        autoria_html += autoria.autor.nome + "<br/> "
 
     footer_tpl = Template('''
                         </h4>
@@ -1052,7 +1054,7 @@ def criar_corpo(materia, hash_txt):
                              $texto_acao</p>
                             <hr>
                             <p>
-                                <a href='$url?txt_hash=$hash_txt'>
+                                <a href='$url?hash_txt=$hash_txt'>
                                 Clique aqui para excluir seu e-mail da
                                  lista de envio</a>
                             <p>
@@ -1061,8 +1063,7 @@ def criar_corpo(materia, hash_txt):
                         </body>
                         </html>
                         ''')
-    url = reverse('acompanhar_excluir', kwargs={'pk': materia.id}) + \
-        "?hash="+hash_txt
+    url = reverse('acompanhar_excluir', kwargs={'pk': materia.id})
     footer = footer_tpl.substitute(
         data=materia.tramitacao_set.last().data_tramitacao,
         status=materia.tramitacao_set.last().status,
@@ -1070,7 +1071,7 @@ def criar_corpo(materia, hash_txt):
         hash_txt=hash_txt,
         url=url)
 
-    html_email_body = header + autoria + footer
+    html_email_body = header + autoria_html + footer
 
     return html_email_body
 
@@ -1082,9 +1083,9 @@ def enviar_emails(materia):
         confirmado=True)
 
     for destinatario in destinatarios:
-        corpo_email = criar_corpo(materia, destinatario.hash_txt)
+        corpo_email_html = criar_html_email(materia, destinatario.hash_txt)
         send_mail('Mudança de Tramitação',
-                  corpo_email,
+                  corpo_email_html,
                   'sapl-test@interlegis.leg.br',
                   destinatario,
                   fail_silently=True)
