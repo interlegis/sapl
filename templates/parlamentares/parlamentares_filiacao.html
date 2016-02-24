@@ -4,17 +4,19 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
 
-<strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
+	<h2><strong>Parlamentar: </strong>{{ object.nome_parlamentar }}</h2>
 
-<fieldset>
-	<legend>Filiações</legend>
+	<fieldset>
+		<legend>Filiações</legend>
 
-	<table>
-		<tr>
-			<th><strong>Partido</strong></th>
-			<th><strong>Data Filiação</strong></th>
-			<th><strong>Data Desfiliação</strong></th>
-		</tr>
+		<table class="table table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th><strong>Partido</strong></th>
+					<th><strong>Data Filiação</strong></th>
+					<th><strong>Data Desfiliação</strong></th>
+				</tr>
+			</thead>
 			{% for f in filiacoes %}
 				<tr>
 					<td><a href="{% url 'parlamentares_filiacao_edit' object.id f.id %}">{{f.partido.sigla}}</a></td>
@@ -22,7 +24,7 @@
 					<td>{{f.data_desfiliacao|default_if_none:""}}</td>
 				</tr>
 			{% endfor %}
-	</table>
-</fieldset>
-{% crispy form %}
+		</table>
+	</fieldset>
+	{% crispy form %}
 {% endblock detail_content %}

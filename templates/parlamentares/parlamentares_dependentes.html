@@ -4,17 +4,19 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
 
-<strong>Parlamentar: </strong>{{ parlamentar.nome_parlamentar }}
+	<h2><strong>Parlamentar: </strong>{{ object.nome_parlamentar }}</h2>
 
-<fieldset>
-	<legend>Dependentes</legend>
+	<fieldset>
+		<legend>Dependentes</legend>
 
-	<table>
-		<tr>
-			<th><strong>Nome Dependente</strong></th>
-			<th><strong>Tipo</strong></th>
-			<th><strong>Data de Nascimento</strong></th>
-		</tr>
+		<table class="table table-striped table-bordered">
+			<thead class="thead-default">
+				<tr>
+					<th><strong>Nome Dependente</strong></th>
+					<th><strong>Tipo</strong></th>
+					<th><strong>Data de Nascimento</strong></th>
+				</tr>
+			</thead>
 			{% for d in dependentes %}
 				<tr>
 					<td><a href="{% url 'parlamentares_dependentes_edit' object.id d.id %}">{{d.nome}}</a></td>
@@ -22,9 +24,9 @@
 					<td>{{d.data_nascimento|default_if_none:""}}</td>
 				</tr>
 			{% endfor %}
-	</table>
-</fieldset>
+		</table>
+	</fieldset>
 
-{% crispy form %}
+	{% crispy form %}
 
 {% endblock detail_content %}
