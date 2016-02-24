@@ -3,10 +3,6 @@ from random import choice
 from re import sub
 from string import Template, ascii_letters, digits
 
-from base.models import CasaLegislativa
-from comissoes.models import Comissao, Composicao
-from compilacao.views import IntegracaoTaView
-from crud import build_crud, make_pagination
 from django.contrib import messages
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ObjectDoesNotExist
@@ -18,9 +14,14 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
+from vanilla.views import GenericView
+
+from base.models import CasaLegislativa
+from comissoes.models import Comissao, Composicao
+from compilacao.views import IntegracaoTaView
+from crud import build_crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
-from vanilla.views import GenericView
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -770,9 +771,8 @@ class AcompanhamentoConfirmarView(TemplateView):
         materia_id = kwargs['pk']
         hash_txt = request.GET.get('hash', '')
 
-        acompanhar = AcompanhamentoMateria.objects.get(
-                                                   materia_id=materia_id,
-                                                   hash=hash_txt)
+        acompanhar = AcompanhamentoMateria.objects.get(materia_id=materia_id,
+                                                       hash=hash_txt)
 
         acompanhar.confirmado = True
         acompanhar.save()
@@ -1006,74 +1006,67 @@ class RelatoriaView(FormMixin, GenericView):
 
 def criar_html_email(materia, hash_txt):
 
-    header_tpl = Template('''
-                            <html>
-                                <head></head>
-                                <body bgcolor='#ffffff'>
-                                    <p align='center'>
-                                        <img src="$image" width='81'
-                                        height='77'>
-                                    </p>
-                                    <h2 align='center'><b>$casa_legislativa</b>
-                                        <br/>
-                                        Sistema de Apoio ao
-                                         Processo Legislativo
-                                    </h2>
-                                    <p>A seguinte mat&eacute;ria de seu
-                                        interesse sofreu
-                                        tramita&ccedil;&atilde;o registrada em
-                                        $data_registro
-                                    </p>
+    html_tpl = Template('''
+                        <html>
+                        <head></head>
+                        <body bgcolor='#ffffff'>
+                            <p align='center'>
+                                <img src="$image" width='81' height='77'>
+                            </p>
+                            <h2 align='center'><b>$casa_legislativa</b><br/>
+                                Sistema de Apoio ao Processo Legislativo
+                            </h2>
+                            <p>
+                                A seguinte mat&eacute;ria de seu interesse
+                                 sofreu tramita&ccedil;&atilde;o registrada
+                                 $data_registro
+                            </p>
                             <h4>
                                 <a href='context.consultas.absolute_url()
                                 /materia/materia_mostrar_proc?cod_materia=
                                 $cod_materia'><b>$descricao_materia</b></a>
                                 <br/><br/>
-                            ''')
-    casa = CasaLegislativa.objects.first()
-    header = header_tpl.substitute(image=static('img/logo.png'),
-                                   casa_legislativa=casa.nome + ' de ' +\
-                                                    casa.municipio + '-' + \
-                                                    casa.uf,
-                                   data_registro=datetime.now().strftime("%d/%m/%Y"),
-                                   cod_materia=materia.id,
-                                   descricao_materia=materia.ementa)
-
-    autoria_html = "<b>Autoria: </b>"
-
-    for autoria in materia.autoria_set.all():
-        autoria_html += autoria.autor.nome + "<br/> "
-
-    footer_tpl = Template('''
-                        </h4>
-                        <p></p>
+                                <b>Autoria: </b>$autoria
+                            </h4>
                         <p>
                             <b>Data da a&ccedil;&atilde;o</b>: $data<br/>
                             <b>Status</b>: $status<br/>
-                            <b>Texto da a&ccedil;&atilde;o</b>:
-                             $texto_acao</p>
+                            <b>Texto da a&ccedil;&atilde;o</b>: $texto_acao</p>
                             <hr>
                             <p>
                                 <a href='$url?hash_txt=$hash_txt'>
-                                Clique aqui para excluir seu e-mail da
-                                 lista de envio</a>
+                                Clique aqui para excluir seu e-mail da lista
+                                 de envio</a>
                             <p>
                             <p>Esta &eacute; uma mensagem autom&aacute;tica.
                              Por favor, n&atilde;o a responda.</p>
                         </body>
-                        </html>
-                        ''')
+                        </html>''')
+
+    casa = CasaLegislativa.objects.first()
+    casa_nome = (casa.nome + ' de ' + casa.municipio + '-' + casa.uf)
+
     url = reverse('acompanhar_excluir', kwargs={'pk': materia.id})
-    footer = footer_tpl.substitute(
-        data=materia.tramitacao_set.last().data_tramitacao,
-        status=materia.tramitacao_set.last().status,
-        texto_acao=materia.tramitacao_set.last().texto,
-        hash_txt=hash_txt,
-        url=url)
 
-    html_email_body = header + autoria_html + footer
+    for autoria in materia.autoria_set.all():
+        autoria_html += autoria.autor.nome + "<br/> "
 
-    return html_email_body
+    html_body = html_tpl.substitute(image=static('img/logo.png'),
+                                    casa_legislativa=casa_nome,
+                                    data_registro=datetime.now().strftime(
+                                    "%d/%m/%Y"),
+                                    cod_materia=materia.id,
+                                    descricao_materia=materia.ementa,
+                                    autoria=autoria_html,
+                                    data=materia.tramitacao_set.last(
+                                        ).data_tramitacao,
+                                    status=materia.tramitacao_set.last(
+                                        ).status,
+                                    texto_acao=materia.tramitacao_set.last(
+                                        ).texto,
+                                    hash_txt=hash_txt,
+                                    url=url,)
+    return html_body
 
 
 def enviar_emails(materia):
@@ -1130,6 +1123,8 @@ class TramitacaoView(FormMixin, GenericView):
                      'object': materia,
                      'tramitacoes': tramitacoes_list})
 
+            # Manda por parametro para 'enviar_emails' ?
+            img_url = request.get_host() + static('img/logo.png')
             self.enviar_emails(materia)
             return self.form_valid(form)
         else:
