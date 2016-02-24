@@ -6,4 +6,4 @@ pep8
 pytest
 pytest-cov
 pytest-django
-WebTest
+webtest
