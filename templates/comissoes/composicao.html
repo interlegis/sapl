@@ -1,50 +1,52 @@
-{% extends "comissoes/comissao_detail.html" %}
+{% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 {% block actions %} {% endblock %}
 {% block detail_content %}
 
-{% if composicao_id != 0 %}
-	<table>
-		<tr>
-			<th>Nome</th>
-			<th>Cargo</th>
-			<th>Titular</th>
-			<th>Designação</th>
-			<th>Desligamento</th>
-			<th>Motivo</th>
-			<th>Observação</th>
-		</tr>
-
-		<form method="POST">
-
-			{% csrf_token %}
-			<select id="periodo" name="periodo" onChange="form.submit();">
-				{% for c in composicoes %}
-					<option value="{{c.id}}" {% if composicao_id == c.id %} selected {% endif %}>
-						{{ c.periodo.data_inicio|date:"d/m/Y" }} - {{ c.periodo.data_fim|date:"d/m/Y" }}
-					</option>
-				{% endfor %}
-			</select>
-		</form>
-
-		{% for participacao in participacoes %}
-			{% if participacao.composicao_id == composicao_id %}
+	{% if composicao_id != 0 %}
+		<table class="table table-striped table-bordered">
+			<thead class="thead-default">
 				<tr>
-					<td><a href="{% url 'comissao:comissao_parlamentar_edit' pk composicao_id participacao.id %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
-					<td>{{participacao.cargo}}</td>
-					<td>{{participacao.titular|yesno:"Sim,Não"}}</td>	
-					<td>{{participacao.data_designacao|date:"d/m/Y"}}</td>
-					<td>{{participacao.data_desligamento|date:"d/m/Y"|default:"-"}}</td>
-					<td>{{participacao.motivo_desligamento|default:"-"}}</td>
-					<td>{{participacao.observacao|default:"-"}}</td>
+					<th>Nome</th>
+					<th>Cargo</th>
+					<th>Titular</th>
+					<th>Designação</th>
+					<th>Desligamento</th>
+					<th>Motivo</th>
+					<th>Observação</th>
 				</tr>
-			{% endif %}
-		{% endfor %}
+			</thead>
 
-	</table>
+			<form method="POST">
 
-	<a href="{% url 'comissao:comissao_parlamentar' pk composicao_id %}" class="button primary">Incluir Parlamentar</a>
-{% endif %}
+				{% csrf_token %}
+				<select id="periodo" name="periodo" class="form-control" onChange="form.submit();">
+					{% for c in composicoes %}
+						<option value="{{c.id}}" {% if composicao_id == c.id %} selected {% endif %}>
+							{{ c.periodo.data_inicio|date:"d/m/Y" }} - {{ c.periodo.data_fim|date:"d/m/Y" }}
+						</option>
+					{% endfor %}
+				</select>
+			</form>
+			<br />
+			{% for participacao in participacoes %}
+				{% if participacao.composicao_id == composicao_id %}
+					<tr>
+						<td><a href="{% url 'comissao:comissao_parlamentar_edit' pk composicao_id participacao.id %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
+						<td>{{participacao.cargo}}</td>
+						<td>{{participacao.titular|yesno:"Sim,Não"}}</td>
+						<td>{{participacao.data_designacao|date:"d/m/Y"}}</td>
+						<td>{{participacao.data_desligamento|date:"d/m/Y"|default:"-"}}</td>
+						<td>{{participacao.motivo_desligamento|default:"-"}}</td>
+						<td>{{participacao.observacao|default:"-"}}</td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+
+		</table>
+
+		<a href="{% url 'comissao:comissao_parlamentar' pk composicao_id %}" class="btn btn-primary">Incluir Parlamentar</a>
+	{% endif %}
 
 {% endblock detail_content %}
