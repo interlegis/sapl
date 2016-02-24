@@ -5,22 +5,19 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-		Ementa: <b>{{object.ementa}}</b>
+		{% include "materia/resumo_detail_materia.html" %}
 
 		<fieldset>
 			<legend>Documentos Acessório</legend>
-			<table>
-				<tr>
-					<th>Nome</th>
-					<th>Tipo</th>
-					<th>Data</th>
-					<th>Autor</th>
-				</tr>
+			<table class="table table-striped table-bordered">
+				<thead class="thead-default">
+					<tr>
+						<th>Nome</th>
+						<th>Tipo</th>
+						<th>Data</th>
+						<th>Autor</th>
+					</tr>
+				</thead>
 					{% for d in docs %}
 						<tr>
 							<td><a href="{% url 'documento_acessorio_edit' object.id d.id %}">{{d.nome}}</a></td>

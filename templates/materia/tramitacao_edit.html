@@ -5,48 +5,43 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-		Ementa: <b>{{object.ementa}}</b>
+		{% include "materia/resumo_detail_materia.html" %}
 
-		<fieldset>
+		<fieldset class="form-group">
 			<legend>Editar Tramitação</legend>
 				<form method="POST">
 					{% csrf_token %}
           <div class="row">
             <div class="col-md-6">
               <label>Data Tramitação</label>
-              <input type="text" name="data_tramitacao" class="dateinput" value="{{tramitacao.data_tramitacao|date:'d/m/Y'}}" disabled />
+              <input type="text" name="data_tramitacao" class="dateinput form-control" value="{{tramitacao.data_tramitacao|date:'d/m/Y'}}" disabled />
             </div>
             <div class="col-md-6">
               <label>Unidade Local</label>
-              <input type="text" name="unidade_tramitacao_local" value="{{tramitacao.unidade_tramitacao_local}}" disabled />
+              <input type="text" name="unidade_tramitacao_local" value="{{tramitacao.unidade_tramitacao_local}} " disabled class="form-control"/>
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-4">
               <label>Status*</label>
-              <select name="status">
+              <select name="status" class="form-control">
                 {% for s in status %}
-                <option value="{{s.id}}" {% if s.id == tramitacao.status.id %} selected {% endif %}>
-                {{s.descricao}}
-                </option>
+	                <option value="{{s.id}}" {% if s.id == tramitacao.status.id %} selected {% endif %}>
+	                	{{s.descricao}}
+	                </option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-md-4">
               <label>Turno*</label>
-              <select name="turno">
+              <select name="turno" class="form-control">
                 {% for a, b in turno %}
                 <option value="{{a}}">{{b}}</option>
                 {% endfor %}
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 checkbox">
               <input type="checkbox" name="urgente" value="{{tramtiacao.urgente}}" /> Urgente ?<br />
             </div>
           </div>
@@ -54,11 +49,11 @@
           <div class="row">
             <div class="col-md-12">
               <label>Unidade Destino</label>
-              <select name="unidade_tramitacao_destino">
+              <select name="unidade_tramitacao_destino" class="form-control">
                 {% for u in unidade_tramitacao %}
-                <option value="{{u.id}}" {% if u.id == tramitacao.unidade_tramitacao_destino.id %} selected {% endif %}>
-                {{u.orgao}} - {{u.comissao}}
-                </option>
+	                <option value="{{u.id}}" {% if u.id == tramitacao.unidade_tramitacao_destino.id %} selected {% endif %}>
+	                	{{u.orgao}} - {{u.comissao}}
+	                </option>
                 {% endfor %}
               </select>
             </div>
@@ -67,23 +62,23 @@
           <div class="row">
             <div class="col-md-6">
               <label>Data Encaminhamento</label>
-              <input type="text" name="data_encaminhamento" class="dateinput" value="{{tramitacao.data_encaminhamento|date:'d/m/Y'}}" />
+              <input type="text" name="data_encaminhamento" class="dateinput form-control" value="{{tramitacao.data_encaminhamento|date:'d/m/Y'}}" />
             </div>
             <div class="col-md-6">
               <label>Data Fim Prazo</label>
-              <input type="text" name="data_fim_prazo" class="dateinput" value="{{tramitacao.data_fim_prazo|date:'d/m/Y'}}" />
+              <input type="text" name="data_fim_prazo" class="dateinput form-control" value="{{tramitacao.data_fim_prazo|date:'d/m/Y'}}" />
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-12">
               <label>Texto da Ação</label>
-              <textarea rows="4" cols="50" name="texto">{{tramitacao.texto}}</textarea>
+              <textarea rows="4" cols="50" name="texto" class="form-control">{{tramitacao.texto}}</textarea>
             </div>
           </div>
-
-					<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
-					<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
+					<br />
+					<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
+					<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />
 				</form>
 		</fieldset>
 	</fieldset>

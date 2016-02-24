@@ -1,16 +1,19 @@
 {% extends "materia/materialegislativa_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% block actions %}{% endblock %}
 {% block sections_nav %} {% endblock %}
 {% block detail_content %}
-{% if materias %}				
-	<table>
-		<tr><td><h2>Resultados</h2></td></tr>
+{% if materias %}
+	<table class="table table-striped table-bordered">
+		<thead class="thead-default">
+			<tr><td><h3>Resultados</h3></td></tr>
+		</thead>
 		{% for m in materias %}
 			<tr>
 				<td>
 					<strong><a href="{% url 'materialegislativa:detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
-					{{ m.ementa }}</br>
+					{{ m.ementa|safe }}</br>
 					<strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
 					<p></p>
 			</tr>

@@ -5,14 +5,9 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-		Ementa: <b>{{object.ementa}}</b>
+		{% include "materia/resumo_detail_materia.html" %}
 
-		<fieldset>
+		<fieldset class="form-group">
 			<legend>Editar Relator</legend>
 			<form method="POST">
 				{% csrf_token %}
@@ -20,45 +15,46 @@
         <div class="row">
           <div class="col-md-12">
             Localização Atual
-            <input type="text" name="comissao" disabled value="{{relatoria.comissao.nome}}" />
+            <input type="text" name="comissao" disabled value="{{relatoria.comissao.nome}}" class="form-control"/>
           </div>
         </div>
         <div class="row">
           <div class="col-md-6">
             Data Designação*
-            <input type="text" name="data_designacao_relator" class ="dateinput" value="{{relatoria.data_designacao_relator}}" />
+            <input type="text" name="data_designacao_relator" class ="dateinput form-control" value="{{relatoria.data_designacao_relator}}" />
           </div>
           <div class="col-md-6">
             Data Destituição
-            <input type="text" name="data_destituicao_relator" class ="dateinput" value="{{relatoria.data_destituicao_relator}}" />
+            <input type="text" name="data_destituicao_relator" class ="dateinput form-control" value="{{relatoria.data_destituicao_relator}}" />
           </div>
         </div>
         <div class="row">
           <div class="col-md-6">
             Parlamentar*
-            <select name="parlamentar">
+            <select name="parlamentar" class="form-control">
               <option value=""> ---------- </option>
               {% for p in parlamentares %}
-              <option value="{{p.parlamentar_id}}" {% if relatoria.parlamentar_id == p.parlamentar_id %} selected {% endif %}>
-              {{p.parlamentar}}
-              </option>
+	              <option value="{{p.parlamentar_id}}" {% if relatoria.parlamentar_id == p.parlamentar_id %} selected {% endif %}>
+	              	{{p.parlamentar}}
+	              </option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-6">
             Motivo Fim Relatoria
-            <select name="tipo_fim_relatoria">
+            <select name="tipo_fim_relatoria" class="form-control">
               <option value=""> ---------- </option>
               {% for t in tipo_fim_relatorias %}
-              <option value="{{t.id}}" {% if t.id == relatoria.tipo_fim_relatoria_id %} selected {% endif %}>
-              {{t.descricao}}
-              </option>
+	              <option value="{{t.id}}" {% if t.id == relatoria.tipo_fim_relatoria_id %} selected {% endif %}>
+	              	{{t.descricao}}
+	              </option>
               {% endfor %}
             </select>
           </div>
         </div>
-				<input type="submit" name="salvar" value="Salvar" class="primary button"/>
-				<input type="submit" name="excluir" value="Excluir" class="primary button"/>
+				<br />
+				<input type="submit" name="salvar" value="Salvar" class="btn btn-primary"/>
+				<input type="submit" name="excluir" value="Excluir" class="btn btn-danger"/>
 			</form>
 		</fieldset>
 	</fieldset>

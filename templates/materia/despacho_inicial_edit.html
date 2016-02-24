@@ -5,25 +5,21 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-		Ementa: <b>{{object.ementa}}</b>
+		{% include "materia/resumo_detail_materia.html" %}
+
 		<form method="POST">
 		{% csrf_token %}
 
-			<fieldset>
+			<fieldset class="form-group">
 				<legend>Editar Despacho</legend>
-				<select name="comissao">
+				<select name="comissao" class="form-control">
 					{% for c in comissoes %}
 						<option value="{{c.id}}" {% if c.id == despacho.comissao.id %} selected {% endif %}> {{c.nome}} </option>
 					{% endfor %}
 				</select>
-
-				<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
-				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
+				<br />
+				<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
+				<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />
 			</fieldset>
 		</form>
 	</fieldset>
