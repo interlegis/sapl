@@ -167,7 +167,7 @@ class ParlamentaresForm (ModelForm):
                         <input type="submit"
                                name="remover"
                                id="remover"
-                               class="button primary"
+                               class="btn btn-warning"
                                value="Remover Foto"/>
                          {% endif %}""", ),
                      row14,
