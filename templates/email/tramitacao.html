@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load static %}
+<html>
+    <head></head>
+    <body bgcolor='#ffffff'>
+        <p align='center'>
+          <img src="{{base_url}}{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+           alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
+        </p>
+        <h2 align='center'><b>{{casa_legislativa}}</b>
+            <br/>
+            Sistema de Apoio ao Processo Legislativo
+        </h2>
+        <p>A seguinte mat&eacute;ria de seu interesse sofreu
+            tramita&ccedil;&atilde;o registrada em {{data_registro}}
+        </p>
+<h4>
+    <a href="{{base_url}}{{materia_url}}"><b>{{materia}} - {{descricao_materia}}</b></a>
+    <br/><br/>
+<b>Autoria:</b></br>
+{% for autor in autoria %}
+     {{ autor }}</br>
+{% endfor %}
+</h4>
+<p></p>
+<p>
+    <b>Data da a&ccedil;&atilde;o</b>: {{data}}<br/>
+    <b>Status</b>: {{status}}<br/>
+    <b>Texto da a&ccedil;&atilde;o</b>: {{texto_acao}}</p>
+    <hr>
+    <p>
+        <a href="{{base_url}}{{excluir_url}}?hash_txt={{hash_txt}}">
+        Clique aqui para excluir seu e-mail da lista de envio</a>
+    <p>
+    <p>Esta &eacute; uma mensagem autom&aacute;tica.
+     Por favor, n&atilde;o a responda.</p>
+</body>
+</html>

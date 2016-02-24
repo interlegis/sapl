@@ -21,6 +21,15 @@ def xstr(s):
     return '' if s is None else str(s)
 
 
+def get_base_url(request):
+    # TODO substituir por Site.objects.get_current().domain
+    # from django.contrib.sites.models import Site
+
+    current_domain = request.get_host()
+    protocol = 'https' if request.is_secure() else 'http'
+    return "{0}://{1}".format(protocol, current_domain)
+
+
 def create_barcode(value):
     '''
         creates a base64 encoded barcode PNG image

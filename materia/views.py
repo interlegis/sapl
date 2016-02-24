@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.template import Context, loader
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
@@ -22,6 +23,8 @@ from compilacao.views import IntegracaoTaView
 from crud import build_crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
+
+from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -769,11 +772,10 @@ class AcompanhamentoConfirmarView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
-        hash_txt = request.GET.get('hash', '')
+        hash_txt = request.GET.get('hash_txt', '')
 
         acompanhar = AcompanhamentoMateria.objects.get(materia_id=materia_id,
                                                        hash=hash_txt)
-
         acompanhar.confirmado = True
         acompanhar.save()
 
@@ -787,10 +789,13 @@ class AcompanhamentoExcluirView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
-        hash_txt = request.GET.get('hash', '')
+        hash_txt = request.GET.get('hash_txt', '')
 
-        AcompanhamentoMateria.objects.get(materia_id=materia_id,
+        try:
+            AcompanhamentoMateria.objects.get(materia_id=materia_id,
                                           hash=hash_txt).delete()
+        except ObjectDoesNotExist:
+            pass
 
         return HttpResponseRedirect(self.get_redirect_url())
 
@@ -1004,84 +1009,190 @@ class RelatoriaView(FormMixin, GenericView):
                      'parlamentares': parlamentares})
 
 
-def criar_html_email(materia, hash_txt):
+def load_email_templates(templates, context = {}):
 
-    html_tpl = Template('''
-                        <html>
-                        <head></head>
-                        <body bgcolor='#ffffff'>
-                            <p align='center'>
-                                <img src="$image" width='81' height='77'>
-                            </p>
-                            <h2 align='center'><b>$casa_legislativa</b><br/>
-                                Sistema de Apoio ao Processo Legislativo
-                            </h2>
-                            <p>
-                                A seguinte mat&eacute;ria de seu interesse
-                                 sofreu tramita&ccedil;&atilde;o registrada
-                                 $data_registro
-                            </p>
-                            <h4>
-                                <a href='context.consultas.absolute_url()
-                                /materia/materia_mostrar_proc?cod_materia=
-                                $cod_materia'><b>$descricao_materia</b></a>
-                                <br/><br/>
-                                <b>Autoria: </b>$autoria
-                            </h4>
-                        <p>
-                            <b>Data da a&ccedil;&atilde;o</b>: $data<br/>
-                            <b>Status</b>: $status<br/>
-                            <b>Texto da a&ccedil;&atilde;o</b>: $texto_acao</p>
-                            <hr>
-                            <p>
-                                <a href='$url?hash_txt=$hash_txt'>
-                                Clique aqui para excluir seu e-mail da lista
-                                 de envio</a>
-                            <p>
-                            <p>Esta &eacute; uma mensagem autom&aacute;tica.
-                             Por favor, n&atilde;o a responda.</p>
-                        </body>
-                        </html>''')
+    emails = []
+    for t in templates:
+        tpl = loader.get_template(t)
+        email = tpl.render(Context(context))
+        if t.endswith(".html"):
+            email = email.replace('\n', '').replace('\r', '')
+        emails.append(email)
+    return emails
 
-    casa = CasaLegislativa.objects.first()
-    casa_nome = (casa.nome + ' de ' + casa.municipio + '-' + casa.uf)
 
-    url = reverse('acompanhar_excluir', kwargs={'pk': materia.id})
+def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
 
+    if not casa_legislativa:
+        raise ValueError("Casa Legislativa é obrigatória")
+
+    if not materia:
+        raise ValueError("Matéria é obrigatória")
+
+    casa_nome = (casa_legislativa.nome + ' de ' + \
+                 casa_legislativa.municipio + '-' + \
+                 casa_legislativa.uf)
+
+    base_url = get_base_url(request)
+    materia_url = reverse('acompanhar_materia', kwargs={'pk': materia.id})
+    confirmacao_url = reverse('acompanhar_confirmar', kwargs={'pk': materia.id})
+
+    autores = []
     for autoria in materia.autoria_set.all():
-        autoria_html += autoria.autor.nome + "<br/> "
+        autores.append(autoria.autor.nome)
 
-    html_body = html_tpl.substitute(image=static('img/logo.png'),
-                                    casa_legislativa=casa_nome,
-                                    data_registro=datetime.now().strftime(
-                                    "%d/%m/%Y"),
-                                    cod_materia=materia.id,
-                                    descricao_materia=materia.ementa,
-                                    autoria=autoria_html,
-                                    data=materia.tramitacao_set.last(
+    templates = load_email_templates(['email/acompanhar.txt',
+                                      'email/acompanhar.html'],
+                                   {"casa_legislativa":casa_nome,
+                                    "logotipo": casa_legislativa.logotipo,
+                                    "descricao_materia":materia.ementa,
+                                    "autoria": autores,
+                                    "hash_txt":hash_txt,
+                                    "base_url": base_url,
+                                    "materia": str(materia),
+                                    "materia_url": materia_url,
+                                    "confirmacao_url":confirmacao_url,})
+    return templates
+
+
+def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
+
+    if not casa_legislativa:
+        raise ValueError("Casa Legislativa é obrigatória")
+
+    if not materia:
+        raise ValueError("Matéria é obrigatória")
+
+    casa_nome = (casa_legislativa.nome + ' de ' + \
+                 casa_legislativa.municipio + '-' + \
+                 casa_legislativa.uf)
+
+    base_url = get_base_url(request)
+    url_materia = reverse('acompanhar_materia', kwargs={'pk': materia.id})
+    url_excluir = reverse('acompanhar_excluir', kwargs={'pk': materia.id})
+
+    autores = []
+    for autoria in materia.autoria_set.all():
+        autores.append(autoria.autor.nome)
+
+    templates = load_email_templates(['email/tramitacao.txt',
+                                      'email/tramitacao.html'],
+                                   {"casa_legislativa":casa_nome,
+                                    "data_registro":datetime.now().strftime(
+                                         "%d/%m/%Y"),
+                                    "cod_materia":materia.id,
+                                    "logotipo": casa_legislativa.logotipo,
+                                    "descricao_materia":materia.ementa,
+                                    "autoria": autores,
+                                    "data":materia.tramitacao_set.last(
                                         ).data_tramitacao,
-                                    status=materia.tramitacao_set.last(
+                                    "status":materia.tramitacao_set.last(
                                         ).status,
-                                    texto_acao=materia.tramitacao_set.last(
+                                    "texto_acao":materia.tramitacao_set.last(
                                         ).texto,
-                                    hash_txt=hash_txt,
-                                    url=url,)
-    return html_body
+                                    "hash_txt":hash_txt,
+                                    "materia": str(materia),
+                                    "base_url": base_url,
+                                    "materia_url": url_materia,
+                                    "excluir_url":url_excluir,})
+    return templates
 
 
-def enviar_emails(materia):
+def enviar_emails(sender, recipients, messages):
+    '''
+        Recipients is a string list of email addresses
 
-    destinatarios = AcompanhamentoMateria.objects.filter(
-        materia=materia,
-        confirmado=True)
+        Messages is an array of dicts of the form:
+        {'recipient': 'address', # useless????
+         'subject': 'subject text',
+         'txt_message': 'text message',
+         'html_message': 'html message'
+        }
+    '''
 
+    if len(messages) == 1:
+        # sends an email simultaneously to all recipients
+        send_mail(messages[0]['subject'],
+                  messages[0]['txt_message'],
+                  sender,
+                  recipients,
+                  html_message = messages[0]['html_message'],
+                  fail_silently=False)
+
+    elif len(recipients) > len(messages):
+        raise ValueError("Message list should have size 1 \
+                         or equal recipient list size. \
+                         recipients: %s, messages: %s" % (recipients, messages))
+
+    else:
+        # sends an email simultaneously to all reciepients
+        for (d, m) in zip(recipients, messages):
+            send_mail(m['subject'],
+                      m['txt_message'],
+                      sender,
+                      [d],
+                      html_message = m['html_message'],
+                      fail_silently=False)
+    return None
+
+
+def do_envia_email_confirmacao(request, materia, email):
+    #
+    # Envia email de confirmacao para atualizações de tramitação
+    #
+    destinatario = AcompanhamentoMateria.objects.get(materia=materia,
+                                                     email=email,
+                                                     confirmado=False)
+    casa = CasaLegislativa.objects.first()
+
+    sender = 'sapl-test@interlegis.leg.br'
+    subject = "[SAPL] "+ str(materia) +" - Ative o Acompanhamento da Materia"
+    messages = []
+    recipients = []
+
+    email_texts = criar_email_confirmacao(request,
+                                          casa,
+                                          materia,
+                                          destinatario.hash,)
+    recipients.append(destinatario.email)
+    messages.append({
+             'recipient': destinatario.email,
+             'subject': subject,
+             'txt_message': email_texts[0],
+             'html_message': email_texts[1]
+     })
+
+    enviar_emails(sender, recipients, messages)
+    return None
+
+
+def do_envia_email_tramitacao(request, materia):
+    #
+    # Envia email de tramitacao para usuarios cadastrados
+    #
+    destinatarios = AcompanhamentoMateria.objects.filter(materia=materia,
+                                                         confirmado=True)
+    casa = CasaLegislativa.objects.first()
+
+    sender = 'sapl-test@interlegis.leg.br'
+    subject = "[SAPL] "+ str(materia) +" - Acompanhamento de Materia Legislativa"
+    messages = []
+    recipients = []
     for destinatario in destinatarios:
-        corpo_email_html = criar_html_email(materia, destinatario.hash_txt)
-        send_mail('Mudança de Tramitação',
-                  corpo_email_html,
-                  'sapl-test@interlegis.leg.br',
-                  destinatario,
-                  fail_silently=True)
+        email_texts = criar_email_tramitacao(request,
+                                             casa,
+                                             materia,
+                                             destinatario.hash,)
+        recipients.append(destinatario.email)
+        messages.append({
+             'recipient': destinatario.email,
+             'subject': subject,
+             'txt_message': email_texts[0],
+             'html_message': email_texts[1]
+         })
+
+    enviar_emails(sender, recipients, messages)
+    return None
 
 
 class TramitacaoView(FormMixin, GenericView):
@@ -1123,9 +1234,8 @@ class TramitacaoView(FormMixin, GenericView):
                      'object': materia,
                      'tramitacoes': tramitacoes_list})
 
-            # Manda por parametro para 'enviar_emails' ?
-            img_url = request.get_host() + static('img/logo.png')
-            self.enviar_emails(materia)
+                do_envia_email_tramitacao(request, materia)
+
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
@@ -1135,7 +1245,6 @@ class TramitacaoView(FormMixin, GenericView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('tramitacao_materia', kwargs={'pk': pk})
-
 
 class TramitacaoEditView(FormMixin, GenericView):
     template_name = "materia/tramitacao_edit.html"
@@ -1615,6 +1724,7 @@ class AcompanhamentoMateriaView(FormMixin,
     def get(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
         materia = MateriaLegislativa.objects.get(id=pk)
+
         return self.render_to_response(
             {'form': AcompanhamentoMateriaForm(),
              'materia': materia})
@@ -1644,6 +1754,9 @@ class AcompanhamentoMateriaView(FormMixin,
                 acompanhar.usuario = usuario.username
                 acompanhar.confirmado = False
                 acompanhar.save()
+
+                do_envia_email_confirmacao(request, materia, email)
+
             else:
                 return self.render_to_response(
                     {'form': form,
