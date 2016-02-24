@@ -5,22 +5,19 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-		Ementa: <b>{{object.ementa}}</b>
+		{% include "materia/resumo_detail_materia.html" %}
 
 		<fieldset>
 			<legend>Tramitações</legend>
-			<table>
-				<tr>
-					<th>Data Ação</th>
-					<th>Origem</th>
-					<th>Destino</th>
-					<th>Status</th>
-				</tr>
+			<table class="table table-striped table-bordered">
+				<thead class="thead-default">
+					<tr>
+						<th>Data Ação</th>
+						<th>Origem</th>
+						<th>Destino</th>
+						<th>Status</th>
+					</tr>
+				</thead>
 					{% for t in tramitacoes %}
 						<tr>
 							<td><a href="{% url 'tramitacao_edit' object.id t.id %}">{{t.data_tramitacao|date:'d/m/Y'}}</a></td>

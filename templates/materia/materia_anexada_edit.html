@@ -5,50 +5,46 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-		Ementa: <b>{{object.ementa}}</b>
-		<fieldset>
+		{% include "materia/resumo_detail_materia.html" %}
+
+		<fieldset class="form-group">
 			<legend>Editar Matéria Anexada</legend>
 			<form method="POST">
 				{% csrf_token %}
         <div class="row">
           <div class="col-md-4">
             <label>Tipo*</label>
-            <select id="tipo" name="tipo">
+            <select id="tipo" name="tipo" class="form-control">
               {% for tipo in get_tipos_materia %}
-              <option value="{{tipo.id}}" {% if tipo.id == data.tipo.id %} selected {% endif %}>{{tipo.sigla}} - {{tipo.descricao}}</option>
+              	<option value="{{tipo.id}}" {% if tipo.id == data.tipo.id %} selected {% endif %}>{{tipo.sigla}} - {{tipo.descricao}}</option>
               {% endfor %}
             </select>
           </div>
 
           <div class="col-md-4">
             <label>Número*</label>
-            <input type="text" id="numero" name="numero" value="{{data.numero}}"/>
+            <input type="text" id="numero" name="numero" value="{{data.numero}}" class="form-control"/>
           </div>
 
           <div class="col-md-4">
             <label>Ano*</label>
-            <input type="text" id="ano" name="ano" value="{{data.ano}}"/>
+            <input type="text" id="ano" name="ano" value="{{data.ano}}" class="form-control"/>
           </div>
         </div>
 
         <div class="row">
           <div class="col-md-6">
             <label>Data Anexação*</label>
-            <input type="text" id="data_anexacao" name="data_anexacao" value="{{data.data_anexacao|date:'d/m/Y'}}" class="dateinput"/>
+            <input type="text" id="data_anexacao" name="data_anexacao" value="{{data.data_anexacao|date:'d/m/Y'}}" class="dateinput form-control"/>
           </div>
 
           <div class="col-md-6">
             <label>Data Desanexação</label>
-            <input type="text" id="data_desanexacao" name="data_desanexacao" value="{{data.data_desanexacao|date:'d/m/Y'}}" class="dateinput"/>
+            <input type="text" id="data_desanexacao" name="data_desanexacao" value="{{data.data_desanexacao|date:'d/m/Y'}}" class="dateinput form-control"/>
           </div>
         </div>
-				<input type="submit" value="Salvar" id="salvar" name="salvar" class="primary button" />
-				<input type="submit" value="Excluir" id="excluir" name="excluir" class="primary button" />
+				<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
+				<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />
 			</form>
 		</fieldset>
 	</fieldset>

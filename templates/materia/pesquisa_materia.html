@@ -1,9 +1,8 @@
 {% extends "materia/materialegislativa_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-
+{% block actions %}{% endblock %}
 {% block sections_nav %}{% endblock %}
-
 {% block detail_content %}
 	{% crispy form %}
 {% endblock %}

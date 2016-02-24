@@ -5,22 +5,19 @@
 {% block detail_content %}
   <fieldset>
     <legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-    Ementa: <b>{{object.ementa}}</b>
+    {% include "materia/resumo_detail_materia.html" %}
 
     <fieldset>
       <legend>Autorias</legend>
-      <table>
-        <tr>
-          <th>Nome Autor</th>
-          <th>Tipo Autor</th>
-          <th>Primeiro Autor</th>
-          <th>Partido Autor</th>
-        </tr>
+      <table class="table table-striped table-bordered">
+				<thead class="thead-default">
+          <tr>
+            <th>Nome Autor</th>
+            <th>Tipo Autor</th>
+            <th>Primeiro Autor</th>
+            <th>Partido Autor</th>
+          </tr>
+        </thead>
           {% for a in autorias %}
             <tr>
               <td><a href="{% url 'autoria_edit' object.id a.autor.id %}">{{a.autor}}</a></td>
@@ -32,7 +29,7 @@
       </table>
     </fieldset>
 
-    <fieldset>
+    <fieldset class="form-group">
       <legend>Adicionar Autoria</legend>
       <div class="row">
         <div class="col-md-3">Tipo do Autor</div>
@@ -45,36 +42,36 @@
 
         <div class="row">
           <div class="col-md-3">
-            <select name="tipo_autor" onChange="form.submit();">
+            <select name="tipo_autor" onChange="form.submit();" class="form-control">
               {% for tipo in tipo_autores %}
-              <option value="{{tipo.id}}" {% if tipo.id == tipo_autor_id %} selected {% endif %}>
-              {{tipo.descricao}}
-              </option>
+                <option value="{{tipo.id}}" {% if tipo.id == tipo_autor_id %} selected {% endif %}>
+                  {{tipo.descricao}}
+                </option>
               {% endfor %}
             </select>
           </div>
 
           <div class="col-md-3">
-            <select name="nome_autor">
+            <select name="nome_autor" class="form-control">
               {% for a in autores %}
-              {% if a.tipo_id == tipo_autor_id %}
-              <option value="{{a.id}}">
-              {{a}}
-              </option>
-              {% endif %}
+                {% if a.tipo_id == tipo_autor_id %}
+                  <option value="{{a.id}}">
+                    {{a}}
+                  </option>
+                {% endif %}
               {% endfor %}
             </select>
           </div>
 
           <div class="col-md-3">
-            <select name="primeiro_autor">
+            <select name="primeiro_autor" class="form-control">
               <option value="1">Sim</option>
               <option value="0" selected>Não</option>
             </select>
           </div>
 
           <div class="col-md-3">
-            <select name="partido_autor">
+            <select name="partido_autor" class="form-control">
               {% for p in partido_autor %}
                 {% if tipo_autor_id == 1 %}
                   <option value="{{p.sigla}}">
@@ -85,8 +82,8 @@
             </select>
           </div>
         </div>
-
-        <input type="submit" name="salvar" value="Salvar" class="button primary">
+        <br />
+        <input type="submit" name="salvar" value="Salvar" class="btn btn-primary">
       </form>
     </fieldset>
   </fieldset>

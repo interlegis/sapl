@@ -5,14 +5,9 @@
 {% block detail_content %}
   <fieldset>
     <legend>Matéria Legislativa</legend>
-    <div class="row">
-      <div class="col-md-4">Tipo: <b>{{object.tipo.sigla}}</b></div>
-      <div class="col-md-4">Número: <b>{{object.numero}}</b></div>
-      <div class="col-md-4">Ano: <b>{{object.ano}}</b></div>
-    </div>
-    Ementa: <b>{{object.ementa}}</b>
+    {% include "materia/resumo_detail_materia.html" %}
 
-    <fieldset>
+    <fieldset class="form-group">
       <legend>Editar Autoria</legend>
       <div class="row">
         <div class="col-md-3">Tipo do Autor</div>
@@ -25,7 +20,7 @@
 
         <div class="row">
           <div class="col-md-3">
-            <select name="tipo_autor" onChange="form.submit();">
+            <select name="tipo_autor" onChange="form.submit();" class="form-control">
               {% for tipo in tipo_autores %}
               <option value="{{tipo.id}}" {% if tipo.id == tipo_autor_id %} selected {% endif %}>
               {{tipo.descricao}}
@@ -35,7 +30,7 @@
           </div>
 
           <div class="col-md-3">
-            <select name="nome_autor">
+            <select name="nome_autor" class="form-control">
               {% for a in autores %}
               {% if a.tipo_id == tipo_autor_id %}
               <option value="{{a.id}}" {% if a.id == autor_id%} selected {% endif %}>
@@ -47,14 +42,14 @@
           </div>
 
           <div class="col-md-3">
-            <select name="primeiro_autor">
+            <select name="primeiro_autor" class="form-control">
               <option value="1">Sim</option>
               <option value="0" selected>Não</option>
             </select>
           </div>
 
           <div class="col-md-3">
-            <select name="partido">
+            <select name="partido" class="form-control">
               {% for p in partido %}
                 {% if tipo_autor_id == 1 %}
                   <option value="{{p.sigla}}">
@@ -65,7 +60,8 @@
             </select>
           </div>
         </div>
-        <input type="submit" name="salvar" value="Salvar" class="button primary">
+        <br />
+        <input type="submit" name="salvar" value="Salvar" class="btn btn-primary">
       </form>
     </fieldset>
   </fieldset>
