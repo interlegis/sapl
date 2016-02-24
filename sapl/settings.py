@@ -28,7 +28,19 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-# Application definition
+# SAPL business apps in dependency order
+SAPL_APPS = (
+    'base',
+    'parlamentares',
+    'comissoes',
+    'materia',
+    'norma',
+    'sessao',
+    'lexml',
+    'painel',
+    'protocoloadm',
+    'compilacao',
+)
 
 INSTALLED_APPS = (
     'django_admin_bootstrapped',  # must come before django.contrib.admin
@@ -39,27 +51,15 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'rest_framework',
-
-    # sapl modules
-    'base',
-    'parlamentares',
-    'comissoes',
-    'compilacao',
-    'sessao',
-    'materia',
-    'norma',
-    'lexml',
-    'painel',
-    'protocoloadm',
-
     # more
     'django_extensions',
     'djangobower',
     'bootstrap3',  # basically for django_admin_bootstrapped
     'crispy_forms',
     'sass_processor',
-)
+    'rest_framework',
+
+) + SAPL_APPS
 
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)

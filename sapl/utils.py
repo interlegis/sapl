@@ -1,19 +1,8 @@
+from functools import wraps
+
 from django.apps import apps
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
-
-# SAPL business apps in dependency order
-# (each entry depends only on previous ones)
-sapl_appconfs = [apps.get_app_config(n) for n in [
-    'parlamentares',
-    'comissoes',
-    'materia',
-    'norma',
-    'sessao',
-    'lexml',
-    'protocoloadm',
-    'compilacao',
-]]
 
 
 def register_all_models_in_admin(module_name):
@@ -58,3 +47,10 @@ def make_choices(*choice_pairs):
         yield key
 
 YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
+
+
+def listify(function):
+    @wraps(function)
+    def f(*args, **kwargs):
+        return list(function(*args, **kwargs))
+    return f
