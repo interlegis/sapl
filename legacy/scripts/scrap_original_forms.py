@@ -10,7 +10,8 @@ from bs4.element import NavigableString, Tag
 from django.apps.config import AppConfig
 
 from legacy.migration import appconfs, get_renames
-from legacy.scripts.utils import getsourcelines, listify
+from legacy.scripts.utils import getsourcelines
+from sapl.utils import listify
 
 # to prevent removal by automatic organize imports on this file
 assert appconfs

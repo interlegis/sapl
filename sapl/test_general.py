@@ -1,7 +1,8 @@
 import pytest
+from django.apps import apps
 from model_mommy import mommy
 
-from .utils import sapl_appconfs
+from .settings import SAPL_APPS
 
 pytestmark = pytest.mark.django_db
 
@@ -9,6 +10,7 @@ pytestmark = pytest.mark.django_db
 def test_str_sanity():
     # this simply a sanity check
     # __str__ semantics is not considered and should be tested separetely
+    sapl_appconfs = [apps.get_app_config(n) for n in SAPL_APPS]
     for app in sapl_appconfs:
         for model in app.get_models():
             obj = mommy.prepare(model)
