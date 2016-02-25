@@ -1,0 +1,111 @@
+
+Origem:
+  Origem:
+  - nome:8  sigla
+
+TipoMateriaLegislativa:
+  Tipo Matéria Legislativa:
+  - sigla:4  descricao
+
+RegimeTramitacao:
+  Tipo de Documento:
+  - descricao
+
+TipoDocumento:
+  Regime Tramitação:
+  - descricao
+
+TipoFimRelatoria:
+  Tipo Fim de Relatoria:
+  - descricao
+
+MateriaLegislativa:
+  Identificação Básica:
+  - tipo  numero  ano
+  - data_apresentacao  numero_protocolo  tipo_apresentacao
+  - texto_original
+  Outras Informações:
+  - apelido  dias_prazo  polemica
+  - objeto  regime_tramitacao  em_tramitacao
+  - data_fim_prazo  data_publicacao  complementar
+  Origem Externa:
+  - tipo_origem_externa  numero_origem_externa  ano_origem_externa
+  - local_origem_externa  data_origem_externa
+  Dados Textuais:
+  - ementa
+  - indexacao
+  - observacao
+
+Anexada:
+  Matéria Legislativa:
+  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - data_anexacao  data_desanexacao
+  Matéria Anexada:
+  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - data_anexacao  data_desanexacao
+
+TipoAutor:
+  Tipo Autor:
+  - descricao
+
+Autor:
+  Autor:
+  - tipo:3  nome
+  - username
+
+Autoria:
+  Autoria:
+  - tip_autor_FIXME  nom_autor_FIXME  primeiro_autor
+
+DocumentoAcessorio:
+  Documento Acessório:
+  - tipo  nome
+  - data  autor
+  - nom_arquivo_FIXME
+  - ementa
+  - txt_observacao_FIXME
+
+Numeracao:
+  Numeração:
+  - tipo_materia  numero_materia
+  - ano_materia  data_materia
+
+Orgao:
+  Órgão:
+  - nome:4  sigla  telefone  endereco  unidade_deliberativa
+
+Relatoria:
+  Relatoria:
+  - data_designacao_relator
+  - dados_FIXME
+  - data_destituicao_relator  tipo_fim_relatoria
+
+TipoProposicao:
+  Tipo Proposição:
+  - descricao
+  - materia_ou_documento  tipo_documento
+  - modelo
+
+Proposicao:
+  Proposição:
+  - tipo  dat_criacao_FIXME  data_recebimento
+  - descricao_FIXME
+  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - nom_arquivo_FIXME  modelo_FIXME
+
+StatusTramitacao:
+  Status Tramitação:
+  - indicador:3  sigla:2  descricao
+
+UnidadeTramitacao:
+  Unidade Tramitação:
+  - orgao
+  - comissao
+  - parlamentar
+
+Tramitacao:
+  Tramitação:
+  - cod_ult_tram_dest_FIXME  unidade_tramitacao_local
+  - status  turno  urgente
+  - unidade_tramitacao_destino  data_encaminhamento  data_fim_prazo
+  - texto

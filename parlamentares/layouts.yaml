@@ -1,0 +1,69 @@
+
+CargoMesa:
+  Cargo na Mesa:
+  - descricao:10  unico
+
+Legislatura:
+  Legislatura:
+  - data_inicio  data_fim  data_eleicao
+
+Coligacao:
+  Coligação:
+  - nome:5  legislatura:5  numero_votos
+
+Partido:
+  Partido Político:
+  - nome:6  sigla  data_criacao  data_extincao
+
+Dependente:
+  Dependentes:
+  - nome
+  - tipo  sexo  data_nascimento
+  - cpf  rg  titulo_eleitor
+
+SessaoLegislativa:
+  Sessão Legislativa:
+  - numero:4  tipo:4  legislatura:4  data_inicio  data_fim  data_inicio_intervalo  data_fim_intervalo
+
+Parlamentar:
+  Cadastro do Parlamentar:
+  - nome_parlamentar:8  ativo
+  - nome_completo
+  - nivel_instrucao  sexo  data_nascimento
+  - cpf  rg  titulo_eleitor
+  - situacao_militar  profissao
+  - endereco_web
+  - email
+  - numero_gab_parlamentar  telefone  fax
+  - endereco_residencia  cep_residencia
+  - municipio_residencia
+  - telefone_residencia  fax_residencia
+  - locais_atuacao
+  - fotografia
+  - biografia
+
+Filiacao:
+  'Filiações Partidárias ':
+  - partido  data  data_desfiliacao
+
+Mandato:
+  Mandato:
+  - legislatura  coligacao  votos_recebidos
+  - ind_titular_FIXME  dat_inicio_mandato_FIXME  data_fim_mandato  data_expedicao_diploma
+  - observacao
+
+TipoDependente:
+  Tipo de Dependente:
+  - descricao
+
+NivelInstrucao:
+  Nível Instrução:
+  - descricao
+
+TipoAfastamento:
+  Tipo de Afastamento:
+  - descricao:5  dispositivo:5  afastamento
+
+SituacaoMilitar:
+  Tipo Situação Militar:
+  - descricao

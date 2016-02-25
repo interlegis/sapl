@@ -1,0 +1,39 @@
+
+TipoNota:
+  Tipo da Nota:
+  - sigla:2  nome
+  - modelo
+
+TipoVide:
+  Tipo de Vide:
+  - sigla:2  nome
+
+TipoPublicacao:
+  Tipo de Publicação:
+  - sigla:2  nome
+
+VeiculoPublicacao:
+  Veículo de Publicação:
+  - sigla:2  nome
+
+PerfilEstruturalTextoArticulado:
+  Perfil Estrutural de Textos Articulados:
+  - sigla:2  nome
+
+TipoDispositivo:
+  Dados Básicos:
+  - nome:8  class_css
+  Configurações para Edição do Rótulo:
+  - rotulo_prefixo_texto  rotulo_sufixo_texto  rotulo_ordinal  contagem_continua
+  Configurações para Renderização de Rótulo e Texto:
+  - rotulo_prefixo_html  rotulo_sufixo_html
+  - texto_prefixo_html  dispositivo_de_articulacao  texto_sufixo_html
+  Configurações para Nota Automática:
+  - nota_automatica_prefixo_html  nota_automatica_sufixo_html
+  Configurações para Variações Numéricas:
+  - formato_variacao0
+  - rotulo_separador_variacao01:5  formato_variacao1
+  - rotulo_separador_variacao12:5  formato_variacao2
+  - rotulo_separador_variacao23:5  formato_variacao3
+  - rotulo_separador_variacao34:5  formato_variacao4
+  - rotulo_separador_variacao45:5  formato_variacao5

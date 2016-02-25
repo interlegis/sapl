@@ -1,0 +1,41 @@
+
+TipoSessaoPlenaria:
+  Tipo de Sessão Plenária:
+  - nome  quorum_minimo
+
+SessaoPlenaria:
+  Dados Básicos:
+  - numero:1  tipo:3  legislatura  sessao_legislativa
+  - data_inicio:5  hora_inicio:5  iniciada
+  - data_fim:5  hora_fim:5  finalizada
+  - upload_pauta  upload_ata
+  - url_audio  url_video
+
+ExpedienteMateria:
+  Cadastro de Matérias do Expediente:
+  - data_ordem  tip_sessao_FIXME  numero_ordem
+  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - tipo_votacao
+  - observacao
+
+OrdemDia:
+  Cadastro de Matérias da Ordem do Dia:
+  - data_ordem  tip_sessao_FIXME  numero_ordem
+  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - tipo_votacao
+  - observacao
+
+TipoResultadoVotacao:
+  Tipo de Resultado da Votação:
+  - nome
+
+TipoExpediente:
+  Tipo de Expediente:
+  - nome
+
+RegistroVotacao:
+  Votação Simbólica:
+  - numero_votos_sim  numero_votos_nao  numero_abstencoes  nao_votou_FIXME
+  - votacao_branco_FIXME  ind_votacao_presidente_FIXME
+  - tipo_resultado_votacao
+  - observacao
