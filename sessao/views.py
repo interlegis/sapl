@@ -7,7 +7,6 @@ from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
-from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
 from crud import Crud, make_pagination
@@ -102,7 +101,7 @@ registro_votacao_crud = Crud(
     ])
 
 
-class PresencaView(FormMixin, sessao_crud.CrudDetailView):
+class PresencaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/presenca.html'
     form_class = PresencaForm
 
@@ -157,7 +156,7 @@ class PainelView(sessao_crud.CrudDetailView):
     template_name = 'sessao/painel.html'
 
 
-class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+class PresencaOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/presenca_ordemdia.html'
     form_class = PresencaForm
 
@@ -415,7 +414,7 @@ class ListExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
         return self.get(self, request, args, kwargs)
 
 
-class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+class MateriaOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia.html'
     form_class = MateriaOrdemDiaForm
 
@@ -479,7 +478,7 @@ class MateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+class EditMateriaOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia_edit.html'
     form_class = MateriaOrdemDiaForm
 
@@ -590,7 +589,7 @@ class EditMateriaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class ExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+class ExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia.html'
     form_class = MateriaOrdemDiaForm
 
@@ -656,7 +655,7 @@ class ExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class EditExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+class EditExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia_edit.html'
     form_class = MateriaOrdemDiaForm
 
@@ -738,7 +737,7 @@ class EditExpedienteOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
+class OradorExpedienteDelete(sessao_crud.CrudDetailView):
     template_name = 'sessao/delete_orador.html'
     form_class = OradorDeleteForm
 
@@ -763,7 +762,7 @@ class OradorExpedienteDelete(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
-class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
+class OradorExpedienteEdit(sessao_crud.CrudDetailView):
     template_name = 'sessao/edit_orador.html'
     form_class = OradorForm
 
@@ -823,7 +822,7 @@ class OradorExpedienteEdit(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
-class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+class OradorExpedienteView(sessao_crud.CrudDetailView):
     template_name = 'sessao/orador_expediente.html'
     form_class = OradorForm
 
@@ -893,7 +892,7 @@ class OradorExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
 
 
-class MesaView(FormMixin, sessao_crud.CrudDetailView):
+class MesaView(sessao_crud.CrudDetailView):
     template_name = 'sessao/mesa.html'
     form_class = MesaForm
 
@@ -987,7 +986,7 @@ class MesaView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:mesa', kwargs={'pk': pk})
 
 
-class ResumoView(FormMixin, sessao_crud.CrudDetailView):
+class ResumoView(sessao_crud.CrudDetailView):
     template_name = 'sessao/resumo.html'
 
     def get(self, request, *args, **kwargs):
@@ -1158,7 +1157,7 @@ class ResumoView(FormMixin, sessao_crud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+class ExpedienteView(sessao_crud.CrudDetailView):
     template_name = 'sessao/expediente.html'
     form_class = ExpedienteForm
 
@@ -1222,7 +1221,7 @@ class ExpedienteView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
 
 
-class ExplicacaoView(FormMixin, sessao_crud.CrudDetailView):
+class ExplicacaoView(sessao_crud.CrudDetailView):
     template_name = 'sessao/explicacao.html'
     form_class = OradorForm
 
@@ -1292,7 +1291,7 @@ class ExplicacaoView(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
 
 
-class ExplicacaoDelete(FormMixin, sessao_crud.CrudDetailView):
+class ExplicacaoDelete(sessao_crud.CrudDetailView):
     template_name = 'sessao/delete_explicacao.html'
     form_class = OradorDeleteForm
 
@@ -1315,7 +1314,7 @@ class ExplicacaoDelete(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
 
 
-class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
+class ExplicacaoEdit(sessao_crud.CrudDetailView):
     template_name = 'sessao/edit_explicacao.html'
     form_class = OradorForm
 
@@ -1375,7 +1374,7 @@ class ExplicacaoEdit(FormMixin, sessao_crud.CrudDetailView):
         return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
 
 
-class VotacaoEditView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoEditView(sessao_crud.CrudDetailView):
 
     '''
         Votação Simbólica e Secreta
@@ -1448,7 +1447,7 @@ class VotacaoEditView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoView(sessao_crud.CrudDetailView):
 
     '''
         Votação Simbólica e Secreta
@@ -1566,7 +1565,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoNominalView(sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
 
     def get(self, request, *args, **kwargs):
@@ -1693,7 +1692,7 @@ class VotacaoNominalView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalEditView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoNominalEditView(sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal_edit.html'
 
     def get(self, request, *args, **kwargs):
@@ -1770,7 +1769,7 @@ class VotacaoNominalEditView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoNominalExpedienteView(sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
 
     def get(self, request, *args, **kwargs):
@@ -1895,7 +1894,7 @@ class VotacaoNominalExpedienteView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoNominalExpedienteEditView(sessao_crud.CrudDetailView):
     template_name = 'sessao/votacao/nominal_edit.html'
 
     def get(self, request, *args, **kwargs):
@@ -1972,7 +1971,7 @@ class VotacaoNominalExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoExpedienteView(sessao_crud.CrudDetailView):
 
     '''
         Votação Simbólica e Secreta
@@ -2094,7 +2093,7 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
                        kwargs={'pk': pk})
 
 
-class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
+class VotacaoExpedienteEditView(sessao_crud.CrudDetailView):
 
     '''
         Votação Simbólica e Secreta
@@ -2291,7 +2290,7 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class SessaoCadastroView(FormMixin, sessao_crud.CrudDetailView):
+class SessaoCadastroView(sessao_crud.CrudDetailView):
 
     template_name = "sessao/sessao_cadastro.html"
 
@@ -2366,7 +2365,7 @@ class PautaOrdemDetail(sessao_crud.CrudDetailView):
              'tramitacao': tramitacao})
 
 
-class AcompanharMateriaView(FormMixin, sessao_crud.CrudDetailView):
+class AcompanharMateriaView(sessao_crud.CrudDetailView):
     template_name = "sessao/pauta/acompanhar_materia.html"
 
     def get(self, request, *args, **kwargs):
