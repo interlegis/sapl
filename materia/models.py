@@ -511,7 +511,7 @@ class Tramitacao(models.Model):
     TURNO_CHOICES = Choices(
         ('P', 'primeiro', _('Primeiro')),
         ('S', 'segundo', _('Segundo')),
-        ('Ú', 'unico', _('Único')),
+        ('U', 'unico', _('Único')),
         ('L', 'suplementar', _('Suplementar')),
         ('F', 'final', _('Final')),
         ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
