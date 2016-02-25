@@ -6,54 +6,59 @@
 	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
 
   <div class="row">
-    <!--   		<div class="col-md-6"><a href="{% url 'painel_principal' object.pk %}">Iniciar painel presidente</a></div> -->
-    <div class="col-md-6"><a href="{% url 'painel_principal' object.pk %}">Iniciar painel completo</a></div>
-    <!--   		<div class="col-md-6"><a href="{% url 'painel_mensagem' %}">Iniciar painel mensagem</a></div>
-    <div class="col-md-6"><a href="{% url 'painel_parlamentares' %}">Iniciar painel parlamentares</a></div>
-    <div class="col-md-6"><a href="{% url 'painel_votacao' %}">Iniciar painel votação</a></div> -->
-    <div class="col-md-6"><a href="{% url 'painel_controlador' %}">Controlador Painel</a></div>
+    <!--<div class="col-md-6"><a href="{% url 'painel_principal' object.pk %}" class="btn btn-primary btn-sm active">Iniciar painel presidente</a></div> -->
+    <div class="col-md-6"><a href="{% url 'painel_principal' object.pk %}" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
+    <!--<div class="col-md-6"><a href="{% url 'painel_mensagem' %}" class="btn btn-primary btn-sm active">Iniciar painel mensagem</a></div>
+    <div class="col-md-6"><a href="{% url 'painel_parlamentares' %}" class="btn btn-primary btn-sm active">Iniciar painel parlamentares</a></div>
+    <div class="col-md-6"><a href="{% url 'painel_votacao' %}" class="btn btn-primary btn-sm active">Iniciar painel votação</a></div> -->
+    <div class="col-md-6"><a href="{% url 'painel_controlador' %}" class="btn btn-primary btn-sm active">Controlador Painel</a></div>
   </div>
 	<br />
-	<h5>Operação do Painel Eletrônico</h5>
-	<h8><span id="relogio"></span></h8>
-	<br /><br />
+	<h1>Operação do Painel Eletrônico</h1>
+	<h2><span id="relogio"></span></h2>
+	<br />
   <div class="row">
-    <div class="col-md-12"><h5>Cronômetro do Discurso</h5></div>
+    <div class="col-md-12"><h3>Cronômetro do Discurso</h3></div>
   </div>
 
   <div class="row">
-    <div class="col-md-12"><input size="2" id="discurso" name="discurso" value="" readyonly="true"></div>
+    <div class="col-xs-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
+  </div>
+	<br />
+
+  <div class="row">
+    <div class="col-md-6"><button type="button" id="discursoStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
+  </div>
+
+	<br /><br >
+  <div class="row">
+    <div class="col-md-12"><h3>Cronômetro do Aparte</h3></div>
   </div>
 
   <div class="row">
-    <div class="col-md-6"><button type="button" id="discursoStart">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="discursoReset">Reiniciar</button></div>
+    <div class="col-xs-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
+  </div>
+	<br />
+
+  <div class="row">
+    <div class="col-md-6"><button type="button" id="aparteStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success" class="btn btn-success">Reiniciar</button></div>
+  </div>
+
+	<br /><br >
+  <div class="row">
+    <div class="col-md-12"><h3>Cronômetro da Questão de Ordem </h3></div>
   </div>
 
   <div class="row">
-    <div class="col-md-12"><h5>Cronômetro do Aparte</h5></div>
+    <div class="col-xs-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
   </div>
+	<br />
 
   <div class="row">
-    <div class="col-md-12"><input size="2" id="aparte" name="aparte" value="" readyonly="true"></div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="aparteStart">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="aparteReset">Reiniciar</button></div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-12"><h5>Cronômetro da Questão de Ordem </h5></div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-12"><input size="2" id="ordem" name="ordem" value="" readyonly="true"></div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="ordemStart">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="ordemReset">Reiniciar</button></div>
+    <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
 {% endblock detail_content %}

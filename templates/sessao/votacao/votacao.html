@@ -5,7 +5,7 @@
 <form id="form-votacao" method="post">
 	{% csrf_token %}
 
-	<fieldset>
+	<fieldset class="form-group">
 		<legend>{{votacao_titulo}}</legend>
 
 		{% if form.errors %}
@@ -37,15 +37,15 @@
 		<br />
 
     <div class="row">
-      <div class="col-md-4">Sim: <input type="text" id="votos_sim" name="votos_sim" value=""/></div>
-      <div class="col-md-4">Não: <input type="text" id="votos_nao" name="votos_nao" value=""/></div>
-      <div class="col-md-4">Abstenções: <input type="text" id="abstencoes" name="abstencoes" value=""/></div>
+      <div class="col-md-4">Sim: <input type="text" id="votos_sim" name="votos_sim" value="" class="form-control"/></div>
+      <div class="col-md-4">Não: <input type="text" id="votos_nao" name="votos_nao" value="" class="form-control"/></div>
+      <div class="col-md-4">Abstenções: <input type="text" id="abstencoes" name="abstencoes" value="" class="form-control"/></div>
     </div>
 
     <div class="row">
       <div class="col-md-6">
         A totalização inclui o voto do Presidente?
-        <select id="voto_presidente" name="voto_presidente">
+        <select id="voto_presidente" name="voto_presidente" class="form-control">
           <option value="1">Sim</option>
           <option value="0" selected>Não</option>
         </select>
@@ -53,9 +53,9 @@
 
       <div class="col-md-6">
         Resultado da Votação
-        <select id="resultado_votacao" name="resultado_votacao">
+        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
           {% for tipo in view.get_tipos_votacao %}
-          <option value="{{tipo.id}}">{{tipo.nome}}</option>
+          	<option value="{{tipo.id}}">{{tipo.nome}}</option>
           {% endfor %}
         </select>
       </div>
@@ -64,13 +64,13 @@
     <div class="row">
       <div class="col-md-12">
         Observações
-        <textarea id="observacao" name="observacao" cols="10" rows="10"></textarea>
+        <textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control"></textarea>
       </div>
     </div>
 
 		<br /><br />
-		<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="button primary" />
-		<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="button primary" />
+		<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />
+		<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
 	</fieldset>
 </form>
 {% endblock detail_content %}

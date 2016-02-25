@@ -8,17 +8,16 @@
 	{% csrf_token %}
 
 	{% for e in expedientes %}
-		<fieldset>
+		<fieldset class="form-group">
 			<legend>{{e.tipo}}</legend>
-
-			<input type="hidden" name="tipo" id="tipo" value="{{e.tipo.id}}" />
-			<textarea rows="5" cols="50" name="conteudo" id="conteudo" >{{e.conteudo}}</textarea>
-
+			<input type="hidden" name="tipo" id="tipo" value="{{e.tipo.id}}" class="form-control"/>
+			<textarea rows="5" cols="50" name="conteudo" id="conteudo" class="form-control">{{e.conteudo}}</textarea>
+			<br />
 		</fieldset>
 	{% endfor %}
 
 	<br />
-	<input type="submit" value="Salvar" class="button primary"/>
+	<input type="submit" value="Salvar" class="btn btn-primary"/>
 </form>
 
 {% endblock detail_content %}

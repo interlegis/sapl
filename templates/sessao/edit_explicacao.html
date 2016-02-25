@@ -4,7 +4,7 @@
 
 {% block detail_content %}
 
-<fieldset>
+<fieldset class="form-group">
 	<legend>Editar Orador</legend>
 	{% if form.errors %}
 		<div class="alert-box alert">
@@ -27,11 +27,12 @@
         <div class="col-md-4">URL Discurso</div>
       </div>
       <div class="row">
-        <div class="col-md-4"><input type="text" id="numero_ordem" name="numero_ordem" value="{{explicacao.numero_ordem}}" /></div>
-        <div class="col-md-4"><input type="text" id="parlamentar" name="parlamentar" value="{{explicacao.parlamentar.nome_parlamentar}}" disabled /></div>
-        <div class="col-md-4"><input type="text" id="url_discurso" name="url_discurso" value="{{explicacao.url_discurso}}"/></div>
+        <div class="col-md-4"><input type="text" id="numero_ordem" name="numero_ordem" value="{{explicacao.numero_ordem}}" class="form-control" /></div>
+        <div class="col-md-4"><input type="text" id="parlamentar" name="parlamentar" value="{{explicacao.parlamentar.nome_parlamentar}}" disabled class="form-control"/></div>
+        <div class="col-md-4"><input type="text" id="url_discurso" name="url_discurso" value="{{explicacao.url_discurso}}" class="form-control"/></div>
       </div>
-		<input type="submit" value="Salvar Orador" class="button primary" />
+			<br />
+		<input type="submit" value="Salvar Orador" class="btn btn-primary" />
 	</form>
 </fieldset>
 
