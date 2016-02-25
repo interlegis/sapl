@@ -249,33 +249,32 @@ class CrudDeleteMixin(FormMessagesMixin):
 class Crud(object):
 
     def __init__(self, model, help_path, layout,
-                 crud_mixin=BaseCrudMixin,
-                 crud_list_mixin=CrudListMixin,
-                 crud_create_mixin=CrudCreateMixin,
-                 crud_detail_mixin=CrudDetailMixin,
-                 crud_update_mixin=CrudUpdateMixin,
-                 crud_delete_mixin=CrudDeleteMixin,
-                 ):
+                 base_mixin=BaseCrudMixin,
+                 list_mixin=CrudListMixin,
+                 create_mixin=CrudCreateMixin,
+                 detail_mixin=CrudDetailMixin,
+                 update_mixin=CrudUpdateMixin,
+                 delete_mixin=CrudDeleteMixin):
 
-        class CrudMixin(crud_mixin):
+        class CrudMixin(base_mixin):
             pass
         CrudMixin.model = model
         CrudMixin.help_path = help_path
         CrudMixin.layout = layout
 
-        class CrudListView(CrudMixin, crud_list_mixin, ListView):
+        class CrudListView(CrudMixin, list_mixin, ListView):
             pass
 
-        class CrudCreateView(CrudMixin, crud_create_mixin, CreateView):
+        class CrudCreateView(CrudMixin, create_mixin, CreateView):
             pass
 
-        class CrudDetailView(CrudMixin, crud_detail_mixin, DetailView):
+        class CrudDetailView(CrudMixin, detail_mixin, DetailView):
             pass
 
-        class CrudUpdateView(CrudMixin, crud_update_mixin, UpdateView):
+        class CrudUpdateView(CrudMixin, update_mixin, UpdateView):
             pass
 
-        class CrudDeleteView(CrudMixin, crud_delete_mixin, DeleteView):
+        class CrudDeleteView(CrudMixin, delete_mixin, DeleteView):
             pass
 
         self.urlpatterns = [

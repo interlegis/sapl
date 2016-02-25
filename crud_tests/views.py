@@ -15,4 +15,4 @@ country_crud = Crud(
          ],
         ['More Details', [('description', 12)]],
     ],
-    crud_list_mixin=CountryCrudListMixin)
+    list_mixin=CountryCrudListMixin)
