@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from crud import build_crud
+from crud import Crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
                     FiliacaoForm, MandatoEditForm, MandatoForm,
@@ -22,7 +22,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
                      TipoAfastamento, TipoDependente)
 
-cargo_mesa_crud = build_crud(
+cargo_mesa_crud = Crud(
     CargoMesa, 'cargo_mesa', [
 
         [_('Cargo na Mesa'),
@@ -30,14 +30,14 @@ cargo_mesa_crud = build_crud(
             ('unico', 2)]],
     ])
 
-legislatura_crud = build_crud(
+legislatura_crud = Crud(
     Legislatura, 'tabelas_auxiliares#legislatura', [
 
         [_('Legislatura'),
          [('data_inicio', 4), ('data_fim', 4), ('data_eleicao', 4)]],
     ])
 
-coligacao_crud = build_crud(
+coligacao_crud = Crud(
     Coligacao, 'coligacao', [
 
         [_('Coligação'),
@@ -46,7 +46,7 @@ coligacao_crud = build_crud(
             ('numero_votos', 2)]],
     ])
 
-partido_crud = build_crud(
+partido_crud = Crud(
     Partido, 'partidos', [
 
         [_('Partido Político'),
@@ -57,7 +57,7 @@ partido_crud = build_crud(
     ])
 
 
-dependente_crud = build_crud(
+dependente_crud = Crud(
     Dependente, '', [
 
         [_('Dependentes'),
@@ -67,7 +67,7 @@ dependente_crud = build_crud(
     ])
 
 
-sessao_legislativa_crud = build_crud(
+sessao_legislativa_crud = Crud(
     SessaoLegislativa, 'sessao_legislativa', [
 
         [_('Sessão Legislativa'),
@@ -81,7 +81,7 @@ sessao_legislativa_crud = build_crud(
     ])
 
 
-parlamentar_crud = build_crud(
+parlamentar_crud = Crud(
     Parlamentar, '', [
 
         [_('Cadastro do Parlamentar'),
@@ -101,14 +101,14 @@ parlamentar_crud = build_crud(
             [('biografia', 12)]],
     ])
 
-filiacao_crud = build_crud(
+filiacao_crud = Crud(
     Filiacao, '', [
 
         [_('Filiações Partidárias '),
          [('partido', 4), ('data', 4), ('data_desfiliacao', 4)]],
     ])
 
-mandato_crud = build_crud(
+mandato_crud = Crud(
     Mandato, '', [
 
         [_('Mandato'),
@@ -120,28 +120,28 @@ mandato_crud = build_crud(
             [('observacao', 12)]],
     ])
 
-tipo_dependente_crud = build_crud(
+tipo_dependente_crud = Crud(
     TipoDependente, 'tipo_dependente', [
 
         [_('Tipo de Dependente'),
          [('descricao', 12)]],
     ])
 
-nivel_instrucao_crud = build_crud(
+nivel_instrucao_crud = Crud(
     NivelInstrucao, 'nivel_instrucao', [
 
         [_('Nível Instrução'),
          [('descricao', 12)]],
     ])
 
-tipo_afastamento_crud = build_crud(
+tipo_afastamento_crud = Crud(
     TipoAfastamento, 'tipo_afastamento', [
 
         [_('Tipo de Afastamento'),
          [('descricao', 5), ('dispositivo', 5), ('afastamento', 2)]],
     ])
 
-tipo_militar_crud = build_crud(
+tipo_militar_crud = Crud(
     SituacaoMilitar, 'tipo_situa_militar', [
 
         [_('Tipo Situação Militar'),

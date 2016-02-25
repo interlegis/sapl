@@ -5,7 +5,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from crud import build_crud
+from crud import Crud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 
@@ -14,28 +14,28 @@ from .forms import (CadastrarComissaoForm, ComposicaoForm,
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
-cargo_crud = build_crud(
+cargo_crud = Crud(
     CargoComissao, 'cargo_comissao', [
 
         [_('Período de composição de Comissão'),
          [('nome', 10), ('unico', 2)]],
     ])
 
-periodo_composicao_crud = build_crud(
+periodo_composicao_crud = Crud(
     Periodo, 'periodo_composicao_comissao', [
 
         [_('Cargo de Comissão'),
          [('data_inicio', 6), ('data_fim', 6)]],
     ])
 
-tipo_comissao_crud = build_crud(
+tipo_comissao_crud = Crud(
     TipoComissao, 'tipo_comissao', [
 
         [_('Tipo Comissão'),
          [('nome', 9), ('sigla', 3)],
             [('dispositivo_regimental', 9), ('natureza', 3)]],
     ])
-comissao_crud = build_crud(
+comissao_crud = Crud(
     Comissao, 'modulo_comissoes', [
 
         [_('Dados Básicos'),

@@ -27,7 +27,7 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from crud import NO_ENTRIES_MSG, build_crud, make_pagination
+from crud import Crud, CrudListMixin, make_pagination
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -42,7 +42,7 @@ DISPOSITIVO_SELECT_RELATED = (
     'ta_publicado',
     'ta',)
 
-tipo_nota_crud = build_crud(
+tipo_nota_crud = Crud(
     TipoNota, 'tipo_nota', [
 
         [_('Tipo da Nota'),
@@ -50,14 +50,14 @@ tipo_nota_crud = build_crud(
          [('modelo', 12)]],
     ])
 
-tipo_vide_crud = build_crud(
+tipo_vide_crud = Crud(
     TipoVide, 'tipo_vide', [
 
         [_('Tipo de Vide'),
          [('sigla', 2), ('nome', 10)]],
     ])
 
-tipo_publicacao_crud = build_crud(
+tipo_publicacao_crud = Crud(
     TipoPublicacao, 'tipo_publicacao', [
 
         [_('Tipo de Publicação'),
@@ -65,7 +65,7 @@ tipo_publicacao_crud = build_crud(
     ])
 
 
-veiculo_publicacao_crud = build_crud(
+veiculo_publicacao_crud = Crud(
     VeiculoPublicacao, 'veiculo_publicacao', [
 
         [_('Veículo de Publicação'),
@@ -73,7 +73,7 @@ veiculo_publicacao_crud = build_crud(
     ])
 
 
-perfil_estr_txt_norm = build_crud(
+perfil_estr_txt_norm = Crud(
     PerfilEstruturalTextoArticulado, 'perfil_estrutural', [
 
         [_('Perfil Estrutural de Textos Articulados'),
@@ -81,7 +81,7 @@ perfil_estr_txt_norm = build_crud(
     ])
 
 
-tipo_dispositivo_crud = build_crud(
+tipo_dispositivo_crud = Crud(
     TipoDispositivo, 'tipo_dispositivo', [
 
         [_('Dados Básicos'),
@@ -1740,7 +1740,7 @@ class PublicacaoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PublicacaoListView, self).get_context_data(**kwargs)
-        context['NO_ENTRIES_MSG'] = NO_ENTRIES_MSG
+        context['NO_ENTRIES_MSG'] = CrudListMixin.no_entries_msg
         return context
 
 

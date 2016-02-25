@@ -2,27 +2,13 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from crud import (NO_ENTRIES_MSG, build_crud, from_to, get_field_display,
-                  make_pagination)
+from crud import (CrispyLayoutFormMixin, CrudListMixin, from_to,
+                  get_field_display, make_pagination)
 
 from .models import Continent, Country
-from .views import country_crud
+from .views import CountryCrudListMixin
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.mark.parametrize("layout, result", [
-    ([['Dados Complementares']], []),  # missing rows definition
-
-    ([['Basic', [('name', 9), ('population', 3)]],
-      ['More Details', [('description', 12)]],
-      ],
-     ['name', 'population']),
-])
-def test_listview_get_fieldnames(layout, result):
-    crud = build_crud(Country, 'stub_help_path', layout)
-    view = crud.CrudListView()
-    assert view.field_names == result
 
 
 __ = None  # for test readability
@@ -82,20 +68,45 @@ def test_get_field_display():
     assert get_field_display(stub, 'population')[1] == ''
 
 
-def test_crud_detail_view_fieldsets(monkeypatch):
+@pytest.mark.parametrize("_layout, result", [
+    ([['Dados Complementares']], []),  # missing rows definition
 
-    view = country_crud.CrudDetailView()
+    ([['Basic', [('name', 9), ('population', 3)]],
+      ['More Details', [('description', 12)]],
+      ],
+     ['name', 'population']),
+])
+def test_layout_fieldnames(_layout, result):
+
+    class StubMixin(CrispyLayoutFormMixin):
+        layout = _layout
+
+    view = StubMixin()
+    assert view.list_field_names == result
+
+
+def test_layout_detail_fieldsets(monkeypatch):
+
     stub = mommy.make(Country,
                       name='Brazil',
                       continent__name='South America',
                       is_cold=False)
 
+    class StubMixin(CrispyLayoutFormMixin):
+        layout = [['Basic Data',
+                   [('name', 9), ('continent', 3)],
+                   [('population', 6), ('is_cold', 6)]
+                   ],
+                  ['More Details', [('description', 12)]],
+                  ]
+
+        def get_object(self):
+            return stub
+
+    view = StubMixin()
+
     # to test None displayed as empty string
     assert stub.population is None
-
-    def get_object():
-        return stub
-    monkeypatch.setattr(view, 'get_object', get_object)
 
     assert view.fieldsets == [
         {'legend': 'Basic Data',
@@ -136,7 +147,7 @@ def assert_h1(res, title):
     assert res.html.find('main').find('h1').text == title
 
 
-NO_ENTRIES_MSG = str(NO_ENTRIES_MSG)  # "unlazy"
+NO_ENTRIES_MSG = str(CrudListMixin.no_entries_msg)  # "unlazy"
 
 
 def assert_on_list_page(res):
@@ -181,7 +192,7 @@ def test_flux_list_paginate_detail(
                    population=population,
                    is_cold=is_cold)
 
-    country_crud.CrudListView.paginate_by = page_size
+    CountryCrudListMixin.paginate_by = page_size
 
     res = app.get('/countries/')
 
