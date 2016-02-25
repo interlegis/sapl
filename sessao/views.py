@@ -2202,7 +2202,10 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         # =====================================================================
         # Identificação Básica
         abertura = self.object.data_inicio.strftime('%d/%m/%Y')
-        encerramento = self.object.data_fim.strftime('%d/%m/%Y')
+        if self.object.data_fim:
+            encerramento = self.object.data_fim.strftime('%d/%m/%Y')
+        else:
+            encerramento = ""
 
         context.update({'basica': ['Tipo de Sessão: ' + str(self.object.tipo),
                                    'Abertura: ' + abertura,
