@@ -1,10 +1,11 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils import Choices
 
 from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
-from sapl.utils import YES_NO_CHOICES, make_choices
+from sapl.utils import YES_NO_CHOICES
 
 
 class TipoSessaoPlenaria(models.Model):
@@ -92,10 +93,10 @@ class SessaoPlenaria(models.Model):
 
 
 class AbstractOrdemDia(models.Model):
-    TIPO_VOTACAO_CHOICES, SIMBOLICA, NOMINAL, SECRETA = make_choices(
-        1, _('Simbólica'),
-        2, _('Nominal'),
-        3, _('Secreta'),
+    TIPO_VOTACAO_CHOICES = Choices(
+        (1, 'simbolica', (('Simbólica'))),
+        (2, 'nominal', (('Nominal'))),
+        (3, 'secreta', (('Secreta'))),
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)

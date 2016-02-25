@@ -2,9 +2,10 @@ from uuid import uuid4
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils import Choices
 
 from materia.models import Autor, TipoMateriaLegislativa, UnidadeTramitacao
-from sapl.utils import YES_NO_CHOICES, make_choices
+from sapl.utils import YES_NO_CHOICES
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -126,9 +127,9 @@ class Protocolo(models.Model):
 
 
 class StatusTramitacaoAdministrativo(models.Model):
-    INDICADOR_CHOICES, FIM, RETORNO = make_choices(
-        'F', _('Fim'),
-        'R', _('Retorno'),
+    INDICADOR_CHOICES = Choices(
+        ('F', 'fim', _('Fim')),
+        ('R', 'retorno', _('Retorno')),
     )
 
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))

@@ -1,9 +1,10 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils import Choices
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
-from sapl.utils import YES_NO_CHOICES, make_choices, xstr
+from sapl.utils import YES_NO_CHOICES, xstr
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -53,11 +54,11 @@ def texto_upload_path(instance, filename):
     return get_materia_media_path(instance, 'materia', filename)
 
 
+TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
+                                    ('E', 'escrita', _('Escrita')))
+
+
 class MateriaLegislativa(models.Model):
-    TIPO_APRESENTACAO_CHOICES, ORAL, ESCRITA = make_choices(
-        'O', _('Oral'),
-        'E', _('Escrita'),
-    )
 
     tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_('Tipo'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
@@ -375,16 +376,11 @@ class Relatoria(models.Model):
 
 
 class Parecer(models.Model):
-    APRESENTACAO_CHOICES, ORAL, ESCRITA = make_choices(
-        'O', _('Oral'),
-        'E', _('Escrita'),
-    )
-
     relatoria = models.ForeignKey(Relatoria)
     materia = models.ForeignKey(MateriaLegislativa)
     tipo_conclusao = models.CharField(max_length=3, blank=True)
     tipo_apresentacao = models.CharField(
-        max_length=1, choices=APRESENTACAO_CHOICES)
+        max_length=1, choices=TIPO_APRESENTACAO_CHOICES)
     parecer = models.TextField(blank=True)
 
     class Meta:
@@ -398,10 +394,8 @@ class Parecer(models.Model):
 
 
 class TipoProposicao(models.Model):
-    MAT_OU_DOC_CHOICES, MATERIA, DOCUMENTO = make_choices(
-        'M', _('Matéria'),
-        'D', _('Documento'),
-    )
+    MAT_OU_DOC_CHOICES = Choices(('M', 'materia', _('Matéria')),
+                                 ('D', 'documento', _('Documento')))
 
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
     materia_ou_documento = models.CharField(
@@ -469,10 +463,8 @@ class Proposicao(models.Model):
 
 
 class StatusTramitacao(models.Model):
-    INDICADOR_CHOICES, FIM, RETORNO = make_choices(
-        'F', _('Fim'),
-        'R', _('Retorno'),
-    )
+    INDICADOR_CHOICES = Choices(('F', 'fim', _('Fim')),
+                                ('R', 'retorno', _('Retorno')))
 
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=60, verbose_name=_('Descrição'))
@@ -516,19 +508,16 @@ class UnidadeTramitacao(models.Model):
 
 
 class Tramitacao(models.Model):
-    TURNO_CHOICES, \
-        PRIMEIRO, SEGUNDO, UNICO, SUPLEMENTAR, FINAL, \
-        VOTACAO_UNICA, PRIMEIRA_VOTACAO, \
-        SEGUNDA_TERCEIRA_VOTACAO = make_choices(
-            'P', _('Primeiro'),
-            'S', _('Segundo'),
-            'Ú', _('Único'),
-            'L', _('Suplementar'),
-            'F', _('Final'),
-            'A', _('Votação única em Regime de Urgência'),
-            'B', _('1ª Votação'),
-            'C', _('2ª e 3ª Votação'),
-        )
+    TURNO_CHOICES = Choices(
+        ('P', 'primeiro', _('Primeiro')),
+        ('S', 'segundo', _('Segundo')),
+        ('Ú', 'unico', _('Único')),
+        ('L', 'suplementar', _('Suplementar')),
+        ('F', 'final', _('Final')),
+        ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
+        ('B', 'primeira_votacao', _('1ª Votação')),
+        ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
+    )
 
     status = models.ForeignKey(
         StatusTramitacao, blank=True, null=True, verbose_name=_('Status'))

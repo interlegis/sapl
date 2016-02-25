@@ -1,9 +1,10 @@
 from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
+from model_utils import Choices
 
 from materia.models import MateriaLegislativa
-from sapl.utils import YES_NO_CHOICES, make_choices
+from sapl.utils import YES_NO_CHOICES
 
 
 class AssuntoNorma(models.Model):
@@ -61,10 +62,10 @@ def texto_upload_path(instance, filename):
 
 
 class NormaJuridica(models.Model):
-    ESFERA_FEDERACAO_CHOICES, ESTADUAL, FEDERAL, MUNICIPAL = make_choices(
-        'E', _('Estadual'),
-        'F', _('Federal'),
-        'M', _('Municipal'),
+    ESFERA_FEDERACAO_CHOICES = Choices(
+        ('E', 'estadual', _('Estadual')),
+        ('F', 'federal', _('Federal')),
+        ('M', 'municipal', _('Municipal')),
     )
     texto_integral = models.FileField(
         blank=True,

@@ -38,14 +38,6 @@ def create_barcode(value):
     return data.decode('utf-8')
 
 
-def make_choices(*choice_pairs):
-    assert len(choice_pairs) % 2 == 0
-    ipairs = iter(choice_pairs)
-    choices = list(zip(ipairs, ipairs))
-    yield choices
-    for key, value in choices:
-        yield key
-
 YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
 
 

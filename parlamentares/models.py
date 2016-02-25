@@ -2,8 +2,9 @@ import datetime
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils import Choices
 
-from sapl.utils import YES_NO_CHOICES, make_choices
+from sapl.utils import YES_NO_CHOICES
 
 
 class Legislatura(models.Model):
@@ -32,9 +33,9 @@ class Legislatura(models.Model):
 
 
 class SessaoLegislativa(models.Model):
-    TIPO_SESSAO_CHOICES, ORDINARIA, EXTRAORDINARIA = make_choices(
-        'O', _('Ordinária'),
-        'E', _('Extraordinária'),
+    TIPO_SESSAO_CHOICES = Choices(
+        ('O', 'ordinaria', _('Ordinária')),
+        ('E', 'extraordinaria', _('Extraordinária')),
     )
 
     legislatura = models.ForeignKey(Legislatura)

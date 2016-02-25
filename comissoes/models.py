@@ -1,15 +1,14 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils import Choices
 
 from parlamentares.models import Parlamentar
-from sapl.utils import YES_NO_CHOICES, make_choices
+from sapl.utils import YES_NO_CHOICES
 
 
 class TipoComissao(models.Model):
-    NATUREZA_CHOICES, TEMPORARIA, PERMANENTE = make_choices(
-        'T', _('Temporária'),
-        'P', _('Permanente'),
-    )
+    NATUREZA_CHOICES = Choices(('T', 'temporaria', _('Temporária')),
+                               ('P', 'permanente', _('Permanente')))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     natureza = models.CharField(
         max_length=1, verbose_name=_('Natureza'), choices=NATUREZA_CHOICES)

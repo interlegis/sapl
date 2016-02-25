@@ -5,6 +5,7 @@ django-braces
 django-compressor
 django-crispy-forms
 django-extra-views
+django-model-utils
 django-sass-processor
 django-vanilla-views
 django<1.9
