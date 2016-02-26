@@ -15,4 +15,5 @@ libsass
 psycopg2
 pytz
 pyyaml
+rtyaml
 unipath

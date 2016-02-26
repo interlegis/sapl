@@ -1,3 +1,6 @@
+from math import ceil
+
+import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
@@ -99,3 +102,30 @@ class CrispyLayoutFormMixin(object):
                        for fieldname, span in row]
                       for row in rows]
              } for legend, *rows in self.layout]
+
+
+# TODO cache this
+def read_yaml_from_file(filename):
+    with open(filename, 'r') as yamlfile:
+        return rtyaml.load(yamlfile)
+
+
+def read_layout_from_yaml(filename, key):
+    # TODO cache this
+    yaml = read_yaml_from_file(filename)
+    base = yaml[key]
+
+    def line_to_namespans(line):
+        split = [cell.split(':') for cell in line.split()]
+        namespans = [[s[0], int(s[1]) if len(s) > 1 else 0] for s in split]
+        remaining = 12 - sum(s for n, s in namespans)
+        nondefined = [ns for ns in namespans if not ns[1]]
+        while nondefined:
+            span = ceil(remaining / len(nondefined))
+            namespan = nondefined.pop(0)
+            namespan[1] = span
+            remaining = remaining - span
+        return list(map(tuple, namespans))
+
+    return [(legend, [line_to_namespans(l) for l in lines])
+            for legend, lines in base.items()]
