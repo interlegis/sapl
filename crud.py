@@ -7,7 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 
-from sapl.layout import SaplFormLayout
+from crispy_layout_mixin import SaplFormLayout
 
 
 def from_to(start, end):

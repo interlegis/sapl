@@ -2,8 +2,8 @@ import datetime
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
 from model_utils import Choices
+
 from sapl.utils import YES_NO_CHOICES
 
 
