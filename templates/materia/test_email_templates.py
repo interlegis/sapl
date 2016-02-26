@@ -2,7 +2,7 @@ import pytest
 from base.models import CasaLegislativa
 from django.core import mail
 from model_mommy import mommy
-from materia.views import load_email_templates, enviar_email, criar_email_tramitacao
+from materia.views import load_email_templates, enviar_emails, criar_email_tramitacao
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 
 
@@ -15,14 +15,6 @@ def test_email_template_loading():
     actual = emails[0].replace('\n', '').replace('\r', '')
 
     assert actual == expected
-
-
-@pytest.mark.django_db(transaction=False)
-def test_email_body_creation_with_empty_materia():
-    casa = CasaLegislativa.objects.create()
-
-    with pytest.raises(ValueError):
-        criar_email_tramitacao(casa, materia=None)
 
 
 def test_html_email_body_with_materia():
@@ -56,7 +48,7 @@ def test_enviar_email_distintos():
 
     recipients = [m['recipient'] for m in messages]
 
-    enviar_email('test@sapl.com', recipients, messages)
+    enviar_emails('test@sapl.com', recipients, messages)
     assert len(mail.outbox) == NUM_MESSAGES
 
 
@@ -70,5 +62,5 @@ def test_enviar_same_email():
 
     recipients = [m['recipient'] for m in messages]
 
-    enviar_email('test@sapl.com', recipients, [messages[0]])
+    enviar_emails('test@sapl.com', recipients, [messages[0]])
     assert len(mail.outbox) == 1
