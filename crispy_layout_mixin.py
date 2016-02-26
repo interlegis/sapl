@@ -1,7 +1,6 @@
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
-from django import forms
 from django.utils.translation import ugettext as _
 
 
@@ -59,22 +58,18 @@ def get_field_display(obj, fieldname):
 
 class CrispyLayoutFormMixin(object):
 
-    def get_form_class(self):
+    @property
+    def fields(self):
+        '''Returns all fields in the layout'''
+        return [fieldname for legend_rows in self.layout
+                for row in legend_rows[1:]
+                for fieldname, span in row]
 
-        layout = self.layout
-
-        class CrispyForm(forms.ModelForm):
-
-            class Meta:
-                model = self.model
-                exclude = []
-
-            def __init__(self, *args, **kwargs):
-                super(CrispyForm, self).__init__(*args, **kwargs)
-                self.helper = FormHelper()
-                self.helper.layout = SaplFormLayout(*layout)
-
-        return CrispyForm
+    def get_form(self, form_class=None):
+        form = super(CrispyLayoutFormMixin, self).get_form(form_class)
+        form.helper = FormHelper()
+        form.helper.layout = SaplFormLayout(*self.layout)
+        return form
 
     @property
     def list_field_names(self):
