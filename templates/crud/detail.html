@@ -14,7 +14,6 @@
   </div>
 
   {% block detail_content %}
-    {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
     {% for fieldset in view.fieldsets %}
     <h2 class="legend">{{ fieldset.legend }}</h2>
     {% for row in fieldset.rows %}
