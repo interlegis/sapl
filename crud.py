@@ -179,7 +179,7 @@ class CrudDeleteMixin(FormMessagesMixin):
 
 class Crud(object):
 
-    def __init__(self, model, help_path, layout,
+    def __init__(self, model, help_path,
                  base_mixin=BaseCrudMixin,
                  list_mixin=CrudListMixin,
                  create_mixin=CrudCreateMixin,
@@ -191,7 +191,6 @@ class Crud(object):
             pass
         CrudMixin.model = model
         CrudMixin.help_path = help_path
-        CrudMixin.layout = layout
 
         class CrudListView(CrudMixin, list_mixin, ListView):
             pass

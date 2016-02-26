@@ -42,86 +42,13 @@ DISPOSITIVO_SELECT_RELATED = (
     'ta_publicado',
     'ta',)
 
-tipo_nota_crud = Crud(
-    TipoNota, 'tipo_nota', [
-
-        [_('Tipo da Nota'),
-         [('sigla', 2), ('nome', 10)],
-         [('modelo', 12)]],
-    ])
-
-tipo_vide_crud = Crud(
-    TipoVide, 'tipo_vide', [
-
-        [_('Tipo de Vide'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
-
-tipo_publicacao_crud = Crud(
-    TipoPublicacao, 'tipo_publicacao', [
-
-        [_('Tipo de Publicação'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
-
-
-veiculo_publicacao_crud = Crud(
-    VeiculoPublicacao, 'veiculo_publicacao', [
-
-        [_('Veículo de Publicação'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
-
-
-perfil_estr_txt_norm = Crud(
-    PerfilEstruturalTextoArticulado, 'perfil_estrutural', [
-
-        [_('Perfil Estrutural de Textos Articulados'),
-         [('sigla', 2), ('nome', 10)]],
-    ])
-
-
-tipo_dispositivo_crud = Crud(
-    TipoDispositivo, 'tipo_dispositivo', [
-
-        [_('Dados Básicos'),
-         [('nome', 8), ('class_css', 4)]],
-
-        [_('Configurações para Edição do Rótulo'),
-         [('rotulo_prefixo_texto', 3),
-          ('rotulo_sufixo_texto', 3),
-          ('rotulo_ordinal', 3),
-          ('contagem_continua', 3)],
-
-         ],
-
-        [_('Configurações para Renderização de Rótulo e Texto'),
-         [('rotulo_prefixo_html', 6),
-          ('rotulo_sufixo_html', 6), ],
-
-         [('texto_prefixo_html', 4),
-          ('dispositivo_de_articulacao', 4),
-          ('texto_sufixo_html', 4)],
-         ],
-
-        [_('Configurações para Nota Automática'),
-         [('nota_automatica_prefixo_html', 6),
-          ('nota_automatica_sufixo_html', 6),
-          ],
-         ],
-
-        [_('Configurações para Variações Numéricas'),
-
-         [('formato_variacao0', 12)],
-         [('rotulo_separador_variacao01', 5), ('formato_variacao1', 7), ],
-         [('rotulo_separador_variacao12', 5), ('formato_variacao2', 7), ],
-         [('rotulo_separador_variacao23', 5), ('formato_variacao3', 7), ],
-         [('rotulo_separador_variacao34', 5), ('formato_variacao4', 7), ],
-         [('rotulo_separador_variacao45', 5), ('formato_variacao5', 7), ],
-
-         ],
-
-    ])
+tipo_nota_crud = Crud(TipoNota, 'tipo_nota')
+tipo_vide_crud = Crud(TipoVide, 'tipo_vide')
+tipo_publicacao_crud = Crud(TipoPublicacao, 'tipo_publicacao')
+veiculo_publicacao_crud = Crud(VeiculoPublicacao, 'veiculo_publicacao')
+perfil_estr_txt_norm = Crud(PerfilEstruturalTextoArticulado,
+                            'perfil_estrutural')
+tipo_dispositivo_crud = Crud(TipoDispositivo, 'tipo_dispositivo')
 
 
 class IntegracaoTaView(TemplateView):

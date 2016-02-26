@@ -22,131 +22,19 @@ from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
                      TipoAfastamento, TipoDependente)
 
-cargo_mesa_crud = Crud(
-    CargoMesa, 'cargo_mesa', [
-
-        [_('Cargo na Mesa'),
-         [('descricao', 10),
-            ('unico', 2)]],
-    ])
-
-legislatura_crud = Crud(
-    Legislatura, 'tabelas_auxiliares#legislatura', [
-
-        [_('Legislatura'),
-         [('data_inicio', 4), ('data_fim', 4), ('data_eleicao', 4)]],
-    ])
-
-coligacao_crud = Crud(
-    Coligacao, 'coligacao', [
-
-        [_('Coligação'),
-         [('nome', 5),
-            ('legislatura', 5),
-            ('numero_votos', 2)]],
-    ])
-
-partido_crud = Crud(
-    Partido, 'partidos', [
-
-        [_('Partido Político'),
-         [('nome', 6),
-            ('sigla', 2),
-            ('data_criacao', 2),
-            ('data_extincao', 2)]],
-    ])
-
-
-dependente_crud = Crud(
-    Dependente, '', [
-
-        [_('Dependentes'),
-         [('nome', 12)],
-            [('tipo', 4), ('sexo', 4), ('data_nascimento', 4)],
-            [('cpf', 4), ('rg', 4), ('titulo_eleitor', 4)]],
-    ])
-
-
-sessao_legislativa_crud = Crud(
-    SessaoLegislativa, 'sessao_legislativa', [
-
-        [_('Sessão Legislativa'),
-            [('numero', 4),
-             ('tipo', 4),
-             ('legislatura', 4),
-             ('data_inicio', 6),
-             ('data_fim', 6),
-             ('data_inicio_intervalo', 6),
-             ('data_fim_intervalo', 6)]],
-    ])
-
-
-parlamentar_crud = Crud(
-    Parlamentar, '', [
-
-        [_('Cadastro do Parlamentar'),
-         [('nome_parlamentar', 8), ('ativo', 4)],
-            [('nome_completo', 12)],
-            [('nivel_instrucao', 4), ('sexo', 4), ('data_nascimento', 4)],
-            [('cpf', 4), ('rg', 4), ('titulo_eleitor', 4)],
-            [('situacao_militar', 6), ('profissao', 6)],
-            [('endereco_web', 12)],
-            [('email', 12)],
-            [('numero_gab_parlamentar', 4), ('telefone', 4), ('fax', 4)],
-            [('endereco_residencia', 6), ('cep_residencia', 6)],
-            [('municipio_residencia', 12)],
-            [('telefone_residencia', 6), ('fax_residencia', 6)],
-            [('locais_atuacao', 12)],
-            [('fotografia', 12)],
-            [('biografia', 12)]],
-    ])
-
-filiacao_crud = Crud(
-    Filiacao, '', [
-
-        [_('Filiações Partidárias '),
-         [('partido', 4), ('data', 4), ('data_desfiliacao', 4)]],
-    ])
-
-mandato_crud = Crud(
-    Mandato, '', [
-
-        [_('Mandato'),
-         [('legislatura', 4), ('coligacao', 4), ('votos_recebidos', 4)],
-            [('ind_titular_FIXME', 3),
-             ('dat_inicio_mandato_FIXME', 3),
-             ('data_fim_mandato', 3),
-             ('data_expedicao_diploma', 3)],
-            [('observacao', 12)]],
-    ])
-
-tipo_dependente_crud = Crud(
-    TipoDependente, 'tipo_dependente', [
-
-        [_('Tipo de Dependente'),
-         [('descricao', 12)]],
-    ])
-
-nivel_instrucao_crud = Crud(
-    NivelInstrucao, 'nivel_instrucao', [
-
-        [_('Nível Instrução'),
-         [('descricao', 12)]],
-    ])
-
-tipo_afastamento_crud = Crud(
-    TipoAfastamento, 'tipo_afastamento', [
-
-        [_('Tipo de Afastamento'),
-         [('descricao', 5), ('dispositivo', 5), ('afastamento', 2)]],
-    ])
-
-tipo_militar_crud = Crud(
-    SituacaoMilitar, 'tipo_situa_militar', [
-
-        [_('Tipo Situação Militar'),
-         [('descricao', 12)]],
-    ])
+cargo_mesa_crud = Crud(CargoMesa, 'cargo_mesa')
+legislatura_crud = Crud(Legislatura, 'tabelas_auxiliares#legislatura')
+coligacao_crud = Crud(Coligacao, 'coligacao')
+partido_crud = Crud(Partido, 'partidos')
+dependente_crud = Crud(Dependente, '')
+sessao_legislativa_crud = Crud(SessaoLegislativa, 'sessao_legislativa')
+parlamentar_crud = Crud(Parlamentar, '')
+filiacao_crud = Crud(Filiacao, '')
+mandato_crud = Crud(Mandato, '')
+tipo_dependente_crud = Crud(TipoDependente, 'tipo_dependente')
+nivel_instrucao_crud = Crud(NivelInstrucao, 'nivel_instrucao')
+tipo_afastamento_crud = Crud(TipoAfastamento, 'tipo_afastamento')
+tipo_militar_crud = Crud(SituacaoMilitar, 'tipo_situa_militar')
 
 
 class ParlamentaresView(GenericView):
@@ -156,8 +44,8 @@ class ParlamentaresView(GenericView):
         form = ParlamentaresListForm()
 
         if not Legislatura.objects.all():
-            mensagem = "Cadastre alguma Legislatura antes\
-            de cadastrar algum Parlamentar"
+            mensagem = _('Cadastre alguma Legislatura antes'
+                         ' de cadastrar algum Parlamentar')
             messages.add_message(request, messages.INFO, mensagem)
             return self.render_to_response(
                 {'legislaturas': [],

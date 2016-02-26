@@ -27,78 +27,14 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
 
-tipo_sessao_crud = Crud(
-    TipoSessaoPlenaria, 'tipo_sessao_plenaria', [
-
-        [_('Tipo de Sessão Plenária'),
-         [('nome', 6), ('quorum_minimo', 6)]],
-    ])
-
-sessao_crud = Crud(
-    SessaoPlenaria, '', [
-
-        [_('Dados Básicos'),
-         [('numero', 1),
-            ('tipo', 3),
-            ('legislatura', 4),
-            ('sessao_legislativa', 4)],
-            [('data_inicio', 5), ('hora_inicio', 5), ('iniciada', 2)],
-            [('data_fim', 5), ('hora_fim', 5), ('finalizada', 2)],
-            [('upload_pauta', 6), ('upload_ata', 6)],
-            [('url_audio', 6), ('url_video', 6)]],
-    ])
-
-expediente_materia_crud = Crud(
-    ExpedienteMateria, '', [
-
-        [_('Cadastro de Matérias do Expediente'),
-         [('data_ordem', 4), ('tip_sessao_FIXME', 4), ('numero_ordem', 4)],
-            [('tip_id_basica_FIXME', 4),
-             ('num_ident_basica_FIXME', 4),
-             ('ano_ident_basica_FIXME', 4)],
-            [('tipo_votacao', 12)],
-            [('observacao', 12)]],
-    ])
-
-ordem_dia_crud = Crud(
-    OrdemDia, '', [
-
-        [_('Cadastro de Matérias da Ordem do Dia'),
-         [('data_ordem', 4), ('tip_sessao_FIXME', 4), ('numero_ordem', 4)],
-            [('tip_id_basica_FIXME', 4),
-             ('num_ident_basica_FIXME', 4),
-             ('ano_ident_basica_FIXME', 4)],
-            [('tipo_votacao', 12)],
-            [('observacao', 12)]],
-    ])
-
+tipo_sessao_crud = Crud(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
+sessao_crud = Crud(SessaoPlenaria, '')
+expediente_materia_crud = Crud(ExpedienteMateria, '')
+ordem_dia_crud = Crud(OrdemDia, '')
 tipo_resultado_votacao_crud = Crud(
-    TipoResultadoVotacao, 'tipo_resultado_votacao', [
-
-        [_('Tipo de Resultado da Votação'),
-         [('nome', 12)]],
-    ])
-
-tipo_expediente_crud = Crud(
-    TipoExpediente, 'tipo_expediente', [
-
-        [_('Tipo de Expediente'),
-         [('nome', 12)]],
-    ])
-
-registro_votacao_crud = Crud(
-    RegistroVotacao, '', [
-
-        [_('Votação Simbólica'),
-         [('numero_votos_sim', 3),
-            ('numero_votos_nao', 3),
-            ('numero_abstencoes', 3),
-            ('nao_votou_FIXME', 3)],
-            [('votacao_branco_FIXME', 6),
-             ('ind_votacao_presidente_FIXME', 6)],
-            [('tipo_resultado_votacao', 12)],
-            [('observacao', 12)]],
-    ])
+    TipoResultadoVotacao, 'tipo_resultado_votacao')
+tipo_expediente_crud = Crud(TipoExpediente, 'tipo_expediente')
+registro_votacao_crud = Crud(RegistroVotacao, '')
 
 
 class PresencaView(sessao_crud.CrudDetailView):
@@ -646,7 +582,7 @@ class ExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
             return self.form_valid(form)
         else:
             context.update(
-                {'error_message': "Não foi possível salvar formulário!"})
+                {'error_message': _("Não foi possível salvar formulário!")})
             return self.form_invalid(form)
 
     def get_success_url(self):

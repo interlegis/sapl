@@ -1,4 +1,5 @@
 from math import ceil
+from os.path import dirname, join
 
 import rtyaml
 from crispy_forms.bootstrap import FormActions
@@ -61,17 +62,23 @@ def get_field_display(obj, fieldname):
 
 class CrispyLayoutFormMixin(object):
 
+    def get_layout(self):
+        filename = join(
+            dirname(self.model._meta.app_config.models_module.__file__),
+            'layouts.yaml')
+        return read_layout_from_yaml(filename, self.model.__name__)
+
     @property
     def fields(self):
         '''Returns all fields in the layout'''
-        return [fieldname for legend_rows in self.layout
+        return [fieldname for legend_rows in self.get_layout()
                 for row in legend_rows[1:]
                 for fieldname, span in row]
 
     def get_form(self, form_class=None):
         form = super(CrispyLayoutFormMixin, self).get_form(form_class)
         form.helper = FormHelper()
-        form.helper.layout = SaplFormLayout(*self.layout)
+        form.helper.layout = SaplFormLayout(*self.get_layout())
         return form
 
     @property
@@ -81,7 +88,7 @@ class CrispyLayoutFormMixin(object):
         This base implementation returns the field names
         in the first fieldset of the layout.
         '''
-        rows = self.layout[0][1:]
+        rows = self.get_layout()[0][1:]
         return [fieldname for row in rows for fieldname, __ in row]
 
     def get_column(self, fieldname, span):
@@ -101,17 +108,17 @@ class CrispyLayoutFormMixin(object):
              'rows': [[self.get_column(fieldname, span)
                        for fieldname, span in row]
                       for row in rows]
-             } for legend, *rows in self.layout]
+             } for legend, *rows in self.get_layout()]
 
 
-# TODO cache this
 def read_yaml_from_file(filename):
+    # TODO cache this at application level
     with open(filename, 'r') as yamlfile:
         return rtyaml.load(yamlfile)
 
 
 def read_layout_from_yaml(filename, key):
-    # TODO cache this
+    # TODO cache this at application level
     yaml = read_yaml_from_file(filename)
     base = yaml[key]
 
@@ -127,5 +134,5 @@ def read_layout_from_yaml(filename, key):
             remaining = remaining - span
         return list(map(tuple, namespans))
 
-    return [(legend, [line_to_namespans(l) for l in lines])
+    return [[legend] + [line_to_namespans(l) for l in lines]
             for legend, lines in base.items()]

@@ -37,199 +37,25 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-origem_crud = Crud(
-    Origem, 'origem', [
-
-        [_('Origem'),
-         [('nome', 8), ('sigla', 4)]],
-    ])
-
-tipo_materia_crud = Crud(
-    TipoMateriaLegislativa, 'tipo_materia_legislativa', [
-
-        [_('Tipo Matéria Legislativa'),
-         [('sigla', 4), ('descricao', 8)]],
-    ])
-
-regime_tramitacao_crud = Crud(
-    RegimeTramitacao, 'regime_tramitacao', [
-
-        [_('Tipo de Documento'),
-         [('descricao', 12)]],
-    ])
-
-tipo_documento_crud = Crud(
-    TipoDocumento, 'tipo_documento', [
-
-        [_('Regime Tramitação'),
-         [('descricao', 12)]],
-    ])
-
-tipo_fim_relatoria_crud = Crud(
-    TipoFimRelatoria, 'fim_relatoria', [
-
-        [_('Tipo Fim de Relatoria'),
-         [('descricao', 12)]],
-    ])
-
-materia_legislativa_crud = Crud(
-    MateriaLegislativa, '', [
-
-        [_('Identificação Básica'),
-         [('tipo', 4), ('numero', 4), ('ano', 4)],
-            [('data_apresentacao', 4),
-             ('numero_protocolo', 4),
-             ('tipo_apresentacao', 4)],
-         [('texto_original', 12)]],
-
-        [_('Outras Informações'),
-         [('apelido', 4), ('dias_prazo', 4), ('polemica', 4)],
-            [('objeto', 4), ('regime_tramitacao', 4), ('em_tramitacao', 4)],
-            [('data_fim_prazo', 4),
-             ('data_publicacao', 4),
-             ('complementar', 4)]],
-
-        [_('Origem Externa'),
-         [('tipo_origem_externa', 4),
-            ('numero_origem_externa', 4),
-            ('ano_origem_externa', 4)],
-            [('local_origem_externa', 6), ('data_origem_externa', 6)]],
-
-        [_('Dados Textuais'),
-         [('ementa', 12)],
-            [('indexacao', 12)],
-            [('observacao', 12)]],
-    ])
-
-Anexada_crud = Crud(
-    Anexada, '', [
-
-        [_('Matéria Legislativa'),
-         [('tip_id_basica_FIXME', 4),
-            ('num_ident_basica_FIXME', 4),
-            ('ano_ident_basica_FIXME', 4)],
-            [('data_anexacao', 6), ('data_desanexacao', 6)]],
-
-        [_('Matéria Anexada'),
-         [('tip_id_basica_FIXME', 4),
-            ('num_ident_basica_FIXME', 4),
-            ('ano_ident_basica_FIXME', 4)],
-            [('data_anexacao', 6), ('data_desanexacao', 6)]],
-    ])
-
-tipo_autor_crud = Crud(
-    TipoAutor, 'tipo_autor', [
-
-        [_('Tipo Autor'),
-         [('descricao', 12)]],
-    ])
-
-autor_crud = Crud(
-    Autor, 'autor', [
-
-        [_('Autor'),
-         [('tipo', 3), ('nome', 9)],
-            [('username', 12)]],
-    ])
-
-autoria_crud = Crud(
-    Autoria, '', [
-
-        [_('Autoria'),
-         [('tip_autor_FIXME', 4),
-            ('nom_autor_FIXME', 4),
-            ('primeiro_autor', 4)]],
-    ])
-
-documento_acessorio_crud = Crud(
-    DocumentoAcessorio, '', [
-
-        [_('Documento Acessório'),
-         [('tipo', 6), ('nome', 6)],
-            [('data', 6), ('autor', 6)],
-            [('nom_arquivo_FIXME', 12)],
-            [('ementa', 12)],
-            [('txt_observacao_FIXME', 12)]],
-    ])
-
-numeracao_crud = Crud(
-    Numeracao, '', [
-
-        [_('Numeração'),
-         [('tipo_materia', 6), ('numero_materia', 6)],
-            [('ano_materia', 6), ('data_materia', 6)]],
-    ])
-
-orgao_crud = Crud(
-    Orgao, 'orgao', [
-
-        [_('Órgão'),
-         [('nome', 4),
-            ('sigla', 2),
-            ('telefone', 2),
-            ('endereco', 2),
-            ('unidade_deliberativa', 2)]],
-    ])
-
-relatoria_crud = Crud(
-    Relatoria, '', [
-
-        [_('Relatoria'),
-         [('data_designacao_relator', 12)],
-            [('dados_FIXME', 12)],
-            [('data_destituicao_relator', 6), ('tipo_fim_relatoria', 6)]],
-    ])
-
-tipo_proposicao_crud = Crud(
-    TipoProposicao, 'tipo_proposicao', [
-
-        [_('Tipo Proposição'),
-         [('descricao', 12)],
-            [('materia_ou_documento', 6), ('tipo_documento', 6)],
-            [('modelo', 12)]],
-    ])
-
-proposicao_crud = Crud(
-    Proposicao, '', [
-
-        [_('Proposição'),
-         [('tipo', 4), ('dat_criacao_FIXME', 4), ('data_recebimento', 4)],
-            [('descricao_FIXME', 12)],
-            [('tip_id_basica_FIXME', 4),
-             ('num_ident_basica_FIXME', 4),
-             ('ano_ident_basica_FIXME', 4)],
-            [('nom_arquivo_FIXME', 6), ('modelo_FIXME', 6)]],
-    ])
-
-status_tramitacao_crud = Crud(
-    StatusTramitacao, 'status_tramitacao', [
-
-        [_('Status Tramitação'),
-         [('indicador', 3),
-            ('sigla', 2),
-            ('descricao', 7)]],
-    ])
-
-unidade_tramitacao_crud = Crud(
-    UnidadeTramitacao, 'unidade_tramitacao', [
-
-        [_('Unidade Tramitação'),
-         [('orgao', 12)],
-            [('comissao', 12)],
-            [('parlamentar', 12)]],
-    ])
-
-tramitacao_crud = Crud(
-    Tramitacao, '', [
-
-        [_('Tramitação'),
-         [('cod_ult_tram_dest_FIXME', 6), ('unidade_tramitacao_local', 6)],
-            [('status', 4), ('turno', 4), ('urgente', 4)],
-            [('unidade_tramitacao_destino', 4),
-             ('data_encaminhamento', 4),
-             ('data_fim_prazo', 4)],
-            [('texto', 12)]],
-    ])
+origem_crud = Crud(Origem, 'origem')
+tipo_materia_crud = Crud(TipoMateriaLegislativa, 'tipo_materia_legislativa')
+regime_tramitacao_crud = Crud(RegimeTramitacao, 'regime_tramitacao')
+tipo_documento_crud = Crud(TipoDocumento, 'tipo_documento')
+tipo_fim_relatoria_crud = Crud(TipoFimRelatoria, 'fim_relatoria')
+materia_legislativa_crud = Crud(MateriaLegislativa, '')
+Anexada_crud = Crud(Anexada, '')
+tipo_autor_crud = Crud(TipoAutor, 'tipo_autor')
+autor_crud = Crud(Autor, 'autor')
+autoria_crud = Crud(Autoria, '')
+documento_acessorio_crud = Crud(DocumentoAcessorio, '')
+numeracao_crud = Crud(Numeracao, '')
+orgao_crud = Crud(Orgao, 'orgao')
+relatoria_crud = Crud(Relatoria, '')
+tipo_proposicao_crud = Crud(TipoProposicao, 'tipo_proposicao')
+proposicao_crud = Crud(Proposicao, '')
+status_tramitacao_crud = Crud(StatusTramitacao, 'status_tramitacao')
+unidade_tramitacao_crud = Crud(UnidadeTramitacao, 'unidade_tramitacao')
+tramitacao_crud = Crud(Tramitacao, '')
 
 
 class FormularioSimplificadoView(FormMixin, GenericView):
@@ -312,8 +138,8 @@ class MateriaAnexadaView(FormMixin, GenericView):
 
                 if mat_principal.tipo == mat_anexada.tipo:
 
-                    msg = 'A matéria a ser anexada não pode ser do mesmo \
-                            tipo da matéria principal.'
+                    msg = _('A matéria a ser anexada não pode ser do mesmo'
+                            ' tipo da matéria principal.')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'form': form,
@@ -331,8 +157,8 @@ class MateriaAnexadaView(FormMixin, GenericView):
                 anexada.save()
 
             except ObjectDoesNotExist:
-                msg = 'A matéria a ser anexada não existe no cadastro \
-                        de matérias legislativas.'
+                msg = _('A matéria a ser anexada não existe no cadastro'
+                        ' de matérias legislativas.')
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'form': form,
