@@ -108,7 +108,7 @@ def test_layout_detail_fieldsets(monkeypatch):
     # to test None displayed as empty string
     assert stub.population is None
 
-    assert view.fieldsets == [
+    assert view.layout_display == [
         {'legend': 'Basic Data',
          'rows': [[{'id': 'name',
                     'span': 9,
