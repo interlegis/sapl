@@ -1596,7 +1596,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
         return redirect('pesquisar_materia_list')
 
 
-class PesquisaMateriaListView(FormMixin, ListView):
+class PesquisaMateriaListView(ListView):
     template_name = 'materia/pesquisa_materia_list.html'
     context_object_name = 'materias'
     model = MateriaLegislativa
