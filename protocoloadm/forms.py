@@ -6,9 +6,9 @@ from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
-import sapl
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
 from materia.models import TipoMateriaLegislativa
-from sapl.layout import form_actions
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, TipoDocumentoAdministrativo,
@@ -102,25 +102,25 @@ class ProtocoloForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('numero_protocolo', 6),
              ('ano', 6)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('inicial', 6),
              ('final', 6)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('tipo_documento', 4),
              ('tipo_protocolo', 4),
              ('tipo_materia', 4)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('interessado', 4),
              ('autor', 4),
              ('assunto', 4)])
 
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('natureza_processo', 12)])
 
         self.helper = FormHelper()
@@ -147,10 +147,10 @@ class AnularProcoloAdmForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('numero_protocolo', 6),
              ('ano_protocolo', 6)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('justificativa_anulacao', 12)])
 
         self.helper = FormHelper()
@@ -202,18 +202,18 @@ class ProtocoloDocumentForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('numeracao', 12)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('tipo_protocolo', 12)])
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('tipo_documento', 6),
              ('num_paginas', 6)])
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('assunto', 12)])
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('interessado', 12)])
-        row6 = sapl.layout.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
@@ -274,16 +274,16 @@ class ProtocoloMateriaForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('numeracao', 12)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('tipo_materia', 6),
              ('num_paginas', 6)])
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('autor', 12)])
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
@@ -348,15 +348,15 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
 
     def __init__(self, excluir=False, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 4),
              ('nome', 4),
              ('data', 4)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('autor', 12)])
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('arquivo', 12)])
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('assunto', 12)])
 
         more = []
@@ -448,25 +448,25 @@ class DocumentoAdministrativoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 4), ('numero', 4), ('ano', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('data', 6), ('numero_protocolo', 6)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('assunto', 12)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('interessado', 9), ('tramitacao', 3)])
 
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('texto_integral', 12)])
 
-        row6 = sapl.layout.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('dias_prazo', 6), ('data_fim_prazo', 6)])
 
-        row7 = sapl.layout.to_row(
+        row7 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()

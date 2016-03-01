@@ -1,13 +1,11 @@
 from braces.views import FormMessagesMixin
-from crispy_forms.helper import FormHelper
-from django import forms
 from django.conf.urls import url
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 
-from sapl.layout import SaplFormLayout
+from crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 
 
 def from_to(start, end):
@@ -39,72 +37,6 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
-
-
-def get_field_display(obj, fieldname):
-    field = obj._meta.get_field(fieldname)
-    verbose_name = str(field.verbose_name)
-    if field.choices:
-        value = getattr(obj, 'get_%s_display' % fieldname)()
-    else:
-        value = getattr(obj, fieldname)
-    if value is None:
-        display = ''
-    elif 'date' in str(type(value)):
-        display = value.strftime("%d/%m/%Y")  # TODO: localize
-    elif 'bool' in str(type(value)):
-        display = 'Sim' if value else 'Não'
-    else:
-        display = str(value)
-    return verbose_name, display
-
-
-class CrispyLayoutFormMixin(object):
-
-    def get_form_class(self):
-        layout = self.layout
-
-        class CrispyForm(forms.ModelForm):
-
-            class Meta:
-                model = self.model
-                exclude = self.exclude
-
-            def __init__(self, *args, **kwargs):
-                super(CrispyForm, self).__init__(*args, **kwargs)
-                self.helper = FormHelper()
-                self.helper.layout = SaplFormLayout(*layout)
-
-        return CrispyForm
-
-    @property
-    def list_field_names(self):
-        '''The list of field names to display on table
-
-        This base implementation returns the field names
-        in the first fieldset of the layout.
-        '''
-        rows = self.layout[0][1:]
-        return [fieldname for row in rows for fieldname, __ in row]
-
-    def get_column(self, fieldname, span):
-        obj = self.get_object()
-        verbose_name, text = get_field_display(obj, fieldname)
-        return {
-            'id': fieldname,
-            'span': span,
-            'verbose_name': verbose_name,
-            'text': text,
-        }
-
-    @property
-    def fieldsets(self):
-        return [
-            {'legend': legend,
-             'rows': [[self.get_column(fieldname, span)
-                       for fieldname, span in row]
-                      for row in rows]
-             } for legend, *rows in self.layout]
 
 
 class BaseCrudMixin(CrispyLayoutFormMixin):
@@ -247,21 +179,18 @@ class CrudDeleteMixin(FormMessagesMixin):
 
 class Crud(object):
 
-    def __init__(self, model, help_path, layout,
+    def __init__(self, model, help_path,
                  base_mixin=BaseCrudMixin,
                  list_mixin=CrudListMixin,
                  create_mixin=CrudCreateMixin,
                  detail_mixin=CrudDetailMixin,
                  update_mixin=CrudUpdateMixin,
-                 delete_mixin=CrudDeleteMixin,
-                 exclude=[]):
+                 delete_mixin=CrudDeleteMixin):
 
         class CrudMixin(base_mixin):
             pass
         CrudMixin.model = model
         CrudMixin.help_path = help_path
-        CrudMixin.layout = layout
-        CrudMixin.exclude = exclude
 
         class CrudListView(CrudMixin, list_mixin, ListView):
             pass

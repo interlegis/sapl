@@ -1,0 +1,31 @@
+
+AssuntoNorma:
+  Assunto Norma Jurídica:
+  - assunto  descricao
+
+TipoNormaJuridica:
+  Tipo Norma Jurídica:
+  - descricao  sigla  equivalente_lexml
+
+NormaJuridica:
+  Identificação Básica:
+  - tipo  numero  ano
+  - data  esfera_federacao  complemento
+  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - data_publicacao  veiculo_publicacao  pagina_inicio_publicacao  pagina_fim_publicacao
+  - file_FIXME  tip_situacao_norma_FIXME
+  - ementa
+  - indexacao
+  - observacao
+
+NormaJuridica:
+  Identificação Básica:
+  - tipo:5  numero:2  ano:2  data
+  - ementa
+
+LegislacaoCitada:
+  Legislação Citada:
+  - tip_norma_FIXME  num_norma_FIXME  ano_norma_FIXME
+  - disposicoes  parte  livro  titulo
+  - capitulo  secao  subsecao  artigo
+  - paragrafo  inciso  alinea  item

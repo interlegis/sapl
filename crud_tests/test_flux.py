@@ -79,7 +79,9 @@ def test_get_field_display():
 def test_layout_fieldnames(_layout, result):
 
     class StubMixin(CrispyLayoutFormMixin):
-        layout = _layout
+
+        def get_layout(self):
+            return _layout
 
     view = StubMixin()
     assert view.list_field_names == result
@@ -93,12 +95,14 @@ def test_layout_detail_fieldsets(monkeypatch):
                       is_cold=False)
 
     class StubMixin(CrispyLayoutFormMixin):
-        layout = [['Basic Data',
-                   [('name', 9), ('continent', 3)],
-                   [('population', 6), ('is_cold', 6)]
-                   ],
-                  ['More Details', [('description', 12)]],
-                  ]
+
+        def get_layout(self):
+            return [['Basic Data',
+                     [('name', 9), ('continent', 3)],
+                     [('population', 6), ('is_cold', 6)]
+                     ],
+                    ['More Details', [('description', 12)]],
+                    ]
 
         def get_object(self):
             return stub
@@ -108,7 +112,7 @@ def test_layout_detail_fieldsets(monkeypatch):
     # to test None displayed as empty string
     assert stub.population is None
 
-    assert view.fieldsets == [
+    assert view.layout_display == [
         {'legend': 'Basic Data',
          'rows': [[{'id': 'name',
                     'span': 9,

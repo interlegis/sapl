@@ -8,11 +8,6 @@ class CountryCrudListMixin(CrudListMixin):
 
 
 country_crud = Crud(
-    Country, 'help_path', [
-        ['Basic Data',
-         [('name', 9), ('continent', 3)],
-         [('population', 6), ('is_cold', 6)]
-         ],
-        ['More Details', [('description', 12)]],
-    ],
+    Country,
+    'help_path',
     list_mixin=CountryCrudListMixin)

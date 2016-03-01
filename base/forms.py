@@ -3,8 +3,8 @@ from crispy_forms.layout import HTML, Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
 
-import sapl
-from sapl.layout import form_actions
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
 
 from .models import CasaLegislativa
 
@@ -89,33 +89,33 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('codigo', 2),
              ('nome', 5),
              ('sigla', 5)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('endereco', 8),
              ('cep', 4)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('municipio', 10),
              ('uf', 2)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('telefone', 6),
              ('fax', 6)])
 
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('logotipo', 12)])
 
-        row6 = sapl.layout.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('endereco_web', 12)])
 
-        row7 = sapl.layout.to_row(
+        row7 = crispy_layout_mixin.to_row(
             [('email', 12)])
 
-        row8 = sapl.layout.to_row(
+        row8 = crispy_layout_mixin.to_row(
             [('informacao_geral', 12)])
 
         self.helper = FormHelper()

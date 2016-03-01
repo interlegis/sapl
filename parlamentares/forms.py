@@ -4,8 +4,8 @@ from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
-import sapl
-from sapl.layout import form_actions
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
 
 from .models import Dependente, Filiacao, Mandato, Parlamentar
 
@@ -103,55 +103,55 @@ class ParlamentaresForm (ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('nome_parlamentar', 8), ('ativo', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('nome_completo', 12)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('nivel_instrucao', 4),
              ('sexo', 4),
              ('data_nascimento', 4)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('cpf', 4),
              ('rg', 4),
              ('titulo_eleitor', 4)])
 
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('situacao_militar', 6),
              ('profissao', 6)])
 
-        row6 = sapl.layout.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('endereco_web', 12)])
 
-        row7 = sapl.layout.to_row(
+        row7 = crispy_layout_mixin.to_row(
             [('email', 12)])
 
-        row8 = sapl.layout.to_row(
+        row8 = crispy_layout_mixin.to_row(
             [('numero_gab_parlamentar', 4),
              ('telefone', 4),
              ('fax', 4)])
 
-        row9 = sapl.layout.to_row(
+        row9 = crispy_layout_mixin.to_row(
             [('endereco_residencia', 6),
              ('cep_residencia', 6)])
 
-        row10 = sapl.layout.to_row(
+        row10 = crispy_layout_mixin.to_row(
             [('municipio_residencia', 12)])
 
-        row11 = sapl.layout.to_row(
+        row11 = crispy_layout_mixin.to_row(
             [('telefone_residencia', 6),
              ('fax_residencia', 6)])
 
-        row12 = sapl.layout.to_row(
+        row12 = crispy_layout_mixin.to_row(
             [('locais_atuacao', 12)])
 
-        row13 = sapl.layout.to_row(
+        row13 = crispy_layout_mixin.to_row(
             [('fotografia', 12)])
 
-        row14 = sapl.layout.to_row(
+        row14 = crispy_layout_mixin.to_row(
             [('biografia', 12)])
 
         self.helper = FormHelper()
@@ -203,16 +203,16 @@ class MandatoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('legislatura', 4),
              ('coligacao', 4),
              ('votos_recebidos', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('data_fim_mandato', 6),
              ('data_expedicao_diploma', 6)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
@@ -251,15 +251,15 @@ class DependenteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('nome', 12)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('tipo', 4),
              ('sexo', 4),
              ('data_nascimento', 4)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('cpf', 4),
              ('rg', 4),
              ('titulo_eleitor', 4)])
@@ -297,7 +297,7 @@ class FiliacaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('partido', 4),
              ('data', 4),
              ('data_desfiliacao', 4)])

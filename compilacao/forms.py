@@ -12,7 +12,7 @@ from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                Publicacao, TextoArticulado, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from sapl.layout import SaplFormLayout, to_column, to_row
+from crispy_layout_mixin import SaplFormLayout, to_column, to_row
 from sapl.utils import YES_NO_CHOICES
 
 error_messages = {

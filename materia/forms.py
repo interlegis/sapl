@@ -6,10 +6,10 @@ from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
-import sapl
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
-from sapl.layout import form_actions
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Origem,
@@ -87,15 +87,15 @@ class ProposicaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 12)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('descricao', 12)])
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('tipo_materia', 4),
              ('numero_materia', 4),
              ('ano_materia', 4)])
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('texto_original', 10)])
 
         row4.append(
@@ -118,7 +118,7 @@ class AcompanhamentoMateriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row([('email', 10)])
+        row1 = crispy_layout_mixin.to_row([('email', 10)])
 
         row1.append(
             Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
@@ -167,15 +167,15 @@ class DocumentoAcessorioForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 4),
              ('nome', 4),
              ('data', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('autor', 12)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
 
         self.helper = FormHelper()
@@ -252,23 +252,23 @@ class TramitacaoForm(ModelForm):
                   'texto']
 
     def __init__(self, *args, **kwargs):
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('data_tramitacao', 6),
              ('unidade_tramitacao_local', 6)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('status', 5),
              ('turno', 5),
              ('urgente', 2)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('unidade_tramitacao_destino', 12)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('data_encaminhamento', 6),
              ('data_fim_prazo', 6)])
 
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('texto', 12)])
 
         self.helper = FormHelper()
@@ -339,24 +339,24 @@ class LegislacaoCitadaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 4),
              ('numero', 4),
              ('ano', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('disposicao', 3),
              ('parte', 3),
              ('livro', 3),
              ('titulo', 3)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('capitulo', 3),
              ('secao', 3),
              ('subsecao', 3),
              ('artigo', 3)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('paragrafo', 3),
              ('inciso', 3),
              ('alinea', 3),
@@ -407,9 +407,9 @@ class NumeracaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo_materia', 12)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('numero_materia', 4),
              ('ano_materia', 4),
              ('data_materia', 4)])
@@ -474,11 +474,11 @@ class MateriaAnexadaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 4),
              ('numero', 4),
              ('ano', 4)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('data_anexacao', 6),
              ('data_desanexacao', 6)])
 
@@ -517,21 +517,21 @@ class FormularioSimplificadoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 4),
              ('numero', 4),
              ('ano', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('data_apresentacao', 4),
              ('numero_protocolo', 4),
              ('regime_tramitacao', 4)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('texto_original', 9),
              ('em_tramitacao', 3)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
 
         self.helper = FormHelper()
@@ -731,29 +731,29 @@ class MateriaLegislativaPesquisaForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('tipo', 12)])
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('numero', 4),
              ('ano', 4),
              ('numero_protocolo', 4)])
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('data_apresentacao', 6),
              ('data_publicacao', 6)])
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('autor', 6),
              ('partido_autor', 6)])
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('tipo_autor', 6),
              ('relator', 6)])
-        row6 = sapl.layout.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('local_origem_externa', 6),
              ('localizacao', 6)])
-        row7 = sapl.layout.to_row(
+        row7 = crispy_layout_mixin.to_row(
             [('tramitacao', 4),
              ('situacao', 4),
              ('ordem', 4)])
-        row8 = sapl.layout.to_row(
+        row8 = crispy_layout_mixin.to_row(
             [('assunto', 12)])
 
         self.helper = FormHelper()

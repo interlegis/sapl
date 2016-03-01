@@ -3,9 +3,9 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
 
-import sapl
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
 from parlamentares.models import Filiacao
-from sapl.layout import form_actions
 
 from .models import Comissao, Participacao
 
@@ -40,38 +40,38 @@ class CadastrarComissaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('nome', 8),
              ('sigla', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('tipo', 3),
              ('data_criacao', 3),
              ('unidade_deliberativa', 3),
              ('data_extincao', 3)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('local_reuniao', 4),
              ('agenda_reuniao', 4),
              ('telefone_reuniao', 4)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('endereco_secretaria', 4),
              ('telefone_secretaria', 4),
              ('fax_secretaria', 4)])
 
-        row5 = sapl.layout.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('secretario', 6),
              ('email', 6)])
 
-        row6 = sapl.layout.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('finalidade', 12)])
 
-        row7 = sapl.layout.to_row(
+        row7 = crispy_layout_mixin.to_row(
             [('apelido_temp', 9),
              ('data_instalacao_temp', 3)])
 
-        row8 = sapl.layout.to_row(
+        row8 = crispy_layout_mixin.to_row(
             [('data_final_prevista_temp', 4),
              ('data_prorrogada_temp', 4),
              ('data_fim_comissao', 4)])
@@ -148,19 +148,19 @@ class ParticipacaoCadastroForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
 
-        row1 = sapl.layout.to_row(
+        row1 = crispy_layout_mixin.to_row(
             [('parlamentar_id', 4),
              ('cargo', 4),
              ('titular', 4)])
 
-        row2 = sapl.layout.to_row(
+        row2 = crispy_layout_mixin.to_row(
             [('data_designacao', 6),
              ('data_desligamento', 6)])
 
-        row3 = sapl.layout.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('motivo_desligamento', 12)])
 
-        row4 = sapl.layout.to_row(
+        row4 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
 
         self.helper.layout = Layout(
