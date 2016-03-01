@@ -59,6 +59,17 @@ class BaseModel(models.Model):
                         self.__class__, tuple(unique_fields))
                     raise ValidationError(msg)
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, clean=True):
+        if clean:
+            self.clean()
+        return models.Model.save(
+            self,
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields)
+
 
 class TipoTextoArticulado(models.Model):
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
@@ -581,11 +592,13 @@ class Dispositivo(BaseModel, TimestampedMixin):
         'self',
         blank=True, null=True, default=None,
         related_name='+',
+        on_delete=models.SET_NULL,
         verbose_name=_('Dispositivo Subsequente'))
     dispositivo_substituido = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
         related_name='+',
+        on_delete=models.SET_NULL,
         verbose_name=_('Dispositivo Substituido'))
     dispositivo_pai = models.ForeignKey(
         'self',
@@ -925,7 +938,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     def get_parents_asc(self):
         return self.get_parents(ordem='asc')
 
-    def incrementar_irmaos(self, variacao=0, tipoadd=[]):
+    def incrementar_irmaos(self, variacao=0, tipoadd=[], force=True):
 
         if not self.tipo_dispositivo.contagem_continua:
             irmaos = list(Dispositivo.objects.filter(
@@ -955,6 +968,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
                     tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
         dp_profundidade = self.get_profundidade()
+
+        if (not force and not variacao and len(irmaos) > 0 and
+                irmaos[0].get_numero_completo() > self.get_numero_completo()):
+            return
 
         irmaos_a_salvar = []
         ultimo_irmao = None
@@ -1032,12 +1049,8 @@ class Dispositivo(BaseModel, TimestampedMixin):
         proxima_articulacao = Dispositivo.objects.filter(
             ordem__gt=self.ordem,
             nivel=0,
-            ta_id=self.ta_id)[:1]
-
-        if not proxima_articulacao.exists():
-            return None
-
-        return proxima_articulacao[0]
+            ta_id=self.ta_id).first()
+        return proxima_articulacao
 
     def is_relative_auto_insert(self, perfil_pk=None):
         if self.dispositivo_pai is not None:

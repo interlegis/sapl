@@ -250,7 +250,7 @@ $(document).ready(function() {
     $("#message_block").css("display", "none");
 
     href = location.href.split('#')
-    if (href.length == 2) {
+    if (href.length == 2 && href[1] != '') {
         clickUpdateDispositivo(null, href[1], href[1], 'refresh', true);
     }
 

@@ -1007,26 +1007,180 @@ class ActionsEditMixin:
         return JsonResponse(action(context), safe=False)
 
     def delete_item_dispositivo(self, context):
-        return self.delete_bloco_dispositivo(context)
+        return self.delete_bloco_dispositivo(context, bloco=False)
 
-    def delete_bloco_dispositivo(self, context):
+    def delete_bloco_dispositivo(self, context, bloco=True):
         base = Dispositivo.objects.get(pk=context['dispositivo_id'])
 
         base_anterior = Dispositivo.objects.order_by('-ordem').filter(
             ta_id=base.ta_id,
             ordem__lt=base.ordem
         )[:1]
-        base.delete()
 
+        data = {}
         if base_anterior.exists():
-            if base_anterior[0].dispositivo_pai_id:
-                data = {'pk': base_anterior[0].pk, 'pai': [
-                    base_anterior[0].dispositivo_pai_id, ]}
+            if base.dispositivo_pai_id:
+                data = {'pk': base_anterior[0].pk,
+                        'pai': [base.dispositivo_pai_id, ]}
             else:
                 data = {'pk': base_anterior[0].pk, 'pai': [-1, ]}
-            return data
-        else:
-            return {}
+
+        self.remover_dispositivo(base, bloco)
+        return data
+
+    def remover_dispositivo(self, base, bloco):
+        if base.dispositivo_subsequente or base.dispositivo_substituido:
+            p = base.dispositivo_substituido
+            n = base.dispositivo_subsequente
+
+            if n:
+                print(n.id, n)
+                n.dispositivo_substituido = p
+                n.save()
+
+            if p:
+                print(p.id, p)
+                p.dispositivo_subsequente = n
+                if n:
+                    p.fim_vigencia = n.ini_vigencia - timedelta(days=1)
+                    p.fim_eficacia = n.ini_eficacia - timedelta(days=1)
+                else:
+                    p.fim_vigencia = None
+                    p.fim_eficacia = None
+
+                for d in base.dispositivos_filhos_set.all():
+                    if d.tipo_dispositivo.possiveis_pais.filter(
+                            pai=base.tipo_dispositivo,
+                            perfil__padrao=True,
+                            filho_de_insercao_automatica=True).exists():
+                        self.remover_dispositivo(d, bloco)
+                    elif not bloco:
+                        p.dispositivos_filhos_set.add(d)
+                p.save()
+            base.delete()
+        elif not bloco:
+            for d in base.dispositivos_filhos_set.all():
+                # inserções automáticas são excluidas junto com sua base,
+                # independente da escolha do usuário
+                if d.tipo_dispositivo.possiveis_pais.filter(
+                        pai=base.tipo_dispositivo,
+                        perfil__padrao=True,
+                        filho_de_insercao_automatica=True).exists():
+                    continue
+
+                # encontrar possível pai que será o primeiro parent possível
+                # dos parents do dispostivo
+                # imediatamente anterior ao dispositivo base
+                anterior = Dispositivo.objects.order_by('-ordem').filter(
+                    ta_id=base.ta_id,
+                    ordem__lt=d.ordem
+                ).exclude(pk=base.pk).first()
+
+                if anterior.tipo_dispositivo == d.tipo_dispositivo:
+                    d.dispositivo_pai = anterior.dispositivo_pai
+                    d.nivel = anterior.nivel
+                    if not d.tipo_dispositivo.contagem_continua:
+                        d.set_numero_completo(anterior.get_numero_completo())
+
+                        if d.dispositivo_substituido != anterior:
+                            d.transform_in_next()
+                        d.rotulo = d.rotulo_padrao()
+                else:
+                    parents = anterior.get_parents()
+
+                    for candidato in parents:
+                        if candidato.tipo_dispositivo == d.tipo_dispositivo:
+                            d.dispositivo_pai = candidato.dispositivo_pai
+                            d.nivel = candidato.nivel
+                            if not d.tipo_dispositivo.contagem_continua:
+                                d.set_numero_completo(
+                                    candidato.get_numero_completo())
+                                if d.dispositivo_substituido != candidato:
+                                    d.transform_in_next()
+                                d.rotulo = d.rotulo_padrao()
+                            break
+                        elif d.tipo_dispositivo.possiveis_pais.filter(
+                                pai=candidato.tipo_dispositivo,
+                                perfil__padrao=True).exists():
+                            d.dispositivo_pai = candidato
+                            if ';' in d.tipo_dispositivo.rotulo_prefixo_texto:
+                                d.set_numero_completo([0, 0, 0, 0, 0, 0, ])
+                            else:
+                                d.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+                            d.nivel = candidato.nivel + 1
+                            break
+
+                d.save()
+                d.organizar_niveis()
+
+            if base.nivel:
+                if not base.tipo_dispositivo.contagem_continua:
+                    pai_base = base.dispositivo_pai
+                    irmaos_posteriores = pai_base.dispositivos_filhos_set.\
+                        filter(
+                            ordem__gt=base.ordem,
+                            tipo_dispositivo=base.tipo_dispositivo)
+
+                    numero_completo_base = base.get_numero_completo()
+                    base.delete()
+
+                else:
+                    proxima_articulacao = base.get_proximo_nivel_zero()
+                    numero_completo_base = base.get_numero_completo()
+
+                    if proxima_articulacao:
+                        irmaos_posteriores = Dispositivo.objects.filter(
+                            ta_id=base.ta_id,
+                            ordem__gt=base.ordem,
+                            tipo_dispositivo=base.tipo_dispositivo,
+                            ordem__lt=proxima_articulacao.ordem
+                        )
+                    else:
+                        irmaos_posteriores = Dispositivo.objects.filter(
+                            ta_id=base.ta_id,
+                            ordem__gt=base.ordem,
+                            tipo_dispositivo=base.tipo_dispositivo)
+
+                    base.delete()
+
+                numero_completo_irmao = None
+                for irmao in irmaos_posteriores:
+                    numero_completo_irmao = irmao.get_numero_completo()
+                    irmao.set_numero_completo(numero_completo_base)
+                    numero_completo_base = numero_completo_irmao
+                    irmao.rotulo = irmao.rotulo_padrao()
+                    irmao.save()
+            else:
+                proxima_articulacao = base.get_proximo_nivel_zero()
+
+                # Dispostivos de Contagem contínua de dentro da base
+                dcc = Dispositivo.objects.order_by('ordem').filter(
+                    ta_id=base.ta_id,
+                    ordem__gt=base.ordem,
+                    tipo_dispositivo__contagem_continua=True)
+
+                for d in dcc:
+                    ultimo_dcc = Dispositivo.objects.order_by(
+                        'ordem').filter(
+                        ta_id=base.ta_id,
+                        ordem__lt=d.ordem,
+                        tipo_dispositivo__contagem_continua=True,
+                        tipo_dispositivo=d.tipo_dispositivo).last()
+                    if not ultimo_dcc:
+                        break
+                    d.set_numero_completo(ultimo_dcc.get_numero_completo())
+
+                    if d.dispositivo_substituido != ultimo_dcc:
+                        d.transform_in_next()
+
+                    d.rotulo = d.rotulo_padrao()
+                    d.save(clean=False)
+
+                base.delete()
+
+        elif bloco:
+            # TODO: reorganizar dispositivos de contagem continua
+            base.delete()
 
     def add_prior(self, context):
         return {}
@@ -1124,7 +1278,7 @@ class ActionsEditMixin:
 
             dp.rotulo = dp.rotulo_padrao()
             dp.ordem = ordem
-            dp.incrementar_irmaos(variacao, [local_add, ])
+            dp.incrementar_irmaos(variacao, [local_add, ], force=False)
 
             dp.clean()
             dp.save()

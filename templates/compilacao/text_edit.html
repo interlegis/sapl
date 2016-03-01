@@ -14,7 +14,6 @@
   <h1><b>Edição:</b> {{ view.title }} - <i>{% trans 'Texto Multivigente' %}</i></h1>
 {% endblock %}
 
-<div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
 {% block actions %}
   <div class="clearfix">
     <div class="actions btn-toolbar pull-right" role="toolbar">
@@ -27,6 +26,8 @@
 {% endblock actions %}
 
 {% block base_content %}{{block.super}}
+
+<div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
 
   <div class="cp cpe">
       {% include 'compilacao/text_edit_bloco.html'%}

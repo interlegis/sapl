@@ -46,13 +46,16 @@
         <ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
           {% if dpt.dispositivo_subsequente == None %}
             {% for inserts in view|select_provaveis_inserts:request %}
-              <li class="{{inserts.action}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span></a>
-                <ul id="afe{{dpt.id}}" >
-                  {% for item in inserts.itens %}
-                    <li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel}}</a></li>
-                  {% endfor %}
-                </ul>
-              </li>
+              {% if inserts.itens %}
+                <li class="{{inserts.action}}"><a class="btn-inserts" action="" pk="{{dpt.pk}}">{{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span></a>
+                  <ul id="afe{{dpt.id}}" >
+                    {% for item in inserts.itens %}
+                      <li><a class="btn-inserts btn-action" action="{{inserts|lookup:'action'}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel}}</a></li>
+                    {% endfor %}
+                  </ul>
+                </li>
+              {% endif %}
+
             {% endfor %}
           {%endif%}
 
@@ -60,8 +63,8 @@
             <li class="menu_excluir"><a {% if not dpt.dispositivos_filhos_set.exists %}class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}{%else%}class="btn-excluir"{%endif%}>&nbsp;<span>Excluir</span></a>
               {% if dpt.dispositivos_filhos_set.exists %}
                 <ul>
-                  <li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo_todo" pk={{dpt.pk}}>TODO: Excluir apenas este dispositivo</a></li>
-                  <li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>Excluir toda a estrutura deste dispositivo</a></li>
+                  <li><a href="#" class="btn-excluir btn-action" action="delete_item_dispositivo" pk={{dpt.pk}}>{% trans 'Excluir apenas este dispositivo'%}</a></li>
+                  <li><a href="#" class="btn-excluir btn-action" action="delete_bloco_dispositivo" pk={{dpt.pk}}>{% trans 'Excluir este dispositivo e toda sua estrutura'%}</a></li>
                 </ul>
               {% endif %}
             </li>
@@ -79,7 +82,7 @@
         </div>
 
         <ul class="label_status" >
-          <li>Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
+          <li>p: {{dpt.dispositivo_substituido_id}}, n: {{dpt.dispositivo_subsequente_id}}, Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
           <li><a>.</a></li>
         </ul>
 
@@ -95,23 +98,23 @@
   {% endif%}
 
   {% if view.pk_view == 0 and view.pk_edit == 0 or view.pk_edit != view.pk_view %}
-    {% if not dpt.rotulo and not dpt.texto %}
+    {% if not dpt.rotulo and not dpt.texto and dpt.tipo_dispositivo.dispositivo_de_articulacao%}
       <div class="btns-action actions_left">
-        <a class="btn-edit" pk="{{dpt.pk}}"  title="Edição do dispositivo: {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}">E</a>
+        <a class="btn-edit" pk="{{dpt.pk}}">{% trans 'Editar'%} {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}</a>
       </div>
     {% endif %}
     <div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
       {% spaceless %}
         <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
         {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-          <a class="link_alterador" href="compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+          <a class="link_alterador" href="{% url 'compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
             {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
             {% nota_automatica dpt  ta_pub_list %}
             {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
           </a>
         {% endif %}
       {% endspaceless %}
-      {% if view.is_ta_alterador and dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+      {% if dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
         {%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
           {%include template_name%}
         {%endwith%}
