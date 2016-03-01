@@ -73,6 +73,7 @@ tipo_fim_relatoria_crud = Crud(
     ])
 
 materia_legislativa_crud = Crud(
+
     MateriaLegislativa, '', [
 
         [_('Identificação Básica'),
@@ -99,7 +100,7 @@ materia_legislativa_crud = Crud(
          [('ementa', 12)],
             [('indexacao', 12)],
             [('observacao', 12)]],
-    ])
+    ],  exclude=['anexadas'])
 
 Anexada_crud = Crud(
     Anexada, '', [

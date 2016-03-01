@@ -513,6 +513,7 @@ class FormularioSimplificadoForm(ModelForm):
                   'em_tramitacao',
                   'ementa',
                   'texto_original']
+        exclude = ['anexadas']
 
     def __init__(self, *args, **kwargs):
 

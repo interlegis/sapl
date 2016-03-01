@@ -65,8 +65,7 @@ class MateriaLegislativa(models.Model):
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
-    data_apresentacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Apresentação'))
+    data_apresentacao = models.DateField(verbose_name=_('Data Apresentação'))
     tipo_apresentacao = models.CharField(
         max_length=1, blank=True,
         verbose_name=_('Tipo de Apresentação'),
@@ -111,6 +110,7 @@ class MateriaLegislativa(models.Model):
     # XXX novo
     anexadas = models.ManyToManyField(
         'self',
+        blank=True,
         through='Anexada',
         symmetrical=False,
         related_name='anexo_de',

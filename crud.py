@@ -62,14 +62,13 @@ def get_field_display(obj, fieldname):
 class CrispyLayoutFormMixin(object):
 
     def get_form_class(self):
-
         layout = self.layout
 
         class CrispyForm(forms.ModelForm):
 
             class Meta:
                 model = self.model
-                exclude = []
+                exclude = self.exclude
 
             def __init__(self, *args, **kwargs):
                 super(CrispyForm, self).__init__(*args, **kwargs)
@@ -254,13 +253,15 @@ class Crud(object):
                  create_mixin=CrudCreateMixin,
                  detail_mixin=CrudDetailMixin,
                  update_mixin=CrudUpdateMixin,
-                 delete_mixin=CrudDeleteMixin):
+                 delete_mixin=CrudDeleteMixin,
+                 exclude=[]):
 
         class CrudMixin(base_mixin):
             pass
         CrudMixin.model = model
         CrudMixin.help_path = help_path
         CrudMixin.layout = layout
+        CrudMixin.exclude = exclude
 
         class CrudListView(CrudMixin, list_mixin, ListView):
             pass
