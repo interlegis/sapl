@@ -19,4 +19,4 @@ def test_str_sanity():
             except Exception as exc:
                 msg = '%s.%s.__str__ is broken.' % (
                     model.__module__, model.__name__)
-                raise AssertionError(msg, exc) from exc
+                raise AssertionError(msg, exc)

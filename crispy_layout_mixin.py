@@ -8,6 +8,11 @@ from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django.utils.translation import ugettext as _
 
 
+def heads_and_tails(list_of_lists):
+    for alist in list_of_lists:
+        yield alist[0], alist[1:]
+
+
 def to_column(name_span):
     fieldname, span = name_span
     return Div(fieldname, css_class='col-md-%d' % span)
@@ -20,7 +25,7 @@ def to_row(names_spans):
 def to_fieldsets(fields):
     for field in fields:
         if isinstance(field, list):
-            legend, *row_specs = field
+            legend, row_specs = field[0], field[1:]
             rows = [to_row(name_span_list) for name_span_list in row_specs]
             yield Fieldset(legend, *rows)
         else:
@@ -103,12 +108,13 @@ class CrispyLayoutFormMixin(object):
 
     @property
     def layout_display(self):
+
         return [
             {'legend': legend,
              'rows': [[self.get_column(fieldname, span)
                        for fieldname, span in row]
                       for row in rows]
-             } for legend, *rows in self.get_layout()]
+             } for legend, rows in heads_and_tails(self.get_layout())]
 
 
 def read_yaml_from_file(filename):

@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 from django.apps.config import AppConfig
 
+from crispy_layout_mixin import heads_and_tails
 from legacy.migration import appconfs, get_renames
 from legacy.scripts.utils import getsourcelines
 from sapl.utils import listify
@@ -274,7 +275,7 @@ class %(name)sForm(forms.ModelForm):
         self.helper.layout = SaplFormLayout(
 """ % {'name': model.__name__})
 
-        for legend, *rows in fieldsets:
+        for legend, rows in heads_and_tails(fieldsets):
             lines = pretty_printer.pformat([Under(legend)] + rows) + ',\n\n'
             for line in lines.splitlines():
                 print(' ' * GAP + line if line.strip() else '')

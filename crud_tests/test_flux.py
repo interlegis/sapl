@@ -212,7 +212,8 @@ def test_flux_list_paginate_detail(
             assert_on_list_page(res)
             table = res.html.find('table')
             assert table
-            header, *trs = table.findAll('tr')
+            header_trs = table.findAll('tr')
+            header, trs = header_trs[0], header_trs[1:]
             assert [c.text for c in header.findChildren('th')] == [
                 'name', 'continent', 'population', 'is cold']
             rows = [[td.text.strip() for td in tr.findAll('td')]
