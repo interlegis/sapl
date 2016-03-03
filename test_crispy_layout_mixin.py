@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 from crispy_layout_mixin import read_layout_from_yaml
 
 

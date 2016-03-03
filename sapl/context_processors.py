@@ -1,4 +1,7 @@
-
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 from base.views import get_casalegislativa
 
 

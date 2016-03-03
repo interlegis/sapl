@@ -8,6 +8,9 @@ https://docs.djangoproject.com/en/1.8/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
+
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
 """
 from unipath import Path
 

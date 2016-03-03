@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 import pytest
 from django.apps import apps
 from model_mommy import mommy

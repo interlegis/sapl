@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 from datetime import datetime
 from re import sub
 

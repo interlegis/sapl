@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 

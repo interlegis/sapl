@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 from django.conf.urls import url
 
 from .views import controlador_painel  # cronometro_painel_crud,

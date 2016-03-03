@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 # Settings for data migration from mysql legacy to new postgres database
 
 from .settings import *  # flake8: noqa

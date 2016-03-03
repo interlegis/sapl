@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
