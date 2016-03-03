@@ -1,9 +1,9 @@
 -r requirements.txt
-coverage
-django-webtest
-model_mommy
-pep8
-pytest
-pytest-cov
-pytest-django
-webtest
+coverage==3.7.1
+django-webtest==1.7.8
+model_mommy==1.2.5
+pep8==1.6.2
+pytest==2.7.2
+pytest-cov==2.0.0
+pytest-django==2.8.0
+webtest==2.0.18
