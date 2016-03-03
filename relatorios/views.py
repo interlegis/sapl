@@ -2,6 +2,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 from django.http import HttpResponse
+from django.utils.translation import ugettext_lazy as _
 
 from base.forms import ESTADOS
 from base.models import CasaLegislativa
@@ -40,6 +41,7 @@ def get_cabecalho(casa):
 
     cabecalho = {}
     cabecalho["nom_casa"] = casa.nome
+    # FIXME i18n
     cabecalho["nom_estado"] = "Estado de " + ESTADOS[casa.uf.upper()]
     return cabecalho
 
@@ -72,7 +74,7 @@ def get_rodape(casa):
         linha1 = linha1 + " - " + casa.municipio + " " + casa.uf
 
     if casa.telefone:
-        linha1 = linha1 + " Tel.: " + casa.telefone
+        linha1 = linha1 + _(" Tel.: ") + casa.telefone
 
     if casa.endereco_web:
         linha2 = casa.endereco_web
@@ -82,7 +84,7 @@ def get_rodape(casa):
     if casa.email:
         if casa.endereco_web:
             linha2 = linha2 + " - "
-        linha2 = linha2 + "E-mail: " + casa.email
+        linha2 = linha2 + _("E-mail: ") + casa.email
 
     data_emissao = datetime.today().strftime("%d/%m/%Y")
 
@@ -243,9 +245,9 @@ def get_capa_processo(prot):
         for materia_num in MateriaLegislativa.objects.filter(
                 numero_protocolo=p.numero, ano=p.ano):
             for numera in Numeracao.objects.filter(materia=materia_num):
+                # FIXME i18n
                 dic['numeracao'] = 'PROCESSO N&#176; ' + \
                     str(numera.numero) + '/' + str(numera.ano)
-
         dic['anulado'] = ''
         if p.anulado == 1:
             dic['anulado'] = 'Nulo'
@@ -475,8 +477,8 @@ def get_espelho(mats):
         dic['ultima_acao'] = txt_tramitacao
         dic['data_ultima_acao'] = data_ultima_acao
 
-        dic['norma_juridica_vinculada'] = 'Não há nenhuma\
-                                           norma jurídica vinculada'
+        dic['norma_juridica_vinculada'] = _('Não há nenhuma \
+                                           norma jurídica vinculada')
         # TODO
         # for norma in context.zsql.materia_buscar_norma_juridica_zsql(
         #       cod_materia=materia.cod_materia):
@@ -566,13 +568,13 @@ def get_sessao_plenaria(sessao, casa):
             materia=materia).first()
         if tram is not None:
             if tram.turno != '':
-                for turno in [("P", "Primeiro"),
-                              ("S", "Segundo"),
-                              ("U", "Único"),
-                              ("L", "Suplementar"),
-                              ("A", "Votação Única em Regime de Urgência"),
-                              ("B", "1ª Votação"),
-                              ("C", "2ª e 3ª Votações"),
+                for turno in [("P", _("Primeiro")),
+                              ("S", _("Segundo")),
+                              ("U", _("Único")),
+                              ("L", _("Suplementar")),
+                              ("A", _("Votação Única em Regime de Urgência")),
+                              ("B", _("1ª Votação")),
+                              ("C", _("2ª e 3ª Votações")),
                               ("F", "Final")]:
                     if tram.turno == turno[0]:
                         dic_expediente_materia["des_turno"] = turno[1]
@@ -614,8 +616,8 @@ def get_sessao_plenaria(sessao, casa):
                 dic_expediente_materia["votacao_observacao"] = (
                     expediente_materia.observacao)
         else:
-            dic_expediente_materia["nom_resultado"] = "Matéria não votada"
-            dic_expediente_materia["votacao_observacao"] = "Vazio"
+            dic_expediente_materia["nom_resultado"] = _("Matéria não votada")
+            dic_expediente_materia["votacao_observacao"] = _("Vazio")
         lst_expediente_materia.append(dic_expediente_materia)
 
     # Lista dos oradores do Expediente
@@ -678,14 +680,14 @@ def get_sessao_plenaria(sessao, casa):
             materia=materia).first()
         if tramitacao is not None:
             if not tramitacao.turno:
-                for turno in [("P", "Primeiro"),
-                              ("S", "Segundo"),
-                              ("U", "Único"),
-                              ("L", "Suplementar"),
-                              ("F", "Final"),
-                              ("A", "Votação Única em Regime de Urgência"),
-                              ("B", "1ª Votação"),
-                              ("C", "2ª e 3ª Votações")]:
+                for turno in [("P", _("Primeiro")),
+                              ("S", _("Segundo")),
+                              ("U", _("Único")),
+                              ("L", _("Suplementar")),
+                              ("F", _("Final")),
+                              ("A", _("Votação Única em Regime de Urgência")),
+                              ("B", _("1ª Votação")),
+                              ("C", _("2ª e 3ª Votações"))]:
                     if tramitacao.turno == turno[0]:
                         dic_votacao["des_turno"] = turno[1]
 
@@ -723,8 +725,8 @@ def get_sessao_plenaria(sessao, casa):
                 if votacao.observacao:
                     dic_votacao["votacao_observacao"] = votacao.observacao
         else:
-            dic_votacao["nom_resultado"] = "Matéria não votada"
-            dic_votacao["votacao_observacao"] = "Vazio"
+            dic_votacao["nom_resultado"] = _("Matéria não votada")
+            dic_votacao["votacao_observacao"] = _("Vazio")
         lst_votacao.append(dic_votacao)
 
     # Lista dos oradores nas Explicações Pessoais
@@ -1060,14 +1062,14 @@ def get_pauta_sessao(sessao, casa):
             tramitacao = tramitacao.first()
 
             if tramitacao.turno != '':
-                for turno in [("P", "Primeiro"),
-                              ("S", "Segundo"),
-                              ("U", "Único"),
-                              ("F", "Final"),
-                              ("L", "Suplementar"),
-                              ("A", "Votação Única em Regime de Urgência"),
-                              ("B", "1ª Votação"),
-                              ("C", "2ª e 3ª Votações")]:
+                for turno in [("P", _("Primeiro")),
+                              ("S", _("Segundo")),
+                              ("U", _("Único")),
+                              ("F", _("Final")),
+                              ("L", _("Suplementar")),
+                              ("A", _("Votação Única em Regime de Urgência")),
+                              ("B", _("1ª Votação")),
+                              ("C", _("2ª e 3ª Votações"))]:
                     if tramitacao.turno == turno.first():
                         dic_expediente_materia["des_turno"] = turno.first()
 
@@ -1123,13 +1125,13 @@ def get_pauta_sessao(sessao, casa):
         if tramitacao is not None:
             tramitacao = tramitacao.first()
             if tramitacao.turno != '':
-                for turno in [("P", "Primeiro"),
-                              ("S", "Segundo"),
-                              ("U", "Único"),
-                              ("L", "Suplementar"),
-                              ("A", "Votação Única em Regime de Urgência"),
-                              ("B", "1ª Votação"),
-                              ("C", "2ª e 3ª Votações")]:
+                for turno in [("P", _("Primeiro")),
+                              ("S", _("Segundo")),
+                              ("U", _("Único")),
+                              ("L", _("Suplementar")),
+                              ("A", _("Votação Única em Regime de Urgência")),
+                              ("B", _("1ª Votação")),
+                              ("C", _("2ª e 3ª Votações"))]:
                     if tramitacao.turno == turno.first():
                         dic_votacao["des_turno"] = turno.first()
 

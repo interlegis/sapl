@@ -3,6 +3,7 @@ from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -39,7 +40,7 @@ class ParlamentaresForm (ModelForm):
                          widget=forms.TextInput(
                              attrs={'class': 'rg'}))
 
-    titulo_eleitor = forms.CharField(label='Título de Eleitor',
+    titulo_eleitor = forms.CharField(label=_('Título de Eleitor'),
                                      required=False,
                                      widget=forms.TextInput(
                                          attrs={'class': 'titulo_eleitor'}))
@@ -156,7 +157,7 @@ class ParlamentaresForm (ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Cadastro do Parlamentar',
+            Fieldset(_('Cadastro do Parlamentar'),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
                      row11, row12, row13,
@@ -217,7 +218,7 @@ class MandatoForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Adicionar Mandato', row1, row2, row3,
+            Fieldset(_('Adicionar Mandato'), row1, row2, row3,
                      form_actions())
 
         )
@@ -266,7 +267,7 @@ class DependenteForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Cadastro de Dependentes',
+            Fieldset(_('Cadastro de Dependentes'),
                      row1, row2, row3,
                      form_actions())
 
@@ -304,7 +305,7 @@ class FiliacaoForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Adicionar Filiação', row1,
+            Fieldset(_('Adicionar Filiação'), row1,
                      form_actions())
 
         )

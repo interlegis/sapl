@@ -59,7 +59,7 @@ class ComposicaoView(FormMixin, GenericView):
             msg = ''
         else:
             composicao_id = 0
-            msg = 'Ainda não há uma composição formada!'
+            msg = _('Ainda não há uma composição formada!')
             messages.add_message(request, messages.INFO, msg)
 
         return self.render_to_response({
@@ -114,7 +114,7 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
             if cargo.nome == 'Presidente':
                 for p in Participacao.objects.filter(composicao=composicao):
                     if p.cargo.nome == 'Presidente':
-                        msg = 'Esse cargo já está sendo ocupado!'
+                        msg = _('Esse cargo já está sendo ocupado!')
                         messages.add_message(request, messages.INFO, msg)
                         return self.render_to_response(
                             {'form': form,

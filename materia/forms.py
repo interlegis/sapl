@@ -5,6 +5,7 @@ from crispy_forms.layout import Column, Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -26,16 +27,16 @@ def get_range_anos():
 def get_regimes_tramitacao():
     return [('1', 'Normal'),
             ('3', 'Urgência'),
-            ('4', 'Urgência Especial')]
+            ('4', _('Urgência Especial'))]
 
 
 def get_local_origem():
-    return [('E', 'Poder Executivo'),
-            ('L', 'Poder Legislativo')]
+    return [('E', _('Poder Executivo')),
+            ('L', _('Poder Legislativo'))]
 
 
 def em_tramitacao():
-    return [('', 'Tanto Faz'),
+    return [('', _('Tanto Faz')),
             (True, 'Sim'),
             (False, 'Não')]
 
@@ -58,7 +59,7 @@ class ProposicaoForm(ModelForm):
         widget=forms.Textarea())
 
     tipo_materia = forms.ModelChoiceField(
-        label='Matéria Vinculada',
+        label=_('Matéria Vinculada'),
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
@@ -103,7 +104,7 @@ class ProposicaoForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Incluir Proposição',
+            Fieldset(_('Incluir Proposição'),
                      row1, row2, row3, row4)
         )
         super(ProposicaoForm, self).__init__(
@@ -127,7 +128,7 @@ class AcompanhamentoMateriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Acompanhamento de Matéria por e-mail', row1
+                _('Acompanhamento de Matéria por e-mail'), row1
             )
         )
         super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
@@ -181,7 +182,7 @@ class DocumentoAcessorioForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Incluir Documento Acessório',
+                _('Incluir Documento Acessório'),
                 row1, row2, row3,
                 form_actions()
             )
@@ -273,7 +274,7 @@ class TramitacaoForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Incluir Tramitação',
+            Fieldset(_('Incluir Tramitação'),
                      row1, row2, row3, row4, row5,
                      ),
             form_actions()
@@ -285,7 +286,7 @@ class TramitacaoForm(ModelForm):
 class LegislacaoCitadaForm(ModelForm):
 
     tipo = forms.ModelChoiceField(
-        label='Tipo Norma',
+        label=_('Tipo Norma'),
         required=True,
         queryset=TipoNormaJuridica.objects.all(),
         empty_label='Selecione',
@@ -366,7 +367,7 @@ class LegislacaoCitadaForm(ModelForm):
         self.helper.form_class = 'form-horizontal'
         self.helper.layout = Layout(
             Fieldset(
-                'Incluir Legislação Citada',
+                _('Incluir Legislação Citada'),
                 row1, row2, row3, row4,
                 form_actions()
             )
@@ -377,7 +378,7 @@ class LegislacaoCitadaForm(ModelForm):
 class NumeracaoForm(ModelForm):
 
     tipo_materia = forms.ModelChoiceField(
-        label='Tipo de Matéria',
+        label=_('Tipo de Matéria'),
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
@@ -417,7 +418,7 @@ class NumeracaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Incluir Numeração',
+                _('Incluir Numeração'),
                 row1, row2,
                 form_actions()
             )
@@ -435,7 +436,7 @@ class DespachoInicialForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Adicionar Despacho Inicial',
+                _('Adicionar Despacho Inicial'),
                 'comissao',
                 form_actions()
             )
@@ -456,13 +457,13 @@ class MateriaAnexadaForm(ModelForm):
 
     ano = forms.CharField(label='Ano', required=True)
 
-    data_anexacao = forms.DateField(label='Data Anexação',
+    data_anexacao = forms.DateField(label=_('Data Anexação'),
                                     required=True,
                                     input_formats=['%d/%m/%Y'],
                                     widget=forms.TextInput(
                                         attrs={'class': 'dateinput'}))
 
-    data_desanexacao = forms.DateField(label='Data Desanexação',
+    data_desanexacao = forms.DateField(label=_('Data Desanexação'),
                                        required=False,
                                        input_formats=['%d/%m/%Y'],
                                        widget=forms.TextInput(
@@ -485,7 +486,7 @@ class MateriaAnexadaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Anexar Matéria',
+                _('Anexar Matéria'),
                 row1, row2,
                 form_actions()
             )
@@ -537,9 +538,9 @@ class FormularioSimplificadoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Formulário Simplificado',
+                _('Formulário Simplificado'),
                 Fieldset(
-                    'Identificação Básica',
+                    _('Identificação Básica'),
                     row1, row2, row3, row4
                 ),
                 form_actions()
@@ -581,9 +582,9 @@ class FormularioCadastroForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Formulário de Cadastro',
+                _('Formulário de Cadastro'),
                 Fieldset(
-                    'Identificação Básica',
+                    _('Identificação Básica'),
                     'tipo',
                     'numero',
                     'ano',
@@ -593,7 +594,7 @@ class FormularioCadastroForm(ModelForm):
                     'texto_original'
                 ),
                 Fieldset(
-                    'Outras Informações',
+                    _('Outras Informações'),
                     'apelido',
                     'dias_prazo',
                     'polemica',
@@ -605,7 +606,7 @@ class FormularioCadastroForm(ModelForm):
                     'complementar'
                 ),
                 Fieldset(
-                    'Origem Externa',
+                    _('Origem Externa'),
                     'tipo_origem_externa',
                     'numero_origem_externa',
                     'ano_origem_externa',
@@ -613,7 +614,7 @@ class FormularioCadastroForm(ModelForm):
                     'data_origem_externa'
                 ),
                 Fieldset(
-                    'Dados Textuais',
+                    _('Dados Textuais'),
                     'ementa',
                     'indexacao',
                     'observacao'
@@ -629,7 +630,7 @@ class AutoriaForm(forms.Form):
     nome_autor = forms.CharField()
     primeiro_autor = forms.CharField()
     partido_autor = forms.ModelChoiceField(
-        label='Partido (Autor)',
+        label=_('Partido (Autor)'),
         required=False,
         queryset=Partido.objects.all(),
         empty_label='Selecione')
@@ -653,7 +654,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
     )
 
     tipo = forms.ModelChoiceField(
-        label='Tipo de Matéria',
+        label=_('Tipo de Matéria'),
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
@@ -685,7 +686,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
                                        attrs={'class': 'selector'}))
 
     localizacao = forms.ModelChoiceField(
-        label='Localização Atual',
+        label=_('Localização Atual'),
         required=False,
         queryset=UnidadeTramitacao.objects.all(),
         empty_label='Selecione',
@@ -705,20 +706,20 @@ class MateriaLegislativaPesquisaForm(forms.Form):
                                        attrs={'class': 'selector'}))
 
     tipo_autor = forms.ModelChoiceField(
-        label='Tipo Autor',
+        label=_('Tipo Autor'),
         required=False,
         queryset=TipoAutor.objects.all(),
         empty_label='Selecione',
     )
 
     partido_autor = forms.ModelChoiceField(
-        label='Partido (Autor)',
+        label=_('Partido (Autor)'),
         required=False,
         queryset=Partido.objects.all(),
         empty_label='Selecione')
 
     local_origem_externa = forms.ModelChoiceField(
-        label='Localização de Origem',
+        label=_('Localização de Origem'),
         required=False,
         queryset=Origem.objects.all(),
         empty_label='Selecione')
@@ -758,7 +759,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Pesquisa Básica',
+            Fieldset(_('Pesquisa Básica'),
                      row1, row2, row3, row4, row5, row6, row7, row8),
             form_actions(save_label='Pesquisar')
         )

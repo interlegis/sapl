@@ -226,8 +226,8 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
 
                     if mat_principal.tipo == mat_anexada.tipo:
 
-                        msg = 'A matéria a ser anexada não pode ser do mesmo \
-                            tipo da matéria principal.'
+                        msg = _('A matéria a ser anexada não pode ser do mesmo \
+                        tipo da matéria principal.')
                         messages.add_message(request, messages.INFO, msg)
                         return self.render_to_response(
                             {'form': form,
@@ -245,8 +245,8 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                     return self.form_valid(form)
 
                 except ObjectDoesNotExist:
-                    msg = 'A matéria a ser anexada não existe no cadastro \
-                        de matérias legislativas.'
+                    msg = _('A matéria a ser anexada não existe no cadastro \
+                        de matérias legislativas.')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'form': form,
@@ -364,7 +364,7 @@ class LegislacaoCitadaView(FormMixin, GenericView):
                     numero=form.cleaned_data['numero'],
                     ano=form.cleaned_data['ano'])
             except ObjectDoesNotExist:
-                msg = 'Norma Juridica não existe.'
+                msg = _('Norma Juridica não existe.')
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response({'form': form,
                                                 'object': materia,
@@ -430,7 +430,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
                         numero=form.cleaned_data['numero'],
                         ano=form.cleaned_data['ano'])
                 except ObjectDoesNotExist:
-                    msg = 'Norma Juridica não existe.'
+                    msg = _('Norma Juridica não existe.')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'form': form,
@@ -735,7 +735,7 @@ class RelatoriaView(FormMixin, GenericView):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
 
         if not materia.tramitacao_set.all():
-            msg = 'Adicione alguma Tramitação antes de adicionar uma Comissão!'
+            msg = _('Adicione alguma Tramitação antes de adicionar uma Comissão!')
             messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'object': materia,
@@ -762,7 +762,7 @@ class RelatoriaView(FormMixin, GenericView):
                 try:
                     composicao = Composicao.objects.get(comissao=comissao)
                 except ObjectDoesNotExist:
-                    msg = 'Não há composição nesta Comissão!'
+                    msg = _('Não há composição nesta Comissão!')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'object': materia,
@@ -790,7 +790,7 @@ class RelatoriaView(FormMixin, GenericView):
             materia=materia).last()
 
         if not materia.tramitacao_set.all():
-            msg = 'Adicione alguma Tramitação antes de adicionar uma Comissão!'
+            msg = _('Adicione alguma Tramitação antes de adicionar uma Comissão!')
             messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'object': materia,
@@ -805,7 +805,7 @@ class RelatoriaView(FormMixin, GenericView):
                 composicao = Composicao.objects.filter(
                     comissao=comissao).last()
                 if not composicao:
-                    msg = 'Não há composição nesta Comissão!'
+                    msg = _('Não há composição nesta Comissão!')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'object': materia,
@@ -814,7 +814,7 @@ class RelatoriaView(FormMixin, GenericView):
                          'comissao': comissao})
                 parlamentares = composicao.participacao_set.all()
             except ObjectDoesNotExist:
-                msg = 'O local atual deve  ser uma Comissão!'
+                msg = _('O local atual deve  ser uma Comissão!')
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'object': materia,
@@ -853,6 +853,7 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
     if not materia:
         raise ValueError("Matéria é obrigatória")
 
+    # FIXME i18n
     casa_nome = (casa_legislativa.nome + ' de ' +
                  casa_legislativa.municipio + '-' +
                  casa_legislativa.uf)
@@ -888,6 +889,7 @@ def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
     if not materia:
         raise ValueError("Matéria é obrigatória")
 
+    # FIXME i18n
     casa_nome = (casa_legislativa.nome + ' de ' +
                  casa_legislativa.municipio + '-' +
                  casa_legislativa.uf)
@@ -972,6 +974,7 @@ def do_envia_email_confirmacao(request, materia, email):
     casa = CasaLegislativa.objects.first()
 
     sender = 'sapl-test@interlegis.leg.br'
+    # FIXME i18n
     subject = "[SAPL] " + str(materia) + " - Ative o Acompanhamento da Materia"
     messages = []
     recipients = []
@@ -1001,6 +1004,7 @@ def do_envia_email_tramitacao(request, materia):
     casa = CasaLegislativa.objects.first()
 
     sender = 'sapl-test@interlegis.leg.br'
+    # FIXME i18n
     subject = "[SAPL] " + str(materia) + \
               " - Acompanhamento de Materia Legislativa"
     messages = []
@@ -1053,8 +1057,8 @@ class TramitacaoView(FormMixin, GenericView):
                 tramitacao.materia = materia
                 tramitacao.save()
             else:
-                msg = 'A origem da nova tramitação \
-                        deve ser igual ao destino da última adicionada!'
+                msg = _('A origem da nova tramitação \
+                        deve ser igual ao destino da última adicionada!')
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'form': form,
@@ -1102,8 +1106,7 @@ class TramitacaoEditView(FormMixin, GenericView):
                     tramitacao.delete()
                     return self.form_valid(form)
                 else:
-                    msg = 'Somente a útlima tramitação pode ser\
-                    deletada!'
+                    msg = _('Somente a útlima tramitação pode ser deletada!')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'object': materia,
@@ -1198,7 +1201,7 @@ class AutoriaView(GenericView):
                      'autores': Autor.objects.all(),
                      'tipo_autor_id': int(form.data['tipo_autor'])})
             else:
-                msg = 'Essa autoria já foi adicionada!'
+                msg = _('Essa autoria já foi adicionada!')
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'object': materia,
@@ -1325,7 +1328,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
             try:
                 int(request.POST['numero'])
             except ValueError:
-                mensagem = "Insira um número inteiro em matéria!"
+                mensagem = _("Insira um número inteiro em matéria!")
                 messages.add_message(request, messages.INFO, mensagem)
                 return self.render_to_response(
                     {'form': form})
@@ -1336,7 +1339,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
             try:
                 int(request.POST['ano'])
             except ValueError:
-                mensagem = "Insira uma data válida em Ano da Matéria!"
+                mensagem = _("Insira uma data válida em Ano da Matéria!")
                 messages.add_message(request, messages.INFO, mensagem)
                 return self.render_to_response(
                     {'form': form})
@@ -1347,7 +1350,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
             try:
                 int(request.POST['numero_protocolo'])
             except ValueError:
-                mensagem = "Insira um Número de Protocolo válido!"
+                mensagem = _("Insira um Número de Protocolo válido!")
                 messages.add_message(request, messages.INFO, mensagem)
                 return self.render_to_response(
                     {'form': form})
@@ -1360,7 +1363,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
                     request.POST['data_apresentacao'],
                     '%d/%m/%Y').strftime('%Y-%m-%d')
             except ValueError:
-                mensagem = "Insira uma Data de Apresentação válida!"
+                mensagem = _("Insira uma Data de Apresentação válida!")
                 messages.add_message(request, messages.INFO, mensagem)
                 return self.render_to_response(
                     {'form': form})
@@ -1375,7 +1378,7 @@ class MateriaLegislativaPesquisaView(FormMixin, GenericView):
                     request.POST['data_publicacao'],
                     '%d/%m/%Y').strftime('%Y-%m-%d')
             except ValueError:
-                mensagem = "Insira uma Data de Publicação válida!"
+                mensagem = _("Insira uma Data de Publicação válida!")
                 messages.add_message(request, messages.INFO, mensagem)
                 return self.render_to_response(
                     {'form': form})
@@ -1512,7 +1515,7 @@ class ProposicaoView(FormMixin, GenericView):
                         ano=int(form.data['ano_materia']),
                         numero=int(form.data['numero_materia']))
                 except ObjectDoesNotExist:
-                    msg = 'Matéria adicionada não existe!'
+                    msg = _('Matéria adicionada não existe!')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response({'form': form})
                 else:
@@ -1585,8 +1588,8 @@ class AcompanhamentoMateriaView(materia_legislativa_crud.CrudDetailView):
                 return self.render_to_response(
                     {'form': form,
                      'materia': materia,
-                     'error': 'Essa matéria já está\
-                     sendo acompanhada por este e-mail.'})
+                     'error': _('Essa matéria já está\
+                     sendo acompanhada por este e-mail.')})
             return self.form_valid(form)
         else:
             return self.render_to_response(

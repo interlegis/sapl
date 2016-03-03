@@ -38,7 +38,7 @@ def controlador_painel(request):
 
 
 def painel_view(request, pk):
-    context = {'head_title': 'Painel Plenário', 'sessao_id': pk}
+    context = {'head_title': _('Painel Plenário'), 'sessao_id': pk}
     return render(request, 'painel/index.html', context)
 
 
@@ -113,7 +113,7 @@ def get_presentes(pk, response, materia):
             presentes_ordem_dia.append(
                 {'id': p.id,
                  'nome': nome_parlamentar,
-                 'partido': 'Sem Registro',
+                 'partido': _('Sem Registro'),
                  })
         else:
             presentes_ordem_dia.append(
@@ -136,7 +136,7 @@ def get_presentes(pk, response, materia):
         'presentes_sessao_plenaria': presentes_sessao_plenaria,
         'num_presentes_sessao_plenaria': num_presentes_sessao_plen,
         'status_painel': 'ABERTO',
-        'msg_painel': 'Votação aberta!',
+        'msg_painel': _('Votação aberta!'),
         'numero_votos_sim': 0,
         'numero_votos_nao': 0,
         'numero_abstencoes': 0,
@@ -193,7 +193,7 @@ def get_presentes_expediente(pk, response, materia):
             presentes_expediente.append(
                 {'id': p.id,
                  'nome': nome_parlamentar,
-                 'partido': 'Sem Registro',
+                 'partido': _('Sem Registro'),
                  })
         else:
             presentes_expediente.append(
@@ -215,8 +215,8 @@ def get_presentes_expediente(pk, response, materia):
         'num_presentes_expediente': num_presentes_expediente,
         'presentes_sessao_plenaria': presentes_sessao_plenaria,
         'num_presentes_sessao_plenaria': num_presentes_sessao_plen,
-        'status_painel': 'ABERTO',
-        'msg_painel': 'Votação aberta!',
+        'status_painel': _('ABERTO'),
+        'msg_painel': _('Votação aberta!'),
         'numero_votos_sim': 0,
         'numero_votos_nao': 0,
         'numero_abstencoes': 0,
@@ -231,7 +231,7 @@ def get_presentes_expediente(pk, response, materia):
 def response_null_materia(response):
     response.update({
         'status_painel': 'FECHADO',
-        'msg_painel': 'Nenhuma matéria disponivel para votação.'
+        'msg_painel': _('Nenhuma matéria disponivel para votação.')
     })
     return JsonResponse(response)
 
@@ -291,7 +291,7 @@ def get_votos_nominal(response, materia):
             votos.update({v.parlamentar.id: {
                 'parlamentar': v.parlamentar.nome_parlamentar,
                 'voto': str(v.voto),
-                'partido': 'Sem Registro'
+                'partido': _('Sem Registro')
             }})
         else:
             votos.update({v.parlamentar.id: {

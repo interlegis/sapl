@@ -48,7 +48,7 @@ class NormaIncluirView(FormMixin, GenericView):
                 except ObjectDoesNotExist:
                     return self.render_to_response(
                         {'form': form,
-                         'error': 'Matéria adicionada não existe!'})
+                         'error': _('Matéria adicionada não existe!')})
                 else:
                     norma.materia = materia
 

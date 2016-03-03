@@ -164,13 +164,13 @@ class LegislacaoCitada(models.Model):
 
 class VinculoNormaJuridica(models.Model):
     TIPO_VINCULO_CHOICES = (
-        ('A', 'Altera a norma'),
-        ('R', 'Revoga a norma'),
-        ('P', 'Revoga parcialmente a norma'),
-        ('T', 'Revoga por consolidação a norma'),
-        ('C', 'Norma correlata'),
-        ('I', 'Suspende a execução da norma'),
-        ('G', 'Regulamenta a norma'),
+        ('A', _('Altera a norma')),
+        ('R', _('Revoga a norma')),
+        ('P', _('Revoga parcialmente a norma')),
+        ('T', _('Revoga por consolidação a norma')),
+        ('C', _('Norma correlata')),
+        ('I', _('Suspende a execução da norma')),
+        ('G', _('Regulamenta a norma')),
     )
 
     # TODO M2M ???

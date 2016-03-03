@@ -658,7 +658,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                         elif irmaos_mesmo_tipo.count() == 1:
                             self.transform_in_next()
                             self.transform_in_next()
-                            r += 'Transformar %s em %s%s e criar %s1%s' % (
+                            r += _('Transformar %s em %s%s e criar %s1%s') % (
                                 prefixo[1].strip(),
                                 prefixo[0],
                                 self.get_nomenclatura_completa(),
@@ -686,7 +686,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                                 ordem__gt=self.ordem,
                                 ordem__lt=irmaos_mesmo_tipo[0].ordem).exists():
                             self.dispositivo0 = 2
-                            r += 'Transformar %s em %s%s e criar %s1%s' % (
+                            r += _('Transformar %s em %s%s e criar %s1%s') % (
                                 prefixo[1].strip(),
                                 prefixo[0],
                                 self.get_nomenclatura_completa(),
@@ -695,7 +695,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                                 self.tipo_dispositivo.rotulo_ordinal >= 0
                                 else '',)
                         else:
-                            r += 'Transformar %s em %s%s e criar %s 2%s' % (
+                            r += _('Transformar %s em %s%s e criar %s 2%s') % (
                                 prefixo[1].strip(),
                                 prefixo[0],
                                 self.get_nomenclatura_completa(),
@@ -893,7 +893,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 Max('ordem'))
             if ordem_max['ordem__max'] is None:
                 raise Exception(
-                    'Não existem registros base neste Texto Articulado')
+                    _('Não existem registros base neste Texto Articulado'))
             ordem = ordem_max['ordem__max'] + Dispositivo.INTERVALO_ORDEM
         return ordem
 
