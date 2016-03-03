@@ -325,7 +325,7 @@ class Orgao(models.Model):
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
-        verbose_name=('Unidade Deliberativa'))
+        verbose_name=(_('Unidade Deliberativa')))
     endereco = models.CharField(
         max_length=100, blank=True, verbose_name=_('Endereço'))
     telefone = models.CharField(

@@ -3,6 +3,7 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -26,7 +27,7 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 class NormaJuridicaForm(ModelForm):
 
     tipo_materia = forms.ModelChoiceField(
-        label='Matéria Legislativa',
+        label=_('Matéria Legislativa'),
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione'
@@ -93,8 +94,8 @@ class NormaJuridicaForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset('Cadastro de Norma Jurídica',
-                     Fieldset('Identificação Básica',
+            Fieldset(_('Cadastro de Norma Jurídica'),
+                     Fieldset(_('Identificação Básica'),
                               row1, row2, row3, row4, row5, row6, row7, row8),
                      form_actions()
                      )

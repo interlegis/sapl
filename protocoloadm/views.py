@@ -175,7 +175,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
                     errors = form._errors.setdefault(
                         forms.forms.NON_FIELD_ERRORS,
                         forms.util.ErrorList())
-                    errors.append("Procolo %s/%s já encontra-se anulado"
+                    errors.append(_("Procolo %s/%s já está anulado")
                                   % (numero, ano))
                     return self.form_invalid(form)
 
@@ -189,7 +189,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
             except ObjectDoesNotExist:
                 errors = form._errors.setdefault(
                     forms.forms.NON_FIELD_ERRORS, forms.util.ErrorList())
-                errors.append("Procolo %s/%s não existe" % (numero, ano))
+                errors.append(_("Procolo %s/%s não existe") % (numero, ano))
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
@@ -301,7 +301,7 @@ class ComprovanteProtocoloView(TemplateView):
         base64_data = create_barcode(numero.zfill(6))
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
-        autenticacao = "** NULO **"
+        autenticacao = _("** NULO **")
 
         if not protocolo.anulado:
             autenticacao = str(protocolo.tipo_processo) + \
@@ -480,7 +480,7 @@ class PesquisarDocumentoAdministrativo(TemplateView):
 
         if len(doc) == 0:
             return self.render_to_response(
-                {'error': 'Nenhum resultado encontrado!',
+                {'error': _('Nenhum resultado encontrado!'),
                     "tipos_doc": TipoDocumentoAdministrativo.objects.all()}
             )
         else:
@@ -587,8 +587,8 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
         doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
             documento_id=kwargs['pk'])
         if not doc_acessorio:
-            doc_ace_null = 'Nenhum documento acessório \
-                 cadastrado para este processo.'
+            doc_ace_null = _('Nenhum documento acessório \
+                 cadastrado para este processo.')
 
         return self.render_to_response({'pk': kwargs['pk'],
                                         'doc': doc,

@@ -1,8 +1,11 @@
 import os
+from io import BytesIO
 from re import sub
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.forms.fields import ImageField
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
@@ -63,7 +66,7 @@ class ParlamentaresView(GenericView):
             if m.parlamentar.filiacao_set.last():
                 partido = m.parlamentar.filiacao_set.last().partido.sigla
             else:
-                partido = 'Sem Registro'
+                partido = _('Sem Registro')
 
             dict_parlamentar = {
                 'id': m.parlamentar.id,
@@ -91,7 +94,7 @@ class ParlamentaresView(GenericView):
             if m.parlamentar.filiacao_set.last():
                 partido = m.parlamentar.filiacao_set.last().partido.sigla
             else:
-                partido = 'Sem Registro'
+                partido = _('Sem Registro')
 
             dict_parlamentar = {
                 'id': m.parlamentar.id,
@@ -167,7 +170,6 @@ class ParlamentaresEditarView(FormMixin, GenericView):
                 parlamentar = form.save(commit=False)
                 if 'fotografia' in request.FILES:
                     parlamentar.fotografia = request.FILES['fotografia']
-
                 parlamentar.biografia = sub('&nbsp;',
                                             ' ',
                                             strip_tags(form.data['biografia']))
@@ -280,9 +282,9 @@ class MesaDiretoraView(FormMixin, GenericView):
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa)
     def validation(self, request):
-        mensagem = "Não há nenhuma Sessão Legislativa cadastrada.\
-        Só é possível compor uma Mesa Diretora quando há uma Sessão\
-        Legislativa cadastrada."
+        mensagem = _("Não há nenhuma Sessão Legislativa cadastrada. \
+        Só é possível compor uma Mesa Diretora quando há uma Sessão \
+        Legislativa cadastrada.")
         messages.add_message(request, messages.INFO, mensagem)
 
         return self.render_to_response(
@@ -447,16 +449,16 @@ class FiliacaoView(FormMixin, GenericView):
             else:
                 # Dá erro caso não tenha se desfiliado do anterior
                 if candidato_nao_desfiliou:
-                    mensagem = "Você não pode se filiar a algum partido\
-                    sem antes se desfiliar do partido anterior"
+                    mensagem = _("Você não pode se filiar a algum partido \
+                    sem antes se desfiliar do partido anterior")
                     return self.error_message(
                         parlamentar, form, mensagem, request)
 
                 # Dá erro caso a data de desfiliação seja anterior a de
                 # filiação
                 if data_desfiliacao and data_desfiliacao < data_filiacao:
-                    mensagem = "A data de filiação não pode ser\
-                    anterior à data de desfiliação"
+                    mensagem = _("A data de filiação não pode ser \
+                    anterior à data de desfiliação")
                     return self.error_message(
                         parlamentar, form, mensagem, request)
 
@@ -467,9 +469,9 @@ class FiliacaoView(FormMixin, GenericView):
                     data_init = todas_filiacoes[i].data
                     data_fim = todas_filiacoes[i].data_desfiliacao
                     if data_filiacao >= data_init and data_filiacao < data_fim:
-                        mensagem = "A data de filiação e\
-                        desfiliação não podem estar no intervalo\
-                        de outro período de filiação"
+                        mensagem = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
                         return self.error_message(
                             parlamentar, form, mensagem, request)
 
@@ -477,18 +479,18 @@ class FiliacaoView(FormMixin, GenericView):
                             data_desfiliacao < data_fim and
                             data_desfiliacao > data_init):
 
-                        mensagem = "A data de filiação e\
-                        desfiliação não podem estar no intervalo\
-                        de outro período de filiação"
+                        mensagem = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
                         return self.error_message(
                             parlamentar, form, mensagem, request)
 
                     if (data_desfiliacao and
                             data_filiacao <= data_init and
                             data_desfiliacao >= data_fim):
-                        mensagem = "A data de filiação e\
-                        desfiliação não podem estar no intervalo\
-                        de outro período de filiação"
+                        mensagem = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
                         return self.error_message(
                             parlamentar, form, mensagem, request)
 
@@ -563,8 +565,8 @@ class FiliacaoEditView(FormMixin, GenericView):
                 # Dá erro caso a data de desfiliação seja anterior a de
                 # filiação
                 if data_desfiliacao and data_desfiliacao < data_filiacao:
-                    mensagem = "A data de filiação não pode\
-                    anterior à data de desfiliação"
+                    mensagem = _("A data de filiação não pode \
+                    anterior à data de desfiliação")
                     return self.error_message(
                         parlamentar, form, mensagem, request)
 
@@ -579,9 +581,9 @@ class FiliacaoEditView(FormMixin, GenericView):
                         if (data_filiacao >= data_init and
                                 data_filiacao < data_fim):
 
-                            mensagem = "A data de filiação e\
-                            desfiliação não podem estar no intervalo\
-                            de outro período de filiação"
+                            mensagem = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
                             return self.error_message(parlamentar,
                                                       form,
                                                       mensagem,
@@ -591,9 +593,9 @@ class FiliacaoEditView(FormMixin, GenericView):
                                 data_desfiliacao < data_fim and
                                 data_desfiliacao > data_init):
 
-                            mensagem = "A data de filiação e\
-                            desfiliação não podem estar no intervalo\
-                            de outro período de filiação"
+                            mensagem = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
                             return self.error_message(parlamentar,
                                                       form,
                                                       mensagem,
@@ -601,9 +603,9 @@ class FiliacaoEditView(FormMixin, GenericView):
                         if (data_desfiliacao and
                                 data_filiacao <= data_init and
                                 data_desfiliacao >= data_fim):
-                            mensagem = "A data de filiação e\
-                            desfiliação não podem estar no intervalo\
-                            de outro período de filiação"
+                            mensagem = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
                             return self.error_message(parlamentar,
                                                       form,
                                                       mensagem,

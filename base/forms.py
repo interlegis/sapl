@@ -2,6 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -47,7 +48,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                                attrs={'class': 'selector'}))
 
     informacao_geral = forms.CharField(widget=forms.Textarea,
-                                       label='Informação Geral',
+                                       label=_('Informação Geral'),
                                        required=False)
 
     telefone = forms.CharField(label='Telefone',
@@ -121,7 +122,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Dados Básicos',
+                _('Dados Básicos'),
                 row1,
                 row2,
                 row3,

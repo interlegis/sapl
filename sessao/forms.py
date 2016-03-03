@@ -2,6 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -23,21 +24,22 @@ class ListMateriaForm(forms.Form):
 
 
 class MateriaOrdemDiaForm(forms.Form):
-    data_sessao = forms.CharField(required=True, label='Data da Sessão')
-    numero_ordem = forms.IntegerField(required=True, label='Número Ordem')
-    tipo_votacao = forms.IntegerField(required=True, label='Tipo Votação')
-    tipo_sessao = forms.IntegerField(required=True, label='Tipo da Sessão')
-    ano_materia = forms.IntegerField(required=True, label='Ano Matéria')
-    numero_materia = forms.IntegerField(required=True, label='Número Matéria')
-    tipo_materia = forms.IntegerField(required=True, label='Tipo Matéria')
-    observacao = forms.CharField(required=False, label='Ementa')
-    error_message = forms.CharField(required=False, label='Matéria')
+    data_sessao = forms.CharField(required=True, label=_('Data da Sessão'))
+    numero_ordem = forms.IntegerField(required=True, label=_('Número Ordem'))
+    tipo_votacao = forms.IntegerField(required=True, label=_('Tipo Votação'))
+    tipo_sessao = forms.IntegerField(required=True, label=_('Tipo da Sessão'))
+    ano_materia = forms.IntegerField(required=True, label=_('Ano Matéria'))
+    numero_materia = forms.IntegerField(required=True,
+                                        label=_('Número Matéria'))
+    tipo_materia = forms.IntegerField(required=True, label=_('Tipo Matéria'))
+    observacao = forms.CharField(required=False, label=_('Ementa'))
+    error_message = forms.CharField(required=False, label=_('Matéria'))
 
 
 class OradorForm(forms.Form):
     numero_ordem = forms.IntegerField(
         required=True,
-        label='Ordem de pronunciamento')
+        label=_('Ordem de pronunciamento'))
     parlamentar = forms.CharField(required=False, max_length=20)
     url_discurso = forms.CharField(required=False, max_length=100)
 
@@ -68,15 +70,15 @@ class VotacaoEditForm(forms.Form):
 
 class SessaoForm(ModelForm):
 
-    hora_inicio = forms.CharField(label='Horário Inicio',
+    hora_inicio = forms.CharField(label=_('Horário Inicio'),
                                   required=True,
                                   widget=forms.TextInput(
-                                   attrs={'class': 'hora'}))
+        attrs={'class': 'hora'}))
 
-    hora_fim = forms.CharField(label='Horário Fim',
+    hora_fim = forms.CharField(label=_('Horário Fim'),
                                required=True,
                                widget=forms.TextInput(
-                                attrs={'class': 'hora'}))
+        attrs={'class': 'hora'}))
 
     class Meta:
         model = SessaoPlenaria
@@ -124,7 +126,7 @@ class SessaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Dados Básicos',
+                _('Dados Básicos'),
                 row1,
                 row2,
                 row3,

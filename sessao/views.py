@@ -470,7 +470,7 @@ class EditMateriaOrdemDiaView(sessao_crud.CrudDetailView):
                         ano=request.POST['ano_materia'])
                 except ObjectDoesNotExist:
                     context.update(
-                        {'error_message': "Matéria inexistente!"})
+                        {'error_message': _("Matéria inexistente!")})
                     return self.form_invalid(form)
 
                 ordemdia.materia_id = materia.id
@@ -649,7 +649,7 @@ class EditExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
                         ano=request.POST['ano_materia'])
                 except ObjectDoesNotExist:
                     context.update(
-                        {'error_message': "Matéria inexistente!"})
+                        {'error_message': _("Matéria inexistente!")})
                     return self.form_invalid(form)
 
                 ordemdia.materia_id = materia.id
@@ -661,7 +661,7 @@ class EditExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
                 return self.form_valid(form)
             else:
                 context.update(
-                    {'error_message': "Não foi possível salvar formulário!"})
+                    {'error_message': _("Não foi possível salvar formulário!")})
                 return self.form_invalid(form)
         elif 'delete-ordemdia' in request.POST:
             ordemdia.delete()
@@ -934,23 +934,23 @@ class ResumoView(sessao_crud.CrudDetailView):
         abertura = self.object.data_inicio.strftime('%d/%m/%Y')
         encerramento = self.object.data_fim.strftime('%d/%m/%Y')
 
-        context.update({'basica': ['Tipo de Sessão: ' + str(self.object.tipo),
-                                   'Abertura: ' + abertura,
-                                   'Encerramento: ' + encerramento,
+        context.update({'basica': [_('Tipo de Sessão: ') + str(self.object.tipo),
+                                   _('Abertura: ') + abertura,
+                                   _('Encerramento: ') + encerramento,
                                    ]})
         # =====================================================================
         # Conteúdo Multimídia
         if self.object.url_audio:
             context.update({'multimidia_audio':
-                            'Audio: ' + str(self.object.url_audio)})
+                            _('Audio: ') + str(self.object.url_audio)})
         else:
-            context.update({'multimidia_audio': 'Audio: Indisponivel'})
+            context.update({'multimidia_audio': _('Audio: Indisponivel')})
 
         if self.object.url_video:
             context.update({'multimidia_video':
-                            'Video: ' + str(self.object.url_video)})
+                            _('Video: ') + str(self.object.url_video)})
         else:
-            context.update({'multimidia_video': 'Video: Indisponivel'})
+            context.update({'multimidia_video': _('Video: Indisponivel')})
 
         # =====================================================================
         # Mesa Diretora
@@ -1013,7 +1013,7 @@ class ResumoView(sessao_crud.CrudDetailView):
             if m.resultado:
                 resultado = m.resultado
             else:
-                resultado = 'Matéria não votada'
+                resultado = _('Matéria não votada')
 
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
@@ -1074,7 +1074,7 @@ class ResumoView(sessao_crud.CrudDetailView):
             if o.resultado:
                 resultado = o.resultado
             else:
-                resultado = 'Matéria não votada'
+                resultado = _('Matéria não votada')
 
             autoria = Autoria.objects.filter(
                 materia_id=o.materia_id)
@@ -1347,11 +1347,11 @@ class VotacaoEditView(sessao_crud.CrudDetailView):
         url = request.get_full_path()
 
         if "votsimb" in url:
-            titulo = "Votação Simbólica"
+            titulo = _("Votação Simbólica")
         elif "votsec" in url:
-            titulo = "Votação Secreta"
+            titulo = _("Votação Secreta")
         else:
-            titulo = "Não definida"
+            titulo = _("Não definida")
 
         materia_id = kwargs['oid']
         ordem_id = kwargs['mid']
@@ -1398,11 +1398,11 @@ class VotacaoView(sessao_crud.CrudDetailView):
 
         # TODO: HACK, VERIFICAR MELHOR FORMA DE FAZER ISSO
         if "votsimb" in url:
-            titulo = "Votação Simbólica"
+            titulo = _("Votação Simbólica")
         elif "votsec" in url:
-            titulo = "Votação Secreta"
+            titulo = _("Votação Secreta")
         else:
-            titulo = "Não definida"
+            titulo = _("Não definida")
 
         ordem_id = kwargs['mid']
         ordem = OrdemDia.objects.get(id=ordem_id)
@@ -1424,11 +1424,11 @@ class VotacaoView(sessao_crud.CrudDetailView):
 
         # ====================================================
         if "votsimb" in url:
-            titulo = "Votação Simbólica"
+            titulo = _("Votação Simbólica")
         elif "votsec" in url:
-            titulo = "Votação Secreta"
+            titulo = _("Votação Secreta")
         else:
-            titulo = "Não definida"
+            titulo = _("Não definida")
 
         ordem_id = kwargs['mid']
         ordem = OrdemDia.objects.get(id=ordem_id)
@@ -1582,13 +1582,13 @@ class VotacaoNominalView(sessao_crud.CrudDetailView):
 
                 voto_parlamentar = VotoParlamentar()
                 if voto == 'sim':
-                    voto_parlamentar.voto = 'Sim'
+                    voto_parlamentar.voto = _('Sim')
                 elif voto == 'nao':
-                    voto_parlamentar.voto = 'Não'
+                    voto_parlamentar.voto = _('Não')
                 elif voto == 'abstencao':
-                    voto_parlamentar.voto = 'Abstenção'
+                    voto_parlamentar.voto = _('Abstenção')
                 elif voto == 'nao_votou':
-                    voto_parlamentar.voto = 'Não Votou'
+                    voto_parlamentar.voto = _('Não Votou')
                 voto_parlamentar.parlamentar_id = parlamentar_id
                 voto_parlamentar.votacao_id = votacao.id
                 voto_parlamentar.save()
@@ -1784,13 +1784,13 @@ class VotacaoNominalExpedienteView(sessao_crud.CrudDetailView):
 
                     voto_parlamentar = VotoParlamentar()
                     if(voto == 'sim'):
-                        voto_parlamentar.voto = 'Sim'
+                        voto_parlamentar.voto = _('Sim')
                     elif(voto == 'nao'):
-                        voto_parlamentar.voto = 'Não'
+                        voto_parlamentar.voto = _('Não')
                     elif(voto == 'abstencao'):
-                        voto_parlamentar.voto = 'Abstenção'
+                        voto_parlamentar.voto = _('Abstenção')
                     elif(voto == 'nao_votou'):
-                        voto_parlamentar.voto = 'Não Votou'
+                        voto_parlamentar.voto = _('Não Votou')
                     voto_parlamentar.parlamentar_id = parlamentar_id
                     voto_parlamentar.votacao_id = votacao.id
                     voto_parlamentar.save()
@@ -1922,11 +1922,11 @@ class VotacaoExpedienteView(sessao_crud.CrudDetailView):
 
         # TODO: HACK, VERIFICAR MELHOR FORMA DE FAZER ISSO
         if "votsimb" in url:
-            titulo = "Votação Simbólica"
+            titulo = _("Votação Simbólica")
         elif "votsec" in url:
-            titulo = "Votação Secreta"
+            titulo = _("Votação Secreta")
         else:
-            titulo = "Não definida"
+            titulo = _("Não definida")
 
         expediente_id = kwargs['mid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
@@ -1949,11 +1949,11 @@ class VotacaoExpedienteView(sessao_crud.CrudDetailView):
 
         # ====================================================
         if "votsimb" in url:
-            titulo = "Votação Simbólica"
+            titulo = _("Votação Simbólica")
         elif "votsec" in url:
-            titulo = "Votação Secreta"
+            titulo = _("Votação Secreta")
         else:
-            titulo = "Não definida"
+            titulo = _("Não definida")
 
         expediente_id = kwargs['mid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
@@ -2054,11 +2054,11 @@ class VotacaoExpedienteEditView(sessao_crud.CrudDetailView):
         url = request.get_full_path()
 
         if "votsimb" in url:
-            titulo = "Votação Simbólica"
+            titulo = _("Votação Simbólica")
         elif "votsec" in url:
-            titulo = "Votação Secreta"
+            titulo = _("Votação Secreta")
         else:
-            titulo = "Não definida"
+            titulo = _("Não definida")
 
         materia_id = kwargs['oid']
         expediente_id = kwargs['mid']
@@ -2142,9 +2142,9 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         else:
             encerramento = ""
 
-        context.update({'basica': ['Tipo de Sessão: ' + str(self.object.tipo),
-                                   'Abertura: ' + abertura,
-                                   'Encerramento: ' + encerramento,
+        context.update({'basica': [_('Tipo de Sessão: ') + str(self.object.tipo),
+                                   _('Abertura: ') + abertura,
+                                   _('Encerramento: ') + encerramento,
                                    ]})
         # =====================================================================
         # Matérias Expediente
@@ -2160,7 +2160,7 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
             if m.resultado:
                 resultado = m.resultado
             else:
-                resultado = 'Matéria não votada'
+                resultado = _('Matéria não votada')
 
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
@@ -2206,7 +2206,7 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
             if o.resultado:
                 resultado = o.resultado
             else:
-                resultado = 'Matéria não votada'
+                resultado = _('Matéria não votada')
 
             autoria = Autoria.objects.filter(
                 materia_id=o.materia_id)

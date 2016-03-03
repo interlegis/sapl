@@ -74,12 +74,12 @@ class IntegracaoTaView(TemplateView):
         if hasattr(item, 'ementa') and item.ementa:
             ta.ementa = item.ementa
         else:
-            ta.ementa = 'Integração com %s sem ementa.' % item
+            ta.ementa = _('Integração com %s sem ementa.') % item
 
         if hasattr(item, 'observacao') and item.observacao:
             ta.observacao = item.observacao
         else:
-            ta.observacao = 'Integração com %s sem observacao.' % item
+            ta.observacao = _('Integração com %s sem observacao.') % item
 
         if hasattr(item, 'numero') and item.numero:
             ta.numero = item.numero
@@ -338,12 +338,12 @@ class TextView(ListView, CompMixin):
             if hasattr(item, 'ementa') and item.ementa:
                 ta.ementa = item.ementa
             else:
-                ta.ementa = 'Integração com %s sem ementa.' % item
+                ta.ementa = _('Integração com %s sem ementa.') % item
 
             if hasattr(item, 'observacao') and item.observacao:
                 ta.observacao = item.observacao
             else:
-                ta.observacao = 'Integração com %s sem observacao.' % item
+                ta.observacao = _('Integração com %s sem observacao.') % item
 
             if hasattr(item, 'numero') and item.numero:
                 ta.numero = item.numero
@@ -800,15 +800,15 @@ class DispositivoEditView(TextEditView):
             else:
                 prox_possivel = None
 
-            result = [{'tipo_insert': 'Inserir Depois',
+            result = [{'tipo_insert': _('Inserir Depois'),
                        'icone': '&#8631;&nbsp;',
                        'action': 'add_next',
                        'itens': []},
-                      {'tipo_insert': 'Inserir Dentro',
+                      {'tipo_insert': _('Inserir Dentro'),
                        'icone': '&#8690;&nbsp;',
                        'action': 'add_in',
                        'itens': []},
-                      {'tipo_insert': 'Inserir Antes',
+                      {'tipo_insert': _('Inserir Antes'),
                        'icone': '&#8630;&nbsp;',
                        'action': 'add_prior',
                        'itens': []}

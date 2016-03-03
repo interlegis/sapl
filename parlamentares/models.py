@@ -98,8 +98,8 @@ class ComposicaoColigacao(models.Model):
     coligacao = models.ForeignKey(Coligacao)
 
     class Meta:
-        verbose_name = ('Composição Coligação')
-        verbose_name_plural = ('Composição Coligações')
+        verbose_name = (_('Composição Coligação'))
+        verbose_name_plural = (_('Composição Coligações'))
 
     def __str__(self):
         return _('%(partido)s - %(coligacao)s') % {

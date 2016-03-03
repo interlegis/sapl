@@ -79,14 +79,14 @@ class CadastrarComissaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                'Cadastrar Comissão',
+                _('Cadastrar Comissão'),
                 Fieldset(
-                    'Dados Básicos',
+                    _('Dados Básicos'),
                     row1,
                     row2
                 ),
                 Fieldset(
-                    'Dados Complementares',
+                    _('Dados Complementares'),
                     row3,
                     row4,
                     row5,
@@ -165,7 +165,7 @@ class ParticipacaoCadastroForm(ModelForm):
 
         self.helper.layout = Layout(
             Fieldset(
-                'Formulário de Cadastro',
+                _('Formulário de Cadastro'),
                 row1, row2, row3, row4
             ),
             form_actions()
