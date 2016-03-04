@@ -72,7 +72,7 @@ class FormularioSimplificadoView(FormMixin, GenericView):
     def post(self, request, *args, **kwargs):
         form = FormularioSimplificadoForm(request.POST)
 
-        if form.is_valid:
+        if form.is_valid():
             materia = form.save(commit=False)
             if 'texto_original' in request.FILES:
                 materia.texto_original = request.FILES['texto_original']
