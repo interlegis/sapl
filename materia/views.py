@@ -60,6 +60,7 @@ tramitacao_crud = Crud(Tramitacao, '')
 
 class FormularioSimplificadoView(FormMixin, GenericView):
     template_name = "materia/formulario_simplificado.html"
+    form_class = FormularioSimplificadoForm
 
     def get_success_url(self):
         return reverse('materialegislativa:list')
@@ -85,6 +86,7 @@ class FormularioSimplificadoView(FormMixin, GenericView):
 
 class FormularioCadastroView(FormMixin, GenericView):
     template_name = "materia/formulario_cadastro.html"
+    form_class = FormularioCadastroForm
 
     def get(self, request, *args, **kwargs):
         form = FormularioCadastroForm()
@@ -104,6 +106,7 @@ class FormularioCadastroView(FormMixin, GenericView):
 
 class MateriaAnexadaView(FormMixin, GenericView):
     template_name = "materia/materia_anexada.html"
+    form_class = MateriaAnexadaForm
 
     def get(self, request, *args, **kwargs):
         form = MateriaAnexadaForm()
@@ -179,6 +182,7 @@ class MateriaAnexadaView(FormMixin, GenericView):
 
 class MateriaAnexadaEditView(FormMixin, GenericView):
     template_name = "materia/materia_anexada_edit.html"
+    form_class = MateriaAnexadaForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -264,6 +268,7 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
 
 class DespachoInicialView(FormMixin, GenericView):
     template_name = "materia/despacho_inicial.html"
+    form_class = DespachoInicialForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -298,6 +303,7 @@ class DespachoInicialView(FormMixin, GenericView):
 
 class DespachoInicialEditView(FormMixin, GenericView):
     template_name = "materia/despacho_inicial_edit.html"
+    form_class = DespachoInicialForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -338,6 +344,7 @@ class DespachoInicialEditView(FormMixin, GenericView):
 
 class LegislacaoCitadaView(FormMixin, GenericView):
     template_name = "materia/legislacao_citada.html"
+    form_class = LegislacaoCitadaForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -398,6 +405,7 @@ class LegislacaoCitadaView(FormMixin, GenericView):
 
 class LegislacaoCitadaEditView(FormMixin, GenericView):
     template_name = "materia/legislacao_citada_edit.html"
+    form_class = LegislacaoCitadaForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -462,6 +470,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
 
 class NumeracaoView(FormMixin, GenericView):
     template_name = "materia/numeracao.html"
+    form_class = NumeracaoForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
