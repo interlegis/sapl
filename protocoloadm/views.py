@@ -40,10 +40,9 @@ protocolo_documento_crud = Crud(Protocolo, '')
 protocolo_materia_crud = Crud(Protocolo, '')
 
 
-class ProtocoloListView(FormMixin, ListView):
+class ProtocoloListView(ListView):
     template_name = 'protocoloadm/protocolo_list.html'
     context_object_name = 'protocolos'
-    form_class = ProtocoloForm
     model = Protocolo
     paginate_by = 10
 
