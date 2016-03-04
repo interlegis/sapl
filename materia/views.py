@@ -812,6 +812,13 @@ class RelatoriaView(FormMixin, GenericView):
                  'relatorias': relatorias,
                  'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
                  })
+        elif not localizacao.unidade_tramitacao_destino.comissao:
+            msg = _('O local atual deve  ser uma Comissão!')
+            messages.add_message(request, messages.INFO, msg)
+            return self.render_to_response(
+                {'object': materia,
+                 'form': form,
+                 'relatorias': relatorias})
         else:
             try:
                 comissao = Comissao.objects.get(
