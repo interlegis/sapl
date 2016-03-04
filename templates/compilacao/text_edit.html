@@ -29,6 +29,18 @@
 
 <div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
 
+<div id="modal-message" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="alert" role="alert">
+        <button type="button" class="close fa-times fa" aria-label="Close"></button>
+        <div id="message"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
   <div class="cp cpe">
       {% include 'compilacao/text_edit_bloco.html'%}
   </div>

@@ -49,23 +49,24 @@
         </li>
         {% if forloop.parentloop.last %}
           </ul>
-          {% if view.inicio_vigencia and view.fim_vigencia %}
-            <span class="vigencia-active">
-              {% blocktrans with inicio_vigencia=view.inicio_vigencia fim_vigencia=view.fim_vigencia ta_publicado=dispositivo.ta_publicado%}
+          <span class="vigencia-active">
+
+            {% if view.inicio_vigencia and view.fim_vigencia %}
+              {% blocktrans with inicio_vigencia=view.inicio_vigencia fim_vigencia=view.fim_vigencia%}
                 Vigência entre <b>{{inicio_vigencia}}</b> e <b>{{fim_vigencia}}</b>.
-                <br>
-                <small>Dada pela {{ta_publicado}}</small>
-              </span>
-            {% endblocktrans%}
-          {% else%}
-            <span class="vigencia-active">
-              {% blocktrans with inicio_vigencia=dispositivo.inicio_vigencia ta_publicado=dispositivo.ta_publicado%}
+              {% endblocktrans%}
+            {% else%}
+              {% blocktrans with inicio_vigencia=dispositivo.inicio_vigencia%}
                 Vigência a partir de <b>{{inicio_vigencia}}</b>.
-                <br>
-                <small>Dada pela {{ta_publicado}}</small>
-              {% endblocktrans %}
-            </span>
-          {%endif%}
+              {% endblocktrans%}
+            {% endif %}
+            <br>
+            {% if view.ta_vigencia %}
+                <small>{% trans 'Dada por '%}<a href="{%url 'compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
+            {% elif view.ta_vigencia != 0 %}
+                <small>{% trans 'Dada por '%}<a href="{%url 'compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
+            {% endif %}
+          </span>
         {% endif%}
       {% endfor %}
     {% else %}
@@ -86,7 +87,7 @@
   <ul class="tipo-vigencias">
       <li><a class="selected" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a></li>
       <li><a onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a></li>
-      <li><a onclick="textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a></li>
+      <li><a onclick="textoMultiVigente(this, false); textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a></li>
       <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
   </ul>
 

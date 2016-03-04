@@ -120,3 +120,9 @@ body {
 .checkbox input, .radio input {
     display: initial;
 }
+
+.modal {
+  .alert {
+    margin-bottom: 0;
+  }
+}

@@ -790,6 +790,21 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
         return (flag_direcao, flag_variacao)
 
+    def transform_in_prior(self):
+        numero = self.get_numero_completo()
+
+        numero.reverse()
+
+        for i in range(len(numero)):
+            if not numero[i]:
+                continue
+
+            numero[i] -= 1
+            numero.reverse()
+            break
+
+        self.set_numero_completo(numero)
+
     def set_numero_completo(self, *numero):
         numero = numero[0]
         self.dispositivo0 = numero[0]
@@ -1046,11 +1061,18 @@ class Dispositivo(BaseModel, TimestampedMixin):
             irmao.save()
 
     def get_proximo_nivel_zero(self):
-        proxima_articulacao = Dispositivo.objects.filter(
+        proxima_articulacao = Dispositivo.objects.order_by('ordem').filter(
             ordem__gt=self.ordem,
             nivel=0,
             ta_id=self.ta_id).first()
         return proxima_articulacao
+
+    def get_nivel_zero_anterior(self):
+        anterior_articulacao = Dispositivo.objects.order_by('ordem').filter(
+            ordem__lt=self.ordem,
+            nivel=0,
+            ta_id=self.ta_id).last()
+        return anterior_articulacao
 
     def is_relative_auto_insert(self, perfil_pk=None):
         if self.dispositivo_pai is not None:

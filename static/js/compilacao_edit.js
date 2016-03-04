@@ -108,9 +108,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
     }
     else if (_action.startsWith('delete_')) {
         var r = confirm("Confirma Exclusão deste dispositivo?");
-        if (r == true) {
-            x = "You pressed OK!";
-        } else {
+        if (!r) {
             return
         }
         url = pk_refresh+'/actions?action='+_action;
@@ -175,10 +173,6 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
         else if (_action == 'add_next' || _action == 'add_in') {
             clearEditSelected();
             if (data.pk != null) {
-
-                if (data.alert != null)
-                    alert(data.alert)
-
                 refreshScreenFocusPk(data);
             }
             else {
@@ -189,32 +183,60 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             $("#message_block").css("display", "block");
             clearEditSelected();
             if (data.pk != null) {
-                refreshScreenFocusPk(data);
+                if (data.message != null && data.message != '') {
+
+                    modalMessage(data.message, 'alert-danger', function() {
+                        //refreshScreenFocusPk(data);
+                    });
+                }
+                else {
+                    refreshScreenFocusPk(data);
+                }
             }
             else {
-                alert('Erro exclusão!');
+                alert('Erro exclusão de Dispositivo!');
             }
         }
         else {
             clearEditSelected();
             reloadFunctionClicks();
         }
+
     }).always(function() {
         $("#message_block").css("display", "none");
     });
 }
 
+function modalMessage(message, alert, closeFunction) {
+    $('#modal-message #message').html(message);
+    $('#modal-message').modal('show');
+    if (closeFunction != null) {
+        $('#modal-message, #modal-message .alert button').off();
+        $('#modal-message .alert').removeClass('alert-success alert-info alert-warning alert-danger alert-danger');
+        $('#modal-message .alert').addClass(alert);
+        $('#modal-message').on('hidden.bs.modal', closeFunction);
+        $('#modal-message .alert button').on('click', function() {
+            $('#modal-message').modal('hide');
+        });
+    }
+
+}
+
 function refreshScreenFocusPk(data) {
 
-    for (var pai = 0; pai < data.pai.length; pai++)
-        if (data.pai[pai] != -1) {
-            clickUpdateDispositivo(null, data.pai[pai], data.pk, 'refresh', pai == 0, true);
+    if (data.pai[0] == -1) {
+        $("#message_block").css("display", "block");
+        href = location.href.split('#')[0]
+        location.href = href+'#'+data.pk;
+        location.reload(true)
         }
-        else {
-            href = location.href.split('#')[0]
-            location.href = href+'#'+data.pk
-            location.reload(true)
-        }
+    else {
+        clickUpdateDispositivo(null, data.pai[0], data.pk, 'refresh', true, true);
+        setTimeout(function() {
+            for (var pai = 1; pai < data.pai.length; pai++)
+                clickUpdateDispositivo(null, data.pai[pai], data.pk, 'refresh', false, true);
+        }, 1000);
+    }
 }
 
 function clearEditSelected() {

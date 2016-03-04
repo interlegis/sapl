@@ -2,6 +2,7 @@ from django import template
 from django.core.signing import Signer
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 
 from compilacao.models import Dispositivo, TipoDispositivo
 
@@ -60,12 +61,15 @@ def set_nivel_old(view, value):
 
 @register.simple_tag
 def close_div(value_max, value_min, varr):
-    return '</div>' * (int(value_max) - int(value_min) + 1 + varr)
+    return mark_safe('</div>' * (int(value_max) - int(value_min) + 1 + varr))
 
 
 @register.filter
 def get_sign_vigencia(value):
-    string = "%s,%s" % (value.inicio_vigencia, value.fim_vigencia)
+    string = "%s,%s,%s" % (
+        value.ta_publicado_id if value.ta_publicado_id else 0,
+        value.inicio_vigencia,
+        value.fim_vigencia)
     signer = Signer()
     return signer.sign(str(string))
 
