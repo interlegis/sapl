@@ -513,6 +513,7 @@ class NumeracaoView(FormMixin, GenericView):
 
 class NumeracaoEditView(FormMixin, GenericView):
     template_name = "materia/numeracao_edit.html"
+    form_class = NumeracaoForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -678,6 +679,7 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
 
 class RelatoriaEditView(FormMixin, GenericView):
     template_name = "materia/relatoria_edit.html"
+    form_class = RelatoriaForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -734,6 +736,7 @@ class RelatoriaEditView(FormMixin, GenericView):
 
 class RelatoriaView(FormMixin, GenericView):
     template_name = "materia/relatoria.html"
+    form_class = RelatoriaForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
