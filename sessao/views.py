@@ -1396,6 +1396,7 @@ class VotacaoView(FormMixin, sessao_crud.CrudDetailView):
     '''
 
     template_name = 'sessao/votacao/votacao.html'
+    form_class = VotacaoForm
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
