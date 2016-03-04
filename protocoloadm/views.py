@@ -146,6 +146,7 @@ def get_client_ip(request):
 
 class AnularProtocoloAdmView(FormMixin, GenericView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
+    form_class = AnularProcoloAdmForm
 
     def get_success_url(self):
         return reverse('anular_protocolo')
@@ -199,6 +200,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
 
     template_name = "protocoloadm/protocolar_documento.html"
     model = Protocolo
+    form_class = ProtocoloDocumentForm
 
     def get_success_url(self):
         return reverse('protocolo')
@@ -317,6 +319,7 @@ class ProtocoloMateriaView(FormMixin, GenericView):
 
     template_name = "protocoloadm/protocolar_materia.html"
     model = Protocolo
+    form_class = ProtocoloMateriaForm
 
     def get(self, request, *args, **kwargs):
         form = ProtocoloMateriaForm()
