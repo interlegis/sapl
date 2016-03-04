@@ -1920,6 +1920,7 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
     '''
 
     template_name = 'sessao/votacao/votacao.html'
+    form_class = VotacaoForm
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1978,8 +1979,6 @@ class VotacaoExpedienteView(FormMixin, sessao_crud.CrudDetailView):
             expediente.votacao_aberta = False
             expediente.save()
             return self.form_valid(form)
-
-        # import ipdb; ipdb.set_trace()
 
         if form.is_valid():
             materia_id = kwargs['oid']
@@ -2042,6 +2041,7 @@ class VotacaoExpedienteEditView(FormMixin, sessao_crud.CrudDetailView):
     '''
 
     template_name = 'sessao/votacao/votacao_edit.html'
+    form_class = VotacaoEditForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -2133,8 +2133,9 @@ class PautaSessaoListView(SessaoListView):
     template_name = "sessao/pauta_sessao_list.html"
 
 
-class PautaSessaoDetailView(sessao_crud.CrudDetailView):
+class PautaSessaoDetailView(FormMixin, sessao_crud.CrudDetailView):
     template_name = "sessao/pauta_sessao_detail.html"
+    # form_class = 
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
