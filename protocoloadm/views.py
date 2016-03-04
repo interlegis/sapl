@@ -43,6 +43,7 @@ protocolo_materia_crud = Crud(Protocolo, '')
 class ProtocoloListView(FormMixin, ListView):
     template_name = 'protocoloadm/protocolo_list.html'
     context_object_name = 'protocolos'
+    form_class = ProtocoloForm
     model = Protocolo
     paginate_by = 10
 
@@ -65,7 +66,7 @@ class ProtocoloListView(FormMixin, ListView):
 
 class ProtocoloPesquisaView(FormMixin, GenericView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
-    form_class = ProtocoloForm()
+    form_class = ProtocoloForm
     context_object_name = 'protocolos'
     paginate_by = 10
 
@@ -175,7 +176,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
                     errors = form._errors.setdefault(
                         forms.forms.NON_FIELD_ERRORS,
                         forms.util.ErrorList())
-                    errors.append(_("Procolo %s/%s já está anulado")
+                    errors.append(_("Procolo %s/%s já encontra-se anulado")
                                   % (numero, ano))
                     return self.form_invalid(form)
 
@@ -189,7 +190,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
             except ObjectDoesNotExist:
                 errors = form._errors.setdefault(
                     forms.forms.NON_FIELD_ERRORS, forms.util.ErrorList())
-                errors.append(_("Procolo %s/%s não existe") % (numero, ano))
+                errors.append(_("Procolo %s/%s não existe" % (numero, ano)))
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
