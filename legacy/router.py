@@ -1,3 +1,7 @@
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 class LegacyRouter(object):
 
     def db_for_read(self, model, **hints):

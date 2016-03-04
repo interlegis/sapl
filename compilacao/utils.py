@@ -1,4 +1,7 @@
-
+"""
+  This file is part of SAPL.
+  Copyright (C) 2016 Interlegis
+"""
 
 def int_to_roman(int_value):
     # if isinstance(int_value, type(1)):
