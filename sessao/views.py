@@ -940,8 +940,8 @@ class ResumoView(sessao_crud.CrudDetailView):
 
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)') % {'abertura': abertura},
-            _('Encerramento: %(encerramento)') % {
+            _('Abertura: %(abertura)s') % {'abertura': abertura},
+            _('Encerramento: %(encerramento)s') % {
                 'encerramento': encerramento},
         ]})
         # =====================================================================
@@ -2135,7 +2135,7 @@ class PautaSessaoListView(SessaoListView):
 
 class PautaSessaoDetailView(FormMixin, sessao_crud.CrudDetailView):
     template_name = "sessao/pauta_sessao_detail.html"
-    # form_class = 
+    # form_class =
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
