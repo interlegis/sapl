@@ -5,11 +5,11 @@ from base.views import get_casalegislativa
 def parliament_info(request):
 
     context = {
-        'state': _('Estado'),
-        'state_abbr': _('UF'),
-        'city': _('Cidade'),
-        'parliament_type': _('Câmara Municipal'),
-        'address': _('Rua Lorem Ipsum de Amet, Casa X'),
+        'state': 'Estado',
+        'state_abbr': 'UF',
+        'city': 'Cidade',
+        'parliament_type': 'Câmara Municipal',
+        'address': 'Rua Lorem Ipsum de Amet, Casa X',
         'postal_code': '70000-000',
         'phone_number': '00 0000-0000',
         'url_portal': '#',

@@ -661,7 +661,8 @@ class EditExpedienteOrdemDiaView(sessao_crud.CrudDetailView):
                 return self.form_valid(form)
             else:
                 context.update(
-                    {'error_message': _("Não foi possível salvar formulário!")})
+                    {'error_message': _(
+                        "Não foi possível salvar formulário!")})
                 return self.form_invalid(form)
         elif 'delete-ordemdia' in request.POST:
             ordemdia.delete()
@@ -934,10 +935,12 @@ class ResumoView(sessao_crud.CrudDetailView):
         abertura = self.object.data_inicio.strftime('%d/%m/%Y')
         encerramento = self.object.data_fim.strftime('%d/%m/%Y')
 
-        context.update({'basica': [_('Tipo de Sessão: ') + str(self.object.tipo),
-                                   _('Abertura: ') + abertura,
-                                   _('Encerramento: ') + encerramento,
-                                   ]})
+        context.update({'basica': [
+            _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
+            _('Abertura: %(abertura)') % {'abertura': abertura},
+            _('Encerramento: %(encerramento)') % {
+                'encerramento': encerramento},
+        ]})
         # =====================================================================
         # Conteúdo Multimídia
         if self.object.url_audio:
@@ -2142,10 +2145,12 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         else:
             encerramento = ""
 
-        context.update({'basica': [_('Tipo de Sessão: ') + str(self.object.tipo),
-                                   _('Abertura: ') + abertura,
-                                   _('Encerramento: ') + encerramento,
-                                   ]})
+        context.update({'basica': [
+            _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
+            _('Abertura: %(abertura)') % {'abertura': abertura},
+            _('Encerramento: %(encerramento)') % {
+                'encerramento': encerramento},
+        ]})
         # =====================================================================
         # Matérias Expediente
         materias = ExpedienteMateria.objects.filter(

@@ -735,7 +735,8 @@ class RelatoriaView(FormMixin, GenericView):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
 
         if not materia.tramitacao_set.all():
-            msg = _('Adicione alguma Tramitação antes de adicionar uma Comissão!')
+            msg = _(
+                'Adicione alguma Tramitação antes de adicionar uma Comissão!')
             messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'object': materia,
@@ -790,7 +791,8 @@ class RelatoriaView(FormMixin, GenericView):
             materia=materia).last()
 
         if not materia.tramitacao_set.all():
-            msg = _('Adicione alguma Tramitação antes de adicionar uma Comissão!')
+            msg = _(
+                'Adicione alguma Tramitação antes de adicionar uma Comissão!')
             messages.add_message(request, messages.INFO, msg)
             return self.render_to_response(
                 {'object': materia,
@@ -906,15 +908,15 @@ def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
                                       'email/tramitacao.html'],
                                      {"casa_legislativa": casa_nome,
                                       "data_registro": datetime.now().strftime(
-                                         "%d/%m/%Y"),
+                                          "%d/%m/%Y"),
                                       "cod_materia": materia.id,
                                       "logotipo": casa_legislativa.logotipo,
                                       "descricao_materia": materia.ementa,
                                       "autoria": autores,
                                       "data": materia.tramitacao_set.last(
-                                        ).data_tramitacao,
+                                      ).data_tramitacao,
                                       "status": materia.tramitacao_set.last(
-                                        ).status,
+                                      ).status,
                                       "texto_acao":
                                          materia.tramitacao_set.last().texto,
                                       "hash_txt": hash_txt,
@@ -985,11 +987,11 @@ def do_envia_email_confirmacao(request, materia, email):
                                           destinatario.hash,)
     recipients.append(destinatario.email)
     messages.append({
-             'recipient': destinatario.email,
-             'subject': subject,
-             'txt_message': email_texts[0],
-             'html_message': email_texts[1]
-     })
+        'recipient': destinatario.email,
+        'subject': subject,
+        'txt_message': email_texts[0],
+        'html_message': email_texts[1]
+    })
 
     enviar_emails(sender, recipients, messages)
     return None
@@ -1016,11 +1018,11 @@ def do_envia_email_tramitacao(request, materia):
                                              destinatario.hash,)
         recipients.append(destinatario.email)
         messages.append({
-             'recipient': destinatario.email,
-             'subject': subject,
-             'txt_message': email_texts[0],
-             'html_message': email_texts[1]
-         })
+            'recipient': destinatario.email,
+            'subject': subject,
+            'txt_message': email_texts[0],
+            'html_message': email_texts[1]
+        })
 
     enviar_emails(sender, recipients, messages)
     return None

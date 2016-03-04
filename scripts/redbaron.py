@@ -63,15 +63,15 @@ def frase(n):
     return ' ' in n.value
 
 
+def mark(n):
+    mark.ok |= {n.value}
+mark.ok = set()
+
+
 def get(r):
     return [s for s in r('string')
-            if not inter(s)
-            # and frase(s)
-            and not s.value in ok]
-
-
-def mark(n):
-    ok |= {n.value}
+            if not inter(s) and s.value not in mark.ok]
+    # and frase(s)
 
 
 def fix(n):
