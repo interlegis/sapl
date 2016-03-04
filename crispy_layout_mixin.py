@@ -81,10 +81,15 @@ class CrispyLayoutFormMixin(object):
                 for fieldname, span in row]
 
     def get_form(self, form_class=None):
-        form = super(CrispyLayoutFormMixin, self).get_form(form_class)
-        form.helper = FormHelper()
-        form.helper.layout = SaplFormLayout(*self.get_layout())
-        return form
+        try:
+            form = super(CrispyLayoutFormMixin, self).get_form(form_class)
+        except AttributeError:
+            # simply return None if there is no get_form on super
+            pass
+        else:
+            form.helper = FormHelper()
+            form.helper.layout = SaplFormLayout(*self.get_layout())
+            return form
 
     @property
     def list_field_names(self):
