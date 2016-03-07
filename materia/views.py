@@ -1192,20 +1192,21 @@ class AutoriaView(GenericView):
             autor = Autor.objects.get(
                 id=int(form.data['nome_autor']))
 
-            filiacao_autor = Partido.objects.get(
-                sigla=form.data['partido_autor'])
+            if 'partido_autor' in form.data:
+                filiacao_autor = Partido.objects.get(
+                    sigla=form.data['partido_autor'])
 
             try:
                 autoria = Autoria.objects.get(
                     autor=autor,
-                    materia=materia,
-                    partido=filiacao_autor
+                    materia=materia
                 )
             except ObjectDoesNotExist:
                 autoria = Autoria()
                 autoria.autor = autor
                 autoria.materia = materia
-                autoria.partido = filiacao_autor
+                if 'partido_autor' in form.data:
+                    autoria.partido = filiacao_autor
                 autoria.primeiro_autor = primeiro
 
                 autoria.save()
@@ -1276,12 +1277,14 @@ class AutoriaEditView(GenericView, FormMixin):
             autor = Autor.objects.get(
                 id=int(form.data['nome_autor']))
 
-            filiacao_autor = Partido.objects.get(
-                sigla=form.data['partido'])
+            if 'partido_autor' in form.data:
+                filiacao_autor = Partido.objects.get(
+                    sigla=form.data['partido'])
 
             autoria = Autoria.objects.get(materia=materia, autor__id=autor.id)
             autoria.autor = autor
-            autoria.partido = filiacao_autor
+            if 'partido_autor' in form.data:
+                autoria.partido = filiacao_autor
             autoria.materia = materia
             autoria.primeiro_autor = primeiro
 
