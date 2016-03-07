@@ -3,13 +3,13 @@ from re import sub
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Max
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, FormView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
@@ -40,46 +40,13 @@ protocolo_documento_crud = Crud(Protocolo, '')
 protocolo_materia_crud = Crud(Protocolo, '')
 
 
-class ProtocoloListView(ListView):
-    template_name = 'protocoloadm/protocolo_list.html'
-    context_object_name = 'protocolos'
-    model = Protocolo
-    paginate_by = 10
-
-    def get_queryset(self):
-        kwargs = self.request.session['kwargs']
-        return Protocolo.objects.filter(
-            **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super(ProtocoloListView, self).get_context_data(
-            **kwargs)
-
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-        return context
-
-
-class ProtocoloPesquisaView(FormMixin, GenericView):
+class ProtocoloPesquisaView(FormView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
     form_class = ProtocoloForm
     context_object_name = 'protocolos'
-    paginate_by = 10
+    success_url = reverse_lazy('protocolo')
 
     extra_context = {}
-
-    def get_success_url(self):
-        return reverse('protocolo')
-
-    def get(self, request, *args, **kwargs):
-        form = ProtocoloForm()
-        return self.render_to_response({'form': form})
-
-    def get_form(self, data=None, files=None, **kwargs):
-        return ProtocoloForm()
 
     def get_context_data(self, **kwargs):
         context = super(ProtocoloPesquisaView, self).get_context_data(**kwargs)
@@ -91,8 +58,6 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
 
         if form.is_valid():
             kwargs = {}
-
-            # format = '%Y-%m-%d'
 
             if request.POST['tipo_protocolo']:
                 kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
@@ -134,6 +99,28 @@ class ProtocoloPesquisaView(FormMixin, GenericView):
         else:
             return self.form_invalid(form)
 
+
+class ProtocoloListView(ListView):
+    template_name = 'protocoloadm/protocolo_list.html'
+    context_object_name = 'protocolos'
+    model = Protocolo
+    paginate_by = 10
+
+    def get_queryset(self):
+        kwargs = self.request.session['kwargs']
+        return Protocolo.objects.filter(
+            **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloListView, self).get_context_data(
+            **kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        return context
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
