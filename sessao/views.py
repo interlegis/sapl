@@ -7,9 +7,8 @@ from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
-from rest_framework import generics
-
 from django.views.generic.edit import FormMixin
+from rest_framework import generics
 
 from crud import Crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
