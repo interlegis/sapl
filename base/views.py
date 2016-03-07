@@ -50,12 +50,11 @@ class CasaLegislativaTableAuxView(FormMixin, GenericView):
                     except OSError:
                         pass  # Should log this error!!!!!
                     casa.logotipo = None
-                casa_save = CasaLegislativaTabelaAuxForm(
+                CasaLegislativaTabelaAuxForm(
                     request.POST,
                     request.FILES,
                     instance=casa
-                ).save(commit=False)
-                casa_save.save()
+                ).save()
             else:
                 form.save()
 

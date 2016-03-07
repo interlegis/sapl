@@ -1,7 +1,7 @@
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.views.generic import CreateView, ListView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
@@ -20,28 +20,11 @@ tipo_comissao_crud = Crud(TipoComissao, 'tipo_comissao')
 comissao_crud = Crud(Comissao, 'modulo_comissoes')
 
 
-class CadastrarComissaoView(FormMixin, GenericView):
+class CadastrarComissaoView(CreateView):
 
     template_name = "comissoes/cadastrar_comissao.html"
-
-    def get(self, request, *args, **kwargs):
-        form = CadastrarComissaoForm()
-
-        return self.render_to_response({'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = CadastrarComissaoForm(request.POST, request.FILES)
-
-        if form.is_valid():
-
-            form.save()
-
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form})
-
-    def get_success_url(self):
-        return reverse('comissao:list')
+    form_class = CadastrarComissaoForm
+    success_url = reverse_lazy('comissao:list')
 
 
 class ComposicaoView(FormMixin, GenericView):
