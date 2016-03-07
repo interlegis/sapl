@@ -9,67 +9,8 @@ from crispy_layout_mixin import form_actions
 
 from .models import CasaLegislativa
 
-ESTADOS = {"": "",
-           "AC": "ACRE",
-           "AL": "ALAGOAS",
-           "AM": "AMAZONAS",
-           "AP": "AMAPÁ",
-           "BA": "BAHIA",
-           "CE": "CEARÁ",
-           "DF": "DISTRITO FEDERAL",
-           "ES": "ESPíRITO SANTO",
-           "GO": "GOIÁS",
-           "MA": "MARANHÃO",
-           "MG": "MINAS GERAIS",
-           "MS": "MATO GROSSO DO SUL",
-           "MT": "MATO GROSSO",
-           "PA": "PARÁ",
-           "PB": "PARAÍBA",
-           "PE": "PERNAMBUCO",
-           "PI": "PIAUÍ",
-           "PR": "PARANÁ",
-           "RJ": "RIO DE JANEIRO",
-           "RN": "RIO GRANDE DO NORTE",
-           "RO": "RONDÔNIA",
-           "RR": "RORAIMA",
-           "RS": "RIO GRANDE DO SUL",
-           "SC": "SANTA CATARINA",
-           "SE": "SERGIPE",
-           "SP": "SÃO PAULO",
-           "TO": "TOCANTINS"}
-
 
 class CasaLegislativaTabelaAuxForm(ModelForm):
-
-    uf = forms.ChoiceField(required=True,
-                           label='UF',
-                           choices=[(uf, uf) for uf in ESTADOS.keys()],
-                           widget=forms.Select(
-                               attrs={'class': 'selector'}))
-
-    informacao_geral = forms.CharField(widget=forms.Textarea,
-                                       label=_('Informação Geral'),
-                                       required=False)
-
-    telefone = forms.CharField(label='Telefone',
-                               required=False,
-                               widget=forms.TextInput(
-                                   attrs={'class': 'telefone'}))
-
-    logotipo = forms.ImageField(label='Logotipo',
-                                required=False,
-                                widget=forms.FileInput
-                                )
-
-    cep = forms.CharField(label='Cep',
-                          required=True,
-                          widget=forms.TextInput(
-                              attrs={'class': 'cep'}))
-
-    fax = forms.CharField(label='Fax',
-                          required=False,
-                          widget=forms.TextInput(
-                              attrs={'class': 'telefone'}))
 
     class Meta:
 
@@ -87,6 +28,13 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                   'endereco_web',
                   'email',
                   'informacao_geral']
+
+        widgets = {
+            'uf': forms.Select(attrs={'class': 'selector'}),
+            'cep': forms.TextInput(attrs={'class': 'cep'}),
+            'telefone': forms.TextInput(attrs={'class': 'telefone'}),
+            'fax': forms.TextInput(attrs={'class': 'telefone'}),
+        }
 
     def __init__(self, *args, **kwargs):
 

@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
 
-from base.forms import ESTADOS
+from base.models import ESTADOS
 from base.models import CasaLegislativa
 from comissoes.models import Comissao
 from materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
