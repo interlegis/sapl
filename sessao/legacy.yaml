@@ -76,4 +76,4 @@ VotoParlamentar (RegistroVotacaoParlamentar):
 SessaoPlenariaPresenca:
   data_sessao: dat_sessao
   parlamentar: cod_parlamentar
-  sessao_plen: cod_sessao_plen
+  sessao_plenaria: cod_sessao_plen

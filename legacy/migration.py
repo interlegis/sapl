@@ -159,6 +159,10 @@ class DataMigrator:
 
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
+            field_type = field.get_internal_type()
+            msg = 'Field %s (%s) from model %s' % (
+                field.name, field_type, field.model.__name__)
+
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
@@ -171,6 +175,11 @@ class DataMigrator:
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
+                if field_type == 'CharField' or field_type == 'TextField':
+                    if value is None:
+                        warn(msg +
+                             " => settig empty string '' for %s value" % value)
+                        value = ''
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs):
