@@ -33,7 +33,7 @@
         {% if href %}
         <a href="{{ href }}">{{ value }}</a>
         {% else %}
-          {{ value }}
+          {{ value|safe }}
         {% endif %}
       </td>
       {% endfor %}
