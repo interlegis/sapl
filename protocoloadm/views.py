@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from re import sub
 
+from braces.views import FormValidMessageMixin
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -9,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, DetailView, ListView, FormView
+from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
@@ -122,6 +123,7 @@ class ProtocoloListView(ListView):
             page_obj.number, paginator.num_pages)
         return context
 
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -131,16 +133,11 @@ def get_client_ip(request):
     return ip
 
 
-class AnularProtocoloAdmView(FormMixin, GenericView):
+class AnularProtocoloAdmView(FormValidMessageMixin, FormView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = AnularProcoloAdmForm
-
-    def get_success_url(self):
-        return reverse('anular_protocolo')
-
-    def get(self, request, *args, **kwargs):
-        form = AnularProcoloAdmForm()
-        return self.render_to_response({'form': form})
+    success_url = reverse_lazy('anular_protocolo')
+    form_valid_message = _('Protocolo anulado com sucesso!')
 
     def post(self, request, *args, **kwargs):
 
@@ -163,7 +160,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
                     errors = form._errors.setdefault(
                         forms.forms.NON_FIELD_ERRORS,
                         forms.util.ErrorList())
-                    errors.append(_("Procolo %s/%s já encontra-se anulado")
+                    errors.append(_("Protocolo %s/%s já encontra-se anulado")
                                   % (numero, ano))
                     return self.form_invalid(form)
 
@@ -177,7 +174,7 @@ class AnularProtocoloAdmView(FormMixin, GenericView):
             except ObjectDoesNotExist:
                 errors = form._errors.setdefault(
                     forms.forms.NON_FIELD_ERRORS, forms.util.ErrorList())
-                errors.append(_("Procolo %s/%s não existe" % (numero, ano)))
+                errors.append(_("Protocolo %s/%s não existe" % (numero, ano)))
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
@@ -201,7 +198,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
         form = ProtocoloDocumentForm(request.POST)
 
         if form.is_valid():
-            if request.POST['numeracao'] == '1':
+            if form.cleaned_data['numeracao'] == '1':
                 numeracao = Protocolo.objects.filter(
                     ano=date.today().year).aggregate(Max('numero'))
             else:
