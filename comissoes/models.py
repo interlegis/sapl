@@ -67,8 +67,9 @@ class Comissao(models.Model):
         max_length=100, blank=True, verbose_name=_('Local Reunião'))
     finalidade = models.TextField(
         blank=True, verbose_name=_('Finalidade'))
-    email = models.CharField(
-        max_length=100, blank=True, verbose_name=_('E-mail'))
+    email = models.EmailField(max_length=100,
+                              blank=True,
+                              verbose_name=_('E-mail'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
         verbose_name=_('Unidade Deliberativa'))

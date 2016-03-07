@@ -253,14 +253,14 @@ class Parlamentar(models.Model):
         max_length=50,
         blank=True,
         verbose_name=_('Fax Residencial'))
-    endereco_web = models.CharField(
+    endereco_web = models.URLField(
         max_length=100, blank=True, verbose_name=_('HomePage'))
     profissao = models.CharField(
         max_length=50, blank=True, verbose_name=_('Profissão'))
-    email = models.CharField(
+    email = models.EmailField(
         max_length=100,
         blank=True,
-        verbose_name=_('Correio Eletrônico'))
+        verbose_name=_('E-mail'))
     locais_atuacao = models.CharField(
         max_length=100,
         blank=True,
