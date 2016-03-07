@@ -53,10 +53,10 @@ class SessaoPlenaria(models.Model):
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     data_fim = models.DateField(
         blank=True, null=True, verbose_name=_('Encerramento'))
-    url_audio = models.CharField(
+    url_audio = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
-    url_video = models.CharField(
+    url_video = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
@@ -171,7 +171,7 @@ class AbstractOrador(models.Model):  # Oradores
     parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
     numero_ordem = models.PositiveIntegerField(
         verbose_name=_('Ordem de pronunciamento'))
-    url_discurso = models.CharField(
+    url_discurso = models.URLField(
         max_length=150, blank=True, verbose_name=_('URL Vídeo'))
 
     class Meta:

@@ -459,7 +459,7 @@ class Publicacao(TimestampedMixin):
     edicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Edição'))
 
-    url_externa = models.CharField(
+    url_externa = models.URLField(
         max_length=1024,
         blank=True,
         verbose_name=_('Link para Versão Eletrônica'))
@@ -1169,7 +1169,7 @@ class Nota(TimestampedMixin):
         default='',
         blank=True)
     texto = models.TextField(verbose_name=_('Texto'))
-    url_externa = models.CharField(
+    url_externa = models.URLField(
         max_length=1024,
         blank=True,
         verbose_name=_('Url externa'))

@@ -6,7 +6,7 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
     id_provedor = models.PositiveIntegerField(verbose_name=_('Id do provedor'))
     nome = models.CharField(max_length=255, verbose_name=_('Nome do provedor'))
     sigla = models.CharField(max_length=15)
-    email_responsavel = models.CharField(
+    email_responsavel = models.EmailField(
         max_length=50,
         blank=True,
         verbose_name=_('E-mail do responsável'))
@@ -34,7 +34,7 @@ class LexmlPublicador(models.Model):
         verbose_name=_('Id do publicador'))
     nome = models.CharField(
         max_length=255, verbose_name=_('Nome do publicador'))
-    email_responsavel = models.CharField(
+    email_responsavel = models.EmailField(
         max_length=50,
         blank=True,
         verbose_name=_('E-mail do responsável'))
