@@ -6,13 +6,13 @@ from string import ascii_letters, digits
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, TemplateView
+from django.views.generic import CreateView, ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
@@ -58,50 +58,16 @@ unidade_tramitacao_crud = Crud(UnidadeTramitacao, 'unidade_tramitacao')
 tramitacao_crud = Crud(Tramitacao, '')
 
 
-class FormularioSimplificadoView(FormMixin, GenericView):
+class FormularioSimplificadoView(CreateView):
     template_name = "materia/formulario_simplificado.html"
     form_class = FormularioSimplificadoForm
-
-    def get_success_url(self):
-        return reverse('materialegislativa:list')
-
-    def get(self, request, *args, **kwargs):
-        form = FormularioSimplificadoForm()
-        return self.render_to_response({'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = FormularioSimplificadoForm(request.POST)
-
-        if form.is_valid():
-            materia = form.save(commit=False)
-            if 'texto_original' in request.FILES:
-                materia.texto_original = request.FILES['texto_original']
-            materia.save()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-        return self.render_to_response({'form': form})
+    success_url = reverse_lazy('materialegislativa:list')
 
 
-class FormularioCadastroView(FormMixin, GenericView):
+class FormularioCadastroView(CreateView):
     template_name = "materia/formulario_cadastro.html"
     form_class = FormularioCadastroForm
-
-    def get(self, request, *args, **kwargs):
-        form = FormularioCadastroForm()
-        return self.render_to_response({'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = FormularioCadastroForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse('formulario_cadastro')
+    success_url = reverse_lazy('formulario_cadastro')
 
 
 class MateriaAnexadaView(FormMixin, GenericView):
