@@ -25,7 +25,7 @@
           </div>
           <div class="col-md-6">
             Data Destituição
-            <input type="text" name="data_destituicao_relator" class ="dateinput form-control" value="{{relatoria.data_destituicao_relator}}" />
+            <input type="text" name="data_destituicao_relator" class ="dateinput form-control" {% if relatoria.data_destituicao_relator %} value="{{relatoria.data_destituicao_relator}}" {% endif %}/>
           </div>
         </div>
         <div class="row">

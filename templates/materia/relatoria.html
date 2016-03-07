@@ -69,7 +69,7 @@
             </div>
           </div>
 					<br />
-					<input type="submit" name="salvar" value="Salvar" class="primary button"/>
+					<input type="submit" name="salvar" value="Salvar" class="btn btn-primary" {% if not comissao.nome %} disabled {% endif %} />
 				</form>
 		</fieldset>
 	</fieldset>
