@@ -1290,6 +1290,8 @@ class AutoriaEditView(GenericView, FormMixin):
 
             if 'salvar' in request.POST:
                 autoria.save()
+            elif 'excluir' in request.POST:
+                autoria.delete()
 
             return self.form_valid(form)
 
