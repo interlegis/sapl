@@ -29,9 +29,9 @@ class CasaLegislativa(models.Model):
         blank=True,
         upload_to=get_casa_media_path,
         verbose_name=_('Logotipo'))
-    endereco_web = models.CharField(
+    endereco_web = models.URLField(
         max_length=100, blank=True, verbose_name=_('HomePage'))
-    email = models.CharField(
+    email = models.EmailField(
         max_length=100, blank=True, verbose_name=_('E-mail'))
     informacao_geral = models.CharField(
         max_length=100,
