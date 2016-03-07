@@ -136,6 +136,17 @@ class TaForm(ModelForm):
         )
 
         super(TaForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['tipo_ta'].widget.attrs['disabled'] = True
+            self.fields['tipo_ta'].required = False
+
+    def clean_tipo_ta(self):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            return instance.tipo_ta
+        else:
+            return self.cleaned_data['tipo_ta']
 
 
 class NotaForm(ModelForm):
@@ -451,3 +462,18 @@ class PublicacaoForm(ModelForm):
 
         super(PublicacaoForm, self).__init__(*args, **kwargs)
         pass
+
+
+class DispositivoForm(ModelForm):
+
+    class Meta:
+        model = Dispositivo
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        """self.helper.layout = SaplFormLayout(
+            Fieldset(Publicacao._meta.verbose_name,
+                     row1, row2, row3, css_class="col-md-12"))"""
+
+        super(PublicacaoForm, self).__init__(*args, **kwargs)

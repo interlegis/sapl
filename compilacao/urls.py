@@ -31,6 +31,9 @@ urlpatterns_compilacao = [
         views.DispositivoView.as_view(), name='dispositivo'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/refresh',
+        views.DispositivoSimpleEditView.as_view(), name='dispositivo_refresh'),
+
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/edit',
         views.DispositivoEditView.as_view(), name='dispositivo_edit'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/actions',

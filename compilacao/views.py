@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -21,13 +21,14 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from compilacao.forms import (NotaForm, PublicacaoForm, TaForm, TipoTaForm,
-                              VideForm)
+                              VideForm, DispositivoForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
 from crud.base import Crud, CrudListView, make_pagination
+
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -162,7 +163,7 @@ class TipoTaListView(ListView):
 class TipoTaCreateView(FormMessagesMixin, CreateView):
     model = TipoTextoArticulado
     form_class = TipoTaForm
-    template_name = "compilacao/form.html"
+    template_name = "crud/form.html"
     form_valid_message = _('Registro criado com sucesso!')
     form_invalid_message = _('O registro não foi criado.')
 
@@ -191,7 +192,7 @@ class TipoTaDetailView(CompMixin, DetailView):
 class TipoTaUpdateView(CompMixin, UpdateView):
     model = TipoTextoArticulado
     form_class = TipoTaForm
-    template_name = "compilacao/form.html"
+    template_name = "crud/form.html"
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -264,7 +265,7 @@ class TaDetailView(DetailView):
 class TaCreateView(FormMessagesMixin, CreateView):
     model = TextoArticulado
     form_class = TaForm
-    template_name = "compilacao/form.html"
+    template_name = "crud/form.html"
     form_valid_message = _('Registro criado com sucesso!')
     form_invalid_message = _('O registro não foi criado.')
 
@@ -280,7 +281,7 @@ class TaCreateView(FormMessagesMixin, CreateView):
 class TaUpdateView(CompMixin, UpdateView):
     model = TextoArticulado
     form_class = TaForm
-    template_name = "compilacao/form.html"
+    template_name = "crud/form.html"
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -662,7 +663,7 @@ class TextEditView(ListView, CompMixin):
                 request.session['perfil_estrutural'] = perfis[0].pk
 
 
-class DispositivoEditView(TextEditView):
+class DispositivoSimpleEditView(TextEditView):
     template_name = 'compilacao/text_edit_bloco.html'
 
     def post(self, request, *args, **kwargs):
@@ -1011,6 +1012,9 @@ class ActionsEditMixin:
 
         action = getattr(self, context['action'])
         return JsonResponse(action(context), safe=False)
+
+    def set_dvt(self, context):
+        return {}
 
     def delete_item_dispositivo(self, context):
         return self.delete_bloco_dispositivo(context, bloco=False)
@@ -1911,7 +1915,7 @@ class PublicacaoListView(ListView):
 class PublicacaoCreateView(FormMessagesMixin, CreateView):
     model = Publicacao
     form_class = PublicacaoForm
-    template_name = "compilacao/form.html"
+    template_name = "crud/form.html"
     form_valid_message = _('Registro criado com sucesso!')
     form_invalid_message = _('O registro não foi criado.')
 
@@ -1939,7 +1943,7 @@ class PublicacaoDetailView(CompMixin, DetailView):
 class PublicacaoUpdateView(CompMixin, UpdateView):
     model = Publicacao
     form_class = PublicacaoForm
-    template_name = "compilacao/form.html"
+    template_name = "crud/form.html"
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1974,3 +1978,9 @@ class PublicacaoDeleteView(CompMixin, DeleteView):
     def get_success_url(self):
         return reverse_lazy('compilacao:ta_pub_list',
                             kwargs={'ta_id': self.kwargs['ta_id']})
+
+
+class DispositivoEditView(CompMixin, UpdateView):
+    model = Dispositivo
+    form_class = DispositivoForm
+    template_name = "crud/form.html"

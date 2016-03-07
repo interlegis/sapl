@@ -106,6 +106,13 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
         $("#message_block").css("display", "block");
 
     }
+    else if (_action.startsWith('set_')) {
+
+        url = pk_refresh+'/actions?action='+_action;
+
+        $("#message_block").css("display", "block");
+
+    }
     else if (_action.startsWith('delete_')) {
         var r = confirm("Confirma Exclusão deste dispositivo?");
         if (!r) {

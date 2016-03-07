@@ -93,7 +93,7 @@ def isinst(value, class_str):
 @register.filter
 def render_actions_head(view, d_atual):
 
-    if view.__class__.__name__ != 'DispositivoEditView':
+    if view.__class__.__name__ != 'DispositivoSimpleEditView':
         return False
 
     # Menu
