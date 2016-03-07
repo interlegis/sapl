@@ -124,18 +124,6 @@ class ParticipacaoCadastroForm(ModelForm):
         empty_label='Selecione',
     )
 
-    data_designacao = forms.DateField(label=u'Data Designação',
-                                      input_formats=['%d/%m/%Y'],
-                                      required=True,
-                                      widget=forms.DateInput(
-                                          format='%d/%m/%Y'))
-
-    data_desligamento = forms.DateField(label=u'Data Desligamento',
-                                        input_formats=['%d/%m/%Y'],
-                                        required=False,
-                                        widget=forms.DateInput(
-                                            format='%d/%m/%Y'))
-
     class Meta:
         model = Participacao
         fields = ['parlamentar_id',
@@ -145,6 +133,15 @@ class ParticipacaoCadastroForm(ModelForm):
                   'data_desligamento',
                   'motivo_desligamento',
                   'observacao']
+
+        widgets = {
+            'data_designacao': forms.DateInput(format='%d/%m/%Y'),
+            'data_desligamento': forms.DateInput(format='%d/%m/%Y'),
+        }
+        input_formats = {
+            'data_designacao': ['%d/%m/%Y'],
+            'data_desligamento': ['%d/%m/%Y'],
+        }
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
