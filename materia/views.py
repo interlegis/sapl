@@ -146,7 +146,7 @@ class MateriaAnexadaView(FormMixin, GenericView):
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'form': form,
-                         'materialegislativa': mat_principal,
+                         'object': mat_principal,
                          'anexadas': anexadas})
 
                 anexada = Anexada()
@@ -165,14 +165,14 @@ class MateriaAnexadaView(FormMixin, GenericView):
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'form': form,
-                     'materialegislativa': mat_principal,
+                     'object': mat_principal,
                      'anexadas': anexadas})
 
             return self.form_valid(form)
         else:
             return self.render_to_response(
                 {'form': form,
-                 'materialegislativa': mat_principal,
+                 'object': mat_principal,
                  'anexadas': anexadas})
 
     def get_success_url(self):
