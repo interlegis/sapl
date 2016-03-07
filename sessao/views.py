@@ -934,8 +934,11 @@ class ResumoView(sessao_crud.CrudDetailView):
 
         # =====================================================================
         # Identificação Básica
-        abertura = self.object.data_inicio.strftime('%d/%m/%Y')
-        encerramento = self.object.data_fim.strftime('%d/%m/%Y')
+        data_inicio = self.object.data_inicio
+        abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
+
+        data_fim = self.object.data_fim
+        encerramento = data_fim.strftime('%d/%m/%Y') if data_fim else ''
 
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
