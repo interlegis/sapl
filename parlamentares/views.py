@@ -258,9 +258,10 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
         parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
 
         if form.is_valid():
+
             if 'salvar' in request.POST:
                 dependente.save()
-            elif 'Excluir' in request.POST:
+            elif 'excluir' in request.POST:
                 dependente.delete()
             return self.form_valid(form)
         else:
@@ -547,7 +548,7 @@ class FiliacaoEditView(FormMixin, GenericView):
             candidato_filiado = Filiacao.objects.filter(
                 parlamentar=parlamentar)
 
-            if 'Excluir' in request.POST:
+            if 'excluir' in request.POST:
                 filiacao.delete()
                 return self.form_valid(form)
 
@@ -610,7 +611,7 @@ class FiliacaoEditView(FormMixin, GenericView):
 
             if 'salvar' in request.POST:
                 filiacao.save()
-            elif 'Excluir' in request.POST:
+            elif 'excluir' in request.POST:
                 filiacao.delete()
             return self.form_valid(form)
 
@@ -694,7 +695,7 @@ class MandatoEditView(FormMixin, GenericView):
         if form.is_valid():
             if 'salvar' in request.POST:
                 mandato.save()
-            elif 'Excluir' in request.POST:
+            elif 'excluir' in request.POST:
                 mandato.delete()
             return self.form_valid(form)
         else:
