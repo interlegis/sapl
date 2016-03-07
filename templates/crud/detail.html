@@ -23,7 +23,7 @@
         <div id="div_id_{{ column.id }}" class="form-group">
           <p class="control-label">{{ column.verbose_name }}</p>
           <div class="controls">
-            <p class="form-control-static">{{ column.text }}</p>
+            <p class="form-control-static">{{ column.text|safe }}</p>
           </div>
         </div>
       </div>
