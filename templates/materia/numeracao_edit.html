@@ -16,7 +16,7 @@
               <label>Tipo Matéria*</label>
               <select name="tipo_materialegislativa" class="form-control">
                 {% for t in tipos %}
-	                <option value="{{t.id}}" {% if t.id == numeracao.tipo_materialegislativa_id %} selected {% endif %}>
+	                <option value="{{t.id}}" {% if t.id == numeracao.tipo_materia %} selected {% endif %}>
 	                	{{t.sigla}} - {{t.descricao}}
 	                </option>
                 {% endfor %}
@@ -27,17 +27,17 @@
 					<div class="row">
             <div class="col-md-4">
               <label>Número*</select>label>
-              <input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materialegislativa}}" class="form-control"/>
+              <input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materia}}" class="form-control"/>
             </div>
             <div class="col-md-4">
               <label>Ano*</label>
-              <input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materialegislativa}}" class="form-control"/>
+              <input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materia}}" class="form-control"/>
             </div>
             <div class="col-md-4">
               <label>Data</label>
-              <input type="text" name="data_materialegislativa" class="dateinput" value="{{numeracao.data_materialegislativa|date:'d/m/Y'}}" class="form-control"/>
+              <input type="text" name="data_materialegislativa" class="dateinput form-control" value="{{numeracao.data_materia|date:'d/m/Y'}}"/>
             </div>
-					<ul>
+					</div>
 					<br />
 					<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
 					<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />

@@ -490,11 +490,8 @@ class NumeracaoView(FormMixin, GenericView):
 
         if form.is_valid():
             numeracao = Numeracao()
-            tipo = TipoMateriaLegislativa.objects.get(
-                id=form.cleaned_data['tipo_materia'])
-
             numeracao.materia = materia
-            numeracao.tipo_materia = tipo
+            numeracao.tipo_materia = form.cleaned_data['tipo_materia']
             numeracao.numero_materia = form.cleaned_data['numero_materia']
             numeracao.ano_materia = form.cleaned_data['ano_materia']
             numeracao.data_materia = form.cleaned_data['data_materia']

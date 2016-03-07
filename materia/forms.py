@@ -385,7 +385,7 @@ class NumeracaoForm(ModelForm):
     )
 
     data_materia = forms.DateField(label='Data',
-                                   required=False,
+                                   required=True,
                                    input_formats=['%d/%m/%Y'],
                                    widget=forms.TextInput(
                                        attrs={'class': 'dateinput'}))
