@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -300,12 +302,21 @@ class MateriaAssunto(models.Model):
             'materia': self.materia, 'assunto': self.assunto}
 
 
+def get_range_anos():
+    return [('', 'Selecione')] \
+        + [(year, year) for year in range(date.today().year, 1960, -1)]
+
+
 class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa, verbose_name=_('Tipo de Matéria'))
-    numero_materia = models.CharField(max_length=5, verbose_name=_('Número'))
-    ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+    numero_materia = models.CharField(max_length=5,
+                                      verbose_name=_('Número'),
+                                      blank=True,
+                                      null=True)
+    ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                                   choices=get_range_anos())
     data_materia = models.DateField(
         blank=True, verbose_name=_('Data'))
 
@@ -430,7 +441,7 @@ class Proposicao(models.Model):
         null=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Incorporação'))
-    descricao = models.CharField(max_length=100, verbose_name=_('Descrição'))
+    descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
     data_devolucao = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de devolução'))
     justificativa_devolucao = models.CharField(
