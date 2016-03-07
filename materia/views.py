@@ -574,11 +574,9 @@ class DocumentoAcessorioView(FormMixin, GenericView):
 
         if form.is_valid():
             documento_acessorio = DocumentoAcessorio()
-            tipo = TipoDocumento.objects.get(
-                id=form.cleaned_data['tipo'])
 
             documento_acessorio.materia = materia
-            documento_acessorio.tipo = tipo
+            documento_acessorio.tipo = form.cleaned_data['tipo']
             documento_acessorio.data = form.cleaned_data['data']
             documento_acessorio.nome = form.cleaned_data['nome']
             documento_acessorio.autor = form.cleaned_data['autor']
@@ -653,10 +651,8 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
             if 'excluir' in request.POST:
                 documento.delete()
             elif 'salvar' in request.POST:
-                tipo = TipoDocumento.objects.get(
-                    id=form.cleaned_data['tipo'])
                 documento.materia = materia
-                documento.tipo = tipo
+                documento.tipo = form.cleaned_data['tipo']
                 documento.data = form.cleaned_data['data']
                 documento.nome = form.cleaned_data['nome']
                 documento.autor = form.cleaned_data['autor']
