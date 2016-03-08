@@ -150,7 +150,7 @@ class AnularProtocoloAdmView(FormView):
             return self.form_invalid(form)
 
 
-class ProtocoloDocumentoView(FormValidMessageMixin, CreateView):
+class ProtocoloDocumentoView(FormValidMessageMixin, FormView):
 
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
@@ -165,8 +165,10 @@ class ProtocoloDocumentoView(FormValidMessageMixin, CreateView):
             if form.cleaned_data['numeracao'] == '1':
                 numeracao = Protocolo.objects.filter(
                     ano=date.today().year).aggregate(Max('numero'))
-            else:
+            elif form.cleaned_data['numeracao'] == '2':
                 numeracao = Protocolo.objects.all().aggregate(Max('numero'))
+            # else:
+            #     raise ValidationError(_("Campo numeração é obrigatório"))
 
             if numeracao['numero__max'] is None:
                 numeracao['numero__max'] = 0
@@ -275,10 +277,6 @@ class ProtocoloMateriaView(FormValidMessageMixin, CreateView):
     template_name = "protocoloadm/protocolar_materia.html"
     form_class = ProtocoloMateriaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
-
-    def get_initial(self):
-        initial = {}
-        return initial
 
     def post(self, request, *args, **kwargs):
 

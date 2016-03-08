@@ -137,19 +137,31 @@ class AnularProcoloAdmForm(ModelForm):
 
     YEARS = get_range_anos()
 
-    numero = forms.CharField(
-        label=_('Número de Protocolo'), required=True)
-    ano = forms.ChoiceField(required=False,
-                            label='Ano',
+    numero = forms.CharField(required=True,
+                             label=Protocolo._meta.\
+                             get_field('numero').verbose_name
+                             )
+    ano = forms.ChoiceField(required=True,
+                            label=Protocolo._meta.\
+                            get_field('ano').verbose_name,
                             choices=YEARS,
                             widget=forms.Select(attrs={'class': 'selector'}))
-    justificativa_anulacao = forms.CharField(
-        widget=forms.Textarea, label='Motivo', required=True)
+    justificativa_anulacao = forms.CharField(required=True,
+                                             label=Protocolo._meta.\
+                                             get_field('justificativa_anulacao'
+                                             ).verbose_name,
+                                             widget=forms.Textarea)
 
     def clean(self):
         cleaned_data = super(AnularProcoloAdmForm, self).clean()
+
         numero = cleaned_data.get("numero")
         ano = cleaned_data.get("ano")
+
+        # se não inserido numero ou ano não prosseguir
+        # (e ele vai falhar pq numero e ano são obrigatórios)
+        if not numero or not ano:
+            return
 
         try:
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
@@ -330,8 +342,9 @@ class ProtocoloMateriaForm(ModelForm):
         row1 = crispy_layout_mixin.to_row(
             [('numeracao', 12)])
         row2 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 6),
-             ('num_paginas', 6)])
+            [('tipo_materia', 4),
+             ('tipo_protocolo', 4),
+             ('num_paginas', 4)])
         row3 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
         row4 = crispy_layout_mixin.to_row(

@@ -88,8 +88,9 @@ class DocumentoAcessorioAdministrativo(models.Model):
 
 class Protocolo(models.Model):
     numero = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número do Protocolo'))
-    ano = models.PositiveSmallIntegerField()
+        blank=False, null=False, verbose_name=_('Número de Protocolo'))
+    ano = models.PositiveSmallIntegerField(
+        blank=False, null=False, verbose_name=_('Ano do Protocolo'))
     data = models.DateField()
     hora = models.TimeField()
     timestamp = models.DateTimeField()
