@@ -24,11 +24,15 @@
         {% block base_header %}
           <div class="clearfix">
 
-            {% block title %}
-              {% if view.title %}
-                <h1 class="page-header">{{ view.title|linebreaksbr }}</h1>
+          {% block title %}
+            <h1 class="page-header">
+              {% if title %}
+                {{ title|safe|linebreaksbr }}
+              {% elif object %}
+                {{ object|safe|linebreaksbr }}
               {% endif %}
-            {% endblock %}
+              </h1>
+          {% endblock %}
 
           </div>
         {% endblock base_header %}

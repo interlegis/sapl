@@ -148,7 +148,7 @@ def test_reverse():
 
 
 def assert_h1(res, title):
-    assert res.html.find('main').find('h1').text == title
+    assert res.html.find('main').find('h1').text.strip() == title
 
 
 NO_ENTRIES_MSG = str(CrudListMixin.no_entries_msg)  # "unlazy"

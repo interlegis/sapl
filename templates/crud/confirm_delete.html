@@ -1,12 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}
-  {% with object as title %}
-    {{ block.super }}
-  {% endwith %}
-{% endblock %}
-
 {% block base_content %}
   <form action="" method="post">{% csrf_token %}
     <div class="panel panel-danger">

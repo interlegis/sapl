@@ -155,10 +155,10 @@
 
                 {% block title %}
                   <h1 class="page-header">
-                    {% if view.title %}
-                      {{ view.title|safe|linebreaksbr }}
-                    {% else %}
-                      {{ title|safe|linebreaksbr }}
+										{% if title %}
+											{{ title|safe|linebreaksbr }}
+                    {% elif object %}
+                      {{ object|safe|linebreaksbr }}
                     {% endif %}
                     </h1>
                 {% endblock %}
