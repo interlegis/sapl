@@ -23,7 +23,7 @@ urlpatterns = [
     url(r'^norma/(?P<pk>[0-9]+)/editar$',
         NormaEditView.as_view(), name='norma_editar'),
     url(r'^norma/pesquisa$',
-     NormaPesquisaView.as_view(), name='norma_pesquisa'),
+        NormaPesquisaView.as_view(), name='norma_pesquisa'),
     url(r'^norma/pesquisa-resultado$',
-     PesquisaNormaListView.as_view(), name='list_pesquisa_norma'),
+        PesquisaNormaListView.as_view(), name='list_pesquisa_norma'),
 ]
