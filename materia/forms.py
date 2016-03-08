@@ -432,13 +432,18 @@ class DespachoInicialForm(ModelForm):
         model = DespachoInicial
         fields = ['comissao']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
+
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Adicionar Despacho Inicial'),
                 'comissao',
-                form_actions()
+                form_actions(more=more)
             )
         )
         super(DespachoInicialForm, self).__init__(*args, **kwargs)

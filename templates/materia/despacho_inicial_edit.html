@@ -3,24 +3,5 @@
 {% load crispy_forms_tags %}
 {% block actions %} {% endblock %}
 {% block detail_content %}
-	<fieldset>
-		<legend>Matéria Legislativa</legend>
-		{% include "materia/resumo_detail_materia.html" %}
-
-		<form method="POST">
-		{% csrf_token %}
-
-			<fieldset class="form-group">
-				<legend>Editar Despacho</legend>
-				<select name="comissao" class="form-control">
-					{% for c in comissoes %}
-						<option value="{{c.id}}" {% if c.id == despacho.comissao.id %} selected {% endif %}> {{c.nome}} </option>
-					{% endfor %}
-				</select>
-				<br />
-				<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
-				<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />
-			</fieldset>
-		</form>
-	</fieldset>
+	{% crispy form %}
 {% endblock %}

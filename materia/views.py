@@ -234,7 +234,7 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
         return reverse('materia_anexada', kwargs={'pk': pk})
 
 
-class DespachoInicialView(FormMixin, GenericView):
+class DespachoInicialView(CreateView):
     template_name = "materia/despacho_inicial.html"
     form_class = DespachoInicialForm
 
@@ -249,7 +249,7 @@ class DespachoInicialView(FormMixin, GenericView):
              'despachos': despacho})
 
     def post(self, request, *args, **kwargs):
-        form = DespachoInicialForm(request.POST)
+        form = self.get_form()
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         despacho = DespachoInicial.objects.filter(materia_id=materia.id)
 
@@ -258,7 +258,7 @@ class DespachoInicialView(FormMixin, GenericView):
             despacho.comissao = form.cleaned_data['comissao']
             despacho.materia = materia
             despacho.save()
-            return self.form_valid(form)
+            return redirect(self.get_success_url())
         else:
             return self.render_to_response({'form': form,
                                             'object': materia,
@@ -269,35 +269,30 @@ class DespachoInicialView(FormMixin, GenericView):
         return reverse('despacho_inicial', kwargs={'pk': pk})
 
 
-class DespachoInicialEditView(FormMixin, GenericView):
+class DespachoInicialEditView(CreateView):
     template_name = "materia/despacho_inicial_edit.html"
     form_class = DespachoInicialForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         despacho = DespachoInicial.objects.get(id=kwargs['id'])
-        form = DespachoInicialForm()
+        form = DespachoInicialForm(instance=despacho, excluir=True)
 
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'despacho': despacho,
-             'comissoes': Comissao.objects.all()})
+        return self.render_to_response({'object': materia, 'form': form})
 
     def post(self, request, *args, **kwargs):
-        form = DespachoInicialForm(request.POST)
+        form = self.get_form()
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         despacho = DespachoInicial.objects.get(id=kwargs['id'])
 
         if form.is_valid():
-            if 'excluir' in request.POST:
+            if 'Excluir' in request.POST:
                 despacho.delete()
-                return self.form_valid(form)
             elif 'salvar' in request.POST:
                 despacho.comissao = form.cleaned_data['comissao']
                 despacho.materia = materia
                 despacho.save()
-                return self.form_valid(form)
+            return redirect(self.get_success_url())
         else:
             return self.render_to_response(
                 {'object': materia,
