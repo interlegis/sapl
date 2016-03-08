@@ -1,6 +1,7 @@
 from datetime import datetime
 from re import sub
 
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -66,6 +67,9 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
                 sessao.parlamentar = Parlamentar.objects.get(id=p)
                 sessao.save()
 
+            msg = _('Presença em Sessão salva com sucesso!')
+            messages.add_message(request, messages.SUCCESS, msg)
+
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -123,6 +127,9 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
                 ordem.sessao_plenaria = self.object
                 ordem.parlamentar = Parlamentar.objects.get(id=p)
                 ordem.save()
+
+            msg = _('Presença em Ordem do Dia salva com sucesso!')
+            messages.add_message(request, messages.SUCCESS, msg)
 
             return self.form_valid(form)
         else:
