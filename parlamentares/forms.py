@@ -30,51 +30,6 @@ class ParlamentaresForm (ModelForm):
         )
     )
 
-    cpf = forms.CharField(label='C.P.F',
-                          required=False,
-                          widget=forms.TextInput(
-                              attrs={'class': 'cpf'}))
-
-    rg = forms.CharField(label='R.G.',
-                         required=False,
-                         widget=forms.TextInput(
-                             attrs={'class': 'rg'}))
-
-    titulo_eleitor = forms.CharField(label=_('Título de Eleitor'),
-                                     required=False,
-                                     widget=forms.TextInput(
-                                         attrs={'class': 'titulo_eleitor'}))
-
-    telefone = forms.CharField(label='Telefone',
-                               required=False,
-                               widget=forms.TextInput(
-                                   attrs={'class': 'telefone'}))
-
-    fax = forms.CharField(label='Fax',
-                          required=False,
-                          widget=forms.TextInput(
-                              attrs={'class': 'telefone'}))
-
-    cep_residencia = forms.CharField(label='CEP',
-                                     required=False,
-                                     widget=forms.TextInput(
-                                         attrs={'class': 'cep'}))
-
-    telefone_residencia = forms.CharField(label='Telefone',
-                                          required=False,
-                                          widget=forms.TextInput(
-                                              attrs={'class': 'telefone'}))
-
-    fax_residencia = forms.CharField(label='Fax',
-                                     required=False,
-                                     widget=forms.TextInput(
-                                         attrs={'class': 'telefone'}))
-
-    fotografia = forms.ImageField(label='Fotografia',
-                                  required=False,
-                                  widget=forms.FileInput
-                                  )
-
     class Meta:
         model = Parlamentar
         fields = ['nome_parlamentar',
@@ -101,6 +56,20 @@ class ParlamentaresForm (ModelForm):
                   'locais_atuacao',
                   'fotografia',
                   'biografia']
+
+        widgets = {
+            'cpf': forms.TextInput(attrs={'class': 'cpf'}),
+            'rg': forms.TextInput(attrs={'class': 'rg'}),
+            'titulo_eleitor': forms.TextInput(attrs={
+              'class': 'titulo_eleitor'}),
+            'telefone': forms.TextInput(attrs={'class': 'telefone'}),
+            'fax': forms.TextInput(attrs={'class': 'telefone'}),
+            'cep_residencia': forms.TextInput(attrs={'class': 'cep'}),
+            'telefone_residencia': forms.TextInput(attrs={
+              'class': 'telefone'}),
+            'fax_residencia': forms.TextInput(attrs={'class': 'telefone'}),
+            'fotografia': forms.FileInput
+        }
 
     def __init__(self, *args, **kwargs):
 
