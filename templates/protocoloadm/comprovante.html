@@ -25,13 +25,16 @@
 
 	<table>
 		<tr><td colspan="2" align="center">
-				<img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}" alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
+				<img height="150" width="150"
+				     src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+						 alt="Logotipo"
+						 class="img-responsive visible-lg-inline-block vcenter">
 				<div>
 					<b>{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}</b>
 					<br />
 					{% trans 'Sistema de Apoio ao Processo Legislativo' %}
 				</div>
-			</td> 
+			</td>
 		</tr>
 		<tr> <td colspan="2" align="center"><b>COMPROVANTE DE PROTOCOLO</b></td> </tr>
 
