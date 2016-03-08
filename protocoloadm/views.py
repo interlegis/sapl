@@ -261,7 +261,8 @@ class CriarDocumentoProtocolo(CreateView):
         return criar_documento(protocolo)
 
     def get_success_url(self):
-        return reverse('detail_doc_adm', kwargs={'pk': self.object.pk})
+        return reverse('protocolo_mostrar', kwargs={'pk': self.kwargs['pk'],
+                                                    'ano': self.kwargs['ano']})
 
 
 class ProtocoloMostrarView(TemplateView):
