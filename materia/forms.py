@@ -12,7 +12,7 @@ from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
 
-from .models import (AcompanhamentoMateria, Anexada, Autor, DespachoInicial,
+from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao, Origem,
                      Proposicao, Relatoria, StatusTramitacao, TipoAutor,
                      TipoDocumento, TipoMateriaLegislativa, Tramitacao,
@@ -615,15 +615,43 @@ class FormularioCadastroForm(ModelForm):
         super(FormularioCadastroForm, self).__init__(*args, **kwargs)
 
 
-class AutoriaForm(forms.Form):
-    tipo_autor = forms.CharField()
-    nome_autor = forms.CharField()
-    primeiro_autor = forms.CharField()
-    partido_autor = forms.ModelChoiceField(
-        label=_('Partido (Autor)'),
-        required=False,
-        queryset=Partido.objects.all(),
-        empty_label='Selecione')
+class AutoriaForm(ModelForm):
+    autor = forms.ModelChoiceField(
+        label=_('Autor'),
+        required=True,
+        queryset=Autor.objects.all().order_by('tipo', 'nome'),
+    )
+    primeiro_autor = forms.ChoiceField(
+        label=_('Primeiro Autor'),
+        required=True,
+        choices=[(True, _('Sim')), (False, _('Não'))],
+    )
+
+    class Meta:
+        model = Autoria
+        fields = ['autor',
+                  'primeiro_autor',
+                  'partido']
+
+    def __init__(self, excluir=False, *args, **kwargs):
+
+        row1 = crispy_layout_mixin.to_row(
+            [('autor', 4), ('primeiro_autor', 4), ('partido', 4)])
+
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Adicionar Autoria'),
+                row1,
+                form_actions(more=more)
+            )
+        )
+        super(AutoriaForm, self).__init__(
+            *args, **kwargs)
 
 
 class MateriaLegislativaPesquisaForm(forms.Form):

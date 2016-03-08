@@ -1125,8 +1125,9 @@ class TramitacaoEditView(FormMixin, GenericView):
         return reverse('tramitacao_materia', kwargs={'pk': pk})
 
 
-class AutoriaView(GenericView):
+class AutoriaView(CreateView):
     template_name = "materia/autoria.html"
+    form_class = AutoriaForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -1135,139 +1136,89 @@ class AutoriaView(GenericView):
 
         return self.render_to_response(
             {'object': materia,
-             'form': form,
-             'autorias': autorias,
-             'partido_autor': Partido.objects.all(),
-             'tipo_autores': TipoAutor.objects.all(),
-             'autores': Autor.objects.all(),
-             'tipo_autor_id': TipoAutor.objects.first().id})
+             'form': AutoriaForm,
+             'autorias': autorias})
 
     def post(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         autorias = Autoria.objects.filter(materia=materia)
-        form = AutoriaForm(request.POST)
+        form = self.get_form()
 
         if 'salvar' in request.POST:
-            if int(form.data['primeiro_autor']) == 1:
-                primeiro = True
-            else:
-                primeiro = False
-
-            autor = Autor.objects.get(
-                id=int(form.data['nome_autor']))
-
-            if 'partido_autor' in form.data:
+            if 'partido' in form.data:
                 filiacao_autor = Partido.objects.get(
-                    sigla=form.data['partido_autor'])
+                    id=form.data['partido'])
 
             try:
                 autoria = Autoria.objects.get(
-                    autor=autor,
+                    autor=form.data['autor'],
                     materia=materia
                 )
             except ObjectDoesNotExist:
                 autoria = Autoria()
-                autoria.autor = autor
+                autoria.autor = Autor.objects.get(id=form.data['autor'])
                 autoria.materia = materia
-                if 'partido_autor' in form.data:
+                primeiro = form.data['primeiro_autor']
+                if 'partido' in form.data:
                     autoria.partido = filiacao_autor
                 autoria.primeiro_autor = primeiro
 
                 autoria.save()
-
                 return self.render_to_response(
                     {'object': materia,
                      'form': form,
-                     'autorias': autorias,
-                     'partido_autor': Partido.objects.all(),
-                     'tipo_autores': TipoAutor.objects.all(),
-                     'autores': Autor.objects.all(),
-                     'tipo_autor_id': int(form.data['tipo_autor'])})
+                     'autorias': autorias})
             else:
                 msg = _('Essa autoria já foi adicionada!')
                 messages.add_message(request, messages.INFO, msg)
                 return self.render_to_response(
                     {'object': materia,
                      'form': form,
-                     'autorias': autorias,
-                     'tipo_autores': TipoAutor.objects.all(),
-                     'autores': Autor.objects.all(),
-                     'tipo_autor_id': int(form.data['tipo_autor'])})
+                     'autorias': autorias})
         else:
             return self.render_to_response(
                 {'object': materia,
                  'form': form,
-                 'autorias': autorias,
-                 'partido_autor': Partido.objects.all(),
-                 'tipo_autores': TipoAutor.objects.all(),
-                 'autores': Autor.objects.all(),
-                 'tipo_autor_id': int(form.data['tipo_autor'])})
+                 'autorias': autorias})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('autoria', kwargs={'pk': pk})
 
 
-class AutoriaEditView(GenericView, FormMixin):
+class AutoriaEditView(CreateView):
     template_name = "materia/autoria_edit.html"
+    form_class = AutoriaForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        autorias = Autoria.objects.filter(materia=materia)
-        autor = Autor.objects.get(id=self.kwargs['id'])
-        form = AutoriaForm()
+        autoria = Autoria.objects.get(id=self.kwargs['id'])
+        form = AutoriaForm(instance=autoria, excluir=True)
 
         return self.render_to_response(
             {'object': materia,
-             'form': form,
-             'autorias': autorias,
-             'tipo_autores': TipoAutor.objects.all(),
-             'partido': Partido.objects.all(),
-             'autores': Autor.objects.all(),
-             'tipo_autor_id': autor.tipo.id,
-             'autor_id': autor.id})
+             'form': form})
 
     def post(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        autorias = Autoria.objects.filter(materia=materia)
-        form = AutoriaForm(request.POST)
-
+        form = self.get_form()
         if form.is_valid():
-            if int(form.data['primeiro_autor']) == 1:
-                primeiro = True
-            else:
-                primeiro = False
-
-            autor = Autor.objects.get(
-                id=int(form.data['nome_autor']))
-
-            if 'partido_autor' in form.data:
-                filiacao_autor = Partido.objects.get(
-                    sigla=form.data['partido'])
-
-            autoria = Autoria.objects.get(materia=materia, autor__id=autor.id)
-            autoria.autor = autor
-            if 'partido_autor' in form.data:
-                autoria.partido = filiacao_autor
-            autoria.materia = materia
-            autoria.primeiro_autor = primeiro
-
+            autoria = Autoria.objects.get(id=self.kwargs['id'])
             if 'salvar' in request.POST:
+                autoria.autor = Autor.objects.get(id=form.data['autor'])
+                autoria.primeiro_autor = form.data['primeiro_autor']
+                if 'partido' in form.data:
+                    autoria.partido = Partido.objects.get(
+                        id=form.data['partido'])
+                autoria.materia = materia
                 autoria.save()
-            elif 'excluir' in request.POST:
+            elif 'Excluir' in request.POST:
                 autoria.delete()
-
-            return self.form_valid(form)
-
+            return redirect(self.get_success_url())
         else:
             return self.render_to_response(
                 {'object': materia,
-                 'form': form,
-                 'autorias': autorias,
-                 'partido': Partido.objects.all(),
-                 'tipo_autores': TipoAutor.objects.all(),
-                 'autores': Autor.objects.all(),
-                 'tipo_autor_id': int(form.data['tipo_autor'])})
+                 'form': form})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
