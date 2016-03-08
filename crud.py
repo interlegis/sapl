@@ -162,6 +162,10 @@ class CrudDeleteMixin(FormMessagesMixin):
     form_invalid_message = make_form_invalid_message(
         _('O registro não foi excluído.'))
 
+    @property
+    def cancel_url(self):
+        return self.detail_url
+
     def get_success_url(self):
         return self.list_url
 
