@@ -17,3 +17,12 @@
 </ul>
 
 {% endblock sections_nav %}
+
+<div class="clearfix">
+  {% block actions %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'norma_editar'  object.id %}" class="btn btn-default">{% trans 'Editar' %}</a>
+      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+    </div>
+  {% endblock actions %}
+</div>
