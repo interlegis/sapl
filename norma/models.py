@@ -81,7 +81,7 @@ class NormaJuridica(models.Model):
         max_length=1,
         verbose_name=_('Esfera Federação'),
         choices=ESFERA_FEDERACAO_CHOICES)
-    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
+    data = models.DateField(verbose_name=_('Data'))
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Publicação'))
     veiculo_publicacao = models.CharField(
