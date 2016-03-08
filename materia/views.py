@@ -13,8 +13,6 @@ from django.template import Context, loader
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
-from django.views.generic.edit import FormMixin
-from vanilla.views import GenericView
 
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
@@ -591,7 +589,7 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_redirect_url())
 
 
-class DocumentoAcessorioEditView(FormMixin, GenericView):
+class DocumentoAcessorioEditView(FormView):
     template_name = "materia/documento_acessorio_edit.html"
 
     def get(self, request, *args, **kwargs):
