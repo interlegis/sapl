@@ -5,8 +5,8 @@ from model_mommy import mommy
 from crud.base import (CrispyLayoutFormMixin, CrudListMixin, from_to,
                        get_field_display, make_pagination)
 
-from .models import Continent, Country
-from .views import CountryCrudListMixin
+from .stub_app.models import Continent, Country
+from .stub_app.views import CountryCrudListMixin
 
 pytestmark = pytest.mark.django_db
 
