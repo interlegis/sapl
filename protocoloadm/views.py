@@ -229,6 +229,8 @@ class CriarDocumentoProtocolo(CreateView):
         doc['numero'] = numero['numero__max']
         if doc['numero'] is None:
             doc['numero'] = 1
+        else:
+            doc['numero'] = doc['numero'] + 1
         return doc
 
 

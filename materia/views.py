@@ -3,7 +3,6 @@ from random import choice
 from re import sub
 from string import ascii_letters, digits
 
-from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -13,7 +12,7 @@ from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView
+from django.views.generic import CreateView, FormView, ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla.views import GenericView
 
@@ -71,7 +70,7 @@ class FormularioCadastroView(CreateView):
     success_url = reverse_lazy('formulario_cadastro')
 
 
-class MateriaAnexadaView(FormMixin, GenericView, FormValidMessageMixin):
+class MateriaAnexadaView(FormView):
     template_name = "materia/materia_anexada.html"
     form_class = MateriaAnexadaForm
     form_valid_message = _('Matéria anexada com sucesso!')
@@ -151,7 +150,7 @@ class MateriaAnexadaView(FormMixin, GenericView, FormValidMessageMixin):
         return reverse('materia_anexada', kwargs={'pk': pk})
 
 
-class MateriaAnexadaEditView(FormMixin, GenericView):
+class MateriaAnexadaEditView(FormView):
     template_name = "materia/materia_anexada_edit.html"
     form_class = MateriaAnexadaForm
 
@@ -305,7 +304,7 @@ class DespachoInicialEditView(CreateView):
         return reverse('despacho_inicial', kwargs={'pk': pk})
 
 
-class LegislacaoCitadaView(FormMixin, GenericView):
+class LegislacaoCitadaView(FormView):
     template_name = "materia/legislacao_citada.html"
     form_class = LegislacaoCitadaForm
 
@@ -366,7 +365,7 @@ class LegislacaoCitadaView(FormMixin, GenericView):
         return reverse('legislacao_citada', kwargs={'pk': pk})
 
 
-class LegislacaoCitadaEditView(FormMixin, GenericView):
+class LegislacaoCitadaEditView(FormView):
     template_name = "materia/legislacao_citada_edit.html"
     form_class = LegislacaoCitadaForm
 
@@ -431,7 +430,7 @@ class LegislacaoCitadaEditView(FormMixin, GenericView):
                  'object': materia})
 
 
-class NumeracaoView(FormMixin, GenericView):
+class NumeracaoView(FormView):
     template_name = "materia/numeracao.html"
     form_class = NumeracaoForm
 
@@ -471,7 +470,7 @@ class NumeracaoView(FormMixin, GenericView):
         return reverse('numeracao', kwargs={'pk': pk})
 
 
-class NumeracaoEditView(FormMixin, GenericView):
+class NumeracaoEditView(FormView):
     template_name = "materia/numeracao_edit.html"
     form_class = NumeracaoForm
 
@@ -516,7 +515,7 @@ class NumeracaoEditView(FormMixin, GenericView):
         return reverse('numeracao', kwargs={'pk': pk})
 
 
-class DocumentoAcessorioView(FormMixin, GenericView):
+class DocumentoAcessorioView(FormView):
     template_name = "materia/documento_acessorio.html"
 
     def get(self, request, *args, **kwargs):
@@ -633,7 +632,7 @@ class DocumentoAcessorioEditView(FormMixin, GenericView):
         return reverse('documento_acessorio', kwargs={'pk': pk})
 
 
-class RelatoriaEditView(FormMixin, GenericView):
+class RelatoriaEditView(FormView):
     template_name = "materia/relatoria_edit.html"
     form_class = RelatoriaForm
 
@@ -690,7 +689,7 @@ class RelatoriaEditView(FormMixin, GenericView):
                  'parlamentares': parlamentares})
 
 
-class RelatoriaView(FormMixin, GenericView):
+class RelatoriaView(FormView):
     template_name = "materia/relatoria.html"
     form_class = RelatoriaForm
 
@@ -1003,7 +1002,7 @@ def do_envia_email_tramitacao(request, materia):
     return None
 
 
-class TramitacaoView(FormMixin, GenericView):
+class TramitacaoView(FormView):
     template_name = "materia/tramitacao.html"
 
     def get(self, request, *args, **kwargs):
@@ -1055,7 +1054,7 @@ class TramitacaoView(FormMixin, GenericView):
         return reverse('tramitacao_materia', kwargs={'pk': pk})
 
 
-class TramitacaoEditView(FormMixin, GenericView):
+class TramitacaoEditView(FormView):
     template_name = "materia/tramitacao_edit.html"
 
     def get(self, request, *args, **kwargs):
@@ -1123,6 +1122,7 @@ class TramitacaoEditView(FormMixin, GenericView):
 class AutoriaView(CreateView):
     template_name = "materia/autoria.html"
     form_class = AutoriaForm
+    form_valid_message = _('Autoria cadastrada com sucesso!')
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -1131,7 +1131,7 @@ class AutoriaView(CreateView):
 
         return self.render_to_response(
             {'object': materia,
-             'form': AutoriaForm,
+             'form': form,
              'autorias': autorias})
 
     def post(self, request, *args, **kwargs):
@@ -1239,7 +1239,7 @@ class ProposicaoListView(ListView):
         return context
 
 
-class MateriaLegislativaPesquisaView(FormMixin, GenericView):
+class MateriaLegislativaPesquisaView(FormView):
     template_name = 'materia/pesquisa_materia.html'
 
     def get_success_url(self):
@@ -1420,7 +1420,7 @@ class PesquisaMateriaListView(ListView):
         return context
 
 
-class ProposicaoView(FormMixin, GenericView):
+class ProposicaoView(FormView):
     template_name = "materia/proposicao.html"
 
     def get_success_url(self):

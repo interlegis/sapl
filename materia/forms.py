@@ -12,11 +12,11 @@ from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
 
-from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao, Origem,
-                     Proposicao, Relatoria, StatusTramitacao, TipoAutor,
-                     TipoDocumento, TipoMateriaLegislativa, Tramitacao,
-                     UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
+                     Numeracao, Origem, Proposicao, Relatoria,
+                     StatusTramitacao, TipoAutor, TipoDocumento,
+                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 
 def get_range_anos():

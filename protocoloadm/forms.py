@@ -138,18 +138,18 @@ class AnularProcoloAdmForm(ModelForm):
     YEARS = get_range_anos()
 
     numero = forms.CharField(required=True,
-                             label=Protocolo._meta.\
+                             label=Protocolo._meta.
                              get_field('numero').verbose_name
                              )
     ano = forms.ChoiceField(required=True,
-                            label=Protocolo._meta.\
+                            label=Protocolo._meta.
                             get_field('ano').verbose_name,
                             choices=YEARS,
                             widget=forms.Select(attrs={'class': 'selector'}))
     justificativa_anulacao = forms.CharField(required=True,
-                                             label=Protocolo._meta.\
+                                             label=Protocolo._meta.
                                              get_field('justificativa_anulacao'
-                                             ).verbose_name,
+                                                      ).verbose_name,
                                              widget=forms.Textarea)
 
     def clean(self):
