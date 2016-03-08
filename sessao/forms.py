@@ -70,16 +70,6 @@ class VotacaoEditForm(forms.Form):
 
 class SessaoForm(ModelForm):
 
-    hora_inicio = forms.CharField(label=_('Horário Inicio'),
-                                  required=True,
-                                  widget=forms.TextInput(
-        attrs={'class': 'hora'}))
-
-    hora_fim = forms.CharField(label=_('Horário Fim'),
-                               required=True,
-                               widget=forms.TextInput(
-        attrs={'class': 'hora'}))
-
     class Meta:
         model = SessaoPlenaria
         fields = ['numero',
@@ -96,6 +86,11 @@ class SessaoForm(ModelForm):
                   'upload_ata',
                   'url_audio',
                   'url_video']
+
+        widgets = {
+            'hora_inicio': forms.TextInput(attrs={'class': 'hora'}),
+            'hora_fim': forms.TextInput(attrs={'class': 'hora'}),
+        }
 
     def __init__(self, *args, **kwargs):
 
