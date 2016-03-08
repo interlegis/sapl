@@ -18,6 +18,7 @@ from decouple import config
 
 BASE_DIR = Path(__file__).ancestor(2)
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
