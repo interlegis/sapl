@@ -1,6 +1,6 @@
-import os
+from os.path import dirname, join
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = dirname(dirname(dirname(__file__)))
 
 DATABASES = {
     'default': {
@@ -15,11 +15,11 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.messages',
     'django.contrib.sessions',
-    'crud_tests',
+    'crud.tests',
     'crispy_forms',
 )
 
-ROOT_URLCONF = 'crud_tests.urls'
+ROOT_URLCONF = 'crud.tests.urls'
 
 USE_TZ = True
 
@@ -27,8 +27,8 @@ SECRET_KEY = 'zzz...'
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(BASE_DIR, 'crud_tests/templates'),
-             os.path.join(BASE_DIR, 'templates')],
+    'DIRS': [join(BASE_DIR, 'crud/tests/templates'),
+             join(BASE_DIR, 'templates')],
     'APP_DIRS': True,
     'OPTIONS': {
         'context_processors': [

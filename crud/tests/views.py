@@ -1,4 +1,4 @@
-from crud import Crud, CrudListMixin
+from crud.base import Crud, CrudListMixin
 
 from .models import Country
 

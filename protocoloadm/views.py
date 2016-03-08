@@ -13,7 +13,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 

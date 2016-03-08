@@ -9,7 +9,7 @@ from django.views.generic import CreateView, ListView
 from vanilla.views import GenericView
 
 from compilacao.views import IntegracaoTaView
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from materia.models import MateriaLegislativa
 
 from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm

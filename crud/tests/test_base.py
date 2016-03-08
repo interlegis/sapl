@@ -2,8 +2,8 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from crud import (CrispyLayoutFormMixin, CrudListMixin, from_to,
-                  get_field_display, make_pagination)
+from crud.base import (CrispyLayoutFormMixin, CrudListMixin, from_to,
+                       get_field_display, make_pagination)
 
 from .models import Continent, Country
 from .views import CountryCrudListMixin

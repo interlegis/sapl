@@ -11,7 +11,7 @@ from django.views.generic import CreateView, ListView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica

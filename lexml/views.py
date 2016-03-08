@@ -1,4 +1,4 @@
-from crud import Crud
+from crud.base import Crud
 
 from .models import LexmlProvedor, LexmlPublicador
 

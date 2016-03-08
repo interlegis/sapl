@@ -5,7 +5,7 @@ from django.views.generic import CreateView, ListView
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
 
-from crud import Crud
+from crud.base import Crud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 

@@ -27,7 +27,7 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from crud import Crud, CrudListMixin, make_pagination
+from crud.base import Crud, CrudListMixin, make_pagination
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',

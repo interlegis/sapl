@@ -17,7 +17,7 @@ from django.views.generic import CreateView, FormView, ListView, TemplateView
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
 from sapl.utils import get_base_url
