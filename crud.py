@@ -88,10 +88,6 @@ class CrudListMixin():
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
 
-    @property
-    def title(self):
-        return self.verbose_name_plural
-
     def _as_row(self, obj):
         return [
             (get_field_display(obj, name)[1], obj.pk if i == 0 else None)
@@ -99,6 +95,7 @@ class CrudListMixin():
 
     def get_context_data(self, **kwargs):
         context = super(CrudListMixin, self).get_context_data(**kwargs)
+        context.setdefault('title', self.verbose_name_plural)
 
         # pagination
         page_obj = context['page_obj']
@@ -129,24 +126,20 @@ class CrudCreateMixin(FormMessagesMixin):
         _('O registro não foi criado.'))
 
     @property
-    def title(self):
-        return _('Adicionar %(verbose_name)s') % {
-            'verbose_name': self.verbose_name}
-
-    @property
     def cancel_url(self):
         return self.list_url
 
     def get_success_url(self):
         return self.detail_url
 
+    def get_context_data(self, **kwargs):
+        kwargs.setdefault('title', _('Adicionar %(verbose_name)s') % {
+            'verbose_name': self.verbose_name})
+        return super(CrudCreateMixin, self).get_context_data(**kwargs)
+
 
 class CrudDetailMixin():
-
-    @property
-    def title(self):
-        # TODO: can we just use view.object in the templates????
-        return str(self.object)
+    pass
 
 
 class CrudUpdateMixin(FormMessagesMixin):
@@ -154,10 +147,6 @@ class CrudUpdateMixin(FormMessagesMixin):
     form_valid_message = _('Registro alterado com sucesso!')
     form_invalid_message = make_form_invalid_message(
         _('Suas alterações não foram salvas.'))
-
-    @property
-    def title(self):
-        return str(self.object)
 
     @property
     def cancel_url(self):
@@ -172,6 +161,10 @@ class CrudDeleteMixin(FormMessagesMixin):
     form_valid_message = _('Registro excluído com sucesso!')
     form_invalid_message = make_form_invalid_message(
         _('O registro não foi excluído.'))
+
+    @property
+    def cancel_url(self):
+        return self.detail_url
 
     def get_success_url(self):
         return self.list_url

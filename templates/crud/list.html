@@ -3,15 +3,11 @@
 
 {% block base_content %}
 
-{# FIXME is this the best markup to use? #}
 <div class="actions btn-group pull-right" role="group">
   <a href="{{ view.create_url }}" class="btn btn-default">
     {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
   </a>
-
-  {% block more_buttons %}
-  {% endblock more_buttons %}
-
+  {% block more_buttons %}{% endblock more_buttons %}
 </div>
 
 {% if not rows %}
@@ -43,40 +39,6 @@
   </table>
 {% endif %}
 
+{% include "paginacao.html" %}
 
-{% if is_paginated %}
-<div class="pagination-centered">
-  <ul class="pagination" role="menubar" aria-label="Pagination">
-    {% if page_obj.has_previous %}
-    <li>
-      <a href="?page={{ page_obj.previous_page_number }}">
-        <span class="arrow">&laquo;</span>
-      </a>
-    </li>
-    {% else %}
-    <li class="arrow unavailable" aria-disabled="true"><a href="">&laquo;</a></li>
-    {% endif %}
-
-    {% for page in page_range %}
-    {% if page %}
-    <li {% if page == page_obj.number %}class="current"{% endif %}>
-      <a href="?page={{ page }}">{{ page }}</a>
-    </li>
-    {% else %}
-    <li class="unavailable" aria-disabled="true"><a href="">&hellip;</a></li>
-    {% endif %}
-    {% endfor %}
-
-    {% if page_obj.has_next %}
-    <li>
-      <a href="?page={{ page_obj.next_page_number }}">
-        <span class="arrow">&raquo;</span>
-      </a>
-    </li>
-    {% else %}
-    <li class="arrow unavailable" aria-disabled="true"><a href="">&raquo;</a></li>
-    {% endif %}
-  </ul>
-</div>
-{% endif %}
 {% endblock %}

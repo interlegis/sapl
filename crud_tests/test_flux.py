@@ -148,7 +148,7 @@ def test_reverse():
 
 
 def assert_h1(res, title):
-    assert res.html.find('main').find('h1').text == title
+    assert res.html.find('main').find('h1').text.strip() == title
 
 
 NO_ENTRIES_MSG = str(CrudListMixin.no_entries_msg)  # "unlazy"
@@ -178,8 +178,8 @@ def assert_on_detail_page(res, stub_name):
 @pytest.mark.parametrize("num_entries, page_size, ranges, page_list", [
     (0, 6, [], []),
     (5, 5, [(0, 5)], []),
-    (10, 5, [(0, 5), (5, 10)], ['«', '1', '2', '»']),
-    (9, 4, [(0, 4), (4, 8), (8, 9)], ['«', '1', '2', '3', '»']),
+    (10, 5, [(0, 5), (5, 10)], ['Anterior', '1', '2', 'Próxima']),
+    (9, 4, [(0, 4), (4, 8), (8, 9)], ['Anterior', '1', '2', '3', 'Próxima']),
 ])
 def test_flux_list_paginate_detail(
         app, monkeypatch, num_entries, page_size, ranges, page_list):

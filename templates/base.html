@@ -111,17 +111,17 @@
       {% block main_header %}
       <header class="masthead">
         <div class="container">
-					<div class="navbar-header">
-						<a class="navbar-brand" href="#">
-							<img height="95" width="95" src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
-							alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
-							<span class="vcenter">
-								{# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
-								{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}
-								<br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
-							</span>
-						</a>
-					</div>
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+              <img height="95" width="95" src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+              alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
+              <span class="vcenter">
+                {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
+                {{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}
+                <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
+              </span>
+            </a>
+          </div>
           {% block sections_nav %} {% subnav %} {% endblock sections_nav %}
         </div>
       </header>
@@ -155,12 +155,12 @@
 
                 {% block title %}
                   <h1 class="page-header">
-                    {% if view.title %}
-                      {{ view.title|safe|linebreaksbr }}
-                    {% else %}
+                    {% if title %}
                       {{ title|safe|linebreaksbr }}
+                    {% elif object %}
+                      {{ object|safe|linebreaksbr }}
                     {% endif %}
-                    </h1>
+                  </h1>
                 {% endblock %}
 
               </div>
