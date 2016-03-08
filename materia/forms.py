@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Fieldset, Layout
+from crispy_forms.layout import Column, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -457,38 +457,28 @@ class MateriaAnexadaForm(ModelForm):
 
     ano = forms.CharField(label='Ano', required=True)
 
-    data_anexacao = forms.DateField(label=_('Data Anexação'),
-                                    required=True,
-                                    input_formats=['%d/%m/%Y'],
-                                    widget=forms.TextInput(
-                                        attrs={'class': 'dateinput'}))
-
-    data_desanexacao = forms.DateField(label=_('Data Desanexação'),
-                                       required=False,
-                                       input_formats=['%d/%m/%Y'],
-                                       widget=forms.TextInput(
-                                           attrs={'class': 'dateinput'}))
-
     class Meta:
         model = Anexada
-        fields = ['tipo', 'data_anexacao', 'data_desanexacao']
+        fields = ['tipo', 'numero', 'ano',
+                  'data_anexacao', 'data_desanexacao']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4),
-             ('numero', 4),
-             ('ano', 4)])
+            [('tipo', 4), ('numero', 4), ('ano', 4)])
         row2 = crispy_layout_mixin.to_row(
-            [('data_anexacao', 6),
-             ('data_desanexacao', 6)])
+            [('data_anexacao', 6), ('data_desanexacao', 6)])
+
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Anexar Matéria'),
                 row1, row2,
-                form_actions()
+                form_actions(more=more)
             )
         )
         super(MateriaAnexadaForm, self).__init__(
@@ -683,7 +673,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
                               label='Ordenação',
                               choices=ordenacao_materias(),
                               widget=forms.Select(
-                                       attrs={'class': 'selector'}))
+                                    attrs={'class': 'selector'}))
 
     localizacao = forms.ModelChoiceField(
         label=_('Localização Atual'),

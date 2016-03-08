@@ -3,6 +3,7 @@ from random import choice
 from re import sub
 from string import ascii_letters, digits
 
+from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -70,9 +71,10 @@ class FormularioCadastroView(CreateView):
     success_url = reverse_lazy('formulario_cadastro')
 
 
-class MateriaAnexadaView(FormMixin, GenericView):
+class MateriaAnexadaView(FormMixin, GenericView, FormValidMessageMixin):
     template_name = "materia/materia_anexada.html"
     form_class = MateriaAnexadaForm
+    form_valid_message = _('Matéria anexada com sucesso!')
 
     def get(self, request, *args, **kwargs):
         form = MateriaAnexadaForm()
@@ -85,8 +87,21 @@ class MateriaAnexadaView(FormMixin, GenericView):
                                         'anexadas': anexadas,
                                         'form': form})
 
+    def form_invalid(self,
+                     form,
+                     request,
+                     mat_principal,
+                     anexadas,
+                     msg='Erro ineseperado.'):
+        messages.add_message(request, messages.ERROR, msg)
+        return self.render_to_response(
+            {'form': form,
+             'object': mat_principal,
+             'anexadas': anexadas})
+
     def post(self, request, *args, **kwargs):
-        form = MateriaAnexadaForm(request.POST)
+        form = self.get_form()
+
         anexadas = Anexada.objects.filter(
             materia_principal_id=kwargs['pk'])
         mat_principal = MateriaLegislativa.objects.get(
@@ -106,14 +121,10 @@ class MateriaAnexadaView(FormMixin, GenericView):
                     numero=numero, ano=ano, tipo=tipo)
 
                 if mat_principal.tipo == mat_anexada.tipo:
-
                     msg = _('A matéria a ser anexada não pode ser do mesmo'
                             ' tipo da matéria principal.')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'form': form,
-                         'object': mat_principal,
-                         'anexadas': anexadas})
+                    self.form_invalid(
+                        form, request, mat_principal, anexadas, msg)
 
                 anexada = Anexada()
                 anexada.materia_principal = mat_principal
@@ -124,16 +135,10 @@ class MateriaAnexadaView(FormMixin, GenericView):
                     anexada.data_desanexacao = data_desanexacao
 
                 anexada.save()
-
             except ObjectDoesNotExist:
                 msg = _('A matéria a ser anexada não existe no cadastro'
                         ' de matérias legislativas.')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response(
-                    {'form': form,
-                     'object': mat_principal,
-                     'anexadas': anexadas})
-
+                self.form_invalid(form, request, mat_principal, anexadas, msg)
             return self.form_valid(form)
         else:
             return self.render_to_response(
@@ -150,6 +155,15 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
     template_name = "materia/materia_anexada_edit.html"
     form_class = MateriaAnexadaForm
 
+    def form_invalid(self,
+                     form,
+                     request,
+                     mat_principal,
+                     msg='Erro ineseperado.'):
+        messages.add_message(request, messages.ERROR, msg)
+        return self.render_to_response(
+            {'form': form, 'object': mat_principal})
+
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         anexada = Anexada.objects.get(id=kwargs['id'])
@@ -161,23 +175,20 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
         data['data_anexacao'] = anexada.data_anexacao
         data['data_desanexacao'] = anexada.data_desanexacao
 
-        form = MateriaAnexadaForm(initial=data)
+        form = MateriaAnexadaForm(initial=data, excluir=True)
 
         return self.render_to_response(
             {'object': materia,
-             'form': form,
-             'data': data,
-             'get_tipos_materia': TipoMateriaLegislativa.objects.all()})
+             'form': form})
 
     def post(self, request, *args, **kwargs):
+        form = self.get_form()
 
-        form = MateriaAnexadaForm(request.POST)
         anexada = Anexada.objects.get(id=kwargs['id'])
         mat_principal = MateriaLegislativa.objects.get(
             id=kwargs['pk'])
-
         if form.is_valid():
-            if 'excluir' in request.POST:
+            if 'Excluir' in request.POST:
                 anexada.delete()
                 return self.form_valid(form)
             elif 'salvar' in request.POST:
@@ -195,14 +206,9 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                         numero=numero, ano=ano, tipo=tipo)
 
                     if mat_principal.tipo == mat_anexada.tipo:
-
                         msg = _('A matéria a ser anexada não pode ser do mesmo \
                         tipo da matéria principal.')
-                        messages.add_message(request, messages.INFO, msg)
-                        return self.render_to_response(
-                            {'form': form,
-                             'materialegislativa': mat_principal
-                             })
+                        self.form_invalid(form, request, mat_principal, msg)
 
                     anexada.materia_principal = mat_principal
                     anexada.materia_anexada = mat_anexada
@@ -217,11 +223,7 @@ class MateriaAnexadaEditView(FormMixin, GenericView):
                 except ObjectDoesNotExist:
                     msg = _('A matéria a ser anexada não existe no cadastro \
                         de matérias legislativas.')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'form': form,
-                         'materialegislativa': mat_principal})
-
+                    self.form_invalid(form, request, mat_principal, msg)
         else:
             return self.render_to_response(
                 {'form': form,
