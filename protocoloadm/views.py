@@ -2,8 +2,6 @@ from datetime import date, datetime
 from re import sub
 
 from braces.views import FormValidMessageMixin
-from django import forms
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Max
 from django.http import HttpResponseRedirect
@@ -17,7 +15,7 @@ from vanilla import GenericView
 
 from crud import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
-from sapl.utils import create_barcode
+from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
@@ -46,13 +44,6 @@ class ProtocoloPesquisaView(FormView):
     form_class = ProtocoloForm
     context_object_name = 'protocolos'
     success_url = reverse_lazy('protocolo')
-
-    extra_context = {}
-
-    def get_context_data(self, **kwargs):
-        context = super(ProtocoloPesquisaView, self).get_context_data(**kwargs)
-        context.update(self.extra_context)
-        return context
 
     def post(self, request, *args, **kwargs):
         form = ProtocoloForm(request.POST or None)
@@ -124,20 +115,18 @@ class ProtocoloListView(ListView):
         return context
 
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
-class AnularProtocoloAdmView(FormValidMessageMixin, FormView):
+class AnularProtocoloAdmView(FormView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = AnularProcoloAdmForm
     success_url = reverse_lazy('anular_protocolo')
     form_valid_message = _('Protocolo anulado com sucesso!')
+
+    def get_initial(self):
+        initial_data = {}
+        initial_data['user_anulacao'] = self.request.user.username
+        initial_data['ip_anulacao'] = get_client_ip(self.request)
+        initial_data['anulado'] = True
+        return initial_data
 
     def post(self, request, *args, **kwargs):
 
@@ -145,53 +134,28 @@ class AnularProtocoloAdmView(FormValidMessageMixin, FormView):
 
         if form.is_valid():
 
-            numero = request.POST['numero_protocolo']
-            ano = request.POST['ano_protocolo']
-            justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
-                request.POST['justificativa_anulacao']))
+            numero = form.cleaned_data['numero']
+            ano = form.cleaned_data['ano']
 
-            user_anulacao = request.user.username
-            ip_addr = get_client_ip(request)
+            protocolo = Protocolo.objects.get(numero=numero, ano=ano)
+            protocolo.anulado = True
+            protocolo.justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
+                            form.cleaned_data['justificativa_anulacao']))
+            protocolo.user_anulacao = form.cleaned_data['user_anulacao']
+            protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
+            protocolo.save()
 
-            try:
-                protocolo = Protocolo.objects.get(numero=numero, ano=ano)
-
-                if protocolo.anulado:
-                    errors = form._errors.setdefault(
-                        forms.forms.NON_FIELD_ERRORS,
-                        forms.util.ErrorList())
-                    errors.append(_("Protocolo %s/%s já encontra-se anulado")
-                                  % (numero, ano))
-                    return self.form_invalid(form)
-
-                protocolo.anulado = True
-                protocolo.justificativa_anulacao = justificativa_anulacao
-                protocolo.user_anulacao = user_anulacao
-                protocolo.ip_anulacao = ip_addr
-                protocolo.save()
-                return self.form_valid(form)
-
-            except ObjectDoesNotExist:
-                errors = form._errors.setdefault(
-                    forms.forms.NON_FIELD_ERRORS, forms.util.ErrorList())
-                errors.append(_("Protocolo %s/%s não existe" % (numero, ano)))
-                return self.form_invalid(form)
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
 
-class ProtocoloDocumentoView(FormMixin, GenericView):
+class ProtocoloDocumentoView(FormValidMessageMixin, CreateView):
 
     template_name = "protocoloadm/protocolar_documento.html"
-    model = Protocolo
     form_class = ProtocoloDocumentForm
-
-    def get_success_url(self):
-        return reverse('protocolo')
-
-    def get(self, request, *args, **kwargs):
-        form = ProtocoloDocumentForm()
-        return self.render_to_response({'form': form})
+    success_url = reverse_lazy('protocolo')
+    form_valid_message = _('Protocolo cadastrado com sucesso!')
 
     def post(self, request, *args, **kwargs):
 
@@ -207,7 +171,7 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
             if numeracao['numero__max'] is None:
                 numeracao['numero__max'] = 0
 
-            protocolo = Protocolo()
+            protocolo = form.save(commit=False)
             protocolo.numero = numeracao['numero__max'] + 1
             protocolo.ano = datetime.now().year
             protocolo.data = datetime.now().strftime("%Y-%m-%d")
@@ -224,30 +188,12 @@ class ProtocoloDocumentoView(FormMixin, GenericView):
             protocolo.numero_paginas = request.POST['num_paginas']
             protocolo.observacao = sub(
                 '&nbsp;', ' ', strip_tags(request.POST['observacao']))
+
+            protocolo.save()
+
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
-
-
-def criar_documento(protocolo):
-    doc = {}
-
-    numero = Protocolo.objects.filter(
-        tipo_documento=protocolo.tipo_documento,
-        ano=protocolo.ano,
-        anulado=False).aggregate(Max('numero'))
-
-    doc['tipo'] = protocolo.tipo_documento
-    doc['ano'] = protocolo.ano
-    doc['data'] = protocolo.data
-    doc['numero_protocolo'] = protocolo.numero
-    doc['assunto'] = protocolo.assunto_ementa
-    doc['interessado'] = protocolo.interessado
-    doc['numero'] = numero['numero__max']
-    if doc['numero'] is None:
-        doc['numero'] = 1
-
-    return doc
 
 
 class CriarDocumentoProtocolo(CreateView):
@@ -258,29 +204,52 @@ class CriarDocumentoProtocolo(CreateView):
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
-        return criar_documento(protocolo)
+        return self.criar_documento(protocolo)
 
     def get_success_url(self):
         return reverse('protocolo_mostrar', kwargs={'pk': self.kwargs['pk'],
                                                     'ano': self.kwargs['ano']})
+
+    def criar_documento(self, protocolo):
+
+        numero = Protocolo.objects.filter(
+            tipo_documento=protocolo.tipo_documento,
+            ano=protocolo.ano,
+            anulado=False).aggregate(Max('numero'))
+
+        doc = {}
+        doc['tipo'] = protocolo.tipo_documento
+        doc['ano'] = protocolo.ano
+        doc['data'] = protocolo.data
+        doc['numero_protocolo'] = protocolo.numero
+        doc['assunto'] = protocolo.assunto_ementa
+        doc['interessado'] = protocolo.interessado
+        doc['numero'] = numero['numero__max']
+        if doc['numero'] is None:
+            doc['numero'] = 1
+        return doc
 
 
 class ProtocoloMostrarView(TemplateView):
 
     template_name = "protocoloadm/protocolo_mostrar.html"
 
-    def get(self, request, *args, **kwargs):
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloMostrarView, self).get_context_data(**kwargs)
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
-        return self.render_to_response({"protocolo": protocolo})
+        context['protocolo'] = protocolo
+        return context
 
 
 class ComprovanteProtocoloView(TemplateView):
 
     template_name = "protocoloadm/comprovante.html"
 
-    def get(self, request, *args, **kwargs):
+    def get_context_data(self, **kwargs):
+        context = super(ComprovanteProtocoloView, self).get_context_data(
+            **kwargs)
         numero = self.kwargs['pk']
         ano = self.kwargs['ano']
         protocolo = Protocolo.objects.get(ano=ano, numero=numero)
@@ -295,20 +264,21 @@ class ComprovanteProtocoloView(TemplateView):
                 protocolo.data.strftime("%Y/%m/%d") + \
                 str(protocolo.numero).zfill(6)
 
-        return self.render_to_response({"protocolo": protocolo,
-                                        "barcode": barcode,
-                                        "autenticacao": autenticacao})
+        context.update({"protocolo": protocolo,
+                        "barcode": barcode,
+                        "autenticacao": autenticacao})
+        return context
 
 
-class ProtocoloMateriaView(FormMixin, GenericView):
+class ProtocoloMateriaView(FormValidMessageMixin, CreateView):
 
     template_name = "protocoloadm/protocolar_materia.html"
-    model = Protocolo
     form_class = ProtocoloMateriaForm
+    form_valid_message = _('Matéria cadastrada com sucesso!')
 
-    def get(self, request, *args, **kwargs):
-        form = ProtocoloMateriaForm()
-        return self.render_to_response({'form': form})
+    def get_initial(self):
+        initial = {}
+        return initial
 
     def post(self, request, *args, **kwargs):
 

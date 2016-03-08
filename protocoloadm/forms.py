@@ -3,6 +3,7 @@ from datetime import date
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Field, Fieldset, Layout, Submit
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -12,8 +13,8 @@ from crispy_layout_mixin import form_actions
 from materia.models import TipoMateriaLegislativa
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
-                     DocumentoAdministrativo, TipoDocumentoAdministrativo,
-                     TramitacaoAdministrativo)
+                     DocumentoAdministrativo, Protocolo,
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 
 def get_range_anos():
@@ -132,25 +133,54 @@ class ProtocoloForm(forms.Form):
             *args, **kwargs)
 
 
-class AnularProcoloAdmForm(forms.Form):
+class AnularProcoloAdmForm(ModelForm):
 
     YEARS = get_range_anos()
 
-    numero_protocolo = forms.CharField(
+    numero = forms.CharField(
         label=_('Número de Protocolo'), required=True)
-    ano_protocolo = forms.ChoiceField(required=False,
-                                      label='Ano',
-                                      choices=YEARS,
-                                      widget=forms.Select(
-                                          attrs={'class': 'selector'}))
+    ano = forms.ChoiceField(required=False,
+                            label='Ano',
+                            choices=YEARS,
+                            widget=forms.Select(attrs={'class': 'selector'}))
     justificativa_anulacao = forms.CharField(
         widget=forms.Textarea, label='Motivo', required=True)
+
+    def clean(self):
+        cleaned_data = super(AnularProcoloAdmForm, self).clean()
+        numero = cleaned_data.get("numero")
+        ano = cleaned_data.get("ano")
+
+        try:
+            protocolo = Protocolo.objects.get(numero=numero, ano=ano)
+
+            if protocolo.anulado:
+                raise forms.ValidationError(
+                    _("Protocolo %s/%s já encontra-se anulado")
+                    % (numero, ano))
+        except ObjectDoesNotExist:
+            raise forms.ValidationError(
+                    _("Protocolo %s/%s não existe" % (numero, ano)))
+
+    class Meta:
+        model = Protocolo
+        fields = ['numero',
+                  'ano',
+                  'justificativa_anulacao',
+                  'anulado',
+                  'user_anulacao',
+                  'ip_anulacao',
+                  ]
+        widgets = {'anulado': forms.HiddenInput(),
+                   'user_anulacao': forms.HiddenInput(),
+                   'ip_anulacao': forms.HiddenInput(),
+                   }
 
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('numero_protocolo', 6),
-             ('ano_protocolo', 6)])
+            [('numero', 6),
+             ('ano', 6)])
         row2 = crispy_layout_mixin.to_row(
             [('justificativa_anulacao', 12)])
 
@@ -167,7 +197,7 @@ class AnularProcoloAdmForm(forms.Form):
             *args, **kwargs)
 
 
-class ProtocoloDocumentForm(forms.Form):
+class ProtocoloDocumentForm(ModelForm):
 
     NUMERACAO_CHOICES = [('1', _('Sequencial por Ano')),
                          ('2', _('Sequencial Único'))]
@@ -200,6 +230,17 @@ class ProtocoloDocumentForm(forms.Form):
 
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea, label='Observação')
+
+    class Meta:
+        model = Protocolo
+        fields = ['numeracao',
+                  'tipo_protocolo',
+                  'tipo_documento',
+                  'num_paginas',
+                  'assunto',
+                  'interessado',
+                  'observacao',
+                  ]
 
     def __init__(self, *args, **kwargs):
 
@@ -234,7 +275,7 @@ class ProtocoloDocumentForm(forms.Form):
             *args, **kwargs)
 
 
-class ProtocoloMateriaForm(forms.Form):
+class ProtocoloMateriaForm(ModelForm):
 
     NUMERACAO_CHOICES = [('1', _('Sequencial por Ano')),
                          ('2', _('Sequencial Único'))]
@@ -273,6 +314,17 @@ class ProtocoloMateriaForm(forms.Form):
                                  widget=forms.Textarea,
                                  label='Observação')
 
+    class Meta:
+        model = Protocolo
+        fields = ['numeracao',
+                  'tipo_protocolo',
+                  'tipo_materia',
+                  'num_paginas',
+                  'ementa',
+                  'autor',
+                  'observacao',
+                  ]
+
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
@@ -299,6 +351,7 @@ class ProtocoloMateriaForm(forms.Form):
                      form_actions(save_label=_('Protocolar Matéria'))
                      )
         )
+
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
 

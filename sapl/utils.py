@@ -21,6 +21,15 @@ def xstr(s):
     return '' if s is None else str(s)
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
 def get_base_url(request):
     # TODO substituir por Site.objects.get_current().domain
     # from django.contrib.sites.models import Site
