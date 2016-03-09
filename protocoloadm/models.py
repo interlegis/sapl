@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from materia.models import Autor, TipoMateriaLegislativa, UnidadeTramitacao
-from sapl.utils import YES_NO_CHOICES
+from sapl.utils import RANGE_ANOS, YES_NO_CHOICES
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -28,7 +28,8 @@ class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
-    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS)
     data = models.DateField(verbose_name=_('Data'))
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
@@ -89,8 +90,10 @@ class DocumentoAcessorioAdministrativo(models.Model):
 class Protocolo(models.Model):
     numero = models.PositiveIntegerField(
         blank=False, null=False, verbose_name=_('Número de Protocolo'))
-    ano = models.PositiveSmallIntegerField(
-        blank=False, null=False, verbose_name=_('Ano do Protocolo'))
+    ano = models.PositiveSmallIntegerField(blank=False,
+                                           null=False,
+                                           choices=RANGE_ANOS,
+                                           verbose_name=_('Ano do Protocolo'))
     data = models.DateField()
     hora = models.TimeField()
     timestamp = models.DateTimeField()

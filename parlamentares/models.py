@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.utils import YES_NO_CHOICES, UF
+from sapl.utils import UF, YES_NO_CHOICES
 
 
 class Legislatura(models.Model):

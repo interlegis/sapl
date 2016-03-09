@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from materia.models import MateriaLegislativa
-from sapl.utils import YES_NO_CHOICES
+from sapl.utils import RANGE_ANOS, YES_NO_CHOICES
 
 
 class AssuntoNorma(models.Model):
@@ -76,7 +76,8 @@ class NormaJuridica(models.Model):
         TipoNormaJuridica, verbose_name=_('Tipo da Norma Juridica'))
     materia = models.ForeignKey(MateriaLegislativa, blank=True, null=True)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
-    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS)
     esfera_federacao = models.CharField(
         max_length=1,
         verbose_name=_('Esfera Federação'),

@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Fieldset, Layout
+from crispy_forms.layout import Column, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -53,7 +53,6 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
 
 class ProposicaoForm(ModelForm):
-
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Matéria Vinculada'),

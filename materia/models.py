@@ -1,12 +1,10 @@
-from datetime import date
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
-from sapl.utils import YES_NO_CHOICES, xstr
+from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, xstr
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -64,7 +62,8 @@ class MateriaLegislativa(models.Model):
 
     tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_('Tipo'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
-    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS)
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
     data_apresentacao = models.DateField(verbose_name=_('Data Apresentação'))
@@ -85,7 +84,7 @@ class MateriaLegislativa(models.Model):
     numero_origem_externa = models.CharField(
         max_length=5, blank=True, verbose_name=_('Número'))
     ano_origem_externa = models.PositiveSmallIntegerField(
-        blank=True, null=True, verbose_name=_('Ano'))
+        blank=True, null=True, verbose_name=_('Ano'), choices=RANGE_ANOS)
     data_origem_externa = models.DateField(
         blank=True, null=True, verbose_name=_('Data'))
     local_origem_externa = models.ForeignKey(
@@ -300,9 +299,6 @@ class MateriaAssunto(models.Model):
     def __str__(self):
         return _('%(materia)s - %(assunto)s') % {
             'materia': self.materia, 'assunto': self.assunto}
-
-
-RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
 
 
 class Numeracao(models.Model):

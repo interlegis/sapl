@@ -1,3 +1,4 @@
+from datetime import date
 from functools import wraps
 
 from django.apps import apps
@@ -95,3 +96,5 @@ UF = (
         ('TO', 'Tocantins'),
         ('EX', 'Exterior'),
     )
+
+RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]

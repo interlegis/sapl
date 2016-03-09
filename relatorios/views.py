@@ -12,9 +12,7 @@ from parlamentares.models import (CargoMesa, ComposicaoMesa, Filiacao,
                                   Parlamentar)
 from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                  TramitacaoAdministrativo)
-
 from sapl.utils import UF
-
 from sessao.models import (ExpedienteMateria, ExpedienteSessao, Orador,
                            OradorExpediente, OrdemDia, PresencaOrdemDia,
                            RegistroVotacao, SessaoPlenaria,
