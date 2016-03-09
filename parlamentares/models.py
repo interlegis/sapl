@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.utils import YES_NO_CHOICES
+from sapl.utils import YES_NO_CHOICES, UF
 
 
 class Legislatura(models.Model):
@@ -119,40 +119,9 @@ class Municipio(models.Model):  # Localidade
         ('EX', 'Exterior'),
     )
 
-    UF_CHOICES = (
-        ('AC', 'Acre'),
-        ('AL', 'Alagoas'),
-        ('AP', 'Amapá'),
-        ('AM', 'Amazonas'),
-        ('BA', 'Bahia'),
-        ('CE', 'Ceará'),
-        ('DF', 'Distrito Federal'),
-        ('ES', 'Espírito Santo'),
-        ('GO', 'Goiás'),
-        ('MA', 'Maranhão'),
-        ('MT', 'Mato Grosso'),
-        ('MS', 'Mato Grosso do Sul'),
-        ('MG', 'Minas Gerais'),
-        ('PR', 'Paraná'),
-        ('PB', 'Paraíba'),
-        ('PA', 'Pará'),
-        ('PE', 'Pernambuco'),
-        ('PI', 'Piauí'),
-        ('RJ', 'Rio de Janeiro'),
-        ('RN', 'Rio Grande do Norte'),
-        ('RS', 'Rio Grande do Sul'),
-        ('RO', 'Rondônia'),
-        ('RR', 'Roraima'),
-        ('SC', 'Santa Catarina'),
-        ('SE', 'Sergipe'),
-        ('SP', 'São Paulo'),
-        ('TO', 'Tocantins'),
-        ('EX', 'Exterior'),
-    )
-
     nome = models.CharField(max_length=50, blank=True)
     uf = models.CharField(
-        max_length=2, blank=True, choices=UF_CHOICES)
+        max_length=2, blank=True, choices=UF)
     regiao = models.CharField(
         max_length=2, blank=True, choices=REGIAO_CHOICES)
 

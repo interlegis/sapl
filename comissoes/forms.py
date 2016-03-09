@@ -138,10 +138,6 @@ class ParticipacaoCadastroForm(ModelForm):
             'data_designacao': forms.DateInput(format='%d/%m/%Y'),
             'data_desligamento': forms.DateInput(format='%d/%m/%Y'),
         }
-        input_formats = {
-            'data_designacao': ['%d/%m/%Y'],
-            'data_desligamento': ['%d/%m/%Y'],
-        }
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()

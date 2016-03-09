@@ -125,9 +125,7 @@ class Participacao(models.Model):  # ComposicaoComissao
     parlamentar = models.ForeignKey(Parlamentar)
     cargo = models.ForeignKey(CargoComissao)
     titular = models.BooleanField(verbose_name=_('Titular'))
-    data_designacao = models.DateField(blank=True,
-                                       null=True,
-                                       verbose_name=_('Data Designação'))
+    data_designacao = models.DateField(verbose_name=_('Data Designação'))
     data_desligamento = models.DateField(blank=True,
                                          null=True,
                                          verbose_name=_('Data Desligamento'))

@@ -137,7 +137,7 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
         participacao = Participacao.objects.get(id=participacao_id)
         comissao = Comissao.objects.get(id=self.kwargs['pk'])
         id_parlamentar = Filiacao.objects.filter(
-                parlamentar__id=participacao.parlamentar.id)
+                parlamentar__id=participacao.parlamentar.id).order_by('data')
         id_parlamentar = id_parlamentar.last().id
         form = ParticipacaoCadastroForm(
             initial={'parlamentar_id': id_parlamentar},

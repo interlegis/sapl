@@ -159,9 +159,6 @@ class DocumentoAcessorioForm(ModelForm):
         widgets = {
             'data': forms.DateInput(attrs={'class': 'dateinput'})
         }
-        input_formats = {
-            'data': ['%d/%m/%Y'],
-        }
 
     def __init__(self, *args, **kwargs):
 
@@ -203,10 +200,6 @@ class RelatoriaForm(ModelForm):
             'data_destituicao_relator': forms.DateInput(attrs={
                                                         'class': 'dateinput'}),
         }
-        input_formats = {
-            'data_designacao_relator': ['%d/%m/%Y'],
-            'data_destituicao_relator': ['%d/%m/%Y'],
-        }
 
 
 class TramitacaoForm(ModelForm):
@@ -230,17 +223,6 @@ class TramitacaoForm(ModelForm):
                                                         'class': 'dateinput'}),
             'data_fim_prazo': forms.DateInput(attrs={
                                                         'class': 'dateinput'}),
-        }
-        input_formats = {
-            'data_tramitacao': ['%d/%m/%Y'],
-            'data_encaminhamento': ['%d/%m/%Y'],
-            'data_fim_prazo': ['%d/%m/%Y'],
-        }
-
-        formats = {
-            'data_tramitacao': '%d/%m/%Y',
-            'data_encaminhamento': '%d/%m/%Y',
-            'data_fim_prazo': '%d/%m/%Y',
         }
 
     def __init__(self, *args, **kwargs):
@@ -386,9 +368,6 @@ class NumeracaoForm(ModelForm):
             'data_materia': forms.DateInput(attrs={'class': 'dateinput'}),
             'ano_materia': forms.Select(attrs={'class': 'selector'}),
         }
-        input_formats = {
-            'data_materia': ['%d/%m/%Y'],
-        }
 
     def __init__(self, *args, **kwargs):
 
@@ -453,10 +432,6 @@ class MateriaAnexadaForm(ModelForm):
             'data_anexacao': forms.DateInput(attrs={'class': 'dateinput'}),
             'data_desanexacao': forms.DateInput(attrs={'class': 'dateinput'}),
         }
-        input_formats = {
-            'data_anexacao': ['%d/%m/%Y'],
-            'data_desanexacao': ['%d/%m/%Y'],
-        }
 
     def __init__(self, excluir=False, *args, **kwargs):
 
@@ -497,12 +472,6 @@ class FormularioSimplificadoForm(ModelForm):
         exclude = ['anexadas']
         widgets = {
             'data_apresentacao': forms.DateInput(attrs={'class': 'dateinput'}),
-        }
-        input_formats = {
-            'data_apresentacao': ['%d/%m/%Y'],
-        }
-        formats = {
-            'data_apresentacao': '%d/%m/%Y'
         }
 
     def __init__(self, *args, **kwargs):

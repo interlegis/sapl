@@ -302,9 +302,7 @@ class MateriaAssunto(models.Model):
             'materia': self.materia, 'assunto': self.assunto}
 
 
-def get_range_anos():
-    return [('', 'Selecione')] \
-        + [(year, year) for year in range(date.today().year, 1960, -1)]
+RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
 
 
 class Numeracao(models.Model):
@@ -312,11 +310,9 @@ class Numeracao(models.Model):
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa, verbose_name=_('Tipo de Matéria'))
     numero_materia = models.CharField(max_length=5,
-                                      verbose_name=_('Número'),
-                                      blank=True,
-                                      null=True)
+                                      verbose_name=_('Número'))
     ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
-                                                   choices=get_range_anos())
+                                                   choices=RANGE_ANOS)
     data_materia = models.DateField(
         blank=True, verbose_name=_('Data'))
 

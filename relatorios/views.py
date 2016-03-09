@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
 
-from base.models import ESTADOS
 from base.models import CasaLegislativa
 from comissoes.models import Comissao
 from materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
@@ -13,6 +12,9 @@ from parlamentares.models import (CargoMesa, ComposicaoMesa, Filiacao,
                                   Parlamentar)
 from protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                  TramitacaoAdministrativo)
+
+from sapl.utils import UF
+
 from sessao.models import (ExpedienteMateria, ExpedienteSessao, Orador,
                            OradorExpediente, OrdemDia, PresencaOrdemDia,
                            RegistroVotacao, SessaoPlenaria,
@@ -42,7 +44,7 @@ def get_cabecalho(casa):
     cabecalho = {}
     cabecalho["nom_casa"] = casa.nome
     # FIXME i18n
-    cabecalho["nom_estado"] = "Estado de " + ESTADOS[casa.uf.upper()]
+    cabecalho["nom_estado"] = "Estado de " + UF[casa.uf.upper()]
     return cabecalho
 
 
