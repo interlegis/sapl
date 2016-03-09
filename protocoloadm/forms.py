@@ -400,10 +400,6 @@ class ProposicaoSimpleForm(forms.Form):
 
 class DocumentoAcessorioAdministrativoForm(ModelForm):
 
-    data = forms.DateField(label=u'Data', input_formats=['%d/%m/%Y'],
-                           required=False,
-                           widget=forms.DateInput(format='%d/%m/%Y'))
-
     class Meta:
         model = DocumentoAcessorioAdministrativo
         fields = ['tipo',
@@ -412,6 +408,10 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
                   'autor',
                   'arquivo',
                   'assunto']
+
+        widgets = {
+            'data': forms.DateInput(format='%d/%m/%Y')
+        }
 
     def __init__(self, excluir=False, *args, **kwargs):
 
@@ -444,27 +444,6 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
 
 class TramitacaoAdmForm(ModelForm):
 
-    data_tramitacao = forms.DateField(label=u'Data Tramitação',
-                                      input_formats=['%d/%m/%Y'],
-                                      required=False,
-                                      widget=forms.DateInput(
-                                          format='%d/%m/%Y',
-                                          attrs={'class': 'dateinput'}))
-
-    data_encaminhamento = forms.DateField(label=u'Data Encaminhamento',
-                                          input_formats=['%d/%m/%Y'],
-                                          required=False,
-                                          widget=forms.DateInput(
-                                              format='%d/%m/%Y',
-                                              attrs={'class': 'dateinput'}))
-
-    data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
-                                     input_formats=['%d/%m/%Y'],
-                                     required=False,
-                                     widget=forms.DateInput(
-                                         format='%d/%m/%Y',
-                                         attrs={'class': 'dateinput'}))
-
     class Meta:
         model = TramitacaoAdministrativo
         fields = ['data_tramitacao',
@@ -476,6 +455,12 @@ class TramitacaoAdmForm(ModelForm):
                   'texto',
                   'documento',
                   ]
+
+        widgets = {
+            'data_tramitacao': forms.DateInput(format='%d/%m/%Y'),
+            'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
+            'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
+        }
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()

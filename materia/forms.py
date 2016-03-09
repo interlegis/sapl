@@ -1,7 +1,7 @@
 from datetime import date
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Fieldset, Layout, Submit
+from crispy_forms.layout import Column, Fieldset, Layout
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -54,9 +54,6 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
 class ProposicaoForm(ModelForm):
 
-    descricao = forms.CharField(
-        label='Descrição', required=True,
-        widget=forms.Textarea())
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Matéria Vinculada'),
@@ -143,12 +140,6 @@ class DocumentoAcessorioForm(ModelForm):
         empty_label='Selecione',
     )
 
-    data = forms.DateField(label='Data',
-                           required=False,
-                           input_formats=['%d/%m/%Y'],
-                           widget=forms.TextInput(
-                               attrs={'class': 'dateinput'}))
-
     nome = forms.CharField(
         label='Nome', required=True)
 
@@ -165,6 +156,9 @@ class DocumentoAcessorioForm(ModelForm):
                   'data',
                   'autor',
                   'ementa']
+        widgets = {
+            'data': forms.DateInput(attrs={'class': 'dateinput'})
+        }
 
     def __init__(self, *args, **kwargs):
 
@@ -191,21 +185,6 @@ class DocumentoAcessorioForm(ModelForm):
 
 
 class RelatoriaForm(ModelForm):
-    data_designacao_relator = forms.DateField(
-        label=u'Data Designação',
-        input_formats=['%d/%m/%Y'],
-        required=False,
-        widget=forms.DateInput(
-            format='%d/%m/%Y',
-            attrs={'class': 'dateinput'}))
-
-    data_destituicao_relator = forms.DateField(
-        label=u'Data Destituição',
-        input_formats=['%d/%m/%Y'],
-        required=False,
-        widget=forms.DateInput(
-            format='%d/%m/%Y',
-            attrs={'class': 'dateinput'}))
 
     class Meta:
         model = Relatoria
@@ -215,30 +194,15 @@ class RelatoriaForm(ModelForm):
                   'data_destituicao_relator',
                   'tipo_fim_relatoria'
                   ]
+        widgets = {
+            'data_designacao_relator': forms.DateInput(attrs={
+                                                        'class': 'dateinput'}),
+            'data_destituicao_relator': forms.DateInput(attrs={
+                                                        'class': 'dateinput'}),
+        }
 
 
 class TramitacaoForm(ModelForm):
-
-    data_tramitacao = forms.DateField(label=u'Data Tramitação',
-                                      input_formats=['%d/%m/%Y'],
-                                      required=False,
-                                      widget=forms.DateInput(
-                                          format='%d/%m/%Y',
-                                          attrs={'class': 'dateinput'}))
-
-    data_encaminhamento = forms.DateField(label=u'Data Encaminhamento',
-                                          input_formats=['%d/%m/%Y'],
-                                          required=False,
-                                          widget=forms.DateInput(
-                                              format='%d/%m/%Y',
-                                              attrs={'class': 'dateinput'}))
-
-    data_fim_prazo = forms.DateField(label=u'Data Fim Prazo',
-                                     input_formats=['%d/%m/%Y'],
-                                     required=False,
-                                     widget=forms.DateInput(
-                                         format='%d/%m/%Y',
-                                         attrs={'class': 'dateinput'}))
 
     class Meta:
         model = Tramitacao
@@ -251,6 +215,15 @@ class TramitacaoForm(ModelForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto']
+
+        widgets = {
+            'data_tramitacao': forms.DateInput(attrs={
+                                                        'class': 'dateinput'}),
+            'data_encaminhamento': forms.DateInput(attrs={
+                                                        'class': 'dateinput'}),
+            'data_fim_prazo': forms.DateInput(attrs={
+                                                        'class': 'dateinput'}),
+        }
 
     def __init__(self, *args, **kwargs):
         row1 = crispy_layout_mixin.to_row(
@@ -384,27 +357,17 @@ class NumeracaoForm(ModelForm):
         empty_label='Selecione',
     )
 
-    data_materia = forms.DateField(label='Data',
-                                   required=True,
-                                   input_formats=['%d/%m/%Y'],
-                                   widget=forms.TextInput(
-                                       attrs={'class': 'dateinput'}))
-
-    ano_materia = forms.ChoiceField(required=True,
-                                    label='Ano',
-                                    choices=get_range_anos(),
-                                    widget=forms.Select(
-                                        attrs={'class': 'selector'}))
-
-    numero_materia = forms.CharField(
-        label='Número', required=True)
-
     class Meta:
         model = Numeracao
         fields = ['tipo_materia',
                   'numero_materia',
                   'ano_materia',
                   'data_materia']
+
+        widgets = {
+            'data_materia': forms.DateInput(attrs={'class': 'dateinput'}),
+            'ano_materia': forms.Select(attrs={'class': 'selector'}),
+        }
 
     def __init__(self, *args, **kwargs):
 
@@ -437,7 +400,6 @@ class DespachoInicialForm(ModelForm):
         more = []
         if excluir:
             more = [Submit('Excluir', 'Excluir')]
-
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
@@ -466,6 +428,10 @@ class MateriaAnexadaForm(ModelForm):
         model = Anexada
         fields = ['tipo', 'numero', 'ano',
                   'data_anexacao', 'data_desanexacao']
+        widgets = {
+            'data_anexacao': forms.DateInput(attrs={'class': 'dateinput'}),
+            'data_desanexacao': forms.DateInput(attrs={'class': 'dateinput'}),
+        }
 
     def __init__(self, excluir=False, *args, **kwargs):
 
@@ -492,12 +458,6 @@ class MateriaAnexadaForm(ModelForm):
 
 class FormularioSimplificadoForm(ModelForm):
 
-    data_apresentacao = forms.DateField(label=u'Data Apresentação',
-                                        input_formats=['%d/%m/%Y'],
-                                        required=False,
-                                        widget=forms.DateInput(
-                                            format='%d/%m/%Y'))
-
     class Meta:
         model = MateriaLegislativa
         fields = ['tipo',
@@ -510,6 +470,9 @@ class FormularioSimplificadoForm(ModelForm):
                   'ementa',
                   'texto_original']
         exclude = ['anexadas']
+        widgets = {
+            'data_apresentacao': forms.DateInput(attrs={'class': 'dateinput'}),
+        }
 
     def __init__(self, *args, **kwargs):
 
