@@ -1,5 +1,3 @@
-from datetime import date
-
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Field, Fieldset, Layout, Submit
 from django import forms
@@ -11,26 +9,19 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 from materia.models import TipoMateriaLegislativa
+from sapl.utils import RANGE_ANOS
 
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
+TRAMITACAO = [(True, 'Sim'), (False, 'Não')]
 
-def get_range_anos():
-    return [('', 'Selecione')] \
-        + [(year, year) for year in range(date.today().year, 1960, -1)]
+TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
 
-
-def tramitacao():
-    return [('', '--------'),
-            (True, 'Sim'),
-            (False, 'Não')]
-
-
-TIPOS_PROTOCOLO = [('', 'Selecione'),
-                   ('0', 'Enviado'),
-                   ('1', 'Recebido')]
+NATUREZA_PROCESSO = [('0', 'Administrativo'),
+                     ('1', 'Legislativo'),
+                     ('', 'Ambos')]
 
 
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
@@ -40,8 +31,6 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
 
 class ProtocoloForm(forms.Form):
-
-    YEARS = get_range_anos()
 
     tipo_protocolo = forms.ChoiceField(required=False,
                                        label=_('Tipo de Protocolo'),
@@ -53,7 +42,7 @@ class ProtocoloForm(forms.Form):
         label=_('Número de Protocolo'), required=False)
     ano = forms.ChoiceField(required=False,
                             label='Ano',
-                            choices=YEARS,
+                            choices=RANGE_ANOS,
                             widget=forms.Select(
                                 attrs={'class': 'selector'}))
 
@@ -68,10 +57,7 @@ class ProtocoloForm(forms.Form):
 
     natureza_processo = forms.ChoiceField(required=False,
                                           label=_('Natureza Processo'),
-                                          choices=[
-                                              ('0', 'Administrativo'),
-                                              ('1', 'Legislativo'),
-                                              ('', 'Ambos')],
+                                          choices=NATUREZA_PROCESSO,
                                           # widget=forms.RadioSelect(
                                           #     renderer=HorizontalRadioRenderer)
 
@@ -135,8 +121,6 @@ class ProtocoloForm(forms.Form):
 
 class AnularProcoloAdmForm(ModelForm):
 
-    YEARS = get_range_anos()
-
     numero = forms.CharField(required=True,
                              label=Protocolo._meta.
                              get_field('numero').verbose_name
@@ -144,7 +128,7 @@ class AnularProcoloAdmForm(ModelForm):
     ano = forms.ChoiceField(required=True,
                             label=Protocolo._meta.
                             get_field('ano').verbose_name,
-                            choices=YEARS,
+                            choices=RANGE_ANOS,
                             widget=forms.Select(attrs={'class': 'selector'}))
     justificativa_anulacao = forms.CharField(required=True,
                                              label=Protocolo._meta.

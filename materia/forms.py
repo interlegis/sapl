@@ -1,5 +1,3 @@
-from datetime import date
-
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Fieldset, Layout, Submit
 from django import forms
@@ -17,11 +15,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Numeracao, Origem, Proposicao, Relatoria,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
-
-
-def get_range_anos():
-    return [('', 'Selecione')] \
-        + [(year, year) for year in range(date.today().year, 1960, -1)]
 
 
 def get_regimes_tramitacao():
