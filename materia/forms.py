@@ -110,22 +110,6 @@ class AcompanhamentoMateriaForm(ModelForm):
 
 class DocumentoAcessorioForm(ModelForm):
 
-    tipo = forms.ModelChoiceField(
-        label='Tipo',
-        required=True,
-        queryset=TipoDocumento.objects.all(),
-        empty_label='Selecione',
-    )
-
-    nome = forms.CharField(
-        label='Nome', required=True)
-
-    autor = forms.CharField(
-        label='Autor', required=True)
-
-    ementa = forms.CharField(
-        label='Ementa', required=True)
-
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo',
@@ -326,13 +310,6 @@ class LegislacaoCitadaForm(ModelForm):
 
 
 class NumeracaoForm(ModelForm):
-
-    tipo_materia = forms.ModelChoiceField(
-        label=_('Tipo de Matéria'),
-        required=True,
-        queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-    )
 
     class Meta:
         model = Numeracao
