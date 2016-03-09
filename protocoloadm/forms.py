@@ -15,8 +15,6 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-TRAMITACAO = [(True, 'Sim'), (False, 'Não')]
-
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
 
 NATUREZA_PROCESSO = [('0', 'Administrativo'),

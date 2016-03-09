@@ -16,27 +16,12 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
+EM_TRAMITACAO = [('', _('Tanto Faz')),
+                 (True, 'Sim'),
+                 (False, 'Não')]
 
-def get_regimes_tramitacao():
-    return [('1', 'Normal'),
-            ('3', 'Urgência'),
-            ('4', _('Urgência Especial'))]
-
-
-def get_local_origem():
-    return [('E', _('Poder Executivo')),
-            ('L', _('Poder Legislativo'))]
-
-
-def em_tramitacao():
-    return [('', _('Tanto Faz')),
-            (True, 'Sim'),
-            (False, 'Não')]
-
-
-def ordenacao_materias():
-    return [(1, 'Crescente'),
-            (2, 'Decrescente')]
+ORDENACAO_MATERIAIS = [(1, 'Crescente'),
+                       (2, 'Decrescente')]
 
 
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
@@ -659,7 +644,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
 
     ordem = forms.ChoiceField(required=False,
                               label='Ordenação',
-                              choices=ordenacao_materias(),
+                              choices=ORDENACAO_MATERIAIS,
                               widget=forms.Select(
                                     attrs={'class': 'selector'}))
 
@@ -679,7 +664,7 @@ class MateriaLegislativaPesquisaForm(forms.Form):
 
     tramitacao = forms.ChoiceField(required=False,
                                    label='Tramitando',
-                                   choices=em_tramitacao(),
+                                   choices=EM_TRAMITACAO,
                                    widget=forms.Select(
                                        attrs={'class': 'selector'}))
 
