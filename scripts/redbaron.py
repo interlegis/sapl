@@ -23,15 +23,14 @@ filenames = [os.path.join(path, name)
              if name.endswith('.py') and not ignorado(path, name)]
 
 
-def build_reds():
-    for filename in filenames:
-        with open(filename, "r") as source_code:
-            red = RedBaron(source_code.read())
-            if red.data:
-                red.__filename__ = filename
-                yield red
+def build_red(filename):
+    with open(filename, "r") as source_code:
+        red = RedBaron(source_code.read())
+        if red.data:
+            red.__filename__ = filename
+            return red
 
-reds = list(build_reds())
+reds = [build_red(f) for f in filenames]
 reds_without_tests = [r for r in reds
                       if not re.match('.*/test_.*\.py', r.__filename__)]
 
@@ -50,7 +49,7 @@ def flat(ll):
 
 
 def inter(n):
-    'Se a string n está dentro de uma chamada de tradução'
+    'Se a string n esta dentro de uma chamada de traducao'
     try:
         assert not n.next or n.next.type == 'string'
         assert n.parent_find('call').parent.value[0].value == '_'
