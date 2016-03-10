@@ -639,7 +639,7 @@ class TramitacaoAdmEditView(FormMixin, GenericView):
             return self.form_invalid(form)
 
 
-class TramitacaoAdmDeleteView(FormMixin, GenericView):
+class TramitacaoAdmDeleteView(DetailView):
 
     template_name = "protocoloadm/tramitacao.html"
 

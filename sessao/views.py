@@ -2235,7 +2235,6 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
 
 
 class SessaoCadastroView(CreateView):
-
     template_name = "sessao/sessao_cadastro.html"
     form_class = SessaoForm
     success_url = reverse_lazy('sessaoplenaria:list_sessao')

@@ -2,7 +2,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
@@ -13,8 +12,8 @@ from parlamentares.models import Parlamentar, Partido
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Origem, Proposicao, Relatoria,
-                     StatusTramitacao, TipoAutor, TipoDocumento,
-                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
+                     StatusTramitacao, TipoAutor, TipoMateriaLegislativa,
+                     Tramitacao, UnidadeTramitacao)
 
 EM_TRAMITACAO = [('', _('Tanto Faz')),
                  (True, 'Sim'),
@@ -22,12 +21,6 @@ EM_TRAMITACAO = [('', _('Tanto Faz')),
 
 ORDENACAO_MATERIAIS = [(1, 'Crescente'),
                        (2, 'Decrescente')]
-
-
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-
-    def render(self):
-        return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
 class ProposicaoForm(ModelForm):
