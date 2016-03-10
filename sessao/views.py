@@ -3,11 +3,11 @@ from re import sub
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.views.generic import CreateView, ListView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
 
@@ -39,7 +39,24 @@ tipo_expediente_crud = Crud(TipoExpediente, 'tipo_expediente')
 registro_votacao_crud = Crud(RegistroVotacao, '')
 
 
-class PresencaView(FormMixin, sessao_crud.CrudDetailView):
+class PresencaMixin(object):
+
+    def get_parlamentares(self):
+        self.object = self.get_object()
+
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=self.object.id
+        )
+        presentes = [p.parlamentar for p in presencas]
+
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
+
+
+class PresencaView(FormMixin, PresencaMixin, sessao_crud.CrudDetailView):
     template_name = 'sessao/presenca.html'
     form_class = PresencaForm
 
@@ -74,20 +91,6 @@ class PresencaView(FormMixin, sessao_crud.CrudDetailView):
         else:
             return self.form_invalid(form)
 
-    def get_parlamentares(self):
-        self.object = self.get_object()
-
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=self.object.id
-        )
-        presentes = [p.parlamentar for p in presencas]
-
-        for parlamentar in Parlamentar.objects.filter(ativo=True):
-            if parlamentar in presentes:
-                yield (parlamentar, True)
-            else:
-                yield (parlamentar, False)
-
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sessaoplenaria:presenca', kwargs={'pk': pk})
@@ -97,7 +100,9 @@ class PainelView(sessao_crud.CrudDetailView):
     template_name = 'sessao/painel.html'
 
 
-class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
+class PresencaOrdemDiaView(FormMixin,
+                           PresencaMixin,
+                           sessao_crud.CrudDetailView):
     template_name = 'sessao/presenca_ordemdia.html'
     form_class = PresencaForm
 
@@ -134,21 +139,6 @@ class PresencaOrdemDiaView(FormMixin, sessao_crud.CrudDetailView):
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
-
-    def get_parlamentares(self):
-        self.object = self.get_object()
-
-        presencas = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id
-        )
-
-        presentes = [p.parlamentar for p in presencas]
-
-        for parlamentar in Parlamentar.objects.filter(ativo=True):
-            if parlamentar in presentes:
-                yield (parlamentar, True)
-            else:
-                yield (parlamentar, False)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -2244,36 +2234,11 @@ class PautaSessaoDetailView(sessao_crud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class SessaoCadastroView(FormMixin, sessao_crud.CrudDetailView):
+class SessaoCadastroView(CreateView):
 
     template_name = "sessao/sessao_cadastro.html"
     form_class = SessaoForm
-
-    def get(self, request, *args, **kwargs):
-        form = SessaoForm()
-
-        return self.render_to_response({'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = SessaoForm(request.POST)
-
-        if form.is_valid():
-            sessao = form.save(commit=False)
-
-            if 'upload_ata' in request.FILES:
-                sessao.upload_ata = request.FILES['upload_ata']
-
-            if 'upload_pauta' in request.FILES:
-                sessao.upload_pauta = request.FILES['upload_pauta']
-
-            sessao.save()
-
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form})
-
-    def get_success_url(self):
-        return reverse('sessaoplenaria:list_sessao')
+    success_url = reverse_lazy('sessaoplenaria:list_sessao')
 
 
 class SessaoPlenariaView(generics.ListAPIView):
