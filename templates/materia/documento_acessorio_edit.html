@@ -3,52 +3,5 @@
 {% load crispy_forms_tags %}
 {% block actions %} {% endblock %}
 {% block detail_content %}
-	<fieldset>
-		<legend>Matéria Legislativa</legend>
-		{% include "materia/resumo_detail_materia.html" %}
-
-		<fieldset class="form-group">
-			<legend>Editar Documento Acessório</legend>
-				<form method="POST">
-					{% csrf_token %}
-          <div class="row">
-            <div class="col-md-4">
-              <labe>Tipo*</labe>
-              <select name="tipo" class="form-control">
-                {% for t in tipos %}
-	                <option value="{{t.id}}" {% if t.id == doc.tipo.id %} selected {% endif %}>
-	                	{{t.descricao}}
-	                </option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <labe>Data</labe>
-              <input type="text" name="data" value="{{doc.data|date:'d/m/Y'}}" class="dateinput form-control"/>
-            </div>
-
-            <div class="col-md-4">
-              <labe>Nome*</labe>
-              <input type="text" name="nome" value="{{doc.nome}}" class="form-control"/>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6">
-              <labe>Autor*</labe>
-              <input type="text" name="autor" value="{{doc.autor}}" class="form-control"/>
-            </div>
-
-            <div class="col-md-6">
-              <labe>Ementa*</labe>
-              <input type="text" name="ementa" value="{{doc.ementa}}" class="form-control"/>
-            </div>
-          </div>
-					<br />
-					<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
-					<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />
-				</form>
-		</fieldset>
-	</fieldset>
+	{% crispy form %}
 {% endblock %}

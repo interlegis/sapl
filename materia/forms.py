@@ -114,12 +114,10 @@ class DocumentoAcessorioForm(ModelForm):
             'data': forms.DateInput(attrs={'class': 'dateinput'})
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4),
-             ('nome', 4),
-             ('data', 4)])
+            [('tipo', 4), ('nome', 4), ('data', 4)])
 
         row2 = crispy_layout_mixin.to_row(
             [('autor', 12)])
@@ -127,12 +125,16 @@ class DocumentoAcessorioForm(ModelForm):
         row3 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
 
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Incluir Documento Acessório'),
                 row1, row2, row3,
-                form_actions()
+                form_actions(more=more)
             )
         )
         super(DocumentoAcessorioForm, self).__init__(*args, **kwargs)
