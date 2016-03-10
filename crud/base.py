@@ -8,6 +8,19 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
 from crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 
 
+def _form_invalid_message(msg):
+    return '%s %s' % (_('Formulário inválido.'), msg)
+
+FORM_MESSAGES = {'create': (_('Registro criado com sucesso!'),
+                            _('O registro não foi criado.')),
+                 'update': (_('Registro alterado com sucesso!'),
+                            _('Suas alterações não foram salvas.')),
+                 'delete': (_('Registro excluído com sucesso!'),
+                            _('O registro não foi excluído.'))}
+FORM_MESSAGES = {k: (a, _form_invalid_message(b))
+                 for k, (a, b) in FORM_MESSAGES.items()}
+
+
 def from_to(start, end):
     return list(range(start, end + 1))
 
@@ -115,15 +128,9 @@ class ListMixin():
         return context
 
 
-def make_form_invalid_message(msg):
-    return '%s %s' % (_('Formulário inválido.'), msg)
-
-
 class CreateMixin(FormMessagesMixin):
 
-    form_valid_message = _('Registro criado com sucesso!')
-    form_invalid_message = make_form_invalid_message(
-        _('O registro não foi criado.'))
+    form_valid_message, form_invalid_message = FORM_MESSAGES['create']
 
     @property
     def cancel_url(self):
@@ -144,9 +151,7 @@ class DetailMixin():
 
 class UpdateMixin(FormMessagesMixin):
 
-    form_valid_message = _('Registro alterado com sucesso!')
-    form_invalid_message = make_form_invalid_message(
-        _('Suas alterações não foram salvas.'))
+    form_valid_message, form_invalid_message = FORM_MESSAGES['update']
 
     @property
     def cancel_url(self):
@@ -158,9 +163,7 @@ class UpdateMixin(FormMessagesMixin):
 
 class DeleteMixin(FormMessagesMixin):
 
-    form_valid_message = _('Registro excluído com sucesso!')
-    form_invalid_message = make_form_invalid_message(
-        _('O registro não foi excluído.'))
+    form_valid_message, form_invalid_message = FORM_MESSAGES['delete']
 
     @property
     def cancel_url(self):

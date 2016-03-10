@@ -45,9 +45,9 @@ class NormaPesquisaView(GenericView):
         if form.data['periodo_inicial'] and form.data['periodo_final']:
             kwargs['periodo_inicial'] = form.data['periodo_inicial']
             kwargs['periodo_final'] = form.data['periodo_final']
-        if form.data['publicação_inicial'] and form.data['publicação_final']:
-            kwargs['publicação_inicial'] = form.data['publicação_inicial']
-            kwargs['publicação_final'] = form.data['publicação_final']
+        if form.data['publicacao_inicial'] and form.data['publicacao_final']:
+            kwargs['publicacao_inicial'] = form.data['publicacao_inicial']
+            kwargs['publicacao_final'] = form.data['publicacao_final']
 
         request.session['kwargs'] = kwargs
         return redirect('list_pesquisa_norma')
@@ -69,16 +69,16 @@ class PesquisaNormaListView(ListView):
             periodo_final = datetime.strptime(
                 kwargs['periodo_final'],
                 '%d/%m/%Y').strftime('%Y-%m-%d')
-            publicação_inicial = datetime.strptime(
-                kwargs['publicação_inicial'],
+            publicacao_inicial = datetime.strptime(
+                kwargs['publicacao_inicial'],
                 '%d/%m/%Y').strftime('%Y-%m-%d')
-            publicação_final = datetime.strptime(
-                kwargs['publicação_final'],
+            publicacao_final = datetime.strptime(
+                kwargs['publicacao_final'],
                 '%d/%m/%Y').strftime('%Y-%m-%d')
 
             normas = normas.filter(
                 data__range=(periodo_inicial, periodo_final),
-                data_publicacao__range=(publicação_inicial, publicação_final))
+                data_publicacao__range=(publicacao_inicial, publicacao_final))
 
         if 'periodo_inicial' in kwargs:
             inicial = datetime.strptime(kwargs['periodo_inicial'],
@@ -88,10 +88,10 @@ class PesquisaNormaListView(ListView):
 
             normas = normas.filter(data__range=(inicial, final))
 
-        if 'publicação_inicial' in kwargs:
-            inicial = datetime.strptime(kwargs['publicação_inicial'],
+        if 'publicacao_inicial' in kwargs:
+            inicial = datetime.strptime(kwargs['publicacao_inicial'],
                                         '%d/%m/%Y').strftime('%Y-%m-%d')
-            final = datetime.strptime(kwargs['publicação_final'],
+            final = datetime.strptime(kwargs['publicacao_final'],
                                       '%d/%m/%Y').strftime('%Y-%m-%d')
 
             normas = normas.filter(data_publicacao__range=(inicial, final))
