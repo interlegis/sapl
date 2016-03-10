@@ -90,7 +90,7 @@ class AcompanhamentoMateriaForm(ModelForm):
 
         row1.append(
             Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
-            )
+        )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -150,7 +150,7 @@ class RelatoriaForm(ModelForm):
                   ]
         widgets = {
             'data_designacao_relator': forms.DateInput(attrs={
-                                                        'class': 'dateinput'}),
+                'class': 'dateinput'}),
             'data_destituicao_relator': forms.DateInput(attrs={
                                                         'class': 'dateinput'}),
         }
@@ -172,11 +172,11 @@ class TramitacaoForm(ModelForm):
 
         widgets = {
             'data_tramitacao': forms.DateInput(attrs={
-                                                        'class': 'dateinput'}),
+                'class': 'dateinput'}),
             'data_encaminhamento': forms.DateInput(attrs={
-                                                        'class': 'dateinput'}),
+                'class': 'dateinput'}),
             'data_fim_prazo': forms.DateInput(attrs={
-                                                        'class': 'dateinput'}),
+                'class': 'dateinput'}),
         }
 
     def __init__(self, *args, **kwargs):

@@ -128,11 +128,10 @@ class AnularProcoloAdmForm(ModelForm):
                             get_field('ano').verbose_name,
                             choices=RANGE_ANOS,
                             widget=forms.Select(attrs={'class': 'selector'}))
-    justificativa_anulacao = forms.CharField(required=True,
-                                             label=Protocolo._meta.
-                                             get_field('justificativa_anulacao'
-                                                      ).verbose_name,
-                                             widget=forms.Textarea)
+    justificativa_anulacao = forms.CharField(
+        required=True,
+        label=Protocolo._meta.get_field('justificativa_anulacao').verbose_name,
+        widget=forms.Textarea)
 
     def clean(self):
         cleaned_data = super(AnularProcoloAdmForm, self).clean()
@@ -154,7 +153,7 @@ class AnularProcoloAdmForm(ModelForm):
                     % (numero, ano))
         except ObjectDoesNotExist:
             raise forms.ValidationError(
-                    _("Protocolo %s/%s não existe" % (numero, ano)))
+                _("Protocolo %s/%s não existe" % (numero, ano)))
 
     class Meta:
         model = Protocolo
