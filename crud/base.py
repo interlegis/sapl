@@ -39,7 +39,7 @@ def make_pagination(index, num_pages):
         return head + [None] + tail
 
 
-class BaseCrudMixin(CrispyLayoutFormMixin):
+class BaseMixin(CrispyLayoutFormMixin):
 
     @property
     def namespace(self):
@@ -69,7 +69,7 @@ class BaseCrudMixin(CrispyLayoutFormMixin):
         return self.resolve_url('delete', args=(self.object.id,))
 
     def get_template_names(self):
-        names = super(BaseCrudMixin, self).get_template_names()
+        names = super(BaseMixin, self).get_template_names()
         names.append("crud/%s.html" %
                      self.template_name_suffix.lstrip('_'))
         return names
@@ -83,7 +83,7 @@ class BaseCrudMixin(CrispyLayoutFormMixin):
         return self.model._meta.verbose_name_plural
 
 
-class CrudListMixin():
+class ListMixin():
 
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
@@ -94,7 +94,7 @@ class CrudListMixin():
             for i, name in enumerate(self.list_field_names)]
 
     def get_context_data(self, **kwargs):
-        context = super(CrudListMixin, self).get_context_data(**kwargs)
+        context = super(ListMixin, self).get_context_data(**kwargs)
         context.setdefault('title', self.verbose_name_plural)
 
         # pagination
@@ -119,7 +119,7 @@ def make_form_invalid_message(msg):
     return '%s %s' % (_('Formulário inválido.'), msg)
 
 
-class CrudCreateMixin(FormMessagesMixin):
+class CreateMixin(FormMessagesMixin):
 
     form_valid_message = _('Registro criado com sucesso!')
     form_invalid_message = make_form_invalid_message(
@@ -135,14 +135,14 @@ class CrudCreateMixin(FormMessagesMixin):
     def get_context_data(self, **kwargs):
         kwargs.setdefault('title', _('Adicionar %(verbose_name)s') % {
             'verbose_name': self.verbose_name})
-        return super(CrudCreateMixin, self).get_context_data(**kwargs)
+        return super(CreateMixin, self).get_context_data(**kwargs)
 
 
-class CrudDetailMixin():
+class DetailMixin():
     pass
 
 
-class CrudUpdateMixin(FormMessagesMixin):
+class UpdateMixin(FormMessagesMixin):
 
     form_valid_message = _('Registro alterado com sucesso!')
     form_invalid_message = make_form_invalid_message(
@@ -156,7 +156,7 @@ class CrudUpdateMixin(FormMessagesMixin):
         return self.detail_url
 
 
-class CrudDeleteMixin(FormMessagesMixin):
+class DeleteMixin(FormMessagesMixin):
 
     form_valid_message = _('Registro excluído com sucesso!')
     form_invalid_message = make_form_invalid_message(
@@ -173,12 +173,12 @@ class CrudDeleteMixin(FormMessagesMixin):
 class Crud:
 
     def __init__(self, model, help_path,
-                 base_mixin=BaseCrudMixin,
-                 list_mixin=CrudListMixin,
-                 create_mixin=CrudCreateMixin,
-                 detail_mixin=CrudDetailMixin,
-                 update_mixin=CrudUpdateMixin,
-                 delete_mixin=CrudDeleteMixin):
+                 base_mixin=BaseMixin,
+                 list_mixin=ListMixin,
+                 create_mixin=CreateMixin,
+                 detail_mixin=DetailMixin,
+                 update_mixin=UpdateMixin,
+                 delete_mixin=DeleteMixin):
 
         class CrudMixin(base_mixin):
             pass

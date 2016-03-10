@@ -27,7 +27,7 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from crud.base import Crud, CrudListMixin, make_pagination
+from crud.base import Crud, ListMixin, make_pagination
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -1667,7 +1667,7 @@ class PublicacaoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PublicacaoListView, self).get_context_data(**kwargs)
-        context['NO_ENTRIES_MSG'] = CrudListMixin.no_entries_msg
+        context['NO_ENTRIES_MSG'] = ListMixin.no_entries_msg
         return context
 
 
