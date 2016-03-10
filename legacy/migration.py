@@ -120,7 +120,7 @@ def exec_sql(sql, db='default'):
 
 
 def iter_sql_records(sql, db):
-    class Record(object):
+    class Record:
         pass
     cursor = exec_sql(sql, db)
     fieldnames = [name[0] for name in cursor.description]
@@ -149,7 +149,7 @@ def make_stub(model, id):
     return new
 
 
-class DataMigrator(object):
+class DataMigrator:
 
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()

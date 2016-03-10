@@ -240,7 +240,7 @@ def extract_fieldsets_for_current(model):
         raise Exception(e, model)
 
 
-class Under(object):
+class Under:
 
     def __init__(self, arg):
         self.arg = arg

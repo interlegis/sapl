@@ -170,7 +170,7 @@ class CrudDeleteMixin(FormMessagesMixin):
         return self.list_url
 
 
-class Crud(object):
+class Crud:
 
     def __init__(self, model, help_path,
                  base_mixin=BaseCrudMixin,

@@ -138,7 +138,7 @@ def choice_models_in_extenal_views():
     return result
 
 
-class CompMixin(object):
+class CompMixin:
 
     @property
     def title(self):
@@ -1002,7 +1002,7 @@ class DispositivoEditView(TextEditView):
         return result
 
 
-class ActionsEditMixin(object):
+class ActionsEditMixin:
 
     def render_to_json_response(self, context, **response_kwargs):
 
@@ -1346,7 +1346,7 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
         return self.render_to_json_response(context, **response_kwargs)
 
 
-class DispositivoSuccessUrlMixin(object):
+class DispositivoSuccessUrlMixin:
 
     def get_success_url(self):
         return reverse_lazy(

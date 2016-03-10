@@ -65,7 +65,7 @@ def get_field_display(obj, fieldname):
     return verbose_name, display
 
 
-class CrispyLayoutFormMixin(object):
+class CrispyLayoutFormMixin:
 
     def get_layout(self):
         filename = join(

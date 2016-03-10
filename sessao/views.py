@@ -39,7 +39,7 @@ tipo_expediente_crud = Crud(TipoExpediente, 'tipo_expediente')
 registro_votacao_crud = Crud(RegistroVotacao, '')
 
 
-class PresencaMixin(object):
+class PresencaMixin:
 
     def get_parlamentares(self):
         self.object = self.get_object()
