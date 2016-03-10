@@ -1,6 +1,7 @@
 from braces.views import FormMessagesMixin
 from django.conf.urls import url
 from django.core.urlresolvers import reverse
+from django.utils.decorators import classonlymethod
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
@@ -96,7 +97,7 @@ class BaseMixin(CrispyLayoutFormMixin):
         return self.model._meta.verbose_name_plural
 
 
-class ListMixin():
+class CrudListView(ListView):
 
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
@@ -107,7 +108,7 @@ class ListMixin():
             for i, name in enumerate(self.list_field_names)]
 
     def get_context_data(self, **kwargs):
-        context = super(ListMixin, self).get_context_data(**kwargs)
+        context = super(CrudListView, self).get_context_data(**kwargs)
         context.setdefault('title', self.verbose_name_plural)
 
         # pagination
@@ -128,7 +129,7 @@ class ListMixin():
         return context
 
 
-class CreateMixin(FormMessagesMixin):
+class CrudCreateView(FormMessagesMixin, CreateView):
 
     form_valid_message, form_invalid_message = FORM_MESSAGES['create']
 
@@ -142,14 +143,10 @@ class CreateMixin(FormMessagesMixin):
     def get_context_data(self, **kwargs):
         kwargs.setdefault('title', _('Adicionar %(verbose_name)s') % {
             'verbose_name': self.verbose_name})
-        return super(CreateMixin, self).get_context_data(**kwargs)
+        return super(CrudCreateView, self).get_context_data(**kwargs)
 
 
-class DetailMixin():
-    pass
-
-
-class UpdateMixin(FormMessagesMixin):
+class CrudUpdateView(FormMessagesMixin, UpdateView):
 
     form_valid_message, form_invalid_message = FORM_MESSAGES['update']
 
@@ -161,7 +158,7 @@ class UpdateMixin(FormMessagesMixin):
         return self.detail_url
 
 
-class DeleteMixin(FormMessagesMixin):
+class CrudDeleteView(FormMessagesMixin, DeleteView):
 
     form_valid_message, form_invalid_message = FORM_MESSAGES['delete']
 
@@ -174,36 +171,32 @@ class DeleteMixin(FormMessagesMixin):
 
 
 class Crud:
+    BaseMixin = BaseMixin
+    ListView = CrudListView
+    CreateView = CrudCreateView
+    DetailView = DetailView
+    UpdateView = CrudUpdateView
+    DeleteView = CrudDeleteView
+    help_path = ''
 
-    def __init__(self, model, help_path,
-                 base_mixin=BaseMixin,
-                 list_mixin=ListMixin,
-                 create_mixin=CreateMixin,
-                 detail_mixin=DetailMixin,
-                 update_mixin=UpdateMixin,
-                 delete_mixin=DeleteMixin):
+    @classonlymethod
+    def get_urls(cls):
 
-        class CrudMixin(base_mixin):
-            pass
-        CrudMixin.model = model
-        CrudMixin.help_path = help_path
+        def _from(view):
+            return type(view.__name__, (cls.BaseMixin, view,), {
+                'model': cls.model,
+                'help_path': cls.help_path})
 
-        class CrudListView(CrudMixin, list_mixin, ListView):
-            pass
+        CrudListView = _from(cls.ListView)
+        CrudCreateView = _from(cls.CreateView)
+        CrudDetailView = _from(cls.DetailView)
+        CrudUpdateView = _from(cls.UpdateView)
+        CrudDeleteView = _from(cls.DeleteView)
 
-        class CrudCreateView(CrudMixin, create_mixin, CreateView):
-            pass
+        import ipdb
+        ipdb.set_trace()  # flake8: noqa #################O
 
-        class CrudDetailView(CrudMixin, detail_mixin, DetailView):
-            pass
-
-        class CrudUpdateView(CrudMixin, update_mixin, UpdateView):
-            pass
-
-        class CrudDeleteView(CrudMixin, delete_mixin, DeleteView):
-            pass
-
-        self.urlpatterns = [
+        urlpatterns = [
             url(r'^$', CrudListView.as_view(), name='list'),
             url(r'^create$', CrudCreateView.as_view(), name='create'),
             url(r'^(?P<pk>\d+)$', CrudDetailView.as_view(), name='detail'),
@@ -213,8 +206,4 @@ class Crud:
                 CrudDeleteView.as_view(), name='delete'),
         ]
 
-        self.namespace = CrudMixin().namespace
-        self.urls = self.urlpatterns, self.namespace
-
-        # FIXME Refatorar código que precisa desse atributo e remover
-        self.CrudDetailView = CrudDetailView
+        return urlpatterns, _from(object)().namespace
