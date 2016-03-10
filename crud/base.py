@@ -211,7 +211,7 @@ class Crud:
         ]
 
         self.namespace = CrudMixin().namespace
-        self.urls = self.urlpatterns, self.namespace, self.namespace
+        self.urls = self.urlpatterns, self.namespace
 
         # FIXME Refatorar código que precisa desse atributo e remover
         self.CrudDetailView = CrudDetailView
