@@ -21,9 +21,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
                           VotacaoView)
 
-urlpatterns_sessao, namespace = SessaoCrud.get_urls()
-
-urlpatterns_sessao = urlpatterns_sessao + [
+urlpatterns_sessao = SessaoCrud.get_urls() + [
     url(r'^(?P<pk>\d+)/expediente$',
         ExpedienteView.as_view(), name='expediente'),
     url(r'^(?P<pk>\d+)/presenca$',
@@ -105,7 +103,7 @@ sessao_rest = [
 ]
 
 urlpatterns = [
-    url(r'^sessao/', include(urlpatterns_sessao, namespace)),
+    url(r'^sessao/', include(urlpatterns_sessao)),
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
     url(r'^rest/', include(sessao_rest)),
