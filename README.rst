@@ -56,19 +56,18 @@ Development Environment Installation
 
 * Either run ``./manage.py migrate`` (for an empty database) or restore a database dump.
 
-* In sapl/sapl directory create one file called ``.env``. Write the following attribuitions
-in it:
+* In ``sapl/sapl`` directory create one file called ``.env``. Write the following attributes in it:
 
-DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
-SECRET_KEY = Generate some key and paste here. You generate it using the link below.
-DEBUG = [True/False]
-EMAIL_USE_TLS = [True/False]
-EMAIL_PORT = [Set this parameter]
-EMAIL_HOST = [Set this parameter]
-EMAIL_HOST_USER = [Set this parameter]
-EMAIL_HOST_PASSWORD = [Set this parameter]
+  - DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
+  - SECRET_KEY = Generate some key and paste here
+  - DEBUG = [True/False]
+  - EMAIL_USE_TLS = [True/False]
+  - EMAIL_PORT = [Set this parameter]
+  - EMAIL_HOST = [Set this parameter]
+  - EMAIL_HOST_USER = [Set this parameter]
+  - EMAIL_HOST_PASSWORD = [Set this parameter]
 
-`Generate your secret key here <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`
+`Generate your secret key here <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_
 
 Instructions for Translators
 ============================
