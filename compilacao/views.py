@@ -42,13 +42,14 @@ DISPOSITIVO_SELECT_RELATED = (
     'ta_publicado',
     'ta',)
 
-tipo_nota_crud = Crud.build(TipoNota, 'tipo_nota')
-tipo_vide_crud = Crud.build(TipoVide, 'tipo_vide')
-tipo_publicacao_crud = Crud.build(TipoPublicacao, 'tipo_publicacao')
-veiculo_publicacao_crud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-perfil_estr_txt_norm = Crud.build(PerfilEstruturalTextoArticulado,
-                                  'perfil_estrutural')
-tipo_dispositivo_crud = Crud.build(TipoDispositivo, 'tipo_dispositivo')
+TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
+TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
+# FIXME evite nomes de classe e funcoes abreviados
+PerfilEstrTxtNorm = Crud.build(PerfilEstruturalTextoArticulado,
+                               'perfil_estrutural')
+TipoDispositivoCrud = Crud.build(TipoDispositivo, 'tipo_dispositivo')
 
 
 class IntegracaoTaView(TemplateView):

@@ -1,10 +1,10 @@
 from django.conf.urls import include, url
 
-from lexml.views import lexml_provedor_crud, lexml_publicador_crud
+from lexml.views import LexmlProvedorCrud, LexmlPublicadorCrud
 
 urlpatterns = [
     url(r'^sistema/lexml/provedor/',
-        include(lexml_provedor_crud.get_urls())),
+        include(LexmlProvedorCrud.get_urls())),
     url(r'^sistema/lexml/publicador/',
-        include(lexml_publicador_crud.get_urls())),
+        include(LexmlPublicadorCrud.get_urls())),
 ]

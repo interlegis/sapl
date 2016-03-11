@@ -35,26 +35,26 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-origem_crud = Crud.build(Origem, 'origem')
-tipo_materia_crud = Crud.build(TipoMateriaLegislativa,
-                               'tipo_materia_legislativa')
-regime_tramitacao_crud = Crud.build(RegimeTramitacao, 'regime_tramitacao')
-tipo_documento_crud = Crud.build(TipoDocumento, 'tipo_documento')
-tipo_fim_relatoria_crud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
-materia_legislativa_crud = Crud.build(MateriaLegislativa, '')
-Anexada_crud = Crud.build(Anexada, '')
-tipo_autor_crud = Crud.build(TipoAutor, 'tipo_autor')
-autor_crud = Crud.build(Autor, 'autor')
-autoria_crud = Crud.build(Autoria, '')
-documento_acessorio_crud = Crud.build(DocumentoAcessorio, '')
-numeracao_crud = Crud.build(Numeracao, '')
-orgao_crud = Crud.build(Orgao, 'orgao')
-relatoria_crud = Crud.build(Relatoria, '')
-tipo_proposicao_crud = Crud.build(TipoProposicao, 'tipo_proposicao')
-proposicao_crud = Crud.build(Proposicao, '')
-status_tramitacao_crud = Crud.build(StatusTramitacao, 'status_tramitacao')
-unidade_tramitacao_crud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
-tramitacao_crud = Crud.build(Tramitacao, '')
+OrigemCrud = Crud.build(Origem, 'origem')
+TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,
+                             'tipo_materia_legislativa')
+RegimeTramitacaoCrud = Crud.build(RegimeTramitacao, 'regime_tramitacao')
+TipoDocumentoCrud = Crud.build(TipoDocumento, 'tipo_documento')
+TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
+MateriaLegislativaCrud = Crud.build(MateriaLegislativa, '')
+AnexadaCrud = Crud.build(Anexada, '')
+TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
+AutorCrud = Crud.build(Autor, 'autor')
+AutoriaCrud = Crud.build(Autoria, '')
+DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
+NumeracaoCrud = Crud.build(Numeracao, '')
+OrgaoCrud = Crud.build(Orgao, 'orgao')
+RelatoriaCrud = Crud.build(Relatoria, '')
+TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
+ProposicaoCrud = Crud.build(Proposicao, '')
+StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
+UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
+TramitacaoCrud = Crud.build(Tramitacao, '')
 
 
 class FormularioSimplificadoView(CreateView):
@@ -1474,7 +1474,7 @@ class ProposicaoTaView(IntegracaoTaView):
     model_type_foreignkey = TipoProposicao
 
 
-class AcompanhamentoMateriaView(materia_legislativa_crud.CrudDetailView):
+class AcompanhamentoMateriaView(MateriaLegislativaCrud.CrudDetailView):
     template_name = "materia/acompanhamento_materia.html"
 
     def get_random_chars(self):

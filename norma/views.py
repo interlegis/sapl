@@ -16,11 +16,11 @@ from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
-assunto_norma_crud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
-tipo_norma_crud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
-norma_crud = Crud.build(NormaJuridica, '')
-norma_temporario_crud = Crud.build(NormaJuridica, 'normajuridica')
-legislacao_citada_crud = Crud.build(LegislacaoCitada, '')
+AssuntoNormaCrud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
+TipoNormaCrud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
+NormaCrud = Crud.build(NormaJuridica, '')
+NormaTemporarioCrud = Crud.build(NormaJuridica, 'normajuridica')
+LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 
 class NormaPesquisaView(GenericView):

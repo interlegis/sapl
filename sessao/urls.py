@@ -12,16 +12,16 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoCadastroView, SessaoListView,
-                          SessaoPlenariaView, VotacaoEditView,
-                          VotacaoExpedienteEditView, VotacaoExpedienteView,
-                          VotacaoNominalEditView,
+                          SessaoCadastroView, SessaoCrud, SessaoListView,
+                          SessaoPlenariaView, TipoExpedienteCrud,
+                          TipoResultadoVotacaoCrud, TipoSessaoCrud,
+                          VotacaoEditView, VotacaoExpedienteEditView,
+                          VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, sessao_crud, tipo_expediente_crud,
-                          tipo_resultado_votacao_crud, tipo_sessao_crud)
+                          VotacaoView)
 
-urlpatterns_sessao, namespace = sessao_crud.get_urls()
+urlpatterns_sessao, namespace = SessaoCrud.get_urls()
 
 urlpatterns_sessao = urlpatterns_sessao + [
     url(r'^(?P<pk>\d+)/expediente$',
@@ -110,9 +110,9 @@ urlpatterns = [
         {'document_root': settings.MEDIA_ROOT}),
     url(r'^rest/', include(sessao_rest)),
     url(r'^sistema/sessao-plenaria/tipo/',
-        include(tipo_sessao_crud.get_urls())),
+        include(TipoSessaoCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
-        include(tipo_resultado_votacao_crud.get_urls())),
+        include(TipoResultadoVotacaoCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-expediente/',
-        include(tipo_expediente_crud.get_urls()))
+        include(TipoExpedienteCrud.get_urls()))
 ]

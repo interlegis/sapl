@@ -26,18 +26,18 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-tipo_documento_administrativo_crud = Crud.build(TipoDocumentoAdministrativo,
-                                                '')
-documento_administrativo_crud = Crud.build(DocumentoAdministrativo, '')
-documento_acessorio_administrativo_crud = Crud.build(
+TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo,
+                                             '')
+DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
+DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-status_tramitacao_administrativo_crud = Crud.build(
+StatusTramitacaoAdministrativoCrud = Crud.build(
     StatusTramitacaoAdministrativo, '')
-tramitacao_administrativo_crud = Crud.build(TramitacaoAdministrativo, '')
-protocolo_documento_crud = Crud.build(Protocolo, '')
+TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
+ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 
 # FIXME precisa de uma chave diferente para o layout
-protocolo_materia_crud = Crud.build(Protocolo, '')
+ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
 class ProtocoloPesquisaView(FormView):

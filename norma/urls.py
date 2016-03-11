@@ -1,12 +1,11 @@
 from django.conf.urls import include, url
 
-from norma.views import (NormaEditView, NormaIncluirView, NormaPesquisaView,
-                         NormaTaView, PesquisaNormaListView,
-                         assunto_norma_crud, norma_temporario_crud,
-                         tipo_norma_crud)
+from norma.views import (AssuntoNormaCrud, NormaEditView, NormaIncluirView,
+                         NormaPesquisaView, NormaTaView, NormaTemporarioCrud,
+                         PesquisaNormaListView, TipoNormaCrud)
 
-# FIXME???? usar norma_crud ????
-norma_url_patterns, namespace = norma_temporario_crud.get_urls()
+# FIXME???? usar NormaCrud ????
+norma_url_patterns, namespace = NormaTemporarioCrud.get_urls()
 
 norma_url_patterns += [
     url(r'^norma/(?P<pk>[0-9]+)/ta$',
@@ -16,8 +15,8 @@ norma_url_patterns += [
 urlpatterns = [
     url(r'^norma/', include(norma_url_patterns, namespace)),
 
-    url(r'^sistema/norma/tipo/', include(tipo_norma_crud.get_urls())),
-    url(r'^sistema/norma/assunto/', include(assunto_norma_crud.get_urls())),
+    url(r'^sistema/norma/tipo/', include(TipoNormaCrud.get_urls())),
+    url(r'^sistema/norma/assunto/', include(AssuntoNormaCrud.get_urls())),
 
     url(r'^norma/incluir$', NormaIncluirView.as_view(), name='norma_incluir'),
     url(r'^norma/(?P<pk>[0-9]+)/editar$',

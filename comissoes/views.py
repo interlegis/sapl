@@ -14,10 +14,10 @@ from .forms import (CadastrarComissaoForm, ComposicaoForm,
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
-cargo_crud = Crud.build(CargoComissao, 'cargo_comissao')
-periodo_composicao_crud = Crud.build(Periodo, 'periodo_composicao_comissao')
-tipo_comissao_crud = Crud.build(TipoComissao, 'tipo_comissao')
-comissao_crud = Crud.build(Comissao, 'modulo_comissoes')
+CargoCrud = Crud.build(CargoComissao, 'cargo_comissao')
+PeriodoComposicaoCrud = Crud.build(Periodo, 'periodo_composicao_comissao')
+TipoComissaoCrud = Crud.build(TipoComissao, 'tipo_comissao')
+ComissaoCrud = Crud.build(Comissao, 'modulo_comissoes')
 
 
 class CadastrarComissaoView(CreateView):
@@ -68,11 +68,11 @@ class ComposicaoView(FormMixin, GenericView):
             'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
 
-class MateriasView(comissao_crud.CrudDetailView):
+class MateriasView(ComissaoCrud.CrudDetailView):
     template_name = 'comissoes/materias.html'
 
 
-class ReunioesView(comissao_crud.CrudDetailView):
+class ReunioesView(ComissaoCrud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
 

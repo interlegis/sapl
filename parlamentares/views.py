@@ -19,19 +19,19 @@ from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
                      TipoAfastamento, TipoDependente)
 
-cargo_mesa_crud = Crud.build(CargoMesa, 'cargo_mesa')
-legislatura_crud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
-coligacao_crud = Crud.build(Coligacao, 'coligacao')
-partido_crud = Crud.build(Partido, 'partidos')
-dependente_crud = Crud.build(Dependente, '')
-sessao_legislativa_crud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
-parlamentar_crud = Crud.build(Parlamentar, '')
-filiacao_crud = Crud.build(Filiacao, '')
-mandato_crud = Crud.build(Mandato, '')
-tipo_dependente_crud = Crud.build(TipoDependente, 'tipo_dependente')
-nivel_instrucao_crud = Crud.build(NivelInstrucao, 'nivel_instrucao')
-tipo_afastamento_crud = Crud.build(TipoAfastamento, 'tipo_afastamento')
-tipo_militar_crud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
+CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
+LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
+ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
+PartidoCrud = Crud.build(Partido, 'partidos')
+DependenteCrud = Crud.build(Dependente, '')
+SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
+ParlamentarCrud = Crud.build(Parlamentar, '')
+FiliacaoCrud = Crud.build(Filiacao, '')
+MandatoCrud = Crud.build(Mandato, '')
+TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
+NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
+TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
+TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
 
 class ParlamentaresView(GenericView):
