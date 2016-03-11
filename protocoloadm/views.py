@@ -274,7 +274,7 @@ class ComprovanteProtocoloView(TemplateView):
         return context
 
 
-class ProtocoloMateriaView(FormValidMessageMixin, CreateView):
+class ProtocoloMateriaView(FormView):
 
     template_name = "protocoloadm/protocolar_materia.html"
     form_class = ProtocoloMateriaForm
