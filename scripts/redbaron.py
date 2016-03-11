@@ -30,9 +30,9 @@ def build_red(filename):
             red.__filename__ = filename
             return red
 
-reds = [build_red(f) for f in filenames]
-reds_without_tests = [r for r in reds
-                      if not re.match('.*/test_.*\.py', r.__filename__)]
+# reds = [build_red(f) for f in filenames]
+# reds_without_tests = [r for r in reds
+#                       if not re.match('.*/test_.*\.py', r.__filename__)]
 
 
 def write(node):
