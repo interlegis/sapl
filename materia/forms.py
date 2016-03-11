@@ -40,39 +40,27 @@ class ProposicaoForm(ModelForm):
 
     class Meta:
         model = Proposicao
-        fields = ['tipo',
-                  'descricao',
-                  'texto_original']
-        exclude = ['autor',
-                   'data_envio',
-                   'data_recebimento',
-                   'data_devolucao',
-                   'justificativa_devolucao',
-                   'numero_proposicao',
-                   'status',
-                   'materia',
-                   'documento']
+        fields = ['tipo', 'data_envio', 'descricao', 'texto_original']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
 
         row1 = crispy_layout_mixin.to_row(
-            [('tipo', 12)])
+            [('tipo', 8), ('data_envio', 4)])
         row2 = crispy_layout_mixin.to_row(
             [('descricao', 12)])
         row3 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 4),
-             ('numero_materia', 4),
-             ('ano_materia', 4)])
+            [('tipo_materia', 4), ('numero_materia', 4), ('ano_materia', 4)])
         row4 = crispy_layout_mixin.to_row(
-            [('texto_original', 10)])
-
-        row4.append(
-            Column(form_actions(), css_class='col-md-2'))
+            [('texto_original', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Incluir Proposição'),
-                     row1, row2, row3, row4)
+                     row1, row2, row3, row4,
+                     form_actions(more=more))
         )
         super(ProposicaoForm, self).__init__(
             *args, **kwargs)

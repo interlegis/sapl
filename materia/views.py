@@ -1188,12 +1188,14 @@ class AutoriaEditView(CreateView):
 
 
 class ProposicaoListView(ListView):
-    template_name = "materia/proposicao_list.html"
+    template_name = "materia/proposicao/proposicao_list.html"
     paginate_by = 10
     model = Proposicao
 
     def get_queryset(self):
-        return Proposicao.objects.all().order_by('-data_envio')
+        return Proposicao.objects.all().order_by('data_envio',
+                                                 'tipo',
+                                                 'descricao')
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoListView, self).get_context_data(**kwargs)
@@ -1387,27 +1389,22 @@ class PesquisaMateriaListView(ListView):
         return context
 
 
-class ProposicaoView(FormView):
-    template_name = "materia/proposicao.html"
+class ProposicaoView(CreateView):
+    template_name = "materia/proposicao/proposicao.html"
+    form_class = ProposicaoForm
 
     def get_success_url(self):
         return reverse('list_proposicao')
 
     def get(self, request, *args, **kwargs):
-        form = ProposicaoForm()
-        return self.render_to_response({'form': form})
+        return self.render_to_response({'form': self.get_form()})
 
     def post(self, request, *args, **kwargs):
-        form = ProposicaoForm(request.POST)
+        form = self.get_form()
 
         if form.is_valid():
             proposicao = form.save(commit=False)
-            if 'texto_original' in request.FILES:
-                proposicao.texto_original = request.FILES['texto_original']
-
-            tipo = TipoProposicao.objects.get(
-                id=int(request.POST['tipo']))
-
+            tipo = TipoProposicao.objects.get(id=form.data['tipo'])
             if tipo.descricao == 'Parecer':
                 try:
                     materia = MateriaLegislativa.objects.get(
@@ -1421,16 +1418,55 @@ class ProposicaoView(FormView):
                 else:
                     proposicao.autor = materia.autoria_set.first().autor
                     proposicao.materia = materia
-
-            proposicao.descricao = sub('&nbsp;',
-                                       ' ',
-                                       strip_tags(form.data['descricao']))
-            # proposicao.data_envio = datetime.now()
             proposicao.save()
-            return self.form_valid(form)
+            return redirect(self.get_success_url())
         else:
             return self.render_to_response({'form': form})
 
+
+class ProposicaoEditView(CreateView):
+    template_name = "materia/proposicao/proposicao.html"
+    form_class = ProposicaoForm
+
+    def get_success_url(self):
+        return reverse('list_proposicao')
+
+    def get(self, request, *args, **kwargs):
+        proposicao = Proposicao.objects.get(id=kwargs['pk'])
+        return self.render_to_response({'form': ProposicaoForm(
+            excluir=True,
+            instance=proposicao)})
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        proposicao = Proposicao.objects.get(id=kwargs['pk'])
+        if form.is_valid():
+            if 'Excluir' in request.POST:
+                proposicao.delete()
+            elif 'salvar' in request.POST:
+                if 'texto_original' in request.FILES:
+                    proposicao.texto_original = request.FILES['texto_original']
+                tipo = TipoProposicao.objects.get(id=form.data['tipo'])
+                proposicao.tipo = tipo
+                proposicao.descricao = form.data['descricao']
+                if tipo.descricao == 'Parecer':
+                    try:
+                        materia = MateriaLegislativa.objects.get(
+                            tipo_id=int(form.data['tipo_materia']),
+                            ano=int(form.data['ano_materia']),
+                            numero=int(form.data['numero_materia']))
+                    except ObjectDoesNotExist:
+                        msg = _('Matéria adicionada não existe!')
+                        messages.add_message(request, messages.INFO, msg)
+                        return self.render_to_response({'form': form})
+                    else:
+                        proposicao.autor = materia.autoria_set.first().autor
+                        proposicao.materia = materia
+                proposicao.data_envio = datetime.now()
+                proposicao.save()
+            return redirect(self.get_success_url())
+        else:
+            return self.render_to_response({'form': form})
 
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa

@@ -429,7 +429,7 @@ class Proposicao(models.Model):
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        null=True, verbose_name=_('Data de Envio'))
+        null=True, blank=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Incorporação'))
     descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))

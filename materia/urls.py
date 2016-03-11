@@ -19,7 +19,7 @@ from materia.views import (AcompanhamentoConfirmarView,
                            status_tramitacao_crud, tipo_autor_crud,
                            tipo_documento_crud, tipo_fim_relatoria_crud,
                            tipo_materia_crud, tipo_proposicao_crud,
-                           unidade_tramitacao_crud)
+                           unidade_tramitacao_crud, ProposicaoEditView)
 
 materia_legislativa_patterns = materia_legislativa_crud.urlpatterns
 
@@ -95,6 +95,8 @@ urlpatterns = [
         ProposicaoView.as_view(), name='adicionar_proposicao'),
     url(r'^materia/proposicao_list$',
         ProposicaoListView.as_view(), name='list_proposicao'),
+    url(r'^materia/proposicao/(?P<pk>[0-9]+)/edit$',
+        ProposicaoEditView.as_view(), name='editar_proposicao'),
     url(r'^materia/pesquisar-materia$',
         MateriaLegislativaPesquisaView.as_view(), name='pesquisar_materia'),
     url(r'^materia/pesquisar-materia-list$',
