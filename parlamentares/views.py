@@ -1,5 +1,4 @@
 import os
-from re import sub
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
