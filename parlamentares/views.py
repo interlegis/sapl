@@ -3,7 +3,6 @@ from re import sub
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormMixin
 from vanilla import GenericView
@@ -129,9 +128,7 @@ class ParlamentaresCadastroView(FormMixin, GenericView):
             parlamentar = form.save(commit=False)
             if 'fotografia' in request.FILES:
                 parlamentar.fotografia = request.FILES['fotografia']
-            parlamentar.biografia = sub('&nbsp;',
-                                        ' ',
-                                        strip_tags(form.data['biografia']))
+            parlamentar.biografia = form.data['biografia']
             parlamentar.save()
 
             mandato = Mandato()
@@ -167,9 +164,7 @@ class ParlamentaresEditarView(FormMixin, GenericView):
                 parlamentar = form.save(commit=False)
                 if 'fotografia' in request.FILES:
                     parlamentar.fotografia = request.FILES['fotografia']
-                parlamentar.biografia = sub('&nbsp;',
-                                            ' ',
-                                            strip_tags(form.data['biografia']))
+                parlamentar.biografia = form.data['biografia']
                 parlamentar.save()
             elif 'excluir' in request.POST:
                 Mandato.objects.get(parlamentar=parlamentar).delete()

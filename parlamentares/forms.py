@@ -68,7 +68,8 @@ class ParlamentaresForm (ModelForm):
             'telefone_residencia': forms.TextInput(attrs={
               'class': 'telefone'}),
             'fax_residencia': forms.TextInput(attrs={'class': 'telefone'}),
-            'fotografia': forms.FileInput
+            'fotografia': forms.FileInput,
+            'biografia': forms.Textarea(attrs={'id': 'biografia-parlamentar'})
         }
 
     def __init__(self, *args, **kwargs):
