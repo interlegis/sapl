@@ -1442,7 +1442,11 @@ class ProposicaoEditView(CreateView):
         proposicao = Proposicao.objects.get(id=kwargs['pk'])
         if form.is_valid():
             if 'Excluir' in request.POST:
-                proposicao.delete()
+                if proposicao.data_envio:
+                    proposicao.data_envio = None
+                    proposicao.save()
+                else:
+                    proposicao.delete()
             elif 'salvar' in request.POST:
                 if 'texto_original' in request.FILES:
                     proposicao.texto_original = request.FILES['texto_original']
