@@ -16,6 +16,8 @@ from .temp_suppress_crispy_form_warnings import \
 
 from decouple import config
 
+from dj_database_url import parse as db_url
+
 BASE_DIR = Path(__file__).ancestor(2)
 
 
@@ -108,14 +110,10 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': config('NAME'),
-        'USER': config('SET_USER'),
-        'PASSWORD': config('PASSWORD'),
-        'HOST': config('HOST'),
-        'PORT': config('PORT'),
-    }
+    'default': config(
+        'DATABASE_URL',
+        cast=db_url,
+    )
 }
 
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)

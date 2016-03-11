@@ -1,4 +1,4 @@
-
+dj-database-url
 django-admin-bootstrapped==2.5.7
 django-bootstrap3==7.0.0
 django-bower==5.1.0
