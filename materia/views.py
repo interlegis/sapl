@@ -979,14 +979,15 @@ def do_envia_email_tramitacao(request, materia):
     return None
 
 
-class TramitacaoView(FormView):
+class TramitacaoView(CreateView):
     template_name = "materia/tramitacao.html"
+    form_class = TramitacaoForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         tramitacoes = Tramitacao.objects.filter(
             materia_id=kwargs['pk']).order_by('-data_tramitacao')
-        form = TramitacaoForm
+        form = self.get_form()
 
         return self.render_to_response(
             {'object': materia,
@@ -994,7 +995,7 @@ class TramitacaoView(FormView):
              'tramitacoes': tramitacoes})
 
     def post(self, request, *args, **kwargs):
-        form = TramitacaoForm(request.POST)
+        form = self.get_form()
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         tramitacoes_list = Tramitacao.objects.filter(
             materia_id=kwargs['pk']).order_by('-data_tramitacao')
@@ -1019,7 +1020,6 @@ class TramitacaoView(FormView):
                      'tramitacoes': tramitacoes_list})
 
                 do_envia_email_tramitacao(request, materia)
-
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
@@ -1031,44 +1031,37 @@ class TramitacaoView(FormView):
         return reverse('tramitacao_materia', kwargs={'pk': pk})
 
 
-class TramitacaoEditView(FormView):
+class TramitacaoEditView(CreateView):
     template_name = "materia/tramitacao_edit.html"
+    form_class = TramitacaoForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         tramitacao = Tramitacao.objects.get(id=kwargs['id'])
-        form = TramitacaoForm
+        form = TramitacaoForm(excluir=True, instance=tramitacao)
 
         return self.render_to_response(
             {'object': materia,
              'form': form,
-             'tramitacao': tramitacao,
-             'turno': Tramitacao.TURNO_CHOICES,
-             'status': StatusTramitacao.objects.all(),
-             'unidade_tramitacao': UnidadeTramitacao.objects.all()})
+             'tramitacao': tramitacao})
 
     def post(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         tramitacao = Tramitacao.objects.get(id=kwargs['id'])
-        form = TramitacaoForm(request.POST)
+        form = self.get_form()
 
         if form.is_valid():
             if 'excluir' in request.POST:
                 if tramitacao == Tramitacao.objects.filter(
                         materia=materia).last():
                     tramitacao.delete()
-                    return self.form_valid(form)
                 else:
                     msg = _('Somente a útlima tramitação pode ser deletada!')
                     messages.add_message(request, messages.INFO, msg)
                     return self.render_to_response(
                         {'object': materia,
                          'form': form,
-                         'tramitacao': tramitacao,
-                         'turno': Tramitacao.TURNO_CHOICES,
-                         'status': StatusTramitacao.objects.all(),
-                         'unidade_tramitacao': UnidadeTramitacao.objects.all()
-                         })
+                         'tramitacao': tramitacao})
             elif 'salvar' in request.POST:
                 tramitacao.status = form.cleaned_data['status']
                 tramitacao.turno = form.cleaned_data['turno']
@@ -1081,15 +1074,12 @@ class TramitacaoEditView(FormView):
                 tramitacao.texto = form.cleaned_data['texto']
 
                 tramitacao.save()
-                return self.form_valid(form)
+            return redirect(self.get_success_url())
         else:
             return self.render_to_response(
                 {'object': materia,
                  'form': form,
-                 'tramitacao': tramitacao,
-                 'turno': Tramitacao.TURNO_CHOICES,
-                 'status': StatusTramitacao.objects.all(),
-                 'unidade_tramitacao': UnidadeTramitacao.objects.all()})
+                 'tramitacao': tramitacao})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
