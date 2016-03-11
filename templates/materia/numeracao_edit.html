@@ -3,45 +3,5 @@
 {% load crispy_forms_tags %}
 {% block actions %} {% endblock %}
 {% block detail_content %}
-	<fieldset>
-		<legend>Matéria Legislativa</legend>
-		{% include "materia/resumo_detail_materia.html" %}
-
-		<fieldset class="form-group">
-			<legend>Editar Numeração</legend>
-				<form method="POST">
-					{% csrf_token %}
-          <div class="row">
-            <div class="col-md-12">
-              <label>Tipo Matéria*</label>
-              <select name="tipo_materialegislativa" class="form-control">
-                {% for t in tipos %}
-	                <option value="{{t.id}}" {% if t.id == numeracao.tipo_materia %} selected {% endif %}>
-	                	{{t.sigla}} - {{t.descricao}}
-	                </option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-
-					<div class="row">
-            <div class="col-md-4">
-              <label>Número*</select>label>
-              <input type="text" name="numero_materialegislativa" value="{{numeracao.numero_materia}}" class="form-control"/>
-            </div>
-            <div class="col-md-4">
-              <label>Ano*</label>
-              <input type="text" name="ano_materialegislativa" value="{{numeracao.ano_materia}}" class="form-control"/>
-            </div>
-            <div class="col-md-4">
-              <label>Data</label>
-              <input type="text" name="data_materialegislativa" class="dateinput form-control" value="{{numeracao.data_materia|date:'d/m/Y'}}"/>
-            </div>
-					</div>
-					<br />
-					<input type="submit" value="Salvar" id="salvar" name="salvar" class="btn btn-primary" />
-					<input type="submit" value="Excluir" id="excluir" name="excluir" class="btn btn-danger" />
-				</form>
-		</fieldset>
-	</fieldset>
+ {% crispy form %}
 {% endblock %}

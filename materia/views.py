@@ -428,34 +428,28 @@ class LegislacaoCitadaEditView(FormView):
                  'object': materia})
 
 
-class NumeracaoView(FormView):
+class NumeracaoView(CreateView):
     template_name = "materia/numeracao.html"
     form_class = NumeracaoForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         numeracao = Numeracao.objects.filter(materia_id=kwargs['pk'])
-        form = NumeracaoForm()
 
         return self.render_to_response(
             {'object': materia,
-             'form': form,
+             'form': self.get_form(),
              'numeracao': numeracao})
 
     def post(self, request, *args, **kwargs):
-        form = NumeracaoForm(request.POST)
+        form = self.get_form()
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         numeracao_list = Numeracao.objects.filter(
             materia_id=kwargs['pk'])
 
         if form.is_valid():
-            numeracao = Numeracao()
+            numeracao = form.save(commit=False)
             numeracao.materia = materia
-            numeracao.tipo_materia = form.cleaned_data['tipo_materia']
-            numeracao.numero_materia = form.cleaned_data['numero_materia']
-            numeracao.ano_materia = form.cleaned_data['ano_materia']
-            numeracao.data_materia = form.cleaned_data['data_materia']
-
             numeracao.save()
             return self.form_valid(form)
         else:
@@ -468,23 +462,22 @@ class NumeracaoView(FormView):
         return reverse('numeracao', kwargs={'pk': pk})
 
 
-class NumeracaoEditView(FormView):
+class NumeracaoEditView(CreateView):
     template_name = "materia/numeracao_edit.html"
     form_class = NumeracaoForm
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         numeracao = Numeracao.objects.get(id=kwargs['id'])
-        form = NumeracaoForm()
+        form = NumeracaoForm(instance=numeracao, excluir=True)
 
         return self.render_to_response(
             {'object': materia,
              'form': form,
-             'numeracao': numeracao,
-             'tipos': TipoMateriaLegislativa.objects.all()})
+             'numeracao': numeracao})
 
     def post(self, request, *args, **kwargs):
-        form = NumeracaoForm(request.POST)
+        form = self.get_form()
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         numeracao = Numeracao.objects.get(id=kwargs['id'])
 
@@ -492,17 +485,13 @@ class NumeracaoEditView(FormView):
             if 'excluir' in request.POST:
                 numeracao.delete()
             elif 'salvar' in request.POST:
-                tipo = TipoMateriaLegislativa.objects.get(
-                    id=form.cleaned_data['tipo_materia'])
-
                 numeracao.materia = materia
-                numeracao.tipo_materia = tipo
+                numeracao.tipo_materia = form.cleaned_data['tipo_materia']
                 numeracao.numero_materia = form.cleaned_data['numero_materia']
                 numeracao.ano_materia = form.cleaned_data['ano_materia']
                 numeracao.data_materia = form.cleaned_data['data_materia']
-
                 numeracao.save()
-            return self.form_valid(form)
+            return redirect(self.get_success_url())
         else:
             return self.render_to_response({'form': form,
                                             'object': materia,

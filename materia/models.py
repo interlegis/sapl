@@ -309,8 +309,7 @@ class Numeracao(models.Model):
                                       verbose_name=_('Número'))
     ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                                    choices=RANGE_ANOS)
-    data_materia = models.DateField(
-        blank=True, verbose_name=_('Data'))
+    data_materia = models.DateField(verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Numeração')

@@ -313,26 +313,22 @@ class NumeracaoForm(ModelForm):
                   'ano_materia',
                   'data_materia']
 
-        widgets = {
-            'data_materia': forms.DateInput(attrs={'class': 'dateinput'}),
-            'ano_materia': forms.Select(attrs={'class': 'selector'}),
-        }
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, excluir=False, *args, **kwargs):
+        more = []
+        if excluir:
+            more = [Submit('Excluir', 'Excluir')]
 
         row1 = crispy_layout_mixin.to_row(
             [('tipo_materia', 12)])
         row2 = crispy_layout_mixin.to_row(
-            [('numero_materia', 4),
-             ('ano_materia', 4),
-             ('data_materia', 4)])
+            [('numero_materia', 4), ('ano_materia', 4), ('data_materia', 4)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Incluir Numeração'),
                 row1, row2,
-                form_actions()
+                form_actions(more=more)
             )
         )
         super(NumeracaoForm, self).__init__(*args, **kwargs)
