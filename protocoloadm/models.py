@@ -122,7 +122,7 @@ class Protocolo(models.Model):
     user_anulacao = models.CharField(max_length=20, blank=True)
     ip_anulacao = models.CharField(max_length=15, blank=True)
     justificativa_anulacao = models.CharField(
-        max_length=60, blank=True)
+        max_length=60, blank=True, verbose_name='Motivo')
     timestamp_anulacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
