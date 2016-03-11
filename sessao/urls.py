@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+from django.views.static import serve
 
 from sapl import settings
 from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
@@ -106,7 +107,7 @@ sessao_rest = [
 urlpatterns = [
     url(r'^sessao/', include(urlpatterns_sessao,
                              sessao_crud.namespace, sessao_crud.namespace)),
-    url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
+    url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
     url(r'^rest/', include(sessao_rest)),
     url(r'^sistema/sessao-plenaria/tipo/', include(tipo_sessao_crud.urls)),
