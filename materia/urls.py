@@ -22,11 +22,8 @@ from materia.views import (AcompanhamentoConfirmarView,
                            TramitacaoEditView, TramitacaoView,
                            UnidadeTramitacaoCrud, ProposicaoEditView)
 
-materia_legislativa_patterns, namespace = MateriaLegislativaCrud.get_urls()
-
-
 urlpatterns = [
-    url(r'^materia/', include(materia_legislativa_patterns, namespace)),
+    url(r'^materia/', include(MateriaLegislativaCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
