@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -20,15 +20,14 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
-from compilacao.forms import (NotaForm, PublicacaoForm, TaForm, TipoTaForm,
-                              VideForm, DispositivoForm)
+from compilacao.forms import (DispositivoEdicaoBasicaForm, NotaForm,
+                              PublicacaoForm, TaForm, TipoTaForm, VideForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
 from crud.base import Crud, CrudListView, make_pagination
-
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -1014,7 +1013,18 @@ class ActionsEditMixin:
         return JsonResponse(action(context), safe=False)
 
     def set_dvt(self, context):
-        return {}
+        dvt = Dispositivo.objects.get(pk=context['dispositivo_id'])
+
+        if dvt.is_relative_auto_insert():
+            dvt = dvt.dispositivo_pai
+
+        try:
+            Dispositivo.objects.all().update(dispositivo_vigencia=dvt)
+            return {'message': str(_('Dispositivo de Vigência atualizado '
+                                     'com sucesso!!!'))}
+        except:
+            return {'message': str(_('Ocorreu um erro na atualização do '
+                                     'Dispositivo de Vigência'))}
 
     def delete_item_dispositivo(self, context):
         return self.delete_bloco_dispositivo(context, bloco=False)
@@ -1040,11 +1050,15 @@ class ActionsEditMixin:
             else:
                 data['pk'] = ''
 
+        ta_base = base.ta
+
         # TODO: a linha abaixo causa atualização da tela inteira...
         # retirar a linha abaixo e identificar atualizações pontuais
         data['pai'] = [-1, ]
-
         data['message'] = str(self.remover_dispositivo(base, bloco))
+
+        ta_base.organizar_ordem_de_dispositivos()
+
         return data
 
     def remover_dispositivo(self, base, bloco):
@@ -1068,10 +1082,7 @@ class ActionsEditMixin:
                     p.fim_eficacia = None
 
                 for d in base.dispositivos_filhos_set.all():
-                    if d.tipo_dispositivo.possiveis_pais.filter(
-                            pai=base.tipo_dispositivo,
-                            perfil__padrao=True,
-                            filho_de_insercao_automatica=True).exists():
+                    if d.is_relative_auto_insert():
                         self.remover_dispositivo(d, bloco)
                     elif not bloco:
                         p.dispositivos_filhos_set.add(d)
@@ -1084,10 +1095,7 @@ class ActionsEditMixin:
                     # independente da escolha do usuário
 
                     d_nivel_old = d.nivel
-                    if d.tipo_dispositivo.possiveis_pais.filter(
-                            pai=base.tipo_dispositivo,
-                            perfil__padrao=True,
-                            filho_de_insercao_automatica=True).exists():
+                    if d.is_relative_auto_insert():
                         continue
 
                     # encontrar possível pai que será o primeiro parent
@@ -1170,7 +1178,7 @@ class ActionsEditMixin:
                             order_by('ordem').filter(
                                 ta_id=base.ta_id,
                                 ordem__gt=base.ordem,
-                                nivel__lte=base.nivel)
+                                nivel__lte=base.nivel).first()
 
                     if proximo_independente_base:
                         dcc = Dispositivo.objects.order_by('ordem').filter(
@@ -1980,7 +1988,47 @@ class PublicacaoDeleteView(CompMixin, DeleteView):
                             kwargs={'ta_id': self.kwargs['ta_id']})
 
 
-class DispositivoEditView(CompMixin, UpdateView):
+class DispositivoEdicaoBasicaView(UpdateView):
     model = Dispositivo
-    form_class = DispositivoForm
-    template_name = "crud/form.html"
+    form_class = DispositivoEdicaoBasicaForm
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'compilacao:ta_text_edit',
+            kwargs={'ta_id': self.kwargs['ta_id']}) + '#' + str(self.object.pk)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'compilacao:dispositivo_edit',
+            kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
+
+    def get_context_data(self, **kwargs):
+        return UpdateView.get_context_data(self, **kwargs)
+
+    def run_actions(self, request):
+        if 'action' in request.GET and\
+                request.GET['action'] == 'atualiza_rotulo':
+            try:
+                d = Dispositivo.objects.get(pk=self.kwargs['pk'])
+                d.dispositivo0 = int(request.GET['dispositivo0'])
+                d.dispositivo1 = int(request.GET['dispositivo1'])
+                d.dispositivo2 = int(request.GET['dispositivo2'])
+                d.dispositivo3 = int(request.GET['dispositivo3'])
+                d.dispositivo4 = int(request.GET['dispositivo4'])
+                d.dispositivo5 = int(request.GET['dispositivo5'])
+                d.rotulo = d.rotulo_padrao()
+            except:
+                return True, JsonResponse({'message': str(
+                    _('Ocorreu erro na atualização do rótulo'))}, safe=False)
+            return True, JsonResponse({'rotulo': d.rotulo}, safe=False)
+
+        return False, ''
+
+    def get(self, request, *args, **kwargs):
+
+        flag_action, render_json_response = self.run_actions(request)
+        if flag_action:
+            return render_json_response
+
+        return UpdateView.get(self, request, *args, **kwargs)

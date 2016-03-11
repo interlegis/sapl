@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+{% load compilacao_filters %}
+{% load staticfiles %}
+{% load sass_tags %}
+
+{% block head_content %}{{block.super}}
+  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+{% endblock %}
+
+{% block title %}
+  <h1><small>{{object.ta}}</small><br>{% trans 'Edição de Dispositivo' %}</h1>
+{% endblock%}
+{% block base_content %}
+  <div class="btn-group btn-group-sm" role="group">
+    {%for parent in object.get_parents_asc %}
+      {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
+        {%include template_name%}
+      {%endwith%}
+    {%endfor %}
+
+    {%with node=object active=True template_name='compilacao/dispositivo_form_parents.html' %}
+      {%include template_name%}
+    {%endwith%}
+  </div>
+  <br><br>
+  {% crispy form %}
+{% endblock %}
+
+{% block foot_js %}
+  {{block.super}}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+  <script type="text/javascript">
+
+    function atualizaRotulo() {
+
+      var formData = {
+          'dispositivo0'        : $('[name="dispositivo0"]').val(),
+          'dispositivo1'        : $('[name="dispositivo1"]').val(),
+          'dispositivo2'        : $('[name="dispositivo2"]').val(),
+          'dispositivo3'        : $('[name="dispositivo3"]').val(),
+          'dispositivo4'        : $('[name="dispositivo4"]').val(),
+          'dispositivo5'        : $('[name="dispositivo5"]').val(),
+          'action'              : 'atualiza_rotulo'
+      };
+
+      var url = '#';
+
+      $.get(url, formData).done(function(data) {
+          if (data.rotulo != undefined) {
+              $('[name="rotulo"]').val(data.rotulo);
+              return;
+          }
+        });
+    }
+
+    $(document).ready(function() {
+        {% if object.tipo_dispositivo.dispositivo_de_articulacao %}
+            setTimeout(removeTinymce, 100);
+        {% endif %}
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+  </script>
+{% endblock %}

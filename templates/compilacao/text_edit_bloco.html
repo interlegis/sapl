@@ -22,7 +22,7 @@
             <li class="edt-textarea"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:textarea" title="{% trans 'Edição simples apenas do texto'%}">E</a></li>
             <li class="edt-tinymce"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:tinymce" title="{% trans 'Editar o texto com TinyMCE'%}">E+</a></li>
           {%endif%}
-          <li class="edt-detail"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:detail" title="{% trans 'TODO: Edição detalhada'%}">E*</a></li>
+          <li class="edt-detail"><a class="btn-top" href="{% url 'compilacao:dispositivo_edit' dpt.ta_id dpt.pk %}" title="{% trans 'Edição Avançada'%}">E*</a></li>
           <li class="edt-construct"><a class="btn-top btn-action" pk="{{dpt.pk}}" action="refresh:construct" title="{% trans 'Construçao da estrutura do Texto Articulado'%}">C</a></li>
         </ul>
 
@@ -87,8 +87,19 @@
         </div>
 
         <ul class="label_status" >
-          <li>p: {{dpt.dispositivo_substituido_id}}, n: {{dpt.dispositivo_subsequente_id}}, Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
-          <li><a>.</a></li>
+          <li>p: {{dpt.dispositivo_substituido_id|default:''}}, n: {{dpt.dispositivo_subsequente_id|default:''}}, Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
+
+          {% if dpt.dispositivo_vigencia %}
+            <li>{% field_verbose_name dpt 'dispositivo_vigencia'%}: <a action="refresh" pk="{{dpt.dispositivo_vigencia.pk}}" title="{% field_verbose_name dpt 'dispositivo_vigencia'%}" class="btn-action">{{dpt.dispositivo_vigencia|nomenclatura}}</a> </li>
+          {% endif %}
+
+          <li>
+          <a type="button" data-toggle="modal" data-target="#modal-help">
+            ?
+          </a>
+        </li>
+
+
         </ul>
 
         <ul class="btns-action actions_parents">

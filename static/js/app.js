@@ -1,8 +1,24 @@
+function initTinymce() {
+	removeTinymce();
+    tinymce.init({
+        mode : "textareas",
+        force_br_newlines : false,
+        force_p_newlines : false,
+        forced_root_block : '',
+        plugins: ["table save code"],
+        menubar: "edit format table tools",
+        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
+        tools: "inserttable",
+        border_css: "/static/styles/style_tinymce.css",
+        content_css: "/static/styles/style_tinymce.css"
+    });
+}
 
-tinymce.init({
-              mode : "exact",
-              elements : "biografia-parlamentar,casa-informacoes"
-             });
+function removeTinymce() {
+    while (tinymce.editors.length > 0) {
+        tinymce.remove(tinymce.editors[0]);
+    }
+}
 
 function refreshDatePicker() {
     $.datepicker.setDefaults($.datepicker.regional['pt-BR']);
@@ -96,4 +112,5 @@ $(document).ready(function(){
     refreshDatePicker();
     refreshMask();
     autorModal();
+    initTinymce();
 });

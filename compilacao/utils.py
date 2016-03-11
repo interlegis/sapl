@@ -18,6 +18,8 @@ def int_to_roman(int_value):
 
 def int_to_letter(int_value):
     result = ''
+    if not int_value:
+        return '0'
     int_value -= 1
     while int_value >= 26:
         rest = int_value % 26

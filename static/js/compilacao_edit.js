@@ -1,3 +1,19 @@
+function initTinymceForEdit() {
+
+    tinymce.init({
+        mode : "textareas",
+        force_br_newlines : false,
+        force_p_newlines : false,
+        forced_root_block : '',
+        plugins: ["table save code"],
+        menubar: "edit format table tools",
+        toolbar: "save | undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
+        tools: "inserttable",
+        save_onsavecallback: onSubmitEditForm,
+        border_css: "/static/styles/compilacao_tinymce.css",
+        content_css: "/static/styles/compilacao_tinymce.css"
+    });
+}
 
 var editortype = "textarea";
 var gets = 0;
@@ -95,7 +111,6 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             }
         }
         url = pk_refresh+'/refresh?edit='+pk_edit+url;
-
     }
     else if (_action.startsWith('add_')) {
 
@@ -109,7 +124,6 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
     else if (_action.startsWith('set_')) {
 
         url = pk_refresh+'/actions?action='+_action;
-
         $("#message_block").css("display", "block");
 
     }
@@ -148,7 +162,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             }
 
             if ( _editortype == 'tinymce' ) {
-                initTinymce();
+                initTinymceForEdit();
             }
             else if (_editortype == 'textarea') {
                 $('.csform form').submit(onSubmitEditForm);
@@ -190,15 +204,10 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             $("#message_block").css("display", "block");
             clearEditSelected();
             if (data.pk != null) {
-                if (data.message != null && data.message != '') {
-
-                    modalMessage(data.message, 'alert-danger', function() {
+                if (!modalMessage(data.message, 'alert-danger', function() {
                         //refreshScreenFocusPk(data);
-                    });
-                }
-                else {
+                    }))
                     refreshScreenFocusPk(data);
-                }
             }
             else {
                 alert('Erro exclusão de Dispositivo!');
@@ -207,6 +216,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
         else {
             clearEditSelected();
             reloadFunctionClicks();
+            modalMessage(data.message, 'alert-success', null);
         }
 
     }).always(function() {
@@ -215,18 +225,22 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 }
 
 function modalMessage(message, alert, closeFunction) {
-    $('#modal-message #message').html(message);
-    $('#modal-message').modal('show');
-    if (closeFunction != null) {
+    if (message != null && message != '') {
+        $('#modal-message #message').html(message);
+        $('#modal-message').modal('show');
         $('#modal-message, #modal-message .alert button').off();
         $('#modal-message .alert').removeClass('alert-success alert-info alert-warning alert-danger alert-danger');
         $('#modal-message .alert').addClass(alert);
-        $('#modal-message').on('hidden.bs.modal', closeFunction);
+
+        if (closeFunction != null)
+            $('#modal-message').on('hidden.bs.modal', closeFunction);
+
         $('#modal-message .alert button').on('click', function() {
             $('#modal-message').modal('hide');
         });
+        return true;
     }
-
+    return false;
 }
 
 function refreshScreenFocusPk(data) {

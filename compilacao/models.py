@@ -135,6 +135,19 @@ class TextoArticulado(TimestampedMixin):
                 'numero': self.numero,
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
+    def organizar_ordem_de_dispositivos(self):
+        dpts = Dispositivo.objects.filter(ta=self)
+
+        ordem_max = dpts.last().ordem
+
+        dpts.update(ordem=F('ordem') + ordem_max)
+
+        count = 0
+        for d in dpts:
+            count += Dispositivo.INTERVALO_ORDEM
+            d.ordem = count
+            d.save()
+
 
 class TipoNota(models.Model):
     sigla = models.CharField(
@@ -543,7 +556,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     texto = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto'))
+        verbose_name=_('Texto na Norma Original'))
     texto_atualizador = models.TextField(
         blank=True,
         default='',
@@ -562,7 +575,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     inconstitucionalidade = models.BooleanField(
         default=False,
         choices=utils.YES_NO_CHOICES,
-        verbose_name=_('Inconstitucionalidade'))
+        verbose_name=_('Declaração de Inconstitucionalidade'))
     # Relevant attribute only in altering norms
     visibilidade = models.BooleanField(
         default=False,

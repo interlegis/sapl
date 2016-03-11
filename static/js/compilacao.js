@@ -1,20 +1,3 @@
-function initTinymce() {
-
-    tinymce.init({
-        mode : "textareas",
-        force_br_newlines : false,
-        force_p_newlines : false,
-        forced_root_block : '',
-        plugins: ["table save code"],
-        menubar: "edit format table tools",
-        toolbar: "save | undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
-        tools: "inserttable",
-        save_onsavecallback: onSubmitEditForm,
-        border_css: "/static/styles/compilacao_tinymce.css",
-        content_css: "/static/styles/compilacao_tinymce.css"
-    });
-}
-
 function SetCookie(cookieName,cookieValue,nDays) {
     var today = new Date();
     var expire = new Date();

@@ -1,8 +1,8 @@
 from django import template
 from django.core.signing import Signer
 from django.db.models import Q
-from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from compilacao.models import Dispositivo, TipoDispositivo
 
@@ -125,7 +125,7 @@ def nomenclatura(d):
             result = '(' + d.tipo_dispositivo.nome + ' ' + \
                 d.rotulo + ')'
     else:
-        result = '(' + d.tipo_dispositivo.nome + \
+        result = '(' + d.tipo_dispositivo.nome + ' ' + \
             d.rotulo_padrao() + ')'
     return result
 

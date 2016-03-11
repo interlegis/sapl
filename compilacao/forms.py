@@ -464,16 +464,100 @@ class PublicacaoForm(ModelForm):
         pass
 
 
-class DispositivoForm(ModelForm):
+class DispositivoIntegerField(forms.IntegerField):
+
+    def __init__(self, field_name=None, *args, **kwargs):
+
+        if 'required' not in kwargs:
+            kwargs.setdefault('required', False)
+
+        self.widget = forms.NumberInput(
+            attrs={'title': Dispositivo._meta.get_field(
+                field_name).verbose_name,
+                'onchange': 'atualizaRotulo()'})
+
+        super(DispositivoIntegerField, self).__init__(
+            min_value=0, *args, **kwargs)
+
+
+class DispositivoEdicaoBasicaForm(ModelForm):
+
+    texto = forms.CharField(
+        widget=forms.Textarea,
+        required=False)
+
+    dispositivo1 = DispositivoIntegerField(
+        label=('1&ordf; %s' % _('Variação')),
+        field_name='dispositivo1')
+    dispositivo2 = DispositivoIntegerField(
+        label=('2&ordf;'),
+        field_name='dispositivo2')
+    dispositivo3 = DispositivoIntegerField(
+        label=('3&ordf;'),
+        field_name='dispositivo3')
+    dispositivo4 = DispositivoIntegerField(
+        label=('4&ordf;'),
+        field_name='dispositivo4')
+    dispositivo5 = DispositivoIntegerField(
+        label=('5&ordf;'),
+        field_name='dispositivo5')
+
+    rotulo = forms.CharField(label=_('Rótulo Resultante'))
 
     class Meta:
         model = Dispositivo
-        fields = []
+        fields = (
+            'dispositivo0',
+            'dispositivo1',
+            'dispositivo2',
+            'dispositivo3',
+            'dispositivo4',
+            'dispositivo5',
+            'rotulo',
+            'texto')
+
+        widgets = {
+            'dispositivo0': forms.NumberInput(
+                attrs={'title': _('Valor 0(zero) é permitido apenas '
+                                  'para Dispositivos com tipos variáveis.'),
+                       'onchange': 'atualizaRotulo()'})}
 
     def __init__(self, *args, **kwargs):
-        self.helper = FormHelper()
-        """self.helper.layout = SaplFormLayout(
-            Fieldset(Publicacao._meta.verbose_name,
-                     row1, row2, row3, css_class="col-md-12"))"""
 
-        super(PublicacaoForm, self).__init__(*args, **kwargs)
+        layout = []
+
+        rotulo_fieldset = to_row([
+            ('dispositivo0', 3),
+            ('dispositivo1', 2),
+            ('dispositivo2', 1),
+            ('dispositivo3', 1),
+            ('dispositivo4', 1),
+            ('dispositivo5', 1),
+            ('rotulo', 3)
+        ])
+
+        layout.append(
+            Fieldset(
+                _('Montagem do Rótulo'),
+                rotulo_fieldset,
+                css_class="col-md-12"))
+
+        # Campo Texto
+        row_texto = to_row([('texto', 12)])
+        css_class_texto = "col-md-12"
+        if 'instance' in kwargs and\
+                kwargs['instance'].tipo_dispositivo.dispositivo_de_articulacao:
+            css_class_texto = "col-md-12 hidden"
+        layout.append(
+            Fieldset(
+                Dispositivo._meta.get_field('texto').verbose_name,
+                row_texto,
+                css_class=css_class_texto))
+
+        self.helper = FormHelper()
+        if layout:
+            self.helper.layout = SaplFormLayout(*layout)
+        else:
+            self.helper.layout = SaplFormLayout()
+
+        super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)

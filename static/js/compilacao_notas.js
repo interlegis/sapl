@@ -7,7 +7,7 @@ function onEventsDneExec(pk, model) {
 
     refreshDatePicker()
 
-    $('#dne'+pk+" #button-id-submit-form").click(onSubmitEditForm);
+    $('#dne'+pk+" #button-id-submit-form").click(onSubmitEditNVForm);
     $('#dne'+pk+" .btn-close-container").click(function(){
         $(this).closest('.dne-nota').removeClass('dne-nota');
         $(this).closest('.dne-form').html('');
@@ -88,7 +88,7 @@ var onChangeParamNorma = function(event) {
     });
 }
 
-var onSubmitEditForm = function(event) {
+var onSubmitEditNVForm = function(event) {
 
     var url = '';
     var model = 'nota';
