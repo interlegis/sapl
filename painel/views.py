@@ -14,7 +14,7 @@ from sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
 
 from .models import Cronometro
 
-cronometro_painel_crud = Crud(Cronometro, '')
+cronometro_painel_crud = Crud.build(Cronometro, '')
 
 
 def controlador_painel(request):

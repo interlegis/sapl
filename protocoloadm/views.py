@@ -26,17 +26,18 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-tipo_documento_administrativo_crud = Crud(TipoDocumentoAdministrativo, '')
-documento_administrativo_crud = Crud(DocumentoAdministrativo, '')
-documento_acessorio_administrativo_crud = Crud(
+tipo_documento_administrativo_crud = Crud.build(TipoDocumentoAdministrativo,
+                                                '')
+documento_administrativo_crud = Crud.build(DocumentoAdministrativo, '')
+documento_acessorio_administrativo_crud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-status_tramitacao_administrativo_crud = Crud(
+status_tramitacao_administrativo_crud = Crud.build(
     StatusTramitacaoAdministrativo, '')
-tramitacao_administrativo_crud = Crud(TramitacaoAdministrativo, '')
-protocolo_documento_crud = Crud(Protocolo, '')
+tramitacao_administrativo_crud = Crud.build(TramitacaoAdministrativo, '')
+protocolo_documento_crud = Crud.build(Protocolo, '')
 
 # FIXME precisa de uma chave diferente para o layout
-protocolo_materia_crud = Crud(Protocolo, '')
+protocolo_materia_crud = Crud.build(Protocolo, '')
 
 
 class ProtocoloPesquisaView(FormView):
@@ -140,7 +141,7 @@ class AnularProtocoloAdmView(FormView):
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
             protocolo.anulado = True
             protocolo.justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
-                            form.cleaned_data['justificativa_anulacao']))
+                form.cleaned_data['justificativa_anulacao']))
             protocolo.user_anulacao = form.cleaned_data['user_anulacao']
             protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
             protocolo.save()

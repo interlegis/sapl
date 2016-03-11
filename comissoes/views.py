@@ -14,10 +14,10 @@ from .forms import (CadastrarComissaoForm, ComposicaoForm,
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
-cargo_crud = Crud(CargoComissao, 'cargo_comissao')
-periodo_composicao_crud = Crud(Periodo, 'periodo_composicao_comissao')
-tipo_comissao_crud = Crud(TipoComissao, 'tipo_comissao')
-comissao_crud = Crud(Comissao, 'modulo_comissoes')
+cargo_crud = Crud.build(CargoComissao, 'cargo_comissao')
+periodo_composicao_crud = Crud.build(Periodo, 'periodo_composicao_comissao')
+tipo_comissao_crud = Crud.build(TipoComissao, 'tipo_comissao')
+comissao_crud = Crud.build(Comissao, 'modulo_comissoes')
 
 
 class CadastrarComissaoView(CreateView):
@@ -137,7 +137,7 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
         participacao = Participacao.objects.get(id=participacao_id)
         comissao = Comissao.objects.get(id=self.kwargs['pk'])
         id_parlamentar = Filiacao.objects.filter(
-                parlamentar__id=participacao.parlamentar.id).order_by('data')
+            parlamentar__id=participacao.parlamentar.id).order_by('data')
         id_parlamentar = id_parlamentar.last().id
         form = ParticipacaoCadastroForm(
             initial={'parlamentar_id': id_parlamentar},
@@ -153,7 +153,7 @@ class ComissaoParlamentarEditView(FormMixin, GenericView):
                 request.POST,
                 request.FILES,
                 instance=Participacao.objects.get(id=kwargs['id'])
-                ).save(commit=False)
+            ).save(commit=False)
 
             participacao.composicao = Composicao.objects.get(
                 id=kwargs['cd'])

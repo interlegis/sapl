@@ -21,38 +21,35 @@ from materia.views import (AcompanhamentoConfirmarView,
                            tipo_materia_crud, tipo_proposicao_crud,
                            unidade_tramitacao_crud)
 
-materia_legislativa_patterns = materia_legislativa_crud.urlpatterns
+materia_legislativa_patterns, namespace = materia_legislativa_crud.get_urls()
 
 
 urlpatterns = [
-    url(r'^materia/', include(materia_legislativa_patterns,
-                              materia_legislativa_crud.namespace,
-                              materia_legislativa_crud.namespace)),
-
+    url(r'^materia/', include(materia_legislativa_patterns, namespace)),
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
         MateriaTaView.as_view(), name='materia_ta'),
     url(r'^materia/proposicao/(?P<pk>[0-9]+)/ta$',
         ProposicaoTaView.as_view(), name='proposicao_ta'),
 
-
-    url(r'^sistema/proposicoes/tipo/', include(tipo_proposicao_crud.urls)),
-    url(r'^sistema/proposicoes/autor/', include(autor_crud.urls)),
-    url(r'^sistema/materia/tipo/', include(tipo_materia_crud.urls)),
+    url(r'^sistema/proposicoes/tipo/',
+        include(tipo_proposicao_crud.get_urls())),
+    url(r'^sistema/proposicoes/autor/', include(autor_crud.get_urls())),
+    url(r'^sistema/materia/tipo/', include(tipo_materia_crud.get_urls())),
     url(r'^sistema/materia/regime-tramitacao/',
-        include(regime_tramitacao_crud.urls)),
-    url(r'^sistema/materia/tipo-autor/', include(tipo_autor_crud.urls)),
+        include(regime_tramitacao_crud.get_urls())),
+    url(r'^sistema/materia/tipo-autor/', include(tipo_autor_crud.get_urls())),
     url(r'^sistema/materia/tipo-documento/',
-        include(tipo_documento_crud.urls)),
+        include(tipo_documento_crud.get_urls())),
     url(r'^sistema/materia/tipo-fim-relatoria/',
-        include(tipo_fim_relatoria_crud.urls)),
+        include(tipo_fim_relatoria_crud.get_urls())),
     url(r'^sistema/materia/unidade-tramitacao/',
-        include(unidade_tramitacao_crud.urls)),
-    url(r'^sistema/materia/origem/', include(origem_crud.urls)),
-    url(r'^sistema/materia/autor/', include(autor_crud.urls)),
+        include(unidade_tramitacao_crud.get_urls())),
+    url(r'^sistema/materia/origem/', include(origem_crud.get_urls())),
+    url(r'^sistema/materia/autor/', include(autor_crud.get_urls())),
     url(r'^sistema/materia/status-tramitacao/',
-        include(status_tramitacao_crud.urls)),
-    url(r'^sistema/materia/orgao/', include(orgao_crud.urls)),
+        include(status_tramitacao_crud.get_urls())),
+    url(r'^sistema/materia/orgao/', include(orgao_crud.get_urls())),
     url(r'^materia/formulario-simplificado',
         FormularioSimplificadoView.as_view(),
         name='formulario_simplificado'),

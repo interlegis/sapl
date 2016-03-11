@@ -93,12 +93,12 @@ urlpatterns = [
     url(r'^ta/', include(urlpatterns_compilacao, 'compilacao', 'compilacao')),
 
     url(r'^ta/config/tipo-nota/',
-        include(tipo_nota_crud.urls)),
+        include(tipo_nota_crud.get_urls())),
     url(r'^ta/config/tipo-vide/',
-        include(tipo_vide_crud.urls)),
+        include(tipo_vide_crud.get_urls())),
     url(r'^ta/config/tipo-publicacao/',
-        include(tipo_publicacao_crud.urls)),
+        include(tipo_publicacao_crud.get_urls())),
     url(r'^ta/config/veiculo-publicacao/',
-        include(veiculo_publicacao_crud.urls)),
+        include(veiculo_publicacao_crud.get_urls())),
 
 ]

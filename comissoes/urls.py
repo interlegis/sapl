@@ -7,7 +7,9 @@ from comissoes.views import (CadastrarComissaoView,
                              ReunioesView, cargo_crud, comissao_crud,
                              periodo_composicao_crud, tipo_comissao_crud)
 
-comissao_url_patterns = comissao_crud.urlpatterns + [
+comissao_url_patterns, namespace = comissao_crud.get_urls()
+
+comissao_url_patterns = comissao_url_patterns + [
     url(r'^(?P<pk>\d+)/composicao$',
         ComposicaoView.as_view(), name='composicao'),
     url(r'^(?P<pk>\d+)/materias-em-tramitacao$',
@@ -27,12 +29,10 @@ comissao_url_patterns = comissao_crud.urlpatterns + [
 ]
 
 urlpatterns = [
-    url(r'^comissoes/', include(comissao_url_patterns,
-                                comissao_crud.namespace,
-                                comissao_crud.namespace)),
+    url(r'^comissoes/', include(comissao_url_patterns, namespace)),
 
-    url(r'^sistema/comissoes/cargo/', include(cargo_crud.urls)),
+    url(r'^sistema/comissoes/cargo/', include(cargo_crud.get_urls())),
     url(r'^sistema/comissoes/periodo-composicao/',
-        include(periodo_composicao_crud.urls)),
-    url(r'^sistema/comissoes/tipo/', include(tipo_comissao_crud.urls)),
+        include(periodo_composicao_crud.get_urls())),
+    url(r'^sistema/comissoes/tipo/', include(tipo_comissao_crud.get_urls())),
 ]

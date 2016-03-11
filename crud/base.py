@@ -182,19 +182,18 @@ class Crud:
     @classonlymethod
     def get_urls(cls):
 
-        def _from(view):
-            return type(view.__name__, (cls.BaseMixin, view,), {
-                'model': cls.model,
-                'help_path': cls.help_path})
+        def _add_base(view):
+            class CrudViewWithBase(cls.BaseMixin, view):
+                model = cls.model
+                help_path = cls.help_path
+            CrudViewWithBase.__name__ = view.__name__
+            return CrudViewWithBase
 
-        CrudListView = _from(cls.ListView)
-        CrudCreateView = _from(cls.CreateView)
-        CrudDetailView = _from(cls.DetailView)
-        CrudUpdateView = _from(cls.UpdateView)
-        CrudDeleteView = _from(cls.DeleteView)
-
-        import ipdb
-        ipdb.set_trace()  # flake8: noqa #################O
+        CrudListView = _add_base(cls.ListView)
+        CrudCreateView = _add_base(cls.CreateView)
+        CrudDetailView = _add_base(cls.DetailView)
+        CrudUpdateView = _add_base(cls.UpdateView)
+        CrudDeleteView = _add_base(cls.DeleteView)
 
         urlpatterns = [
             url(r'^$', CrudListView.as_view(), name='list'),
@@ -206,4 +205,19 @@ class Crud:
                 CrudDeleteView.as_view(), name='delete'),
         ]
 
-        return urlpatterns, _from(object)().namespace
+        return urlpatterns, _add_base(object)().namespace
+
+    @classonlymethod
+    def build(cls, _model, _help_path):
+        class ModelCrud(cls):
+            model = _model
+            help_path = _help_path
+
+            # FIXME!!!! corrigir referencias no codigo e remover isso!!!!!
+            # fazer com #230
+            class CrudDetailView(cls.BaseMixin, cls.DetailView):
+                model = _model
+                help_path = _help_path
+
+        ModelCrud.__name__ = '%sCrud' % _model.__name__
+        return ModelCrud

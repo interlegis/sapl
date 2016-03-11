@@ -5,19 +5,19 @@ from norma.views import (NormaEditView, NormaIncluirView, NormaPesquisaView,
                          assunto_norma_crud, norma_temporario_crud,
                          tipo_norma_crud)
 
-# norma_url_patterns = norma_crud.urlpatterns + []
-norma_url_patterns = norma_temporario_crud.urlpatterns + [
+# FIXME???? usar norma_crud ????
+norma_url_patterns, namespace = norma_temporario_crud.get_urls()
+
+norma_url_patterns += [
     url(r'^norma/(?P<pk>[0-9]+)/ta$',
         NormaTaView.as_view(), name='ta')
 ]
 
 urlpatterns = [
-    url(r'^norma/', include(norma_url_patterns,
-                            norma_temporario_crud.namespace,
-                            norma_temporario_crud.namespace)),
+    url(r'^norma/', include(norma_url_patterns, namespace)),
 
-    url(r'^sistema/norma/tipo/', include(tipo_norma_crud.urls)),
-    url(r'^sistema/norma/assunto/', include(assunto_norma_crud.urls)),
+    url(r'^sistema/norma/tipo/', include(tipo_norma_crud.get_urls())),
+    url(r'^sistema/norma/assunto/', include(assunto_norma_crud.get_urls())),
 
     url(r'^norma/incluir$', NormaIncluirView.as_view(), name='norma_incluir'),
     url(r'^norma/(?P<pk>[0-9]+)/editar$',

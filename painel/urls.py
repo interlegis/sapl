@@ -15,5 +15,5 @@ urlpatterns = [
         name='painel_parlamentares'),
     url(r'^painel/votacao$', painel_votacao_view, name='painel_votacao'),
     url(r'^painel/cronometro$', cronometro_painel, name='cronometro_painel'),
-    # url(r'^painel/cronometro$', include(cronometro_painel_crud.urls)),
+    # url(r'^painel/cronometro$', include(cronometro_painel_crud.get_urls())),
 ]

@@ -21,7 +21,9 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoView, sessao_crud, tipo_expediente_crud,
                           tipo_resultado_votacao_crud, tipo_sessao_crud)
 
-urlpatterns_sessao = sessao_crud.urlpatterns + [
+urlpatterns_sessao, namespace = sessao_crud.get_urls()
+
+urlpatterns_sessao = urlpatterns_sessao + [
     url(r'^(?P<pk>\d+)/expediente$',
         ExpedienteView.as_view(), name='expediente'),
     url(r'^(?P<pk>\d+)/presenca$',
@@ -98,21 +100,19 @@ urlpatterns_sessao = sessao_crud.urlpatterns + [
         PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
 ]
 
-sessao_urls = urlpatterns_sessao, sessao_crud.namespace, sessao_crud.namespace
-
 sessao_rest = [
     url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest')
 ]
 
 urlpatterns = [
-    url(r'^sessao/', include(urlpatterns_sessao,
-                             sessao_crud.namespace, sessao_crud.namespace)),
+    url(r'^sessao/', include(urlpatterns_sessao, namespace)),
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
     url(r'^rest/', include(sessao_rest)),
-    url(r'^sistema/sessao-plenaria/tipo/', include(tipo_sessao_crud.urls)),
+    url(r'^sistema/sessao-plenaria/tipo/',
+        include(tipo_sessao_crud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
-        include(tipo_resultado_votacao_crud.urls)),
+        include(tipo_resultado_votacao_crud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-expediente/',
-        include(tipo_expediente_crud.urls))
+        include(tipo_expediente_crud.get_urls()))
 ]

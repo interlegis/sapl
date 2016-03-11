@@ -1,13 +1,11 @@
-from crud.base import Crud, ListMixin
+from crud.base import Crud, CrudListView
 
 from .models import Country
 
 
-class CountryListMixin(ListMixin):
-    paginate_by = 10
+class CountryCrud(Crud):
+    model = Country
+    help_path = 'help_path',
 
-
-country_crud = Crud(
-    Country,
-    'help_path',
-    list_mixin=CountryListMixin)
+    class ListView(CrudListView):
+        paginate_by = 10

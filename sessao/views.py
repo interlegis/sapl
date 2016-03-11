@@ -29,14 +29,14 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
 
-tipo_sessao_crud = Crud(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
-sessao_crud = Crud(SessaoPlenaria, '')
-expediente_materia_crud = Crud(ExpedienteMateria, '')
-ordem_dia_crud = Crud(OrdemDia, '')
-tipo_resultado_votacao_crud = Crud(
+tipo_sessao_crud = Crud.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
+sessao_crud = Crud.build(SessaoPlenaria, '')
+expediente_materia_crud = Crud.build(ExpedienteMateria, '')
+ordem_dia_crud = Crud.build(OrdemDia, '')
+tipo_resultado_votacao_crud = Crud.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
-tipo_expediente_crud = Crud(TipoExpediente, 'tipo_expediente')
-registro_votacao_crud = Crud(RegistroVotacao, '')
+tipo_expediente_crud = Crud.build(TipoExpediente, 'tipo_expediente')
+registro_votacao_crud = Crud.build(RegistroVotacao, '')
 
 
 class PresencaMixin:
