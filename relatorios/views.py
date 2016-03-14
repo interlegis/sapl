@@ -24,6 +24,7 @@ from .templates import (pdf_capa_processo_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
 
+uf_dic = dict(UF)
 
 def get_kwargs_params(request, fields):
     kwargs = {}
@@ -42,7 +43,6 @@ def get_cabecalho(casa):
     cabecalho = {}
     cabecalho["nom_casa"] = casa.nome
     # FIXME i18n
-    uf_dic = dict(UF)
     cabecalho["nom_estado"] = "Estado de " + uf_dic[casa.uf.upper()]
     return cabecalho
 
