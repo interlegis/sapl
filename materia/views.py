@@ -1220,108 +1220,44 @@ class MateriaLegislativaPesquisaView(FormView):
 
     def post(self, request, *args, **kwargs):
         kwargs = {}
-        form = MateriaLegislativaPesquisaForm()
-        # TODO: Autor, Relator, Localização, Origem
+        form = MateriaLegislativaPesquisaForm(request.POST)
 
-        if request.POST['tipo']:
-            kwargs['tipo'] = request.POST['tipo']
+        if form.data['tipo']:
+            kwargs['tipo'] = form.data['tipo']
 
-        if request.POST['numero']:
-            try:
-                int(request.POST['numero'])
-            except ValueError:
-                mensagem = _("Insira um número inteiro em matéria!")
-                messages.add_message(request, messages.INFO, mensagem)
-                return self.render_to_response(
-                    {'form': form})
-            else:
-                kwargs['numero'] = request.POST['numero']
+        if form.data['numero']:
+            kwargs['numero'] = form.data['numero']
 
-        if request.POST['ano']:
-            try:
-                int(request.POST['ano'])
-            except ValueError:
-                mensagem = _("Insira uma data válida em Ano da Matéria!")
-                messages.add_message(request, messages.INFO, mensagem)
-                return self.render_to_response(
-                    {'form': form})
-            else:
-                kwargs['ano'] = request.POST['ano']
+        if form.data['ano']:
+            kwargs['ano'] = form.data['ano']
 
-        if request.POST['numero_protocolo']:
-            try:
-                int(request.POST['numero_protocolo'])
-            except ValueError:
-                mensagem = _("Insira um Número de Protocolo válido!")
-                messages.add_message(request, messages.INFO, mensagem)
-                return self.render_to_response(
-                    {'form': form})
-            else:
-                kwargs['numero_protocolo'] = request.POST['numero_protocolo']
+        if form.data['numero_protocolo']:
+            kwargs['numero_protocolo'] = form.data['numero_protocolo']
 
-        if request.POST['data_apresentacao']:
-            try:
-                datetime.strptime(
-                    request.POST['data_apresentacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
-            except ValueError:
-                mensagem = _("Insira uma Data de Apresentação válida!")
-                messages.add_message(request, messages.INFO, mensagem)
-                return self.render_to_response(
-                    {'form': form})
-            else:
-                kwargs['data_apresentacao'] = datetime.strptime(
-                    request.POST['data_apresentacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+        if (form.data['apresentacao_inicial'] and
+                form.data['apresentacao_final']):
+            kwargs['apresentacao_inicial'] = form.data['apresentacao_inicial']
+            kwargs['apresentacao_final'] = form.data['apresentacao_final']
 
-        if request.POST['data_publicacao']:
-            try:
-                datetime.strptime(
-                    request.POST['data_publicacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
-            except ValueError:
-                mensagem = _("Insira uma Data de Publicação válida!")
-                messages.add_message(request, messages.INFO, mensagem)
-                return self.render_to_response(
-                    {'form': form})
-            else:
-                kwargs['data_publicacao'] = datetime.strptime(
-                    request.POST['data_publicacao'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+        if (form.data['publicacao_inicial'] and
+                form.data['publicacao_final']):
+            kwargs['publicacao_inicial'] = form.data['publicacao_inicial']
+            kwargs['publicacao_final'] = form.data['publicacao_final']
 
-        if request.POST['tramitacao']:
-            kwargs['em_tramitacao'] = request.POST['tramitacao']
+        if form.data['local_origem_externa']:
+            kwargs['local_origem_externa'] = form.data['local_origem_externa']
 
-        # Pega "palavras-chaves" que podem ter na ementa, icontains NÃO é
-        # case-sensitive
-        if request.POST['assunto']:
-            kwargs['ementa__icontains'] = request.POST['assunto']
+        if form.data['autor']:
+            kwargs['autor'] = form.data['autor']
 
-        if request.POST['autor']:
-            kwargs['autoria__autor__id'] = request.POST['autor']
+        if form.data['localizacao']:
+            kwargs['localizacao'] = form.data['localizacao']
 
-        if request.POST['relator']:
-            kwargs['relatoria__parlamentar__id'] = request.POST['relator']
+        if form.data['em_tramitacao']:
+            kwargs['em_tramitacao'] = form.data['em_tramitacao']
 
-        if request.POST['localizacao']:
-            local = request.POST['localizacao']
-            kwargs['tramitacao__unidade_tramitacao_destino'] = local
-
-        if request.POST['situacao']:
-            kwargs['tramitacao__status'] = request.POST['situacao']
-
-        if request.POST['tipo_autor']:
-            kwargs['autoria__autor__tipo'] = request.POST['tipo_autor']
-
-        if request.POST['partido_autor']:
-            kwargs['autoria__partido'] = request.POST['partido_autor']
-
-        if request.POST['ordem']:
-            kwargs['ordem'] = request.POST['ordem']
-
-        if request.POST['local_origem_externa']:
-            kwargs['local_origem_externa'] = request.POST[
-                'local_origem_externa']
+        if form.data['situacao']:
+            kwargs['situacao'] = form.data['situacao']
 
         request.session['kwargs'] = kwargs
         return redirect('pesquisar_materia_list')
@@ -1336,57 +1272,53 @@ class PesquisaMateriaListView(ListView):
     def get_queryset(self):
         kwargs = self.request.session['kwargs']
 
-        ordem = int(kwargs.pop('ordem'))
-        if ordem == 1:
-            lista_materias = MateriaLegislativa.objects.filter(
-                **kwargs).order_by('ano', 'numero').distinct()
-        else:
-            lista_materias = MateriaLegislativa.objects.filter(
-                **kwargs).order_by('-ano', '-numero').distinct()
+        materias = MateriaLegislativa.objects.all().order_by(
+            '-numero', '-ano')
 
-        materias = []
+        if 'apresentacao_inicial' in kwargs:
+            inicial = datetime.strptime(
+                kwargs['apresentacao_inicial'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
+            final = datetime.strptime(
+                kwargs['apresentacao_final'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
+            materias = materias.filter(
+                data_apresentacao__range=(inicial, final))
 
-        # Garante que a pesquisa retornará a última tramitação
-        if (kwargs.get('tramitacao__unidade_tramitacao_destino') and
-                kwargs.get('tramitacao__status')):
-            local = int(kwargs['tramitacao__unidade_tramitacao_destino'])
-            status = int(kwargs['tramitacao__status'])
-            for m in lista_materias:
-                l = m.tramitacao_set.last().unidade_tramitacao_destino_id
-                s = m.tramitacao_set.last().status_id
-                if l == local and s == status:
-                    materias.append(m)
-            return materias
+        if 'publicacao_inicial' in kwargs:
+            inicial = datetime.strptime(
+                kwargs['publicacao_inicial'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
+            final = datetime.strptime(
+                kwargs['publicacao_final'],
+                '%d/%m/%Y').strftime('%Y-%m-%d')
+            materias = materias.filter(
+                data_publicacao__range=(inicial, final))
 
-        if kwargs.get('tramitacao__unidade_tramitacao_destino'):
-            local = int(kwargs['tramitacao__unidade_tramitacao_destino'])
-            for m in lista_materias:
-                l = m.tramitacao_set.last().unidade_tramitacao_destino_id
-                if l == local:
-                    materias.append(m)
-            return materias
+        if 'tipo' in kwargs:
+            materias = materias.filter(tipo_id=kwargs['tipo'])
 
-        if kwargs.get('tramitacao__status'):
-            status = int(kwargs['tramitacao__status'])
-            for m in lista_materias:
-                s = m.tramitacao_set.last().status_id
-                if s == status:
-                    materias.append(m)
-            return materias
+        if 'numero' in kwargs:
+            materias = materias.filter(numero=kwargs['numero'])
 
-        else:
-            return lista_materias
+        if 'ano' in kwargs:
+            materias = materias.filter(ano=kwargs['ano'])
 
-    def get_context_data(self, **kwargs):
-        context = super(PesquisaMateriaListView, self).get_context_data(
-            **kwargs)
+        if 'numero_protocolo' in kwargs:
+            materias = materias.filter(numero=kwargs['numero_protocolo'])
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
+        if 'em_tramitacao' in kwargs:
+            materias = materias.filter(em_tramitacao=kwargs['em_tramitacao'])
 
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-        return context
+        if 'local_origem_externa' in kwargs:
+            materias = materias.filter(
+                local_origem_externa=kwargs['local_origem_externa'])
+
+        # autor
+        # localizao atual
+        # situacao
+
+        return materias
 
 
 class ProposicaoView(CreateView):
