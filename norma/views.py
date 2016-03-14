@@ -5,8 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.views.generic import CreateView, ListView
-from vanilla.views import GenericView
+from django.views.generic import CreateView, FormView, ListView
 
 from compilacao.views import IntegracaoTaView
 from crud import Crud, make_pagination
@@ -23,7 +22,7 @@ norma_temporario_crud = Crud(NormaJuridica, 'normajuridica')
 legislacao_citada_crud = Crud(LegislacaoCitada, '')
 
 
-class NormaPesquisaView(GenericView):
+class NormaPesquisaView(FormView):
     template_name = "norma/pesquisa.html"
 
     def get_success_url(self):

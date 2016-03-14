@@ -3,9 +3,8 @@ from functools import lru_cache
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.views.generic import FormView
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormMixin
-from vanilla import GenericView
 
 from .forms import CasaLegislativaTabelaAuxForm
 from .models import CasaLegislativa
@@ -23,7 +22,7 @@ class HelpView(TemplateView):
         return ['ajuda/%s.html' % self.kwargs['topic']]
 
 
-class CasaLegislativaTableAuxView(FormMixin, GenericView):
+class CasaLegislativaTableAuxView(FormView):
 
     template_name = "base/casa_leg_table_aux.html"
 

@@ -8,7 +8,6 @@ django-crispy-forms==1.6.0
 django-extra-views==0.7.1
 django-model-utils==2.4
 django-sass-processor==0.3.4
-django-vanilla-views==1.0.4
 django==1.9
 djangorestframework
 git+git://github.com/interlegis/trml2pdf.git

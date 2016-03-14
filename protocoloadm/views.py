@@ -11,8 +11,6 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormMixin
-from vanilla import GenericView
 
 from crud import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
@@ -488,7 +486,7 @@ class DetailDocumentoAdministrativo(DetailView):
             'pk': self.kwargs['pk']})
 
 
-class DocumentoAcessorioAdministrativoEditView(FormMixin, GenericView):
+class DocumentoAcessorioAdministrativoEditView(FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
 
     def get(self, request, *args, **kwargs):
@@ -535,7 +533,7 @@ class DocumentoAcessorioAdministrativoEditView(FormMixin, GenericView):
         return reverse('doc_ace_adm', kwargs={'pk': pk})
 
 
-class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
+class DocumentoAcessorioAdministrativoView(FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo.html"
 
     def get(self, request, *args, **kwargs):
@@ -574,7 +572,7 @@ class DocumentoAcessorioAdministrativoView(FormMixin, GenericView):
         return reverse('doc_ace_adm', kwargs={'pk': pk})
 
 
-class TramitacaoAdmView(FormMixin, GenericView):
+class TramitacaoAdmView(FormView):
     template_name = "protocoloadm/tramitacao.html"
 
     def get(self, request, *args, **kwargs):
@@ -588,7 +586,7 @@ class TramitacaoAdmView(FormMixin, GenericView):
                                         'tramitacoes': tramitacoes})
 
 
-class TramitacaoAdmIncluirView(FormMixin, GenericView):
+class TramitacaoAdmIncluirView(FormView):
     template_name = "protocoloadm/tramitacao_incluir.html"
 
     def get(self, request, *args, **kwargs):
@@ -613,7 +611,7 @@ class TramitacaoAdmIncluirView(FormMixin, GenericView):
             return self.form_invalid(form)
 
 
-class TramitacaoAdmEditView(FormMixin, GenericView):
+class TramitacaoAdmEditView(FormView):
 
     template_name = "protocoloadm/tramitacao_edit.html"
 

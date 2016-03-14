@@ -1,9 +1,7 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView
-from django.views.generic.edit import FormMixin
-from vanilla import GenericView
+from django.views.generic import CreateView, FormView, ListView
 
 from crud import Crud
 from materia.models import Tramitacao
@@ -26,7 +24,7 @@ class CadastrarComissaoView(CreateView):
     success_url = reverse_lazy('comissao:list')
 
 
-class ComposicaoView(FormMixin, GenericView):
+class ComposicaoView(FormView):
     template_name = 'comissoes/composicao.html'
 
     def get(self, request, *args, **kwargs):
@@ -76,7 +74,7 @@ class ReunioesView(comissao_crud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
 
-class ComissaoParlamentarIncluirView(FormMixin, GenericView):
+class ComissaoParlamentarIncluirView(FormView):
     template_name = "comissoes/comissao_parlamentar.html"
 
     def get(self, request, *args, **kwargs):
@@ -129,7 +127,7 @@ class ComissaoParlamentarIncluirView(FormMixin, GenericView):
         return reverse('comissao:composicao', kwargs={'pk': pk})
 
 
-class ComissaoParlamentarEditView(FormMixin, GenericView):
+class ComissaoParlamentarEditView(FormView):
     template_name = "comissoes/comissao_parlamentar_edit.html"
 
     def get(self, request, *args, **kwargs):

@@ -3,8 +3,7 @@ import os
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic.edit import FormMixin
-from vanilla import GenericView
+from django.views.generic import FormView
 
 from crud import Crud
 
@@ -32,7 +31,7 @@ tipo_afastamento_crud = Crud(TipoAfastamento, 'tipo_afastamento')
 tipo_militar_crud = Crud(SituacaoMilitar, 'tipo_situa_militar')
 
 
-class ParlamentaresView(GenericView):
+class ParlamentaresView(FormView):
     template_name = "parlamentares/parlamentares_list.html"
 
     def get(self, request, *args, **kwargs):
@@ -106,7 +105,7 @@ class ParlamentaresView(GenericView):
              'parlamentares': parlamentares})
 
 
-class ParlamentaresCadastroView(FormMixin, GenericView):
+class ParlamentaresCadastroView(FormView):
     template_name = "parlamentares/parlamentares_cadastro.html"
 
     def get_success_url(self):
@@ -140,7 +139,7 @@ class ParlamentaresCadastroView(FormMixin, GenericView):
                 {'form': form, 'legislatura_id': pk})
 
 
-class ParlamentaresEditarView(FormMixin, GenericView):
+class ParlamentaresEditarView(FormView):
     template_name = "parlamentares/parlamentares_cadastro.html"
 
     def get_success_url(self):
@@ -181,7 +180,7 @@ class ParlamentaresEditarView(FormMixin, GenericView):
             return self.render_to_response({'form': form})
 
 
-class ParlamentaresDependentesView(FormMixin, GenericView):
+class ParlamentaresDependentesView(FormView):
 
     template_name = "parlamentares/parlamentares_dependentes.html"
 
@@ -229,7 +228,7 @@ class ParlamentaresDependentesView(FormMixin, GenericView):
                  ).legislatura.id})
 
 
-class ParlamentaresDependentesEditView(FormMixin, GenericView):
+class ParlamentaresDependentesEditView(FormView):
     template_name = "parlamentares/parlamentares_dependentes_edit.html"
 
     def get_success_url(self):
@@ -266,7 +265,7 @@ class ParlamentaresDependentesEditView(FormMixin, GenericView):
                  ).legislatura_id})
 
 
-class MesaDiretoraView(FormMixin, GenericView):
+class MesaDiretoraView(FormView):
     template_name = "mesa_diretora/mesa_diretora.html"
 
     def get_success_url(self):
@@ -381,7 +380,7 @@ class MesaDiretoraView(FormMixin, GenericView):
                 })
 
 
-class FiliacaoView(FormMixin, GenericView):
+class FiliacaoView(FormView):
     template_name = "parlamentares/parlamentares_filiacao.html"
 
     def get_success_url(self):
@@ -500,7 +499,7 @@ class FiliacaoView(FormMixin, GenericView):
                 parlamentar, form, mensagem, request)
 
 
-class FiliacaoEditView(FormMixin, GenericView):
+class FiliacaoEditView(FormView):
     template_name = "parlamentares/parlamentares_filiacao_edit.html"
 
     def get_success_url(self):
@@ -617,7 +616,7 @@ class FiliacaoEditView(FormMixin, GenericView):
                  ).legislatura_id})
 
 
-class MandatoView(FormMixin, GenericView):
+class MandatoView(FormView):
     template_name = "parlamentares/parlamentares_mandato.html"
 
     def get_success_url(self):
@@ -664,7 +663,7 @@ class MandatoView(FormMixin, GenericView):
                  ).legislatura.id})
 
 
-class MandatoEditView(FormMixin, GenericView):
+class MandatoEditView(FormView):
     template_name = "parlamentares/parlamentares_mandato_edit.html"
 
     def get_success_url(self):
