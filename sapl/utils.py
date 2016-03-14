@@ -5,6 +5,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
+
 autor_label = '''
     <div class="col-xs-12">
        Autor: <span id="nome_autor"></span>

@@ -1,6 +1,5 @@
 from datetime import datetime
 from random import choice
-from re import sub
 from string import ascii_letters, digits
 
 from django.contrib import messages
@@ -10,7 +9,6 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
-from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
 

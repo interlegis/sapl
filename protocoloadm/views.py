@@ -5,7 +5,7 @@ from re import sub
 from braces.views import FormValidMessageMixin
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q, Max
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _

@@ -8,13 +8,11 @@ import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
-from parlamentares.models import Parlamentar, Partido
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
-                     Numeracao, Origem, Proposicao, Relatoria,
-                     StatusTramitacao, TipoAutor, TipoMateriaLegislativa,
-                     Tramitacao, UnidadeTramitacao)
+                     Numeracao, Proposicao, Relatoria, StatusTramitacao,
+                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 ORDENACAO_MATERIAIS = [(1, 'Crescente'),
                        (2, 'Decrescente')]
