@@ -134,11 +134,6 @@ class ParticipacaoCadastroForm(ModelForm):
                   'motivo_desligamento',
                   'observacao']
 
-        widgets = {
-            'data_designacao': forms.DateInput(format='%d/%m/%Y'),
-            'data_desligamento': forms.DateInput(format='%d/%m/%Y'),
-        }
-
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
 
@@ -159,7 +154,7 @@ class ParticipacaoCadastroForm(ModelForm):
 
         self.helper.layout = Layout(
             Fieldset(
-                _('Formulário de Cadastro'),
+                _('Cadastro de Parlamentar em Comissão'),
                 row1, row2, row3, row4
             ),
             form_actions()

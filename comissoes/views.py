@@ -34,7 +34,7 @@ class ComposicaoView(FormMixin, GenericView):
 
         composicoes = Composicao.objects.filter(
             comissao_id=self.kwargs['pk']).order_by('-periodo')
-        participacoes = Participacao.objects.all()
+        participacoes = Participacao.objects.all().order_by('parlamentar')
 
         if composicoes:
             composicao_id = composicoes.first().id
