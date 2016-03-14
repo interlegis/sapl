@@ -19,3 +19,4 @@ pyyaml==3.11
 rtyaml==0.0.2
 unipath==1.1
 python-magic==0.4.10
+gunicorn==19.4.5
