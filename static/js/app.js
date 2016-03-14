@@ -1,5 +1,8 @@
 
-tinymce.init({selector:'textarea'});
+tinymce.init({
+              mode : "exact",
+              elements : "biografia-parlamentar,casa-informacoes"
+             });
 
 function refreshDatePicker() {
     $.datepicker.setDefaults($.datepicker.regional['pt-BR']);

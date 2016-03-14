@@ -34,6 +34,8 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
+            'informacao_geral': forms.Textarea(
+                attrs={'id': 'casa-informacoes'})
         }
 
     def __init__(self, *args, **kwargs):
