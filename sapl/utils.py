@@ -5,6 +5,26 @@ from django.apps import apps
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
+autor_label = '''
+    <div class="col-xs-12">
+       Autor: <span id="nome_autor"></span>
+    </div>
+'''
+
+
+autor_modal = '''
+   <div id="modal_autor" title="Selecione o Autor" align="center">
+       <form>
+           <input id="q" type="text" />
+           <input id="pesquisar" type="submit" value="Pesquisar"
+               class="btn btn-primary btn-sm"/>
+       </form>
+       <div id="div-resultado"></div>
+       <input type="submit" id="selecionar" value="Selecionar"
+              hidden="true" />
+   </div>
+'''
+
 
 def register_all_models_in_admin(module_name):
     appname = module_name.split('.')[0]

@@ -1,10 +1,11 @@
+import json
 from datetime import date, datetime
 from re import sub
 
 from braces.views import FormValidMessageMixin
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max
-from django.http import HttpResponseRedirect
+from django.db.models import Q, Max
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
@@ -656,3 +657,35 @@ class TramitacaoAdmDeleteView(DetailView):
 
         return self.render_to_response({'documento': documento,
                                         'tramitacoes': tramitacoes})
+
+
+def pesquisa_autores(request):
+    q = ''
+    if request.method == 'GET':
+        q = request.GET.get('q', '')
+
+    autor = Autor.objects.filter(
+        Q(nome__icontains=q) |
+        Q(parlamentar__nome_parlamentar__icontains=q) |
+        Q(comissao__nome__icontains=q)
+        )
+
+    autores = []
+
+    for a in autor:
+        nome = ''
+        if a.nome:
+            nome = a.nome
+        elif a.parlamentar:
+            nome = a.parlamentar.nome_parlamentar
+        elif a.comissao:
+            nome = a.comissao.nome
+
+        autores.append((a.id, nome))
+
+    autores = sorted(autores, key=lambda x: x[1])
+
+    return HttpResponse(json.dumps(autores,
+                                   sort_keys=True,
+                                   ensure_ascii=False),
+                        content_type="application/json; charset=utf-8")

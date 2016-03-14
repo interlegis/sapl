@@ -1,10 +1,11 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Fieldset, Layout, Submit, Button, HTML
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-import sapl
+
 import crispy_layout_mixin
+import sapl
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido

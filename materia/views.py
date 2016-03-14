@@ -1404,6 +1404,7 @@ class ProposicaoEditView(CreateView):
         else:
             return self.render_to_response({'form': form})
 
+
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
     model_type_foreignkey = TipoMateriaLegislativa

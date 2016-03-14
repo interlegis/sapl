@@ -11,15 +11,15 @@ from materia.views import (AcompanhamentoConfirmarView,
                            MateriaAnexadaEditView, MateriaAnexadaView,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoEditView, NumeracaoView,
-                           PesquisaMateriaListView, ProposicaoListView,
-                           ProposicaoTaView, ProposicaoView, RelatoriaEditView,
-                           RelatoriaView, TramitacaoEditView, TramitacaoView,
-                           autor_crud, materia_legislativa_crud, orgao_crud,
-                           origem_crud, regime_tramitacao_crud,
-                           status_tramitacao_crud, tipo_autor_crud,
-                           tipo_documento_crud, tipo_fim_relatoria_crud,
-                           tipo_materia_crud, tipo_proposicao_crud,
-                           unidade_tramitacao_crud, ProposicaoEditView)
+                           PesquisaMateriaListView, ProposicaoEditView,
+                           ProposicaoListView, ProposicaoTaView,
+                           ProposicaoView, RelatoriaEditView, RelatoriaView,
+                           TramitacaoEditView, TramitacaoView, autor_crud,
+                           materia_legislativa_crud, orgao_crud, origem_crud,
+                           regime_tramitacao_crud, status_tramitacao_crud,
+                           tipo_autor_crud, tipo_documento_crud,
+                           tipo_fim_relatoria_crud, tipo_materia_crud,
+                           tipo_proposicao_crud, unidade_tramitacao_crud)
 
 materia_legislativa_patterns = materia_legislativa_crud.urlpatterns
 
