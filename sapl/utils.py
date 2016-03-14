@@ -87,7 +87,7 @@ def listify(function):
         return list(function(*args, **kwargs))
     return f
 
-UF = (
+UF = [
         ('AC', 'Acre'),
         ('AL', 'Alagoas'),
         ('AP', 'Amapá'),
@@ -116,6 +116,6 @@ UF = (
         ('SP', 'São Paulo'),
         ('TO', 'Tocantins'),
         ('EX', 'Exterior'),
-    )
+    ]
 
 RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]

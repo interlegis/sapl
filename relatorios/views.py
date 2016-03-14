@@ -42,7 +42,8 @@ def get_cabecalho(casa):
     cabecalho = {}
     cabecalho["nom_casa"] = casa.nome
     # FIXME i18n
-    cabecalho["nom_estado"] = "Estado de " + UF[casa.uf.upper()]
+    uf_dic = dict(UF)
+    cabecalho["nom_estado"] = "Estado de " + uf_dic[casa.uf.upper()]
     return cabecalho
 
 

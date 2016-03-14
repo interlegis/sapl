@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from django.views.generic.base import TemplateView
 
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 from .views import CasaLegislativaTableAuxView, HelpView
 
 urlpatterns = [
@@ -11,3 +13,7 @@ urlpatterns = [
     url(r'^casa-legislativa$',
         CasaLegislativaTableAuxView.as_view(), name='casa_legislativa'),
 ]
+
+# Fix a static asset finding error on Django 1.9 + gunicorn:
+# http://stackoverflow.com/questions/35510373/
+urlpatterns += staticfiles_urlpatterns()
