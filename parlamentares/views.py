@@ -1,9 +1,10 @@
 import os
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView
+from django.views.generic import CreateView, FormView, UpdateView
+from django.http import HttpResponseRedirect
 
 from crud import Crud
 
@@ -105,38 +106,26 @@ class ParlamentaresView(FormView):
              'parlamentares': parlamentares})
 
 
-class ParlamentaresCadastroView(FormView):
+class ParlamentaresCadastroView(CreateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
+    form_class = ParlamentaresForm
+    model = Parlamentar
+    success_url = reverse_lazy('parlamentares')
 
-    def get_success_url(self):
-        return reverse('parlamentares')
+    def get_context_data(self, **kwargs):
+        context = super(ParlamentaresCadastroView, self).get_context_data(**kwargs)
+        legislatura_id = self.kwargs['pk']
+        # precisa de legislatura id?
+        context.update({'legislatura_id': legislatura_id})
+        return context
 
-    def get(self, request, *args, **kwargs):
-        form = ParlamentaresForm()
-
-        pk = kwargs['pk']
-        return self.render_to_response({'form': form, 'legislatura_id': pk})
-
-    def post(self, request, *args, **kwargs):
-        form = ParlamentaresForm(request.POST)
-
-        pk = kwargs['pk']
-
-        if form.is_valid():
-            parlamentar = form.save(commit=False)
-            if 'fotografia' in request.FILES:
-                parlamentar.fotografia = request.FILES['fotografia']
-            parlamentar.biografia = form.data['biografia']
-            parlamentar.save()
-
-            mandato = Mandato()
-            mandato.parlamentar = parlamentar
-            mandato.legislatura = Legislatura.objects.get(id=pk)
-            mandato.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form, 'legislatura_id': pk})
+    def form_valid(self, form):
+        form.save()
+        mandato = Mandato()
+        mandato.parlamentar = form.instance
+        mandato.legislatura = Legislatura.objects.get(id=self.kwargs['pk'])
+        mandato.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class ParlamentaresEditarView(FormView):
@@ -180,89 +169,64 @@ class ParlamentaresEditarView(FormView):
             return self.render_to_response({'form': form})
 
 
-class ParlamentaresDependentesView(FormView):
+class ParlamentaresDependentesView(CreateView):
 
     template_name = "parlamentares/parlamentares_dependentes.html"
+    form_class = DependenteForm
+    model = Dependente
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('parlamentares_dependentes', kwargs={'pk': pk})
 
-    def get(self, request, *args, **kwargs):
-        pid = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(id=pid)
+    def get_context_data(self, **kwargs):
+        context = super(ParlamentaresDependentesView, self).get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        parlamentar = Parlamentar.objects.get(pk=pk)
         dependentes = Dependente.objects.filter(
             parlamentar=parlamentar).order_by('nome', 'tipo')
+        # precisa de legislatura_id???
+        context.update({'object': parlamentar,
+                        'dependentes': dependentes,
+                        'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+        return context
 
-        form = DependenteForm()
-
-        return self.render_to_response(
-            {'object': parlamentar,
-             'dependentes': dependentes,
-             'form': form,
-             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
-
-    def post(self, request, *args, **kwargs):
-        form = DependenteForm(request.POST)
-
-        if form.is_valid():
-            dependente = form.save(commit=False)
-
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
-            dependente.parlamentar = parlamentar
-
-            dependente.save()
-            return self.form_valid(form)
-        else:
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
-            dependentes = Dependente.objects.filter(
-                parlamentar=parlamentar).order_by('nome', 'tipo')
-
-            return self.render_to_response(
-                {'object': parlamentar,
-                 'dependentes': dependentes,
-                 'form': form,
-                 'legislatura_id': parlamentar.mandato_set.last(
-                 ).legislatura.id})
+    def form_valid(self, form):
+        parlamentar_id = self.kwargs['pk']
+        dependente = form.save(commit=False)
+        parlamentar = Parlamentar.objects.get(id=parlamentar_id)
+        dependente.parlamentar = parlamentar
+        dependente.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
-class ParlamentaresDependentesEditView(FormView):
+class ParlamentaresDependentesEditView(UpdateView):
     template_name = "parlamentares/parlamentares_dependentes_edit.html"
+    form_class = DependenteEditForm
+    model = Dependente
+    pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('parlamentares_dependentes', kwargs={'pk': pk})
 
-    def get(self, request, *args, **kwargs):
-        dependente = Dependente.objects.get(id=kwargs['dk'])
-        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
-        form = DependenteEditForm(instance=dependente)
-        return self.render_to_response(
-            {'form': form,
-             'object': parlamentar,
-             'legislatura_id': dependente.parlamentar.mandato_set.last(
-             ).legislatura_id})
 
-    def post(self, request, *args, **kwargs):
-        dependente = Dependente.objects.get(id=kwargs['dk'])
-        form = DependenteEditForm(request.POST, instance=dependente)
-        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
+    def get_context_data(self, **kwargs):
+        context = super(ParlamentaresDependentesEditView, self).get_context_data(**kwargs)
+        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
+        context.update({
+         'object': parlamentar,
+         'legislatura_id': parlamentar.mandato_set.last(
+         ).legislatura_id}
+        )
+        return context
 
-        if form.is_valid():
-
-            if 'salvar' in request.POST:
-                dependente.save()
-            elif 'excluir' in request.POST:
-                dependente.delete()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': parlamentar,
-                 'legislatura_id': dependente.parlamentar.mandato_set.last(
-                 ).legislatura_id})
+    def form_valid(self, form):
+        if 'salvar' in request.POST:
+            form.save()
+        elif 'excluir' in request.POST:
+            dependente = form.instance
+            dependente.delete()
 
 
 class MesaDiretoraView(FormView):
