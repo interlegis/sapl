@@ -1,5 +1,7 @@
+from datetime import date
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Field, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms import ModelForm
@@ -7,6 +9,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
+import sapl
 from crispy_layout_mixin import form_actions
 from materia.models import TipoMateriaLegislativa
 from sapl.utils import RANGE_ANOS
@@ -22,6 +25,11 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
                      ('', 'Ambos')]
 
 
+def get_range_anos():
+    return [('', 'Selecione')] \
+        + [(year, year) for year in range(date.today().year, 1960, -1)]
+
+
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
     def render(self):
@@ -30,39 +38,41 @@ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
 
 class ProtocoloForm(forms.Form):
 
+    YEARS = get_range_anos()
+
     tipo_protocolo = forms.ChoiceField(required=False,
-                                       label=_('Tipo de Protocolo'),
+                                       label='Tipo de Protocolo',
                                        choices=TIPOS_PROTOCOLO,
                                        widget=forms.Select(
                                            attrs={'class': 'selector'}))
 
     numero_protocolo = forms.CharField(
-        label=_('Número de Protocolo'), required=False)
+        label='Número de Protocolo', required=False)
+
     ano = forms.ChoiceField(required=False,
                             label='Ano',
-                            choices=RANGE_ANOS,
+                            choices=YEARS,
                             widget=forms.Select(
                                 attrs={'class': 'selector'}))
 
-    inicial = forms.DateField(label=_('Data Inicial'),
+    inicial = forms.DateField(label='Data Inicial',
                               required=False,
                               widget=forms.TextInput(
                                   attrs={'class': 'dateinput'}))
 
-    final = forms.DateField(label=_('Data Final'), required=False,
+    final = forms.DateField(label='Data Final', required=False,
                             widget=forms.TextInput(
                                 attrs={'class': 'dateinput'}))
 
     natureza_processo = forms.ChoiceField(required=False,
-                                          label=_('Natureza Processo'),
-                                          choices=NATUREZA_PROCESSO,
-                                          # widget=forms.RadioSelect(
-                                          #     renderer=HorizontalRadioRenderer)
-
-                                          )
+                                          label='Natureza Processo',
+                                          choices=[
+                                              ('0', 'Administrativo'),
+                                              ('1', 'Legislativo'),
+                                              ('', 'Ambos')])
 
     tipo_documento = forms.ModelChoiceField(
-        label=_('Tipo de Documento'),
+        label='Tipo de Documento',
         required=False,
         queryset=TipoDocumentoAdministrativo.objects.all(),
         empty_label='Selecione',
@@ -71,18 +81,13 @@ class ProtocoloForm(forms.Form):
     interessado = forms.CharField(label='Interessado', required=False)
 
     tipo_materia = forms.ModelChoiceField(
-        label=_('Tipo de Matéria'),
+        label='Tipo de Matéria',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
     )
 
-    autor = forms.ModelChoiceField(
-        label='Autor',
-        required=False,
-        queryset=Autor.objects.all().order_by('tipo'),
-        empty_label='Selecione',
-    )
+    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     assunto = forms.CharField(label='Assunto', required=False)
 
@@ -102,17 +107,30 @@ class ProtocoloForm(forms.Form):
              ('tipo_materia', 4)])
 
         row4 = crispy_layout_mixin.to_row(
-            [('interessado', 4),
-             ('autor', 4),
-             ('assunto', 4)])
+            [('interessado', 6),
+             ('assunto', 6)])
 
         row5 = crispy_layout_mixin.to_row(
+                 [('autor', 0),
+                  (Button('pesquisar',
+                          'Pesquisar Autor',
+                          css_class='btn btn-primary btn-sm'), 2),
+                  (Button('limpar',
+                          'Limpar Autor',
+                          css_class='btn btn-primary btn-sm'), 10)])
+
+        row6 = crispy_layout_mixin.to_row(
             [('natureza_processo', 12)])
 
         self.helper = FormHelper()
-        self.helper.layout = Layout(row1, row2,
+        self.helper.layout = Layout(Fieldset(_('Pesquisar Protocolo'),
+                                    row1, row2,
                                     row3, row4,
-                                    row5, form_actions(save_label='Pesquisar'))
+                                    HTML(sapl.utils.autor_label),
+                                    HTML(sapl.utils.autor_modal),
+                                    row5,
+                                    row6,
+                                    form_actions(save_label='Pesquisar')))
         super(ProtocoloForm, self).__init__(
             *args, **kwargs)
 
@@ -203,7 +221,7 @@ class ProtocoloDocumentForm(ModelForm):
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
-                                       choices=TIPOS_PROTOCOLO[1:],
+                                       choices=TIPOS_PROTOCOLO,
                                        widget=forms.RadioSelect(
                                            renderer=HorizontalRadioRenderer))
 
@@ -268,10 +286,10 @@ class ProtocoloDocumentForm(ModelForm):
             *args, **kwargs)
 
 
-class ProtocoloMateriaForm(ModelForm):
+class ProtocoloMateriaForm(forms.Form):
 
-    NUMERACAO_CHOICES = [('1', _('Sequencial por Ano')),
-                         ('2', _('Sequencial Único'))]
+    NUMERACAO_CHOICES = [('1', 'Sequencial por Ano'),
+                         ('2', 'Sequencial Único')]
 
     numeracao = forms.ChoiceField(required=True,
                                   choices=NUMERACAO_CHOICES,
@@ -280,43 +298,27 @@ class ProtocoloMateriaForm(ModelForm):
                                   label='')
 
     tipo_protocolo = forms.ChoiceField(required=True,
-                                       label=_('Tipo de Protocolo'),
-                                       choices=TIPOS_PROTOCOLO[1:],
+                                       label='Tipo de Protocolo',
+                                       choices=TIPOS_PROTOCOLO,
                                        widget=forms.RadioSelect(
                                            renderer=HorizontalRadioRenderer))
 
     tipo_materia = forms.ModelChoiceField(
-        label=_('Tipo de Matéria'),
+        label='Tipo de Matéria',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
     )
 
-    num_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
+    num_paginas = forms.CharField(label='Núm. Páginas', required=True)
     ementa = forms.CharField(
         widget=forms.Textarea, label='Ementa', required=True)
 
-    autor = forms.ModelChoiceField(
-        label='Autor',
-        required=False,
-        queryset=Autor.objects.all().order_by('tipo'),
-        empty_label='Selecione',
-    )
+    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     observacao = forms.CharField(required=True,
                                  widget=forms.Textarea,
                                  label='Observação')
-
-    class Meta:
-        model = Protocolo
-        fields = ['numeracao',
-                  'tipo_protocolo',
-                  'tipo_materia',
-                  'num_paginas',
-                  'ementa',
-                  'autor',
-                  'observacao',
-                  ]
 
     def __init__(self, *args, **kwargs):
 
@@ -327,22 +329,29 @@ class ProtocoloMateriaForm(ModelForm):
              ('tipo_protocolo', 4),
              ('num_paginas', 4)])
         row3 = crispy_layout_mixin.to_row(
-            [('ementa', 12)])
+            [('autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 2)])
         row4 = crispy_layout_mixin.to_row(
-            [('autor', 12)])
-        row5 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
+        row5 = crispy_layout_mixin.to_row(
+            [('ementa', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Protocolo - Opção de Numeração'), row1),
             Fieldset(_('Identificação da Matéria'),
                      row2,
+                     HTML(sapl.utils.autor_label),
+                     HTML(sapl.utils.autor_modal),
                      row3,
                      row4,
                      row5,
-                     HTML("&nbsp;"),
-                     form_actions(save_label=_('Protocolar Matéria'))
+                     form_actions(save_label='Protocolar Matéria')
                      )
         )
 

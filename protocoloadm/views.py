@@ -279,12 +279,14 @@ class ProtocoloMateriaView(FormView):
     form_class = ProtocoloMateriaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
 
+    def get_success_url(self):
+        return reverse('protocolo')
+
     def post(self, request, *args, **kwargs):
 
         form = ProtocoloMateriaForm(request.POST)
 
         if form.is_valid():
-
             if request.POST['numeracao'] == '1':
                 numeracao = Protocolo.objects.filter(
                     ano=date.today().year).aggregate(Max('numero'))
@@ -310,16 +312,13 @@ class ProtocoloMateriaView(FormView):
             protocolo.numero_paginas = request.POST['num_paginas']
             protocolo.observacao = sub(
                 '&nbsp;', ' ', strip_tags(request.POST['observacao']))
-
             protocolo.save()
-
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
+
 # TODO: move to Proposicao app
-
-
 class ProposicaoReceberView(TemplateView):
     template_name = "protocoloadm/proposicao_receber.html"
 

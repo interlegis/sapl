@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block detail_content %}
-{% if protocolos %}		
+{% if protocolos %}
 	<table>
 		<tr><td><h2>Resultados</h2></td>
 		</tr>
@@ -23,10 +23,10 @@
 				<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.timestamp|date:"H:m:s" }}</br>
 				<strong>Interessado:</strong> {{ p.interessado }}</br>
 				<strong>Natureza do Processo:</strong>
-					{% if p.tipo_protocolo == 0 %} 
-						Administrativo 
-					{% elif p.tipo_protocolo == 1 %} 
-						Matéria Legislativa 
+					{% if p.tipo_processo == 0 %}
+						Administrativo
+					{% elif p.tipo_processo == 1 %}
+						Matéria Legislativa
 					{% endif %}</br>
 				<strong>Classificação:</strong> {{ p.tipo_documento }} </br>
 				<p></p>
