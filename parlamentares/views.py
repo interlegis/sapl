@@ -139,7 +139,7 @@ class ParlamentaresCadastroView(FormView):
                 {'form': form, 'legislatura_id': pk})
 
 
-class ParlamentaresEditarView(UpdateView):
+class ParlamentaresEditarView(FormView):
     template_name = "parlamentares/parlamentares_cadastro.html"
     form_class = ParlamentaresForm
 
