@@ -138,11 +138,15 @@ class ParlamentaresForm (ModelForm):
                              src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
                              <br /><br />
                         <input type="submit"
-                               name="remover"
-                               id="remover"
+                               name="remover-foto"
+                               id="remover-foto"
                                class="btn btn-warning"
                                value="Remover Foto"/>
+<<<<<<< HEAD
                            {% endif %}                               
+=======
+                           {% endif %}
+>>>>>>> 490fffbf4e0e50be52d47056821e7f626ce76dcd
                          {% endif %}""", ),
                      row14,
                      form_actions())
