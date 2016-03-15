@@ -1,9 +1,11 @@
 import os
 
+from braces.views import FormMessagesMixin
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
+from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView
+from django.views.generic import CreateView, FormView, UpdateView
 
 from crud import Crud
 
@@ -139,45 +141,27 @@ class ParlamentaresCadastroView(FormView):
                 {'form': form, 'legislatura_id': pk})
 
 
-class ParlamentaresEditarView(FormView):
+class ParlamentaresEditarView(UpdateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
+    form_class = ParlamentaresEditForm
+    model = Parlamentar
+    success_url = reverse_lazy('parlamentares')
 
-    def get_success_url(self):
-        return reverse('parlamentares')
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(pk=pk)
-        form = ParlamentaresEditForm(instance=parlamentar)
-        return self.render_to_response(
-            {'form': form, 'object': parlamentar})
-
-    def post(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(pk=pk)
-        form = ParlamentaresEditForm(request.POST, instance=parlamentar)
-
-        if form.is_valid():
-            if 'salvar' in request.POST:
-                parlamentar = form.save(commit=False)
-                if 'fotografia' in request.FILES:
-                    parlamentar.fotografia = request.FILES['fotografia']
-                parlamentar.biografia = form.data['biografia']
-                parlamentar.save()
-            elif 'excluir' in request.POST:
-                Mandato.objects.get(parlamentar=parlamentar).delete()
-                parlamentar.delete()
-            elif "remover" in request.POST:
-                try:
-                    os.unlink(parlamentar.fotografia.path)
-                except OSError:
-                    pass  # Should log this error!!!!!
-                parlamentar = form.save(commit=False)
-                parlamentar.fotografia = None
-                parlamentar.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form})
+    def form_valid(self, form):
+        parlamentar = form.instance
+        if 'salvar' in self.request.POST:
+            form.save()
+        elif 'excluir' in self.request.POST:
+            Mandato.objects.get(parlamentar=parlamentar).delete()
+            parlamentar.delete()
+        elif "remover-foto" in self.request.POST:
+            try:
+                os.unlink(parlamentar.fotografia.path)
+            except OSError:
+                pass  # Should log this error!!!!!
+            parlamentar.fotografia = None
+            parlamentar.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class ParlamentaresDependentesView(FormView):
