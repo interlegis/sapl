@@ -3,7 +3,7 @@ import os
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView
+from django.views.generic import CreateView, FormView
 
 from crud import Crud
 
@@ -139,8 +139,9 @@ class ParlamentaresCadastroView(FormView):
                 {'form': form, 'legislatura_id': pk})
 
 
-class ParlamentaresEditarView(FormView):
+class ParlamentaresEditarView(UpdateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
+    form_class = ParlamentaresForm
 
     def get_success_url(self):
         return reverse('parlamentares')
@@ -155,15 +156,14 @@ class ParlamentaresEditarView(FormView):
     def post(self, request, *args, **kwargs):
         pk = kwargs['pk']
         parlamentar = Parlamentar.objects.get(pk=pk)
-        form = ParlamentaresEditForm(request.POST, instance=parlamentar)
+
+        form = ParlamentaresEditForm(request.POST,
+                                     request.FILES,
+                                     instance=parlamentar)
 
         if form.is_valid():
             if 'salvar' in request.POST:
-                parlamentar = form.save(commit=False)
-                if 'fotografia' in request.FILES:
-                    parlamentar.fotografia = request.FILES['fotografia']
-                parlamentar.biografia = form.data['biografia']
-                parlamentar.save()
+                form.save()
             elif 'excluir' in request.POST:
                 Mandato.objects.get(parlamentar=parlamentar).delete()
                 parlamentar.delete()
@@ -172,7 +172,6 @@ class ParlamentaresEditarView(FormView):
                     os.unlink(parlamentar.fotografia.path)
                 except OSError:
                     pass  # Should log this error!!!!!
-                parlamentar = form.save(commit=False)
                 parlamentar.fotografia = None
                 parlamentar.save()
             return self.form_valid(form)

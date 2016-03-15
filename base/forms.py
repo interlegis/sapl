@@ -78,7 +78,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row3,
                 row4,
                 row5,
-                HTML("""{% if form.logotipo.value %}
+                HTML("""{% if not form.fotografia.errors and form.fotografia.value %}
                         <img class="img-responsive" width="225" height="300"
                              src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
                              <br /><br />

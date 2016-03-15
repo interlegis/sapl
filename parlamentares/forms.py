@@ -131,7 +131,9 @@ class ParlamentaresForm (ModelForm):
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
                      row11, row12, row13,
-                     HTML("""{% if form.fotografia.value %}
+                     HTML("""
+                        {% if not form.fotografia.errors %}
+                           {% if form.fotografia.value %}
                         <img class="img-responsive" width="225" height="300"
                              src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
                              <br /><br />
@@ -140,6 +142,7 @@ class ParlamentaresForm (ModelForm):
                                id="remover"
                                class="btn btn-warning"
                                value="Remover Foto"/>
+                           {% endif %}                               
                          {% endif %}""", ),
                      row14,
                      form_actions())
