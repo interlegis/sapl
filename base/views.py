@@ -38,7 +38,6 @@ class CasaLegislativaTableAuxView(FormView):
 
     def post(self, request, *args, **kwargs):
         form = CasaLegislativaTabelaAuxForm(request.POST, request.FILES)
-
         if form.is_valid():
             casa = CasaLegislativa.objects.first()
             if casa:

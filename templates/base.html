@@ -209,7 +209,20 @@
                   <span class="street-address">{{ address }}</span>
                   <br> CEP: <span class="postal-code">{{ postal_code }}</span> | Telefone: <span>{{ phone_number }}</span>
                   <br>
-                  <a href="{{url_portal}}" class="url">{% trans 'Site da Câmara' %}</a> | <a href="{{url_email}}" class="email">{% trans 'Fale Conosco' %}</a>
+                  <a href="{{url_portal}}" class="url">
+                    {% if url_portal %}
+                      {% trans 'Site da Câmara' %}
+                    {% else %}
+                      {% trans 'Site não cadastrado' %}
+                    {% endif %}
+                  </a> |
+                  <a href="{{url_email}}" class="email">
+                    {% if url_email %}
+                      {% trans 'Fale Conosco' %}
+                    {% else %}
+                      {% trans 'Email não cadastrado' %}
+                    {% endif %}
+                  </a>
                 </small>
               </address>
             </div>
