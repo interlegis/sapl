@@ -63,7 +63,9 @@ class BaseMixin(CrispyLayoutFormMixin):
         return '%s_%s' % (cls.model._meta.model_name, suffix)
 
     def resolve_url(self, suffix, args=None):
-        return reverse(self.url_name(suffix), args=args)
+        namespace = self.model._meta.app_label
+        return reverse('%s:%s' % (namespace, self.url_name(suffix)),
+                       args=args)
 
     @property
     def list_url(self):
