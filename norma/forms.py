@@ -11,6 +11,7 @@ from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 
 from .models import NormaJuridica
 
+from sapl.utils import RANGE_ANOS
 
 def get_esferas():
     return [('E', 'Estadual'),
@@ -89,16 +90,18 @@ class NormaJuridicaPesquisaForm(ModelForm):
 
 class NormaJuridicaForm(ModelForm):
 
+    # Campos de MateriaLegislativa
     tipo_materia = forms.ModelChoiceField(
         label='Matéria Legislativa',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione'
     )
-
-    numero_materia = forms.CharField(label='Número', required=False)
-
-    ano_materia = forms.CharField(label='Ano', required=False,)
+    numero_materia = forms.CharField(label='Número',
+                                     required=False)
+    ano_materia = forms.ChoiceField(label='Ano',
+                                  required=False,
+                                  choices=RANGE_ANOS)
 
     class Meta:
         model = NormaJuridica
