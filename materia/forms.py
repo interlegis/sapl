@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
@@ -38,6 +39,15 @@ class ProposicaoForm(ModelForm):
 
     ano_materia = forms.CharField(
         label='Ano', required=False)
+
+    def clean_texto_original(self):
+        texto_original = self.cleaned_data.get('texto_original', False)
+        if texto_original:
+            if texto_original.size > 5*1024*1024:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_original
+        else:
+            raise ValidationError("Não foi possível salvar o arquivo.")
 
     class Meta:
         model = Proposicao
@@ -397,6 +407,15 @@ class FormularioSimplificadoForm(ModelForm):
         widgets = {
             'data_apresentacao': forms.DateInput(attrs={'class': 'dateinput'}),
         }
+
+    def clean_texto_original(self):
+        texto_original = self.cleaned_data.get('texto_original', False)
+        if texto_original:
+            if texto_original.size > 5*1024*1024:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_original
+        else:
+            raise ValidationError("Não foi possível salvar o arquivo.")
 
     def __init__(self, *args, **kwargs):
 

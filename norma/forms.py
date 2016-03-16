@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
@@ -98,6 +99,15 @@ class NormaJuridicaForm(ModelForm):
     numero_materia = forms.CharField(label='Número', required=False)
 
     ano_materia = forms.CharField(label='Ano', required=False)
+
+    def clean_texto_integral(self):
+        texto_integral = self.cleaned_data.get('texto_integral', False)
+        if texto_integral:
+            if texto_integral.size > 5*1024*1024:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_integral
+        else:
+            raise ValidationError("Não foi possível salvar o arquivo.")
 
     class Meta:
         model = NormaJuridica
