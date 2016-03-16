@@ -502,7 +502,8 @@ def get_sessao_plenaria(sessao, casa):
         "%d/%m/%Y")
     inf_basicas_dic["hr_inicio_sessao"] = sessao.hora_inicio
     if sessao.data_fim:
-        inf_basicas_dic["dat_fim_sessao"] = sessao.data_fim.strftime("%d/%m/%Y")
+        inf_basicas_dic["dat_fim_sessao"] = \
+            sessao.data_fim.strftime("%d/%m/%Y")
     else:
         inf_basicas_dic["dat_fim_sessao"] = ''
     inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
