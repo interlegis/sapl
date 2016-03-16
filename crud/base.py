@@ -55,12 +55,12 @@ def make_pagination(index, num_pages):
 
 class BaseMixin(CrispyLayoutFormMixin):
 
-    @classmethod
-    def url_name(cls, suffix):
-        return '%s_%s' % (cls.model._meta.model_name, suffix)
+    @property
+    def namespace(self):
+        return self.model._meta.model_name
 
-    def resolve_url(self, suffix, args=None):
-        return reverse(self.url_name(suffix), args=args)
+    def resolve_url(self, url_name, args=None):
+        return reverse('%s:%s' % (self.namespace, url_name), args=args)
 
     @property
     def list_url(self):
@@ -195,13 +195,17 @@ class Crud:
         CrudUpdateView = _add_base(cls.UpdateView)
         CrudDeleteView = _add_base(cls.DeleteView)
 
-        return [url(regex, view.as_view(), name=view.url_name(suffix))
-                for regex, view, suffix in [
-                    (r'^$', CrudListView, 'list'),
-                    (r'^create$', CrudCreateView, 'create'),
-                    (r'^(?P<pk>\d+)$', CrudDetailView, 'detail'),
-                    (r'^(?P<pk>\d+)/edit$', CrudUpdateView, 'update'),
-                    (r'^(?P<pk>\d+)/delete$', CrudDeleteView, 'delete'), ]]
+        urlpatterns = [
+            url(r'^$', CrudListView.as_view(), name='list'),
+            url(r'^create$', CrudCreateView.as_view(), name='create'),
+            url(r'^(?P<pk>\d+)$', CrudDetailView.as_view(), name='detail'),
+            url(r'^(?P<pk>\d+)/edit$',
+                CrudUpdateView.as_view(), name='update'),
+            url(r'^(?P<pk>\d+)/delete$',
+                CrudDeleteView.as_view(), name='delete'),
+        ]
+
+        return urlpatterns, _add_base(object)().namespace
 
     @classonlymethod
     def build(cls, _model, _help_path):

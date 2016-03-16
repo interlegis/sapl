@@ -7,7 +7,9 @@ from comissoes.views import (CadastrarComissaoView, CargoCrud, ComissaoCrud,
                              PeriodoComposicaoCrud, ReunioesView,
                              TipoComissaoCrud)
 
-comissao_url_patterns = ComissaoCrud.get_urls() + [
+comissao_url_patterns, namespace = ComissaoCrud.get_urls()
+
+comissao_url_patterns = comissao_url_patterns + [
     url(r'^(?P<pk>\d+)/composicao$',
         ComposicaoView.as_view(), name='composicao'),
     url(r'^(?P<pk>\d+)/materias-em-tramitacao$',
@@ -27,7 +29,7 @@ comissao_url_patterns = ComissaoCrud.get_urls() + [
 ]
 
 urlpatterns = [
-    url(r'^comissoes/', include(comissao_url_patterns)),
+    url(r'^comissoes/', include(comissao_url_patterns, namespace)),
 
     url(r'^sistema/comissoes/cargo/', include(CargoCrud.get_urls())),
     url(r'^sistema/comissoes/periodo-composicao/',

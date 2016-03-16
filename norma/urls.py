@@ -14,13 +14,15 @@ from norma.views import (AssuntoNormaCrud, NormaEditView, NormaIncluirView,
 # o código abaixo:
 # url(r'^norma/(?P<pk>[0-9]+)/ta$', NormaTaView.as_view(), name='ta')
 # bem como a classe NormaTaView que está em norma.views
-norma_url_patterns = NormaTemporarioCrud.get_urls() + [
+norma_url_patterns, namespace = NormaTemporarioCrud.get_urls()
+
+norma_url_patterns += [
     url(r'^norma/(?P<pk>[0-9]+)/ta$',
         NormaTaView.as_view(), name='ta')
 ]
 
 urlpatterns = [
-    url(r'^norma/', include(norma_url_patterns)),
+    url(r'^norma/', include(norma_url_patterns, namespace)),
 
     url(r'^sistema/norma/tipo/', include(TipoNormaCrud.get_urls())),
     url(r'^sistema/norma/assunto/', include(AssuntoNormaCrud.get_urls())),
