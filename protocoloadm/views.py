@@ -115,39 +115,30 @@ class ProtocoloListView(ListView):
         return context
 
 
-class AnularProtocoloAdmView(FormView):
+class AnularProtocoloAdmView(CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = AnularProcoloAdmForm
-    success_url = reverse_lazy('anular_protocolo')
     form_valid_message = _('Protocolo anulado com sucesso!')
+
+    def get_success_url(self):
+        return reverse('protocolo')
 
     def get_initial(self):
         initial_data = {}
         initial_data['user_anulacao'] = self.request.user.username
         initial_data['ip_anulacao'] = get_client_ip(self.request)
-        initial_data['anulado'] = True
         return initial_data
 
-    def post(self, request, *args, **kwargs):
-
-        form = AnularProcoloAdmForm(request.POST)
-
-        if form.is_valid():
-
-            numero = form.cleaned_data['numero']
-            ano = form.cleaned_data['ano']
-
-            protocolo = Protocolo.objects.get(numero=numero, ano=ano)
-            protocolo.anulado = True
-            protocolo.justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
-                form.cleaned_data['justificativa_anulacao']))
-            protocolo.user_anulacao = form.cleaned_data['user_anulacao']
-            protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
-            protocolo.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+    def form_valid(self, form):
+        protocolo = Protocolo.objects.get(numero=form.cleaned_data['numero'],
+                                          ano=form.cleaned_data['ano'])
+        protocolo.anulado = True
+        protocolo.justificativa_anulacao = (
+            form.cleaned_data['justificativa_anulacao'])
+        protocolo.user_anulacao = form.cleaned_data['user_anulacao']
+        protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
+        protocolo.save()
+        return redirect(self.get_success_url())
 
 
 class ProtocoloDocumentoView(FormValidMessageMixin, FormView):
