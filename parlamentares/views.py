@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, UpdateView
 
-from crud import Crud
+from crud.base import Crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
                     FiliacaoForm, MandatoEditForm, MandatoForm,
@@ -18,19 +18,19 @@ from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
                      TipoAfastamento, TipoDependente)
 
-cargo_mesa_crud = Crud(CargoMesa, 'cargo_mesa')
-legislatura_crud = Crud(Legislatura, 'tabelas_auxiliares#legislatura')
-coligacao_crud = Crud(Coligacao, 'coligacao')
-partido_crud = Crud(Partido, 'partidos')
-dependente_crud = Crud(Dependente, '')
-sessao_legislativa_crud = Crud(SessaoLegislativa, 'sessao_legislativa')
-parlamentar_crud = Crud(Parlamentar, '')
-filiacao_crud = Crud(Filiacao, '')
-mandato_crud = Crud(Mandato, '')
-tipo_dependente_crud = Crud(TipoDependente, 'tipo_dependente')
-nivel_instrucao_crud = Crud(NivelInstrucao, 'nivel_instrucao')
-tipo_afastamento_crud = Crud(TipoAfastamento, 'tipo_afastamento')
-tipo_militar_crud = Crud(SituacaoMilitar, 'tipo_situa_militar')
+CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
+LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
+ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
+PartidoCrud = Crud.build(Partido, 'partidos')
+DependenteCrud = Crud.build(Dependente, '')
+SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
+ParlamentarCrud = Crud.build(Parlamentar, '')
+FiliacaoCrud = Crud.build(Filiacao, '')
+MandatoCrud = Crud.build(Mandato, '')
+TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
+NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
+TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
+TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
 
 class ParlamentaresView(FormView):

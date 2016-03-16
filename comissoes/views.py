@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView
 
-from crud import Crud
+from crud.base import Crud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 
@@ -12,10 +12,10 @@ from .forms import (CadastrarComissaoForm, ComposicaoForm,
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
-cargo_crud = Crud(CargoComissao, 'cargo_comissao')
-periodo_composicao_crud = Crud(Periodo, 'periodo_composicao_comissao')
-tipo_comissao_crud = Crud(TipoComissao, 'tipo_comissao')
-comissao_crud = Crud(Comissao, 'modulo_comissoes')
+CargoCrud = Crud.build(CargoComissao, 'cargo_comissao')
+PeriodoComposicaoCrud = Crud.build(Periodo, 'periodo_composicao_comissao')
+TipoComissaoCrud = Crud.build(TipoComissao, 'tipo_comissao')
+ComissaoCrud = Crud.build(Comissao, 'modulo_comissoes')
 
 
 class CadastrarComissaoView(CreateView):
@@ -66,11 +66,11 @@ class ComposicaoView(FormView):
             'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
 
-class MateriasView(comissao_crud.CrudDetailView):
+class MateriasView(ComissaoCrud.CrudDetailView):
     template_name = 'comissoes/materias.html'
 
 
-class ReunioesView(comissao_crud.CrudDetailView):
+class ReunioesView(ComissaoCrud.CrudDetailView):
     template_name = 'comissoes/reunioes.html'
 
 
@@ -135,7 +135,7 @@ class ComissaoParlamentarEditView(FormView):
         participacao = Participacao.objects.get(id=participacao_id)
         comissao = Comissao.objects.get(id=self.kwargs['pk'])
         id_parlamentar = Filiacao.objects.filter(
-                parlamentar__id=participacao.parlamentar.id).order_by('data')
+            parlamentar__id=participacao.parlamentar.id).order_by('data')
         id_parlamentar = id_parlamentar.last().id
         form = ParticipacaoCadastroForm(
             initial={'parlamentar_id': id_parlamentar},
@@ -151,7 +151,7 @@ class ComissaoParlamentarEditView(FormView):
                 request.POST,
                 request.FILES,
                 instance=Participacao.objects.get(id=kwargs['id'])
-                ).save(commit=False)
+            ).save(commit=False)
 
             participacao.composicao = Composicao.objects.get(
                 id=kwargs['cd'])

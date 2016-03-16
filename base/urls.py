@@ -1,7 +1,6 @@
 from django.conf.urls import url
-from django.views.generic.base import TemplateView
-
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.generic.base import TemplateView
 
 from .views import CasaLegislativaTableAuxView, HelpView
 

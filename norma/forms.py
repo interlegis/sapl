@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
@@ -39,14 +40,14 @@ class NormaJuridicaPesquisaForm(ModelForm):
                                         format='%d/%m/%Y',
                                         attrs={'class': 'dateinput'}))
 
-    publicação_inicial = forms.DateField(label=u'Publicação Inicial',
+    publicacao_inicial = forms.DateField(label=u'Publicação Inicial',
                                          input_formats=['%d/%m/%Y'],
                                          required=False,
                                          widget=forms.DateInput(
                                             format='%d/%m/%Y',
                                             attrs={'class': 'dateinput'}))
 
-    publicação_final = forms.DateField(label=u'Publicação Final',
+    publicacao_final = forms.DateField(label=u'Publicação Final',
                                        input_formats=['%d/%m/%Y'],
                                        required=False,
                                        widget=forms.DateInput(
@@ -60,8 +61,8 @@ class NormaJuridicaPesquisaForm(ModelForm):
                   'ano',
                   'periodo_inicial',
                   'periodo_final',
-                  'publicação_inicial',
-                  'publicação_final']
+                  'publicacao_inicial',
+                  'publicacao_final']
 
     def __init__(self, *args, **kwargs):
 
@@ -75,7 +76,7 @@ class NormaJuridicaPesquisaForm(ModelForm):
             [('periodo_inicial', 6), ('periodo_final', 6)])
 
         row4 = crispy_layout_mixin.to_row(
-            [('publicação_inicial', 6), ('publicação_final', 6)])
+            [('publicacao_inicial', 6), ('publicacao_final', 6)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -98,6 +99,15 @@ class NormaJuridicaForm(ModelForm):
     numero_materia = forms.CharField(label='Número', required=False)
 
     ano_materia = forms.CharField(label='Ano', required=False)
+
+    def clean_texto_integral(self):
+        texto_integral = self.cleaned_data.get('texto_integral', False)
+        if texto_integral:
+            if texto_integral.size > 5*1024*1024:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_integral
+        else:
+            raise ValidationError("Não foi possível salvar o arquivo.")
 
     class Meta:
         model = NormaJuridica

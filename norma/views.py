@@ -8,18 +8,18 @@ from django.shortcuts import redirect
 from django.views.generic import CreateView, FormView, ListView
 
 from compilacao.views import IntegracaoTaView
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from materia.models import MateriaLegislativa
 
 from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
-assunto_norma_crud = Crud(AssuntoNorma, 'assunto_norma_juridica')
-tipo_norma_crud = Crud(TipoNormaJuridica, 'tipo_norma_juridica')
-norma_crud = Crud(NormaJuridica, '')
-norma_temporario_crud = Crud(NormaJuridica, 'normajuridica')
-legislacao_citada_crud = Crud(LegislacaoCitada, '')
+AssuntoNormaCrud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
+TipoNormaCrud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
+NormaCrud = Crud.build(NormaJuridica, '')
+NormaTemporarioCrud = Crud.build(NormaJuridica, 'normajuridica')
+LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 
 class NormaPesquisaView(FormView):
@@ -44,9 +44,9 @@ class NormaPesquisaView(FormView):
         if form.data['periodo_inicial'] and form.data['periodo_final']:
             kwargs['periodo_inicial'] = form.data['periodo_inicial']
             kwargs['periodo_final'] = form.data['periodo_final']
-        if form.data['publicação_inicial'] and form.data['publicação_final']:
-            kwargs['publicação_inicial'] = form.data['publicação_inicial']
-            kwargs['publicação_final'] = form.data['publicação_final']
+        if form.data['publicacao_inicial'] and form.data['publicacao_final']:
+            kwargs['publicacao_inicial'] = form.data['publicacao_inicial']
+            kwargs['publicacao_final'] = form.data['publicacao_final']
 
         request.session['kwargs'] = kwargs
         return redirect('list_pesquisa_norma')
@@ -68,16 +68,16 @@ class PesquisaNormaListView(ListView):
             periodo_final = datetime.strptime(
                 kwargs['periodo_final'],
                 '%d/%m/%Y').strftime('%Y-%m-%d')
-            publicação_inicial = datetime.strptime(
-                kwargs['publicação_inicial'],
+            publicacao_inicial = datetime.strptime(
+                kwargs['publicacao_inicial'],
                 '%d/%m/%Y').strftime('%Y-%m-%d')
-            publicação_final = datetime.strptime(
-                kwargs['publicação_final'],
+            publicacao_final = datetime.strptime(
+                kwargs['publicacao_final'],
                 '%d/%m/%Y').strftime('%Y-%m-%d')
 
             normas = normas.filter(
                 data__range=(periodo_inicial, periodo_final),
-                data_publicacao__range=(publicação_inicial, publicação_final))
+                data_publicacao__range=(publicacao_inicial, publicacao_final))
 
         if 'periodo_inicial' in kwargs:
             inicial = datetime.strptime(kwargs['periodo_inicial'],
@@ -87,10 +87,10 @@ class PesquisaNormaListView(ListView):
 
             normas = normas.filter(data__range=(inicial, final))
 
-        if 'publicação_inicial' in kwargs:
-            inicial = datetime.strptime(kwargs['publicação_inicial'],
+        if 'publicacao_inicial' in kwargs:
+            inicial = datetime.strptime(kwargs['publicacao_inicial'],
                                         '%d/%m/%Y').strftime('%Y-%m-%d')
-            final = datetime.strptime(kwargs['publicação_final'],
+            final = datetime.strptime(kwargs['publicacao_final'],
                                       '%d/%m/%Y').strftime('%Y-%m-%d')
 
             normas = normas.filter(data_publicacao__range=(inicial, final))

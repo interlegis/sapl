@@ -27,7 +27,7 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
-from crud import Crud, CrudListMixin, make_pagination
+from crud.base import Crud, CrudListView, make_pagination
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -42,13 +42,10 @@ DISPOSITIVO_SELECT_RELATED = (
     'ta_publicado',
     'ta',)
 
-tipo_nota_crud = Crud(TipoNota, 'tipo_nota')
-tipo_vide_crud = Crud(TipoVide, 'tipo_vide')
-tipo_publicacao_crud = Crud(TipoPublicacao, 'tipo_publicacao')
-veiculo_publicacao_crud = Crud(VeiculoPublicacao, 'veiculo_publicacao')
-perfil_estr_txt_norm = Crud(PerfilEstruturalTextoArticulado,
-                            'perfil_estrutural')
-tipo_dispositivo_crud = Crud(TipoDispositivo, 'tipo_dispositivo')
+TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
+TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
 
 
 class IntegracaoTaView(TemplateView):
@@ -1667,7 +1664,7 @@ class PublicacaoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PublicacaoListView, self).get_context_data(**kwargs)
-        context['NO_ENTRIES_MSG'] = CrudListMixin.no_entries_msg
+        context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
         return context
 
 
