@@ -46,10 +46,6 @@ TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-# FIXME evite nomes de classe e funcoes abreviados
-PerfilEstrTxtNorm = Crud.build(PerfilEstruturalTextoArticulado,
-                               'perfil_estrutural')
-TipoDispositivoCrud = Crud.build(TipoDispositivo, 'tipo_dispositivo')
 
 
 class IntegracaoTaView(TemplateView):
