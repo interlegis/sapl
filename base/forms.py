@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Fieldset, Layout
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
@@ -37,6 +38,15 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             'informacao_geral': forms.Textarea(
                 attrs={'id': 'casa-informacoes'})
         }
+
+    def clean_logotipo(self):
+        logotipo = self.cleaned_data.get('logotipo', False)
+        if logotipo:
+            if logotipo.size > 2*1024*1024:
+                raise ValidationError("Imagem muito grande. ( > 2mb )")
+            return logotipo
+        else:
+            raise ValidationError("Não foi possível salvar a imagem.")
 
     def __init__(self, *args, **kwargs):
 
