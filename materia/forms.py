@@ -46,8 +46,6 @@ class ProposicaoForm(ModelForm):
             if texto_original.size > 5*1024*1024:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_original
-        else:
-            raise ValidationError("Não foi possível salvar o arquivo.")
 
     class Meta:
         model = Proposicao

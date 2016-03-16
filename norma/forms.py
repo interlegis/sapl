@@ -109,8 +109,6 @@ class NormaJuridicaForm(ModelForm):
             if texto_integral.size > 5*1024*1024:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_integral
-        else:
-            raise ValidationError("Não foi possível salvar o arquivo.")
 
     class Meta:
         model = NormaJuridica

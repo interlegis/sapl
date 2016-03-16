@@ -99,8 +99,6 @@ class SessaoForm(ModelForm):
             if url_audio.size > 5*1024*1024:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return url_audio
-        else:
-            raise ValidationError("Não foi possível salvar o arquivo.")
 
     def clean_url_video(self):
         url_video = self.cleaned_data.get('url_video', False)
@@ -108,8 +106,6 @@ class SessaoForm(ModelForm):
             if url_video.size > 5*1024*1024:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return url_video
-        else:
-            raise ValidationError("Não foi possível salvar o arquivo.")
 
     def __init__(self, *args, **kwargs):
 

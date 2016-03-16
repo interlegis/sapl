@@ -37,8 +37,6 @@ class ParlamentaresForm (ModelForm):
             if fotografia.size > 2*1024*1024:
                 raise ValidationError('Imagem muito grande. ( > 2mb )')
             return fotografia
-        else:
-            raise ValidationError('Não foi possível salvar a imagem.')
 
     class Meta:
         model = Parlamentar
