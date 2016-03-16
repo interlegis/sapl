@@ -2,10 +2,10 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.views.generic import CreateView, FormView, ListView
+from django.views.generic import CreateView, FormView, ListView, UpdateView
 
 from compilacao.views import IntegracaoTaView
 from crud import Crud, make_pagination
@@ -24,13 +24,8 @@ legislacao_citada_crud = Crud(LegislacaoCitada, '')
 
 class NormaPesquisaView(FormView):
     template_name = "norma/pesquisa.html"
-
-    def get_success_url(self):
-        return reverse('normajuridica:norma_pesquisa')
-
-    def get(self, request, *args, **kwargs):
-        form = NormaJuridicaPesquisaForm()
-        return self.render_to_response({'form': form})
+    success_url = "normajuridica:norma_pesquisa"
+    form_class = NormaJuridicaPesquisaForm
 
     def post(self, request, *args, **kwargs):
         form = NormaJuridicaPesquisaForm(request.POST)
@@ -120,74 +115,49 @@ class PesquisaNormaListView(ListView):
 class NormaIncluirView(CreateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
+    success_url = reverse_lazy('normajuridica:list')
 
-    def get_success_url(self):
-        return reverse('normajuridica:list')
+    def form_valid(self, form):
+        norma = form.save(commit=False)
+        norma.timestamp = datetime.now()
+        if form.cleaned_data['tipo_materia']:
+            materia = MateriaLegislativa.objects.get(
+                            tipo_id=form.data['tipo_materia'],
+                            numero=form.data['numero_materia'],
+                            ano=form.data['ano_materia'])
+            norma.materia = materia
+        norma.save()
+        return HttpResponseRedirect(self.get_success_url())
+        
 
-    def get(self, request, *args, **kwargs):
-        form = NormaJuridicaForm()
-        return self.render_to_response({'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        if form.is_valid():
-            norma = form.save(commit=False)
-
-            if form.cleaned_data['tipo_materia']:
-                try:
-                    materia = MateriaLegislativa.objects.get(
-                        tipo_id=form.cleaned_data['tipo_materia'],
-                        numero=form.cleaned_data['numero_materia'],
-                        ano=form.cleaned_data['ano_materia'])
-                except ObjectDoesNotExist:
-                    msg = 'Matéria adicionada não existe!'
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response({'form': form})
-                else:
-                    norma.materia = materia
-            norma.timestamp = datetime.now()
-            norma.save()
-            return HttpResponseRedirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form})
-
-
-class NormaEditView(CreateView):
+class NormaEditView(UpdateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
+    model = NormaJuridica
+    success_url = reverse_lazy('normajuridica:list')
 
-    def get(self, request, *args, **kwargs):
+    def get_initial(self):
+        data = super(NormaEditView, self).get_initial()
         norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
-        form = NormaJuridicaForm(instance=norma)
-        return self.render_to_response({'form': form})
+        if norma.materia:
+            data.update({
+                'tipo_materia': norma.materia.tipo,
+                'numero_materia': norma.materia.numero,
+                'ano_materia': norma.materia.ano,
+            })
+        return data
 
-    def post(self, request, *args, **kwargs):
-        norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
-        form = NormaJuridicaForm(instance=norma, data=request.POST)
-
-        if form.is_valid():
-            if form.data['tipo_materia']:
-                try:
-                    materia = MateriaLegislativa.objects.get(
-                        tipo_id=form.data['tipo_materia'],
-                        numero=form.data['numero_materia'],
-                        ano=form.data['ano_materia'])
-                except ObjectDoesNotExist:
-                    msg = 'Matéria adicionada não existe!'
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response({'form': form})
-                else:
-                    norma.materia = materia
-            norma = form.save(commit=False)
-            norma.timestamp = datetime.now()
-            norma.save()
-            return HttpResponseRedirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form})
-
-    def get_success_url(self):
-        return reverse('normajuridica:list')
+    def form_valid(self, form):
+        norma = form.save(commit=False)
+        norma.timestamp = datetime.now()
+        if form.cleaned_data['tipo_materia']:
+            materia = MateriaLegislativa.objects.get(
+                            tipo_id=form.data['tipo_materia'],
+                            numero=form.data['numero_materia'],
+                            ano=form.data['ano_materia'])
+            norma.materia = materia
+        norma.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class NormaTaView(IntegracaoTaView):
