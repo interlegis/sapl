@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 
-from .models import Dependente, Filiacao, Mandato, Parlamentar
+from .models import Dependente, Filiacao, Mandato, Parlamentar, Legislatura
 
 
 class ParlamentaresListForm(forms.Form):
@@ -162,6 +162,13 @@ class ParlamentaresEditForm(ParlamentaresForm):
 
 
 class MandatoForm(ModelForm):
+
+    legislatura = forms.ModelChoiceField(
+        label=_('Legislatura'),
+        required=False,
+        queryset=Legislatura.objects.all().order_by('-data_inicio'),
+        empty_label='----------',
+    )
 
     class Meta:
         model = Mandato
