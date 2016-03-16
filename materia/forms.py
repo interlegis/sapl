@@ -61,6 +61,17 @@ class ProposicaoForm(ModelForm):
         self.helper.layout = Layout(
             Fieldset(_('Incluir Proposição'),
                      row1, row2, row3, row4,
+                     HTML("""
+                    <div class="img-responsive" width="225" height="300"
+                      src="{{ MEDIA_URL }}{{ form.texto_original.value }}">
+                      <br /><br />
+                    <input type="submit"
+                               name="remover-texto"
+                               id="remover-texto"
+                               class="btn btn-warning"
+                               value="Remover Texto"/>
+                    <p></p>
+                           """, ),
                      form_actions(more=more))
         )
         super(ProposicaoForm, self).__init__(

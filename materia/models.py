@@ -4,7 +4,7 @@ from model_utils import Choices
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
-from sapl.utils import (restringe_tipos_de_arquivo_txt, 
+from sapl.utils import (restringe_tipos_de_arquivo_txt,
                         RANGE_ANOS, YES_NO_CHOICES, xstr)
 
 
@@ -123,7 +123,8 @@ class MateriaLegislativa(models.Model):
         blank=True,
         null=True,
         upload_to=texto_upload_path,
-        verbose_name=_('Texto Original (PDF)'))
+        verbose_name=_('Texto Original (PDF)'),
+        validators=[restringe_tipos_de_arquivo_txt])
 
     class Meta:
         verbose_name = _('Matéria Legislativa')

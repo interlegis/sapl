@@ -140,7 +140,10 @@ TIPOS_TEXTO_PERMITIDOS = (
     'widetext/paragraph',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-)
+    'application/xml',
+    'text/xml',
+    'text/html',
+    )
 
 TIPOS_IMG_PERMITIDOS = (
     'image/jpeg',
