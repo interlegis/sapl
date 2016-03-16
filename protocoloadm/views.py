@@ -141,52 +141,36 @@ class AnularProtocoloAdmView(CreateView):
         return redirect(self.get_success_url())
 
 
-class ProtocoloDocumentoView(FormValidMessageMixin, FormView):
-
+class ProtocoloDocumentoView(FormValidMessageMixin, CreateView):
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
-    success_url = reverse_lazy('protocolo')
     form_valid_message = _('Protocolo cadastrado com sucesso!')
 
-    def post(self, request, *args, **kwargs):
+    def get_success_url(self):
+        return reverse('protocolo')
 
-        form = ProtocoloDocumentForm(request.POST)
+    def form_valid(self, form):
+        f = form.save(commit=False)
 
-        if form.is_valid():
-            if form.cleaned_data['numeracao'] == '1':
-                numeracao = Protocolo.objects.filter(
-                    ano=date.today().year).aggregate(Max('numero'))
-            elif form.cleaned_data['numeracao'] == '2':
-                numeracao = Protocolo.objects.all().aggregate(Max('numero'))
-            # else:
-            #     raise ValidationError(_("Campo numeração é obrigatório"))
+        if form.cleaned_data['numeracao'] == '1':
+            numeracao = Protocolo.objects.filter(
+                ano=date.today().year).aggregate(Max('numero'))
+        elif form.cleaned_data['numeracao'] == '2':
+            numeracao = Protocolo.objects.all().aggregate(Max('numero'))
 
-            if numeracao['numero__max'] is None:
-                numeracao['numero__max'] = 0
+        if numeracao['numero__max'] is None:
+            numeracao['numero__max'] = 0
 
-            protocolo = form.save(commit=False)
-            protocolo.numero = numeracao['numero__max'] + 1
-            protocolo.ano = datetime.now().year
-            protocolo.data = datetime.now().strftime("%Y-%m-%d")
-            protocolo.hora = datetime.now().strftime("%H:%M")
-            protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            protocolo.tipo_protocolo = request.POST['tipo_protocolo']
-            protocolo.tipo_processo = '0'  # TODO validar o significado
-            protocolo.interessado = request.POST['interessado']
-            protocolo.anulado = False
-            protocolo.tipo_documento = TipoDocumentoAdministrativo.objects.get(
-                id=request.POST['tipo_documento'])
-            protocolo.assunto_ementa = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['assunto']))
-            protocolo.numero_paginas = request.POST['num_paginas']
-            protocolo.observacao = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
+        f.tipo_processo = '0'  # TODO validar o significado
+        f.anulado = False
+        f.numero = numeracao['numero__max'] + 1
+        f.ano = datetime.now().year
+        f.data = datetime.now().strftime('%Y-%m-%d')
+        f.hora = datetime.now().strftime('%H:%M')
+        f.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-            protocolo.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        f.save()
+        return redirect(self.get_success_url())
 
 
 class CriarDocumentoProtocolo(CreateView):
