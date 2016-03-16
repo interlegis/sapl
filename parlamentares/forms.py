@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 
-from .models import Dependente, Filiacao, Mandato, Parlamentar, Legislatura
+from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
 
 
 class ParlamentaresListForm(forms.Form):

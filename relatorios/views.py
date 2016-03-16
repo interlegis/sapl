@@ -26,6 +26,7 @@ from .templates import (pdf_capa_processo_gerar,
 
 uf_dic = dict(UF)
 
+
 def get_kwargs_params(request, fields):
     kwargs = {}
     for i in fields:
