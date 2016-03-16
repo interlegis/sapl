@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -21,13 +21,15 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from compilacao.forms import (DispositivoEdicaoBasicaForm, NotaForm,
-                              PublicacaoForm, TaForm, TipoTaForm, VideForm)
+                              PublicacaoForm, TaForm, TipoTaForm, VideForm,
+                              DispositivoEdicaoVigenciaForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
 from crud.base import Crud, CrudListView, make_pagination
+
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -1772,12 +1774,6 @@ class VideDeleteView(VideMixin, TemplateView):
 class DispositivoSearchFragmentFormView(ListView):
     template_name = 'compilacao/dispositivo_search_fragment_form.html'
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(
-            DispositivoSearchFragmentFormView,
-            self).dispatch(*args, **kwargs)
-
     def get_queryset(self):
         try:
             busca = ''
@@ -2003,8 +1999,8 @@ class DispositivoEdicaoBasicaView(UpdateView):
             'compilacao:dispositivo_edit',
             kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
 
-    def get_context_data(self, **kwargs):
-        return UpdateView.get_context_data(self, **kwargs)
+    def get_url_this_view(self):
+        return 'compilacao:dispositivo_edit'
 
     def run_actions(self, request):
         if 'action' in request.GET and\
@@ -2018,10 +2014,32 @@ class DispositivoEdicaoBasicaView(UpdateView):
                 d.dispositivo4 = int(request.GET['dispositivo4'])
                 d.dispositivo5 = int(request.GET['dispositivo5'])
                 d.rotulo = d.rotulo_padrao()
+
+                numero = d.get_numero_completo()[1:]
+
+                zerar = False
+                for i in range(len(numero)):
+                    if not numero[i]:
+                        zerar = True
+
+                    if zerar:
+                        numero[i] = 0
+
+                if zerar:
+                    d.set_numero_completo([d.dispositivo0, ] + numero)
+                    d.rotulo = d.rotulo_padrao()
+
             except:
                 return True, JsonResponse({'message': str(
                     _('Ocorreu erro na atualização do rótulo'))}, safe=False)
-            return True, JsonResponse({'rotulo': d.rotulo}, safe=False)
+            return True, JsonResponse({
+                'rotulo': d.rotulo,
+                'dispositivo0': d.dispositivo0,
+                'dispositivo1': d.dispositivo1,
+                'dispositivo2': d.dispositivo2,
+                'dispositivo3': d.dispositivo3,
+                'dispositivo4': d.dispositivo4,
+                'dispositivo5': d.dispositivo5}, safe=False)
 
         return False, ''
 
@@ -2032,3 +2050,27 @@ class DispositivoEdicaoBasicaView(UpdateView):
             return render_json_response
 
         return UpdateView.get(self, request, *args, **kwargs)
+
+
+class DispositivoEdicaoVigenciaView(DispositivoEdicaoBasicaView):
+    model = Dispositivo
+    form_class = DispositivoEdicaoVigenciaForm
+
+    def get_url_this_view(self):
+        return 'compilacao:dispositivo_edit_vigencia'
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'compilacao:dispositivo_edit_vigencia',
+            kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
+
+    def run_actions(self, request):
+        if 'action' in request.GET and\
+                request.GET['action'] == 'atualiza_rotulo':
+            try:
+                pass
+            except:
+                return True, JsonResponse({'message': str(
+                    _('Ocorreu erro na atualização do rótulo'))}, safe=False)
+            return True, JsonResponse({}, safe=False)
+        return False, ''

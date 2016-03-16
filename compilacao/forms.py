@@ -1,19 +1,23 @@
-from crispy_forms.bootstrap import FieldWithButtons, FormActions, StrictButton
+from crispy_forms.bootstrap import FieldWithButtons, FormActions, StrictButton,\
+    InlineRadios, Alert
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms.models import ModelForm
+from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
 from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
                                Publicacao, TextoArticulado, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
-                               VeiculoPublicacao, Vide)
+                               VeiculoPublicacao, Vide, TipoDispositivo)
 from crispy_layout_mixin import SaplFormLayout, to_column, to_row
+from sapl import utils
 from sapl.utils import YES_NO_CHOICES
+
 
 error_messages = {
     'required': _('Este campo é obrigatório'),
@@ -257,6 +261,10 @@ class NotaForm(ModelForm):
         super(NotaForm, self).__init__(*args, **kwargs)
 
 
+class DispositivoSearchFragmentForm(ModelForm):
+    pass
+
+
 class VideForm(ModelForm):
     dispositivo_base = forms.ModelChoiceField(
         queryset=Dispositivo.objects.all(),
@@ -343,7 +351,7 @@ class VideForm(ModelForm):
                                   'números ou algo'
                                   ' que estejam '
                                   'no rótulo ou no texto.')),
-                StrictButton("Buscar", css_class='btn-busca')), 12))),
+                StrictButton(_('Buscar'), css_class='btn-busca')), 12))),
             Row(to_column(
                 (Div(css_class='container-busca'), 12)))
         )
@@ -482,82 +490,156 @@ class DispositivoIntegerField(forms.IntegerField):
 
 class DispositivoEdicaoBasicaForm(ModelForm):
 
-    texto = forms.CharField(
-        widget=forms.Textarea,
-        required=False)
-
-    dispositivo1 = DispositivoIntegerField(
-        label=('1&ordf; %s' % _('Variação')),
-        field_name='dispositivo1')
-    dispositivo2 = DispositivoIntegerField(
-        label=('2&ordf;'),
-        field_name='dispositivo2')
-    dispositivo3 = DispositivoIntegerField(
-        label=('3&ordf;'),
-        field_name='dispositivo3')
-    dispositivo4 = DispositivoIntegerField(
-        label=('4&ordf;'),
-        field_name='dispositivo4')
-    dispositivo5 = DispositivoIntegerField(
-        label=('5&ordf;'),
-        field_name='dispositivo5')
-
-    rotulo = forms.CharField(label=_('Rótulo Resultante'))
-
     class Meta:
         model = Dispositivo
-        fields = (
-            'dispositivo0',
-            'dispositivo1',
-            'dispositivo2',
-            'dispositivo3',
-            'dispositivo4',
-            'dispositivo5',
-            'rotulo',
-            'texto')
-
-        widgets = {
-            'dispositivo0': forms.NumberInput(
-                attrs={'title': _('Valor 0(zero) é permitido apenas '
-                                  'para Dispositivos com tipos variáveis.'),
-                       'onchange': 'atualizaRotulo()'})}
+        fields = []
 
     def __init__(self, *args, **kwargs):
 
         layout = []
 
-        rotulo_fieldset = to_row([
-            ('dispositivo0', 3),
-            ('dispositivo1', 2),
-            ('dispositivo2', 1),
-            ('dispositivo3', 1),
-            ('dispositivo4', 1),
-            ('dispositivo5', 1),
-            ('rotulo', 3)
-        ])
+        inst = kwargs['instance'] if 'instance' in kwargs else None
 
-        layout.append(
-            Fieldset(
-                _('Montagem do Rótulo'),
-                rotulo_fieldset,
-                css_class="col-md-12"))
+        if inst and inst.tipo_dispositivo.formato_variacao0 in [
+                TipoDispositivo.FNC8, TipoDispositivo.FNCN]:
+            if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
+                for i in range(6):
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'dispositivo%s' % i)
+        else:
+            if 'rotulo' not in DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.append('rotulo')
+                for i in range(6):
+                    DispositivoEdicaoBasicaForm.Meta.fields.append(
+                        'dispositivo%s' % i)
+            # adiciona campos de rótulo no formulário
+            self.dispositivo0 = forms.IntegerField(
+                min_value=0,
+                label=Dispositivo._meta.get_field('dispositivo0').verbose_name,
+                widget=forms.NumberInput(
+                    attrs={'title': _('Valor 0(zero) é permitido apenas para '
+                                      'Dispositivos com tipos variáveis.'),
+                           'onchange': 'atualizaRotulo()'}))
+            self.dispositivo1 = DispositivoIntegerField(
+                label=('1&ordf; %s' % _('Variação')),
+                field_name='dispositivo1')
+            self.dispositivo2 = DispositivoIntegerField(
+                label=('2&ordf;'),
+                field_name='dispositivo2')
+            self.dispositivo3 = DispositivoIntegerField(
+                label=('3&ordf;'),
+                field_name='dispositivo3')
+            self.dispositivo4 = DispositivoIntegerField(
+                label=('4&ordf;'),
+                field_name='dispositivo4')
+            self.dispositivo5 = DispositivoIntegerField(
+                label=('5&ordf;'),
+                field_name='dispositivo5')
 
-        # Campo Texto
-        row_texto = to_row([('texto', 12)])
-        css_class_texto = "col-md-12"
-        if 'instance' in kwargs and\
-                kwargs['instance'].tipo_dispositivo.dispositivo_de_articulacao:
-            css_class_texto = "col-md-12 hidden"
-        layout.append(
-            Fieldset(
-                Dispositivo._meta.get_field('texto').verbose_name,
-                row_texto,
-                css_class=css_class_texto))
+            self.rotulo = forms.CharField(
+                required=False, label=_('Rótulo Resultante'))
+
+            rotulo_fieldset = to_row([
+                ('dispositivo0', 3),
+                ('dispositivo1', 2),
+                ('dispositivo2', 1),
+                ('dispositivo3', 1),
+                ('dispositivo4', 1),
+                ('dispositivo5', 1),
+                ('rotulo', 3)])
+
+            layout.append(Fieldset(_('Construção do Rótulo'), rotulo_fieldset,
+                                   css_class="col-md-12"))
+
+        if inst and inst.tipo_dispositivo.dispositivo_de_articulacao:
+            if 'texto' in DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.remove('texto')
+        else:
+            if 'texto' not in DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.append('texto')
+
+            self.texto = forms.CharField(required=False,
+                                         label='',
+                                         widget=forms.Textarea())
+            row_texto = to_row([('texto', 12)])
+            layout.append(
+                Fieldset(Dispositivo._meta.get_field('texto').verbose_name,
+                         row_texto,
+                         css_class="col-md-12"))
+
+        fields = DispositivoEdicaoBasicaForm.Meta.fields
+        if fields:
+            self.base_fields.clear()
+            for f in fields:
+                self.base_fields.update({f: getattr(self, f)})
 
         self.helper = FormHelper()
-        if layout:
-            self.helper.layout = SaplFormLayout(*layout)
-        else:
-            self.helper.layout = SaplFormLayout()
+        self.helper.layout = SaplFormLayout(
+            *layout,
+            label_cancel=_('Retornar para o Editor Sequencial'))
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
+
+
+class DispositivoEdicaoVigenciaForm(ModelForm):
+
+    inconstitucionalidade = forms.ChoiceField(
+        label=Dispositivo._meta.get_field(
+            'inconstitucionalidade').verbose_name,
+        choices=utils.YES_NO_CHOICES,
+        widget=forms.RadioSelect())
+
+    class Meta:
+        model = Dispositivo
+        fields = ['inicio_vigencia',
+                  'fim_vigencia',
+                  'inicio_eficacia',
+                  'fim_eficacia',
+                  'publicacao',
+                  'inconstitucionalidade'
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        layout = []
+
+        row_publicacao = to_row([
+            ('publicacao', 6),
+            (InlineRadios('inconstitucionalidade'), 3), ])
+        row_publicacao.fields.append(
+            Alert(
+                css_class='alert-info col-md-3',
+                content='<strong>%s</strong>%s' % (
+                    _('Dica!'), _('Inclua uma Nota de Dispositivo informando '
+                                  'sobre a Inconstitucionalidade.'))))
+
+        layout.append(
+            Fieldset(_('Registro de Publicação e Validade'),
+                     row_publicacao,
+                     css_class="col-md-12"))
+
+        row_datas = to_row([
+            ('inicio_vigencia', 3),
+            ('fim_vigencia', 3),
+            ('inicio_eficacia', 3),
+            ('fim_eficacia', 3), ])
+        layout.append(
+            Fieldset(_('Datas de Controle de Vigência'),
+                     row_datas,
+                     css_class="col-md-12"))
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            *layout,
+            label_cancel=_('Retornar para o Editor Sequencial'))
+
+        super(DispositivoEdicaoVigenciaForm, self).__init__(*args, **kwargs)
+
+        pubs = Publicacao.objects.order_by(
+            '-data', '-hora').filter(ta=self.instance.ta)
+        self.fields['publicacao'].choices = [("", "---------")] + [(
+            p.pk, _('%s realizada em %s') % (
+                p.tipo_publicacao,
+                defaultfilters.date(
+                    p.data, "d \d\e F \d\e Y"))) for p in pubs]

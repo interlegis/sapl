@@ -1,11 +1,11 @@
 from math import ceil
 from os.path import dirname, join
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -39,10 +39,10 @@ def form_actions(more=[], save_label=_('Salvar')):
 
 class SaplFormLayout(Layout):
 
-    def __init__(self, *fields):
+    def __init__(self, *fields, label_cancel=_('Cancelar')):
         buttons = form_actions(more=[
             HTML('<a href="{{ view.cancel_url }}"'
-                 ' class="btn btn-inverse">%s</a>' % _('Cancelar'))])
+                 ' class="btn btn-inverse">%s</a>' % label_cancel)])
         _fields = list(to_fieldsets(fields)) + [to_row([(buttons, 12)])]
         super(SaplFormLayout, self).__init__(*_fields)
 

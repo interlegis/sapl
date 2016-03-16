@@ -7,6 +7,16 @@
 {% block head_content %}{{block.super}}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
+{% block sections_nav %} 
+<ul class="nav nav-pills navbar-right">
+  {% url 'compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
+  {% url 'compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
+  <li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>
+  <li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>
+  <li><a href="#">{% trans 'Dispositivo Alterado' %}</a></li>
+  <li><a href="#">{% trans 'Dispositivo Alterador' %}</a></li>
+</ul>
+{% endblock sections_nav %}
 
 {% block title %}
   <h1><small>{{object.ta}}</small><br>{% trans 'Edição de Dispositivo' %}</h1>
@@ -52,6 +62,12 @@
       $.get(url, formData).done(function(data) {
           if (data.rotulo != undefined) {
               $('[name="rotulo"]').val(data.rotulo);
+              $('[name="dispositivo0"]').val(data.dispositivo0);
+              $('[name="dispositivo1"]').val(data.dispositivo1);
+              $('[name="dispositivo2"]').val(data.dispositivo2);
+              $('[name="dispositivo3"]').val(data.dispositivo3);
+              $('[name="dispositivo4"]').val(data.dispositivo4);
+              $('[name="dispositivo5"]').val(data.dispositivo5);
               return;
           }
         });

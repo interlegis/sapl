@@ -2,13 +2,13 @@
 {% load compilacao_filters %}
 
 {% if not node.dispositivos_filhos_set.exists %}
-  <a href="{% url 'compilacao:dispositivo_edit' node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
+  <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
     {{node|nomenclatura}}
   </a>
 {% else %}
 
   <div class="cp-nav-parents btn-group btn-group-sm" role="group">
-    <a href="{% url 'compilacao:dispositivo_edit' node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
+    <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
       {{node|nomenclatura}}
       <span class="caret"></span>
     </a>
@@ -16,7 +16,7 @@
     <ul class="dropdown-menu">
       <li>
         {%for parent in node.dispositivos_filhos_set.all %}
-          <a href="{% url 'compilacao:dispositivo_edit' parent.ta_id parent.pk %}">
+          <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
             {{parent|nomenclatura}}
           </a>
         {%endfor %}

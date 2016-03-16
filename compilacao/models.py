@@ -556,7 +556,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     texto = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto na Norma Original'))
+        verbose_name=_('Texto Original'))
     texto_atualizador = models.TextField(
         blank=True,
         default='',
@@ -575,7 +575,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     inconstitucionalidade = models.BooleanField(
         default=False,
         choices=utils.YES_NO_CHOICES,
-        verbose_name=_('Declaração de Inconstitucionalidade'))
+        verbose_name=_('Declarado Inconstitucional'))
     # Relevant attribute only in altering norms
     visibilidade = models.BooleanField(
         default=False,

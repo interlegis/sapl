@@ -33,8 +33,12 @@ urlpatterns_compilacao = [
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/refresh',
         views.DispositivoSimpleEditView.as_view(), name='dispositivo_refresh'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit',
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit$',
         views.DispositivoEdicaoBasicaView.as_view(), name='dispositivo_edit'),
+
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/vigencia',
+        views.DispositivoEdicaoVigenciaView.as_view(),
+        name='dispositivo_edit_vigencia'),
 
 
 
