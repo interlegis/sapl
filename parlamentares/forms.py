@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -8,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 
-from .models import Dependente, Filiacao, Mandato, Parlamentar
+from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
 
 
 class ParlamentaresListForm(forms.Form):
@@ -29,6 +30,15 @@ class ParlamentaresForm (ModelForm):
             renderer=HorizontalRadioRenderer
         )
     )
+
+    def clean_fotografia(self):
+        fotografia = self.cleaned_data.get('fotografia', False)
+        if fotografia:
+            if fotografia.size > 2*1024*1024:
+                raise ValidationError('Imagem muito grande. ( > 2mb )')
+            return fotografia
+        else:
+            raise ValidationError('Não foi possível salvar a imagem.')
 
     class Meta:
         model = Parlamentar
@@ -162,6 +172,13 @@ class ParlamentaresEditForm(ParlamentaresForm):
 
 
 class MandatoForm(ModelForm):
+
+    legislatura = forms.ModelChoiceField(
+        label=_('Legislatura'),
+        required=False,
+        queryset=Legislatura.objects.all().order_by('-data_inicio'),
+        empty_label='----------',
+    )
 
     class Meta:
         model = Mandato

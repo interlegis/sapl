@@ -2053,7 +2053,6 @@ class VotacaoExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
             yield tipo
 
     def get(self, request, *args, **kwargs):
-        # import ipdb; ipdb.set_trace()
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
