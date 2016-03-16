@@ -14,9 +14,9 @@ from crispy_layout_mixin import form_actions
 from materia.models import TipoMateriaLegislativa
 from sapl.utils import RANGE_ANOS
 
-from .models import (Autor, DocumentoAcessorioAdministrativo,
-                     DocumentoAdministrativo, Protocolo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
+                     Protocolo, TipoDocumentoAdministrativo,
+                     TramitacaoAdministrativo)
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
 

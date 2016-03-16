@@ -13,14 +13,14 @@ from materia.views import (AcompanhamentoConfirmarView,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoEditView, NumeracaoView, OrgaoCrud,
                            OrigemCrud, PesquisaMateriaListView,
-                           ProposicaoListView, ProposicaoTaView,
-                           ProposicaoView, RegimeTramitacaoCrud,
-                           RelatoriaEditView, RelatoriaView,
-                           StatusTramitacaoCrud, TipoAutorCrud,
+                           ProposicaoEditView, ProposicaoListView,
+                           ProposicaoTaView, ProposicaoView,
+                           RegimeTramitacaoCrud, RelatoriaEditView,
+                           RelatoriaView, StatusTramitacaoCrud, TipoAutorCrud,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
                            TipoMateriaCrud, TipoProposicaoCrud,
                            TramitacaoEditView, TramitacaoView,
-                           UnidadeTramitacaoCrud, ProposicaoEditView)
+                           UnidadeTramitacaoCrud)
 
 materia_legislativa_patterns, namespace = MateriaLegislativaCrud.get_urls()
 
