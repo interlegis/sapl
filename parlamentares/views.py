@@ -49,8 +49,9 @@ def validate(form, parlamentar, filiacao, request):
     id_filiacao_atual = filiacao.pk
     todas_filiacoes = parlamentar.filiacao_set.all()
 
-    for f in todas_filiacoes:
-        if not f.data_desfiliacao:
+    for filiacoes in todas_filiacoes:
+        if (not filiacoes.data_desfiliacao and
+                filiacoes.id != id_filiacao_atual):
             error_msg = _("O parlamentar não pode se filiar a algum partido \
                        sem antes se desfiliar do partido anterior")
             messages.add_message(request, messages.ERROR, error_msg)
