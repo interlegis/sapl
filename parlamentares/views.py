@@ -2,9 +2,10 @@ import os
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, UpdateView
-from django.http import HttpResponseRedirect
 
 from crud.base import Crud
 
@@ -30,6 +31,67 @@ TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
+
+
+def validate(form, parlamentar, filiacao, request):
+    data_filiacao = form.cleaned_data['data']
+    data_desfiliacao = form.cleaned_data['data_desfiliacao']
+
+    # Dá erro caso a data de desfiliação seja anterior a de filiação
+    if data_desfiliacao and data_desfiliacao < data_filiacao:
+        error_msg = _("A data de filiação não pode anterior \
+                      à data de desfiliação")
+        messages.add_message(request, messages.ERROR, error_msg)
+        return False
+
+    # Esse bloco garante que não haverá intersecção entre os
+    # períodos de filiação
+    id_filiacao_atual = filiacao.pk
+    todas_filiacoes = parlamentar.filiacao_set.all()
+
+    for f in todas_filiacoes:
+        if not f.data_desfiliacao:
+            error_msg = _("O parlamentar não pode se filiar a algum partido \
+                       sem antes se desfiliar do partido anterior")
+            messages.add_message(request, messages.ERROR, error_msg)
+            return False
+
+    error_msg = None
+    for filiacoes in todas_filiacoes:
+        if filiacoes.id != id_filiacao_atual:
+
+            data_init = filiacoes.data
+            data_fim = filiacoes.data_desfiliacao
+
+            if data_init <= data_filiacao < data_fim:
+
+                error_msg = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
+                break
+
+            if (data_desfiliacao and
+               data_init < data_desfiliacao < data_fim):
+
+                error_msg = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
+                break
+
+            if (data_desfiliacao and
+                data_filiacao <= data_init and
+                    data_desfiliacao >= data_fim):
+
+                error_msg = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
+                break
+
+    if error_msg:
+        messages.add_message(request, messages.ERROR, error_msg)
+        return False
+    else:
+        return True
 
 
 class ParlamentaresView(FormView):
@@ -110,12 +172,14 @@ class ParlamentaresCadastroView(CreateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
     form_class = ParlamentaresForm
     model = Parlamentar
-    success_url = reverse_lazy('parlamentares')
+
+    def get_success_url(self):
+        return reverse('parlamentares')
 
     def get_context_data(self, **kwargs):
-        context = super(ParlamentaresCadastroView, self).get_context_data(**kwargs)
+        context = super(ParlamentaresCadastroView, self).get_context_data(
+            **kwargs)
         legislatura_id = self.kwargs['pk']
-        # precisa de legislatura id?
         context.update({'legislatura_id': legislatura_id})
         return context
 
@@ -125,7 +189,7 @@ class ParlamentaresCadastroView(CreateView):
         mandato.parlamentar = form.instance
         mandato.legislatura = Legislatura.objects.get(id=self.kwargs['pk'])
         mandato.save()
-        return HttpResponseRedirect(self.get_success_url())
+        return redirect(self.get_success_url())
 
 
 class ParlamentaresEditarView(UpdateView):
@@ -141,7 +205,7 @@ class ParlamentaresEditarView(UpdateView):
         elif 'excluir' in self.request.POST:
             Mandato.objects.get(parlamentar=parlamentar).delete()
             parlamentar.delete()
-        elif "remover-foto" in self.request.POST:
+        elif "remover" in self.request.POST:
             try:
                 os.unlink(parlamentar.fotografia.path)
             except OSError:
@@ -343,92 +407,21 @@ class FiliacaoView(CreateView):
         context.update(
             {'object': parlamentar,
              'filiacoes': filiacoes,
-             # precisa????
              'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
         return context
 
-    def validate(self, form, parlamentar, filiacao):
-        from django.core.exceptions import ValidationError
-
-        data_filiacao = form.cleaned_data['data']
-        data_desfiliacao = form.cleaned_data['data_desfiliacao']
-
-        # Dá erro caso a data de desfiliação seja anterior a de filiação
-        if data_desfiliacao and data_desfiliacao < data_filiacao:
-            error_msg = _("A data de filiação não pode anterior \
-                          à data de desfiliação")
-            messages.add_message(request, messages.ERROR, error_msg)
-            return False
-
-
-        # Esse bloco garante que não haverá intersecção entre os
-        # períodos de filiação
-        id_filiacao_atual = filiacao.pk
-        todas_filiacoes = parlamentar.filiacao_set.all()
-
-        # # Nenhuma filiacao
-        # if not todas_filiacoes:
-        #     return None
-
-        for f in todas_filiacoes:
-            if not f.data_desfiliacao:
-                error_msg = _("O parlamentar não pode se filiar a algum partido \
-                           sem antes se desfiliar do partido anterior")
-                messages.add_message(request, messages.ERROR, error_msg)
-                return False
-
-        error_msg = None
-        for filiacoes in todas_filiacoes:
-            if filiacoes.id != id_filiacao_atual:
-
-                data_init = filiacoes.data
-                data_fim = filiacoes.data_desfiliacao
-
-                if data_init <= data_filiacao < data_fim:
-
-                    error_msg = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                    break
-
-                if (data_desfiliacao and
-                   data_init < data_desfiliacao < data_fim):
-
-                    error_msg = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                    break
-
-                if (data_desfiliacao and
-                    data_filiacao <= data_init and
-                    data_desfiliacao >= data_fim):
-
-                    error_msg = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                    break
-
-        if error_msg:
-            messages.add_message(request, messages.ERROR, error_msg)
-            return False
-        else:
-            return True
-
-
-
     def form_valid(self, form):
-
         if 'salvar' in self.request.POST:
             filiacao = form.save(commit=False)
             parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
             filiacao.parlamentar = parlamentar
 
-            if not self.validate(form, parlamentar, filiacao):
+            if not validate(form, parlamentar, filiacao, self.request):
                 return self.form_invalid(form)
 
             filiacao.save()
-
         return HttpResponseRedirect(self.get_success_url())
+
 
 class FiliacaoEditView(UpdateView):
     template_name = "parlamentares/parlamentares_filiacao_edit.html"
@@ -445,7 +438,6 @@ class FiliacaoEditView(UpdateView):
         parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
         context.update(
             {'object': parlamentar,
-             # precisa de legislatura????
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
         return context
@@ -457,8 +449,13 @@ class FiliacaoEditView(UpdateView):
         elif 'salvar' in self.request.POST:
             parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
             filiacao.parlamentar = parlamentar
+
+            if not validate(form, parlamentar, filiacao, self.request):
+                return self.form_invalid(form)
+
             filiacao.save()
         return HttpResponseRedirect(self.get_success_url())
+
 
 class MandatoView(CreateView):
     template_name = "parlamentares/parlamentares_mandato.html"
@@ -478,8 +475,7 @@ class MandatoView(CreateView):
         context.update(
             {'object': parlamentar,
              'mandatos': mandatos,
-             # precisa de legislatura ?
-             #'legislatura_id': parlamentar.mandato_set.last().legislatura.id
+             'legislatura_id': parlamentar.mandato_set.last().legislatura.id
              }
         )
         return context
@@ -509,9 +505,8 @@ class MandatoEditView(UpdateView):
         parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
         context.update(
             {'object': parlamentar,
-            # precisa de legislatura_id ???
              'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura_id})
+                ).legislatura_id})
         return context
 
     def form_valid(self, form):
