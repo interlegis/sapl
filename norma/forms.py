@@ -1,13 +1,14 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
-from materia.models import TipoMateriaLegislativa
+from materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.utils import RANGE_ANOS
 
 from .models import NormaJuridica
 
@@ -89,16 +90,18 @@ class NormaJuridicaPesquisaForm(ModelForm):
 
 class NormaJuridicaForm(ModelForm):
 
+    # Campos de MateriaLegislativa
     tipo_materia = forms.ModelChoiceField(
         label='Matéria Legislativa',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione'
     )
-
-    numero_materia = forms.CharField(label='Número', required=False)
-
-    ano_materia = forms.CharField(label='Ano', required=False)
+    numero_materia = forms.CharField(label='Número',
+                                     required=False)
+    ano_materia = forms.ChoiceField(label='Ano',
+                                    required=False,
+                                    choices=RANGE_ANOS)
 
     def clean_texto_integral(self):
         texto_integral = self.cleaned_data.get('texto_integral', False)
@@ -129,6 +132,21 @@ class NormaJuridicaForm(ModelForm):
                   'observacao',
                   'texto_integral',
                   ]
+
+    def clean(self):
+        data = super(NormaJuridicaForm, self).clean()
+
+        if self.cleaned_data['tipo_materia']:
+            try:
+                MateriaLegislativa.objects.get(
+                    tipo=self.cleaned_data['tipo_materia'],
+                    numero=self.cleaned_data['numero_materia'],
+                    ano=self.cleaned_data['ano_materia'])
+            except ObjectDoesNotExist:
+                msg = 'Matéria adicionada não existe!'
+                raise forms.ValidationError(msg)
+
+        return data
 
     def __init__(self, *args, **kwargs):
 
