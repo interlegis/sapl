@@ -1,11 +1,10 @@
 import os
 
-from braces.views import FormMessagesMixin
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, FormView, UpdateView
+from django.views.generic import FormView, UpdateView
 
 from crud.base import Crud
 

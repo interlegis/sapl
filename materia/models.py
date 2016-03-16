@@ -4,8 +4,8 @@ from model_utils import Choices
 
 from comissoes.models import Comissao
 from parlamentares.models import Parlamentar, Partido
-from sapl.utils import (restringe_tipos_de_arquivo_txt,
-                        RANGE_ANOS, YES_NO_CHOICES, xstr)
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        restringe_tipos_de_arquivo_txt, xstr)
 
 
 class TipoMateriaLegislativa(models.Model):

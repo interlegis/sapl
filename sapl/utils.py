@@ -1,13 +1,12 @@
 from datetime import date
-
 from functools import wraps
 
+import magic
 from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-import magic
 
 autor_label = '''
     <div class="col-xs-12">

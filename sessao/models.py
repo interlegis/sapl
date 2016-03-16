@@ -5,7 +5,7 @@ from model_utils import Choices
 from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
-from sapl.utils import restringe_tipos_de_arquivo_txt, YES_NO_CHOICES
+from sapl.utils import YES_NO_CHOICES, restringe_tipos_de_arquivo_txt
 
 
 class TipoSessaoPlenaria(models.Model):

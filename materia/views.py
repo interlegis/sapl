@@ -1,5 +1,4 @@
 import os
-
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
