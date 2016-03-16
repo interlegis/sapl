@@ -15,7 +15,7 @@ from django.views.generic import CreateView, FormView, ListView, TemplateView
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
 from sapl.utils import get_base_url
@@ -33,25 +33,26 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-origem_crud = Crud(Origem, 'origem')
-tipo_materia_crud = Crud(TipoMateriaLegislativa, 'tipo_materia_legislativa')
-regime_tramitacao_crud = Crud(RegimeTramitacao, 'regime_tramitacao')
-tipo_documento_crud = Crud(TipoDocumento, 'tipo_documento')
-tipo_fim_relatoria_crud = Crud(TipoFimRelatoria, 'fim_relatoria')
-materia_legislativa_crud = Crud(MateriaLegislativa, '')
-Anexada_crud = Crud(Anexada, '')
-tipo_autor_crud = Crud(TipoAutor, 'tipo_autor')
-autor_crud = Crud(Autor, 'autor')
-autoria_crud = Crud(Autoria, '')
-documento_acessorio_crud = Crud(DocumentoAcessorio, '')
-numeracao_crud = Crud(Numeracao, '')
-orgao_crud = Crud(Orgao, 'orgao')
-relatoria_crud = Crud(Relatoria, '')
-tipo_proposicao_crud = Crud(TipoProposicao, 'tipo_proposicao')
-proposicao_crud = Crud(Proposicao, '')
-status_tramitacao_crud = Crud(StatusTramitacao, 'status_tramitacao')
-unidade_tramitacao_crud = Crud(UnidadeTramitacao, 'unidade_tramitacao')
-tramitacao_crud = Crud(Tramitacao, '')
+OrigemCrud = Crud.build(Origem, 'origem')
+TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,
+                             'tipo_materia_legislativa')
+RegimeTramitacaoCrud = Crud.build(RegimeTramitacao, 'regime_tramitacao')
+TipoDocumentoCrud = Crud.build(TipoDocumento, 'tipo_documento')
+TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
+MateriaLegislativaCrud = Crud.build(MateriaLegislativa, '')
+AnexadaCrud = Crud.build(Anexada, '')
+TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
+AutorCrud = Crud.build(Autor, 'autor')
+AutoriaCrud = Crud.build(Autoria, '')
+DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
+NumeracaoCrud = Crud.build(Numeracao, '')
+OrgaoCrud = Crud.build(Orgao, 'orgao')
+RelatoriaCrud = Crud.build(Relatoria, '')
+TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
+ProposicaoCrud = Crud.build(Proposicao, '')
+StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
+UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
+TramitacaoCrud = Crud.build(Tramitacao, '')
 
 
 class FormularioSimplificadoView(CreateView):
@@ -1413,7 +1414,7 @@ class ProposicaoTaView(IntegracaoTaView):
     model_type_foreignkey = TipoProposicao
 
 
-class AcompanhamentoMateriaView(materia_legislativa_crud.CrudDetailView):
+class AcompanhamentoMateriaView(MateriaLegislativaCrud.CrudDetailView):
     template_name = "materia/acompanhamento_materia.html"
 
     def get_random_chars(self):

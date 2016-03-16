@@ -2,11 +2,11 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from crud import (CrispyLayoutFormMixin, CrudListMixin, from_to,
-                  get_field_display, make_pagination)
+from crud.base import (CrispyLayoutFormMixin, CrudListView, from_to,
+                       get_field_display, make_pagination)
 
-from .models import Continent, Country
-from .views import CountryCrudListMixin
+from .stub_app.models import Continent, Country
+from .stub_app.views import CountryCrud
 
 pytestmark = pytest.mark.django_db
 
@@ -151,7 +151,7 @@ def assert_h1(res, title):
     assert res.html.find('main').find('h1').text.strip() == title
 
 
-NO_ENTRIES_MSG = str(CrudListMixin.no_entries_msg)  # "unlazy"
+NO_ENTRIES_MSG = str(CrudListView.no_entries_msg)  # "unlazy"
 
 
 def assert_on_list_page(res):
@@ -196,7 +196,7 @@ def test_flux_list_paginate_detail(
                    population=population,
                    is_cold=is_cold)
 
-    CountryCrudListMixin.paginate_by = page_size
+    CountryCrud.ListView.paginate_by = page_size
 
     res = app.get('/countries/')
 

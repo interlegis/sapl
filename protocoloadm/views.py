@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 
-from crud import Crud, make_pagination
+from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
@@ -25,17 +25,18 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-tipo_documento_administrativo_crud = Crud(TipoDocumentoAdministrativo, '')
-documento_administrativo_crud = Crud(DocumentoAdministrativo, '')
-documento_acessorio_administrativo_crud = Crud(
+TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo,
+                                             '')
+DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
+DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-status_tramitacao_administrativo_crud = Crud(
+StatusTramitacaoAdministrativoCrud = Crud.build(
     StatusTramitacaoAdministrativo, '')
-tramitacao_administrativo_crud = Crud(TramitacaoAdministrativo, '')
-protocolo_documento_crud = Crud(Protocolo, '')
+TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
+ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 
 # FIXME precisa de uma chave diferente para o layout
-protocolo_materia_crud = Crud(Protocolo, '')
+ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
 class ProtocoloPesquisaView(FormView):
@@ -139,7 +140,7 @@ class AnularProtocoloAdmView(FormView):
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
             protocolo.anulado = True
             protocolo.justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
-                            form.cleaned_data['justificativa_anulacao']))
+                form.cleaned_data['justificativa_anulacao']))
             protocolo.user_anulacao = form.cleaned_data['user_anulacao']
             protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
             protocolo.save()

@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from .views import controlador_painel  # cronometro_painel_crud,
+from .views import controlador_painel  # CronometroPainelCrud,
 from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
                     painel_parlamentares_view, painel_view,
                     painel_votacao_view)
@@ -15,5 +15,5 @@ urlpatterns = [
         name='painel_parlamentares'),
     url(r'^painel/votacao$', painel_votacao_view, name='painel_votacao'),
     url(r'^painel/cronometro$', cronometro_painel, name='cronometro_painel'),
-    # url(r'^painel/cronometro$', include(cronometro_painel_crud.urls)),
+    # url(r'^painel/cronometro$', include(CronometroPainelCrud.get_urls())),
 ]

@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
 
 from compilacao import views
-from compilacao.views import (tipo_nota_crud, tipo_publicacao_crud,
-                              tipo_vide_crud, veiculo_publicacao_crud)
+from compilacao.views import (TipoNotaCrud, TipoPublicacaoCrud, TipoVideCrud,
+                              VeiculoPublicacaoCrud)
 
 urlpatterns_compilacao = [
     url(r'^$', views.TaListView.as_view(), name='ta_list'),
@@ -93,12 +93,12 @@ urlpatterns = [
     url(r'^ta/', include(urlpatterns_compilacao, 'compilacao', 'compilacao')),
 
     url(r'^ta/config/tipo-nota/',
-        include(tipo_nota_crud.urls)),
+        include(TipoNotaCrud.get_urls())),
     url(r'^ta/config/tipo-vide/',
-        include(tipo_vide_crud.urls)),
+        include(TipoVideCrud.get_urls())),
     url(r'^ta/config/tipo-publicacao/',
-        include(tipo_publicacao_crud.urls)),
+        include(TipoPublicacaoCrud.get_urls())),
     url(r'^ta/config/veiculo-publicacao/',
-        include(veiculo_publicacao_crud.urls)),
+        include(VeiculoPublicacaoCrud.get_urls())),
 
 ]
