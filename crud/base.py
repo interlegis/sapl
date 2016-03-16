@@ -8,19 +8,16 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
 
 from crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 
-LIST, CREATE, DETAIL, UPDATE, DELETE = \
-    'list', 'create', 'detail', 'update', 'delete'
-
 
 def _form_invalid_message(msg):
     return '%s %s' % (_('Formulário inválido.'), msg)
 
-FORM_MESSAGES = {CREATE: (_('Registro criado com sucesso!'),
-                          _('O registro não foi criado.')),
-                 UPDATE: (_('Registro alterado com sucesso!'),
-                          _('Suas alterações não foram salvas.')),
-                 DELETE: (_('Registro excluído com sucesso!'),
-                          _('O registro não foi excluído.'))}
+FORM_MESSAGES = {'create': (_('Registro criado com sucesso!'),
+                            _('O registro não foi criado.')),
+                 'update': (_('Registro alterado com sucesso!'),
+                            _('Suas alterações não foram salvas.')),
+                 'delete': (_('Registro excluído com sucesso!'),
+                            _('O registro não foi excluído.'))}
 FORM_MESSAGES = {k: (a, _form_invalid_message(b))
                  for k, (a, b) in FORM_MESSAGES.items()}
 
@@ -67,23 +64,23 @@ class BaseMixin(CrispyLayoutFormMixin):
 
     @property
     def list_url(self):
-        return self.resolve_url(LIST)
+        return self.resolve_url('list')
 
     @property
     def create_url(self):
-        return self.resolve_url(CREATE)
+        return self.resolve_url('create')
 
     @property
     def detail_url(self):
-        return self.resolve_url(DETAIL, args=(self.object.id,))
+        return self.resolve_url('detail', args=(self.object.id,))
 
     @property
     def update_url(self):
-        return self.resolve_url(UPDATE, args=(self.object.id,))
+        return self.resolve_url('update', args=(self.object.id,))
 
     @property
     def delete_url(self):
-        return self.resolve_url(DELETE, args=(self.object.id,))
+        return self.resolve_url('delete', args=(self.object.id,))
 
     def get_template_names(self):
         names = super(BaseMixin, self).get_template_names()
@@ -134,7 +131,7 @@ class CrudListView(ListView):
 
 class CrudCreateView(FormMessagesMixin, CreateView):
 
-    form_valid_message, form_invalid_message = FORM_MESSAGES[CREATE]
+    form_valid_message, form_invalid_message = FORM_MESSAGES['create']
 
     @property
     def cancel_url(self):
@@ -151,7 +148,7 @@ class CrudCreateView(FormMessagesMixin, CreateView):
 
 class CrudUpdateView(FormMessagesMixin, UpdateView):
 
-    form_valid_message, form_invalid_message = FORM_MESSAGES[UPDATE]
+    form_valid_message, form_invalid_message = FORM_MESSAGES['update']
 
     @property
     def cancel_url(self):
@@ -163,7 +160,7 @@ class CrudUpdateView(FormMessagesMixin, UpdateView):
 
 class CrudDeleteView(FormMessagesMixin, DeleteView):
 
-    form_valid_message, form_invalid_message = FORM_MESSAGES[DELETE]
+    form_valid_message, form_invalid_message = FORM_MESSAGES['delete']
 
     @property
     def cancel_url(self):
@@ -200,11 +197,11 @@ class Crud:
 
         return [url(regex, view.as_view(), name=view.url_name(suffix))
                 for regex, view, suffix in [
-                    (r'^$', CrudListView, LIST),
-                    (r'^create$', CrudCreateView, CREATE),
-                    (r'^(?P<pk>\d+)$', CrudDetailView, DETAIL),
-                    (r'^(?P<pk>\d+)/edit$', CrudUpdateView, UPDATE),
-                    (r'^(?P<pk>\d+)/delete$', CrudDeleteView, DELETE), ]]
+                    (r'^$', CrudListView, 'list'),
+                    (r'^create$', CrudCreateView, 'create'),
+                    (r'^(?P<pk>\d+)$', CrudDetailView, 'detail'),
+                    (r'^(?P<pk>\d+)/edit$', CrudUpdateView, 'update'),
+                    (r'^(?P<pk>\d+)/delete$', CrudDeleteView, 'delete'), ]]
 
     @classonlymethod
     def build(cls, _model, _help_path):
