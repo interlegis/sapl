@@ -266,6 +266,66 @@ class FiliacaoForm(ModelForm):
                   'data',
                   'data_desfiliacao']
 
+    # def clean(self):
+    #     cleaned_data = super(FiliacaoForm, self).clean()
+    #
+    #     data_filiacao = cleaned_data['data']
+    #     data_desfiliacao = cleaned_data['data_desfiliacao']
+    #
+    #     # Dá erro caso a data de desfiliação seja anterior a de filiação
+    #     if data_desfiliacao and data_desfiliacao < data_filiacao:
+    #         error_msg = _("A data de filiação não pode anterior \
+    #                       à data de desfiliação")
+    #         raise forms.ValidationError(error_msg)
+    #     return cleaned_data
+    #
+    #     filiacao = self.instance
+    #     parlamentar = filiacao.parlamentar
+    #
+    #     # Esse bloco garante que não haverá intersecção entre os
+    #     # períodos de filiação
+    #     id_filiacao_atual = filiacao.pk
+    #     todas_filiacoes = parlamentar.filiacao_set.all()
+    #
+    #     # Nenhuma filiacao
+    #     if not todas_filiacoes:
+    #         return cleaned_data
+    #
+    #     error_msg = None
+    #     for filiacoes in todas_filiacoes:
+    #         if filiacoes.id != id_filiacao_atual:
+    #
+    #             data_init = filiacoes.data
+    #             data_fim = filiacoes.data_desfiliacao
+    #
+    #             if data_init <= data_filiacao < data_fim:
+    #
+    #                 error_msg = _("A data de filiação e \
+    #                         desfiliação não podem estar no intervalo \
+    #                         de outro período de filiação")
+    #                 break
+    #
+    #             if (data_desfiliacao and
+    #                data_init < data_desfiliacao < data_fim):
+    #
+    #                 error_msg = _("A data de filiação e \
+    #                         desfiliação não podem estar no intervalo \
+    #                         de outro período de filiação")
+    #                 break
+    #
+    #             if (data_desfiliacao and
+    #                 data_filiacao <= data_init and
+    #                 data_desfiliacao >= data_fim):
+    #
+    #                 error_msg = _("A data de filiação e \
+    #                         desfiliação não podem estar no intervalo \
+    #                         de outro período de filiação")
+    #                 break
+    #
+    #     if error_msg:
+    #         raise forms.ValidationError(error_msg)
+    #
+
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
@@ -293,3 +353,69 @@ class FiliacaoEditForm(FiliacaoForm):
             HTML('&nbsp;'),
             Submit('excluir', 'Excluir',
                    css_class='btn btn-primary')])
+
+    # def clean(self):
+    #     cleaned_data = super(FiliacaoEditForm, self).clean()
+    #
+    #     data_filiacao = cleaned_data['data']
+    #     data_desfiliacao = cleaned_data['data_desfiliacao']
+    #
+    #     # Dá erro caso a data de desfiliação seja anterior a de filiação
+    #     if data_desfiliacao and data_desfiliacao < data_filiacao:
+    #         error_msg = _("A data de filiação não pode anterior \
+    #                       à data de desfiliação")
+    #         raise forms.ValidationError(error_msg)
+    #
+    #     return cleaned_data
+    #
+    #     filiacao = self.instance
+    #     parlamentar = Parlamentar.objects.get(pk=self.kwargs['pk'])
+    #
+    #     # Esse bloco garante que não haverá intersecção entre os
+    #     # períodos de filiação
+    #     id_filiacao_atual = filiacao.pk
+    #     todas_filiacoes = parlamentar.filiacao_set.all()
+    #
+    #     # ainda filiado
+    #     for f in todas_filiacoes:
+    #         if not f.data_desfiliacao:
+    #             error_msg = _("O parlamentar não pode se filiar a algum partido \
+    #                            sem antes se desfiliar do partido anterior")
+    #             raise forms.ValidationError(error_msg)
+    #
+    #     # Esse bloco garante que não haverá intersecção entre os
+    #     # períodos de filiação
+    #     error_msg = None
+    #     for filiacoes in todas_filiacoes:
+    #         if filiacoes.id != id_filiacao_atual:
+    #
+    #             data_init = filiacoes.data
+    #             data_fim = filiacoes.data_desfiliacao
+    #
+    #             if data_init <= data_filiacao < data_fim:
+    #
+    #                 error_msg = _("A data de filiação e \
+    #                         desfiliação não podem estar no intervalo \
+    #                         de outro período de filiação")
+    #                 break
+    #
+    #             if (data_desfiliacao and
+    #                data_init < data_desfiliacao < data_fim):
+    #
+    #                 error_msg = _("A data de filiação e \
+    #                         desfiliação não podem estar no intervalo \
+    #                         de outro período de filiação")
+    #                 break
+    #
+    #             if (data_desfiliacao and
+    #                 data_filiacao <= data_init and
+    #                 data_desfiliacao >= data_fim):
+    #
+    #                 error_msg = _("A data de filiação e \
+    #                         desfiliação não podem estar no intervalo \
+    #                         de outro período de filiação")
+    #                 break
+    #
+    #     if error_msg:
+    #         raise forms.ValidationError(error_msg)
+    #

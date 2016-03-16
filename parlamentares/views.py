@@ -128,49 +128,30 @@ class ParlamentaresCadastroView(CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class ParlamentaresEditarView(FormView):
+class ParlamentaresEditarView(UpdateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
+    form_class = ParlamentaresEditForm
+    model = Parlamentar
+    success_url = reverse_lazy('parlamentares')
 
-    def get_success_url(self):
-        return reverse('parlamentares')
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(pk=pk)
-        form = ParlamentaresEditForm(instance=parlamentar)
-        return self.render_to_response(
-            {'form': form, 'object': parlamentar})
-
-    def post(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        parlamentar = Parlamentar.objects.get(pk=pk)
-        form = ParlamentaresEditForm(request.POST, instance=parlamentar)
-
-        if form.is_valid():
-            if 'salvar' in request.POST:
-                parlamentar = form.save(commit=False)
-                if 'fotografia' in request.FILES:
-                    parlamentar.fotografia = request.FILES['fotografia']
-                parlamentar.biografia = form.data['biografia']
-                parlamentar.save()
-            elif 'excluir' in request.POST:
-                Mandato.objects.get(parlamentar=parlamentar).delete()
-                parlamentar.delete()
-            elif "remover" in request.POST:
-                try:
-                    os.unlink(parlamentar.fotografia.path)
-                except OSError:
-                    pass  # Should log this error!!!!!
-                parlamentar = form.save(commit=False)
-                parlamentar.fotografia = None
-                parlamentar.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form})
+    def form_valid(self, form):
+        parlamentar = form.instance
+        if 'salvar' in self.request.POST:
+            form.save()
+        elif 'excluir' in self.request.POST:
+            Mandato.objects.get(parlamentar=parlamentar).delete()
+            parlamentar.delete()
+        elif "remover-foto" in self.request.POST:
+            try:
+                os.unlink(parlamentar.fotografia.path)
+            except OSError:
+                pass  # Should log this error!!!!!
+            parlamentar.fotografia = None
+            parlamentar.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class ParlamentaresDependentesView(CreateView):
-
     template_name = "parlamentares/parlamentares_dependentes.html"
     form_class = DependenteForm
     model = Dependente
@@ -180,15 +161,17 @@ class ParlamentaresDependentesView(CreateView):
         return reverse('parlamentares_dependentes', kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
-        context = super(ParlamentaresDependentesView, self).get_context_data(**kwargs)
+        context = super(ParlamentaresDependentesView, self).\
+                    get_context_data(**kwargs)
         pk = self.kwargs['pk']
         parlamentar = Parlamentar.objects.get(pk=pk)
         dependentes = Dependente.objects.filter(
             parlamentar=parlamentar).order_by('nome', 'tipo')
-        # precisa de legislatura_id???
         context.update({'object': parlamentar,
                         'dependentes': dependentes,
-                        'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+                        # precisa de legislatura_id???
+                        'legislatura_id':
+                        parlamentar.mandato_set.last().legislatura.id})
         return context
 
     def form_valid(self, form):
@@ -210,30 +193,28 @@ class ParlamentaresDependentesEditView(UpdateView):
         pk = self.kwargs['pk']
         return reverse('parlamentares_dependentes', kwargs={'pk': pk})
 
-
     def get_context_data(self, **kwargs):
-        context = super(ParlamentaresDependentesEditView, self).get_context_data(**kwargs)
+        context = super(ParlamentaresDependentesEditView, self).\
+                get_context_data(**kwargs)
         parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
         context.update({
          'object': parlamentar,
          'legislatura_id': parlamentar.mandato_set.last(
-         ).legislatura_id}
-        )
+         ).legislatura_id})
         return context
 
     def form_valid(self, form):
-        if 'salvar' in request.POST:
+        if 'salvar' in self.request.POST:
             form.save()
-        elif 'excluir' in request.POST:
+        elif 'excluir' in self.request.POST:
             dependente = form.instance
             dependente.delete()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class MesaDiretoraView(FormView):
     template_name = "mesa_diretora/mesa_diretora.html"
-
-    def get_success_url(self):
-        return reverse('mesa_diretora')
+    success_url = reverse_lazy('mesa_diretora')
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa)
     def validation(self, request):
@@ -299,6 +280,7 @@ class MesaDiretoraView(FormView):
             composicao.save()
 
             return self.form_valid(form=None)
+
         elif 'Excluir' in request.POST:
 
             if (not Legislatura.objects.all() or
@@ -344,320 +326,202 @@ class MesaDiretoraView(FormView):
                 })
 
 
-class FiliacaoView(FormView):
+class FiliacaoView(CreateView):
     template_name = "parlamentares/parlamentares_filiacao.html"
+    form_class = FiliacaoForm
+    model = Filiacao
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('parlamentares_filiacao', kwargs={'pk': pk})
 
-    def get(self, request, *args, **kwargs):
-        pid = kwargs['pk']
+    def get_context_data(self, **kwargs):
+        context = super(FiliacaoView, self).get_context_data(**kwargs)
+        pid = self.kwargs['pk']
         parlamentar = Parlamentar.objects.get(id=pid)
-        filiacoes = Filiacao.objects.filter(
-            parlamentar=parlamentar)
-
-        form = FiliacaoForm()
-
-        return self.render_to_response(
-            {'object': parlamentar,
-             'filiacoes': filiacoes,
-             'form': form,
-             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
-
-    # Função usada para todos os caso de erro na filiação
-    def error_message(self, parlamentar, form, mensagem, request):
         filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
-        messages.add_message(request, messages.INFO, mensagem)
-        return self.render_to_response(
+        context.update(
             {'object': parlamentar,
              'filiacoes': filiacoes,
-             'form': form,
-             'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura.id})
+             # precisa????
+             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+        return context
 
-    def post(self, request, *args, **kwargs):
-        form = FiliacaoForm(request.POST)
+    def validate(self, form, parlamentar, filiacao):
+        from django.core.exceptions import ValidationError
 
-        if form.is_valid():
+        data_filiacao = form.cleaned_data['data']
+        data_desfiliacao = form.cleaned_data['data_desfiliacao']
 
-            data_filiacao = form.cleaned_data['data']
-            data_desfiliacao = form.cleaned_data['data_desfiliacao']
+        # Dá erro caso a data de desfiliação seja anterior a de filiação
+        if data_desfiliacao and data_desfiliacao < data_filiacao:
+            error_msg = _("A data de filiação não pode anterior \
+                          à data de desfiliação")
+            messages.add_message(request, messages.ERROR, error_msg)
+            return False
 
-            filiacao = form.save(commit=False)
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
 
-            candidato_filiado = Filiacao.objects.filter(
-                parlamentar=parlamentar)
+        # Esse bloco garante que não haverá intersecção entre os
+        # períodos de filiação
+        id_filiacao_atual = filiacao.pk
+        todas_filiacoes = parlamentar.filiacao_set.all()
 
-            candidato_nao_desfiliou = Filiacao.objects.filter(
-                parlamentar=parlamentar,
-                data_desfiliacao=None)
+        # # Nenhuma filiacao
+        # if not todas_filiacoes:
+        #     return None
 
-            # Vê se o candidato já se filiou alguma vez a algum partido
-            if not candidato_filiado:
-                filiacao = form.save(commit=False)
-                filiacao.parlamentar = parlamentar
-                filiacao.save()
-                return self.form_valid(form)
-            else:
-                # Dá erro caso não tenha se desfiliado do anterior
-                if candidato_nao_desfiliou:
-                    mensagem = _("Você não pode se filiar a algum partido \
-                    sem antes se desfiliar do partido anterior")
-                    return self.error_message(
-                        parlamentar, form, mensagem, request)
+        for f in todas_filiacoes:
+            if not f.data_desfiliacao:
+                error_msg = _("O parlamentar não pode se filiar a algum partido \
+                           sem antes se desfiliar do partido anterior")
+                messages.add_message(request, messages.ERROR, error_msg)
+                return False
 
-                # Dá erro caso a data de desfiliação seja anterior a de
-                # filiação
-                if data_desfiliacao and data_desfiliacao < data_filiacao:
-                    mensagem = _("A data de filiação não pode ser \
-                    anterior à data de desfiliação")
-                    return self.error_message(
-                        parlamentar, form, mensagem, request)
+        error_msg = None
+        for filiacoes in todas_filiacoes:
+            if filiacoes.id != id_filiacao_atual:
 
-                # Esse bloco garante que não haverá intersecção entre os
-                # períodos de filiação
-                todas_filiacoes = candidato_filiado
-                for i in range(len(todas_filiacoes)):
-                    data_init = todas_filiacoes[i].data
-                    data_fim = todas_filiacoes[i].data_desfiliacao
-                    if data_filiacao >= data_init and data_filiacao < data_fim:
-                        mensagem = _("A data de filiação e \
-                        desfiliação não podem estar no intervalo \
-                        de outro período de filiação")
-                        return self.error_message(
-                            parlamentar, form, mensagem, request)
+                data_init = filiacoes.data
+                data_fim = filiacoes.data_desfiliacao
 
-                    if (data_desfiliacao and
-                            data_desfiliacao < data_fim and
-                            data_desfiliacao > data_init):
+                if data_init <= data_filiacao < data_fim:
 
-                        mensagem = _("A data de filiação e \
-                        desfiliação não podem estar no intervalo \
-                        de outro período de filiação")
-                        return self.error_message(
-                            parlamentar, form, mensagem, request)
+                    error_msg = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
+                    break
 
-                    if (data_desfiliacao and
-                            data_filiacao <= data_init and
-                            data_desfiliacao >= data_fim):
-                        mensagem = _("A data de filiação e \
-                        desfiliação não podem estar no intervalo \
-                        de outro período de filiação")
-                        return self.error_message(
-                            parlamentar, form, mensagem, request)
+                if (data_desfiliacao and
+                   data_init < data_desfiliacao < data_fim):
 
-                # Salva a nova filiação caso tudo esteja correto
-                else:
-                    filiacao = form.save(commit=False)
-                    filiacao.parlamentar = parlamentar
-                    filiacao.save()
-                    return self.form_valid(form)
+                    error_msg = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
+                    break
+
+                if (data_desfiliacao and
+                    data_filiacao <= data_init and
+                    data_desfiliacao >= data_fim):
+
+                    error_msg = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
+                    break
+
+        if error_msg:
+            messages.add_message(request, messages.ERROR, error_msg)
+            return False
         else:
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
-            mensagem = ""
-            return self.error_message(
-                parlamentar, form, mensagem, request)
+            return True
 
 
-class FiliacaoEditView(FormView):
+
+    def form_valid(self, form):
+
+        if 'salvar' in self.request.POST:
+            filiacao = form.save(commit=False)
+            parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
+            filiacao.parlamentar = parlamentar
+
+            if not self.validate(form, parlamentar, filiacao):
+                return self.form_invalid(form)
+
+            filiacao.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+class FiliacaoEditView(UpdateView):
     template_name = "parlamentares/parlamentares_filiacao_edit.html"
+    form_class = FiliacaoEditForm
+    model = Filiacao
+    pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('parlamentares_filiacao', kwargs={'pk': pk})
 
-    def get(self, request, *args, **kwargs):
-        filiacao = Filiacao.objects.get(id=kwargs['dk'])
-        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
-        form = FiliacaoEditForm(instance=filiacao)
-        return self.render_to_response(
-            {'form': form,
-             'object': parlamentar,
+    def get_context_data(self, **kwargs):
+        context = super(FiliacaoEditView, self).get_context_data(**kwargs)
+        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
+        context.update(
+            {'object': parlamentar,
+             # precisa de legislatura????
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
+        return context
 
-    def error_message(self, parlamentar, form, mensagem, request):
-        messages.add_message(request, messages.INFO, mensagem)
-        return self.render_to_response(
-            {'form': form,
-             'object': parlamentar,
-             'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura_id})
+    def form_valid(self, form):
+        filiacao = form.save(commit=False)
+        if 'excluir' in self.request.POST:
+            filiacao.delete()
+        elif 'salvar' in self.request.POST:
+            parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
+            filiacao.parlamentar = parlamentar
+            filiacao.save()
+        return HttpResponseRedirect(self.get_success_url())
 
-    def post(self, request, *args, **kwargs):
-        filiacao = Filiacao.objects.get(id=kwargs['dk'])
-        form = FiliacaoEditForm(request.POST, instance=filiacao)
-        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
-
-        if form.is_valid():
-
-            data_filiacao = form.cleaned_data['data']
-            data_desfiliacao = form.cleaned_data['data_desfiliacao']
-
-            filiacao = form.save(commit=False)
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
-
-            candidato_filiado = Filiacao.objects.filter(
-                parlamentar=parlamentar)
-
-            if 'excluir' in request.POST:
-                filiacao.delete()
-                return self.form_valid(form)
-
-            # Vê se o candidato já se filiou alguma vez a algum partido
-            if not candidato_filiado:
-                filiacao = form.save(commit=False)
-                filiacao.parlamentar = parlamentar
-                filiacao.save()
-                return self.form_valid(form)
-            else:
-
-                # Dá erro caso a data de desfiliação seja anterior a de
-                # filiação
-                if data_desfiliacao and data_desfiliacao < data_filiacao:
-                    mensagem = _("A data de filiação não pode \
-                    anterior à data de desfiliação")
-                    return self.error_message(
-                        parlamentar, form, mensagem, request)
-
-                # Esse bloco garante que não haverá intersecção entre os
-                # períodos de filiação
-                todas_filiacoes = candidato_filiado
-                id_filiacao_atual = int(kwargs['dk'])
-                for i in range(len(todas_filiacoes)):
-                    if todas_filiacoes[i].id != id_filiacao_atual:
-                        data_init = todas_filiacoes[i].data
-                        data_fim = todas_filiacoes[i].data_desfiliacao
-                        if (data_filiacao >= data_init and
-                                data_filiacao < data_fim):
-
-                            mensagem = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                            return self.error_message(parlamentar,
-                                                      form,
-                                                      mensagem,
-                                                      request)
-
-                        if (data_desfiliacao and
-                                data_desfiliacao < data_fim and
-                                data_desfiliacao > data_init):
-
-                            mensagem = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                            return self.error_message(parlamentar,
-                                                      form,
-                                                      mensagem,
-                                                      request)
-                        if (data_desfiliacao and
-                                data_filiacao <= data_init and
-                                data_desfiliacao >= data_fim):
-                            mensagem = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                            return self.error_message(parlamentar,
-                                                      form,
-                                                      mensagem,
-                                                      request)
-
-            if 'salvar' in request.POST:
-                filiacao.save()
-            elif 'excluir' in request.POST:
-                filiacao.delete()
-            return self.form_valid(form)
-
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': parlamentar,
-                 'legislatura_id': parlamentar.mandato_set.last(
-                 ).legislatura_id})
-
-
-class MandatoView(FormView):
+class MandatoView(CreateView):
     template_name = "parlamentares/parlamentares_mandato.html"
+    model = Mandato
+    form_class = MandatoForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('parlamentares_mandato', kwargs={'pk': pk})
 
-    def get(self, request, *args, **kwargs):
-        pid = kwargs['pk']
+    def get_context_data(self, **kwargs):
+        context = super(MandatoView, self).get_context_data(**kwargs)
+        pid = self.kwargs['pk']
         parlamentar = Parlamentar.objects.get(id=pid)
         mandatos = Mandato.objects.filter(
             parlamentar=parlamentar)
-
-        form = MandatoForm()
-
-        return self.render_to_response(
+        context.update(
             {'object': parlamentar,
              'mandatos': mandatos,
-             'form': form,
-             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+             # precisa de legislatura ?
+             #'legislatura_id': parlamentar.mandato_set.last().legislatura.id
+             }
+        )
+        return context
 
-    def post(self, request, *args, **kwargs):
-        form = MandatoForm(request.POST)
-
-        if form.is_valid():
-            mandato = form.save(commit=False)
-
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
-            mandato.parlamentar = parlamentar
-
-            mandato.save()
-            return self.form_valid(form)
-        else:
-            pid = kwargs['pk']
-            parlamentar = Parlamentar.objects.get(id=pid)
-            mandatos = Mandato.objects.filter(
-                parlamentar=parlamentar)
-
-            return self.render_to_response(
-                {'object': parlamentar,
-                 'mandatos': mandatos,
-                 'form': form,
-                 'legislatura_id': parlamentar.mandato_set.last(
-                 ).legislatura.id})
+    def form_valid(self, form):
+        pid = self.kwargs['pk']
+        parlamentar = Parlamentar.objects.get(id=pid)
+        mandato = form.save(commit=False)
+        mandato.parlamentar = parlamentar
+        mandato.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
-class MandatoEditView(FormView):
+class MandatoEditView(UpdateView):
     template_name = "parlamentares/parlamentares_mandato_edit.html"
+    model = Mandato
+    form_class = MandatoEditForm
+    pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('parlamentares_mandato', kwargs={'pk': pk})
 
-    def get(self, request, *args, **kwargs):
-        mandato = Mandato.objects.get(id=kwargs['dk'])
-        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
-        form = MandatoEditForm(instance=mandato)
-        return self.render_to_response(
-            {'form': form,
-             'object': parlamentar,
+    def get_context_data(self, **kwargs):
+        context = super(MandatoEditView, self).get_context_data(**kwargs)
+        mandato = Mandato.objects.get(id=self.kwargs['dk'])
+        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
+        context.update(
+            {'object': parlamentar,
+            # precisa de legislatura_id ???
              'legislatura_id': parlamentar.mandato_set.last(
              ).legislatura_id})
+        return context
 
-    def post(self, request, *args, **kwargs):
-        mandato = Mandato.objects.get(id=kwargs['dk'])
-        form = MandatoEditForm(request.POST, instance=mandato)
-        parlamentar = Parlamentar.objects.get(id=kwargs['pk'])
+    def form_valid(self, form):
+        form = self.get_form()
+        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
+        if 'salvar' in self.request.POST:
+            mandato = form.save(commit=False)
+            mandato.parlamentar = parlamentar
+            mandato.save()
+        elif 'excluir' in self.request.POST:
+            form.instance.delete()
 
-        if form.is_valid():
-            if 'salvar' in request.POST:
-                mandato.save()
-            elif 'excluir' in request.POST:
-                mandato.delete()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': parlamentar,
-                 'legislatura_id': parlamentar.mandato_set.last(
-                 ).legislatura_id})
+        return HttpResponseRedirect(self.get_success_url())
