@@ -69,14 +69,14 @@ def get_rodape(casa):
     if cep:
         if casa.endereco:
             linha1 = linha1 + " - "
-        linha1 = linha1 + "CEP " + cep
+        linha1 = linha1 + str(_("CEP ")) + cep
 
     # substituindo nom_localidade por municipio e sgl_uf por uf
     if casa.municipio:
         linha1 = linha1 + " - " + casa.municipio + " " + casa.uf
 
     if casa.telefone:
-        linha1 = linha1 + _(" Tel.: ") + casa.telefone
+        linha1 = linha1 + str(_(" Tel.: ")) + casa.telefone
 
     if casa.endereco_web:
         linha2 = casa.endereco_web
@@ -86,7 +86,7 @@ def get_rodape(casa):
     if casa.email:
         if casa.endereco_web:
             linha2 = linha2 + " - "
-        linha2 = linha2 + _("E-mail: ") + casa.email
+        linha2 = linha2 + str(_("E-mail: ")) + casa.email
 
     data_emissao = datetime.today().strftime("%d/%m/%Y")
 
@@ -479,8 +479,8 @@ def get_espelho(mats):
         dic['ultima_acao'] = txt_tramitacao
         dic['data_ultima_acao'] = data_ultima_acao
 
-        dic['norma_juridica_vinculada'] = _('Não há nenhuma \
-                                           norma jurídica vinculada')
+        dic['norma_juridica_vinculada'] = str(_('Não há nenhuma \
+                                           norma jurídica vinculada'))
         # TODO
         # for norma in context.zsql.materia_buscar_norma_juridica_zsql(
         #       cod_materia=materia.cod_materia):
@@ -501,7 +501,10 @@ def get_sessao_plenaria(sessao, casa):
     inf_basicas_dic["dat_inicio_sessao"] = sessao.data_inicio.strftime(
         "%d/%m/%Y")
     inf_basicas_dic["hr_inicio_sessao"] = sessao.hora_inicio
-    inf_basicas_dic["dat_fim_sessao"] = sessao.data_fim.strftime("%d/%m/%Y")
+    if sessao.data_fim:
+        inf_basicas_dic["dat_fim_sessao"] = sessao.data_fim.strftime("%d/%m/%Y")
+    else:
+        inf_basicas_dic["dat_fim_sessao"] = ''
     inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
     inf_basicas_dic["nom_camara"] = casa.nome
 
@@ -540,8 +543,8 @@ def get_sessao_plenaria(sessao, casa):
             dic_expedientes["nom_expediente"] = str(tip_expediente)
             dic_expedientes["txt_expediente"] = (
                 BeautifulSoup(expediente.conteudo).text)
-        if dic_expedientes:
-            lst_expedientes.append(dic_expedientes)
+            if dic_expedientes:
+                lst_expedientes.append(dic_expedientes)
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
