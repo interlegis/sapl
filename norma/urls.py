@@ -4,7 +4,16 @@ from norma.views import (AssuntoNormaCrud, NormaEditView, NormaIncluirView,
                          NormaPesquisaView, NormaTaView, NormaTemporarioCrud,
                          PesquisaNormaListView, TipoNormaCrud)
 
-# FIXME???? usar NormaCrud ????
+# @LeandroRoberto comentou em
+# https://github.com/interlegis/sapl/pull/255#discussion_r55894269
+#
+# esse código só está assim de forma temporária, criado no início do
+# projeto para apenas dar uma tela básica de listagem de normas para a app
+# compilação... a implementação da app norma é independente e não sei em
+# que estágio está... para a compilação é relevante apenas que se mantenha
+# o código abaixo:
+# url(r'^norma/(?P<pk>[0-9]+)/ta$', NormaTaView.as_view(), name='ta')
+# bem como a classe NormaTaView que está em norma.views
 norma_url_patterns, namespace = NormaTemporarioCrud.get_urls()
 
 norma_url_patterns += [
