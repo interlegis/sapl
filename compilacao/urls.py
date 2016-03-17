@@ -4,6 +4,10 @@ from compilacao import views
 from compilacao.views import (TipoNotaCrud, TipoPublicacaoCrud, TipoVideCrud,
                               VeiculoPublicacaoCrud)
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 urlpatterns_compilacao = [
     url(r'^$', views.TaListView.as_view(), name='ta_list'),
     url(r'^create$', views.TaCreateView.as_view(), name='ta_create'),

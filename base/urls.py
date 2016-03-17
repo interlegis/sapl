@@ -2,7 +2,10 @@ from django.conf.urls import url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic.base import TemplateView
 
+from .apps import AppConfig
 from .views import CasaLegislativaTableAuxView, HelpView
+
+app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),

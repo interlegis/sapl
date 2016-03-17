@@ -1,1 +1,1 @@
-default_app_config = 'sessao.apps.SessaoAppConfig'
+default_app_config = 'sessao.apps.AppConfig'

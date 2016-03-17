@@ -1,1 +1,1 @@
-default_app_config = 'norma.apps.NormaAppConfig'
+default_app_config = 'norma.apps.AppConfig'

@@ -24,6 +24,10 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 TramitacaoAdministrativoCrud,
                                 TramitacaoAdmView, pesquisa_autores)
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 urlpatterns = [
     url(r'^protocoloadm/docadm/',
         include(DocumentoAdministrativoCrud.get_urls())),

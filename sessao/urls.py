@@ -21,6 +21,10 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
                           VotacaoView)
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 urlpatterns_sessao = SessaoCrud.get_urls() + [
     url(r'^(?P<pk>\d+)/expediente$',
         ExpedienteView.as_view(), name='expediente'),

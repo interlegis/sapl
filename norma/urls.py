@@ -4,6 +4,10 @@ from norma.views import (AssuntoNormaCrud, NormaEditView, NormaIncluirView,
                          NormaPesquisaView, NormaTaView, NormaTemporarioCrud,
                          PesquisaNormaListView, TipoNormaCrud)
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 # @LeandroRoberto comentou em
 # https://github.com/interlegis/sapl/pull/255#discussion_r55894269
 #

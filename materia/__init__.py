@@ -1,1 +1,1 @@
-default_app_config = 'materia.apps.MateriaAppConfig'
+default_app_config = 'materia.apps.AppConfig'

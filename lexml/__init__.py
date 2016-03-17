@@ -1,1 +1,1 @@
-default_app_config = 'lexml.apps.LexmlAppConfig'
+default_app_config = 'lexml.apps.AppConfig'

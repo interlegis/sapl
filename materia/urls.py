@@ -22,6 +22,10 @@ from materia.views import (AcompanhamentoConfirmarView,
                            TramitacaoEditView, TramitacaoView,
                            UnidadeTramitacaoCrud)
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 urlpatterns = [
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls())),
 
