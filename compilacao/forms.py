@@ -262,16 +262,6 @@ class NotaForm(ModelForm):
 
 
 class DispositivoSearchFragmentForm(ModelForm):
-    pass
-
-
-class VideForm(ModelForm):
-    dispositivo_base = forms.ModelChoiceField(
-        queryset=Dispositivo.objects.all(),
-        widget=forms.HiddenInput())
-    dispositivo_ref = forms.ModelChoiceField(
-        queryset=Dispositivo.objects.all(),
-        widget=forms.HiddenInput())
 
     tipo_ta = forms.ModelChoiceField(
         label=_('Tipo do Texto Articulado'),
@@ -287,19 +277,63 @@ class VideForm(ModelForm):
     ano_ta = forms.IntegerField(
         label=_('Ano Texto Articulado'), required=False)
 
-    texto = forms.CharField(
-        label='',
-        widget=forms.Textarea,
+    busca_dispositivo = forms.CharField(
+        label=_('Buscar Dispositivo'),
         required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        if 'fields_search' in kwargs:
+            fields_search = kwargs['fields_search'].fields
+            fields_search.append(
+                Row(
+                    to_column(('tipo_ta', 6)),
+                    to_column(('tipo_model', 6))))
+            fields_search.append(
+                Row(
+                    to_column(('num_ta', 6)),
+                    to_column(('ano_ta', 6))))
+            fields_search.append(
+                Row(to_column((FieldWithButtons(
+                    Field(
+                        'busca_dispositivo',
+                        placeholder=_('Digite palavras, letras, '
+                                      'números ou algo'
+                                      ' que estejam '
+                                      'no rótulo ou no texto.')),
+                    StrictButton(_('Buscar'), css_class='btn-busca')), 12))))
+            fields_search.append(
+                Row(to_column(
+                    (Div(css_class='result-busca-dispositivo'), 12))))
+            kwargs.pop('fields_search')
+
+        if 'choice_model_type_foreignkey_in_extenal_views' in kwargs:
+            ch = kwargs.pop('choice_model_type_foreignkey_in_extenal_views')
+            if 'data' in kwargs:
+                choice = ch(kwargs['data']['tipo_ta'])
+                self.base_fields['tipo_model'].choices = choice
+            elif 'instance' in kwargs and\
+                    isinstance(kwargs['instance'], Dispositivo):
+                choice = ch(kwargs['instance'].ta.tipo_ta_id)
+                self.base_fields['tipo_model'].choices = choice
+
+        super(DispositivoSearchFragmentForm, self).__init__(*args, **kwargs)
+
+
+class VideForm(DispositivoSearchFragmentForm):
+    dispositivo_base = forms.ModelChoiceField(
+        queryset=Dispositivo.objects.all(),
+        widget=forms.HiddenInput())
+    dispositivo_ref = forms.ModelChoiceField(
+        queryset=Dispositivo.objects.all(),
+        widget=forms.HiddenInput())
+
     tipo = forms.ModelChoiceField(
         label=TipoVide._meta.verbose_name,
         queryset=TipoVide.objects.all(),
         required=True,
         error_messages=error_messages)
 
-    busca_dispositivo = forms.CharField(
-        label=_('Buscar Dispositivo a Referenciar'),
-        required=False)
     pk = forms.IntegerField(widget=forms.HiddenInput(),
                             required=False)
 
@@ -337,24 +371,7 @@ class VideForm(ModelForm):
                 placeholder=_('Texto Adicional ao Vide')), 12))),
             Row(to_column((buttons, 12))))
 
-        fields_search = Div(
-            Row(
-                to_column(('tipo_ta', 6)),
-                to_column(('tipo_model', 6))),
-            Row(
-                to_column(('num_ta', 6)),
-                to_column(('ano_ta', 6))),
-            Row(to_column((FieldWithButtons(
-                Field(
-                    'busca_dispositivo',
-                    placeholder=_('Digite palavras, letras, '
-                                  'números ou algo'
-                                  ' que estejam '
-                                  'no rótulo ou no texto.')),
-                StrictButton(_('Buscar'), css_class='btn-busca')), 12))),
-            Row(to_column(
-                (Div(css_class='container-busca'), 12)))
-        )
+        kwargs['fields_search'] = fields_search = Div()
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -369,12 +386,6 @@ class VideForm(ModelForm):
                 css_class="panel panel-primary"
             )
         )
-
-        if 'choice_model_type_foreignkey_in_extenal_views' in kwargs:
-            ch = kwargs.pop('choice_model_type_foreignkey_in_extenal_views')
-            if 'data' in kwargs:
-                choice = ch(kwargs['data']['tipo_ta'])
-                self.base_fields['tipo_model'].choices = choice
 
         super(VideForm, self).__init__(*args, **kwargs)
 
@@ -581,14 +592,23 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
 
+FIELD_NAME_MAPPING = {
+    'dispositivo_vigencia': 'dispositivo_ref',
+}
 
-class DispositivoEdicaoVigenciaForm(ModelForm):
+
+class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
 
     inconstitucionalidade = forms.ChoiceField(
         label=Dispositivo._meta.get_field(
             'inconstitucionalidade').verbose_name,
         choices=utils.YES_NO_CHOICES,
         widget=forms.RadioSelect())
+
+    dispositivo_vigencia = forms.ModelChoiceField(
+        required=False,
+        queryset=Dispositivo.objects.all(),
+        widget=forms.HiddenInput())
 
     class Meta:
         model = Dispositivo
@@ -597,8 +617,14 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
                   'inicio_eficacia',
                   'fim_eficacia',
                   'publicacao',
-                  'inconstitucionalidade'
+                  'inconstitucionalidade',
+                  'dispositivo_vigencia'
                   ]
+
+    def add_prefix(self, field_name):
+        # look up field name; return original if not found
+        field_name = FIELD_NAME_MAPPING.get(field_name, field_name)
+        return super(DispositivoEdicaoVigenciaForm, self).add_prefix(field_name)
 
     def __init__(self, *args, **kwargs):
 
@@ -610,7 +636,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         row_publicacao.fields.append(
             Alert(
                 css_class='alert-info col-md-3',
-                content='<strong>%s</strong>%s' % (
+                content='<strong>%s</strong> %s' % (
                     _('Dica!'), _('Inclua uma Nota de Dispositivo informando '
                                   'sobre a Inconstitucionalidade.'))))
 
@@ -624,6 +650,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
             ('fim_vigencia', 3),
             ('inicio_eficacia', 3),
             ('fim_eficacia', 3), ])
+
         layout.append(
             Fieldset(_('Datas de Controle de Vigência'),
                      row_datas,
@@ -631,8 +658,15 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
-            *layout,
             label_cancel=_('Retornar para o Editor Sequencial'))
+
+        self.helper.layout.fields += layout
+
+        kwargs['fields_search'] = fields_search = Div()
+        self.helper.layout.fields.append(
+            Fieldset(_('Dispositivo de Vigência'),
+                     fields_search,
+                     css_class="col-md-12 dispositivo_vigencia_busca"))
 
         super(DispositivoEdicaoVigenciaForm, self).__init__(*args, **kwargs)
 

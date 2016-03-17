@@ -7,7 +7,7 @@
 {% block head_content %}{{block.super}}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
-{% block sections_nav %} 
+{% block sections_nav %}
 <ul class="nav nav-pills navbar-right">
   {% url 'compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
   {% url 'compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
@@ -37,12 +37,8 @@
   {% crispy form %}
 {% endblock %}
 
-{% block foot_js %}
-  {{block.super}}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-{% endblock %}
-
 {% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
   <script type="text/javascript">
 
     function atualizaRotulo() {
@@ -74,10 +70,37 @@
     }
 
     $(document).ready(function() {
-        {% if object.tipo_dispositivo.dispositivo_de_articulacao %}
-            setTimeout(removeTinymce, 100);
-        {% endif %}
-        $('[data-toggle="tooltip"]').tooltip();
+      {% if object.tipo_dispositivo.dispositivo_de_articulacao %}
+          setTimeout(removeTinymce, 100);
+      {% endif %}
+
+      $('[data-toggle="tooltip"]').tooltip();
+      configFormSearchTA('.dispositivo_vigencia_busca', 'radio', 'select_for_vigencia');
+      onChangeParamTA();
+
+      var change_inconstitucionalidade = function() {
+        var datas = $('.dateinput').filter('[name!="inicio_vigencia"]');
+        var _this = this;
+        if ($('[name="inconstitucionalidade"]:checked').val() == "True") {
+          datas.val($('[name="inicio_vigencia"]').val());
+          datas.attr("readonly", "readonly");
+          datas.datepicker( "destroy" );
+        }
+        else {
+          datas.removeAttr("readonly");
+          datas.datepicker();
+        }
+      }
+      $('[name="inconstitucionalidade"]').on('change', change_inconstitucionalidade);
+      $('[name="inicio_vigencia"]').on('change', change_inconstitucionalidade);
+      change_inconstitucionalidade();
+
+      $('form').bind("keypress", function(e) {
+        if (e.keyCode == 13) {
+          e.preventDefault();
+          return false;
+        }
+      });
     });
   </script>
 {% endblock %}

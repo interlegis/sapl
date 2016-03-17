@@ -13,7 +13,6 @@
     <div class="ta_title">{{dpt.ta}}</div>
       <ul>
   {% endifchanged %}
-
   {% if dpt.is_relative_auto_insert and dpt.dispositivo_pai.nivel != 0 %}
     <li>
       <div class="iteminput">
@@ -24,13 +23,23 @@
         <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
        </div>
     </li>
-  {% elif not dpt.tipo_dispositivo.dispositivo_de_articulacao  %}
+  {% elif not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
     <li>
       <div class="iteminput">
           <input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
       </div>
       <div class="itemlabel">
         <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {{dpt.texto|safe}}</label>
+        <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
+      </div>
+    </li>
+  {% elif dpt.tipo_dispositivo.dispositivo_de_articulacao and request.GET.tipo_select != 'select_for_vide'%}
+    <li>
+      <div class="iteminput">
+          <input type="{{request.GET.tipo_form}}" name="dispositivo_ref" id="r{{dpt.pk}}" value="{{dpt.pk}}"/>
+      </div>
+      <div class="itemlabel">
+        <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {% if dpt.tipo_dispositivo.dispositivo_de_articulacao %}{{dpt.dispositivos_filhos_set.all.first.texto|safe}}{% else %}{{dpt.texto|safe}}{% endif %}</label>
         <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% nomenclatura_heranca dpt 1 1 %}</a>
       </div>
     </li>

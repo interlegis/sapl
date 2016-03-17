@@ -5,7 +5,7 @@ function onEventsDneExec(pk, model) {
         scrollTop: $('#dne' + pk ).offset().top - window.innerHeight / 5
     }, 300);
 
-    refreshDatePicker()
+    refreshDatePicker();
 
     $('#dne'+pk+" #button-id-submit-form").click(onSubmitEditNVForm);
     $('#dne'+pk+" .btn-close-container").click(function(){
@@ -23,70 +23,12 @@ function onEventsDneExec(pk, model) {
         });
     }
     else if (model == 'vide') {
-        $('#dne'+pk+" select[name='tipo_ta']").change(function(event) {
-            var url = '';
-            url = 'text/'+pk+'/vide/create?action=get_tipos&tipo_ta='+this.value;
+        configFormSearchTA('#dne'+pk, 'radio', 'select_for_vide');    	
 
-            $('#dne'+pk+" label[for='id_tipo_model']").html('Tipos de ' + this.children[this.selectedIndex].innerHTML);
-
-
-            var select = $('#dne'+pk+" select[name='tipo_model']");
-            select.empty();
-            $('<option value="">Carregando...</option>').appendTo(select);
-
-            $.get(url).done(function( data ) {
-                select.empty();
-                for(var item in data) {
-                    for (var i in data[item])
-                          $('<option value="'+i+'">'+data[item][i]+'</option>').appendTo(select);
-                }
-
-
-            });
-        });
-        $('#dne'+pk+" input[name='num_norma'], "
-            + '#dne'+pk+" input[name='ano_norma'], "
-            + '#dne'+pk+" input[name='busca_dispositivo']"
-        ).change(onChangeParamNorma);
-
-        $('#dne'+pk+" .btn-busca").click(onChangeParamNorma);
-
-        onChangeParamNorma();
+        onChangeParamTA();
     }
 }
-var onChangeParamNorma = function(event) {
-    var tipo_ta = $("select[name='tipo_ta']").val();
-    var tipo_model = $("select[name='tipo_model']").val();
-    var num_ta = $("input[name='num_ta']").val();
-    var ano_ta = $("input[name='ano_ta']").val();
-    var busca_dispositivo = $("input[name='busca_dispositivo']").val();
-    var dispositivo_ref = $("#id_dispositivo_ref").val();
-    $('#id_dispositivo_ref').remove();
 
-    if (dispositivo_ref == null)
-        dispositivo_ref = ''
-
-    var url = '';
-    var pk = $("select[name='tipo_ta']").closest('.dne').attr('pk')
-
-    var formData = {
-        'tipo_ta'            : tipo_ta,
-        'tipo_model'            : tipo_model,
-        'num_ta'             : num_ta,
-        'ano_ta'             : ano_ta,
-        'busca'                   : busca_dispositivo,
-        'tipo_form'             : 'radio',
-        'initial_ref'           : dispositivo_ref
-    };
-
-    url = 'text/search';
-    $('.container-busca').html('');
-    insertWaitAjax('.container-busca')
-    $.get(url, formData).done(function( data ) {
-        $('.container-busca').html(data);
-        $("input[name='dispositivo_ref']").first().prop('checked', true);
-    });
-}
 
 var onSubmitEditNVForm = function(event) {
 

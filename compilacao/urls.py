@@ -71,9 +71,9 @@ urlpatterns_compilacao = [
         '(?P<dispositivo_id>[0-9]+)/vide/(?P<pk>[0-9]+)/delete$',
         views.VideDeleteView.as_view(), name='vide_delete'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/search$',
+    url(r'^search_fragment_form$',
         views.DispositivoSearchFragmentFormView.as_view(),
-        name='search_dispositivo'),
+        name='dispositivo_fragment_form'),
 
 
     url(r'^(?P<ta_id>[0-9]+)/publicacao$',

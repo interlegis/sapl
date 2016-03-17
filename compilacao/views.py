@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
+from django.forms.models import model_to_dict
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
@@ -1021,7 +1022,9 @@ class ActionsEditMixin:
             dvt = dvt.dispositivo_pai
 
         try:
-            Dispositivo.objects.all().update(dispositivo_vigencia=dvt)
+            Dispositivo.objects.filter(
+                ta=dvt.ta,
+                ta_publicado__isnull=True).update(dispositivo_vigencia=dvt)
             return {'message': str(_('Dispositivo de Vigência atualizado '
                                      'com sucesso!!!'))}
         except:
@@ -1704,10 +1707,10 @@ class VideMixin(DispositivoSuccessUrlMixin):
 
 
 def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
-    result = [(None, '-------------'), ]
+    yield None, '-------------'
 
     if not id_tipo_ta:
-        return result
+        return
 
     tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
 
@@ -1718,35 +1721,14 @@ def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
                     tipo_ta.content_type.app_label ==
                     item.model._meta.app_label):
                 for i in item.model_type_foreignkey.objects.all():
-                    result.append((i.pk, i))
-    return result
+                    yield i.pk, i
 
 
-class VideCreateView(VideMixin, CreateView):
-    model = Vide
-    template_name = 'compilacao/ajax_form.html'
-    form_class = VideForm
-
-    def get(self, request, *args, **kwargs):
-        self.object = None
-
-        if 'action' in request.GET and request.GET['action'] == 'get_tipos':
-            result = choice_model_type_foreignkey_in_extenal_views(
-                id_tipo_ta=request.GET['tipo_ta'])
-
-            itens = []
-            for i in result:
-                item = {}
-                item[i[0] if i[0] else ''] = str(i[1])
-                itens.append(item)
-            return JsonResponse(itens, safe=False)
-
-        form = self.get_form()
-        return self.render_to_response(self.get_context_data(form=form))
+class DispositivoSearchMixin:
 
     def get_form_kwargs(self):
 
-        kwargs = super(VideCreateView, self).get_form_kwargs()
+        kwargs = super(DispositivoSearchMixin, self).get_form_kwargs()
 
         if 'choice_model_type_foreignkey_in_extenal_views' not in kwargs:
             kwargs.update({
@@ -1755,6 +1737,17 @@ class VideCreateView(VideMixin, CreateView):
             })
 
         return kwargs
+
+
+class VideCreateView(VideMixin, DispositivoSearchMixin, CreateView):
+    model = Vide
+    template_name = 'compilacao/ajax_form.html'
+    form_class = VideForm
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class VideEditView(VideMixin, UpdateView):
@@ -1773,6 +1766,21 @@ class VideDeleteView(VideMixin, TemplateView):
 
 class DispositivoSearchFragmentFormView(ListView):
     template_name = 'compilacao/dispositivo_search_fragment_form.html'
+
+    def get(self, request, *args, **kwargs):
+
+        if 'action' in request.GET and request.GET['action'] == 'get_tipos':
+            result = choice_model_type_foreignkey_in_extenal_views(
+                id_tipo_ta=request.GET['tipo_ta'])
+
+            itens = []
+            for i in result:
+                item = {}
+                item[i[0] if i[0] else ''] = str(i[1])
+                itens.append(item)
+            return JsonResponse(itens, safe=False)
+
+        return ListView.get(self, request, *args, **kwargs)
 
     def get_queryset(self):
         try:
@@ -1827,7 +1835,8 @@ class DispositivoSearchFragmentFormView(ListView):
                     q = q & Q(pk=initial_ref)
                     n = 50
 
-            result = Dispositivo.objects.filter(q).select_related('ta')
+            result = Dispositivo.objects.filter(q).select_related(
+                'ta').exclude(tipo_dispositivo__dispositivo_de_alteracao=True)
 
             if 'tipo_model' not in self.request.GET:
                 return result[:n]
@@ -1984,9 +1993,12 @@ class PublicacaoDeleteView(CompMixin, DeleteView):
                             kwargs={'ta_id': self.kwargs['ta_id']})
 
 
-class DispositivoEdicaoBasicaView(UpdateView):
+class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
     model = Dispositivo
     form_class = DispositivoEdicaoBasicaForm
+    form_valid_message = _('Alterações no Dispositivo realizadas com sucesso!')
+    form_invalid_message = _('Houve erro em registrar '
+                             'as alterações no Dispositivo')
 
     @property
     def cancel_url(self):
@@ -2052,7 +2064,8 @@ class DispositivoEdicaoBasicaView(UpdateView):
         return UpdateView.get(self, request, *args, **kwargs)
 
 
-class DispositivoEdicaoVigenciaView(DispositivoEdicaoBasicaView):
+class DispositivoEdicaoVigenciaView(
+        DispositivoSearchMixin, DispositivoEdicaoBasicaView):
     model = Dispositivo
     form_class = DispositivoEdicaoVigenciaForm
 
@@ -2074,3 +2087,27 @@ class DispositivoEdicaoVigenciaView(DispositivoEdicaoBasicaView):
                     _('Ocorreu erro na atualização do rótulo'))}, safe=False)
             return True, JsonResponse({}, safe=False)
         return False, ''
+
+    def get_initial(self):
+
+        ta = self.object.ta_publicado if self.object.ta_publicado else\
+            self.object.ta
+
+        initial = {
+            'ano_ta': ta.ano,
+            'num_ta': ta.numero,
+            'tipo_ta': ta.tipo_ta,
+        }
+        if hasattr(ta, 'content_object') and\
+                ta.content_object:
+            lista_tipos = list(choice_model_type_foreignkey_in_extenal_views(
+                id_tipo_ta=ta.tipo_ta_id))
+
+            content_object = model_to_dict(ta.content_object)
+
+            for key, value in content_object.items():
+                for item in lista_tipos:
+                    if getattr(ta.content_object, key) == item[1]:
+                        initial['tipo_model'] = item[0]
+
+        return initial
