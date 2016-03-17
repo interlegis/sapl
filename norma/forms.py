@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
 from .models import NormaJuridica
@@ -106,7 +107,7 @@ class NormaJuridicaForm(ModelForm):
     def clean_texto_integral(self):
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral:
-            if texto_integral.size > 5*1024*1024:
+            if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_integral
 

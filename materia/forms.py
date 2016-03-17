@@ -9,6 +9,7 @@ import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
@@ -43,7 +44,7 @@ class ProposicaoForm(ModelForm):
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
         if texto_original:
-            if texto_original.size > 5*1024*1024:
+            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_original
 
@@ -409,7 +410,7 @@ class FormularioSimplificadoForm(ModelForm):
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
         if texto_original:
-            if texto_original.size > 5*1024*1024:
+            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_original
         else:

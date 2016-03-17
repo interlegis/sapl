@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
 from .models import SessaoPlenaria
 
@@ -96,14 +97,14 @@ class SessaoForm(ModelForm):
     def clean_url_audio(self):
         url_audio = self.cleaned_data.get('url_audio', False)
         if url_audio:
-            if url_audio.size > 5*1024*1024:
+            if url_audio.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return url_audio
 
     def clean_url_video(self):
         url_video = self.cleaned_data.get('url_video', False)
         if url_video:
-            if url_video.size > 5*1024*1024:
+            if url_video.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return url_video
 

@@ -121,6 +121,9 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 
+MAX_DOC_UPLOAD_SIZE = 5*1024*1024  # 5MB
+MAX_IMAGE_UPLOAD_SIZE = 2*1024*1024  # 2MB
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 LANGUAGE_CODE = 'pt-br'

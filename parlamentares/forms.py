@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
+from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 
 from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
 
@@ -34,7 +35,7 @@ class ParlamentaresForm (ModelForm):
     def clean_fotografia(self):
         fotografia = self.cleaned_data.get('fotografia', False)
         if fotografia:
-            if fotografia.size > 2*1024*1024:
+            if fotografia.size > MAX_IMAGE_UPLOAD_SIZE:
                 raise ValidationError('Imagem muito grande. ( > 2mb )')
             return fotografia
 
