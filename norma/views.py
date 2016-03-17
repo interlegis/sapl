@@ -16,13 +16,13 @@ from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
 AssuntoNormaCrud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
 TipoNormaCrud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
 NormaCrud = Crud.build(NormaJuridica, '')
-NormaTemporarioCrud = Crud.build(NormaJuridica, 'normajuridica')
+NormaTemporarioCrud = Crud.build(NormaJuridica, 'norma')
 LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 
 class NormaPesquisaView(FormView):
     template_name = "norma/pesquisa.html"
-    success_url = "normajuridica:norma_pesquisa"
+    success_url = "norma:norma_pesquisa"
     form_class = NormaJuridicaPesquisaForm
 
     def post(self, request, *args, **kwargs):
@@ -113,7 +113,7 @@ class PesquisaNormaListView(ListView):
 class NormaIncluirView(CreateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
-    success_url = reverse_lazy('normajuridica:list')
+    success_url = reverse_lazy('norma:list')
 
     def form_valid(self, form):
         norma = form.save(commit=False)
@@ -132,7 +132,7 @@ class NormaEditView(UpdateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
     model = NormaJuridica
-    success_url = reverse_lazy('normajuridica:list')
+    success_url = reverse_lazy('norma:list')
 
     def get_initial(self):
         data = super(NormaEditView, self).get_initial()

@@ -58,7 +58,7 @@ TramitacaoCrud = Crud.build(Tramitacao, '')
 class FormularioSimplificadoView(CreateView):
     template_name = "materia/formulario_simplificado.html"
     form_class = FormularioSimplificadoForm
-    success_url = reverse_lazy('materialegislativa:list')
+    success_url = reverse_lazy('materia:materia_list')
 
 
 class FormularioCadastroView(CreateView):
@@ -223,7 +223,7 @@ class MateriaAnexadaEditView(FormView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'materialegislativa': mat_principal})
+                 'materia': mat_principal})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
