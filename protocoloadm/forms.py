@@ -307,14 +307,14 @@ class ProtocoloMateriaForm(ModelForm):
     autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     def clean_autor(self):
-        data_autor = self.cleaned_data['autor']
+        autor_field = self.cleaned_data['autor']
         try:
-            autor = Autor.objects.get(id=data_autor)
+            autor = Autor.objects.get(id=autor_field)
         except ObjectDoesNotExist:
-            data_autor = None
+            autor_field = None
         else:
-            data_autor = autor
-        return data_autor
+            autor_field = autor
+        return autor_field
 
     class Meta:
         model = Protocolo
