@@ -117,7 +117,11 @@
               alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
-                {{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}
+                {% if nome %}
+                  {{ nome }} {% trans 'de' %} {{ municipio }} - {{ uf }}
+                {% else %}
+                  {% trans 'Câmara Municipal'}
+                {% endif %}
                 <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
               </span>
             </a>
@@ -200,31 +204,21 @@
               </p>
             </div>
             <div class="col-md-4">
+              {% if nome %}
               <address>
                 <small>
                   <strong>
-                    <span class="org">{{ parliament_type }}</span> de <span class="locality">{{ city }}</span> - <abbr class="region" title="{{ state }}">{{ state_abbr }}</abbr>
+                    <span class="org">{{ nome }}</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
                   </strong>
                   <br>
-                  <span class="street-address">{{ address }}</span>
-                  <br> CEP: <span class="postal-code">{{ postal_code }}</span> | Telefone: <span>{{ phone_number }}</span>
+                  <span class="street-address">{{ endereco }}</span>
+                  <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
                   <br>
-                  <a href="{{url_portal}}" class="url">
-                    {% if url_portal %}
-                      {% trans 'Site da Câmara' %}
-                    {% else %}
-                      {% trans 'Site não cadastrado' %}
-                    {% endif %}
-                  </a> |
-                  <a href="{{url_email}}" class="email">
-                    {% if url_email %}
-                      {% trans 'Fale Conosco' %}
-                    {% else %}
-                      {% trans 'Email não cadastrado' %}
-                    {% endif %}
-                  </a>
+                  <a href="{{endereco_web}}" class="url">{% trans 'Site da Câmara' %}</a> |
+                  <a href="{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
                 </small>
               </address>
+              {% endif %}
             </div>
           </div>
         </div>
