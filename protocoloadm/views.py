@@ -115,87 +115,62 @@ class ProtocoloListView(ListView):
         return context
 
 
-class AnularProtocoloAdmView(FormView):
+class AnularProtocoloAdmView(CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = AnularProcoloAdmForm
-    success_url = reverse_lazy('anular_protocolo')
     form_valid_message = _('Protocolo anulado com sucesso!')
+
+    def get_success_url(self):
+        return reverse('protocolo')
 
     def get_initial(self):
         initial_data = {}
         initial_data['user_anulacao'] = self.request.user.username
         initial_data['ip_anulacao'] = get_client_ip(self.request)
-        initial_data['anulado'] = True
         return initial_data
 
-    def post(self, request, *args, **kwargs):
-
-        form = AnularProcoloAdmForm(request.POST)
-
-        if form.is_valid():
-
-            numero = form.cleaned_data['numero']
-            ano = form.cleaned_data['ano']
-
-            protocolo = Protocolo.objects.get(numero=numero, ano=ano)
-            protocolo.anulado = True
-            protocolo.justificativa_anulacao = sub('&nbsp;', ' ', strip_tags(
-                form.cleaned_data['justificativa_anulacao']))
-            protocolo.user_anulacao = form.cleaned_data['user_anulacao']
-            protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
-            protocolo.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+    def form_valid(self, form):
+        protocolo = Protocolo.objects.get(numero=form.cleaned_data['numero'],
+                                          ano=form.cleaned_data['ano'])
+        protocolo.anulado = True
+        protocolo.justificativa_anulacao = (
+            form.cleaned_data['justificativa_anulacao'])
+        protocolo.user_anulacao = form.cleaned_data['user_anulacao']
+        protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
+        protocolo.save()
+        return redirect(self.get_success_url())
 
 
-class ProtocoloDocumentoView(FormValidMessageMixin, FormView):
-
+class ProtocoloDocumentoView(FormValidMessageMixin, CreateView):
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
-    success_url = reverse_lazy('protocolo')
     form_valid_message = _('Protocolo cadastrado com sucesso!')
 
-    def post(self, request, *args, **kwargs):
+    def get_success_url(self):
+        return reverse('protocolo')
 
-        form = ProtocoloDocumentForm(request.POST)
+    def form_valid(self, form):
+        f = form.save(commit=False)
 
-        if form.is_valid():
-            if form.cleaned_data['numeracao'] == '1':
-                numeracao = Protocolo.objects.filter(
-                    ano=date.today().year).aggregate(Max('numero'))
-            elif form.cleaned_data['numeracao'] == '2':
-                numeracao = Protocolo.objects.all().aggregate(Max('numero'))
-            # else:
-            #     raise ValidationError(_("Campo numeração é obrigatório"))
+        if form.cleaned_data['numeracao'] == '1':
+            numeracao = Protocolo.objects.filter(
+                ano=date.today().year).aggregate(Max('numero'))
+        elif form.cleaned_data['numeracao'] == '2':
+            numeracao = Protocolo.objects.all().aggregate(Max('numero'))
 
-            if numeracao['numero__max'] is None:
-                numeracao['numero__max'] = 0
+        if numeracao['numero__max'] is None:
+            numeracao['numero__max'] = 0
 
-            protocolo = form.save(commit=False)
-            protocolo.numero = numeracao['numero__max'] + 1
-            protocolo.ano = datetime.now().year
-            protocolo.data = datetime.now().strftime("%Y-%m-%d")
-            protocolo.hora = datetime.now().strftime("%H:%M")
-            protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            protocolo.tipo_protocolo = request.POST['tipo_protocolo']
-            protocolo.tipo_processo = '0'  # TODO validar o significado
-            protocolo.interessado = request.POST['interessado']
-            protocolo.anulado = False
-            protocolo.tipo_documento = TipoDocumentoAdministrativo.objects.get(
-                id=request.POST['tipo_documento'])
-            protocolo.assunto_ementa = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['assunto']))
-            protocolo.numero_paginas = request.POST['num_paginas']
-            protocolo.observacao = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
+        f.tipo_processo = '0'  # TODO validar o significado
+        f.anulado = False
+        f.numero = numeracao['numero__max'] + 1
+        f.ano = datetime.now().year
+        f.data = datetime.now().strftime('%Y-%m-%d')
+        f.hora = datetime.now().strftime('%H:%M')
+        f.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-            protocolo.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        f.save()
+        return redirect(self.get_success_url())
 
 
 class CriarDocumentoProtocolo(CreateView):
@@ -274,7 +249,7 @@ class ComprovanteProtocoloView(TemplateView):
         return context
 
 
-class ProtocoloMateriaView(FormView):
+class ProtocoloMateriaView(CreateView):
 
     template_name = "protocoloadm/protocolar_materia.html"
     form_class = ProtocoloMateriaForm
@@ -283,40 +258,34 @@ class ProtocoloMateriaView(FormView):
     def get_success_url(self):
         return reverse('protocolo')
 
-    def post(self, request, *args, **kwargs):
-
-        form = ProtocoloMateriaForm(request.POST)
-
-        if form.is_valid():
-            if request.POST['numeracao'] == '1':
-                numeracao = Protocolo.objects.filter(
-                    ano=date.today().year).aggregate(Max('numero'))
-            else:
-                numeracao = Protocolo.objects.all().aggregate(Max('numero'))
-
-            if numeracao is None:
-                numeracao['numero__max'] = 0
-
-            protocolo = Protocolo()
-
-            protocolo.numero = numeracao['numero__max'] + 1
-            protocolo.ano = datetime.now().year
-            protocolo.data = datetime.now().strftime("%Y-%m-%d")
-            protocolo.hora = datetime.now().strftime("%H:%M")
-            protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            protocolo.tipo_protocolo = request.POST['tipo_protocolo']
-            protocolo.tipo_processo = '0'  # TODO validar o significado
-            protocolo.autor = Autor.objects.get(id=request.POST['autor'])
-            protocolo.anulado = False
-            protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
-                id=request.POST['tipo_materia'])
-            protocolo.numero_paginas = request.POST['num_paginas']
-            protocolo.observacao = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
-            protocolo.save()
-            return self.form_valid(form)
+    def form_valid(self, form):
+        if self.request.POST['numeracao'] == '1':
+            numeracao = Protocolo.objects.filter(
+                ano=date.today().year).aggregate(Max('numero'))
         else:
-            return self.form_invalid(form)
+            numeracao = Protocolo.objects.all().aggregate(Max('numero'))
+
+        if numeracao is None:
+            numeracao['numero__max'] = 0
+
+        protocolo = Protocolo()
+
+        protocolo.numero = numeracao['numero__max'] + 1
+        protocolo.ano = datetime.now().year
+        protocolo.data = datetime.now().strftime("%Y-%m-%d")
+        protocolo.hora = datetime.now().strftime("%H:%M")
+        protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        protocolo.tipo_protocolo = self.request.POST['tipo_protocolo']
+        protocolo.tipo_processo = '0'  # TODO validar o significado
+        if form.cleaned_data['autor']:
+            protocolo.autor = form.cleaned_data['autor']
+        protocolo.anulado = False
+        protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
+            id=self.request.POST['tipo_materia'])
+        protocolo.numero_paginas = self.request.POST['numero_paginas']
+        protocolo.observacao = self.request.POST['observacao']
+        protocolo.save()
+        return redirect(self.get_success_url())
 
 
 # TODO: move to Proposicao app
