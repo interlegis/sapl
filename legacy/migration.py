@@ -160,8 +160,6 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
-            msg = 'Field %s (%s) from model %s' % (
-                field.name, field_type, field.model.__name__)
 
             if old_field_name:
                 old_value = getattr(old, old_field_name)
@@ -177,8 +175,11 @@ class DataMigrator:
                     value = getattr(old, old_field_name)
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
-                        warn(msg +
-                             " => settig empty string '' for %s value" % value)
+                        warn(
+                            "Field %s (%s) from model %s"
+                            " => settig empty string '' for %s value" %
+                            (field.name, field_type, field.model.__name__,
+                             value))
                         value = ''
                 setattr(new, field.name, value)
 
