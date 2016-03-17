@@ -1,13 +1,11 @@
 import json
 from datetime import date, datetime
-from re import sub
 
 from braces.views import FormValidMessageMixin
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Q, Max
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
-from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView

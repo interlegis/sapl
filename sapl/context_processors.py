@@ -1,5 +1,4 @@
 
-from django.core.exceptions import ObjectDoesNotExist
 
 from base.views import get_casalegislativa
 

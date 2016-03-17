@@ -11,13 +11,12 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
-from materia.models import TipoMateriaLegislativa
+from materia.models import Autor, TipoMateriaLegislativa
 from sapl.utils import RANGE_ANOS
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
-from materia.models import Autor
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
 
