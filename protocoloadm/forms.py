@@ -162,10 +162,8 @@ class AnularProcoloAdmForm(ModelForm):
         # (e ele vai falhar pq numero e ano são obrigatórios)
         if not numero or not ano:
             return
-
         try:
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
-
             if protocolo.anulado:
                 raise forms.ValidationError(
                     _("Protocolo %s/%s já encontra-se anulado")
