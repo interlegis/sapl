@@ -19,7 +19,7 @@ def test_anular_protocolo_submit(client):
 
     # TODO: setar usuario e IP
     response = client.post(reverse('anular_protocolo'),
-                           {'numero': '',
+                           {'numero': '76',
                             'ano': '2016',
                             'justificativa_anulacao': 'TESTE',
                             'salvar': 'Anular'},
@@ -30,6 +30,7 @@ def test_anular_protocolo_submit(client):
     protocolo = Protocolo.objects.first()
     assert protocolo.numero == 76
     assert protocolo.ano == 2016
+
     if not protocolo.anulado:
         pytest.fail(_("Protocolo deveria estar anulado"))
     assert protocolo.justificativa_anulacao == 'TESTE'
