@@ -14,6 +14,28 @@ def test_anular_protocolo_acessivel(client):
 
 
 @pytest.mark.django_db(transaction=False)
+def test_anular_protocolo_submit(client):
+    mommy.make(Protocolo, numero='76', ano='2016', anulado=False)
+
+    # TODO: setar usuario e IP
+    response = client.post(reverse('anular_protocolo'),
+                           {'numero': '',
+                            'ano': '2016',
+                            'justificativa_anulacao': 'TESTE',
+                            'salvar': 'Anular'},
+                           follow=True)
+
+    assert response.status_code == 200
+
+    protocolo = Protocolo.objects.first()
+    assert protocolo.numero == 76
+    assert protocolo.ano == 2016
+    if not protocolo.anulado:
+        pytest.fail(_("Protocolo deveria estar anulado"))
+    assert protocolo.justificativa_anulacao == 'TESTE'
+
+
+@pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_inexistente():
     form = AnularProcoloAdmForm({'numero': '1',
                                  'ano': '2016',
@@ -21,7 +43,7 @@ def test_form_anular_protocolo_inexistente():
 
     # Não usa o assert form.is_valid() == False por causa do PEP8
     if form.is_valid():
-        pytest.xfail("Form deve ser inválido")
+        pytest.fail(_("Form deve ser inválido"))
     assert form.errors['__all__'] == [_("Protocolo 1/2016 não existe")]
 
 
@@ -32,7 +54,7 @@ def test_form_anular_protocolo_valido():
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
     if not form.is_valid():
-        pytest.xfail("Form deve ser válido")
+        pytest.fail(_("Form deve ser válido"))
 
 
 @pytest.mark.django_db(transaction=False)
@@ -49,12 +71,14 @@ def test_form_anular_protocolo_anulado():
 def test_form_anular_protocolo_campos_obrigatorios():
     mommy.make(Protocolo, numero='1', ano='2016', anulado=False)
 
+    # TODO: generalizar para diminuir o tamanho deste método
+
     # numero ausente
     form = AnularProcoloAdmForm({'numero': '',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
     if form.is_valid():
-        pytest.xfail("Form deve ser inválido")
+        pytest.fail(_("Form deve ser inválido"))
 
     assert len(form.errors) == 1
     assert form.errors['numero'] == [_('Este campo é obrigatório.')]
@@ -64,7 +88,7 @@ def test_form_anular_protocolo_campos_obrigatorios():
                                  'ano': '',
                                  'justificativa_anulacao': 'TESTE'})
     if form.is_valid():
-        pytest.xfail("Form deve ser inválido")
+        pytest.fail(_("Form deve ser inválido"))
 
     assert len(form.errors) == 1
     assert form.errors['ano'] == [_('Este campo é obrigatório.')]
@@ -74,7 +98,7 @@ def test_form_anular_protocolo_campos_obrigatorios():
                                  'ano': '2016',
                                  'justificativa_anulacao': ''})
     if form.is_valid():
-        pytest.xfail("Form deve ser inválido")
+        pytest.fail(_("Form deve ser inválido"))
 
     assert len(form.errors) == 1
     assert form.errors['justificativa_anulacao'] == \
