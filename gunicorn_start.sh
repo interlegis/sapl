@@ -2,12 +2,13 @@
 
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
 
-NAME="sapl"                                     # Name of the application (*)
+NAME="SAPL"                                     # Name of the application (*)
 DJANGODIR=`pwd`                                 # Django project directory (*)
 SOCKFILE=`pwd`/run/gunicorn.sock                # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
-NUM_WORKERS=1                                   # how many worker processes should Gunicorn spawn (*)
+NUM_WORKERS=9                                   # how many worker processes should Gunicorn spawn (*)
+                                                # NUM_WORKERS = 2 * CPUS + 1
 DJANGO_SETTINGS_MODULE=sapl.settings            # which settings file should Django use (*)
 DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)
 
