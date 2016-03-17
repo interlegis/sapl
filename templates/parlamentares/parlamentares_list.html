@@ -30,7 +30,7 @@
 			{% for p in parlamentares %}
 				<tr>
 					<td>
-						<a href="{% url 'parlamentares_editar' p.id %}"> {{p.nome}}</a>
+						<a href="{% url 'parlamentares:parlamentares_editar' p.id %}"> {{p.nome}}</a>
 					</td>
 					<td>{{p.partido}}</td>
 					<td>{{p.ativo|yesno:"Sim,Não"}}</td>

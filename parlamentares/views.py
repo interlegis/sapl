@@ -197,7 +197,7 @@ class ParlamentaresEditarView(UpdateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
     form_class = ParlamentaresEditForm
     model = Parlamentar
-    success_url = reverse_lazy('parlamentares')
+    success_url = reverse_lazy('parlamentares:parlamentares')
 
     def form_valid(self, form):
         parlamentar = form.instance
@@ -344,7 +344,7 @@ class MesaDiretoraView(FormView):
                 id=int(request.POST['cargo']))
             composicao.save()
 
-            return self.form_valid(form=None)
+            return redirect('parlamentares:mesa_diretora')
 
         elif 'Excluir' in request.POST:
 
@@ -360,7 +360,7 @@ class MesaDiretoraView(FormView):
                     cargo_id=int(ids[1])
                 )
                 composicao.delete()
-            return self.form_valid(form=None)
+            return redirect('parlamentares:mesa_diretora')
         else:
             mesa = ComposicaoMesa.objects.filter(
                 sessao_legislativa=request.POST['sessao'])

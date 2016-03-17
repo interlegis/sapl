@@ -1259,7 +1259,8 @@ class MateriaLegislativaPesquisaView(FormView):
             kwargs['situacao'] = form.data['situacao']
 
         request.session['kwargs'] = kwargs
-        return redirect('pesquisar_materia_list')
+
+        return redirect('materia:pesquisar_materia_list')
 
 
 class PesquisaMateriaListView(ListView):
@@ -1325,7 +1326,7 @@ class ProposicaoView(CreateView):
     form_class = ProposicaoForm
 
     def get_success_url(self):
-        return reverse('list_proposicao')
+        return reverse('materia:list_proposicao')
 
     def get(self, request, *args, **kwargs):
         return self.render_to_response({'form': self.get_form()})
