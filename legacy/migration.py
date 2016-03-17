@@ -105,8 +105,7 @@ def get_fk_related(field, value, label=None):
                 warn(msg + ' => using NONE for zero value')
             else:
                 value = make_stub(field.related_model, value)
-                stubs_list.append(
-                    (value.id, field.model, field.related_model, field.name))
+                stubs_list.append((value.id, field))
                 warn(msg + ' => STUB CREATED')
         else:
             assert value
@@ -253,16 +252,11 @@ class DataMigrator:
 
     def delete_stubs(self):
         for line in stubs_list:
-            stub_id = line[0]
-            model = line[1]
-            related_model = line[2]
-            field_name = line[3]
-
+            stub, field = line
             # Filter all objects in model and delete from related model
             # if quantity is equal to zero
-            obj_quantity = model.objects.filter(**{field_name: stub_id})
-            if obj_quantity.count() == 0:
-                related_model.objects.get(**{'id': stub_id}).delete()
+            if field.model.objects.filter(**{field.name: stub}).exists():
+                field.related_model.objects.get(**{'id': stub}).delete()
 
 
 def migrate(obj=appconfs):
