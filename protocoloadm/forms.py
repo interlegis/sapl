@@ -17,6 +17,7 @@ from sapl.utils import RANGE_ANOS
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
+from materia.models import Autor
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
 
@@ -286,7 +287,7 @@ class ProtocoloDocumentForm(ModelForm):
             *args, **kwargs)
 
 
-class ProtocoloMateriaForm(forms.Form):
+class ProtocoloMateriaForm(ModelForm):
 
     NUMERACAO_CHOICES = [('1', 'Sequencial por Ano'),
                          ('2', 'Sequencial Único')]
@@ -303,22 +304,26 @@ class ProtocoloMateriaForm(forms.Form):
                                        widget=forms.RadioSelect(
                                            renderer=HorizontalRadioRenderer))
 
-    tipo_materia = forms.ModelChoiceField(
-        label='Tipo de Matéria',
-        required=False,
-        queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-    )
+    autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
-    num_paginas = forms.CharField(label='Núm. Páginas', required=True)
-    ementa = forms.CharField(
-        widget=forms.Textarea, label='Ementa', required=True)
+    def clean_autor(self):
+        data_autor = self.cleaned_data['autor']
+        try:
+            autor = Autor.objects.get(id=data_autor)
+        except ObjectDoesNotExist:
+            data_autor = None
+        else:
+            data_autor = autor
+        return data_autor
 
-    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    observacao = forms.CharField(required=True,
-                                 widget=forms.Textarea,
-                                 label='Observação')
+    class Meta:
+        model = Protocolo
+        fields = ['numeracao',
+                  'tipo_protocolo',
+                  'tipo_materia',
+                  'numero_paginas',
+                  'autor',
+                  'observacao']
 
     def __init__(self, *args, **kwargs):
 
@@ -327,7 +332,7 @@ class ProtocoloMateriaForm(forms.Form):
         row2 = crispy_layout_mixin.to_row(
             [('tipo_materia', 4),
              ('tipo_protocolo', 4),
-             ('num_paginas', 4)])
+             ('numero_paginas', 4)])
         row3 = crispy_layout_mixin.to_row(
             [('autor', 0),
              (Button('pesquisar',
@@ -335,11 +340,9 @@ class ProtocoloMateriaForm(forms.Form):
                      css_class='btn btn-primary btn-sm'), 2),
              (Button('limpar',
                      'limpar Autor',
-                     css_class='btn btn-primary btn-sm'), 2)])
+                     css_class='btn btn-primary btn-sm'), 10)])
         row4 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
-        row5 = crispy_layout_mixin.to_row(
-            [('ementa', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -350,7 +353,6 @@ class ProtocoloMateriaForm(forms.Form):
                      HTML(sapl.utils.autor_modal),
                      row3,
                      row4,
-                     row5,
                      form_actions(save_label='Protocolar Matéria')
                      )
         )

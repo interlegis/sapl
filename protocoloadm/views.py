@@ -249,7 +249,7 @@ class ComprovanteProtocoloView(TemplateView):
         return context
 
 
-class ProtocoloMateriaView(FormView):
+class ProtocoloMateriaView(CreateView):
 
     template_name = "protocoloadm/protocolar_materia.html"
     form_class = ProtocoloMateriaForm
@@ -258,40 +258,34 @@ class ProtocoloMateriaView(FormView):
     def get_success_url(self):
         return reverse('protocolo')
 
-    def post(self, request, *args, **kwargs):
-
-        form = ProtocoloMateriaForm(request.POST)
-
-        if form.is_valid():
-            if request.POST['numeracao'] == '1':
-                numeracao = Protocolo.objects.filter(
-                    ano=date.today().year).aggregate(Max('numero'))
-            else:
-                numeracao = Protocolo.objects.all().aggregate(Max('numero'))
-
-            if numeracao is None:
-                numeracao['numero__max'] = 0
-
-            protocolo = Protocolo()
-
-            protocolo.numero = numeracao['numero__max'] + 1
-            protocolo.ano = datetime.now().year
-            protocolo.data = datetime.now().strftime("%Y-%m-%d")
-            protocolo.hora = datetime.now().strftime("%H:%M")
-            protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            protocolo.tipo_protocolo = request.POST['tipo_protocolo']
-            protocolo.tipo_processo = '0'  # TODO validar o significado
-            protocolo.autor = Autor.objects.get(id=request.POST['autor'])
-            protocolo.anulado = False
-            protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
-                id=request.POST['tipo_materia'])
-            protocolo.numero_paginas = request.POST['num_paginas']
-            protocolo.observacao = sub(
-                '&nbsp;', ' ', strip_tags(request.POST['observacao']))
-            protocolo.save()
-            return self.form_valid(form)
+    def form_valid(self, form):
+        if self.request.POST['numeracao'] == '1':
+            numeracao = Protocolo.objects.filter(
+                ano=date.today().year).aggregate(Max('numero'))
         else:
-            return self.form_invalid(form)
+            numeracao = Protocolo.objects.all().aggregate(Max('numero'))
+
+        if numeracao is None:
+            numeracao['numero__max'] = 0
+
+        protocolo = Protocolo()
+
+        protocolo.numero = numeracao['numero__max'] + 1
+        protocolo.ano = datetime.now().year
+        protocolo.data = datetime.now().strftime("%Y-%m-%d")
+        protocolo.hora = datetime.now().strftime("%H:%M")
+        protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        protocolo.tipo_protocolo = self.request.POST['tipo_protocolo']
+        protocolo.tipo_processo = '0'  # TODO validar o significado
+        if form.cleaned_data['autor']:
+            protocolo.autor = form.cleaned_data['autor']
+        protocolo.anulado = False
+        protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
+            id=self.request.POST['tipo_materia'])
+        protocolo.numero_paginas = self.request.POST['numero_paginas']
+        protocolo.observacao = self.request.POST['observacao']
+        protocolo.save()
+        return redirect(self.get_success_url())
 
 
 # TODO: move to Proposicao app
