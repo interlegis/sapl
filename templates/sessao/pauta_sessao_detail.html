@@ -39,7 +39,7 @@
     <div class="row">
       {% for m in materia_expediente %}
       <div class="col-md-4">
-        {{m.numero}} - <a href="{% url 'sessaoplenaria:pauta_expediente_detail' m.id %}">{{m.titulo}}</a>
+        {{m.numero}} - <a href="{% url 'sessao:pauta_expediente_detail' m.id %}">{{m.titulo}}</a>
         <br />
         <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
       </div>
@@ -73,7 +73,7 @@
     <div class="row">
       {% for m in materias_ordem %}
       <div class="col-md-4">
-        {{m.numero}} - <a href="{% url 'sessaoplenaria:pauta_ordem_detail' m.id %}">{{m.titulo}}</a>
+        {{m.numero}} - <a href="{% url 'sessao:pauta_ordem_detail' m.id %}">{{m.titulo}}</a>
         <br />
         <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
       </div>

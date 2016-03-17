@@ -539,7 +539,7 @@ class DocumentoAcessorioView(CreateView):
 class AcompanhamentoConfirmarView(TemplateView):
 
     def get_redirect_url(self):
-        return reverse("sessaoplenaria:list_pauta_sessao")
+        return reverse("sessao:list_pauta_sessao")
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
@@ -556,7 +556,7 @@ class AcompanhamentoConfirmarView(TemplateView):
 class AcompanhamentoExcluirView(TemplateView):
 
     def get_redirect_url(self):
-        return reverse("sessaoplenaria:list_pauta_sessao")
+        return reverse("sessao:list_pauta_sessao")
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
@@ -1469,4 +1469,4 @@ class AcompanhamentoMateriaView(MateriaLegislativaCrud.CrudDetailView):
                  'materia': materia})
 
     def get_success_url(self):
-        return reverse('sessaoplenaria:list_pauta_sessao')
+        return reverse('sessao:list_pauta_sessao')

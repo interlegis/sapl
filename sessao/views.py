@@ -93,7 +93,7 @@ class PresencaView(FormMixin, PresencaMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:presenca', kwargs={'pk': pk})
+        return reverse('sessao:presenca', kwargs={'pk': pk})
 
 
 class PainelView(SessaoCrud.CrudDetailView):
@@ -142,7 +142,7 @@ class PresencaOrdemDiaView(FormMixin,
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:presencaordemdia', kwargs={'pk': pk})
+        return reverse('sessao:presencaordemdia', kwargs={'pk': pk})
 
 
 class ListMateriaOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
@@ -409,7 +409,7 @@ class MateriaOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list',
+        return reverse('sessao:materiaordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -520,7 +520,7 @@ class EditMateriaOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list',
+        return reverse('sessao:materiaordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -586,7 +586,7 @@ class ExpedienteOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
+        return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -669,7 +669,7 @@ class EditExpedienteOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
+        return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -695,7 +695,7 @@ class OradorExpedienteDelete(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
+        return reverse('sessao:oradorexpediente', kwargs={'pk': pk})
 
 
 class OradorExpedienteEdit(FormMixin, SessaoCrud.CrudDetailView):
@@ -755,7 +755,7 @@ class OradorExpedienteEdit(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
+        return reverse('sessao:oradorexpediente', kwargs={'pk': pk})
 
 
 class OradorExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
@@ -825,7 +825,7 @@ class OradorExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:oradorexpediente', kwargs={'pk': pk})
+        return reverse('sessao:oradorexpediente', kwargs={'pk': pk})
 
 
 class MesaView(FormMixin, SessaoCrud.CrudDetailView):
@@ -919,7 +919,7 @@ class MesaView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:mesa', kwargs={'pk': pk})
+        return reverse('sessao:mesa', kwargs={'pk': pk})
 
 
 class ResumoView(SessaoCrud.CrudDetailView):
@@ -1159,7 +1159,7 @@ class ExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expediente', kwargs={'pk': pk})
+        return reverse('sessao:expediente', kwargs={'pk': pk})
 
 
 class ExplicacaoView(FormMixin, SessaoCrud.CrudDetailView):
@@ -1229,7 +1229,7 @@ class ExplicacaoView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
+        return reverse('sessao:explicacao', kwargs={'pk': pk})
 
 
 class ExplicacaoDelete(FormMixin, SessaoCrud.CrudDetailView):
@@ -1252,7 +1252,7 @@ class ExplicacaoDelete(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
+        return reverse('sessao:explicacao', kwargs={'pk': pk})
 
 
 class ExplicacaoEdit(FormMixin, SessaoCrud.CrudDetailView):
@@ -1312,7 +1312,7 @@ class ExplicacaoEdit(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:explicacao', kwargs={'pk': pk})
+        return reverse('sessao:explicacao', kwargs={'pk': pk})
 
 
 class VotacaoEditView(FormMixin, SessaoCrud.CrudDetailView):
@@ -1384,7 +1384,7 @@ class VotacaoEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list',
+        return reverse('sessao:materiaordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -1503,7 +1503,7 @@ class VotacaoView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list',
+        return reverse('sessao:materiaordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -1630,7 +1630,7 @@ class VotacaoNominalView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list',
+        return reverse('sessao:materiaordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -1707,7 +1707,7 @@ class VotacaoNominalEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:materiaordemdia_list',
+        return reverse('sessao:materiaordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -1832,7 +1832,7 @@ class VotacaoNominalExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
+        return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -1909,7 +1909,7 @@ class VotacaoNominalExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
+        return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -2030,7 +2030,7 @@ class VotacaoExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
+        return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -2045,7 +2045,7 @@ class VotacaoExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessaoplenaria:expedienteordemdia_list',
+        return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
 
     def get_tipos_votacao(self):
@@ -2236,7 +2236,7 @@ class PautaSessaoDetailView(SessaoCrud.CrudDetailView):
 class SessaoCadastroView(CreateView):
     template_name = "sessao/sessao_cadastro.html"
     form_class = SessaoForm
-    success_url = reverse_lazy('sessaoplenaria:list_sessao')
+    success_url = reverse_lazy('sessao:list_sessao')
 
 
 class SessaoPlenariaView(generics.ListAPIView):

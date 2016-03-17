@@ -46,30 +46,30 @@
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Institucional <span class="caret"></span></a>
                   <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'mesa_diretora' %}">Mesa Diretora</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'comissao:list' %}">Comissões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares:mesa_diretora' %}">Mesa Diretora</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'comissoes:comissao_list' %}">Comissões</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li> -->
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares' %}">Parlamentares</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares:parlamentares' %}">Parlamentares</a></li>
                   </ul>
                 </li>
 
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Protocolo <span class="caret"></span></a>
                   <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'protocolo' %}">Pesquisar</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'protocoloadm:protocolo' %}">Pesquisar</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="/materia">Protocolo Legislativo</a></li> -->
                     {# <li class="nav__sub-item"><a class="nav__sub-link" href="">Protocolo Geral</a></li> #}
-                    {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'proposicao' %}">Proposições</a></li> #}
+                    {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'protocoloadm:proposicao' %}">Proposições</a></li> #}
                   </ul>
                 </li>
 
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Atividade Legislativa <span class="caret"></span></a>
                   <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'list_proposicao' %}">Proposições</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materialegislativa:list' %}">Matérias Legislativas</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessaoplenaria:list_sessao' %}">Sessões Plenárias</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessaoplenaria:list_pauta_sessao' %}">Pautas das Sessões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materia:list_proposicao' %}">Proposições</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materia:materialegislativa_list' %}">Matérias Legislativas</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessao:list_sessao' %}">Sessões Plenárias</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessao:list_pauta_sessao' %}">Pautas das Sessões</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Atas das Sessões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Reuniões das Comissões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Tramitação em Lote</a></li>
@@ -81,7 +81,7 @@
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans 'Legislação'%} <span class="caret"></span></a>
                   <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'norma_pesquisa'%}">{% trans 'Pesquisar Normas Jurídicas'%}</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'norma:norma_pesquisa'%}">{% trans 'Pesquisar Normas Jurídicas'%}</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Índice de Assuntos</a></li> -->
                   </ul>
                 </li>
