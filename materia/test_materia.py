@@ -1,11 +1,9 @@
 import pytest
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from comissoes.models import Comissao, TipoComissao
 
-from .forms import MateriaAnexadaForm
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      MateriaLegislativa, RegimeTramitacao, TipoAutor,
                      TipoMateriaLegislativa)

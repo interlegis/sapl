@@ -19,6 +19,6 @@ def test_cadastro_parlamentar(client):
                             'ativo': 'True',
                             })
     parlamentar = Parlamentar.objects.first()
-    assert "Chacrinha" == parlamentar.nome_parlamentar
+    assert "Terezinha" == parlamentar.nome_parlamentar
     if not parlamentar.ativo:
         pytest.fail("Parlamentar deve estar ativo")
