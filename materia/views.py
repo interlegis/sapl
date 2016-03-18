@@ -108,9 +108,7 @@ class MateriaAnexadaView(FormView):
             numero = form.cleaned_data['numero']
             ano = form.cleaned_data['ano']
             data_anexacao = form.cleaned_data['data_anexacao']
-
-            if 'data_desanexacao' in request.POST:
-                data_desanexacao = form.cleaned_data['data_desanexacao']
+            data_desanexacao = form.cleaned_data['data_desanexacao']
 
             try:
                 mat_anexada = MateriaLegislativa.objects.get(
@@ -121,12 +119,10 @@ class MateriaAnexadaView(FormView):
                             ' tipo da matéria principal.')
                     self.form_invalid(
                         form, request, mat_principal, anexadas, msg)
-
                 anexada = Anexada()
                 anexada.materia_principal = mat_principal
                 anexada.materia_anexada = mat_anexada
                 anexada.data_anexacao = data_anexacao
-
                 if data_desanexacao:
                     anexada.data_desanexacao = data_desanexacao
 
