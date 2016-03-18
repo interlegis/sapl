@@ -21,7 +21,7 @@ ComissaoCrud = Crud.build(Comissao, 'modulo_comissoes')
 class CadastrarComissaoView(CreateView):
     template_name = "comissoes/cadastrar_comissao.html"
     form_class = CadastrarComissaoForm
-    success_url = reverse_lazy('comissao')
+    success_url = reverse_lazy('comissoes:comissao_list')
 
 
 class ComposicaoView(FormView):
