@@ -1,3 +1,4 @@
+from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
@@ -17,19 +18,10 @@ class ParlamentaresListForm(forms.Form):
     periodo = forms.CharField()
 
 
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-
-    def render(self):
-        return mark_safe(u' '.join([u'%s ' % w for w in self]))
-
-
 class ParlamentaresForm (ModelForm):
     ativo = forms.TypedChoiceField(
         coerce=lambda x: x == 'True',
         choices=((True, 'Sim'), (False, 'Não')),
-        widget=forms.RadioSelect(
-            renderer=HorizontalRadioRenderer
-        )
     )
 
     def clean_fotografia(self):
@@ -84,7 +76,7 @@ class ParlamentaresForm (ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('nome_parlamentar', 8), ('ativo', 4)])
+            [('nome_parlamentar', 8), (InlineRadios('ativo'), 4)])
 
         row2 = crispy_layout_mixin.to_row(
             [('nome_completo', 12)])

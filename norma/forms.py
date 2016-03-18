@@ -20,12 +20,6 @@ def get_esferas():
             ('M', 'Municipal')]
 
 
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-
-    def render(self):
-        return mark_safe(u' '.join([u'%s ' % w for w in self]))
-
-
 class NormaJuridicaPesquisaForm(ModelForm):
 
     periodo_inicial = forms.DateField(label=u'Período Inicial',

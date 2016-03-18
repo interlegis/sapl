@@ -1,5 +1,6 @@
 from datetime import date
 
+from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Field, Fieldset, Layout, Submit
 from django import forms
@@ -28,12 +29,6 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
 def get_range_anos():
     return [('', 'Selecione')] \
         + [(year, year) for year in range(date.today().year, 1960, -1)]
-
-
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-
-    def render(self):
-        return mark_safe(u' '.join([u'%s ' % w for w in self]))
 
 
 class ProtocoloForm(forms.Form):
@@ -213,15 +208,11 @@ class ProtocoloDocumentForm(ModelForm):
 
     numeracao = forms.ChoiceField(required=True,
                                   choices=NUMERACAO_CHOICES,
-                                  widget=forms.RadioSelect(
-                                      renderer=HorizontalRadioRenderer),
                                   label='')
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
-                                       choices=TIPOS_PROTOCOLO,
-                                       widget=forms.RadioSelect(
-                                           renderer=HorizontalRadioRenderer))
+                                       choices=TIPOS_PROTOCOLO,)
 
     tipo_documento = forms.ModelChoiceField(
         label=_('Tipo de Documento'),
@@ -254,9 +245,9 @@ class ProtocoloDocumentForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('numeracao', 12)])
+            [(InlineRadios('numeracao'), 12)])
         row2 = crispy_layout_mixin.to_row(
-            [('tipo_protocolo', 12)])
+            [(InlineRadios('tipo_protocolo'), 12)])
         row3 = crispy_layout_mixin.to_row(
             [('tipo_documento', 6),
              ('num_paginas', 6)])
@@ -291,15 +282,11 @@ class ProtocoloMateriaForm(ModelForm):
 
     numeracao = forms.ChoiceField(required=True,
                                   choices=NUMERACAO_CHOICES,
-                                  widget=forms.RadioSelect(
-                                      renderer=HorizontalRadioRenderer),
                                   label='')
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label='Tipo de Protocolo',
-                                       choices=TIPOS_PROTOCOLO,
-                                       widget=forms.RadioSelect(
-                                           renderer=HorizontalRadioRenderer))
+                                       choices=TIPOS_PROTOCOLO,)
 
     autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
@@ -325,10 +312,10 @@ class ProtocoloMateriaForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('numeracao', 12)])
+            [(InlineRadios('numeracao'), 12)])
         row2 = crispy_layout_mixin.to_row(
             [('tipo_materia', 4),
-             ('tipo_protocolo', 4),
+             (InlineRadios('tipo_protocolo'), 4),
              ('numero_paginas', 4)])
         row3 = crispy_layout_mixin.to_row(
             [('autor', 0),
