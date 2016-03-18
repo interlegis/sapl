@@ -238,7 +238,7 @@ class Parlamentar(models.Model):
     biografia = models.TextField(
         blank=True, verbose_name=_('Biografia'))
     # XXX Esse atribuito foi colocado aqui para não atrapalhar a migração
-    unidade_deliberativa = models.BooleanField(
+    unidade_deliberativa = models.BooleanField(default=False,
         verbose_name=_('Unidade Deliberativa'))
     fotografia = models.ImageField(
         blank=True,
