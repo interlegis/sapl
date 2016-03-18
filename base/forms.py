@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
+from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 
 from .models import CasaLegislativa
 
@@ -42,11 +43,9 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
     def clean_logotipo(self):
         logotipo = self.cleaned_data.get('logotipo', False)
         if logotipo:
-            if logotipo.size > 2*1024*1024:
+            if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
                 raise ValidationError("Imagem muito grande. ( > 2mb )")
-            return logotipo
-        else:
-            raise ValidationError("Não foi possível salvar a imagem.")
+        return logotipo
 
     def __init__(self, *args, **kwargs):
 
