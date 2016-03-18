@@ -8,7 +8,11 @@ from django.utils.translation import ugettext_lazy as _
 
 autor_label = '''
     <div class="col-xs-12">
-       Autor: <span id="nome_autor"></span>
+       Autor: <span id="nome_autor" name="nome_autor">
+                {% if form.autor.value %}
+                    {{form.autor.value}}
+                {% endif %}
+              </span>
     </div>
 '''
 

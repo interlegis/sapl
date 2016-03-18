@@ -507,7 +507,8 @@ class DocumentoAcessorioView(CreateView):
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        docs = DocumentoAcessorio.objects.filter(materia_id=kwargs['pk'])
+        docs = DocumentoAcessorio.objects.filter(
+            materia_id=kwargs['pk']).order_by('data')
         form = DocumentoAcessorioForm()
 
         return self.render_to_response(
@@ -579,7 +580,6 @@ class DocumentoAcessorioEditView(CreateView):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
         documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
         form = DocumentoAcessorioForm(instance=documento, excluir=True)
-
         return self.render_to_response({'object': materia, 'form': form})
 
     def post(self, request, *args, **kwargs):
