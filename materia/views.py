@@ -58,7 +58,7 @@ TramitacaoCrud = Crud.build(Tramitacao, '')
 class FormularioSimplificadoView(CreateView):
     template_name = "materia/formulario_simplificado.html"
     form_class = FormularioSimplificadoForm
-    success_url = reverse_lazy('materia:materia_list')
+    success_url = reverse_lazy('materia:materialegislativa_list')
 
 
 class FormularioCadastroView(CreateView):
@@ -144,7 +144,7 @@ class MateriaAnexadaView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('materia_anexada', kwargs={'pk': pk})
+        return reverse('materia:materia_anexada', kwargs={'pk': pk})
 
 
 class MateriaAnexadaEditView(FormView):
@@ -262,7 +262,7 @@ class DespachoInicialView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('despacho_inicial', kwargs={'pk': pk})
+        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
 
 
 class DespachoInicialEditView(CreateView):
@@ -458,7 +458,7 @@ class NumeracaoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('numeracao', kwargs={'pk': pk})
+        return reverse('materia:numeracao', kwargs={'pk': pk})
 
 
 class NumeracaoEditView(CreateView):
@@ -533,7 +533,7 @@ class DocumentoAcessorioView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('documento_acessorio', kwargs={'pk': pk})
+        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
 
 
 class AcompanhamentoConfirmarView(TemplateView):
@@ -1361,7 +1361,7 @@ class ProposicaoEditView(CreateView):
     form_class = ProposicaoForm
 
     def get_success_url(self):
-        return reverse('list_proposicao')
+        return reverse('materia:list_proposicao')
 
     def get(self, request, *args, **kwargs):
         proposicao = Proposicao.objects.get(id=kwargs['pk'])

@@ -175,7 +175,7 @@ class ParlamentaresCadastroView(CreateView):
     model = Parlamentar
 
     def get_success_url(self):
-        return reverse('parlamentares')
+        return reverse('parlamentares:parlamentares')
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresCadastroView, self).get_context_data(
@@ -223,7 +223,8 @@ class ParlamentaresDependentesView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_dependentes', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_dependentes',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresDependentesView, self).\
@@ -256,7 +257,8 @@ class ParlamentaresDependentesEditView(UpdateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_dependentes', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_dependentes',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresDependentesEditView, self).\
@@ -398,7 +400,8 @@ class FiliacaoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_filiacao', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_filiacao',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(FiliacaoView, self).get_context_data(**kwargs)
@@ -432,7 +435,8 @@ class FiliacaoEditView(UpdateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_filiacao', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_filiacao',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(FiliacaoEditView, self).get_context_data(**kwargs)
@@ -465,7 +469,8 @@ class MandatoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_mandato', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_mandato',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(MandatoView, self).get_context_data(**kwargs)

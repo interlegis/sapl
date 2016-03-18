@@ -26,7 +26,7 @@
 					{% for d in doc_ace %}
 						<tr>
 							<td>{{d.arquivo}}</td>
-							<td><a href="{% url 'doc_ace_adm_edit' doc.id d.id %}">{{d.nome}}</a></td>
+							<td><a href="{% url 'protocoloadm:doc_ace_adm_edit' doc.id d.id %}">{{d.nome}}</a></td>
 							<td>{{d.tipo.descricao}}</td>
 							<td>{{d.data|date:"d/m/Y"}}</td>
 							<td>{{d.autor}}</td>

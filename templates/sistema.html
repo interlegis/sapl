@@ -5,23 +5,23 @@
 
 	<h2>Configuração Inicial</h2>
   <div class="row">
-    <div class="col-md-6"><a href="{% url 'casa_legislativa' %}" class="btn btn-link">Casa Legislativa</a></div>
+    <div class="col-md-6"><a href="{% url 'base:casa_legislativa' %}" class="btn btn-link">Casa Legislativa</a></div>
   </div>
 
 	<h2>Módulo Parlamentares</h2>
   <div class="row">
-    <div class="col-md-6"><a href="{% url 'legislatura:list' %}" class="btn btn-link">Legislatura</a></div>
-    <div class="col-md-6"><a href="{% url 'tipoafastamento:list' %}" class="btn btn-link">Tipo de Afastamento</a></div>
-    <div class="col-md-6"><a href="{% url 'tipodependente:list' %}" class="btn btn-link">Tipo de Dependente</a></div>
-    <div class="col-md-6"><a href="{% url 'situacaomilitar:list' %}" class="btn btn-link">Tipo de Situação Militar</a></div>
-    <div class="col-md-6"><a href="{% url 'nivelinstrucao:list' %}" class="btn btn-link">Nível de Intrução</a></div>
-    <div class="col-md-6"><a href="{% url 'partido:list' %}" class="btn btn-link">Partido</a></div>
-    <div class="col-md-6"><a href="{% url 'coligacao:list' %}" class="btn btn-link">Coligação</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:legislatura_list' %}" class="btn btn-link">Legislatura</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:tipoafastamento_list' %}" class="btn btn-link">Tipo de Afastamento</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:tipodependente_list' %}" class="btn btn-link">Tipo de Dependente</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:situacaomilitar_list' %}" class="btn btn-link">Tipo de Situação Militar</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:nivelinstrucao_list' %}" class="btn btn-link">Nível de Intrução</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:partido_list' %}" class="btn btn-link">Partido</a></div>
+    <div class="col-md-6"><a href="{% url 'parlamentares:coligacao_list' %}" class="btn btn-link">Coligação</a></div>
   </div>
 
 	<h2>Módulo Mesa Diretora</h2>
   <div class="row">
-    <div class="col-md-6"><a href="{% url 'sessaolegislativa:list' %}" class="btn btn-link">Sessão Legislativa</a></div>
+    <div class="col-md-6"><a href="{% url 'sessao:sessaolegislativa_list' %}" class="btn btn-link">Sessão Legislativa</a></div>
     <div class="col-md-6"><a href="{% url 'cargomesa:list' %}" class="btn btn-link">Cargo da Mesa</a></div>
   </div>
 

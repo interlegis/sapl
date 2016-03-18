@@ -18,7 +18,7 @@
 				</thead>
 					{% for d in despachos %}
 						<tr>
-							<td><a href="{% url 'despacho_inicial_edit' object.id d.id %}">{{d.comissao.nome}}</a></td>
+							<td><a href="{% url 'materia:despacho_inicial_edit' object.id d.id %}">{{d.comissao.nome}}</a></td>
 							<td>{{d.comissao.sigla}}</td>
 						</tr>
 					{% endfor %}

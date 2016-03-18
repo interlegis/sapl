@@ -3,9 +3,9 @@
 {% block actions %}{% endblock %}
 {% block sections_nav %}
 <div class="actions btn-group pull-right" role="group">
-  <a href="{% url 'protocolo' %}" class="btn btn-default">{% trans 'Pesquisa Protocolo' %}</a>
-  <a href="{% url 'protocolar_doc' %}" class="btn btn-default">{% trans 'Protocolar Documento' %}</a>
-  <a href="{% url 'protocolar_mat' %}" class="btn btn-default">{% trans 'Protocolar Matéria' %}</a>
-  <a href="{% url 'anular_protocolo' %}" class="btn btn-default">{% trans 'Anular Protocolo' %}</a>
+  <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Pesquisa Protocolo' %}</a>
+  <a href="{% url 'protocoloadm:protocolar_doc' %}" class="btn btn-default">{% trans 'Protocolar Documento' %}</a>
+  <a href="{% url 'protocoloadm:protocolar_mat' %}" class="btn btn-default">{% trans 'Protocolar Matéria' %}</a>
+  <a href="{% url 'protocoloadm:anular_protocolo' %}" class="btn btn-default">{% trans 'Anular Protocolo' %}</a>
 </div>
 {% endblock sections_nav %}

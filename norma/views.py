@@ -42,7 +42,7 @@ class NormaPesquisaView(FormView):
             kwargs['publicacao_final'] = form.data['publicacao_final']
 
         request.session['kwargs'] = kwargs
-        return redirect('list_pesquisa_norma')
+        return redirect('norma:list_pesquisa_norma')
 
 
 class PesquisaNormaListView(ListView):
@@ -113,7 +113,7 @@ class PesquisaNormaListView(ListView):
 class NormaIncluirView(CreateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
-    success_url = reverse_lazy('norma:list')
+    success_url = reverse_lazy('norma')
 
     def form_valid(self, form):
         norma = form.save(commit=False)
