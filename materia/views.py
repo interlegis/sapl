@@ -1397,7 +1397,8 @@ class ProposicaoEditView(CreateView):
                     else:
                         proposicao.autor = materia.autoria_set.first().autor
                         proposicao.materia = materia
-                proposicao.data_envio = datetime.now()
+                if not proposicao.data_envio:
+                    proposicao.data_envio = datetime.now()
                 proposicao.save()
             return redirect(self.get_success_url())
         else:
