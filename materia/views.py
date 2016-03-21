@@ -998,23 +998,27 @@ class TramitacaoView(CreateView):
         if form.is_valid():
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=kwargs['pk']).last()
+            if ultima_tramitacao:
+                destino = ultima_tramitacao.unidade_tramitacao_destino
+                cleaned_data = form.cleaned_data['unidade_tramitacao_local']
+                if (destino == cleaned_data):
+                    tramitacao = form.save(commit=False)
+                    tramitacao.materia = materia
+                    tramitacao.save()
+                else:
+                    msg = _('A origem da nova tramitação \
+                            deve ser igual ao destino da última adicionada!')
+                    messages.add_message(request, messages.INFO, msg)
+                    return self.render_to_response(
+                        {'form': form,
+                         'object': materia,
+                         'tramitacoes': tramitacoes_list})
 
-            destino = ultima_tramitacao.unidade_tramitacao_destino
-            cleaned_data = form.cleaned_data['unidade_tramitacao_local']
-            if (destino == cleaned_data):
+                    do_envia_email_tramitacao(request, materia)
+            else:
                 tramitacao = form.save(commit=False)
                 tramitacao.materia = materia
                 tramitacao.save()
-            else:
-                msg = _('A origem da nova tramitação \
-                        deve ser igual ao destino da última adicionada!')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response(
-                    {'form': form,
-                     'object': materia,
-                     'tramitacoes': tramitacoes_list})
-
-                do_envia_email_tramitacao(request, materia)
             return self.form_valid(form)
         else:
             return self.render_to_response({'form': form,
