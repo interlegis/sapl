@@ -524,31 +524,24 @@ class Tramitacao(models.Model):
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
     )
 
-    status = models.ForeignKey(
-        StatusTramitacao, blank=True, null=True, verbose_name=_('Status'))
+    status = models.ForeignKey(StatusTramitacao, verbose_name=_('Status'))
     materia = models.ForeignKey(MateriaLegislativa)
-    data_tramitacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Tramitação'))
+    data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
-        blank=True,
-        null=True,
         related_name='+',
         verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
-        blank=True,
-        null=True,
         related_name='+',
         verbose_name=_('Unidade Destino'))
     urgente = models.BooleanField(verbose_name=_('Urgente ?'))
     turno = models.CharField(
         max_length=1, blank=True, verbose_name=_('Turno'),
         choices=TURNO_CHOICES)
-    texto = models.TextField(
-        blank=True, verbose_name=_('Texto da Ação'))
+    texto = models.TextField(verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
 

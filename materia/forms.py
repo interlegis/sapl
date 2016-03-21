@@ -177,7 +177,11 @@ class RelatoriaForm(ModelForm):
 
 
 class TramitacaoForm(ModelForm):
-
+    urgente = forms.ChoiceField(required=False,
+                                label='Tramitando',
+                                choices=[(True, 'Sim'), (False, 'Não')],
+                                widget=forms.Select(
+                                  attrs={'class': 'selector'}))
     class Meta:
         model = Tramitacao
         fields = ['data_tramitacao',
