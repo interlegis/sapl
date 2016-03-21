@@ -237,36 +237,12 @@ class LegislacaoCitadaForm(ModelForm):
 
     ano = forms.CharField(label='Ano', required=True)
 
-    disposicao = forms.CharField(label='Disposição', required=False)
-
-    parte = forms.CharField(label='Parte', required=False)
-
-    livro = forms.CharField(label='Livro', required=False)
-
-    titulo = forms.CharField(label='Título', required=False)
-
-    capitulo = forms.CharField(label='Capítulo', required=False)
-
-    secao = forms.CharField(label='Seção', required=False)
-
-    subsecao = forms.CharField(label='Subseção', required=False)
-
-    artigo = forms.CharField(label='Artigo', required=False)
-
-    paragrafo = forms.CharField(label='Parágrafo', required=False)
-
-    inciso = forms.CharField(label='Inciso', required=False)
-
-    alinea = forms.CharField(label='Alínea', required=False)
-
-    item = forms.CharField(label='Item', required=False)
-
     class Meta:
         model = LegislacaoCitada
         fields = ['tipo',
                   'numero',
                   'ano',
-                  'disposicao',
+                  'disposicoes',
                   'parte',
                   'livro',
                   'titulo',
@@ -287,7 +263,7 @@ class LegislacaoCitadaForm(ModelForm):
              ('ano', 4)])
 
         row2 = crispy_layout_mixin.to_row(
-            [('disposicao', 3),
+            [('disposicoes', 3),
              ('parte', 3),
              ('livro', 3),
              ('titulo', 3)])
