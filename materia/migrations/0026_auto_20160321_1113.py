@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tramitacao',
             name='status',
-            field=models.ForeignKey(default=datetime.datetime(2016, 3, 21, 14, 13, 17, 24259, tzinfo=utc), on_delete=django.db.models.deletion.CASCADE, to='materia.StatusTramitacao', verbose_name='Status'),
+            field=models.ForeignKey(default='3', on_delete=django.db.models.deletion.CASCADE, to='materia.StatusTramitacao', verbose_name='Status'),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -35,13 +35,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tramitacao',
             name='unidade_tramitacao_destino',
-            field=models.ForeignKey(default=datetime.datetime(2016, 3, 21, 14, 13, 26, 344314, tzinfo=utc), on_delete=django.db.models.deletion.CASCADE, related_name='+', to='materia.UnidadeTramitacao', verbose_name='Unidade Destino'),
+            field=models.ForeignKey(default='10', on_delete=django.db.models.deletion.CASCADE, related_name='+', to='materia.UnidadeTramitacao', verbose_name='Unidade Destino'),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='tramitacao',
             name='unidade_tramitacao_local',
-            field=models.ForeignKey(default=datetime.datetime(2016, 3, 21, 14, 13, 27, 824247, tzinfo=utc), on_delete=django.db.models.deletion.CASCADE, related_name='+', to='materia.UnidadeTramitacao', verbose_name='Unidade Local'),
+            field=models.ForeignKey(default='11', on_delete=django.db.models.deletion.CASCADE, related_name='+', to='materia.UnidadeTramitacao', verbose_name='Unidade Local'),
             preserve_default=False,
         ),
     ]
