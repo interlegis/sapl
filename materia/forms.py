@@ -1,7 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
@@ -537,11 +537,23 @@ class AutoriaForm(ModelForm):
         choices=[(True, _('Sim')), (False, _('Não'))],
     )
 
+    materia_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+
     class Meta:
         model = Autoria
         fields = ['autor',
                   'primeiro_autor',
-                  'partido']
+                  'partido',
+                  'materia_id']
+
+    def clean(self):
+        materia = MateriaLegislativa.objects.get(id=self.data['materia_id'])
+        try:
+            Autoria.objects.get(autor=self.data['autor'],
+                                   materia=materia)
+            raise forms.ValidationError(_('Essa autoria já foi adicionada!'))
+        except ObjectDoesNotExist:
+            pass
 
     def __init__(self, excluir=False, *args, **kwargs):
 

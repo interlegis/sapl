@@ -1089,58 +1089,41 @@ class AutoriaView(CreateView):
     template_name = "materia/autoria.html"
     form_class = AutoriaForm
     form_valid_message = _('Autoria cadastrada com sucesso!')
+    model = Autoria
 
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+    def get_initial(self):
+        initial = super(AutoriaView, self).get_initial()
+        initial['materia_id'] = self.kwargs['pk']
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super(AutoriaView, self).get_context_data(**kwargs)
+
+        # import ipdb; ipdb.set_trace
+        materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
         autorias = Autoria.objects.filter(materia=materia)
-        form = AutoriaForm()
 
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'autorias': autorias})
+        context.update({'object': materia,
+                        'autorias': autorias})
+        return context
 
-    def post(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        autorias = Autoria.objects.filter(materia=materia)
-        form = self.get_form()
+    def form_valid(self, form):
+        materia = MateriaLegislativa.objects.get(id=form.data['materia_id'])
 
-        if 'salvar' in request.POST:
-            if 'partido' in form.data:
-                filiacao_autor = Partido.objects.get(
-                    id=form.data['partido'])
+        if 'salvar' in self.request.POST:
+           import ipdb; ipdb.set_trace()
+           autoria = Autoria()
+           autoria.autor = Autor.objects.get(id=form.data['autor'])
+           autoria.materia = materia
+           autoria.primeiro_autor = form.data['primeiro_autor']
 
-            try:
-                autoria = Autoria.objects.get(
-                    autor=form.data['autor'],
-                    materia=materia
-                )
-            except ObjectDoesNotExist:
-                autoria = Autoria()
-                autoria.autor = Autor.objects.get(id=form.data['autor'])
-                autoria.materia = materia
-                primeiro = form.data['primeiro_autor']
-                if 'partido' in form.data:
-                    autoria.partido = filiacao_autor
-                autoria.primeiro_autor = primeiro
+           if form.data['partido']:
+               filiacao_autor = Partido.objects.get(id=form.data['partido'])
+               autoria.partido = filiacao_autor
 
-                autoria.save()
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'autorias': autorias})
-            else:
-                msg = _('Essa autoria já foi adicionada!')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'autorias': autorias})
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'autorias': autorias})
+           autoria.save()
+
+        return redirect(self.get_success_url())        
 
     def get_success_url(self):
         pk = self.kwargs['pk']
