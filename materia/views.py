@@ -1099,7 +1099,6 @@ class AutoriaView(CreateView):
     def get_context_data(self, **kwargs):
         context = super(AutoriaView, self).get_context_data(**kwargs)
 
-        # import ipdb; ipdb.set_trace
         materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
         autorias = Autoria.objects.filter(materia=materia)
 
@@ -1111,7 +1110,6 @@ class AutoriaView(CreateView):
         materia = MateriaLegislativa.objects.get(id=form.data['materia_id'])
 
         if 'salvar' in self.request.POST:
-           import ipdb; ipdb.set_trace()
            autoria = Autoria()
            autoria.autor = Autor.objects.get(id=form.data['autor'])
            autoria.materia = materia
@@ -1123,7 +1121,7 @@ class AutoriaView(CreateView):
 
            autoria.save()
 
-        return redirect(self.get_success_url())        
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         pk = self.kwargs['pk']

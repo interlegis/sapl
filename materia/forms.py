@@ -547,13 +547,16 @@ class AutoriaForm(ModelForm):
                   'materia_id']
 
     def clean(self):
-        materia = MateriaLegislativa.objects.get(id=self.data['materia_id'])
-        try:
-            Autoria.objects.get(autor=self.data['autor'],
-                                   materia=materia)
-            raise forms.ValidationError(_('Essa autoria já foi adicionada!'))
-        except ObjectDoesNotExist:
-            pass
+        if self.data['materia_id'] and self.data['autor']:
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    id=self.data['materia_id'])
+                Autoria.objects.get(autor=self.data['autor'],
+                                    materia=materia)
+                raise forms.ValidationError(
+                    _('Essa autoria já foi adicionada!'))
+            except ObjectDoesNotExist:
+                pass
 
     def __init__(self, excluir=False, *args, **kwargs):
 
