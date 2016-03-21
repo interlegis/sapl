@@ -113,11 +113,12 @@ class PesquisaNormaListView(ListView):
 class NormaIncluirView(CreateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
-    success_url = reverse_lazy('norma')
+    success_url = reverse_lazy('norma:normajuridica_list')
 
     def form_valid(self, form):
         norma = form.save(commit=False)
         norma.timestamp = datetime.now()
+        # import ipdb; ipdb.set_trace()
         if form.cleaned_data['tipo_materia']:
             materia = MateriaLegislativa.objects.get(
                             tipo_id=form.data['tipo_materia'],

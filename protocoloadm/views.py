@@ -605,10 +605,12 @@ class TramitacaoAdmIncluirView(FormView):
         form = TramitacaoAdmForm(request.POST or None)
 
         if form.is_valid():
+            # import ipdb; ipdb.set_trace()
             tramitacao = form.save(commit=False)
             tramitacao.ultima = False
             tramitacao.save()
-            return reverse('protocoloadm:tramitacao', kwargs={'pk': pk})
+            return HttpResponseRedirect(reverse(
+                 'protocoloadm:tramitacao_adm', kwargs={'pk': pk}))
         else:
             return self.form_invalid(form)
 
@@ -635,7 +637,7 @@ class TramitacaoAdmEditView(FormView):
             tramitacao.ultima = False
             tramitacao.save()
             return HttpResponseRedirect(
-                reverse('protocoloadm:tramitacao',
+                reverse('protocoloadm:tramitacao_adm',
                         kwargs={'pk': tramitacao.documento.id}))
         else:
             return self.form_invalid(form)
