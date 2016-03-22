@@ -1,19 +1,25 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
+from django_filters import FilterSet
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
+import django_filters
 import crispy_layout_mixin
 import sapl
+
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
+from parlamentares.models import Parlamentar, Partido
+
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
-                     Numeracao, Proposicao, Relatoria, StatusTramitacao,
+                     Numeracao, Origem, Proposicao, Relatoria,
+                     StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 ORDENACAO_MATERIAIS = [(1, 'Crescente'),
@@ -549,26 +555,11 @@ class AutoriaForm(ModelForm):
         choices=[(True, _('Sim')), (False, _('Não'))],
     )
 
-    materia_id = forms.CharField(widget=forms.HiddenInput(), required=False)
-
     class Meta:
         model = Autoria
         fields = ['autor',
                   'primeiro_autor',
-                  'partido',
-                  'materia_id']
-
-    def clean(self):
-        if self.data['materia_id'] and self.data['autor']:
-            try:
-                materia = MateriaLegislativa.objects.get(
-                    id=self.data['materia_id'])
-                Autoria.objects.get(autor=self.data['autor'],
-                                    materia=materia)
-                raise forms.ValidationError(
-                    _('Essa autoria já foi adicionada!'))
-            except ObjectDoesNotExist:
-                pass
+                  'partido']
 
     def __init__(self, excluir=False, *args, **kwargs):
 
@@ -699,3 +690,109 @@ class MateriaLegislativaPesquisaForm(ModelForm):
         )
         super(MateriaLegislativaPesquisaForm, self).__init__(
             *args, **kwargs)
+
+
+class MateriaLegislativaPesquisaFields(FilterSet):
+
+    # autor = django_filters.ChoiceFilter(
+    #     label='Autor',
+    #     required=False,
+    #     queryset=Autor.objects.all().order_by('tipo'),
+    #     empty_label='Selecione',
+    # )
+
+    # # relatores são os parlamentares ativos?
+    # relatoria__parlamentar__id = django_filters.ChoiceFilter(
+    #     label='Relator',
+    #     required=False,
+    #     queryset=Parlamentar.objects.all().order_by('nome_parlamentar'),
+    #     empty_label='Selecione',
+    # )
+
+    # tipo = django_filters.ChoiceFilter(
+    #     label=_('Tipo de Matéria'),
+    #     required=False,
+    #     queryset=TipoMateriaLegislativa.objects.all(),
+    #     empty_label='Selecione',
+    # )
+
+    # data_apresentacao = django_filters.DateFilter(
+    #                                     label=u'Data de Apresentação',
+    #                                     input_formats=['%d/%m/%Y'],
+    #                                     required=False,
+    #                                     widget=forms.DateInput(
+    #                                         format='%d/%m/%Y',
+    #                                         attrs={'class': 'dateinput'}))
+
+    # data_publicacao = django_filters.DateFilter(
+    #                                    label=u'Data da Publicação',
+    #                                    input_formats=['%d/%m/%Y'],
+    #                                    required=False,
+    #                                    widget=forms.DateInput(
+    #                                       format='%d/%m/%Y',
+    #                                       attrs={'class': 'dateinput'}))
+
+    numero = django_filters.CharFilter(required=False,
+                                       label=u'Número da Matéria')
+    numero_protocolo = django_filters.CharFilter(required=False,
+                                                 label=u'Núm. Protocolo')
+    ano = django_filters.CharFilter(required=False,
+                                    label=u'Ano da Matéria')
+    ementa__icontains = django_filters.CharFilter(required=False,
+                                                  label=u'Assunto')
+
+    # tramitacao__unidade_tramitacao_destino = django_filters.ChoiceFilter(
+    #     label=_('Localização Atual'),
+    #     required=False,
+    #     queryset=UnidadeTramitacao.objects.all(),
+    #     empty_label='Selecione',
+    # )
+
+    # tramitacao__status = django_filters.ChoiceFilter(
+    #     label='Situação',
+    #     required=False,
+    #     queryset=StatusTramitacao.objects.all(),
+    #     empty_label='Selecione',
+    # )
+
+    # em_tramitacao = django_filters.ChoiceFilter(required=False,
+    #                                             label='Tramitando',
+    #                                             choices=em_tramitacao(),
+    #                                             widget=forms.Select(
+    #                                              attrs={'class': 'selector'}))
+
+    # autoria__autor__tipo = django_filters.ChoiceFilter(
+    #     label=_('Tipo Autor'),
+    #     required=False,
+    #     queryset=TipoAutor.objects.all(),
+    #     empty_label='Selecione',
+    # )
+
+    # autoria__partido = django_filters.ChoiceFilter(
+    #     label=_('Partido (Autor)'),
+    #     required=False,
+    #     queryset=Partido.objects.all(),
+    #     empty_label='Selecione')
+
+    # local_origem_externa = django_filters.ChoiceFilter(
+    #     label=_('Localização de Origem'),
+    #     required=False,
+    #     queryset=Origem.objects.all(),
+    #     empty_label='Selecione')
+
+    class Meta:
+        models = MateriaLegislativa
+        fields = ['tipo',
+                  'ano',
+                  'numero_protocolo',
+                  'data_apresentacao',
+                  'data_publicacao',
+                  'em_tramitacao',
+                  'ementa__icontains',
+                  'autoria__autor__id',
+                  'relatoria__parlamentar__id',
+                  'tramitacao__unidade_tramitacao_destino',
+                  'tramitacao__status',
+                  'autoria__autor__tipo',
+                  'autoria__partido',
+                  'local_origem_externa']

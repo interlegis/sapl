@@ -1,4 +1,5 @@
-import os
+from django_filters.views import FilterView
+
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
@@ -25,7 +26,7 @@ from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
-                    MateriaLegislativaPesquisaForm, NumeracaoForm,
+                    MateriaLegislativaPesquisaFields, NumeracaoForm,
                     ProposicaoForm, RelatoriaForm, TramitacaoForm)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
@@ -1191,118 +1192,30 @@ class ProposicaoListView(ListView):
         return context
 
 
-class MateriaLegislativaPesquisaView(FormView):
-    template_name = 'materia/pesquisa_materia.html'
-
-    def get_success_url(self):
-        return reverse('materia:pesquisar_materia')
-
-    def get(self, request, *args, **kwargs):
-        form = MateriaLegislativaPesquisaForm()
-        return self.render_to_response({'form': form})
-
-    def post(self, request, *args, **kwargs):
-        kwargs = {}
-        form = MateriaLegislativaPesquisaForm(request.POST)
-
-        if form.data['tipo']:
-            kwargs['tipo'] = form.data['tipo']
-
-        if form.data['numero']:
-            kwargs['numero'] = form.data['numero']
-
-        if form.data['ano']:
-            kwargs['ano'] = form.data['ano']
-
-        if form.data['numero_protocolo']:
-            kwargs['numero_protocolo'] = form.data['numero_protocolo']
-
-        if (form.data['apresentacao_inicial'] and
-                form.data['apresentacao_final']):
-            kwargs['apresentacao_inicial'] = form.data['apresentacao_inicial']
-            kwargs['apresentacao_final'] = form.data['apresentacao_final']
-
-        if (form.data['publicacao_inicial'] and
-                form.data['publicacao_final']):
-            kwargs['publicacao_inicial'] = form.data['publicacao_inicial']
-            kwargs['publicacao_final'] = form.data['publicacao_final']
-
-        if form.data['local_origem_externa']:
-            kwargs['local_origem_externa'] = form.data['local_origem_externa']
-
-        if form.data['autor']:
-            kwargs['autor'] = form.data['autor']
-
-        if form.data['localizacao']:
-            kwargs['localizacao'] = form.data['localizacao']
-
-        if form.data['em_tramitacao']:
-            kwargs['em_tramitacao'] = form.data['em_tramitacao']
-
-        if form.data['situacao']:
-            kwargs['situacao'] = form.data['situacao']
-
-        request.session['kwargs'] = kwargs
-
-        return redirect('materia:pesquisar_materia_list')
-
-
-class PesquisaMateriaListView(ListView):
-    template_name = 'materia/pesquisa_materia_list.html'
-    context_object_name = 'materias'
+class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
+    filterset_class = MateriaLegislativaPesquisaFields
     paginate_by = 10
 
-    def get_queryset(self):
-        kwargs = self.request.session['kwargs']
+    def get_context_data(self, **kwargs):
+        context = super(MateriaLegislativaPesquisaView,
+                        self).get_context_data(**kwargs)
 
-        materias = MateriaLegislativa.objects.all().order_by(
-            '-numero', '-ano')
+        paginator = context['paginator']
+        page_obj = context['page_obj']
 
-        if 'apresentacao_inicial' in kwargs:
-            inicial = datetime.strptime(
-                kwargs['apresentacao_inicial'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            final = datetime.strptime(
-                kwargs['apresentacao_final'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            materias = materias.filter(
-                data_apresentacao__range=(inicial, final))
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        return context
 
-        if 'publicacao_inicial' in kwargs:
-            inicial = datetime.strptime(
-                kwargs['publicacao_inicial'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            final = datetime.strptime(
-                kwargs['publicacao_final'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            materias = materias.filter(
-                data_publicacao__range=(inicial, final))
-
-        if 'tipo' in kwargs:
-            materias = materias.filter(tipo_id=kwargs['tipo'])
-
-        if 'numero' in kwargs:
-            materias = materias.filter(numero=kwargs['numero'])
-
-        if 'ano' in kwargs:
-            materias = materias.filter(ano=kwargs['ano'])
-
-        if 'numero_protocolo' in kwargs:
-            materias = materias.filter(numero=kwargs['numero_protocolo'])
-
-        if 'em_tramitacao' in kwargs:
-            materias = materias.filter(em_tramitacao=kwargs['em_tramitacao'])
-
-        if 'local_origem_externa' in kwargs:
-            materias = materias.filter(
-                local_origem_externa=kwargs['local_origem_externa'])
-
-        # autor
-        # localizao atual
-        # situacao
-
-        return materias
+    def get(self, request, *args, **kwargs):
+        # import ipdb; ipdb.set_trace()
+        filterset_class = self.get_filterset_class()
+        self.filterset = self.get_filterset(filterset_class)
+        self.object_list = self.filterset.qs
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list)
+        return self.render_to_response(context)
 
 
 class ProposicaoView(CreateView):
