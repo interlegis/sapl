@@ -7,9 +7,9 @@ from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 
 from .models import (Anexada, Autor, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao,
-                     RegimeTramitacao, StatusTramitacao, TipoAutor,
-                     TipoDocumento, TipoMateriaLegislativa, Tramitacao,
-                     UnidadeTramitacao)
+                     Proposicao, RegimeTramitacao, StatusTramitacao, TipoAutor,
+                     TipoDocumento, TipoMateriaLegislativa, TipoProposicao,
+                     Tramitacao, UnidadeTramitacao)
 
 
 def make_unidade_tramitacao(descricao):
@@ -417,4 +417,32 @@ def test_form_errors_relatoria(client):
     assert (response.context_data['form'].errors['data_designacao_relator'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['parlamentar'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_proposicao_submit(client):
+    response = client.post(reverse('adicionar_proposicao'),
+                           {'tipo': mommy.make(TipoProposicao, pk=3).pk,
+                            'descricao': 'Teste proposição',
+                            'salvar': 'salvar'},
+                           follow=True)
+
+    assert response.status_code == 200
+
+    proposicao = Proposicao.objects.first()
+    assert proposicao.descricao == 'Teste proposição'
+    assert proposicao.tipo.pk == 3
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_proposicao(client):
+
+    response = client.post(reverse('adicionar_proposicao'),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['tipo'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['descricao'] ==
             ['Este campo é obrigatório.'])
