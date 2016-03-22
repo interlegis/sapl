@@ -338,12 +338,11 @@ class Mandato(models.Model):
         Coligacao, blank=True, null=True, verbose_name=_('Coligação'))
     # TODO what is this field??????
     tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
-    data_fim_mandato = models.DateField(
-        blank=True, null=True, verbose_name=_('Fim do Mandato'))
+    data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'))
     votos_recebidos = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Votos Recebidos'))
     data_expedicao_diploma = models.DateField(
-        blank=True, null=True, verbose_name=_('Expedição do Diploma'))
+        verbose_name=_('Expedição do Diploma'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
 

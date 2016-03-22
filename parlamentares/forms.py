@@ -165,7 +165,7 @@ class MandatoForm(ModelForm):
 
     legislatura = forms.ModelChoiceField(
         label=_('Legislatura'),
-        required=False,
+        required=True,
         queryset=Legislatura.objects.all().order_by('-data_inicio'),
         empty_label='----------',
     )

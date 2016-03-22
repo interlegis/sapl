@@ -232,11 +232,16 @@ class ParlamentaresDependentesView(CreateView):
         parlamentar = Parlamentar.objects.get(pk=pk)
         dependentes = Dependente.objects.filter(
             parlamentar=parlamentar).order_by('nome', 'tipo')
+
+        if len(parlamentar.mandato_set.all()) == 0:
+            legislatura_id = 0
+        else:
+            legislatura_id = parlamentar.mandato_set.last().legislatura.id
+
         context.update({'object': parlamentar,
                         'dependentes': dependentes,
                         # precisa de legislatura_id???
-                        'legislatura_id':
-                        parlamentar.mandato_set.last().legislatura.id})
+                        'legislatura_id': legislatura_id})
         return context
 
     def form_valid(self, form):
@@ -405,10 +410,16 @@ class FiliacaoView(CreateView):
         pid = self.kwargs['pk']
         parlamentar = Parlamentar.objects.get(id=pid)
         filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
+
+        if len(parlamentar.mandato_set.all()) == 0:
+            legislatura_id = 0
+        else:
+            legislatura_id = parlamentar.mandato_set.last().legislatura.id
+
         context.update(
             {'object': parlamentar,
              'filiacoes': filiacoes,
-             'legislatura_id': parlamentar.mandato_set.last().legislatura.id})
+             'legislatura_id': legislatura_id})
         return context
 
     def form_valid(self, form):
@@ -471,12 +482,17 @@ class MandatoView(CreateView):
         context = super(MandatoView, self).get_context_data(**kwargs)
         pid = self.kwargs['pk']
         parlamentar = Parlamentar.objects.get(id=pid)
-        mandatos = Mandato.objects.filter(
-            parlamentar=parlamentar)
+        mandatos = Mandato.objects.filter(parlamentar=parlamentar)
+
+        if len(parlamentar.mandato_set.all()) == 0:
+            legislatura_id = 0
+        else:
+            legislatura_id = parlamentar.mandato_set.last().legislatura.id
+
         context.update(
             {'object': parlamentar,
              'mandatos': mandatos,
-             'legislatura_id': parlamentar.mandato_set.last().legislatura.id
+             'legislatura_id': legislatura_id
              }
         )
         return context
