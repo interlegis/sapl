@@ -1,5 +1,5 @@
 function initTinymce() {
-	removeTinymce();
+    removeTinymce();
     tinymce.init({
         mode : "textareas",
         force_br_newlines : false,
@@ -45,7 +45,7 @@ function autorModal() {
       height: 300,
       show: {
         effect: "blind",
-        duration: 500				},
+        duration: 500},
       hide: {
         effect: "explode",
         duration: 500

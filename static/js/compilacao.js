@@ -26,38 +26,42 @@ function insertWaitAjax(element) {
 var tipo_select = '';
 var tipo_form = '';
 var configFormSearchTA = function(container, _tipo_form, _tipo_select) {
-	tipo_select = _tipo_select;
-	tipo_form = _tipo_form;
+    tipo_select = _tipo_select;
+    tipo_form = _tipo_form;
     var ta_select = $(container+" select[name='tipo_ta']");
     $(container+" label[for='id_tipo_model']").html('Tipos de ' + ta_select[0].children[ta_select[0].selectedIndex].innerHTML);
 
-	$(container+" select[name='tipo_ta']").change(function(event) {
-	    var url = '';
-	    url = '/ta/search_fragment_form?action=get_tipos&tipo_ta='+this.value;
+    $(container+" select[name='tipo_ta']").change(function(event) {
+        var url = '';
+        url = '/ta/search_fragment_form?action=get_tipos&tipo_ta='+this.value;
 
-	    $(container+" label[for='id_tipo_model']").html('Tipos de ' + this.children[this.selectedIndex].innerHTML);
+        $(container+" label[for='id_tipo_model']").html('Tipos de ' + this.children[this.selectedIndex].innerHTML);
 
 
-	    var select = $(container+" select[name='tipo_model']");
-	    select.empty();
-	    $('<option value="">Carregando...</option>').appendTo(select);
+        var select = $(container+" select[name='tipo_model']");
+        select.empty();
+        $('<option value="">Carregando...</option>').appendTo(select);
 
-	    $.get(url).done(function( data ) {
-	        select.empty();
-	        for(var item in data) {
-	            for (var i in data[item])
-	                  $('<option value="'+i+'">'+data[item][i]+'</option>').appendTo(select);
-	        }
-	        select.change(onChangeParamTA)
-	    });
-	});
-	$(container+" input[name='num_ta'], "
-			  + container+" input[name='ano_ta'], "
-			  + container+" select[name='tipo_model'], "
-	    + container+" input[name='busca_dispositivo']"
-	).change(onChangeParamTA);
+        $.get(url).done(function( data ) {
+            select.empty();
 
-	$(container+" .btn-busca").click(onChangeParamTA);
+
+            for(var item in data) {
+                for (var i in data[item])
+                    select.append($("<option>").attr('value',i).text(data[item][i]));
+                    //$('<option value="'+i+'">'+data[item][i]+'</option>').appendTo(select);
+            }
+            select.change(onChangeParamTA)
+        });
+    });
+    $(container+" input[name='num_ta'], "
+        + container+" input[name='ano_ta'], "
+        + container+" select[name='tipo_model'], "
+        + container+" input[name='texto_dispositivo'], "
+        + container+" input[name='rotulo_dispositivo']"
+    ).change(onChangeParamTA);
+
+    $(container+" .btn-busca").click(onChangeParamTA);
 }
 
 var onChangeParamTA = function(event) {
@@ -66,12 +70,13 @@ var onChangeParamTA = function(event) {
     var num_ta = $("input[name='num_ta']").val();
     var ano_ta = $("input[name='ano_ta']").val();
     var rotulo_dispositivo = $("input[name='rotulo_dispositivo']").val();
-    var busca_dispositivo = $("input[name='busca_dispositivo']").val();
+    var texto_dispositivo = $("input[name='texto_dispositivo']").val();
     var dispositivo_ref = $("#id_dispositivo_ref").val();
+    var dispositivo_select_ref = null;
     $('#id_dispositivo_ref').remove();
 
     if (dispositivo_ref == null)
-        dispositivo_ref = ''
+        dispositivo_select_ref = $("input[name='dispositivo_ref']:checked").val()
 
     var url = '';
 
@@ -80,7 +85,7 @@ var onChangeParamTA = function(event) {
         'tipo_model'         : tipo_model,
         'num_ta'             : num_ta,
         'ano_ta'             : ano_ta,
-        'busca'              : busca_dispositivo,
+        'texto'              : texto_dispositivo,
         'rotulo'             : rotulo_dispositivo,
         'tipo_form'          : tipo_form,
         'tipo_select'        : tipo_select,
@@ -92,6 +97,9 @@ var onChangeParamTA = function(event) {
     insertWaitAjax('.result-busca-dispositivo')
     $.get(url, formData).done(function( data ) {
         $('.result-busca-dispositivo').html(data);
-        //$("input[name='dispositivo_ref']").first().prop('checked', true);
+        if (dispositivo_ref != null)
+            $("input[name='dispositivo_ref']").filter('[value="'+dispositivo_ref+'"]').prop('checked', true);
+        else if (dispositivo_select_ref != null)
+            $("input[name='dispositivo_ref']").filter('[value="'+dispositivo_select_ref+'"]').prop('checked', true);
     });
 }

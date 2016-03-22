@@ -1,3 +1,4 @@
+from builtins import zip
 from datetime import datetime
 
 from django.contrib.auth.models import User
@@ -136,17 +137,22 @@ class TextoArticulado(TimestampedMixin):
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
     def organizar_ordem_de_dispositivos(self):
+
         dpts = Dispositivo.objects.filter(ta=self)
 
-        ordem_max = dpts.last().ordem
+        if not dpts.exists():
+            return
 
+        ordem_max = dpts.last().ordem
         dpts.update(ordem=F('ordem') + ordem_max)
+
+        dpts = Dispositivo.objects.filter(
+            ta=self).values_list('pk', flat=True).order_by('ordem')
 
         count = 0
         for d in dpts:
             count += Dispositivo.INTERVALO_ORDEM
-            d.ordem = count
-            d.save()
+            Dispositivo.objects.filter(pk=d).update(ordem=count)
 
 
 class TipoNota(models.Model):
@@ -728,6 +734,20 @@ class Dispositivo(BaseModel, TimestampedMixin):
                                 'º' if
                                 self.tipo_dispositivo.
                                 rotulo_ordinal >= 0 else '',)
+                    elif irmaos_mesmo_tipo.count() == 1 and\
+                            irmaos_mesmo_tipo[0].dispositivo0 == 0 and\
+                            self.dispositivo0 == 1:
+                        irmao = irmaos_mesmo_tipo[0]
+                        irmao.dispositivo0 = 1
+                        rr = prefixo[0]
+                        rr += irmao.get_nomenclatura_completa()
+                        irmao.rotulo = rr + t.rotulo_sufixo_texto
+                        irmao.save()
+                        r += prefixo[0]
+
+                        self.dispositivo0 = 2
+                        r += self.get_nomenclatura_completa()
+
                     else:
                         r += prefixo[0]
                         r += self.get_nomenclatura_completa()
@@ -803,19 +823,25 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
         return (flag_direcao, flag_variacao)
 
-    def transform_in_prior(self):
+    def transform_in_prior(self, profundidade=-1):
         numero = self.get_numero_completo()
 
         numero.reverse()
+
+        if profundidade != -1:
+            profundidade = len(numero) - profundidade - 1
 
         for i in range(len(numero)):
             if not numero[i]:
                 continue
 
+            if i > profundidade:
+                continue
+
             numero[i] -= 1
-            numero.reverse()
             break
 
+        numero.reverse()
         self.set_numero_completo(numero)
 
     def set_numero_completo(self, *numero):

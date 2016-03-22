@@ -29,7 +29,7 @@
 
 <div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
 
-<div id="modal-message" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+<div id="modal-message" class="modal fade" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
 
@@ -66,7 +66,7 @@
               <li><strong>(C) Construtor Estrutural:</strong> Neste modo, o editor foca na inserção de Dispositivos e busca deixar mais acessíveis as estas ações.</li>
 
             </ol></li>
-            <li>A Edição Avançada é complexa e sensível a erros. É recomendável o uso cuidadoso e consciente das funcionalidades.</li>
+            <li>A Edição Avançada é complexa e sensível a erros de edição. É recomendável o uso cuidadoso e consciente das funcionalidades.</li>
             <li>Gere toda a estrutura básica sem adicionar texto, isso evitará erros estruturais e otimizará seu trabalho por:
               <ol>
                 <li>Facilitar o trabalho local aí, de seu navegador.</li>
@@ -75,21 +75,35 @@
               </ol>
             </li>
             <li>Inserir os Dispositivos na sequência natural é mais produtivo para você, além de ser também mais simples para o algorítmo que controla este processo. Quanto maior a mudança estutural, mais lento será o procedimento. </li>
-            <li>A exclusão de Dispositivos é um processo moroso e complicado, principalmente se o que está sendo excluido for, ou envolver, os DCC's - Dispositivos de Contagem Continua, como é o caso do Tipo de Dispositivo (Artigo), que é um tipo comum nos Textos Articulados Brasileiros.
-              As exclusões podem ser diretas, individuais ou em bloco:
+            <li>A Opção DVt (Dispositivo de Vigência do Texto) redefine o dispositivo em seleção, como o dispositivo de vigência de todos os outros, desde que estes sejam os dispositivos originais do texto.
               <ol>
-                <li><strong>Diretas:</strong> Dispositivos que não possuam itens internos são excluidos diretamente.</li>
-                <li><strong>Individuais:</strong> Dispositivos que possuam itens internos e este podem ser reenquadrados no Dispositivo imediatamente anterior</li>
-                <li><strong>Em Bloco:</strong> Todo o conteúdo incluído no Dispositivo em edição será excluído.</li>
+                <li>O Dispositivo de Vigência de Dispositivos Alterados são controlados pelos seus Dispositivos Alteradores</li>
+                <li>Ao usar a opção DVt, todas as datas de início de vigência serão reenquadradas para a data de vigência do dispositivo de vigência. Posteriormente, alterações manuais poderão ser feitas.</li>
               </ol>
-              <ul>
+            </li>
+              <li>A criação de Tipos de Dispositivos é dinâmica e deverão estar amarrados por perfis estuturais configuráveis. Por serem tarefas técnicas e complicadas, criar/editar tipos de dispositivos e perfis estuturais estão disponíveis apenas na área de edição técnica do SAPL (admin).
+              </li>
+            </ol>
+            <ul>
                 <li>As exclusões e inserções, quando acionadas, renumeram e redefinem os rótulos, tanto de dispositivos locais, quanto os DCC's.</li>
               </ul>
-            </li>
+            <hr>
+            <h4>Exclusões</h4>
+            <ol>
+              <li>A exclusão de Dispositivos é um processo moroso e complicado, principalmente se o que está sendo excluido for, ou envolver, os DCC's - Dispositivos de Contagem Continua, como é o caso do Tipo de Dispositivo (Artigo), que é um tipo comum nos Textos Articulados Brasileiros.
+                As exclusões podem ser diretas, individuais ou em bloco:
+                <ol>
+                  <li><strong>Diretas:</strong> Dispositivos que não possuam itens internos são excluidos diretamente.</li>
+                  <li><strong>Individuais:</strong> Dispositivos que possuam itens internos e este podem ser reenquadrados no Dispositivo imediatamente anterior
+                    <ul>
+                      <li>Ainda Não foi implementado a transferência de conteúdo na exclusão individual de DCC's que estão estruturalmente separados. Ex: Um artigo possui parágrafos, se seu artigo imediatamente anterior estiver no mesmo sub-grupo, esses parágrafos, na exlcusão individual, serão transferidos para o artigo anterior, no entanto, se estiverem em sub-grupo separados, o artigo será completamente excluido como em uma exclusão em bloco.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Em Bloco:</strong> Todo o conteúdo incluído no Dispositivo em edição será excluído.</li>
+                </ol>
+              </li>
+            </ol>
 
-            <li>A criação de Tipos de Dispositivos é dinâmica e deverão estar amarrados por perfis estuturais configuráveis. Por serem tarefas técnicas e complicadas, criar/editar tipos de dispositivos e perfis estuturais estão disponíveis apenas na área de edição técnica do SAPL (admin).
-            </li>
-          </ol>
 
         {% endblocktrans %}
       </div>

@@ -45,7 +45,7 @@
     {% elif forloop.last %}
       {% for dispositivo in values %}
         <li class="{% if not view.inicio_vigencia%}active{% endif %}">
-          <a href="{%url 'compilacao:ta_text' dispositivo.ta_id %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{% if dispositivo.ta_publicado_id in ta_pub_list %}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{{dispositivo.ta_publicado}}{%endif%}">{% trans 'Texto Atual'%}</a>
+          <a href="{%url 'compilacao:ta_text' dispositivo.ta_id %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{% if dispositivo.ta_publicado_id in ta_pub_list %}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Texto Atual'%}</a>
         </li>
         {% if forloop.parentloop.last %}
           </ul>
@@ -75,7 +75,7 @@
           {% for dispositivo in values %}
             <li>
             {% if not forloop.parentloop.first %}
-              <a href="{%url 'compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{{dispositivo.ta_publicado}}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+              <a href="{%url 'compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
             {% endif %}
             </li>
           {% endfor %}

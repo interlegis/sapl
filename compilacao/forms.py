@@ -273,35 +273,41 @@ class DispositivoSearchFragmentForm(ModelForm):
         label=_('Tipos de...'), required=False)
 
     num_ta = forms.IntegerField(
-        label=_('Núm Texto Articulado'), required=False)
+        label=_('Número'), required=False)
     ano_ta = forms.IntegerField(
-        label=_('Ano Texto Articulado'), required=False)
+        label=_('Ano'), required=False)
 
-    busca_dispositivo = forms.CharField(
-        label=_('Buscar Dispositivo'),
+    rotulo_dispositivo = forms.CharField(
+        label=_('Rótulo'),
+        required=False)
+
+    texto_dispositivo = forms.CharField(
+        label=_('Pesquisa Textual'),
         required=False)
 
     def __init__(self, *args, **kwargs):
 
         if 'fields_search' in kwargs:
             fields_search = kwargs['fields_search'].fields
-            fields_search.append(
-                Row(
-                    to_column(('tipo_ta', 6)),
-                    to_column(('tipo_model', 6))))
-            fields_search.append(
+
+            fields_search.append(Fieldset(
+                _('Busca por um Dispositivo'),
                 Row(
                     to_column(('num_ta', 6)),
-                    to_column(('ano_ta', 6))))
-            fields_search.append(
-                Row(to_column((FieldWithButtons(
-                    Field(
-                        'busca_dispositivo',
-                        placeholder=_('Digite palavras, letras, '
-                                      'números ou algo'
-                                      ' que estejam '
-                                      'no rótulo ou no texto.')),
-                    StrictButton(_('Buscar'), css_class='btn-busca')), 12))))
+                    to_column(('ano_ta', 6))),
+                Row(
+                    to_column(('tipo_ta', 6)),
+                    to_column(('tipo_model', 6))),
+                Row(to_column(('rotulo_dispositivo', 3)),
+                    to_column((FieldWithButtons(
+                        Field(
+                            'texto_dispositivo',
+                            placeholder=_('Digite palavras, letras, '
+                                          'números ou algo'
+                                          ' que estejam no texto.')),
+                        StrictButton(_('Buscar'), css_class='btn-busca')), 9)))
+            ))
+
             fields_search.append(
                 Row(to_column(
                     (Div(css_class='result-busca-dispositivo'), 12))))
@@ -587,8 +593,9 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
-            *layout,
             label_cancel=_('Retornar para o Editor Sequencial'))
+
+        self.helper.layout.fields += layout
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
 
