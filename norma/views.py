@@ -115,6 +115,9 @@ class NormaIncluirView(CreateView):
     form_class = NormaJuridicaForm
     success_url = reverse_lazy('normajuridica:list')
 
+    def get_success_url(self):
+        return reverse_lazy('normajuridica:list')
+
     def form_valid(self, form):
         norma = form.save(commit=False)
         norma.timestamp = datetime.now()
