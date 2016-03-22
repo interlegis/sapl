@@ -3,7 +3,6 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
-from django.utils.safestring import mark_safe
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
