@@ -24,7 +24,6 @@ def test_incluir_norma_submit(client):
                            follow=True)
     assert response.status_code == 200
 
-    # Verifica se a matéria foi anexada corretamente
     norma = NormaJuridica.objects.first()
     assert norma.numero == 1
     assert norma.ano == 2016
