@@ -129,6 +129,8 @@ def test_autoria_submit(client):
                                    kwargs={'pk': materia_principal.pk}),
                            {'autor': autor.pk,
                             'primeiro_autor': True,
+                            'materia_id': materia_principal.pk,
+                            'partido': '',
                             'salvar': 'salvar'},
                            follow=True)
     assert response.status_code == 200
@@ -246,7 +248,6 @@ def test_legislacao_citada_submit(client):
     # Testa se a legislação citada foi criada
     leg = LegislacaoCitada.objects.first()
     assert leg.norma == norma
-    assert leg.disposicoes == 'disposicao'
 
 
 @pytest.mark.django_db(transaction=False)
@@ -281,3 +282,139 @@ def test_tramitacao_submit(client):
     assert (tramitacao.unidade_tramitacao_destino.comissao.nome ==
             'Unidade Destino')
     assert tramitacao.urgente is True
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_anexada(client):
+    materia_principal = make_materia_principal()
+    response = client.post(reverse('materia_anexada',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['tipo'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['numero'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['ano'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['data_anexacao'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_autoria(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('autoria',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'materia_id': materia_principal.pk,
+                            'partido': '',
+                            'autor': '',
+                            'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['autor'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['primeiro_autor'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_despacho_inicial(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('despacho_inicial',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['comissao'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_documento_acessorio(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('documento_acessorio',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['tipo'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['nome'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_legislacao_citada(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('legislacao_citada',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['tipo'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['numero'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['ano'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_numeracao(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('numeracao',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['tipo_materia'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['numero_materia'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['ano_materia'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['data_materia'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_tramitacao(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('tramitacao_materia',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['data_tramitacao'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors[
+            'unidade_tramitacao_local'] == ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['status'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors[
+            'unidade_tramitacao_destino'] == ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['texto'] ==
+            ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_form_errors_relatoria(client):
+    materia_principal = make_materia_principal()
+
+    response = client.post(reverse('relatoria',
+                                   kwargs={'pk': materia_principal.pk}),
+                           {'salvar': 'salvar'},
+                           follow=True)
+
+    assert (response.context_data['form'].errors['data_designacao_relator'] ==
+            ['Este campo é obrigatório.'])
+    assert (response.context_data['form'].errors['parlamentar'] ==
+            ['Este campo é obrigatório.'])

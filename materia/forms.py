@@ -182,6 +182,7 @@ class TramitacaoForm(ModelForm):
                                 choices=[(True, 'Sim'), (False, 'Não')],
                                 widget=forms.Select(
                                   attrs={'class': 'selector'}))
+
     class Meta:
         model = Tramitacao
         fields = ['data_tramitacao',

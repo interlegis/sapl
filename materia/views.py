@@ -333,7 +333,7 @@ class LegislacaoCitadaView(FormView):
                                                 'legislacao': legislacao_list})
             legislacao.materia = materia
             legislacao.norma = norma
-            legislacao.disposicoes = form.cleaned_data['disposicao']
+            legislacao.disposicoes = form.cleaned_data['disposicoes']
             legislacao.parte = form.cleaned_data['parte']
             legislacao.livro = form.cleaned_data['livro']
             legislacao.titulo = form.cleaned_data['titulo']
@@ -402,7 +402,7 @@ class LegislacaoCitadaEditView(FormView):
                          'tipos_norma': TipoNormaJuridica.objects.all()})
                 legislacao.materia = materia
                 legislacao.norma = norma
-                legislacao.disposicoes = form.cleaned_data['disposicao']
+                legislacao.disposicoes = form.cleaned_data['disposicoes']
                 legislacao.parte = form.cleaned_data['parte']
                 legislacao.livro = form.cleaned_data['livro']
                 legislacao.titulo = form.cleaned_data['titulo']
@@ -1108,18 +1108,17 @@ class AutoriaView(CreateView):
 
     def form_valid(self, form):
         materia = MateriaLegislativa.objects.get(id=form.data['materia_id'])
-
         if 'salvar' in self.request.POST:
-           autoria = Autoria()
-           autoria.autor = Autor.objects.get(id=form.data['autor'])
-           autoria.materia = materia
-           autoria.primeiro_autor = form.data['primeiro_autor']
+            autoria = Autoria()
+            autoria.autor = Autor.objects.get(id=form.data['autor'])
+            autoria.materia = materia
+            autoria.primeiro_autor = form.data['primeiro_autor']
 
-           if form.data['partido']:
-               filiacao_autor = Partido.objects.get(id=form.data['partido'])
-               autoria.partido = filiacao_autor
+            if form.data['partido']:
+                filiacao_autor = Partido.objects.get(id=form.data['partido'])
+                autoria.partido = filiacao_autor
 
-           autoria.save()
+            autoria.save()
 
         return redirect(self.get_success_url())
 
