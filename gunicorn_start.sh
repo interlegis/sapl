@@ -3,8 +3,8 @@
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
 
 NAME="SAPL"                                     # Name of the application (*)
-DJANGODIR=`pwd`                                 # Django project directory (*)
-SOCKFILE=`pwd`/run/gunicorn.sock                # we will communicate using this unix socket (*)
+DJANGODIR=/home/sapl31/sapl                     # Django project directory (*)
+SOCKFILE=/home/sapl31/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
 NUM_WORKERS=9                                   # how many worker processes should Gunicorn spawn (*)
@@ -15,8 +15,8 @@ DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)
 echo "Starting $NAME as `whoami`"
 
 # Activate the virtual environment
-#cd $DJANGODIR
-#source /var/www/test/venv/bin/activate
+cd $DJANGODIR
+source ~/.virtualenvs/sapl/bin/activate
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
