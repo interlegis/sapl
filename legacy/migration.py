@@ -94,6 +94,9 @@ def get_fk_related(field, value, label=None):
     has_textfield = False
     fields_dict = {}
     global stub_created
+
+    if value is None and field.null is False:
+        value = 0
     if value is not None:
         try:
             value = field.related_model.objects.get(id=value)
@@ -111,7 +114,7 @@ def get_fk_related(field, value, label=None):
                         fields_dict[related_field.name] = 'DESCONHECIDO'
                         has_textfield = True
                     elif related_field.get_internal_type() == 'CharField':
-                        fields_dict[related_field.name] = 'DESC'
+                        fields_dict[related_field.name] = 'D'
                         has_textfield = True
                 if has_textfield and field.null is False:
                     if not stub_created:
@@ -122,6 +125,10 @@ def get_fk_related(field, value, label=None):
                     else:
                         value = stub_created
                         warn(msg + ' => USING STUB ALREADY CREATED')
+                elif not has_textfield and field.null is False:
+                    stub_created = mommy.make(field.related_model)
+                    warn(msg + ' => STUB CREATED WITH RANDOM VALUES')
+                    value = stub_created
                 else:
                     value = None
                     warn(msg + ' => using NONE for zero value')
@@ -175,7 +182,6 @@ def make_stub(model, id):
 
 
 class DataMigrator:
-
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
 
@@ -185,6 +191,8 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
+            msg = ("Field %s (%s) from model %s " %
+                   (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
@@ -197,13 +205,23 @@ class DataMigrator:
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
+                if (field_type == 'DateField' and
+                        field.null is False and value is None):
+                    names = [old_fields.name for old_fields
+                             in old._meta.get_fields()]
+                    combined_names = "(" + ")|(".join(names) + ")"
+                    matches = re.search('(ano_\w+)', combined_names)
+                    if not matches:
+                        warn(msg + '=> setting 0000-01-01 value to DateField')
+                        value = '0001-01-01'
+                    else:
+                        value = '%d-01-01' % getattr(old, matches.group(0))
+                        warn(msg + "=> settig %s for not null DateField" %
+                             (value))
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
-                        warn(
-                            "Field %s (%s) from model %s"
-                            " => settig empty string '' for %s value" %
-                            (field.name, field_type, field.model.__name__,
-                             value))
+                        warn(msg + "=> settig empty string '' for %s value" %
+                             (value))
                         value = ''
                 setattr(new, field.name, value)
 
@@ -240,7 +258,9 @@ class DataMigrator:
         legacy_model_name = self.model_renames.get(model, model.__name__)
         legacy_model = legacy_app.get_model(legacy_model_name)
         legacy_pk_name = legacy_model._meta.pk.name
+
         global stub_created
+        stub_created = False
 
         # Clear all model entries
         # They may have been created in a previous migration attempt
@@ -251,12 +271,14 @@ class DataMigrator:
             # There is no pk in the legacy table
             def save(new, old):
                 new.save()
+                global stub_created
                 stub_created = False
 
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
             def save(new, old):
+                global stub_created
                 save_with_id(new, getattr(old, legacy_pk_name))
                 stub_created = False
 
