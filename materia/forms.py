@@ -2,6 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Max
 from django_filters import FilterSet
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -19,7 +20,7 @@ from parlamentares.models import Parlamentar, Partido
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Origem, Proposicao, Relatoria,
-                     StatusTramitacao, TipoAutor, TipoDocumento,
+                     StatusTramitacao, TipoAutor,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 ORDENACAO_MATERIAIS = [(1, 'Crescente'),
@@ -788,11 +789,10 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                   'autoria__partido',
                   'local_origem_externa']
 
-    def my_custom_filter(queryset, value):
-        materia = MateriaLegislativa.objects.raw(
-            'SELECT DISTINCT materia_id, \
-             max(data_encaminhamento) as data_encaminhamento \
-             FROM materia_tramitacao \
-             GROUP BY materia_id \
-             ORDER BY materia_id')
-        return queryset.all()
+    # def filter_tramitacao__status(status):
+    #     ultimas_tramitacoes = Tramitacao.objects.values(
+    #                         'materia_id').annotate(data_encaminhamento=Max(
+    #                                  'data_encaminhamento'),
+    #                               id=Max('id'))
+    #     ultimas_tramitacoes = ultimas_tramitacoes.filter(status=status)
+    #     return ultimas_tramitacoes.materia
