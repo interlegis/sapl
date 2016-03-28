@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models import Max
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -1192,6 +1193,16 @@ class ProposicaoListView(ListView):
         return context
 
 
+def filter_tramitacao__status(status):
+        ultimas_tramitacoes = Tramitacao.objects.values(
+                            'materia_id').annotate(data_encaminhamento=Max(
+                                     'data_encaminhamento'),
+                                  id=Max('id'))
+        import ipdb; ipdb.set_trace()
+        ultimas_tramitacoes = ultimas_tramitacoes.filter(status=status)
+        return ultimas_tramitacoes
+
+
 class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaPesquisaFields
@@ -1209,10 +1220,17 @@ class MateriaLegislativaPesquisaView(FilterView):
         return context
 
     def get(self, request, *args, **kwargs):
-        # import ipdb; ipdb.set_trace()
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
-        self.object_list = self.filterset.qs
+        status_tramitacao = self.filterset.data.get('tramitacao__status')
+        if status_tramitacao and status_tramitacao != '':
+            status = filter_tramitacao__status(status_tramitacao)
+            mat_filt_ids = [ids.get('materia_id') for ids in status]
+            # import ipdb; ipdb.set_trace()
+            self.object_list = self.filterset.qs.filter(
+                id__in=mat_filt_ids)
+        else:
+            self.object_list = self.filterset.qs
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list)
         return self.render_to_response(context)
