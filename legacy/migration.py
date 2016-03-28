@@ -93,7 +93,6 @@ def warn(msg):
 
 def get_fk_related(field, value, label=None):
     fields_dict = {}
-
     if value is None and field.null is False:
         value = 0
     if value is not None:
@@ -169,7 +168,6 @@ def make_stub(model, id):
 
 
 class DataMigrator:
-
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
 
@@ -179,6 +177,8 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
+            msg = ("Field %s (%s) from model %s " %
+                   (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
@@ -191,13 +191,23 @@ class DataMigrator:
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
+                if (field_type == 'DateField' and
+                        field.null is False and value is None):
+                    names = [old_fields.name for old_fields
+                             in old._meta.get_fields()]
+                    combined_names = "(" + ")|(".join(names) + ")"
+                    matches = re.search('(ano_\w+)', combined_names)
+                    if not matches:
+                        warn(msg + '=> setting 0000-01-01 value to DateField')
+                        value = '0001-01-01'
+                    else:
+                        value = '%d-01-01' % getattr(old, matches.group(0))
+                        warn(msg + "=> settig %s for not null DateField" %
+                             (value))
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
-                        warn(
-                            "Field %s (%s) from model %s"
-                            " => settig empty string '' for %s value" %
-                            (field.name, field_type, field.model.__name__,
-                             value))
+                        warn(msg + "=> settig empty string '' for %s value" %
+                             (value))
                         value = ''
                 setattr(new, field.name, value)
 
