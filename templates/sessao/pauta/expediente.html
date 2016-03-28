@@ -6,7 +6,6 @@
 
 <h1>{{expediente.materia}}</h1>
 <hr>
-
 <fieldset>
 	<legend>Identificação Básica</legend>
 
@@ -16,7 +15,7 @@
 	<b>Ementa:</b> {{expediente.materia.ementa|safe}} <br />
 	<b>Indexação:</b> {{expediente.materia.indexacao}} <br />
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Outras Informações</legend>
 
@@ -24,7 +23,7 @@
 	<b>Matéria Polêmica?</b> {{expediente.materia.polemica|yesno:"Sim,Não"}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	<b>Regime Tramitação:</b> {{expediente.materia.regime_tramitacao}}
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Documentos Acessórios</legend>
 
@@ -37,7 +36,7 @@
 		<br /><br />
 	{% endfor %}
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Tramitação{% if expediente.materia.em_tramitacao %}<a href="{% url 'acompanhar_materia' expediente.materia.id %}"> >>> Acompanhar matéria <<<</a>{% endif %}</legend>
 

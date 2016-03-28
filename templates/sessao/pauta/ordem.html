@@ -6,7 +6,6 @@
 
 <h1>{{ordem.materia}}</h1>
 <hr>
-
 <fieldset>
 	<legend>Identificação Básica</legend>
 
@@ -16,16 +15,15 @@
 	<b>Ementa:</b> {{ordem.materia.ementa|safe}} <br />
 	<b>Indexação:</b> {{ordem.materia.indexacao}} <br />
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Norma Juridica Vinculada</legend>
-
 	<!-- TODO -->
 	{% for n in norma %}
 		<b><a href="">{{n}}</a></b>
 	{% endfor %}
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Outras Informações</legend>
 
@@ -33,7 +31,7 @@
 	<b>Matéria Polêmica?</b> {{ordem.materia.polemica|yesno:"Sim,Não"}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	<b>Regime Tramitação:</b> {{ordem.materia.regime_tramitacao}}
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Documentos Acessórios</legend>
 
@@ -46,7 +44,7 @@
 		<br /><br />
 	{% endfor %}
 </fieldset>
-
+<br /><br />
 <fieldset>
 	<legend>Tramitação{% if ordem.materia.em_tramitacao %}<a href="{% url 'acompanhar_materia' ordem.materia.id %}"> >>> Acompanhar matéria <<<</a>{% endif %}</legend>
 
@@ -59,5 +57,4 @@
 		<br />
 	{% endfor %}
 </fieldset>
-
 {% endblock %}
