@@ -75,7 +75,7 @@ class ParlamentaresForm (ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(
-            [('nome_parlamentar', 8), (InlineRadios('ativo'), 4)])
+            [('nome_parlamentar', 8), ('ativo', 4)])
 
         row2 = crispy_layout_mixin.to_row(
             [('nome_completo', 12)])
@@ -146,7 +146,6 @@ class ParlamentaresForm (ModelForm):
                             </div>""", ),
                      row14,
                      form_actions())
-
         )
         super(ParlamentaresForm, self).__init__(
             *args, **kwargs)
@@ -157,7 +156,6 @@ class ParlamentaresEditForm(ParlamentaresForm):
     def __init__(self, *args, **kwargs):
         super(ParlamentaresEditForm, self).__init__(
             *args, **kwargs)
-
         self.helper.layout[0][-1:] = form_actions(more=[
             HTML('&nbsp;'),
             Submit('excluir', 'Excluir',
