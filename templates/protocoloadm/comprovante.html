@@ -30,7 +30,11 @@
 						 alt="Logotipo"
 						 class="img-responsive visible-lg-inline-block vcenter">
 				<div>
-					<b>{{ parliament_type }} {% trans 'de' %} {{ city }} - {{ state }}</b>
+					{% if nome %}
+						<b>{{ nome }} {% trans 'de' %} {{ municipio }} - {{ uf }}</b>
+					{% else %}
+						<b>{% trans 'Sem Nome Cadastrado' %}</b>
+					{% endif %}
 					<br />
 					{% trans 'Sistema de Apoio ao Processo Legislativo' %}
 				</div>
