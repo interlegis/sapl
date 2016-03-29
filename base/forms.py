@@ -36,6 +36,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
+            'logotipo': forms.FileInput,
             'informacao_geral': forms.Textarea(
                 attrs={'id': 'casa-informacoes'})
         }
@@ -87,16 +88,18 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row3,
                 row4,
                 row5,
-                HTML("""{% if form.logotipo.value %}
+                HTML("""<div class="col-md-12">
+                        {% if form.logotipo.value %}
                         <img class="img-responsive" width="225" height="300"
                              src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
-                             <br /><br />
+                             <br />
                         <input type="submit"
                                name="remover"
                                id="remover"
-                               class="button primary"
+                               class="btn btn-warning"
                                value="Remover Logo"/>
-                         {% endif %}""", ),
+                         {% endif %}
+                         </div>"""),
                 row6,
                 row7,
                 row8,

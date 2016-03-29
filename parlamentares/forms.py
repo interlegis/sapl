@@ -131,16 +131,19 @@ class ParlamentaresForm (ModelForm):
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
                      row11, row12, row13,
-                     HTML("""{% if form.fotografia.value %}
-                        <img class="img-responsive" width="225" height="300"
-                             src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
-                             <br /><br />
-                        <input type="submit"
-                               name="remover"
-                               id="remover"
-                               class="btn btn-warning"
-                               value="Remover Foto"/>
-                         {% endif %}""", ),
+                     HTML("""<div class="col-md-12">
+                            {% if form.fotografia.value %}
+                            <img class="img-responsive"
+                                 width="225" height="300"
+                                 src="{{MEDIA_URL}}{{form.fotografia.value}}">
+                                 <br />
+                            <input type="submit"
+                                   name="remover"
+                                   id="remover"
+                                   class="btn btn-warning"
+                                   value="Remover Foto"/>
+                            {% endif %}
+                            </div>""", ),
                      row14,
                      form_actions())
 
