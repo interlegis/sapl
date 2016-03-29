@@ -1,8 +1,8 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
-from django.core.exceptions import ValidationError
 from django.db.models import Max
+from django.core.exceptions import ValidationError
 from django_filters import FilterSet
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -789,10 +789,38 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                   'autoria__partido',
                   'local_origem_externa']
 
-    # def filter_tramitacao__status(status):
-    #     ultimas_tramitacoes = Tramitacao.objects.values(
-    #                         'materia_id').annotate(data_encaminhamento=Max(
-    #                                  'data_encaminhamento'),
-    #                               id=Max('id'))
-    #     ultimas_tramitacoes = ultimas_tramitacoes.filter(status=status)
-    #     return ultimas_tramitacoes.materia
+
+def pega_ultima_tramitacao():
+    ultimas_tramitacoes = Tramitacao.objects.values(
+                            'materia_id').annotate(data_encaminhamento=Max(
+                                     'data_encaminhamento'),
+                                  id=Max('id'))
+    lista = [ids.get('id') for ids in ultimas_tramitacoes]
+    return lista
+
+
+def filtra_tramitacao_status(status):
+        lista = pega_ultima_tramitacao()
+        ultimas_tramitacoes = Tramitacao.objects.filter(id__in=lista,
+                                                        status=status)
+        lista = [ids.materia_id for ids in ultimas_tramitacoes]
+        return lista
+
+
+def filtra_tramitacao_destino(destino):
+        lista = pega_ultima_tramitacao()
+        ultimas_tramitacoes = Tramitacao.objects.filter(
+            id__in=lista,
+            unidade_tramitacao_destino=destino)
+        lista = [ids.materia_id for ids in ultimas_tramitacoes]
+        return lista
+
+
+def filtra_tramitacao_destino_and_status(status, destino):
+        lista = pega_ultima_tramitacao()
+        ultimas_tramitacoes = Tramitacao.objects.filter(
+            id__in=lista,
+            status=status,
+            unidade_tramitacao_destino=destino)
+        lista = [ids.materia_id for ids in ultimas_tramitacoes]
+        return lista

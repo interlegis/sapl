@@ -8,7 +8,6 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -26,9 +25,12 @@ from sapl.utils import get_base_url
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
+                    filtra_tramitacao_status, filtra_tramitacao_destino,
+                    filtra_tramitacao_destino_and_status,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaPesquisaFields, NumeracaoForm,
-                    ProposicaoForm, RelatoriaForm, TramitacaoForm)
+                    ProposicaoForm, RelatoriaForm, TramitacaoForm
+                    )
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,
@@ -1190,136 +1192,12 @@ class ProposicaoListView(ListView):
         return context
 
 
-# class MateriaLegislativaPesquisaView(FormView):
-#     template_name = 'materia/pesquisa_materia.html'
-
-#     def get_success_url(self):
-#         return reverse('pesquisar_materia')
-
-#     def get(self, request, *args, **kwargs):
-#         form = MateriaLegislativaPesquisaForm()
-#         return self.render_to_response({'form': form})
-
-#     def post(self, request, *args, **kwargs):
-#         kwargs = {}
-#         form = MateriaLegislativaPesquisaForm(request.POST)
-
-#         if form.data['tipo']:
-#             kwargs['tipo'] = form.data['tipo']
-
-#         if form.data['numero']:
-#             kwargs['numero'] = form.data['numero']
-
-#         if form.data['ano']:
-#             kwargs['ano'] = form.data['ano']
-
-#         if form.data['numero_protocolo']:
-#             kwargs['numero_protocolo'] = form.data['numero_protocolo']
-
-#         if (form.data['apresentacao_inicial'] and
-#                 form.data['apresentacao_final']):
-#             kwargs['apresentacao_inicial'] = form.data['apresentacao_inicial']
-#             kwargs['apresentacao_final'] = form.data['apresentacao_final']
-
-#         if (form.data['publicacao_inicial'] and
-#                 form.data['publicacao_final']):
-#             kwargs['publicacao_inicial'] = form.data['publicacao_inicial']
-#             kwargs['publicacao_final'] = form.data['publicacao_final']
-
-#         if form.data['local_origem_externa']:
-#             kwargs['local_origem_externa'] = form.data['local_origem_externa']
-
-#         if form.data['autor']:
-#             kwargs['autor'] = form.data['autor']
-
-#         if form.data['localizacao']:
-#             kwargs['localizacao'] = form.data['localizacao']
-
-#         if form.data['em_tramitacao']:
-#             kwargs['em_tramitacao'] = form.data['em_tramitacao']
-
-#         if form.data['situacao']:
-#             kwargs['situacao'] = form.data['situacao']
-
-#         request.session['kwargs'] = kwargs
-#         return redirect('pesquisar_materia_list')
-
-
-class PesquisaMateriaListView(ListView):
-    template_name = 'materia/pesquisa_materia_list.html'
-    context_object_name = 'materias'
-    model = MateriaLegislativa
-    paginate_by = 10
-
-    def get_queryset(self):
-        kwargs = self.request.session['kwargs']
-
-        materias = MateriaLegislativa.objects.all().order_by(
-            '-numero', '-ano')
-
-        if 'apresentacao_inicial' in kwargs:
-            inicial = datetime.strptime(
-                kwargs['apresentacao_inicial'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            final = datetime.strptime(
-                kwargs['apresentacao_final'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            materias = materias.filter(
-                data_apresentacao__range=(inicial, final))
-
-        if 'publicacao_inicial' in kwargs:
-            inicial = datetime.strptime(
-                kwargs['publicacao_inicial'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            final = datetime.strptime(
-                kwargs['publicacao_final'],
-                '%d/%m/%Y').strftime('%Y-%m-%d')
-            materias = materias.filter(
-                data_publicacao__range=(inicial, final))
-
-        if 'tipo' in kwargs:
-            materias = materias.filter(tipo_id=kwargs['tipo'])
-
-        if 'numero' in kwargs:
-            materias = materias.filter(numero=kwargs['numero'])
-
-        if 'ano' in kwargs:
-            materias = materias.filter(ano=kwargs['ano'])
-
-        if 'numero_protocolo' in kwargs:
-            materias = materias.filter(numero=kwargs['numero_protocolo'])
-
-        if 'em_tramitacao' in kwargs:
-            materias = materias.filter(em_tramitacao=kwargs['em_tramitacao'])
-
-        if 'local_origem_externa' in kwargs:
-            materias = materias.filter(
-                local_origem_externa=kwargs['local_origem_externa'])
-
-        # autor
-        # localizao atual
-        # situacao
-
-        return materias
-
-
-def filter_tramitacao__status(status):
-        ultimas_tramitacoes = Tramitacao.objects.values(
-                            'materia_id').annotate(data_encaminhamento=Max(
-                                     'data_encaminhamento'),
-                                  id=Max('id'))
-        import ipdb; ipdb.set_trace()
-        ultimas_tramitacoes = ultimas_tramitacoes.filter(status=status)
-        return ultimas_tramitacoes
-
-
 class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaPesquisaFields
     paginate_by = 10
 
     def get_context_data(self, **kwargs):
-        # import ipdb; ipdb.set_trace()
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
 
@@ -1333,15 +1211,29 @@ class MateriaLegislativaPesquisaView(FilterView):
     def get(self, request, *args, **kwargs):
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
+
         status_tramitacao = self.filterset.data.get('tramitacao__status')
-        if status_tramitacao and status_tramitacao != '':
-            status = filter_tramitacao__status(status_tramitacao)
-            mat_filt_ids = [ids.get('materia_id') for ids in status]
-            # import ipdb; ipdb.set_trace()
+        unidade_destino = self.filterset.data.get(
+            'tramitacao__unidade_tramitacao_destino')
+        if (status_tramitacao and status_tramitacao != '' and
+           unidade_destino and unidade_destino != ''):
+            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
+                                                         unidade_destino)
             self.object_list = self.filterset.qs.filter(
-                id__in=mat_filt_ids)
+                id__in=lista)
+
+        elif status_tramitacao and status_tramitacao != '':
+            lista = filtra_tramitacao_status(status_tramitacao)
+            self.object_list = self.filterset.qs.filter(
+                id__in=lista)
+
+        elif unidade_destino and unidade_destino != '':
+            lista = filtra_tramitacao_destino(unidade_destino)
+            self.object_list = self.filterset.qs.filter(
+                id__in=lista)
         else:
             self.object_list = self.filterset.qs
+
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list)
         return self.render_to_response(context)
