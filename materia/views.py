@@ -26,6 +26,8 @@ from sapl.utils import get_base_url
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
+                    filtra_tramitacao_status, filtra_tramitacao_destino,
+                    filtra_tramitacao_destino_and_status,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaPesquisaFields, NumeracaoForm,
                     ProposicaoForm, RelatoriaForm, TramitacaoForm)
@@ -226,7 +228,7 @@ class MateriaAnexadaEditView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('materia:materia_anexada', kwargs={'pk': pk})
+        return reverse('materia_anexada', kwargs={'pk': pk})
 
 
 class DespachoInicialView(CreateView):
@@ -1222,15 +1224,29 @@ class MateriaLegislativaPesquisaView(FilterView):
     def get(self, request, *args, **kwargs):
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
+
         status_tramitacao = self.filterset.data.get('tramitacao__status')
-        if status_tramitacao and status_tramitacao != '':
-            status = filter_tramitacao__status(status_tramitacao)
-            mat_filt_ids = [ids.get('materia_id') for ids in status]
-            # import ipdb; ipdb.set_trace()
+        unidade_destino = self.filterset.data.get(
+            'tramitacao__unidade_tramitacao_destino')
+        if (status_tramitacao and status_tramitacao != '' and
+           unidade_destino and unidade_destino != ''):
+            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
+                                                         unidade_destino)
             self.object_list = self.filterset.qs.filter(
-                id__in=mat_filt_ids)
+                id__in=lista)
+
+        elif status_tramitacao and status_tramitacao != '':
+            lista = filtra_tramitacao_status(status_tramitacao)
+            self.object_list = self.filterset.qs.filter(
+                id__in=lista)
+
+        elif unidade_destino and unidade_destino != '':
+            lista = filtra_tramitacao_destino(unidade_destino)
+            self.object_list = self.filterset.qs.filter(
+                id__in=lista)
         else:
             self.object_list = self.filterset.qs
+
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list)
         return self.render_to_response(context)
