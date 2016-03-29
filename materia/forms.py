@@ -685,17 +685,21 @@ class MateriaLegislativaPesquisaForm(ModelForm):
 class MateriaLegislativaPesquisaFields(FilterSet):
 
     numero = django_filters.CharFilter(required=False,
-                                       label=u'Número da Matéria')
+                                       label=u'Número da Matéria',
+                                       help_text="")
     numero_protocolo = django_filters.CharFilter(required=False,
-                                                 label=u'Núm. Protocolo')
+                                                 label=u'Núm. Protocolo',
+                                                 help_text="")
     ano = django_filters.CharFilter(required=False,
-                                    label=u'Ano da Matéria')
+                                    label=u'Ano da Matéria',
+                                    help_text="")
 
     tipo = django_filters.ModelChoiceFilter(
         label=_('Tipo de Matéria'),
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
+        help_text=""
     )
 
     data_apresentacao = django_filters.DateFilter(
@@ -704,7 +708,8 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                                         required=False,
                                         widget=forms.DateInput(
                                             format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}))
+                                            attrs={'class': 'dateinput'}),
+                                        help_text="")
 
     data_publicacao = django_filters.DateFilter(
                                        label=u'Data da Publicação',
@@ -712,13 +717,15 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                                        required=False,
                                        widget=forms.DateInput(
                                           format='%d/%m/%Y',
-                                          attrs={'class': 'dateinput'}))
+                                          attrs={'class': 'dateinput'}),
+                                       help_text="")
 
     autoria__autor = django_filters.ModelChoiceFilter(
         label='Autor',
         required=False,
         queryset=Autor.objects.all().order_by('tipo'),
         empty_label='Selecione',
+        help_text=""
     )
 
     autoria__autor__tipo = django_filters.ModelChoiceFilter(
@@ -726,13 +733,15 @@ class MateriaLegislativaPesquisaFields(FilterSet):
         required=False,
         queryset=TipoAutor.objects.all(),
         empty_label='Selecione',
+        help_text=""
     )
 
     autoria__partido = django_filters.ModelChoiceFilter(
         label=_('Partido (Autor)'),
         required=False,
         queryset=Partido.objects.all(),
-        empty_label='Selecione')
+        empty_label='Selecione',
+        help_text="")
 
     # # relatores são os parlamentares ativos?
     relatoria__parlamentar__id = django_filters.ModelChoiceFilter(
@@ -740,19 +749,22 @@ class MateriaLegislativaPesquisaFields(FilterSet):
         required=False,
         queryset=Parlamentar.objects.all().order_by('nome_parlamentar'),
         empty_label='Selecione',
+        help_text=""
     )
 
     local_origem_externa = django_filters.ModelChoiceFilter(
         label=_('Localização de Origem'),
         required=False,
         queryset=Origem.objects.all(),
-        empty_label='Selecione')
+        empty_label='Selecione',
+        help_text="")
 
     tramitacao__unidade_tramitacao_destino = django_filters.ModelChoiceFilter(
         label=_('Localização Atual'),
         required=False,
         queryset=UnidadeTramitacao.objects.all(),
         empty_label='Selecione',
+        help_text=""
     )
 
     tramitacao__status = django_filters.ModelChoiceFilter(
@@ -760,17 +772,20 @@ class MateriaLegislativaPesquisaFields(FilterSet):
         required=False,
         queryset=StatusTramitacao.objects.all(),
         empty_label='Selecione',
+        help_text=""
     )
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
                                                 label='Tramitando',
                                                 choices=em_tramitacao(),
                                                 widget=forms.Select(
-                                                 attrs={'class': 'selector'}))
+                                                 attrs={'class': 'selector'}),
+                                                help_text="")
 
     ementa = django_filters.CharFilter(required=False,
                                        label=u'Assunto',
-                                       lookup_expr='icontains')
+                                       lookup_expr='icontains',
+                                       help_text="")
 
     class Meta:
         models = MateriaLegislativa
