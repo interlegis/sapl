@@ -41,17 +41,17 @@
           <div class="row">
             <div class="col-md-6">
               Data Designação*
-              <input type="text" name="data_designacao_relator" class ="dateinput form-control" />
+              <input type="text" name="data_designacao_relator" {% if not comissao.nome %} disabled {% endif %} class ="dateinput form-control" />
             </div>
             <div class="col-md-6">
               Data Destituição
-              <input type="text" name="data_destituicao_relator" class ="dateinput form-control" />
+              <input type="text" name="data_destituicao_relator" {% if not comissao.nome %} disabled {% endif %} class ="dateinput form-control" />
             </div>
           </div>
           <div class="row">
             <div class="col-md-6">
               Parlamentar*
-              <select name="parlamentar" class="form-control">
+              <select name="parlamentar" {% if not comissao.nome %} disabled {% endif %} class="form-control">
                 <option value=""> ---------- </option>
                 {% for p in parlamentares %}
                 <option value="{{p.parlamentar_id}}"> {{p.parlamentar}} </option>
@@ -60,7 +60,7 @@
             </div>
             <div class="col-md-6">
               Motivo Fim Relatoria
-              <select name="tipo_fim_relatoria" class="form-control">
+              <select name="tipo_fim_relatoria" {% if not comissao.nome %} disabled {% endif %} class="form-control">
                 <option value=""> ---------- </option>
                 {% for t in tipo_fim_relatoria %}
                 <option value="{{t.id}}"> {{t.descricao}} </option>
