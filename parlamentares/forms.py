@@ -177,6 +177,7 @@ class MandatoForm(ModelForm):
                   'votos_recebidos',
                   'data_fim_mandato',
                   'data_expedicao_diploma',
+                  'tipo_afastamento',
                   'observacao']
 
     def __init__(self, *args, **kwargs):
@@ -191,11 +192,14 @@ class MandatoForm(ModelForm):
              ('data_expedicao_diploma', 6)])
 
         row3 = crispy_layout_mixin.to_row(
+            [('tipo_afastamento', 12)])
+
+        row4 = crispy_layout_mixin.to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset(_('Adicionar Mandato'), row1, row2, row3,
+            Fieldset(_('Adicionar Mandato'), row1, row2, row3, row4,
                      form_actions())
 
         )
