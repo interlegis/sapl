@@ -49,7 +49,7 @@ def stub(f, obj):
     val = getattr(obj, f.name)
     if isinstance(f, CharField):
         if 'mail' in f.name:
-            return 'bla@bla.com'
+            return 'bla@example.com'
         elif 'nome' in f.name:
             limite = f.max_length or 100000000
             return random.choice(nomes)[:limite]
