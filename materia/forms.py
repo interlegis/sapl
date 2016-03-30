@@ -23,9 +23,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      StatusTramitacao, TipoAutor,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
-ORDENACAO_MATERIAIS = [(1, 'Crescente'),
-                       (2, 'Decrescente')]
-
 
 def em_tramitacao():
     return [('', 'Tanto Faz'),
@@ -816,8 +813,9 @@ def pega_ultima_tramitacao():
 
 def filtra_tramitacao_status(status):
         lista = pega_ultima_tramitacao()
-        ultimas_tramitacoes = Tramitacao.objects.filter(id__in=lista,
-                                                        status=status)
+        ultimas_tramitacoes = Tramitacao.objects.filter(
+            id__in=lista,
+            status=status).distinct()
         lista = [ids.materia_id for ids in ultimas_tramitacoes]
         return lista
 
@@ -826,7 +824,7 @@ def filtra_tramitacao_destino(destino):
         lista = pega_ultima_tramitacao()
         ultimas_tramitacoes = Tramitacao.objects.filter(
             id__in=lista,
-            unidade_tramitacao_destino=destino)
+            unidade_tramitacao_destino=destino).distinct()
         lista = [ids.materia_id for ids in ultimas_tramitacoes]
         return lista
 
@@ -836,6 +834,6 @@ def filtra_tramitacao_destino_and_status(status, destino):
         ultimas_tramitacoes = Tramitacao.objects.filter(
             id__in=lista,
             status=status,
-            unidade_tramitacao_destino=destino)
+            unidade_tramitacao_destino=destino).distinct()
         lista = [ids.materia_id for ids in ultimas_tramitacoes]
         return lista
