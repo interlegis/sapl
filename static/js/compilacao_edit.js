@@ -1,19 +1,3 @@
-function initTinymceForEdit() {
-
-    tinymce.init({
-        mode : "textareas",
-        force_br_newlines : false,
-        force_p_newlines : false,
-        forced_root_block : '',
-        plugins: ["table save code"],
-        menubar: "edit format table tools",
-        toolbar: "save | undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
-        tools: "inserttable",
-        save_onsavecallback: onSubmitEditForm,
-        border_css: "/static/styles/compilacao_tinymce.css",
-        content_css: "/static/styles/compilacao_tinymce.css"
-    });
-}
 
 var editortype = "textarea";
 var gets = 0;
@@ -162,7 +146,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             }
 
             if ( _editortype == 'tinymce' ) {
-                initTinymceForEdit();
+                initTinymce();
             }
             else if (_editortype == 'textarea') {
                 $('.csform form').submit(onSubmitEditForm);

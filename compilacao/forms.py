@@ -1,12 +1,16 @@
+from datetime import datetime
+
 from crispy_forms.bootstrap import FieldWithButtons, FormActions, StrictButton,\
     InlineRadios, Alert
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
 from django import forms
-from django.core.exceptions import NON_FIELD_ERRORS
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
@@ -599,13 +603,78 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
 
-FIELD_NAME_MAPPING = {
-    'dispositivo_vigencia': 'dispositivo_ref',
-}
+
+class DispositivoSearchModalForm(Form):
+
+    tipo_ta = forms.ModelChoiceField(
+        label=_('Tipo do Texto Articulado'),
+        queryset=TipoTextoArticulado.objects.all(),
+        required=False)
+
+    tipo_model = forms.ChoiceField(
+        choices=[],
+        label=_('Tipos de...'), required=False)
+
+    num_ta = forms.IntegerField(
+        label=_('Número do Documento'), required=False)
+    ano_ta = forms.IntegerField(
+        label=_('Ano do Documento'), required=False)
+
+    dispositivos_internos = forms.ChoiceField(
+        label=_('Incluir Dispositivos Internos?'),
+        choices=utils.YES_NO_CHOICES,
+        widget=forms.RadioSelect(),
+        required=False)
+
+    rotulo_dispositivo = forms.CharField(
+        label=_('Rótulo'),
+        required=False)
+
+    texto_dispositivo = forms.CharField(
+        label=_('Pesquisa Textual'),
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        fields_search = Fieldset(
+            _('Busca por um Dispositivo'),
+            Row(
+                to_column(('num_ta', 4)),
+                to_column(('ano_ta', 4)),
+                to_column((InlineRadios('dispositivos_internos'), 4))),
+            Row(
+                to_column(('tipo_ta', 6)),
+                to_column(('tipo_model', 6))),
+            Row(to_column(('rotulo_dispositivo', 3)),
+                to_column((FieldWithButtons(
+                    Field(
+                        'texto_dispositivo',
+                        placeholder=_('Digite palavras, letras, '
+                                      'números ou algo'
+                                      ' que estejam no texto.')),
+                    StrictButton(_('Buscar'), css_class='btn-busca')), 9)))
+        )
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            fields_search,
+            Row(to_column((Div(css_class='result-busca-dispositivo'), 12))))
+
+        if 'choice_model_type_foreignkey_in_extenal_views' in kwargs:
+            ch = kwargs.pop('choice_model_type_foreignkey_in_extenal_views')
+            if 'data' in kwargs:
+                choice = ch(kwargs['data']['tipo_ta'])
+                self.base_fields['tipo_model'].choices = choice
+            elif 'instance' in kwargs and\
+                    isinstance(kwargs['instance'], Dispositivo):
+                choice = ch(kwargs['instance'].ta.tipo_ta_id)
+                self.base_fields['tipo_model'].choices = choice
+
+        kwargs['initial'].update({'dispositivos_internos': False})
+        super(DispositivoSearchModalForm, self).__init__(*args, **kwargs)
 
 
-class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
-
+class DispositivoEdicaoVigenciaForm(ModelForm):
     inconstitucionalidade = forms.ChoiceField(
         label=Dispositivo._meta.get_field(
             'inconstitucionalidade').verbose_name,
@@ -613,9 +682,18 @@ class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
         widget=forms.RadioSelect())
 
     dispositivo_vigencia = forms.ModelChoiceField(
+        label=Dispositivo._meta.get_field(
+            'dispositivo_vigencia').verbose_name,
         required=False,
-        queryset=Dispositivo.objects.all(),
-        widget=forms.HiddenInput())
+        queryset=Dispositivo.objects.all())
+
+    extensao = forms.ChoiceField(
+        label=_('Extender a seleção abaixo como Dispositivo de Vigência '
+                'para todos dependentes originais '
+                'deste Dispositivo em edição?'),
+        choices=utils.YES_NO_CHOICES,
+        widget=forms.RadioSelect(),
+        required=False)
 
     class Meta:
         model = Dispositivo
@@ -627,11 +705,6 @@ class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
                   'inconstitucionalidade',
                   'dispositivo_vigencia'
                   ]
-
-    def add_prefix(self, field_name):
-        # look up field name; return original if not found
-        field_name = FIELD_NAME_MAPPING.get(field_name, field_name)
-        return super(DispositivoEdicaoVigenciaForm, self).add_prefix(field_name)
 
     def __init__(self, *args, **kwargs):
 
@@ -646,7 +719,6 @@ class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
                 content='<strong>%s</strong> %s' % (
                     _('Dica!'), _('Inclua uma Nota de Dispositivo informando '
                                   'sobre a Inconstitucionalidade.'))))
-
         layout.append(
             Fieldset(_('Registro de Publicação e Validade'),
                      row_publicacao,
@@ -657,23 +729,27 @@ class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
             ('fim_vigencia', 3),
             ('inicio_eficacia', 3),
             ('fim_eficacia', 3), ])
-
         layout.append(
             Fieldset(_('Datas de Controle de Vigência'),
                      row_datas,
                      css_class="col-md-12"))
 
+        row_vigencia = Field(
+            'dispositivo_vigencia',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_vigencia',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+        layout.append(
+            Fieldset(_('Dispositivo de Vigência'),
+                     to_row([(InlineRadios('extensao'), 12)]),
+                     row_vigencia,
+                     css_class="col-md-12"))
+
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
+            *layout,
             label_cancel=_('Retornar para o Editor Sequencial'))
-
-        self.helper.layout.fields += layout
-
-        kwargs['fields_search'] = fields_search = Div()
-        self.helper.layout.fields.append(
-            Fieldset(_('Dispositivo de Vigência'),
-                     fields_search,
-                     css_class="col-md-12 dispositivo_vigencia_busca"))
 
         super(DispositivoEdicaoVigenciaForm, self).__init__(*args, **kwargs)
 
@@ -684,3 +760,112 @@ class DispositivoEdicaoVigenciaForm(DispositivoSearchFragmentForm):
                 p.tipo_publicacao,
                 defaultfilters.date(
                     p.data, "d \d\e F \d\e Y"))) for p in pubs]
+
+        dvs = Dispositivo.objects.order_by('ordem').filter(
+            pk=self.instance.dispositivo_vigencia_id)
+        self.fields['dispositivo_vigencia'].choices = [(d.pk, d) for d in dvs]
+
+    def save(self):
+        super(DispositivoEdicaoVigenciaForm, self).save()
+
+        data = self.cleaned_data
+
+        extensao = 'extensao' in data and data['extensao'] == 'True'
+
+        if extensao:
+            dv = data['dispositivo_vigencia']
+            dv_pk = dv.pk if dv else None
+            instance = self.instance
+
+            def extenderPara(dpt_pk):
+
+                Dispositivo.objects.filter(
+                    dispositivo_pai_id=dpt_pk,
+                    ta_publicado__isnull=True).update(
+                    dispositivo_vigencia_id=dv_pk)
+
+                filhos = Dispositivo.objects.filter(
+                    dispositivo_pai_id=dpt_pk).values_list('pk', flat=True)
+
+                for d in filhos:
+                    extenderPara(d)
+
+            extenderPara(instance.pk)
+
+
+class MultipleChoiceWithoutValidationField(forms.MultipleChoiceField):
+
+    def validate(self, value):
+        if self.required and not value:
+            raise ValidationError(
+                self.error_messages['required'], code='required')
+
+
+class DispositivoDefinidorVigenciaForm(Form):
+
+    dispositivo_vigencia = MultipleChoiceWithoutValidationField(
+        label=Dispositivo._meta.get_field(
+            'dispositivo_vigencia').verbose_name,
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        layout = []
+
+        row_vigencia = Field(
+            'dispositivo_vigencia',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_vigencia',
+            data_type_selection='checkbox',
+            template="compilacao/layout/dispositivo_checkbox.html")
+        layout.append(
+            Fieldset(_('Definidor de Vigência dos Dispositívos abaixo'),
+                     row_vigencia,
+                     css_class="col-md-12"))
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            *layout,
+            label_cancel=_('Retornar para o Editor Sequencial'))
+
+        pk = kwargs.pop('pk')
+        super(DispositivoDefinidorVigenciaForm, self).__init__(*args, **kwargs)
+
+        dvs = Dispositivo.objects.order_by('ta', 'ordem').filter(
+            dispositivo_vigencia_id=pk).select_related(
+            'tipo_dispositivo',
+            'ta_publicado',
+            'ta',
+            'dispositivo_atualizador',
+            'dispositivo_atualizador__dispositivo_pai',
+            'dispositivo_atualizador__dispositivo_pai__ta',
+            'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
+            'dispositivo_pai',
+            'dispositivo_pai__tipo_dispositivo',
+            'ta_publicado',
+            'ta',)
+        self.initial['dispositivo_vigencia'] = [d.pk for d in dvs]
+
+        tas = Dispositivo.objects.filter(
+            dispositivo_vigencia_id=pk).values_list('ta', 'ta_publicado')
+
+        tas = list(set().union(*list(map(list, zip(*tas)))))
+
+        if not tas:
+            tas = Dispositivo.objects.filter(pk=pk).values_list('ta_id')
+
+        dvs = Dispositivo.objects.order_by('-ta__data', '-ta__ano', '-ta__numero', 'ta',  'ordem').filter(
+            ta__in=tas).select_related(
+            'tipo_dispositivo',
+            'ta_publicado',
+            'ta',
+            'dispositivo_atualizador',
+            'dispositivo_atualizador__dispositivo_pai',
+            'dispositivo_atualizador__dispositivo_pai__ta',
+            'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
+            'dispositivo_pai',
+            'dispositivo_pai__tipo_dispositivo',
+            'ta_publicado',
+            'ta',)
+        self.fields['dispositivo_vigencia'].choices = [
+            (d.pk, d) for d in dvs]

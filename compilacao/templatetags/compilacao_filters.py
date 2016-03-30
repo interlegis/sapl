@@ -16,13 +16,6 @@ def get_bloco_atualizador(pk_atualizador):
         Q(dispositivo_atualizador_id=pk_atualizador)).select_related()
 
 
-@register.filter
-def get_tipos_dispositivo(pk_atual):
-
-    return TipoDispositivo.objects.filter(
-        id__gte=pk_atual)
-
-
 @register.simple_tag
 def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
     if inicio_vigencia and fim_vigencia:
@@ -39,17 +32,23 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 
 @register.simple_tag
 def nota_automatica(dispositivo, ta_pub_list):
+
     if dispositivo.ta_publicado is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
+
+        ta_publicado = ta_pub_list[dispositivo.ta_publicado_id] if\
+            ta_pub_list else dispositivo.ta_publicado
+
         if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
             return _('Revogado pelo %s - %s.') % (
-                d, ta_pub_list[dispositivo.ta_publicado_id])
+                d, ta_publicado)
         elif not dispositivo.dispositivo_substituido_id:
             return _('Inclusão feita pelo %s - %s.') % (
-                d, ta_pub_list[dispositivo.ta_publicado_id])
+                d, ta_publicado)
         else:
             return _('Alteração feita pelo %s - %s.') % (
-                d, ta_pub_list[dispositivo.ta_publicado_id])
+                d, ta_publicado)
+
     return ''
 
 
@@ -125,8 +124,10 @@ def nomenclatura(d):
             result = '(' + d.tipo_dispositivo.nome + ' ' + \
                 d.rotulo + ')'
     else:
-        result = '(' + d.tipo_dispositivo.nome + ' ' + \
-            d.rotulo_padrao() + ')'
+        r = d.rotulo_padrao()
+        if r:
+            r += ' '
+        result = '(' + d.tipo_dispositivo.nome + r + ')'
     return result
 
 
@@ -159,3 +160,8 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
 @register.filter
 def urldetail_content_type(obj):
     return '%s:detail' % obj.content_type.model
+
+
+@register.filter
+def list(obj):
+    return [obj, ]

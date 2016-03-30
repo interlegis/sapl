@@ -9,7 +9,7 @@
     {% close_div view.flag_nivel_old dpt.nivel 0 %}
   {% endif%}
 
-  {% if forloop.first and view|isinst:'DispositivoView' %}
+  {% if forloop.first and not view|isinst:'TextView' %}
   {% else %}
     <div class="dpt {%if dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}bloco_alteracao{% endif %}" nivel="{{dpt.nivel}}">
   {% endif%}
@@ -171,7 +171,7 @@
   {% set_nivel_old view dpt.nivel %}
 {% endfor %}
 
-{% if view|isinst:'DispositivoView' %}
+{% if not view|isinst:'TextView' %}
   {% close_div view.flag_nivel_old view.flag_nivel_ini -1 %}
 {% else %}
   {% close_div view.flag_nivel_old view.flag_nivel_ini 0 %}

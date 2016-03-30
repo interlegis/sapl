@@ -49,7 +49,7 @@
   <div class="modal-dialog modal-xs modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans "Fechar" %}"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title" id="myModalLabel">Orientações Gerais <small>Dicas e Boas Práticas</small></h4>
       </div>
       <div class="modal-body">
@@ -75,10 +75,12 @@
               </ol>
             </li>
             <li>Inserir os Dispositivos na sequência natural é mais produtivo para você, além de ser também mais simples para o algorítmo que controla este processo. Quanto maior a mudança estutural, mais lento será o procedimento. </li>
-            <li>A Opção DVt (Dispositivo de Vigência do Texto) redefine o dispositivo em seleção, como o dispositivo de vigência de todos os outros, desde que estes sejam os dispositivos originais do texto.
+            <li>A Opção DVt (Dispositivo de Vigência do Texto) redefine o dispositivo em seleção, como o dispositivo de vigência de todos os outros, inclusive os dispositivos alterados, caso se trate de um Texto Alterador.
               <ol>
-                <li>O Dispositivo de Vigência de Dispositivos Alterados são controlados pelos seus Dispositivos Alteradores</li>
+                <li>O Dispositivo de Vigência de Dispositivos Alterados é, quase sempre, o Dispositivo do Texto Alterador, e não do Texto Alterado.</li>
                 <li>Ao usar a opção DVt, todas as datas de início de vigência serão reenquadradas para a data de vigência do dispositivo de vigência. Posteriormente, alterações manuais poderão ser feitas.</li>
+                <li>Ao fazer alterações de dispositivos, a opção DVt manipula automáticamente as datas de fim de vigência dos Dispositivos substituidos, ou seja, ao definir um Dispositivo de Vigência de um Dispositivo Alterado, automaticamente será encerrado a vigência de seu antecessor. O mesmo ocorre para dispositivos que possuem sucessores. </li>
+                <li>Após usar a opção DVt, alterações manuais poderão ser feitas no Editor Avançado e, não sendo usado novamente a opção Dvt, essas alterações manuais serão mantidas.</li>
               </ol>
             </li>
               <li>A criação de Tipos de Dispositivos é dinâmica e deverão estar amarrados por perfis estuturais configuráveis. Por serem tarefas técnicas e complicadas, criar/editar tipos de dispositivos e perfis estuturais estão disponíveis apenas na área de edição técnica do SAPL (admin).
@@ -108,7 +110,7 @@
         {% endblocktrans %}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Fechar" %}</button>
       </div>
     </div>
   </div>

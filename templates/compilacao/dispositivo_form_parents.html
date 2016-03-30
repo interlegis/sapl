@@ -1,5 +1,4 @@
-{% load i18n %}
-{% load compilacao_filters %}
+{% load i18n compilacao_filters %}
 
 {% if not node.dispositivos_filhos_set.exists %}
   <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
@@ -17,9 +16,13 @@
       <li>
         {%for parent in node.dispositivos_filhos_set.all %}
           <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
-            {{parent|nomenclatura}}
+            {{parent|nomenclatura}} {% if parent.dispositivo_subsequente_id %}({% trans "Alterado" %}){% endif %}
           </a>
+
         {%endfor %}
+
+
+
       </li>
     </ul>
 

@@ -40,12 +40,12 @@ urlpatterns_compilacao = [
         views.DispositivoEdicaoVigenciaView.as_view(),
         name='dispositivo_edit_vigencia'),
 
-
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/definidor_vigencia',
+        views.DispositivoDefinidorVigenciaView.as_view(),
+        name='dispositivo_edit_definidor_vigencia'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/actions',
         views.ActionsEditView.as_view(), name='dispositivo_actions'),
-
-
 
     url(r'^(?P<ta_id>[0-9]+)/text/'
         '(?P<dispositivo_id>[0-9]+)/nota/create$',
@@ -74,6 +74,10 @@ urlpatterns_compilacao = [
     url(r'^search_fragment_form$',
         views.DispositivoSearchFragmentFormView.as_view(),
         name='dispositivo_fragment_form'),
+
+    url(r'^search_form$',
+        views.DispositivoSearchModalView.as_view(),
+        name='dispositivo_search_form'),
 
 
     url(r'^(?P<ta_id>[0-9]+)/publicacao$',

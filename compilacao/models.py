@@ -627,7 +627,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     dispositivo_vigencia = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='+',
+        related_name='dispositivos_vigencias_set',
         verbose_name=_('Dispositivo de Vigência'))
     dispositivo_atualizador = models.ForeignKey(
         'self',
@@ -752,6 +752,8 @@ class Dispositivo(BaseModel, TimestampedMixin):
                         r += prefixo[0]
                         r += self.get_nomenclatura_completa()
         else:
+            if self.dispositivo0 == 0:
+                self.dispositivo0 = 1
             r += prefixo[0]
             r += self.get_nomenclatura_completa()
 
@@ -1150,10 +1152,20 @@ class Dispositivo(BaseModel, TimestampedMixin):
         dp.texto = ''
         dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
-        dp.inicio_eficacia = dispositivo_base.inicio_eficacia
-        dp.inicio_vigencia = dispositivo_base.inicio_vigencia
         dp.publicacao = dispositivo_base.publicacao
-        dp.timestamp = datetime.now()
+
+        dp.dispositivo_vigencia = dispositivo_base.dispositivo_vigencia
+        if dp.dispositivo_vigencia:
+            dp.inicio_eficacia = dp.dispositivo_vigencia.inicio_eficacia
+            dp.inicio_vigencia = dp.dispositivo_vigencia.inicio_vigencia
+            dp.fim_eficacia = dp.dispositivo_vigencia.fim_eficacia
+            dp.fim_vigencia = dp.dispositivo_vigencia.fim_vigencia
+        else:
+            dp.inicio_eficacia = dispositivo_base.inicio_eficacia
+            dp.inicio_vigencia = dispositivo_base.inicio_vigencia
+            dp.fim_eficacia = dispositivo_base.inicio_eficacia
+            dp.fim_vigencia = dispositivo_base.fim_vigencia
+
         dp.ordem = dispositivo_base.ordem
 
         return dp

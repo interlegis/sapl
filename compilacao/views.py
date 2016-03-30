@@ -19,12 +19,15 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView,\
+    FormView
 from django.views.generic.list import ListView
 
 from compilacao.forms import (DispositivoEdicaoBasicaForm, NotaForm,
                               PublicacaoForm, TaForm, TipoTaForm, VideForm,
-                              DispositivoEdicaoVigenciaForm)
+                              DispositivoEdicaoVigenciaForm,
+                              DispositivoSearchModalForm,
+                              DispositivoDefinidorVigenciaForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
@@ -315,6 +318,266 @@ class TaDeleteView(CompMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy('compilacao:ta_list')
+
+
+class DispositivoSuccessUrlMixin:
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'compilacao:dispositivo', kwargs={
+                'ta_id': self.kwargs[
+                    'ta_id'],
+                'dispositivo_id': self.kwargs[
+                    'dispositivo_id']})
+
+
+class NotaMixin(DispositivoSuccessUrlMixin):
+
+    def get_modelo_nota(self, request):
+        if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
+            tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
+            return True, tn.modelo
+        return False, ''
+
+    def get_initial(self):
+        dispositivo = get_object_or_404(
+            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
+        initial = {'dispositivo': dispositivo}
+
+        if 'pk' in self.kwargs:
+            initial['pk'] = self.kwargs.get('pk')
+
+        return initial
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(NotaMixin, self).dispatch(*args, **kwargs)
+
+
+class NotasCreateView(NotaMixin, CreateView):
+    template_name = 'compilacao/ajax_form.html'
+    form_class = NotaForm
+
+    def get(self, request, *args, **kwargs):
+        flag_action, modelo_nota = self.get_modelo_nota(request)
+        if flag_action:
+            return HttpResponse(modelo_nota)
+
+        return super(NotasCreateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        try:
+            ta_id = kwargs.pop('ta_id')
+            dispositivo_id = kwargs.pop('dispositivo_id')
+            form = NotaForm(request.POST, request.FILES, **kwargs)
+            kwargs['ta_id'] = ta_id
+            kwargs['dispositivo_id'] = dispositivo_id
+
+            if form.is_valid():
+                nt = form.save(commit=False)
+                nt.owner_id = request.user.pk
+                nt.save()
+                self.kwargs['pk'] = nt.pk
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+        except Exception as e:
+            print(e)
+        return HttpResponse("error post")
+
+
+class NotasEditView(NotaMixin, UpdateView):
+    model = Nota
+    template_name = 'compilacao/ajax_form.html'
+    form_class = NotaForm
+
+    def get(self, request, *args, **kwargs):
+        flag_action, modelo_nota = self.get_modelo_nota(request)
+        if flag_action:
+            return HttpResponse(modelo_nota)
+
+        return super(NotasEditView, self).get(request, *args, **kwargs)
+
+
+class NotasDeleteView(NotaMixin, TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        nt = Nota.objects.get(pk=self.kwargs['pk'])
+        nt.delete()
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class VideMixin(DispositivoSuccessUrlMixin):
+
+    def get_initial(self):
+        dispositivo_base = get_object_or_404(
+            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
+
+        initial = {'dispositivo_base': dispositivo_base}
+
+        if 'pk' in self.kwargs:
+            initial['pk'] = self.kwargs.get('pk')
+
+        return initial
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(VideMixin, self).dispatch(*args, **kwargs)
+
+
+def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
+    yield None, '-------------'
+
+    if not id_tipo_ta:
+        return
+
+    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
+
+    integrations_view_names = get_integrations_view_names()
+    for item in integrations_view_names:
+        if hasattr(item, 'model_type_foreignkey'):
+            if (tipo_ta.content_type.model == item.model.__name__.lower() and
+                    tipo_ta.content_type.app_label ==
+                    item.model._meta.app_label):
+                for i in item.model_type_foreignkey.objects.all():
+                    yield i.pk, i
+
+
+class VideCreateView(VideMixin, CreateView):
+    model = Vide
+    template_name = 'compilacao/ajax_form.html'
+    form_class = VideForm
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_form_kwargs(self):
+
+        kwargs = super(VideCreateView, self).get_form_kwargs()
+
+        if 'choice_model_type_foreignkey_in_extenal_views' not in kwargs:
+            kwargs.update({
+                'choice_model_type_foreignkey_in_extenal_views':
+                choice_model_type_foreignkey_in_extenal_views
+            })
+
+        return kwargs
+
+
+class VideEditView(VideMixin, UpdateView):
+    model = Vide
+    template_name = 'compilacao/ajax_form.html'
+    form_class = VideForm
+
+
+class VideDeleteView(VideMixin, TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        vd = Vide.objects.get(pk=self.kwargs['pk'])
+        vd.delete()
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class PublicacaoListView(ListView):
+    model = Publicacao
+    verbose_name = model._meta.verbose_name
+
+    @property
+    def title(self):
+        return _('%s de %s' % (
+            self.model._meta.verbose_name_plural,
+            self.ta))
+
+    @property
+    def ta(self):
+        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        return ta
+
+    @property
+    def create_url(self):
+        return reverse_lazy(
+            'compilacao:ta_pub_create',
+            kwargs={'ta_id': self.kwargs['ta_id']})
+
+    def get_queryset(self):
+        pubs = Publicacao.objects.filter(ta_id=self.kwargs['ta_id'])
+        return pubs
+
+    def get_context_data(self, **kwargs):
+        context = super(PublicacaoListView, self).get_context_data(**kwargs)
+        context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
+        return context
+
+
+class PublicacaoCreateView(FormMessagesMixin, CreateView):
+    model = Publicacao
+    form_class = PublicacaoForm
+    template_name = "crud/form.html"
+    form_valid_message = _('Registro criado com sucesso!')
+    form_invalid_message = _('O registro não foi criado.')
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'compilacao:ta_pub_detail',
+            kwargs={
+                'pk': self.object.id,
+                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'compilacao:ta_pub_list',
+            kwargs={'ta_id': self.kwargs['ta_id']})
+
+    def get_initial(self):
+        return {'ta': self.kwargs['ta_id']}
+
+
+class PublicacaoDetailView(CompMixin, DetailView):
+    model = Publicacao
+
+
+class PublicacaoUpdateView(CompMixin, UpdateView):
+    model = Publicacao
+    form_class = PublicacaoForm
+    template_name = "crud/form.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        # if self.object and self.object.content_object:
+        #    form.fields['tipo_ta'].required = False
+        #    form.fields['tipo_ta'].widget.attrs['disabled'] = 'disabled'
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self):
+        return reverse_lazy('compilacao:ta_pub_detail',
+                            kwargs={
+                                'pk': self.object.id,
+                                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def cancel_url(self):
+        return self.get_success_url()
+
+
+class PublicacaoDeleteView(CompMixin, DeleteView):
+    model = Publicacao
+    template_name = "crud/confirm_delete.html"
+
+    @property
+    def detail_url(self):
+        return reverse_lazy('compilacao:ta_pub_detail',
+                            kwargs={
+                                'pk': self.object.id,
+                                'ta_id': self.kwargs['ta_id']})
+
+    def get_success_url(self):
+        return reverse_lazy('compilacao:ta_pub_list',
+                            kwargs={'ta_id': self.kwargs['ta_id']})
 
 
 class TextView(ListView, CompMixin):
@@ -617,7 +880,6 @@ class TextEditView(ListView, CompMixin):
             a.tipo_dispositivo = td
             a.inicio_vigencia = ta.data
             a.inicio_eficacia = ta.data
-            a.timestamp = datetime.now()
             a.save()
 
             td = TipoDispositivo.objects.filter(class_css='ementa')[0]
@@ -630,7 +892,6 @@ class TextEditView(ListView, CompMixin):
             e.tipo_dispositivo = td
             e.inicio_vigencia = ta.data
             e.inicio_eficacia = ta.data
-            e.timestamp = datetime.now()
             e.texto = ta.ementa
             e.dispositivo_pai = a
             e.save()
@@ -640,7 +901,6 @@ class TextEditView(ListView, CompMixin):
             a.ordem = e.ordem + Dispositivo.INTERVALO_ORDEM
             a.ordem_bloco_atualizador = 0
             a.set_numero_completo([2, 0, 0, 0, 0, 0, ])
-            a.timestamp = datetime.now()
             a.save()
 
             result = Dispositivo.objects.filter(
@@ -1018,6 +1278,7 @@ class ActionsEditMixin:
         return JsonResponse(action(context), safe=False)
 
     def set_dvt(self, context):
+        # Dispositivo de Vigência do Texto Original e de Dpts Alterados
         dvt = Dispositivo.objects.get(pk=context['dispositivo_id'])
 
         if dvt.is_relative_auto_insert():
@@ -1025,15 +1286,28 @@ class ActionsEditMixin:
 
         try:
             Dispositivo.objects.filter(
-                ta=dvt.ta,
-                ta_publicado__isnull=True).update(
+                (Q(ta=dvt.ta) & Q(ta_publicado__isnull=True)) |
+                Q(ta_publicado=dvt.ta)
+            ).update(
                 dispositivo_vigencia=dvt,
-                inicio_vigencia=dvt.inicio_vigencia)
+                inicio_vigencia=dvt.inicio_vigencia,
+                inicio_eficacia=dvt.inicio_eficacia)
 
-            Dispositivo.objects.filter(
-                ta_publicado=dvt.ta).update(
-                dispositivo_vigencia=dvt,
-                inicio_vigencia=dvt.inicio_vigencia)
+            dps = Dispositivo.objects.filter(dispositivo_vigencia_id=dvt.pk,
+                                             ta_publicado_id=dvt.ta_id)
+
+            for d in dps:
+                if d.dispositivo_substituido:
+                    ds = d.dispositivo_substituido
+                    ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
+                    ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
+                    ds.save()
+
+                if d.dispositivo_subsequente:
+                    ds = d.dispositivo_subsequente
+                    d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
+                    d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
+                    d.save()
 
             return {'message': str(_('Dispositivo de Vigência atualizado '
                                      'com sucesso!!!'))}
@@ -1723,172 +1997,80 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
         return self.render_to_json_response(context, **response_kwargs)
 
 
-class DispositivoSuccessUrlMixin:
+class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
+    model = Dispositivo
+    template_name = 'compilacao/dispositivo_form_edicao_basica.html'
+    form_class = DispositivoEdicaoBasicaForm
+    form_valid_message = _('Alterações no Dispositivo realizadas com sucesso!')
+    form_invalid_message = _('Houve erro em registrar '
+                             'as alterações no Dispositivo')
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'compilacao:ta_text_edit',
+            kwargs={'ta_id': self.kwargs['ta_id']}) + '#' + str(self.object.pk)
 
     def get_success_url(self):
         return reverse_lazy(
-            'compilacao:dispositivo', kwargs={
-                'ta_id': self.kwargs[
-                    'ta_id'],
-                'dispositivo_id': self.kwargs[
-                    'dispositivo_id']})
+            'compilacao:dispositivo_edit',
+            kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
 
+    def get_url_this_view(self):
+        return 'compilacao:dispositivo_edit'
 
-class NotaMixin(DispositivoSuccessUrlMixin):
+    def run_actions(self, request):
+        if 'action' in request.GET and\
+                request.GET['action'] == 'atualiza_rotulo':
+            try:
+                d = Dispositivo.objects.get(pk=self.kwargs['pk'])
+                d.dispositivo0 = int(request.GET['dispositivo0'])
+                d.dispositivo1 = int(request.GET['dispositivo1'])
+                d.dispositivo2 = int(request.GET['dispositivo2'])
+                d.dispositivo3 = int(request.GET['dispositivo3'])
+                d.dispositivo4 = int(request.GET['dispositivo4'])
+                d.dispositivo5 = int(request.GET['dispositivo5'])
+                d.rotulo = d.rotulo_padrao()
 
-    def get_modelo_nota(self, request):
-        if 'action' in request.GET and request.GET['action'] == 'modelo_nota':
-            tn = TipoNota.objects.get(pk=request.GET['id_tipo'])
-            return True, tn.modelo
+                numero = d.get_numero_completo()[1:]
+
+                zerar = False
+                for i in range(len(numero)):
+                    if not numero[i]:
+                        zerar = True
+
+                    if zerar:
+                        numero[i] = 0
+
+                if zerar:
+                    d.set_numero_completo([d.dispositivo0, ] + numero)
+                    d.rotulo = d.rotulo_padrao()
+
+            except:
+                return True, JsonResponse({'message': str(
+                    _('Ocorreu erro na atualização do rótulo'))}, safe=False)
+            return True, JsonResponse({
+                'rotulo': d.rotulo,
+                'dispositivo0': d.dispositivo0,
+                'dispositivo1': d.dispositivo1,
+                'dispositivo2': d.dispositivo2,
+                'dispositivo3': d.dispositivo3,
+                'dispositivo4': d.dispositivo4,
+                'dispositivo5': d.dispositivo5}, safe=False)
+
         return False, ''
 
-    def get_initial(self):
-        dispositivo = get_object_or_404(
-            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
-        initial = {'dispositivo': dispositivo}
-
-        if 'pk' in self.kwargs:
-            initial['pk'] = self.kwargs.get('pk')
-
-        return initial
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(NotaMixin, self).dispatch(*args, **kwargs)
-
-
-class NotasCreateView(NotaMixin, CreateView):
-    template_name = 'compilacao/ajax_form.html'
-    form_class = NotaForm
-
     def get(self, request, *args, **kwargs):
-        flag_action, modelo_nota = self.get_modelo_nota(request)
+
+        flag_action, render_json_response = self.run_actions(request)
         if flag_action:
-            return HttpResponse(modelo_nota)
+            return render_json_response
 
-        return super(NotasCreateView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.object = None
-        try:
-            ta_id = kwargs.pop('ta_id')
-            dispositivo_id = kwargs.pop('dispositivo_id')
-            form = NotaForm(request.POST, request.FILES, **kwargs)
-            kwargs['ta_id'] = ta_id
-            kwargs['dispositivo_id'] = dispositivo_id
-
-            if form.is_valid():
-                nt = form.save(commit=False)
-                nt.owner_id = request.user.pk
-                nt.save()
-                self.kwargs['pk'] = nt.pk
-                return self.form_valid(form)
-            else:
-                return self.form_invalid(form)
-        except Exception as e:
-            print(e)
-        return HttpResponse("error post")
-
-
-class NotasEditView(NotaMixin, UpdateView):
-    model = Nota
-    template_name = 'compilacao/ajax_form.html'
-    form_class = NotaForm
-
-    def get(self, request, *args, **kwargs):
-        flag_action, modelo_nota = self.get_modelo_nota(request)
-        if flag_action:
-            return HttpResponse(modelo_nota)
-
-        return super(NotasEditView, self).get(request, *args, **kwargs)
-
-
-class NotasDeleteView(NotaMixin, TemplateView):
-
-    def get(self, request, *args, **kwargs):
-        nt = Nota.objects.get(pk=self.kwargs['pk'])
-        nt.delete()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class VideMixin(DispositivoSuccessUrlMixin):
-
-    def get_initial(self):
-        dispositivo_base = get_object_or_404(
-            Dispositivo, pk=self.kwargs.get('dispositivo_id'))
-
-        initial = {'dispositivo_base': dispositivo_base}
-
-        if 'pk' in self.kwargs:
-            initial['pk'] = self.kwargs.get('pk')
-
-        return initial
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(VideMixin, self).dispatch(*args, **kwargs)
-
-
-def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
-    yield None, '-------------'
-
-    if not id_tipo_ta:
-        return
-
-    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
-
-    integrations_view_names = get_integrations_view_names()
-    for item in integrations_view_names:
-        if hasattr(item, 'model_type_foreignkey'):
-            if (tipo_ta.content_type.model == item.model.__name__.lower() and
-                    tipo_ta.content_type.app_label ==
-                    item.model._meta.app_label):
-                for i in item.model_type_foreignkey.objects.all():
-                    yield i.pk, i
-
-
-class DispositivoSearchMixin:
-
-    def get_form_kwargs(self):
-
-        kwargs = super(DispositivoSearchMixin, self).get_form_kwargs()
-
-        if 'choice_model_type_foreignkey_in_extenal_views' not in kwargs:
-            kwargs.update({
-                'choice_model_type_foreignkey_in_extenal_views':
-                choice_model_type_foreignkey_in_extenal_views
-            })
-
-        return kwargs
-
-
-class VideCreateView(VideMixin, DispositivoSearchMixin, CreateView):
-    model = Vide
-    template_name = 'compilacao/ajax_form.html'
-    form_class = VideForm
-
-    def get(self, request, *args, **kwargs):
-        self.object = None
-        form = self.get_form()
-        return self.render_to_response(self.get_context_data(form=form))
-
-
-class VideEditView(VideMixin, UpdateView):
-    model = Vide
-    template_name = 'compilacao/ajax_form.html'
-    form_class = VideForm
-
-
-class VideDeleteView(VideMixin, TemplateView):
-
-    def get(self, request, *args, **kwargs):
-        vd = Vide.objects.get(pk=self.kwargs['pk'])
-        vd.delete()
-        return HttpResponseRedirect(self.get_success_url())
+        return UpdateView.get(self, request, *args, **kwargs)
 
 
 class DispositivoSearchFragmentFormView(ListView):
-    template_name = 'compilacao/dispositivo_search_fragment_form.html'
+    template_name = 'compilacao/dispositivo_form_search_fragment.html'
 
     def get(self, request, *args, **kwargs):
 
@@ -1908,16 +2090,18 @@ class DispositivoSearchFragmentFormView(ListView):
     def get_queryset(self):
         try:
 
+            n = 10
+            q = Q(nivel__gt=0)
             if 'initial_ref' in self.request.GET:
                 initial_ref = self.request.GET['initial_ref']
                 if initial_ref:
-                    q = Q(pk=initial_ref)
+                    q = q & Q(pk=initial_ref)
 
                 result = Dispositivo.objects.filter(q).select_related(
                     'ta').exclude(
                     tipo_dispositivo__dispositivo_de_alteracao=True)
 
-                return result
+                return result[:n]
 
             texto = ''
             rotulo = ''
@@ -1925,9 +2109,7 @@ class DispositivoSearchFragmentFormView(ListView):
             if 'texto' in self.request.GET:
                 texto = self.request.GET['texto']
 
-            q = Q(nivel__gt=0)
             texto = texto.split(' ')
-            n = 10
 
             if 'rotulo' in self.request.GET:
                 rotulo = self.request.GET['rotulo']
@@ -2023,108 +2205,15 @@ class DispositivoSearchFragmentFormView(ListView):
             print(e)
 
 
-class PublicacaoListView(ListView):
-    model = Publicacao
-    verbose_name = model._meta.verbose_name
-
-    @property
-    def title(self):
-        return _('%s de %s' % (
-            self.model._meta.verbose_name_plural,
-            self.ta))
-
-    @property
-    def ta(self):
-        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
-        return ta
-
-    @property
-    def create_url(self):
-        return reverse_lazy(
-            'compilacao:ta_pub_create',
-            kwargs={'ta_id': self.kwargs['ta_id']})
-
-    def get_queryset(self):
-        pubs = Publicacao.objects.filter(ta_id=self.kwargs['ta_id'])
-        return pubs
-
-    def get_context_data(self, **kwargs):
-        context = super(PublicacaoListView, self).get_context_data(**kwargs)
-        context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
-        return context
+class DispositivoSearchModalView(FormView):
+    template_name = 'compilacao/dispositivo_form_search.html'
+    form_class = DispositivoSearchModalForm
 
 
-class PublicacaoCreateView(FormMessagesMixin, CreateView):
-    model = Publicacao
-    form_class = PublicacaoForm
-    template_name = "crud/form.html"
-    form_valid_message = _('Registro criado com sucesso!')
-    form_invalid_message = _('O registro não foi criado.')
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'compilacao:ta_pub_detail',
-            kwargs={
-                'pk': self.object.id,
-                'ta_id': self.kwargs['ta_id']})
-
-    @property
-    def cancel_url(self):
-        return reverse_lazy(
-            'compilacao:ta_pub_list',
-            kwargs={'ta_id': self.kwargs['ta_id']})
-
-    def get_initial(self):
-        return {'ta': self.kwargs['ta_id']}
-
-
-class PublicacaoDetailView(CompMixin, DetailView):
-    model = Publicacao
-
-
-class PublicacaoUpdateView(CompMixin, UpdateView):
-    model = Publicacao
-    form_class = PublicacaoForm
-    template_name = "crud/form.html"
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        # if self.object and self.object.content_object:
-        #    form.fields['tipo_ta'].required = False
-        #    form.fields['tipo_ta'].widget.attrs['disabled'] = 'disabled'
-        return self.render_to_response(self.get_context_data(form=form))
-
-    def get_success_url(self):
-        return reverse_lazy('compilacao:ta_pub_detail',
-                            kwargs={
-                                'pk': self.object.id,
-                                'ta_id': self.kwargs['ta_id']})
-
-    @property
-    def cancel_url(self):
-        return self.get_success_url()
-
-
-class PublicacaoDeleteView(CompMixin, DeleteView):
-    model = Publicacao
-    template_name = "crud/confirm_delete.html"
-
-    @property
-    def detail_url(self):
-        return reverse_lazy('compilacao:ta_pub_detail',
-                            kwargs={
-                                'pk': self.object.id,
-                                'ta_id': self.kwargs['ta_id']})
-
-    def get_success_url(self):
-        return reverse_lazy('compilacao:ta_pub_list',
-                            kwargs={'ta_id': self.kwargs['ta_id']})
-
-
-class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
+class DispositivoEdicaoVigenciaView(FormMessagesMixin, UpdateView):
     model = Dispositivo
-    form_class = DispositivoEdicaoBasicaForm
+    template_name = 'compilacao/dispositivo_form_vigencia.html'
+    form_class = DispositivoEdicaoVigenciaForm
     form_valid_message = _('Alterações no Dispositivo realizadas com sucesso!')
     form_invalid_message = _('Houve erro em registrar '
                              'as alterações no Dispositivo')
@@ -2135,69 +2224,6 @@ class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
             'compilacao:ta_text_edit',
             kwargs={'ta_id': self.kwargs['ta_id']}) + '#' + str(self.object.pk)
 
-    def get_success_url(self):
-        return reverse_lazy(
-            'compilacao:dispositivo_edit',
-            kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
-
-    def get_url_this_view(self):
-        return 'compilacao:dispositivo_edit'
-
-    def run_actions(self, request):
-        if 'action' in request.GET and\
-                request.GET['action'] == 'atualiza_rotulo':
-            try:
-                d = Dispositivo.objects.get(pk=self.kwargs['pk'])
-                d.dispositivo0 = int(request.GET['dispositivo0'])
-                d.dispositivo1 = int(request.GET['dispositivo1'])
-                d.dispositivo2 = int(request.GET['dispositivo2'])
-                d.dispositivo3 = int(request.GET['dispositivo3'])
-                d.dispositivo4 = int(request.GET['dispositivo4'])
-                d.dispositivo5 = int(request.GET['dispositivo5'])
-                d.rotulo = d.rotulo_padrao()
-
-                numero = d.get_numero_completo()[1:]
-
-                zerar = False
-                for i in range(len(numero)):
-                    if not numero[i]:
-                        zerar = True
-
-                    if zerar:
-                        numero[i] = 0
-
-                if zerar:
-                    d.set_numero_completo([d.dispositivo0, ] + numero)
-                    d.rotulo = d.rotulo_padrao()
-
-            except:
-                return True, JsonResponse({'message': str(
-                    _('Ocorreu erro na atualização do rótulo'))}, safe=False)
-            return True, JsonResponse({
-                'rotulo': d.rotulo,
-                'dispositivo0': d.dispositivo0,
-                'dispositivo1': d.dispositivo1,
-                'dispositivo2': d.dispositivo2,
-                'dispositivo3': d.dispositivo3,
-                'dispositivo4': d.dispositivo4,
-                'dispositivo5': d.dispositivo5}, safe=False)
-
-        return False, ''
-
-    def get(self, request, *args, **kwargs):
-
-        flag_action, render_json_response = self.run_actions(request)
-        if flag_action:
-            return render_json_response
-
-        return UpdateView.get(self, request, *args, **kwargs)
-
-
-class DispositivoEdicaoVigenciaView(
-        DispositivoSearchMixin, DispositivoEdicaoBasicaView):
-    model = Dispositivo
-    form_class = DispositivoEdicaoVigenciaForm
-
     def get_url_this_view(self):
         return 'compilacao:dispositivo_edit_vigencia'
 
@@ -2206,37 +2232,57 @@ class DispositivoEdicaoVigenciaView(
             'compilacao:dispositivo_edit_vigencia',
             kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
 
-    def run_actions(self, request):
-        if 'action' in request.GET and\
-                request.GET['action'] == 'atualiza_rotulo':
-            try:
-                pass
-            except:
-                return True, JsonResponse({'message': str(
-                    _('Ocorreu erro na atualização do rótulo'))}, safe=False)
-            return True, JsonResponse({}, safe=False)
-        return False, ''
 
-    def get_initial(self):
+class DispositivoDefinidorVigenciaView(FormMessagesMixin, FormView):
+    model = Dispositivo
+    template_name = 'compilacao/dispositivo_form_definidor_vigencia.html'
+    form_class = DispositivoDefinidorVigenciaForm
+    form_valid_message = _('Alterações no Dispositivo realizadas com sucesso!')
+    form_invalid_message = _('Houve erro em registrar '
+                             'as alterações no Dispositivo')
 
-        ta = self.object.ta_publicado if self.object.ta_publicado else\
-            self.object.ta
+    def get_form_kwargs(self):
+        kwargs = FormView.get_form_kwargs(self)
+        kwargs.update({
+            'pk': self.kwargs['pk'],
+        })
+        return kwargs
 
-        initial = {
-            'ano_ta': ta.ano,
-            'num_ta': ta.numero,
-            'tipo_ta': ta.tipo_ta,
-        }
-        if hasattr(ta, 'content_object') and\
-                ta.content_object:
-            lista_tipos = list(choice_model_type_foreignkey_in_extenal_views(
-                id_tipo_ta=ta.tipo_ta_id))
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'compilacao:ta_text_edit',
+            kwargs={'ta_id': self.kwargs['ta_id']}) + '#' + str(self.object.pk)
 
-            content_object = model_to_dict(ta.content_object)
+    def get_url_this_view(self):
+        return 'compilacao:dispositivo_edit_definidor_vigencia'
 
-            for key, value in content_object.items():
-                for item in lista_tipos:
-                    if getattr(ta.content_object, key) == item[1]:
-                        initial['tipo_model'] = item[0]
+    def get_success_url(self):
+        return reverse_lazy(
+            'compilacao:dispositivo_edit_definidor_vigencia',
+            kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
 
-        return initial
+    def get(self, request, *args, **kwargs):
+        self.object = get_object_or_404(Dispositivo, pk=kwargs['pk'])
+        return FormView.get(self, request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = FormView.get_context_data(self, **kwargs)
+        context.update({'object': self.object})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = get_object_or_404(Dispositivo, pk=kwargs['pk'])
+
+        form = self.get_form()
+        if form.is_valid():
+            dvs = form.cleaned_data['dispositivo_vigencia']
+            with transaction.atomic():
+                self.object.dispositivos_vigencias_set.clear()
+                for item in dvs:
+                    d = Dispositivo.objects.get(pk=item)
+                    self.object.dispositivos_vigencias_set.add(d)
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)

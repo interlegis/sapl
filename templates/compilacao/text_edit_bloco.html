@@ -27,7 +27,7 @@
         </ul>
 
         <ul class="btns-action actions_right">
-            <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="set_dvt" title="{% trans 'Definir como Dispositivo de Vigência para todos os Dispositivos Originais deste Texto. OBS: Dispositivos Alterados devem ser feitos manualmente!'%}">DVt</a></li>
+            <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="set_dvt" title="{% trans 'Definir como Dispositivo de Vigência para todos os Dispositivos Originais deste Texto, bem como, dos Textos Anteriores alterados por este Texto!'%}">DVt</a></li>
 
           {% comment %}
             <li><a class="btn-right btn-action" pk="{{dpt.pk}}" action="refresh" title="{% trans 'TODO: Reduzir nível do Dispositivo'%}">&#10092;</a></li>
@@ -87,17 +87,26 @@
         </div>
 
         <ul class="label_status" >
-          <li>p: {{dpt.dispositivo_substituido_id|default:''}}, n: {{dpt.dispositivo_subsequente_id|default:''}}, Ordem: {{dpt.ordem}}, Nivel: {{dpt.nivel}}, Número: {{dpt.get_numero_completo}}</li>
+          <li>p: {{dpt.dispositivo_substituido_id|default:''}}</li>
+          <li>&#8226;</li>
+          <li>n: {{dpt.dispositivo_subsequente_id|default:''}}</li>
+          <li>&#8226;</li>
+          <li>Ordem: {{dpt.ordem}}</li>
+          <li>&#8226;</li>
+          <li>Nivel: {{dpt.nivel}}</li>
+          <li>&#8226;</li>
+          <li>Número: {{dpt.get_numero_completo}}</li>
 
           {% if dpt.dispositivo_vigencia %}
-            <li>{% field_verbose_name dpt 'dispositivo_vigencia'%}: <a action="refresh" pk="{{dpt.dispositivo_vigencia.pk}}" title="{% field_verbose_name dpt 'dispositivo_vigencia'%}" class="btn-action">{{dpt.dispositivo_vigencia|nomenclatura}}</a> </li>
+            <li>&#8226;</li>
+            <li>{% field_verbose_name dpt 'dispositivo_vigencia'%}: <a action="refresh" pk="{{dpt.dispositivo_vigencia.pk}}" title="{% field_verbose_name dpt 'dispositivo_vigencia'%} {% trans 'em' %}:&#013;{{dpt.dispositivo_vigencia.ta}}" class="btn-action">{{dpt.dispositivo_vigencia|nomenclatura}}</a> </li>
           {% endif %}
 
-          <li>
-          <a type="button" data-toggle="modal" data-target="#modal-help">
+          <li>&#8226;</li>
+          <li><a type="button" data-toggle="modal" data-target="#modal-help">
             ?
-          </a>
-        </li>
+            </a>
+          </li>
 
 
         </ul>

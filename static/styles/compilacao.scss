@@ -175,9 +175,8 @@ a:link:after, a:visited:after {
     transition: all 0.2s ease-in-out;
     position: relative;
 
-
     .ementa {
-      padding: 4em 0em 3em 35%;
+      padding: 2em 0em 2em 35%;
       font-weight: bold;
     }
 
@@ -976,28 +975,40 @@ a:link:after, a:visited:after {
   }
 }
 
-.result-busca-dispositivo {
-  ul{
+.result-busca-dispositivo, .lista-dispositvo {
+
+  padding: 0 0 1em;
+  min-height: 3em;
+  ul {
     list-style: none;
-    display: table;
-    margin-left: 0;
-    border-collapse:separate;
-    border-spacing:1px;
-    padding: 0px;
+    margin: 0;
+    padding: 1em 0 0;
+    transition: all 2s linear;
+    clear: both;
 
     li {
-      display: table-row;
+      display: table;
 
-      &:nth-child(even) {
-        background-color: rgba(0, 0, 0, 0.05);
+      border-collapse:separate;
+      border-bottom: 1px solid white;
 
+      &.ta_title {
+        padding: 0.15em 0.7em;
+        background-color: rgba(0, 0, 0, 0.15);
+        display:block;
+        border-radius: 4px 4px 0 0;
       }
-      &:nth-child(odd) {
-        background-color: rgba(0, 0, 0, 0.08);
+      &:last-child .itemlabel {
+        border-radius: 0 0 4px 0px;
+      }
 
+      &:last-child .iteminput {
+        border-radius: 0 0 0px 4px;
       }
 
       .iteminput {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-right: 1px solid white;
         display: table-cell;
         padding: 0.5em;
         vertical-align: middle;
@@ -1009,6 +1020,7 @@ a:link:after, a:visited:after {
       }
 
       .itemlabel {
+        background-color: rgba(0, 0, 0, 0.1);
         display: table-cell;
         padding: 0.5em;
         vertical-align: middle;
@@ -1016,19 +1028,15 @@ a:link:after, a:visited:after {
         label {
           line-height: 1;
           font-family: "SourceSansPro", Helvetica, Arial, sans-serif;
+          display: block;
         }
       }
     }
   }
-  .ta_title {
-    padding: 0.15em 0.7em;
-    background-color: rgba(0, 0, 0, 0.15);
-    margin: 0.1em 0.08em 0 1px;
-  }
   .nomenclatura_heranca {
     font-size: 90%;
     color: #057dba;
-    display: block;
+    display: inline;
   }
 }
 .cp-nav-parents {
@@ -1050,6 +1058,9 @@ a:link:after, a:visited:after {
   }
 }
 
+.btn-modal-open {
+  float: right;
+}
 
 
 .class_color_container {

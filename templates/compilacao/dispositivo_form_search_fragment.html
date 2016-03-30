@@ -1,0 +1,75 @@
+{% load i18n compilacao_filters %}
+
+{% if object_list.count >= 100 %}
+  <div class="alert-box success radius">
+    {% trans 'Use argumentos para simplificar listagem...' %}
+  </div>
+{% endif %}
+
+{% for dpt in object_list %}
+  {% ifchanged dpt.ta%}
+    {% if not forloop.first %}</ul>{% endif %}
+      <ul class="cp" id="ta{{dpt.ta.pk}}">
+        <li class="ta_title">{{dpt.ta}}</li>
+  {% endifchanged %}
+
+    <li>
+      <div class="iteminput">
+          <input type="{{request.GET.data_type_selection}}" name="{{request.GET.data_field}}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}"/>
+      </div>
+      <div class="itemlabel dpt">
+        {% if dpt.nivel > 1 %}
+        <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% nomenclatura_heranca dpt 1 1 %}</a>
+        {% endif %}
+        <div class="{{ dpt.tipo_dispositivo.class_css }}">
+          <div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
+            {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
+            <a name="{{dpt.pk}}" title="{{dpt.pk}}">{% if dpt.rotulo or dpt.nivel = 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}] - {% endif %}</a>
+            {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
+            <span class="dtxt" id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido_id|default:''}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+            {% if dpt.ta_publicado_id and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+              <a class="link_alterador" href="{%url 'compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+                {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+                {% nota_automatica dpt ta_pub_list %}
+                {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </li>
+
+    {% if request.GET.dispositivos_internos == 'True' %}
+      {% for df in dpt.dispositivos_filhos_set.all %}
+        {% if df not in object_list %}
+          <li>
+            <div class="iteminput">
+                <input type="{{request.GET.data_type_selection}}" name="{{request.GET.data_field}}" id="dpt{{df.pk}}" value="{{df.pk}}"/>
+            </div>
+            <div class="itemlabel dpt">
+              {% if df.nivel > 1 %}
+              <a target="_blank" href="{% url 'compilacao:ta_text' df.ta.pk%}#{{df.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% nomenclatura_heranca df 1 1 %}</a>
+              {% endif %}
+
+              <div class="{{ df.tipo_dispositivo.class_css }}">
+                <div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{df.pk}}" >
+                  {{ df.tipo_dispositivo.rotulo_prefixo_html|safe }}
+                  <a name="{{df.pk}}" title="{{df.pk}}">{% if df.rotulo or df.nivel = 1%}{{ df.rotulo }}{%else%}[{{ df|nomenclatura}} {% trans "de" %} {{ df.dispositivo_pai.rotulo }}] - {% endif %}</a>
+                  {{ df.tipo_dispositivo.rotulo_sufixo_html|safe }}
+                  <span class="dtxt" id="d{% if not df.dispositivo_subsequente_id and df.dispositivo_substituido_id %}a{% endif %}{{df.pk}}" pks="{{df.dispositivo_substituido_id|default:''}}" pk="{{df.pk}}">{{ df.tipo_dispositivo.texto_prefixo_html|safe }}{%if df.texto %}{{ df.texto|safe }}{%else%}{%if not df.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+                  {% if df.ta_publicado_id and not df.tipo_dispositivo.dispositivo_de_articulacao %}
+                    <a class="link_alterador" href="{%url 'compilacao:ta_text' df.ta_publicado.pk %}#{{df.dispositivo_atualizador_id}}">
+                      {{ df.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+                      {% nota_automatica df ta_pub_list %}
+                      {{ df.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% if forloop.last %}</ul>{% endif %}
+{% endfor %}

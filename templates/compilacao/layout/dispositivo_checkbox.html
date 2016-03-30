@@ -1,0 +1,49 @@
+{% load crispy_forms_filters %}
+{% load i18n compilacao_filters common_tags%}
+
+
+<div class="controls cp lista-dispositvo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
+  {% include 'bootstrap/layout/field_errors_block.html' %}
+
+  {% for choice in  field.field.choices %}
+
+    {% ifchanged choice.1.ta%}
+      {% if not forloop.first %}</ul>{% endif %}
+        <ul id="ta{{choice.1.ta.pk}}">
+          <li class="ta_title">{{choice.1.ta}}</li>
+    {% endifchanged %}
+
+
+    <li>
+      <div class="iteminput">
+          <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{choice.1.pk}}" value="{{choice.1.pk}}"  {% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
+      </div>
+      <div class="itemlabel dpt">
+
+        <div class="{{ choice.1.tipo_dispositivo.class_css }}">
+          <div class="dptt {% dispositivo_desativado choice.1 view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{choice.1.pk}}" >
+            {{ choice.1.tipo_dispositivo.rotulo_prefixo_html|safe }}
+            <a name="{{choice.1.pk}}" title="{{choice.1.pk}}">{% if choice.1.rotulo %}{{ choice.1.rotulo }}{%else%}[{{ choice.1|nomenclatura}}{% if choice.1.dispositivo_pai %} {% trans "de" %} {{ choice.1.dispositivo_pai.rotulo }}{% endif %}] - {% endif %}</a>
+            {{ choice.1.tipo_dispositivo.rotulo_sufixo_html|safe }}
+            <span class="dtxt" id="d{% if not choice.1.dispositivo_subsequente_id and choice.1.dispositivo_substituido_id %}a{% endif %}{{choice.1.pk}}" pks="{{choice.1.dispositivo_substituido_id|default:''}}" pk="{{choice.1.pk}}">{{ choice.1.tipo_dispositivo.texto_prefixo_html|safe }}{%if choice.1.texto %}{{ choice.1.texto|safe }}{%else%}{%if not choice.1.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+            {% if choice.1.ta_publicado_id and not choice.1.tipo_dispositivo.dispositivo_de_articulacao %}
+              <a class="link_alterador" target="_blank" href="{%url 'compilacao:ta_text' choice.1.ta_publicado.pk %}#{{choice.1.dispositivo_atualizador_id}}">
+                {{ choice.1.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+                {% nota_automatica choice.1 ta_pub_list %}
+                {{ choice.1.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </li>
+
+
+      {% if forloop.last %}</ul>{% endif %}
+    {% endfor %}
+
+
+
+    {% include 'bootstrap/layout/help_text.html' %}
+</div>

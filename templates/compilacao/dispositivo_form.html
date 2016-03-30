@@ -1,8 +1,5 @@
 {% extends "base.html" %}
-{% load i18n crispy_forms_tags %}
-{% load compilacao_filters %}
-{% load staticfiles %}
-{% load sass_tags %}
+{% load i18n crispy_forms_tags compilacao_filters staticfiles sass_tags %}
 
 {% block head_content %}{{block.super}}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
@@ -11,13 +8,14 @@
 <ul class="nav nav-pills navbar-right">
   {% url 'compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
   {% url 'compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
+  {% url 'compilacao:dispositivo_edit_definidor_vigencia' object.ta_id object.pk as edit_definidor_vigencia_url %}
   <li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>
   <li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>
-  <li><a href="#">{% trans 'Dispositivo Alterado' %}</a></li>
-  <li><a href="#">{% trans 'Dispositivo Alterador' %}</a></li>
-  <li><a href="#">{% trans 'Dispositivo de Vigência' %}</a></li>
+  <li><a href="#">{% trans 'Alteração' %}</a></li>
+  <li><a href="#">{% trans 'Alterador' %}</a></li>
+  <li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>
 </ul>
-{% endblock sections_nav %}
+{% endblock sections_nav %}{% trans '' %}
 
 {% block title %}
   <h1><small>{{object.ta}}</small><br>{% trans 'Edição de Dispositivo' %}</h1>
@@ -40,68 +38,4 @@
 
 {% block extra_js %}
   <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-  <script type="text/javascript">
-
-    function atualizaRotulo() {
-
-      var formData = {
-          'dispositivo0'        : $('[name="dispositivo0"]').val(),
-          'dispositivo1'        : $('[name="dispositivo1"]').val(),
-          'dispositivo2'        : $('[name="dispositivo2"]').val(),
-          'dispositivo3'        : $('[name="dispositivo3"]').val(),
-          'dispositivo4'        : $('[name="dispositivo4"]').val(),
-          'dispositivo5'        : $('[name="dispositivo5"]').val(),
-          'action'              : 'atualiza_rotulo'
-      };
-
-      var url = '#';
-
-      $.get(url, formData).done(function(data) {
-          if (data.rotulo != undefined) {
-              $('[name="rotulo"]').val(data.rotulo);
-              $('[name="dispositivo0"]').val(data.dispositivo0);
-              $('[name="dispositivo1"]').val(data.dispositivo1);
-              $('[name="dispositivo2"]').val(data.dispositivo2);
-              $('[name="dispositivo3"]').val(data.dispositivo3);
-              $('[name="dispositivo4"]').val(data.dispositivo4);
-              $('[name="dispositivo5"]').val(data.dispositivo5);
-              return;
-          }
-        });
-    }
-
-    $(document).ready(function() {
-      {% if object.tipo_dispositivo.dispositivo_de_articulacao %}
-          setTimeout(removeTinymce, 100);
-      {% endif %}
-
-      $('[data-toggle="tooltip"]').tooltip();
-      configFormSearchTA('.dispositivo_vigencia_busca', 'radio', 'select_for_vigencia');
-      onChangeParamTA();
-
-      var change_inconstitucionalidade = function() {
-        var datas = $('.dateinput').filter('[name!="inicio_vigencia"]');
-        var _this = this;
-        if ($('[name="inconstitucionalidade"]:checked').val() == "True") {
-          datas.val($('[name="inicio_vigencia"]').val());
-          datas.attr("readonly", "readonly");
-          datas.datepicker( "destroy" );
-        }
-        else {
-          datas.removeAttr("readonly");
-          datas.datepicker();
-        }
-      }
-      $('[name="inconstitucionalidade"]').on('change', change_inconstitucionalidade);
-      $('[name="inicio_vigencia"]').on('change', change_inconstitucionalidade);
-      change_inconstitucionalidade();
-
-      $('form').bind("keypress", function(e) {
-        if (e.keyCode == 13) {
-          e.preventDefault();
-          return false;
-        }
-      });
-    });
-  </script>
 {% endblock %}
