@@ -118,12 +118,11 @@ class NormaIncluirView(CreateView):
     def form_valid(self, form):
         norma = form.save(commit=False)
         norma.timestamp = datetime.now()
-        # import ipdb; ipdb.set_trace()
         if form.cleaned_data['tipo_materia']:
             materia = MateriaLegislativa.objects.get(
-                            tipo_id=form.data['tipo_materia'],
-                            numero=form.data['numero_materia'],
-                            ano=form.data['ano_materia'])
+                tipo_id=form.data['tipo_materia'],
+                numero=form.data['numero_materia'],
+                ano=form.data['ano_materia'])
             norma.materia = materia
         norma.save()
         return HttpResponseRedirect(self.get_success_url())
@@ -151,9 +150,9 @@ class NormaEditView(UpdateView):
         norma.timestamp = datetime.now()
         if form.cleaned_data['tipo_materia']:
             materia = MateriaLegislativa.objects.get(
-                            tipo_id=form.data['tipo_materia'],
-                            numero=form.data['numero_materia'],
-                            ano=form.data['ano_materia'])
+                tipo_id=form.data['tipo_materia'],
+                numero=form.data['numero_materia'],
+                ano=form.data['ano_materia'])
             norma.materia = materia
         norma.save()
         return HttpResponseRedirect(self.get_success_url())

@@ -92,20 +92,6 @@ class SessaoForm(ModelForm):
             'hora_fim': forms.TextInput(attrs={'class': 'hora'}),
         }
 
-    # def clean_url_audio(self):
-    #     url_audio = self.cleaned_data.get('url_audio', False)
-    #     if url_audio:
-    #         if url_audio.size > 5*1024*1024:
-    #             raise ValidationError("Arquivo muito grande. ( > 5mb )")
-    #         return url_audio
-
-    # def clean_url_video(self):
-    #     url_video = self.cleaned_data.get('url_video', False)
-    #     if url_video:
-    #         if url_video.size > 5*1024*1024:
-    #             raise ValidationError("Arquivo muito grande. ( > 5mb )")
-    #         return url_video
-
     def __init__(self, *args, **kwargs):
 
         row1 = crispy_layout_mixin.to_row(

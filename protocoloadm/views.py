@@ -285,7 +285,6 @@ class ProtocoloMateriaView(FormView):
         return reverse('protocoloadm:protocolo')
 
     def post(self, request, *args, **kwargs):
-        # import ipdb; ipdb.set_trace()
 
         form = ProtocoloMateriaForm(request.POST)
 
@@ -605,12 +604,11 @@ class TramitacaoAdmIncluirView(FormView):
         form = TramitacaoAdmForm(request.POST or None)
 
         if form.is_valid():
-            # import ipdb; ipdb.set_trace()
             tramitacao = form.save(commit=False)
             tramitacao.ultima = False
             tramitacao.save()
             return HttpResponseRedirect(reverse(
-                 'protocoloadm:tramitacao_adm', kwargs={'pk': pk}))
+                'protocoloadm:tramitacao_adm', kwargs={'pk': pk}))
         else:
             return self.form_invalid(form)
 
@@ -671,7 +669,7 @@ def pesquisa_autores(request):
         Q(nome__icontains=q) |
         Q(parlamentar__nome_parlamentar__icontains=q) |
         Q(comissao__nome__icontains=q)
-        )
+    )
 
     autores = []
 
