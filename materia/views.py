@@ -14,6 +14,7 @@ from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
+from django_filters.views import FilterView
 
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
@@ -1193,16 +1194,6 @@ class ProposicaoListView(ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
-
-
-def filter_tramitacao__status(status):
-        ultimas_tramitacoes = Tramitacao.objects.values(
-                            'materia_id').annotate(data_encaminhamento=Max(
-                                     'data_encaminhamento'),
-                                  id=Max('id'))
-        import ipdb; ipdb.set_trace()
-        ultimas_tramitacoes = ultimas_tramitacoes.filter(status=status)
-        return ultimas_tramitacoes
 
 
 class MateriaLegislativaPesquisaView(FilterView):
