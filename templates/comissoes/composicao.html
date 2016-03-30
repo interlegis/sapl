@@ -33,7 +33,7 @@
 			{% for participacao in participacoes %}
 				{% if participacao.composicao_id == composicao_id %}
 					<tr>
-						<td><a href="{% url 'comissao:comissao_parlamentar_edit' pk composicao_id participacao.id %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
+						<td><a href="{% url 'comissoes:comissao_parlamentar_edit' pk composicao_id participacao.id %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
 						<td>{{participacao.cargo}}</td>
 						<td>{{participacao.titular|yesno:"Sim,Não"}}</td>
 						<td>{{participacao.data_designacao|date:"d/m/Y"}}</td>
@@ -46,7 +46,7 @@
 
 		</table>
 
-		<a href="{% url 'comissao:comissao_parlamentar' pk composicao_id %}" class="btn btn-primary">Incluir Parlamentar</a>
+		<a href="{% url 'comissoes:comissao_parlamentar' pk composicao_id %}" class="btn btn-primary">Incluir Parlamentar</a>
 	{% endif %}
 
 {% endblock detail_content %}

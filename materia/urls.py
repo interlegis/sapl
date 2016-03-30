@@ -22,11 +22,12 @@ from materia.views import (AcompanhamentoConfirmarView,
                            TramitacaoEditView, TramitacaoView,
                            UnidadeTramitacaoCrud)
 
-materia_legislativa_patterns, namespace = MateriaLegislativaCrud.get_urls()
+from .apps import AppConfig
 
+app_name = AppConfig.name
 
 urlpatterns = [
-    url(r'^materia/', include(materia_legislativa_patterns, namespace)),
+    url(r'^materia/', include(MateriaLegislativaCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',

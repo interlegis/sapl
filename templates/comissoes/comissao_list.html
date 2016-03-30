@@ -4,7 +4,7 @@
 
 {% block base_content %}
   <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'comissao:cadastrar_comissao' %}" class="btn btn-default">
+    <a href="{% url 'comissoes:cadastrar_comissao' %}" class="btn btn-default">
       {% blocktrans with verbose_name=view.verbose_name %} Adicionar Comissão {% endblocktrans %}
     </a>
   </div>
@@ -22,7 +22,7 @@
 			{% for comissao in page_obj %}
 				<tr>
 					<td>
-						<a href="{% url 'comissao:detail' comissao.id %}">{{comissao}}</a>
+						<a href="{% url 'comissoes:comissao_detail' comissao.id %}">{{comissao}}</a>
 					</td>
 					<td>{{comissao.sigla}}</td>
 					<td>{{comissao.tipo}}</td>

@@ -5,7 +5,7 @@
 {% block base_content %}
 <div class="actions btn-group pull-right" role="group">
   <h2>Sessões Plenárias</h2>
-  <a href="{% url 'sessaoplenaria:sessao_cadastro' %}" class="btn btn-default">
+  <a href="{% url 'sessao:sessao_cadastro' %}" class="btn btn-default">
     {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
   </a>
 </div>
@@ -14,7 +14,7 @@
 			{% for sessao in page_obj %}
 				<tr>
 					<th>
-						<a href="{% url 'sessaoplenaria:detail' sessao.id %}">{{sessao}}</a>
+						<a href="{% url 'sessao:sessaoplenaria_detail' sessao.id %}">{{sessao}}</a>
 						<br />
 						Data: {{sessao.data_inicio}} - Abertura {{sessao.hora_inicio}}
 					</th>

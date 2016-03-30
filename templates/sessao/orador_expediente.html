@@ -21,8 +21,8 @@
 	      <td>{{parlamentar.nome_parlamentar }}</td>
 	      <td>{% if not url_discurso %}Orador sem discurso cadastrado{% else %}{{url_discurso}}{% endif %}</td>
 	      <td>
-	        <a id="editar-orador" href="{% url 'sessaoplenaria:oradoreditar' object.pk parlamentar.id %}" class="btn btn-primary btn-sm active">Editar</a>
-	         <a id="excluir-orador" href="{% url 'sessaoplenaria:oradorexcluir' object.pk parlamentar.id %}" class="btn btn-danger btn-sm active">Excluir</a>
+	        <a id="editar-orador" href="{% url 'sessao:oradoreditar' object.pk parlamentar.id %}" class="btn btn-primary btn-sm active">Editar</a>
+	         <a id="excluir-orador" href="{% url 'sessao:oradorexcluir' object.pk parlamentar.id %}" class="btn btn-danger btn-sm active">Excluir</a>
 	      </td>
     	</tr>
 		{% endfor %}

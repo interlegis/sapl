@@ -7,9 +7,11 @@ from comissoes.views import (CadastrarComissaoView, CargoCrud, ComissaoCrud,
                              PeriodoComposicaoCrud, ReunioesView,
                              TipoComissaoCrud)
 
-comissao_url_patterns, namespace = ComissaoCrud.get_urls()
+from .apps import AppConfig
 
-comissao_url_patterns = comissao_url_patterns + [
+app_name = AppConfig.name
+
+comissao_url_patterns = ComissaoCrud.get_urls() + [
     url(r'^(?P<pk>\d+)/composicao$',
         ComposicaoView.as_view(), name='composicao'),
     url(r'^(?P<pk>\d+)/materias-em-tramitacao$',
@@ -28,8 +30,10 @@ comissao_url_patterns = comissao_url_patterns + [
         CadastrarComissaoView.as_view(), name='cadastrar_comissao'),
 ]
 
+app_name = AppConfig.name
+
 urlpatterns = [
-    url(r'^comissoes/', include(comissao_url_patterns, namespace)),
+    url(r'^comissoes/', include(comissao_url_patterns)),
 
     url(r'^sistema/comissoes/cargo/', include(CargoCrud.get_urls())),
     url(r'^sistema/comissoes/periodo-composicao/',

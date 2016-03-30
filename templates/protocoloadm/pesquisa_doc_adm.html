@@ -12,7 +12,7 @@
 				{% for d in documentos %}
 					<tr>
 						<td>
-							<a href="{% url 'detail_doc_adm' d.id %}"><b>{{ d.tipo.sigla }} {{ d.numero }}/{{ d.ano }} - {{ d.tipo }}</b></a> <br />
+							<a href="{% url 'protocoloadm:detail_doc_adm' d.id %}"><b>{{ d.tipo.sigla }} {{ d.numero }}/{{ d.ano }} - {{ d.tipo }}</b></a> <br />
 							{{ d.assunto }} <br />
 							<b>Interessado:</b> {{ d.interessado }}
 						</td>

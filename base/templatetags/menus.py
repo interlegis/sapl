@@ -21,20 +21,22 @@ def subnav(context, path=None):
     menu = None
     if 'object' in context:
         obj = context['object']
-        default_path = '%s/subnav.yaml' % obj.__class__._meta.app_label
+        app = obj.__class__._meta.app_label
+        default_path = '%s/subnav.yaml' % app
         path = os.path.join(TEMPLATES_DIR, path or default_path)
         if os.path.exists(path):
             menu = yaml.load(open(path, 'r'))
-            resolve_urls_inplace(menu, obj.pk)
+            resolve_urls_inplace(menu, obj.pk, app)
     return dict(menu=menu)
 
 
-def resolve_urls_inplace(menu, pk):
+def resolve_urls_inplace(menu, pk, app):
     if isinstance(menu, list):
         for item in menu:
-            resolve_urls_inplace(item, pk)
+            resolve_urls_inplace(item, pk, app)
     else:
         if 'url' in menu:
-            menu['url'] = reverse(menu['url'], kwargs={'pk': pk})
+            menu['url'] = reverse('%s:%s' % (app, menu['url']),
+                                  kwargs={'pk': pk})
         if 'children' in menu:
-            resolve_urls_inplace(menu['children'], pk)
+            resolve_urls_inplace(menu['children'], pk, app)

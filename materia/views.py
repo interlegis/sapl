@@ -58,7 +58,7 @@ TramitacaoCrud = Crud.build(Tramitacao, '')
 class FormularioSimplificadoView(CreateView):
     template_name = "materia/formulario_simplificado.html"
     form_class = FormularioSimplificadoForm
-    success_url = reverse_lazy('materialegislativa:list')
+    success_url = reverse_lazy('materia:materialegislativa_list')
 
 
 class FormularioCadastroView(CreateView):
@@ -140,7 +140,7 @@ class MateriaAnexadaView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('materia_anexada', kwargs={'pk': pk})
+        return reverse('materia:materia_anexada', kwargs={'pk': pk})
 
 
 class MateriaAnexadaEditView(FormView):
@@ -219,7 +219,7 @@ class MateriaAnexadaEditView(FormView):
         else:
             return self.render_to_response(
                 {'form': form,
-                 'materialegislativa': mat_principal})
+                 'materia': mat_principal})
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -258,7 +258,7 @@ class DespachoInicialView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('despacho_inicial', kwargs={'pk': pk})
+        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
 
 
 class DespachoInicialEditView(CreateView):
@@ -454,7 +454,7 @@ class NumeracaoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('numeracao', kwargs={'pk': pk})
+        return reverse('materia:numeracao', kwargs={'pk': pk})
 
 
 class NumeracaoEditView(CreateView):
@@ -530,13 +530,13 @@ class DocumentoAcessorioView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('documento_acessorio', kwargs={'pk': pk})
+        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
 
 
 class AcompanhamentoConfirmarView(TemplateView):
 
     def get_redirect_url(self):
-        return reverse("sessaoplenaria:list_pauta_sessao")
+        return reverse("sessao:list_pauta_sessao")
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
@@ -553,7 +553,7 @@ class AcompanhamentoConfirmarView(TemplateView):
 class AcompanhamentoExcluirView(TemplateView):
 
     def get_redirect_url(self):
-        return reverse("sessaoplenaria:list_pauta_sessao")
+        return reverse("sessao:list_pauta_sessao")
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
@@ -1239,7 +1239,8 @@ class MateriaLegislativaPesquisaView(FormView):
             kwargs['situacao'] = form.data['situacao']
 
         request.session['kwargs'] = kwargs
-        return redirect('pesquisar_materia_list')
+
+        return redirect('materia:pesquisar_materia_list')
 
 
 class PesquisaMateriaListView(ListView):
@@ -1305,7 +1306,7 @@ class ProposicaoView(CreateView):
     form_class = ProposicaoForm
 
     def get_success_url(self):
-        return reverse('list_proposicao')
+        return reverse('materia:list_proposicao')
 
     def get(self, request, *args, **kwargs):
         return self.render_to_response({'form': self.get_form()})
@@ -1340,7 +1341,7 @@ class ProposicaoEditView(CreateView):
     form_class = ProposicaoForm
 
     def get_success_url(self):
-        return reverse('list_proposicao')
+        return reverse('materia:list_proposicao')
 
     def get(self, request, *args, **kwargs):
         proposicao = Proposicao.objects.get(id=kwargs['pk'])
@@ -1450,4 +1451,4 @@ class AcompanhamentoMateriaView(MateriaLegislativaCrud.CrudDetailView):
                  'materia': materia})
 
     def get_success_url(self):
-        return reverse('sessaoplenaria:list_pauta_sessao')
+        return reverse('sessao:list_pauta_sessao')

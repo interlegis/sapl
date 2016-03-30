@@ -21,7 +21,7 @@ ComissaoCrud = Crud.build(Comissao, 'modulo_comissoes')
 class CadastrarComissaoView(CreateView):
     template_name = "comissoes/cadastrar_comissao.html"
     form_class = CadastrarComissaoForm
-    success_url = reverse_lazy('comissao:list')
+    success_url = reverse_lazy('comissoes:comissao_list')
 
 
 class ComposicaoView(FormView):
@@ -124,7 +124,7 @@ class ComissaoParlamentarIncluirView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('comissao:composicao', kwargs={'pk': pk})
+        return reverse('comissoes:composicao', kwargs={'pk': pk})
 
 
 class ComissaoParlamentarEditView(FormView):
@@ -166,7 +166,7 @@ class ComissaoParlamentarEditView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('comissao:composicao', kwargs={'pk': pk})
+        return reverse('comissoes:composicao', kwargs={'pk': pk})
 
 
 class MateriasTramitacaoListView(ListView):

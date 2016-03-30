@@ -9,7 +9,7 @@ from .models import Protocolo
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_acessivel(client):
-    response = client.get(reverse('anular_protocolo'))
+    response = client.get(reverse('protocoloadm:anular_protocolo'))
     assert response.status_code == 200
 
 
@@ -18,7 +18,7 @@ def test_anular_protocolo_submit(client):
     mommy.make(Protocolo, numero='76', ano='2016', anulado=False)
 
     # TODO: setar usuario e IP
-    response = client.post(reverse('anular_protocolo'),
+    response = client.post(reverse('protocoloadm:anular_protocolo'),
                            {'numero': '76',
                             'ano': '2016',
                             'justificativa_anulacao': 'TESTE',

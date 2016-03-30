@@ -30,7 +30,7 @@ Matérias do Expediente
   {% for m in materias_ordem %}
 		<tr>
 	    <td>
-				{{m.numero}} - <a href="{% url 'sessaoplenaria:expedienteordemdia_edit' m.pk m.oid %}">{{m.titulo}}</a>
+				{{m.numero}} - <a href="{% url 'sessao:expedienteordemdia_edit' m.pk m.oid %}">{{m.titulo}}</a>
 		    &nbsp;
 		    </br>
 		    <strong>Autor{{m.autor|length|pluralize:"es"}}</strong>: {{m.autor|join:', '}}
@@ -41,24 +41,24 @@ Matérias do Expediente
 	  	<td>
 		    {% if m.resultado %}
 		    	{% if m.tipo_votacao == 1 %}
-		    		<b><a href="{% url 'sessaoplenaria:votacaosimbolicaexpedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+		    		<b><a href="{% url 'sessao:votacaosimbolicaexpedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
 		    	{% elif m.tipo_votacao == 2 %}
-		    		<b><a href="{% url 'sessaoplenaria:votacaonominalexpedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+		    		<b><a href="{% url 'sessao:votacaonominalexpedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
 		    	{% elif m.tipo_votacao == 3%}
-		    		<b><a href="{% url 'sessaoplenaria:votacaosecretaexpedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+		    		<b><a href="{% url 'sessao:votacaosecretaexpedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
 		    	{% endif %}
 		    {% else %}
 		    	Matéria não votada <br />
 		    	{% if m.votacao_aberta %}
 		    		{% if m.tipo_votacao == 1 %}
-		    			<b><a href="{% url 'sessaoplenaria:votacaosimbolicaexp' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+		    			<b><a href="{% url 'sessao:votacaosimbolicaexp' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
 		    		{% elif m.tipo_votacao == 2 %}
-		    			<b><a href="{% url 'sessaoplenaria:votacaonominalexp' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+		    			<b><a href="{% url 'sessao:votacaonominalexp' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
 		    		{% elif m.tipo_votacao == 3%}
-		    			<b><a href="{% url 'sessaoplenaria:votacaosecretaexp' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+		    			<b><a href="{% url 'sessao:votacaosecretaexp' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
 		    		{% endif %}
 		    	{% else %}
-		    		<form method="POST" action="{% url 'sessaoplenaria:expedienteordemdia_list' object.pk %}">
+		    		<form method="POST" action="{% url 'sessao:expedienteordemdia_list' object.pk %}">
 				      {% csrf_token %}
 				      <input type="hidden" name="error_message" id="error_message" />
 				      <input type="hidden" id="ordem_id" name="ordem_id" value="{{ m.ordem_id }}">
@@ -71,10 +71,10 @@ Matérias do Expediente
 	{% endfor %}
 </table>
 	</br>
-	<form method="POST" action="{% url 'sessaoplenaria:expedienteordemdia_list' object.pk %}">
+	<form method="POST" action="{% url 'sessao:expedienteordemdia_list' object.pk %}">
 		{% csrf_token %}
 		<input type="hidden" name="error_message" id="error_message" />
-		<a href="{% url 'sessaoplenaria:expedienteordemdia_create' object.pk %}" class="btn btn-primary">{% trans 'Adicionar Matérias' %}</a>
+		<a href="{% url 'sessao:expedienteordemdia_create' object.pk %}" class="btn btn-primary">{% trans 'Adicionar Matérias' %}</a>
 		&nbsp;&nbsp;&nbsp;
 		<input type="submit" id="expediente_reorder" name="expediente_reorder" value="Reordenar Matérias do Expediente" class="btn btn-primary" />
 		&nbsp;&nbsp;&nbsp;

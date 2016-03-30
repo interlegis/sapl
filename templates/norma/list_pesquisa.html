@@ -4,7 +4,7 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
   <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'norma_incluir' %}" class="btn btn-default">Adicionar Norma Jurídica</a>
+    <a href="{% url 'norma:norma_incluir' %}" class="btn btn-default">Adicionar Norma Jurídica</a>
   </div>
   <br /><br /><br />
   {% if object_list %}
@@ -20,7 +20,7 @@
   		</thead>
   		{% for obj in object_list %}
   			<tr>
-  				<td><a href="{% url 'normajuridica:detail' obj.id %}">{{obj.tipo}}</a></td>
+  				<td><a href="{% url 'norma:normajuridica_detail' obj.id %}">{{obj.tipo}}</a></td>
           <td>{{obj.numero}}</td>
           <td>{{obj.ano}}</td>
           <td>{{obj.data}}</td>

@@ -1,13 +1,11 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
-from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
 from .models import SessaoPlenaria
 
@@ -93,20 +91,6 @@ class SessaoForm(ModelForm):
             'hora_inicio': forms.TextInput(attrs={'class': 'hora'}),
             'hora_fim': forms.TextInput(attrs={'class': 'hora'}),
         }
-
-    def clean_url_audio(self):
-        url_audio = self.cleaned_data.get('url_audio', False)
-        if url_audio:
-            if url_audio.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
-            return url_audio
-
-    def clean_url_video(self):
-        url_video = self.cleaned_data.get('url_video', False)
-        if url_video:
-            if url_video.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
-            return url_video
 
     def __init__(self, *args, **kwargs):
 
