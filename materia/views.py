@@ -1,5 +1,3 @@
-from django_filters.views import FilterView
-
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
@@ -13,6 +11,7 @@ from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
+from django_filters.views import FilterView
 
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
@@ -25,12 +24,12 @@ from sapl.utils import get_base_url
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
-                    filtra_tramitacao_status, filtra_tramitacao_destino,
-                    filtra_tramitacao_destino_and_status,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaPesquisaFields, NumeracaoForm,
-                    ProposicaoForm, RelatoriaForm, TramitacaoForm
-                    )
+                    ProposicaoForm, RelatoriaForm, TramitacaoForm,
+                    filtra_tramitacao_destino,
+                    filtra_tramitacao_destino_and_status,
+                    filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,

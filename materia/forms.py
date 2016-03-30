@@ -1,27 +1,25 @@
+import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
-from django.db.models import Max
 from django.core.exceptions import ValidationError
-from django_filters import FilterSet
+from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from django_filters import FilterSet
 
-import django_filters
 import crispy_layout_mixin
 import sapl
-
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
-
 from parlamentares.models import Parlamentar, Partido
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Origem, Proposicao, Relatoria,
-                     StatusTramitacao, TipoAutor,
-                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
+                     StatusTramitacao, TipoAutor, TipoMateriaLegislativa,
+                     Tramitacao, UnidadeTramitacao)
 
 
 def em_tramitacao():
