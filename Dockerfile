@@ -50,4 +50,4 @@ ADD . /sapl
 RUN pip install -r requirements/dev-requirements.txt
 RUN pip install --upgrade setuptools
 
-RUN python3 manage.py bower install
+# RUN python3 manage.py bower install

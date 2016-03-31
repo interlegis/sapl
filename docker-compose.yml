@@ -8,7 +8,7 @@ localhost:
     - "5532:5432"
 web:
   build: .
-  command: bash -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+  command: bash -c "python3 manage.py bower install && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
   volumes:
     - .:/sapl
   ports:
