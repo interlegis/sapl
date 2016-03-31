@@ -9,7 +9,7 @@
   <h1><b>Pesquisar Matéria</b></h1>
   <br></br>
   <form action="" method="get">
-      {{ filter.form.as_p }}
+      {{ filter.form | crispy }}
       <input type="submit" value="Pesquisar" />
   </form>
   <p></p>
@@ -17,15 +17,27 @@
         <thead class="thead-default">
             <tr><td><h3>Resultados</h3></td></tr>
         </thead>
-        {% for m in page_obj %}
+        {% if page_obj|length %}
+          {% if filter_url %}
+            <h3>Pesquisa concluída com sucesso! Foram encontradas {{numero_res}} matérias.</h3>
+          {% endif %}
+          {% for m in page_obj %}
+            
+              <tr>
+                  <td>
+                      <strong><a href="{% url 'materialegislativa:detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+                      {{ m.ementa|safe }}</br>
+                      <strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
+                      <p></p>
+              </tr>
+          {% endfor %}
+        {% else  %}
             <tr>
                 <td>
-                    <strong><a href="{% url 'materialegislativa:detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
-                    {{ m.ementa|safe }}</br>
-                    <strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
-                    <p></p>
-            </tr>
-        {% endfor %}
+                    <h3>Nenhuma matéria encontrada com essas especificações</h3>
+                 </tr>
+        {% endif %}
+        
     </table>
 
 {% include "paginacao_pesquisa_materia.html" %}

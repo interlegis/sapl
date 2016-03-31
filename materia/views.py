@@ -1216,22 +1216,23 @@ class MateriaLegislativaPesquisaView(FilterView):
         filterset_class = self.get_filterset_class()
         self.filterset = self.get_filterset(filterset_class)
 
-        status_tramitacao = self.filterset.data.get('tramitacao__status')
-        unidade_destino = self.filterset.data.get(
-            'tramitacao__unidade_tramitacao_destino')
-        if (status_tramitacao and status_tramitacao != '' and
-           unidade_destino and unidade_destino != ''):
+        data = self.filterset.data
+
+        status_tramitacao = data.get('tramitacao__status')
+        unidade_destino = data.get('tramitacao__unidade_tramitacao_destino')
+
+        if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_destino_and_status(status_tramitacao,
                                                          unidade_destino)
             self.object_list = self.filterset.qs.filter(
                 id__in=lista).distinct().order_by('tipo', 'numero', 'ano')
 
-        elif status_tramitacao and status_tramitacao != '':
+        elif status_tramitacao:
             lista = filtra_tramitacao_status(status_tramitacao)
             self.object_list = self.filterset.qs.filter(
                 id__in=lista).distinct().order_by('tipo', 'numero', 'ano')
 
-        elif unidade_destino and unidade_destino != '':
+        elif unidade_destino:
             lista = filtra_tramitacao_destino(unidade_destino)
             self.object_list = self.filterset.qs.filter(
                 id__in=lista).distinct().order_by('tipo', 'numero', 'ano')
@@ -1239,46 +1240,47 @@ class MateriaLegislativaPesquisaView(FilterView):
             self.object_list = self.filterset.qs.order_by(
                 'tipo', 'numero', 'ano')
 
-        if (self.filterset.data and
-                self.filterset.data.get('numero') is not None):
+        if (data and data.get('numero') is not None):
+            numero = data.get('numero')
+            numero_protocolo = data.get('numero_protocolo')
+            ano = data.get('ano')
+            tipo = data.get('tipo')
+            data_a1 = data.get('data_apresentacao_1')
+            data_a0 = data.get('data_apresentacao_0')
+            data_p = data.get('data_publicacao')
+            autor = data.get('autoria__autor')
+            tipo_autor = data.get('autoria__autor__tipo')
+            partido = data.get('autoria__partido')
+            relatoria = data.get(
+                'relatoria__parlamentar__id')
+            origem = data.get('local_origem_externa')
+            destino = data.get(
+                'tramitacao__unidade_tramitacao_destino')
+            status = data.get('tramitacao__status')
+            em_tram = data.get('em_tramitacao')
+            ementa = self.filterset.data.get('ementa')
+            import ipdb; ipdb.set_trace()
+            u1 = "&numero="+numero+"&numero_protocolo="+numero_protocolo
+            u2 = "&ano="+ano+"&tipo="+tipo+"&data_apresentacao_1="+data_a1+"&"
+            u3 = "data_publicacao="+data_p+"&autoria__autor="+autor+"&"
+            u4 = "autoria__autor__tipo="+tipo_autor+"&"
+            u5 = "autoria__partido="+partido
+            u6 = "&data_apresentacao_0="+data_a0+"&"
+            u7 = "relatoria__parlamentar__id="+relatoria+"&"
+            u8 = "local_origem_externa="+origem+"&"
+            u9 = "tramitacao__unidade_tramitacao_destino="+destino+"&"
+            u10 = "tramitacao__status="+status+"&"
+            u11 = "em_tramitacao="+em_tram+"&ementa="+ementa
 
-                numero = self.filterset.data.get('numero')
-                numero_protocolo = self.filterset.data.get('numero_protocolo')
-                ano = self.filterset.data.get('ano')
-                tipo = self.filterset.data.get('tipo')
-                data_a = self.filterset.data.get('data_apresentacao')
-                data_p = self.filterset.data.get('data_publicacao')
-                autor = self.filterset.data.get('autoria__autor')
-                tipo_autor = self.filterset.data.get('autoria__autor__tipo')
-                partido = self.filterset.data.get('autoria__partido')
-                relatoria = self.filterset.data.get(
-                    'relatoria__parlamentar__id')
-                origem = self.filterset.data.get('local_origem_externa')
-                destino = self.filterset.data.get(
-                    'tramitacao__unidade_tramitacao_destino')
-                status = self.filterset.data.get('tramitacao__status')
-                em_tram = self.filterset.data.get('em_tramitacao')
-                ementa = self.filterset.data.get('ementa')
-
-                u1 = "&numero="+numero+"&numero_protocolo="+numero_protocolo
-                u2 = "&ano="+ano+"&tipo="+tipo+"&data_apresentacao="+data_a+"&"
-                u3 = "data_publicacao="+data_p+"&autoria__autor="+autor+"&"
-                u4 = "autoria__autor__tipo="+tipo_autor+"&"
-                u5 = "autoria__partido="+partido+"&"
-                u6 = "relatoria__parlamentar__id="+relatoria+"&"
-                u7 = "local_origem_externa="+origem+"&"
-                u8 = "tramitacao__unidade_tramitacao_destino="+destino+"&"
-                u9 = "tramitacao__status="+status+"&"
-                u10 = "em_tramitacao="+em_tram+"&ementa="+ementa
-
-                url = u1+u2+u3+u4+u5+u6+u7+u8+u9+u10
+            url = u1+u2+u3+u4+u5+u6+u7+u8+u9+u10+u11
 
         else:
             url = ''
 
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list,
-                                        filter_url=url
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
                                         )
 
         return self.render_to_response(context)

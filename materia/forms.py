@@ -578,116 +578,6 @@ class AutoriaForm(ModelForm):
             *args, **kwargs)
 
 
-class MateriaLegislativaPesquisaForm(ModelForm):
-
-    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    localizacao = forms.ModelChoiceField(
-        label='Localização Atual',
-        required=False,
-        queryset=UnidadeTramitacao.objects.all(),
-        empty_label='Selecione',
-    )
-
-    situacao = forms.ModelChoiceField(
-        label='Situação',
-        required=False,
-        queryset=StatusTramitacao.objects.all(),
-        empty_label='Selecione',
-    )
-
-    em_tramitacao = forms.ChoiceField(required=False,
-                                      label='Tramitando',
-                                      choices=em_tramitacao(),
-                                      widget=forms.Select(
-                                        attrs={'class': 'selector'}))
-
-    publicacao_inicial = forms.DateField(label=u'Data Publicação Inicial',
-                                         input_formats=['%d/%m/%Y'],
-                                         required=False,
-                                         widget=forms.DateInput(
-                                            format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}))
-
-    publicacao_final = forms.DateField(label=u'Data Publicação Final',
-                                       input_formats=['%d/%m/%Y'],
-                                       required=False,
-                                       widget=forms.DateInput(
-                                            format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}))
-
-    apresentacao_inicial = forms.DateField(label=u'Data Apresentação Inicial',
-                                           input_formats=['%d/%m/%Y'],
-                                           required=False,
-                                           widget=forms.DateInput(
-                                            format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}))
-
-    apresentacao_final = forms.DateField(label=u'Data Apresentação Final',
-                                         input_formats=['%d/%m/%Y'],
-                                         required=False,
-                                         widget=forms.DateInput(
-                                            format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}))
-
-    class Meta:
-        model = MateriaLegislativa
-        fields = ['tipo',
-                  'numero',
-                  'ano',
-                  'numero_protocolo',
-                  'apresentacao_inicial',
-                  'apresentacao_final',
-                  'publicacao_inicial',
-                  'publicacao_final',
-                  'autor',
-                  'local_origem_externa',
-                  'localizacao',
-                  'em_tramitacao',
-                  'situacao']
-
-    def __init__(self, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 12)])
-        row2 = crispy_layout_mixin.to_row(
-            [('numero', 4),
-             ('ano', 4),
-             ('numero_protocolo', 4)])
-        row3 = crispy_layout_mixin.to_row(
-            [('apresentacao_inicial', 6),
-             ('apresentacao_final', 6)])
-        row4 = crispy_layout_mixin.to_row(
-            [('publicacao_inicial', 6),
-             ('publicacao_final', 6)])
-        row5 = crispy_layout_mixin.to_row(
-                 [('autor', 0),
-                  (Button('pesquisar',
-                          'Pesquisar Autor',
-                          css_class='btn btn-primary btn-sm'), 2),
-                  (Button('limpar',
-                          'limpar Autor',
-                          css_class='btn btn-primary btn-sm'), 10)])
-        row6 = crispy_layout_mixin.to_row(
-            [('local_origem_externa', 6),
-             ('localizacao', 6)])
-        row7 = crispy_layout_mixin.to_row(
-            [('em_tramitacao', 6),
-             ('situacao', 6)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Pesquisa Básica'),
-                     row1, row2, row3, row4,
-                     HTML(sapl.utils.autor_label),
-                     HTML(sapl.utils.autor_modal),
-                     row5, row6, row7,
-                     form_actions(save_label='Pesquisar'))
-        )
-        super(MateriaLegislativaPesquisaForm, self).__init__(
-            *args, **kwargs)
-
-
 class MateriaLegislativaPesquisaFields(FilterSet):
 
     numero = django_filters.CharFilter(required=False,
@@ -708,22 +598,14 @@ class MateriaLegislativaPesquisaFields(FilterSet):
         help_text=""
     )
 
-    data_apresentacao = django_filters.DateFilter(
+    data_apresentacao = django_filters.DateFromToRangeFilter(
                                         label=u'Data de Apresentação',
-                                        input_formats=['%d/%m/%Y'],
                                         required=False,
-                                        widget=forms.DateInput(
-                                            format='%d/%m/%Y',
-                                            attrs={'class': 'dateinput'}),
                                         help_text="")
 
-    data_publicacao = django_filters.DateFilter(
+    data_publicacao = django_filters.DateFromToRangeFilter(
                                        label=u'Data da Publicação',
-                                       input_formats=['%d/%m/%Y'],
                                        required=False,
-                                       widget=forms.DateInput(
-                                          format='%d/%m/%Y',
-                                          attrs={'class': 'dateinput'}),
                                        help_text="")
 
     autoria__autor = django_filters.ModelChoiceFilter(
@@ -795,7 +677,7 @@ class MateriaLegislativaPesquisaFields(FilterSet):
 
     class Meta:
         models = MateriaLegislativa
-        fields = ['tipo',
+        fields = {'tipo',
                   'ano',
                   'numero_protocolo',
                   'data_apresentacao',
@@ -808,15 +690,59 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                   'tramitacao__status',
                   'autoria__autor__tipo',
                   'autoria__partido',
-                  'local_origem_externa']
+                  'local_origem_externa'}
+
+    # def __init__(self, *args, **kwargs):
+
+    #     row1 = crispy_layout_mixin.to_row(
+    #         [('tipo', 12)])
+    #     row2 = crispy_layout_mixin.to_row(
+    #         [('numero', 4),
+    #          ('ano', 4),
+    #          ('numero_protocolo', 4)])
+    #     row3 = crispy_layout_mixin.to_row(
+    #         [('data_apresentacao', 6),
+    #          ('data_publicacao', 6)])
+    #     row4 = crispy_layout_mixin.to_row(
+    #         [('em_tramitacao', 6),
+    #          ('ementa', 6)])
+    #     row5 = crispy_layout_mixin.to_row(
+    #              [('autoria__autor__id', 0),
+    #               (Button('pesquisar',
+    #                       'Pesquisar Autor',
+    #                       css_class='btn btn-primary btn-sm'), 2),
+    #               (Button('limpar',
+    #                       'limpar Autor',
+    #                       css_class='btn btn-primary btn-sm'), 10)])
+    #     row6 = crispy_layout_mixin.to_row(
+    #         [('relatoria__parlamentar__id', 6),
+    #          ('tramitacao__unidade_tramitacao_destino', 6)])
+    #     row7 = crispy_layout_mixin.to_row(
+    #         [('tramitacao__status', 6),
+    #          ('autoria__autor__tipo', 6)])
+    #     row8 = crispy_layout_mixin.to_row(
+    #         [('autoria__partido', 6),
+    #          ('local_origem_externa', 6)])
+
+    #     self.helper = FormHelper()
+    #     self.helper.layout = Layout(
+    #         Fieldset(_('Pesquisa Básica'),
+    #                  row1, row2, row3, row4,
+    #                  HTML(sapl.utils.autor_label),
+    #                  HTML(sapl.utils.autor_modal),
+    #                  row5, row6, row7, row8,
+    #                  form_actions(save_label='Pesquisar'))
+    #     )
 
 
 def pega_ultima_tramitacao():
     ultimas_tramitacoes = Tramitacao.objects.values(
-                            'materia_id').annotate(data_encaminhamento=Max(
-                                     'data_encaminhamento'),
-                                  id=Max('id'))
-    lista = [ids.get('id') for ids in ultimas_tramitacoes]
+                             'materia_id').annotate(data_encaminhamento=Max(
+                                      'data_encaminhamento'),
+                                   id=Max('id')).values_list('id')
+
+    lista = [item for sublist in ultimas_tramitacoes for item in sublist]
+
     return lista
 
 
