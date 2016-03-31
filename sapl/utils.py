@@ -1,8 +1,10 @@
 from datetime import date
 from functools import wraps
 
+import magic
 from django.apps import apps
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -123,3 +125,60 @@ UF = [
     ]
 
 RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
+
+TIPOS_TEXTO_PERMITIDOS = (
+    'application/vnd.oasis.opendocument.text',
+    'application/x-vnd.oasis.opendocument.text',
+    'application/pdf',
+    'application/x-pdf',
+    'application/acrobat',
+    'applications/vnd.pdf',
+    'text/pdf',
+    'text/x-pdf',
+    'text/plain',
+    'application/txt',
+    'browser/internal',
+    'text/anytext',
+    'widetext/plain',
+    'widetext/paragraph',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/xml',
+    'text/xml',
+    'text/html',
+    )
+
+TIPOS_IMG_PERMITIDOS = (
+    'image/jpeg',
+    'image/jpg',
+    'image/jpe_',
+    'image/pjpeg',
+    'image/vnd.swiftview-jpeg',
+    'application/jpg',
+    'application/x-jpg',
+    'image/pjpeg',
+    'image/pipeg',
+    'image/vnd.swiftview-jpeg',
+    'image/x-xbitmap',
+    'image/bmp',
+    'image/x-bmp',
+    'image/x-bitmap',
+    'image/png',
+    'application/png',
+    'application/x-png',
+)
+
+
+def fabrica_validador_de_tipos_de_arquivo(lista):
+
+    def restringe_tipos_de_arquivo(value):
+        mime = magic.from_buffer(value.read(), mime=True)
+        mime = mime.decode()
+        if mime not in lista:
+            raise ValidationError(_('Tipo de arquivo não suportado'))
+    return restringe_tipos_de_arquivo
+
+restringe_tipos_de_arquivo_txt = fabrica_validador_de_tipos_de_arquivo(
+    TIPOS_TEXTO_PERMITIDOS)
+restringe_tipos_de_arquivo_img = fabrica_validador_de_tipos_de_arquivo(
+    TIPOS_IMG_PERMITIDOS)

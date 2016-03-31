@@ -9,14 +9,12 @@ https://docs.djangoproject.com/en/1.8/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
+from decouple import config
+from dj_database_url import parse as db_url
 from unipath import Path
 
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
-
-from decouple import config
-
-from dj_database_url import parse as db_url
 
 BASE_DIR = Path(__file__).ancestor(2)
 

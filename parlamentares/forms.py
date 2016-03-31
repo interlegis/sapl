@@ -60,12 +60,12 @@ class ParlamentaresForm (ModelForm):
             'cpf': forms.TextInput(attrs={'class': 'cpf'}),
             'rg': forms.TextInput(attrs={'class': 'rg'}),
             'titulo_eleitor': forms.TextInput(attrs={
-              'class': 'titulo_eleitor'}),
+                'class': 'titulo_eleitor'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
             'cep_residencia': forms.TextInput(attrs={'class': 'cep'}),
             'telefone_residencia': forms.TextInput(attrs={
-              'class': 'telefone'}),
+                'class': 'telefone'}),
             'fax_residencia': forms.TextInput(attrs={'class': 'telefone'}),
             'fotografia': forms.FileInput,
             'biografia': forms.Textarea(attrs={'id': 'biografia-parlamentar'})
@@ -131,18 +131,19 @@ class ParlamentaresForm (ModelForm):
                      row6, row7, row8, row9, row10,
                      row11, row12, row13,
                      HTML("""<div class="col-md-12">
-                            {% if form.fotografia.value %}
-                            <img class="img-responsive"
-                                 width="225" height="300"
-                                 src="{{MEDIA_URL}}{{form.fotografia.value}}">
-                                 <br />
-                            <input type="submit"
-                                   name="remover"
-                                   id="remover"
-                                   class="btn btn-warning"
-                                   value="Remover Foto"/>
-                            {% endif %}
-                            </div>""", ),
+                        {% if not form.fotografia.errors %}
+                           {% if form.fotografia.value %}
+                        <img class="img-responsive" width="225" height="300"
+                             src="{{ MEDIA_URL }}{{ form.fotografia.value }}">
+                             <br /><br />
+                        <input type="submit"
+                               name="remover-foto"
+                               id="remover-foto"
+                               class="btn btn-warning"
+                               value="Remover Foto"/>
+                           {% endif %}
+                         {% endif %}
+                         </div>""", ),
                      row14,
                      form_actions())
         )

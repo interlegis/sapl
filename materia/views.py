@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
@@ -1358,8 +1359,10 @@ class ProposicaoEditView(CreateView):
                     proposicao.save()
                 else:
                     proposicao.delete()
-            elif 'salvar' in request.POST:
+            if 'salvar' or "remover-foto" in request.POST:
                 if 'texto_original' in request.FILES:
+                    # if os.unlink(proposicao.texto_original.path):
+                    #     proposicao.texto_original = None
                     proposicao.texto_original = request.FILES['texto_original']
                 tipo = TipoProposicao.objects.get(id=form.data['tipo'])
                 proposicao.tipo = tipo
@@ -1379,6 +1382,12 @@ class ProposicaoEditView(CreateView):
                         proposicao.materia = materia
                 if not proposicao.data_envio:
                     proposicao.data_envio = datetime.now()
+                if "remover-texto" in request.POST:
+                    try:
+                        os.unlink(proposicao.texto_original.path)
+                    except OSError:
+                        pass  # Should log this error!!!!!
+                    proposicao.texto_original = None
                 proposicao.save()
             return redirect(self.get_success_url())
         else:
