@@ -14,21 +14,16 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
-from decouple import config
-
-from dj_database_url import parse as db_url
-
 BASE_DIR = Path(__file__).ancestor(2)
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = '!9g1-#la+#(oft(v-y1qhy$jk-2$24pdk69#b_jfqyv!*%a_)t'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -110,17 +105,21 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': config(
-        'DATABASE_URL',
-        cast=db_url,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sapl',
+        'USER': 'sapl',
+        'PASSWORD': 'sapl',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
 
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_HOST = config('EMAIL_HOST', cast=str)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', cast=str)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str)
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = True
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_PORT = 587
 
 MAX_DOC_UPLOAD_SIZE = 5*1024*1024  # 5MB
 MAX_IMAGE_UPLOAD_SIZE = 2*1024*1024  # 2MB
