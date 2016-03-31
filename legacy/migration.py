@@ -28,6 +28,8 @@ appconfs = [apps.get_app_config(n) for n in [
 
 stubs_list = []
 
+unique_constraints = []
+
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
 # apps do not overlap
@@ -148,6 +150,39 @@ def iter_sql_records(sql, db):
         yield record
 
 
+def delete_constraints(model):
+    global unique_constraints
+    # pega nome da unique constraint dado o nome da tabela
+    table = model._meta.db_table
+    cursor = exec_sql("SELECT conname FROM pg_constraint WHERE conrelid = "
+                      "(SELECT oid FROM pg_class WHERE relname LIKE "
+                      "'%s') and contype = 'u';" % (table))
+    result = cursor.fetchone()
+    # if theres a result then delete
+    if result:
+        args = model._meta.unique_together[0]
+        args_list = list(args)
+
+        unique_constraints.append([table, result[0], args_list, model])
+        exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
+                 (table, result[0]))
+
+
+def recreate_constraints():
+    global unique_constraints
+    if unique_constraints:
+        for constraint in unique_constraints:
+            table, name, args, model = constraint
+            for i in range(len(args)):
+                if isinstance(model._meta.get_field(args[i]),
+                              models.ForeignKey):
+                    args[i] = args[i]+'_id'
+            args_string = ''
+            args_string += "(" + ', '.join(map(str, args)) + ")"
+            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                     (table, name, args_string))
+
+
 def save_with_id(new, id):
     sequence_name = '%s_id_seq' % type(new)._meta.db_table
     cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
@@ -225,6 +260,8 @@ class DataMigrator:
             obj.delete()
         info('Deletando stubs desnecessários...')
         self.delete_stubs()
+        info('Recreating unique constraints...')
+        recreate_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -250,6 +287,7 @@ class DataMigrator:
         # Clear all model entries
         # They may have been created in a previous migration attempt
         model.objects.all().delete()
+        delete_constraints(model)
 
         # setup migration strategy for tables with or without a pk
         if legacy_pk_name == 'id':
