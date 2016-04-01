@@ -186,10 +186,6 @@ class ParlamentaresCadastroView(CreateView):
 
     def form_valid(self, form):
         form.save()
-        mandato = Mandato()
-        mandato.parlamentar = form.instance
-        mandato.legislatura = Legislatura.objects.get(id=self.kwargs['pk'])
-        mandato.save()
         return redirect(self.get_success_url())
 
 

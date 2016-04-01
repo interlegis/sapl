@@ -12,13 +12,12 @@ def test_cadastro_parlamentar(client):
 
     response = client.get(reverse('parlamentares_cadastro', kwargs={'pk': 5}))
     assert response.status_code == 200
-
     response = client.post(reverse('parlamentares_cadastro', kwargs={'pk': 5}),
                            {'nome_completo': 'Teresa Barbosa',
                             'nome_parlamentar': 'Terezinha',
                             'sexo': 'F',
-                            'ativo': 'True',
-                            })
+                            'ativo': 'True'}, follow=True)
+
     parlamentar = Parlamentar.objects.first()
     assert "Terezinha" == parlamentar.nome_parlamentar
     if not parlamentar.ativo:
