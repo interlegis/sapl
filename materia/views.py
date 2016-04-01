@@ -1243,9 +1243,12 @@ class MateriaLegislativaPesquisaView(FilterView):
             self.object_list = self.filterset.qs
 
         if (data and data.get('numero') is not None):
-            url = str(self.request.environ['QUERY_STRING'])
+            url = "&"+str(self.request.environ['QUERY_STRING'])
+            if url[:5] == "&page":
+                ponto_comeco = url.find('numero=') - 1
+                url = url[ponto_comeco:]
         else:
-            url = None
+            url = ''
 
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list,
