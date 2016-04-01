@@ -88,18 +88,19 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
                 row3,
                 row4,
                 row5,
-                HTML("""<div class="col-md-12">
-                        {% if not form.fotografia.errors and form.fotografia.value %}
-                        <img class="img-responsive" width="225" height="300"
-                             src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
-                             <br />
-                        <input type="submit"
-                               name="remover"
-                               id="remover"
-                               class="btn btn-warning"
-                               value="Remover Logo"/>
-                         {% endif %}
-                         </div>"""),
+                HTML("""
+  <div class="col-md-12">
+    {% if not form.fotografia.errors and form.fotografia.value %}
+    <img class="img-responsive" width="225" height="300"
+         src="{{ MEDIA_URL }}{{ form.logotipo.value }}">
+         <br />
+    <input type="submit"
+           name="remover"
+           id="remover"
+           class="btn btn-warning"
+           value="Remover Logo"/>
+     {% endif %}
+   </div>"""),
                 row6,
                 row7,
                 row8,
