@@ -9,7 +9,7 @@
   <h1><b>Pesquisar Matéria</b></h1>
   <br></br>
   <form action="" method="get">
-      {{ filter.form | crispy }}
+      {{ filter.form.as_p }}
       <input type="submit" value="Pesquisar" />
   </form>
   <p></p>

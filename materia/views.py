@@ -1228,32 +1228,29 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         status_tramitacao = data.get('tramitacao__status')
         unidade_destino = data.get('tramitacao__unidade_tramitacao_destino')
-
+        # import ipdb; ipdb.set_trace()
         if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_destino_and_status(status_tramitacao,
                                                          unidade_destino)
             self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct().order_by('tipo', 'numero', 'ano')
+                id__in=lista).distinct().order_by
 
         elif status_tramitacao:
             lista = filtra_tramitacao_status(status_tramitacao)
             self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct().order_by('tipo', 'numero', 'ano')
+                id__in=lista).distinct()
 
         elif unidade_destino:
             lista = filtra_tramitacao_destino(unidade_destino)
             self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct().order_by('tipo', 'numero', 'ano')
+                id__in=lista).distinct()
         else:
-            self.object_list = self.filterset.qs.order_by(
-                'tipo', 'numero', 'ano')
+            self.object_list = self.filterset.qs
 
         if (data and data.get('numero') is not None):
-            url = "&"+str(self.request.environ['QUERY_STRING'])
-            if url[:5] == "&page":
-                url = url[7:]
+            url = str(self.request.environ['QUERY_STRING'])
         else:
-            url = ''
+            url = None
 
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list,
