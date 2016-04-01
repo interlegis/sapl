@@ -567,6 +567,25 @@ class AutoriaForm(ModelForm):
             *args, **kwargs)
 
 
+class RangeWidgetOverride(forms.MultiWidget):
+    def __init__(self, attrs=None):
+        widgets = (forms.DateInput(
+                      format='%d/%m/%Y',
+                      attrs={'class': 'dateinput'}),
+                   forms.DateInput(
+                      format='%d/%m/%Y',
+                      attrs={'class': 'dateinput'}))
+        super(RangeWidgetOverride, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value.start, value.stop]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        return '-'.join(rendered_widgets)
+
+
 class MateriaLegislativaPesquisaFields(FilterSet):
 
     numero = django_filters.CharFilter(required=False,
@@ -588,14 +607,16 @@ class MateriaLegislativaPesquisaFields(FilterSet):
     )
 
     data_apresentacao = django_filters.DateFromToRangeFilter(
-                                        label=u'Data de Apresentação',
-                                        required=False,
-                                        help_text="")
+                      label=u'Data de Apresentação (Inicial - Final)',
+                      required=False,
+                      help_text="",
+                      widget=RangeWidgetOverride)
 
     data_publicacao = django_filters.DateFromToRangeFilter(
-                                       label=u'Data da Publicação',
-                                       required=False,
-                                       help_text="")
+                      label=u'Data da Publicação (Inicial - Final)',
+                      required=False,
+                      help_text="",
+                      widget=RangeWidgetOverride)
 
     autoria__autor = django_filters.ModelChoiceFilter(
         label='Autor',
@@ -620,7 +641,6 @@ class MateriaLegislativaPesquisaFields(FilterSet):
         empty_label='Selecione',
         help_text="")
 
-    # # relatores são os parlamentares ativos?
     relatoria__parlamentar__id = django_filters.ModelChoiceFilter(
         label='Relator',
         required=False,
@@ -663,6 +683,8 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                                        label=u'Assunto',
                                        lookup_expr='icontains',
                                        help_text="")
+
+    ORDER_BY_FIELD = "'numero', 'ano'"
 
     class Meta:
         models = MateriaLegislativa
