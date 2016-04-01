@@ -1196,6 +1196,14 @@ class MateriaLegislativaPesquisaView(FilterView):
     filterset_class = MateriaLegislativaPesquisaFields
     paginate_by = 10
 
+    # def get_filterset_kwargs(self, filterset_class):
+    #     """
+    #     Returns the keyword arguments for instanciating the filterset.
+    #     """
+    #     import ipdb; ipdb.set_trace()
+    #     kwargs = {'data': self.request.GET or None}
+    #     return kwargs
+
     def get_context_data(self, **kwargs):
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
@@ -1236,39 +1244,9 @@ class MateriaLegislativaPesquisaView(FilterView):
                 'tipo', 'numero', 'ano')
 
         if (data and data.get('numero') is not None):
-            numero = data.get('numero')
-            numero_protocolo = data.get('numero_protocolo')
-            ano = data.get('ano')
-            tipo = data.get('tipo')
-            data_a1 = data.get('data_apresentacao_1')
-            data_a0 = data.get('data_apresentacao_0')
-            data_p = data.get('data_publicacao')
-            autor = data.get('autoria__autor')
-            tipo_autor = data.get('autoria__autor__tipo')
-            partido = data.get('autoria__partido')
-            relatoria = data.get(
-                'relatoria__parlamentar__id')
-            origem = data.get('local_origem_externa')
-            destino = data.get(
-                'tramitacao__unidade_tramitacao_destino')
-            status = data.get('tramitacao__status')
-            em_tram = data.get('em_tramitacao')
-            ementa = self.filterset.data.get('ementa')
-            import ipdb; ipdb.set_trace()
-            u1 = "&numero="+numero+"&numero_protocolo="+numero_protocolo
-            u2 = "&ano="+ano+"&tipo="+tipo+"&data_apresentacao_1="+data_a1+"&"
-            u3 = "data_publicacao="+data_p+"&autoria__autor="+autor+"&"
-            u4 = "autoria__autor__tipo="+tipo_autor+"&"
-            u5 = "autoria__partido="+partido
-            u6 = "&data_apresentacao_0="+data_a0+"&"
-            u7 = "relatoria__parlamentar__id="+relatoria+"&"
-            u8 = "local_origem_externa="+origem+"&"
-            u9 = "tramitacao__unidade_tramitacao_destino="+destino+"&"
-            u10 = "tramitacao__status="+status+"&"
-            u11 = "em_tramitacao="+em_tram+"&ementa="+ementa
-
-            url = u1+u2+u3+u4+u5+u6+u7+u8+u9+u10+u11
-
+            url = "&"+str(self.request.environ['QUERY_STRING'])
+            if url[:5] == "&page":
+                url = url[7:]
         else:
             url = ''
 
