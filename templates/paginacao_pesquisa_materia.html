@@ -3,23 +3,11 @@
 <nav class="text-center">
   <ul class="pagination">
     {% if page_obj.has_previous %}
-    
-    {% if filter_url %}
     <li class="page-item">
-
-      <a class="page-link" href="?page={{page_obj.previous_page_number}}">
+      <a class="page-link" href="?page={{page_obj.previous_page_number}}{{filter_url}}">
         <span class="pager-prev">Anterior</span>
       </a>
     </li>
-    {% else %}
-    <li class="page-item">
-
-      <a class="page-link" href="?{{filter_url}}">
-        <span class="pager-prev">Anterior</span>
-      </a>
-    </li>
-    {% endif %}
-
     {% else %}
     <li class="pager-prev disabled"><a href="">Anterior</a></li>
     {% endif %}
@@ -30,36 +18,18 @@
       <a class="page-link" href="">...</a>
     </li>
     {% else %}
-
-    {% if filter_url %}
     <li {% if page == page_obj.number %} class="page-item active" {% endif %}>
-      <a class="page-link" href="?{{filter_url}}">{{ page }}</a>
+      <a class="page-link" href="?page={{page}}{{filter_url}}">{{ page }}</a>
     </li>
-    {% else %}
-    <li {% if page == page_obj.number %} class="page-item active" {% endif %}>
-      <a class="page-link" href="?page={{ page }}">{{ page }}</a>
-    </li>
-    {% endif %}
-
     {% endif %}
     {% endfor %}
 
     {% if page_obj.has_next %}
-
-    {% if filter_url %}
     <li class="page-item">
       <a class="page-link" href="?page={{page_obj.next_page_number}}{{filter_url}}">
         <span class="pager-next">Próxima</span>
       </a>
     </li>
-    {% else %}
-      <li class="page-item">
-      <a class="page-link" href="?page={{page_obj.next_page_number}}{{filter_url}}">
-        <span class="pager-next">Próxima</span>
-      </a>
-    </li>
-    {% endif %}
-    
     {% else %}
     <li class="pager-next disabled"><a href="">Próxima</a></li>
     {% endif %}
