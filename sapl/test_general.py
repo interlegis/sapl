@@ -1,6 +1,6 @@
 import pytest
-from django.db.models import CharField, TextField
 from django.apps import apps
+from django.db.models import CharField, TextField
 from model_mommy import mommy
 
 from .settings import SAPL_APPS
