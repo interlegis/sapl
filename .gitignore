@@ -88,3 +88,6 @@ collected_static
 bower
 bower_components
 media
+
+#merge garbage
+.orig
