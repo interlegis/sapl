@@ -5,7 +5,7 @@ from model_utils import Choices
 from materia.models import MateriaLegislativa
 from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                   SessaoLegislativa)
-from sapl.utils import YES_NO_CHOICES
+from sapl.utils import YES_NO_CHOICES, restringe_tipos_de_arquivo_txt
 
 
 class TipoSessaoPlenaria(models.Model):
@@ -63,12 +63,14 @@ class SessaoPlenaria(models.Model):
         blank=True,
         null=True,
         upload_to=pauta_upload_path,
-        verbose_name=_('Pauta da Sessão'))
+        verbose_name=_('Pauta da Sessão'),
+        validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
         blank=True,
         null=True,
         upload_to=ata_upload_path,
-        verbose_name=_('Ata da Sessão'))
+        verbose_name=_('Ata da Sessão'),
+        validators=[restringe_tipos_de_arquivo_txt])
     iniciada = models.NullBooleanField(blank=True,
                                        choices=YES_NO_CHOICES,
                                        verbose_name=_('Sessão iniciada?'))

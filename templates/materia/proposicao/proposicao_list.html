@@ -3,16 +3,16 @@
 {% load crispy_forms_tags %}
 
 {% block actions %}<!-- Remvoer botões 'Editar' e 'Excluir' -->{% endblock %}
-
+<!--
 {% block sections_nav %}
-	<h2><b>Proposições</b></h2>
-	<br />
-  <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'materia:adicionar_proposicao' %}" class="btn btn-default">Nova Proposição</a>
-  </div>
-{% endblock %}
+
+{% endblock %} -->
 
 {% block detail_content %}
+<div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'adicionar_proposicao' %}" class="btn btn-default">Nova Proposição</a>
+ </div>
+<h2><b>Proposições</b></h2>
 	<table class="table table-striped table-bordered">
 		<thead class="thead-default">
 			<tr>
