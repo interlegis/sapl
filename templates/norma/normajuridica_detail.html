@@ -4,7 +4,7 @@
 
 <ul class="nav nav-pills navbar-right">
   <li>
-    <a href="{% url 'normajuridica:detail' object.pk %}">{% trans 'Início' %}</a>
+    <a href="{% url 'norma:normajuridica_detail' object.pk %}">{% trans 'Início' %}</a>
   </li>
 
   {% comment %}
@@ -13,7 +13,7 @@
   e a view NormaTa(IntegracaoTaView) em views.py
   Em nada mais a integração interfere em Norma Jurídica
   {% endcomment %}
-  <li><a href="{% url 'normajuridica:ta' object.pk %}">{% trans 'Texto da Norma' %}</a></li>
+  <li><a href="{% url 'norma:ta' object.pk %}">{% trans 'Texto da Norma' %}</a></li>
 </ul>
 
 {% endblock sections_nav %}
@@ -21,7 +21,7 @@
 <div class="clearfix">
   {% block actions %}
     <div class="actions btn-group pull-right" role="group">
-      <a href="{% url 'norma_editar'  object.id %}" class="btn btn-default">{% trans 'Editar' %}</a>
+      <a href="{% url 'norma:norma_editar'  object.id %}" class="btn btn-default">{% trans 'Editar' %}</a>
       <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
     </div>
   {% endblock actions %}

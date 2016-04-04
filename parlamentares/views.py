@@ -286,7 +286,7 @@ class ParlamentaresDependentesEditView(UpdateView):
 
 class MesaDiretoraView(FormView):
     template_name = "mesa_diretora/mesa_diretora.html"
-    success_url = reverse_lazy('mesa_diretora')
+    success_url = reverse_lazy('parlamentares:mesa_diretora')
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa)
     def validation(self, request):

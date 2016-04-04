@@ -20,7 +20,7 @@
 				</thead>
 				{% for l in legislacao %}
 					<tr>
-						<td><a href="{% url 'legislacao_citada_edit' object.id l.id %}">{{l.norma.tipo.descricao}}</a></td>
+						<td><a href="{% url 'materia:legislacao_citada_edit' object.id l.id %}">{{l.norma.tipo.descricao}}</a></td>
 						<td>{{l.norma.numero}}</td>
 						<td>{{l.norma.ano}}</td>
 						<td>{{l.disposicoes}}</td>
