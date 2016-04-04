@@ -26,7 +26,8 @@ appconfs = [apps.get_app_config(n) for n in [
     'protocoloadm', ]]
 
 stubs_list = []
-
+unique_constraints = []
+stub_created = False
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
 # apps do not overlap
@@ -91,6 +92,12 @@ def warn(msg):
 
 
 def get_fk_related(field, value, label=None):
+    has_textfield = False
+    fields_dict = {}
+    global stub_created
+
+    if value is None and field.null is False:
+        value = 0
     if value is not None:
         try:
             value = field.related_model.objects.get(id=value)
@@ -100,9 +107,32 @@ def get_fk_related(field, value, label=None):
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # we interpret FK == 0 as actually FK == NONE
-                value = None
-                warn(msg + ' => using NONE for zero value')
+                # se FK == 0, criamos um stub e colocamos o valor DESCONHECIDO
+                # para qualquer TextField que possa haver
+                all_fields = field.related_model._meta.get_fields()
+                for related_field in all_fields:
+                    if related_field.get_internal_type() == 'TextField':
+                        fields_dict[related_field.name] = 'DESCONHECIDO'
+                        has_textfield = True
+                    elif related_field.get_internal_type() == 'CharField':
+                        fields_dict[related_field.name] = 'D'
+                        has_textfield = True
+                if has_textfield and field.null is False:
+                    if not stub_created:
+                        stub_created = mommy.make(field.related_model,
+                                                  **fields_dict)
+                        warn(msg + ' => STUB CREATED FOR NOT NULL FIELD')
+                        value = stub_created
+                    else:
+                        value = stub_created
+                        warn(msg + ' => USING STUB ALREADY CREATED')
+                elif not has_textfield and field.null is False:
+                    stub_created = mommy.make(field.related_model)
+                    warn(msg + ' => STUB CREATED WITH RANDOM VALUES')
+                    value = stub_created
+                else:
+                    value = None
+                    warn(msg + ' => using NONE for zero value')
             else:
                 value = make_stub(field.related_model, value)
                 stubs_list.append((value.id, field))
@@ -133,6 +163,39 @@ def iter_sql_records(sql, db):
         yield record
 
 
+def delete_constraints(model):
+    global unique_constraints
+    # pega nome da unique constraint dado o nome da tabela
+    table = model._meta.db_table
+    cursor = exec_sql("SELECT conname FROM pg_constraint WHERE conrelid = "
+                      "(SELECT oid FROM pg_class WHERE relname LIKE "
+                      "'%s') and contype = 'u';" % (table))
+    result = cursor.fetchone()
+    # if theres a result then delete
+    if result:
+        args = model._meta.unique_together[0]
+        args_list = list(args)
+
+        unique_constraints.append([table, result[0], args_list, model])
+        exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
+                 (table, result[0]))
+
+
+def recreate_constraints():
+    global unique_constraints
+    if unique_constraints:
+        for constraint in unique_constraints:
+            table, name, args, model = constraint
+            for i in range(len(args)):
+                if isinstance(model._meta.get_field(args[i]),
+                              models.ForeignKey):
+                    args[i] = args[i]+'_id'
+            args_string = ''
+            args_string += "(" + ', '.join(map(str, args)) + ")"
+            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                     (table, name, args_string))
+
+
 def save_with_id(new, id):
     sequence_name = '%s_id_seq' % type(new)._meta.db_table
     cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
@@ -153,7 +216,6 @@ def make_stub(model, id):
 
 
 class DataMigrator:
-
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
 
@@ -163,7 +225,8 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
-
+            msg = ("Field %s (%s) from model %s " %
+                   (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
@@ -176,13 +239,23 @@ class DataMigrator:
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
+                if (field_type == 'DateField' and
+                        field.null is False and value is None):
+                    names = [old_fields.name for old_fields
+                             in old._meta.get_fields()]
+                    combined_names = "(" + ")|(".join(names) + ")"
+                    matches = re.search('(ano_\w+)', combined_names)
+                    if not matches:
+                        warn(msg + '=> setting 0000-01-01 value to DateField')
+                        value = '0001-01-01'
+                    else:
+                        value = '%d-01-01' % getattr(old, matches.group(0))
+                        warn(msg + "=> settig %s for not null DateField" %
+                             (value))
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
-                        warn(
-                            "Field %s (%s) from model %s"
-                            " => settig empty string '' for %s value" %
-                            (field.name, field_type, field.model.__name__,
-                             value))
+                        warn(msg + "=> settig empty string '' for %s value" %
+                             (value))
                         value = ''
                 setattr(new, field.name, value)
 
@@ -198,6 +271,8 @@ class DataMigrator:
             obj.delete()
         info('Deleting unnecessary stubs...')
         self.delete_stubs()
+        info('Recreating unique constraints...')
+        recreate_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -220,21 +295,29 @@ class DataMigrator:
         legacy_model = legacy_app.get_model(legacy_model_name)
         legacy_pk_name = legacy_model._meta.pk.name
 
+        global stub_created
+        stub_created = False
+
         # Clear all model entries
         # They may have been created in a previous migration attempt
         model.objects.all().delete()
+        delete_constraints(model)
 
         # setup migration strategy for tables with or without a pk
         if legacy_pk_name == 'id':
             # There is no pk in the legacy table
             def save(new, old):
                 new.save()
+                global stub_created
+                stub_created = False
 
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
             def save(new, old):
+                global stub_created
                 save_with_id(new, getattr(old, legacy_pk_name))
+                stub_created = False
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
