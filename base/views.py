@@ -64,4 +64,4 @@ class CasaLegislativaTableAuxView(FormView):
             return self.render_to_response({'form': form})
 
     def get_success_url(self):
-        return reverse('casa_legislativa')
+        return reverse('base:casa_legislativa')

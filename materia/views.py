@@ -64,7 +64,7 @@ class FormularioSimplificadoView(CreateView):
 class FormularioCadastroView(CreateView):
     template_name = "materia/formulario_cadastro.html"
     form_class = FormularioCadastroForm
-    success_url = reverse_lazy('formulario_cadastro')
+    success_url = reverse_lazy('materia:formulario_cadastro')
 
 
 class MateriaAnexadaView(FormView):
@@ -1191,7 +1191,7 @@ class MateriaLegislativaPesquisaView(FormView):
     template_name = 'materia/pesquisa_materia.html'
 
     def get_success_url(self):
-        return reverse('pesquisar_materia')
+        return reverse('materia:pesquisar_materia')
 
     def get(self, request, *args, **kwargs):
         form = MateriaLegislativaPesquisaForm()
