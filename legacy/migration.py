@@ -6,6 +6,7 @@ from django.apps import apps
 from django.apps.config import AppConfig
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models
+from django.db.models import CharField, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 
@@ -26,7 +27,7 @@ appconfs = [apps.get_app_config(n) for n in [
     'protocoloadm', ]]
 
 stubs_list = []
-stub_created = False
+
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
 # apps do not overlap
@@ -87,48 +88,41 @@ def info(msg):
 
 
 def warn(msg):
-    print('WARNING! ' + msg)
+    print('CUIDADO! ' + msg)
 
 
 def get_fk_related(field, value, label=None):
-    has_textfield = False
     fields_dict = {}
-    global stub_created
+
+    if value is None and field.null is False:
+        value = 0
     if value is not None:
         try:
             value = field.related_model.objects.get(id=value)
         except ObjectDoesNotExist:
-            msg = 'FK [%s] not found for value %s ' \
-                '(in %s %s)' % (
+            msg = 'FK [%s] não encontrada para valor %s ' \
+                '(em %s %s)' % (
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # se FK == 0, criamos um stub e colocamos o valor DESCONHECIDO
-                # para qualquer TextField que possa haver
-                all_fields = field.related_model._meta.get_fields()
-                for related_field in all_fields:
-                    if related_field.get_internal_type() == 'TextField':
-                        fields_dict[related_field.name] = 'DESCONHECIDO'
-                        has_textfield = True
-                    elif related_field.get_internal_type() == 'CharField':
-                        fields_dict[related_field.name] = 'DESC'
-                        has_textfield = True
-                if has_textfield and field.null is False:
-                    if not stub_created:
-                        stub_created = mommy.make(field.related_model,
-                                                  **fields_dict)
-                        warn(msg + ' => STUB CREATED FOR NOT NULL FIELD')
-                        value = stub_created
-                    else:
-                        value = stub_created
-                        warn(msg + ' => USING STUB ALREADY CREATED')
+                # se FK == 0, criamos um stub e colocamos o valor '????????
+                # para qualquer CharField ou TextField que possa haver
+                if not field.null:
+                    all_fields = field.related_model._meta.get_fields()
+                    fields_dict = {f.name: '????????????'[:f.max_length]
+                                   for f in all_fields
+                                   if isinstance(f, (CharField, TextField)) and
+                                   not f.choices and not f.blank}
+                    value = mommy.make(field.related_model,
+                                       **fields_dict)
+                    warn(msg + ' => STUB criada para campos não nuláveis!')
                 else:
                     value = None
-                    warn(msg + ' => using NONE for zero value')
+                    warn(msg + ' => usando None para valores iguais a zero!')
             else:
                 value = make_stub(field.related_model, value)
                 stubs_list.append((value.id, field))
-                warn(msg + ' => STUB CREATED')
+                warn(msg + ' => STUB criada!')
         else:
             assert value
     return value
@@ -240,7 +234,6 @@ class DataMigrator:
         legacy_model_name = self.model_renames.get(model, model.__name__)
         legacy_model = legacy_app.get_model(legacy_model_name)
         legacy_pk_name = legacy_model._meta.pk.name
-        global stub_created
 
         # Clear all model entries
         # They may have been created in a previous migration attempt
@@ -251,14 +244,12 @@ class DataMigrator:
             # There is no pk in the legacy table
             def save(new, old):
                 new.save()
-                stub_created = False
 
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
             def save(new, old):
                 save_with_id(new, getattr(old, legacy_pk_name))
-                stub_created = False
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
