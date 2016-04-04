@@ -89,6 +89,11 @@ bower
 bower_components
 media
 
+<<<<<<< HEAD
 # Merge garbage
 .orig
 
+=======
+#merge garbage
+.orig
+>>>>>>> Arruma quebra em pesquisa por Relatoria

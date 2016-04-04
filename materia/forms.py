@@ -652,7 +652,7 @@ class MateriaLegislativaPesquisaFields(FilterSet):
         empty_label='Selecione',
         help_text="")
 
-    relatoria__parlamentar__id = django_filters.ModelChoiceFilter(
+    relatoria__parlamentar_id = django_filters.ModelChoiceFilter(
         label='Relator',
         required=False,
         queryset=Parlamentar.objects.all().order_by('nome_parlamentar'),
