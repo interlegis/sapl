@@ -3,8 +3,8 @@
 {% load crispy_forms_tags %}
 
 {% block base_content %}
+<h2><b>Sessões Plenárias</b></h2>
 <div class="actions btn-group pull-right" role="group">
-  <h2>Sessões Plenárias</h2>
   <a href="{% url 'sessao:sessao_cadastro' %}" class="btn btn-default">
     {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
   </a>

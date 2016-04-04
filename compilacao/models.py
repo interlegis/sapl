@@ -90,8 +90,7 @@ PARTICIPACAO_SOCIAL_CHOICES = [
 class TextoArticulado(TimestampedMixin):
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     ementa = models.TextField(verbose_name=_('Ementa'))
-    observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observação'))
+    observacao = models.TextField(blank=True, verbose_name=_('Observação'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     tipo_ta = models.ForeignKey(

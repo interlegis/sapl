@@ -72,7 +72,7 @@ def validate(form, parlamentar, filiacao, request):
                 break
 
             if (data_desfiliacao and
-               data_init < data_desfiliacao < data_fim):
+                    data_init < data_desfiliacao < data_fim):
 
                 error_msg = _("A data de filiação e \
                         desfiliação não podem estar no intervalo \
@@ -186,10 +186,6 @@ class ParlamentaresCadastroView(CreateView):
 
     def form_valid(self, form):
         form.save()
-        mandato = Mandato()
-        mandato.parlamentar = form.instance
-        mandato.legislatura = Legislatura.objects.get(id=self.kwargs['pk'])
-        mandato.save()
         return redirect(self.get_success_url())
 
 
@@ -206,7 +202,7 @@ class ParlamentaresEditarView(UpdateView):
         elif 'excluir' in self.request.POST:
             Mandato.objects.get(parlamentar=parlamentar).delete()
             parlamentar.delete()
-        elif "remover" in self.request.POST:
+        elif "remover-foto" in self.request.POST:
             try:
                 os.unlink(parlamentar.fotografia.path)
             except OSError:
@@ -228,7 +224,7 @@ class ParlamentaresDependentesView(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresDependentesView, self).\
-                    get_context_data(**kwargs)
+            get_context_data(**kwargs)
         pk = self.kwargs['pk']
         parlamentar = Parlamentar.objects.get(pk=pk)
         dependentes = Dependente.objects.filter(
@@ -267,12 +263,12 @@ class ParlamentaresDependentesEditView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresDependentesEditView, self).\
-                get_context_data(**kwargs)
+            get_context_data(**kwargs)
         parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
         context.update({
-         'object': parlamentar,
-         'legislatura_id': parlamentar.mandato_set.last(
-         ).legislatura_id})
+            'object': parlamentar,
+            'legislatura_id': parlamentar.mandato_set.last(
+            ).legislatura_id})
         return context
 
     def form_valid(self, form):
@@ -528,7 +524,7 @@ class MandatoEditView(UpdateView):
         context.update(
             {'object': parlamentar,
              'legislatura_id': parlamentar.mandato_set.last(
-                ).legislatura_id})
+             ).legislatura_id})
         return context
 
     def form_valid(self, form):

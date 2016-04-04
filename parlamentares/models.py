@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.utils import UF, YES_NO_CHOICES
+from sapl.utils import UF, YES_NO_CHOICES, restringe_tipos_de_arquivo_img
 
 
 class Legislatura(models.Model):
@@ -244,7 +244,8 @@ class Parlamentar(models.Model):
         blank=True,
         null=True,
         upload_to=foto_upload_path,
-        verbose_name=_('Fotografia'))
+        verbose_name=_('Fotografia'),
+        validators=[restringe_tipos_de_arquivo_img])
 
     class Meta:
         verbose_name = _('Parlamentar')
