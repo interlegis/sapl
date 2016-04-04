@@ -1,4 +1,5 @@
 import pytest
+from django.db.models import CharField, TextField
 from django.apps import apps
 from model_mommy import mommy
 
@@ -6,12 +7,12 @@ from .settings import SAPL_APPS
 
 pytestmark = pytest.mark.django_db
 
+
 def test_charfiled_textfield():
     for model in apps.get_models():
         fields = model._meta.local_fields
         for field in fields:
-                if (type(field).__name__ == 'CharField' or
-                        type(field).__name__ == 'TextField'):
+                if isinstance(field, (CharField, TextField)):
                     msg = 'Model = %s || Field = %s - %s - %s' % (
                            model.__name__,
                            field.attname,
