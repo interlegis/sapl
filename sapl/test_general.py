@@ -6,17 +6,18 @@ from .settings import SAPL_APPS
 
 pytestmark = pytest.mark.django_db
 
-for model in apps.get_models():
-    fields = model._meta.local_fields
-    for field in fields:
-            if (type(field).__name__ == 'CharField' or
-                    type(field).__name__ == 'TextField'):
-                msg = 'Model = %s || Field = %s - %s - %s' % (
-                       model.__name__,
-                       field.attname,
-                       type(field).__name__,
-                       field.null)
-                raise AssertionError(msg)
+def test_charfiled_textfield():
+    for model in apps.get_models():
+        fields = model._meta.local_fields
+        for field in fields:
+                if (type(field).__name__ == 'CharField' or
+                        type(field).__name__ == 'TextField'):
+                    msg = 'Model = %s || Field = %s - %s - %s' % (
+                           model.__name__,
+                           field.attname,
+                           type(field).__name__,
+                           field.null)
+                    raise AssertionError(msg)
 
 
 def test_str_sanity():
