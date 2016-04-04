@@ -1,4 +1,4 @@
-.. image:: https://badge.waffle.io/interlegis/sapl.png?label=ready&title=Ready 
+.. image:: https://badge.waffle.io/interlegis/sapl.png?label=ready&title=Ready
  :target: https://waffle.io/interlegis/sapl
  :alt: 'Stories in Ready'
 
@@ -20,8 +20,8 @@ Development Environment Installation
 
 * Install the following system dependencies (command bellow for Ubuntu)::
 
-    sudo apt-get install git python3-dev libpq-dev graphviz-dev graphviz \
-    postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
+    sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz \
+    pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm \
 
     sudo ln -s /usr/bin/nodejs /usr/bin/node
 
@@ -30,6 +30,12 @@ Development Environment Installation
 * Setup git, following the instructions in https://help.github.com/articles/set-up-git.
 
 * Fork and clone this repository, following the instructions in https://help.github.com/articles/fork-a-repo.
+
+* If you don't have pip installed then execute the following instructions:
+
+    sudo apt-get install python-pip python-dev build-essential
+    sudo pip install --upgrade pip
+    sudo pip install --upgrade virtualenv
 
 * Create a virtualenv using python 3 for the project and activate it.
   If you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_::
