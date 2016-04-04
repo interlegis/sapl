@@ -519,7 +519,8 @@ class MandatoEditView(UpdateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_mandato', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_mandato',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(MandatoEditView, self).get_context_data(**kwargs)

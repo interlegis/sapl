@@ -223,7 +223,7 @@ class MateriaAnexadaEditView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('materia_anexada', kwargs={'pk': pk})
+        return reverse('materia:materia_anexada', kwargs={'pk': pk})
 
 
 class DespachoInicialView(CreateView):
@@ -294,7 +294,7 @@ class DespachoInicialEditView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('despacho_inicial', kwargs={'pk': pk})
+        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
 
 
 class LegislacaoCitadaView(FormView):
@@ -355,7 +355,7 @@ class LegislacaoCitadaView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('legislacao_citada', kwargs={'pk': pk})
+        return reverse('materia:legislacao_citada', kwargs={'pk': pk})
 
 
 class LegislacaoCitadaEditView(FormView):
@@ -364,7 +364,7 @@ class LegislacaoCitadaEditView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('legislacao_citada', kwargs={'pk': pk})
+        return reverse('materia:legislacao_citada', kwargs={'pk': pk})
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -494,7 +494,7 @@ class NumeracaoEditView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('numeracao', kwargs={'pk': pk})
+        return reverse('materia:numeracao', kwargs={'pk': pk})
 
 
 class DocumentoAcessorioView(CreateView):
@@ -601,7 +601,7 @@ class DocumentoAcessorioEditView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('documento_acessorio', kwargs={'pk': pk})
+        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
 
 
 class RelatoriaEditView(FormView):
@@ -610,7 +610,7 @@ class RelatoriaEditView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('relatoria', kwargs={'pk': pk})
+        return reverse('materia:relatoria', kwargs={'pk': pk})
 
     def get(self, request, *args, **kwargs):
         form = RelatoriaForm()
@@ -667,7 +667,7 @@ class RelatoriaView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('relatoria', kwargs={'pk': pk})
+        return reverse('materia:relatoria', kwargs={'pk': pk})
 
     def post(self, request, *args, **kwargs):
         form = RelatoriaForm(request.POST)
@@ -807,8 +807,9 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
                  casa_legislativa.uf)
 
     base_url = get_base_url(request)
-    materia_url = reverse('acompanhar_materia', kwargs={'pk': materia.id})
-    confirmacao_url = reverse('acompanhar_confirmar',
+    materia_url = reverse('materia:acompanhar_materia',
+                          kwargs={'pk': materia.id})
+    confirmacao_url = reverse('materia:acompanhar_confirmar',
                               kwargs={'pk': materia.id})
 
     autores = []
@@ -843,8 +844,10 @@ def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
                  casa_legislativa.uf)
 
     base_url = get_base_url(request)
-    url_materia = reverse('acompanhar_materia', kwargs={'pk': materia.id})
-    url_excluir = reverse('acompanhar_excluir', kwargs={'pk': materia.id})
+    url_materia = reverse('materia:acompanhar_materia',
+                          kwargs={'pk': materia.id})
+    url_excluir = reverse('materia:acompanhar_excluir',
+                          kwargs={'pk': materia.id})
 
     autores = []
     for autoria in materia.autoria_set.all():
@@ -1027,7 +1030,7 @@ class TramitacaoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('tramitacao_materia', kwargs={'pk': pk})
+        return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
 
 
 class TramitacaoEditView(CreateView):
@@ -1082,7 +1085,7 @@ class TramitacaoEditView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('tramitacao_materia', kwargs={'pk': pk})
+        return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
 
 
 class AutoriaView(CreateView):
@@ -1124,7 +1127,7 @@ class AutoriaView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('autoria', kwargs={'pk': pk})
+        return reverse('materia:autoria', kwargs={'pk': pk})
 
 
 class AutoriaEditView(CreateView):
@@ -1163,7 +1166,7 @@ class AutoriaEditView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('autoria', kwargs={'pk': pk})
+        return reverse('materia:autoria', kwargs={'pk': pk})
 
 
 class ProposicaoListView(ListView):
