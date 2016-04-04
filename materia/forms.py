@@ -594,7 +594,7 @@ class RangeWidgetOverride(forms.MultiWidget):
         return [None, None]
 
     def format_output(self, rendered_widgets):
-        return '-'.join(rendered_widgets)
+        return ''.join(rendered_widgets)
 
 
 class MateriaLegislativaPesquisaFields(FilterSet):
@@ -629,13 +629,8 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                       help_text="",
                       widget=RangeWidgetOverride)
 
-    autoria__autor = django_filters.ModelChoiceFilter(
-        label='Autor',
-        required=False,
-        queryset=Autor.objects.all().order_by('tipo'),
-        empty_label='Selecione',
-        help_text=""
-    )
+    autoria__autor = django_filters.CharFilter(
+      widget=forms.HiddenInput(), required=False)
 
     autoria__autor__tipo = django_filters.ModelChoiceFilter(
         label=_('Tipo Autor'),
@@ -707,54 +702,56 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                   'em_tramitacao',
                   'ementa',
                   'autoria__autor__id',
-                  'relatoria__parlamentar__id',
+                  'relatoria__parlamentar_id',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
                   'autoria__autor__tipo',
                   'autoria__partido',
                   'local_origem_externa'}
 
-    # def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaPesquisaFields, self).__init__(*args, **kwargs)
 
-    #     row1 = crispy_layout_mixin.to_row(
-    #         [('tipo', 12)])
-    #     row2 = crispy_layout_mixin.to_row(
-    #         [('numero', 4),
-    #          ('ano', 4),
-    #          ('numero_protocolo', 4)])
-    #     row3 = crispy_layout_mixin.to_row(
-    #         [('data_apresentacao', 6),
-    #          ('data_publicacao', 6)])
-    #     row4 = crispy_layout_mixin.to_row(
-    #         [('em_tramitacao', 6),
-    #          ('ementa', 6)])
-    #     row5 = crispy_layout_mixin.to_row(
-    #              [('autoria__autor__id', 0),
-    #               (Button('pesquisar',
-    #                       'Pesquisar Autor',
-    #                       css_class='btn btn-primary btn-sm'), 2),
-    #               (Button('limpar',
-    #                       'limpar Autor',
-    #                       css_class='btn btn-primary btn-sm'), 10)])
-    #     row6 = crispy_layout_mixin.to_row(
-    #         [('relatoria__parlamentar__id', 6),
-    #          ('tramitacao__unidade_tramitacao_destino', 6)])
-    #     row7 = crispy_layout_mixin.to_row(
-    #         [('tramitacao__status', 6),
-    #          ('autoria__autor__tipo', 6)])
-    #     row8 = crispy_layout_mixin.to_row(
-    #         [('autoria__partido', 6),
-    #          ('local_origem_externa', 6)])
+        row1 = crispy_layout_mixin.to_row(
+            [('tipo', 12)])
+        row2 = crispy_layout_mixin.to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('numero_protocolo', 4)])
+        row3 = crispy_layout_mixin.to_row(
+            [('data_apresentacao', 6)])
+        row4 = crispy_layout_mixin.to_row(
+            [('data_publicacao', 6)])
+        row5 = crispy_layout_mixin.to_row(
+                 [('autoria__autor', 0),
+                  (Button('pesquisar',
+                          'Pesquisar Autor',
+                          css_class='btn btn-primary btn-sm'), 2),
+                  (Button('limpar',
+                          'limpar Autor',
+                          css_class='btn btn-primary btn-sm'), 10)])
+        row6 = crispy_layout_mixin.to_row(
+            [('autoria__autor__tipo', 6),
+             ('autoria__partido', 6)])
+        row7 = crispy_layout_mixin.to_row(
+            [('relatoria__parlamentar_id', 6),
+             ('local_origem_externa', 6)])
+        row8 = crispy_layout_mixin.to_row(
+            [('tramitacao__unidade_tramitacao_destino', 6),
+             ('tramitacao__status', 6)])
+        row9 = crispy_layout_mixin.to_row(
+            [('em_tramitacao', 6),
+             ('ementa', 6)])
 
-    #     self.helper = FormHelper()
-    #     self.helper.layout = Layout(
-    #         Fieldset(_('Pesquisa Básica'),
-    #                  row1, row2, row3, row4,
-    #                  HTML(sapl.utils.autor_label),
-    #                  HTML(sapl.utils.autor_modal),
-    #                  row5, row6, row7, row8,
-    #                  form_actions(save_label='Pesquisar'))
-    #     )
+        self.form.helper = FormHelper()
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa Básica'),
+                     row1, row2, row3, row4,
+                     HTML(sapl.utils.autor_label),
+                     HTML(sapl.utils.autor_modal),
+                     row5, row6, row7, row8, row9,
+                     form_actions(save_label='Pesquisar'))
+        )
 
 
 def pega_ultima_tramitacao():

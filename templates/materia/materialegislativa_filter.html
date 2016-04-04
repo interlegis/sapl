@@ -8,10 +8,7 @@
 {% block detail_content %}
   <h1><b>Pesquisar Matéria</b></h1>
   <br></br>
-  <form action="" method="get">
-      {{ filter.form.as_p }}
-      <input type="submit" value="Pesquisar" />
-  </form>
+ {% crispy filter.form %}
   <p></p>
   <table class="table table-striped table-bordered">
         <thead class="thead-default">
