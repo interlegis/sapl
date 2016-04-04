@@ -1,4 +1,17 @@
 
+DISPOSITIVO_SELECT_RELATED = (
+    'tipo_dispositivo',
+    'ta_publicado',
+    'ta',
+    'dispositivo_atualizador',
+    'dispositivo_atualizador__dispositivo_pai',
+    'dispositivo_atualizador__dispositivo_pai__ta',
+    'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
+    'dispositivo_pai',
+    'dispositivo_pai__tipo_dispositivo',
+    'ta_publicado',
+    'ta',)
+
 
 def int_to_roman(int_value):
     # if isinstance(int_value, type(1)):

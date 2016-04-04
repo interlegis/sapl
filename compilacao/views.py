@@ -33,21 +33,9 @@ from compilacao.models import (Dispositivo, Nota,
                                TextoArticulado, TipoDispositivo, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide)
+from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
 
-
-DISPOSITIVO_SELECT_RELATED = (
-    'tipo_dispositivo',
-    'ta_publicado',
-    'ta',
-    'dispositivo_atualizador',
-    'dispositivo_atualizador__dispositivo_pai',
-    'dispositivo_atualizador__dispositivo_pai__ta',
-    'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
-    'dispositivo_pai',
-    'dispositivo_pai__tipo_dispositivo',
-    'ta_publicado',
-    'ta',)
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -2090,8 +2078,8 @@ class DispositivoSearchFragmentFormView(ListView):
     def get_queryset(self):
         try:
 
-            n = 10
-            q = Q(nivel__gt=0)
+            n = 50
+            q = Q()
             if 'initial_ref' in self.request.GET:
                 initial_ref = self.request.GET['initial_ref']
                 if initial_ref:
@@ -2103,13 +2091,16 @@ class DispositivoSearchFragmentFormView(ListView):
 
                 return result[:n]
 
+            str_texto = ''
             texto = ''
             rotulo = ''
+            num_ta = ''
+            ano_ta = ''
 
             if 'texto' in self.request.GET:
-                texto = self.request.GET['texto']
+                str_texto = self.request.GET['texto']
 
-            texto = texto.split(' ')
+            texto = str_texto.split(' ')
 
             if 'rotulo' in self.request.GET:
                 rotulo = self.request.GET['rotulo']
@@ -2122,39 +2113,51 @@ class DispositivoSearchFragmentFormView(ListView):
                 if q:
                     q = q & (Q(texto__icontains=item) |
                              Q(texto_atualizador__icontains=item))
-                    n = 50
                 else:
                     q = (Q(texto__icontains=item) |
                          Q(texto_atualizador__icontains=item))
-                    n = 50
 
             if 'tipo_ta' in self.request.GET:
                 tipo_ta = self.request.GET['tipo_ta']
                 if tipo_ta:
                     q = q & Q(ta__tipo_ta_id=tipo_ta)
-                    n = 50
 
             if 'num_ta' in self.request.GET:
                 num_ta = self.request.GET['num_ta']
                 if num_ta:
                     q = q & Q(ta__numero=num_ta)
-                    n = 50
 
             if 'ano_ta' in self.request.GET:
                 ano_ta = self.request.GET['ano_ta']
                 if ano_ta:
                     q = q & Q(ta__ano=ano_ta)
-                    n = 50
 
-            result = Dispositivo.objects.filter(q).select_related(
-                'ta').exclude(tipo_dispositivo__dispositivo_de_alteracao=True)
+            if not q.children:
+                n = 10
+            q = q & Q(nivel__gt=0)
+
+            result = Dispositivo.objects.order_by(
+                '-ta__data',
+                '-ta__ano',
+                '-ta__numero',
+                'ta',
+                'ordem').filter(q).select_related('ta').exclude(
+                tipo_dispositivo__dispositivo_de_alteracao=True)
+
+            def resultados(r):
+                if num_ta and ano_ta and not rotulo and not str_texto and\
+                        'data_type_selection' in self.request.GET and\
+                        self.request.GET['data_type_selection'] == 'checkbox':
+                    return r
+                else:
+                    return r[:n]
 
             if 'tipo_model' not in self.request.GET:
-                return result[:n]
+                return resultados(result)
 
             tipo_model = self.request.GET['tipo_model']
             if not tipo_model:
-                return result[:n]
+                return resultados(result)
 
             integrations_view_names = get_integrations_view_names()
 
@@ -2176,7 +2179,7 @@ class DispositivoSearchFragmentFormView(ListView):
                         break
 
             if not model_class:
-                return result[:n]
+                return resultados(result)
 
             column_field = ''
             for field in model_class._meta.fields:
@@ -2185,7 +2188,7 @@ class DispositivoSearchFragmentFormView(ListView):
                     break
 
             if not column_field:
-                return result[:n]
+                return resultados(result)
 
             r = []
 
@@ -2197,7 +2200,8 @@ class DispositivoSearchFragmentFormView(ListView):
                 if tipo_model.pk == getattr(d.ta.content_object, column_field):
                     r.append(d)
 
-                if len(r) == n:
+                if (len(r) == n and (not num_ta or
+                                     not ano_ta or rotulo or str_texto)):
                     break
             return r
 

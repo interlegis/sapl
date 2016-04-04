@@ -993,13 +993,17 @@ a:link:after, a:visited:after {
       border-bottom: 1px solid white;
 
       &.ta_title {
-        padding: 0.15em 0.7em;
         background-color: rgba(0, 0, 0, 0.15);
-        display:block;
         border-radius: 4px 4px 0 0;
+        width: 100%;
+
+        span {
+          padding: 0.5em;
+        }
       }
       &:last-child .itemlabel {
         border-radius: 0 0 4px 0px;
+        margin: 0px;
       }
 
       &:last-child .iteminput {
@@ -1029,6 +1033,7 @@ a:link:after, a:visited:after {
           line-height: 1;
           font-family: "SourceSansPro", Helvetica, Arial, sans-serif;
           display: block;
+          margin: 0px;
         }
       }
     }

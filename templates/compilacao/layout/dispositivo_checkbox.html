@@ -1,7 +1,6 @@
 {% load crispy_forms_filters %}
 {% load i18n compilacao_filters common_tags%}
 
-
 <div class="controls cp lista-dispositvo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
   {% include 'bootstrap/layout/field_errors_block.html' %}
 
@@ -10,7 +9,14 @@
     {% ifchanged choice.1.ta%}
       {% if not forloop.first %}</ul>{% endif %}
         <ul id="ta{{choice.1.ta.pk}}">
-          <li class="ta_title">{{choice.1.ta}}</li>
+          <li class="ta_title">
+            <div class="iteminput">
+                <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="ta_select_all"  id="ta_title{{choice.1.ta.pk}}" value="{{choice.1.ta.pk}}"/>
+            </div>
+            <div class="itemlabel">
+                <label for="ta_title{{choice.1.ta.pk}}">{{choice.1.ta}}</label>
+            </div>
+          </li>
     {% endifchanged %}
 
 
@@ -19,9 +25,11 @@
           <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{choice.1.pk}}" value="{{choice.1.pk}}"  {% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
       </div>
       <div class="itemlabel dpt">
-
+        {% if choice.1.ta_publicado_id %}
+          <a target="_blank" href="{% url 'compilacao:ta_text' choice.1.ta.pk%}#{{choice.1.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% nomenclatura_heranca choice.1 1 1 %}</a>
+        {% endif %}
         <div class="{{ choice.1.tipo_dispositivo.class_css }}">
-          <div class="dptt {% dispositivo_desativado choice.1 view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{choice.1.pk}}" >
+          <div class="dptt {% dispositivo_desativado choice.1 None None %}"  id="dptt{{choice.1.pk}}" >
             {{ choice.1.tipo_dispositivo.rotulo_prefixo_html|safe }}
             <a name="{{choice.1.pk}}" title="{{choice.1.pk}}">{% if choice.1.rotulo %}{{ choice.1.rotulo }}{%else%}[{{ choice.1|nomenclatura}}{% if choice.1.dispositivo_pai %} {% trans "de" %} {{ choice.1.dispositivo_pai.rotulo }}{% endif %}] - {% endif %}</a>
             {{ choice.1.tipo_dispositivo.rotulo_sufixo_html|safe }}

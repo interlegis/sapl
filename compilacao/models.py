@@ -627,6 +627,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     dispositivo_vigencia = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
+        on_delete=models.SET_NULL,
         related_name='dispositivos_vigencias_set',
         verbose_name=_('Dispositivo de Vigência'))
     dispositivo_atualizador = models.ForeignKey(

@@ -99,7 +99,7 @@
 
           {% if dpt.dispositivo_vigencia %}
             <li>&#8226;</li>
-            <li>{% field_verbose_name dpt 'dispositivo_vigencia'%}: <a action="refresh" pk="{{dpt.dispositivo_vigencia.pk}}" title="{% field_verbose_name dpt 'dispositivo_vigencia'%} {% trans 'em' %}:&#013;{{dpt.dispositivo_vigencia.ta}}" class="btn-action">{{dpt.dispositivo_vigencia|nomenclatura}}</a> </li>
+            <li>{% field_verbose_name dpt 'dispositivo_vigencia'%}: <a href="{% url 'compilacao:ta_text_edit' dpt.dispositivo_vigencia.ta_id %}#{{ dpt.dispositivo_vigencia_id }}" action="refresh" pk="{{dpt.dispositivo_vigencia.pk}}" title="{% field_verbose_name dpt 'dispositivo_vigencia'%} {% trans 'em' %}:&#013;{{dpt.dispositivo_vigencia.ta}}">{{dpt.dispositivo_vigencia|nomenclatura}}</a> </li>
           {% endif %}
 
           <li>&#8226;</li>

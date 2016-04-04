@@ -12,7 +12,7 @@
       {% ifchanged dpt.ta%}
         {% if not forloop.first %}</ul>{% endif %}
           <ul id="ta{{dpt.ta.pk}}">
-            <li class="ta_title">{{dpt.ta}}</li>
+            <li class="ta_title"><span>{{dpt.ta}}</span></li>
       {% endifchanged %}
       {% if dpt.is_relative_auto_insert %}
         <li>

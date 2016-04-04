@@ -23,7 +23,7 @@ function onEventsDneExec(pk, model) {
         });
     }
     else if (model == 'vide') {
-        configFormSearchTA('#dne'+pk, 'radio', 'select_for_vide');    	
+        configFormSearchTA('#dne'+pk, 'radio', 'select_for_vide');
 
         onChangeParamTA();
     }
@@ -68,9 +68,7 @@ var onSubmitEditNVForm = function(event) {
                         }, 300);
                     }
                     catch(err) {
-                        console.log(err.message);
                     }
-
                 }
             }
         }

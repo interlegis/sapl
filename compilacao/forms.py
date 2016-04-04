@@ -18,6 +18,7 @@ from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                Publicacao, TextoArticulado, TipoNota,
                                TipoPublicacao, TipoTextoArticulado, TipoVide,
                                VeiculoPublicacao, Vide, TipoDispositivo)
+from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crispy_layout_mixin import SaplFormLayout, to_column, to_row
 from sapl import utils
 from sapl.utils import YES_NO_CHOICES
@@ -621,7 +622,7 @@ class DispositivoSearchModalForm(Form):
         label=_('Ano do Documento'), required=False)
 
     dispositivos_internos = forms.ChoiceField(
-        label=_('Incluir Dispositivos Internos?'),
+        label=_('Incluir Dispositivos Internos Imediatos?'),
         choices=utils.YES_NO_CHOICES,
         widget=forms.RadioSelect(),
         required=False)
@@ -639,9 +640,9 @@ class DispositivoSearchModalForm(Form):
         fields_search = Fieldset(
             _('Busca por um Dispositivo'),
             Row(
-                to_column(('num_ta', 4)),
-                to_column(('ano_ta', 4)),
-                to_column((InlineRadios('dispositivos_internos'), 4))),
+                to_column(('num_ta', 3)),
+                to_column(('ano_ta', 3)),
+                to_column((InlineRadios('dispositivos_internos'), 6))),
             Row(
                 to_column(('tipo_ta', 6)),
                 to_column(('tipo_model', 6))),
@@ -765,6 +766,14 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
             pk=self.instance.dispositivo_vigencia_id)
         self.fields['dispositivo_vigencia'].choices = [(d.pk, d) for d in dvs]
 
+    def clean_dispositivo_vigencia(self):
+        dv = self.cleaned_data['dispositivo_vigencia']
+
+        if dv and dv.is_relative_auto_insert():
+            dv = dv.dispositivo_pai
+
+        return dv
+
     def save(self):
         super(DispositivoEdicaoVigenciaForm, self).save()
 
@@ -774,6 +783,10 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
 
         if extensao:
             dv = data['dispositivo_vigencia']
+
+            if dv and dv.is_relative_auto_insert():
+                dv = dv.dispositivo_pai
+
             dv_pk = dv.pk if dv else None
             instance = self.instance
 
@@ -833,17 +846,7 @@ class DispositivoDefinidorVigenciaForm(Form):
 
         dvs = Dispositivo.objects.order_by('ta', 'ordem').filter(
             dispositivo_vigencia_id=pk).select_related(
-            'tipo_dispositivo',
-            'ta_publicado',
-            'ta',
-            'dispositivo_atualizador',
-            'dispositivo_atualizador__dispositivo_pai',
-            'dispositivo_atualizador__dispositivo_pai__ta',
-            'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
-            'dispositivo_pai',
-            'dispositivo_pai__tipo_dispositivo',
-            'ta_publicado',
-            'ta',)
+            *DISPOSITIVO_SELECT_RELATED)
         self.initial['dispositivo_vigencia'] = [d.pk for d in dvs]
 
         tas = Dispositivo.objects.filter(
@@ -854,18 +857,10 @@ class DispositivoDefinidorVigenciaForm(Form):
         if not tas:
             tas = Dispositivo.objects.filter(pk=pk).values_list('ta_id')
 
-        dvs = Dispositivo.objects.order_by('-ta__data', '-ta__ano', '-ta__numero', 'ta',  'ordem').filter(
-            ta__in=tas).select_related(
-            'tipo_dispositivo',
-            'ta_publicado',
-            'ta',
-            'dispositivo_atualizador',
-            'dispositivo_atualizador__dispositivo_pai',
-            'dispositivo_atualizador__dispositivo_pai__ta',
-            'dispositivo_atualizador__dispositivo_pai__ta__tipo_ta',
-            'dispositivo_pai',
-            'dispositivo_pai__tipo_dispositivo',
-            'ta_publicado',
-            'ta',)
+        dvs = Dispositivo.objects.order_by(
+            '-ta__data', '-ta__ano', '-ta__numero', 'ta', 'ordem').filter(
+            ta__in=tas).select_related(*DISPOSITIVO_SELECT_RELATED)
         self.fields['dispositivo_vigencia'].choices = [
-            (d.pk, d) for d in dvs]
+            (d.pk, d)
+            for d in dvs
+            if d.pk in self.initial['dispositivo_vigencia']]
