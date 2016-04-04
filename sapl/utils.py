@@ -94,35 +94,35 @@ def listify(function):
     return f
 
 UF = [
-        ('AC', 'Acre'),
-        ('AL', 'Alagoas'),
-        ('AP', 'Amapá'),
-        ('AM', 'Amazonas'),
-        ('BA', 'Bahia'),
-        ('CE', 'Ceará'),
-        ('DF', 'Distrito Federal'),
-        ('ES', 'Espírito Santo'),
-        ('GO', 'Goiás'),
-        ('MA', 'Maranhão'),
-        ('MT', 'Mato Grosso'),
-        ('MS', 'Mato Grosso do Sul'),
-        ('MG', 'Minas Gerais'),
-        ('PR', 'Paraná'),
-        ('PB', 'Paraíba'),
-        ('PA', 'Pará'),
-        ('PE', 'Pernambuco'),
-        ('PI', 'Piauí'),
-        ('RJ', 'Rio de Janeiro'),
-        ('RN', 'Rio Grande do Norte'),
-        ('RS', 'Rio Grande do Sul'),
-        ('RO', 'Rondônia'),
-        ('RR', 'Roraima'),
-        ('SC', 'Santa Catarina'),
-        ('SE', 'Sergipe'),
-        ('SP', 'São Paulo'),
-        ('TO', 'Tocantins'),
-        ('EX', 'Exterior'),
-    ]
+    ('AC', 'Acre'),
+    ('AL', 'Alagoas'),
+    ('AP', 'Amapá'),
+    ('AM', 'Amazonas'),
+    ('BA', 'Bahia'),
+    ('CE', 'Ceará'),
+    ('DF', 'Distrito Federal'),
+    ('ES', 'Espírito Santo'),
+    ('GO', 'Goiás'),
+    ('MA', 'Maranhão'),
+    ('MT', 'Mato Grosso'),
+    ('MS', 'Mato Grosso do Sul'),
+    ('MG', 'Minas Gerais'),
+    ('PR', 'Paraná'),
+    ('PB', 'Paraíba'),
+    ('PA', 'Pará'),
+    ('PE', 'Pernambuco'),
+    ('PI', 'Piauí'),
+    ('RJ', 'Rio de Janeiro'),
+    ('RN', 'Rio Grande do Norte'),
+    ('RS', 'Rio Grande do Sul'),
+    ('RO', 'Rondônia'),
+    ('RR', 'Roraima'),
+    ('SC', 'Santa Catarina'),
+    ('SE', 'Sergipe'),
+    ('SP', 'São Paulo'),
+    ('TO', 'Tocantins'),
+    ('EX', 'Exterior'),
+]
 
 RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
 
@@ -146,7 +146,7 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/xml',
     'text/xml',
     'text/html',
-    )
+)
 
 TIPOS_IMG_PERMITIDOS = (
     'image/jpeg',
@@ -169,16 +169,18 @@ TIPOS_IMG_PERMITIDOS = (
 )
 
 
-def fabrica_validador_de_tipos_de_arquivo(lista):
+def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
         mime = magic.from_buffer(value.read(), mime=True)
         mime = mime.decode()
         if mime not in lista:
             raise ValidationError(_('Tipo de arquivo não suportado'))
+    # o nome é importante para as migrations
+    restringe_tipos_de_arquivo.__name__ = nome
     return restringe_tipos_de_arquivo
 
 restringe_tipos_de_arquivo_txt = fabrica_validador_de_tipos_de_arquivo(
-    TIPOS_TEXTO_PERMITIDOS)
+    TIPOS_TEXTO_PERMITIDOS, 'restringe_tipos_de_arquivo_txt')
 restringe_tipos_de_arquivo_img = fabrica_validador_de_tipos_de_arquivo(
-    TIPOS_IMG_PERMITIDOS)
+    TIPOS_IMG_PERMITIDOS, 'restringe_tipos_de_arquivo_img')
