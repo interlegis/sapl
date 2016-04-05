@@ -42,6 +42,26 @@ Parlamentar:
   - fotografia
   - biografia
 
+ParlamentarCreate:
+  Dados do Mandato:
+    - legislatura  data_expedicao_diploma
+  Cadastro do Parlamentar:
+  - nome_parlamentar:8  ativo
+  - nome_completo
+  - nivel_instrucao  sexo  data_nascimento
+  - cpf  rg  titulo_eleitor
+  - situacao_militar  profissao
+  - endereco_web
+  - email
+  - numero_gab_parlamentar  telefone  fax
+  - endereco_residencia  cep_residencia
+  - municipio_residencia
+  - telefone_residencia  fax_residencia
+  - locais_atuacao
+  - fotografia
+  - biografia
+
+
 Filiacao:
   'Filiações Partidárias ':
   - partido  data  data_desfiliacao

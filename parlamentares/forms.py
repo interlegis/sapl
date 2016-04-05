@@ -1,13 +1,44 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
+from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 
-from .models import Dependente, Filiacao, Legislatura, Mandato
+from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
+
+
+class ParlamentarCreateForm(ModelForm):
+
+    legislatura = forms.ModelChoiceField(
+        label=_('Legislatura'),
+        required=True,
+        queryset=Legislatura.objects.all().order_by('-data_inicio'),
+        empty_label='----------',
+    )
+
+    data_expedicao_diploma = forms.DateField(
+        label=_('Expedição do Diploma'),
+        required=True,
+    )
+
+    class Meta:
+        model = Parlamentar
+        exclude = []
+
+    @transaction.atomic
+    def save(self, commit=True):
+        parlamentar = super(ParlamentarCreateForm, self).save(commit)
+        legislatura = self.cleaned_data['legislatura']
+        Mandato.objects.create(
+            parlamentar=parlamentar,
+            legislatura=legislatura,
+            data_fim_mandato=legislatura.data_fim,
+            data_expedicao_diploma=self.cleaned_data['data_expedicao_diploma'])
+        return parlamentar
 
 
 class MandatoForm(ModelForm):

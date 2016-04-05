@@ -5,10 +5,12 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, UpdateView
 
+import crud.base
 from crud.base import Crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
-                    FiliacaoForm, MandatoEditForm, MandatoForm)
+                    FiliacaoForm, MandatoEditForm, MandatoForm,
+                    ParlamentarCreateForm)
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
@@ -20,13 +22,28 @@ ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
 PartidoCrud = Crud.build(Partido, 'partidos')
 DependenteCrud = Crud.build(Dependente, '')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
-ParlamentarCrud = Crud.build(Parlamentar, '')
 FiliacaoCrud = Crud.build(Filiacao, '')
 MandatoCrud = Crud.build(Mandato, '')
 TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
+
+
+class ParlamentarCrud(Crud):
+    model = Parlamentar
+    help_path = ''
+
+    class BaseMixin(crud.base.BaseMixin):
+        # TODO: partido...
+        list_field_names = ['nome_parlamentar', 'ativo']
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = ParlamentarCreateForm
+
+        @property
+        def layout_key(self):
+            return 'ParlamentarCreate'
 
 
 def validate(form, parlamentar, filiacao, request):
