@@ -1,1 +1,1 @@
-default_app_config = 'protocoloadm.apps.ProtocoloadmAppConfig'
+default_app_config = 'protocoloadm.apps.AppConfig'

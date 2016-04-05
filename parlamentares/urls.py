@@ -12,6 +12,10 @@ from parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                  TipoAfastamentoCrud, TipoDependenteCrud,
                                  TipoMilitarCrud)
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 urlpatterns = [
     url(r'^sistema/parlamentares/legislatura/',
         include(LegislaturaCrud.get_urls())),

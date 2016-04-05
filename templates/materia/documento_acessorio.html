@@ -20,7 +20,7 @@
 				</thead>
 					{% for d in docs %}
 						<tr>
-							<td><a href="{% url 'documento_acessorio_edit' object.id d.id %}">{{d.nome}}</a></td>
+							<td><a href="{% url 'materia:documento_acessorio_edit' object.id d.id %}">{{d.nome}}</a></td>
 							<td>{{d.tipo.descricao}}</td>
 							<td>{{d.data|date:'d/m/Y'}}</td>
 							<td>{{d.autor}}</td>

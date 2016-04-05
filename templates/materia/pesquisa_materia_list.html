@@ -12,7 +12,7 @@
 		{% for m in materias %}
 			<tr>
 				<td>
-					<strong><a href="{% url 'materialegislativa:detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+					<strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
 					{{ m.ementa|safe }}</br>
 					<strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
 					<p></p>

@@ -175,7 +175,7 @@ class ParlamentaresCadastroView(CreateView):
     model = Parlamentar
 
     def get_success_url(self):
-        return reverse('parlamentares')
+        return reverse('parlamentares:parlamentares')
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresCadastroView, self).get_context_data(
@@ -193,7 +193,7 @@ class ParlamentaresEditarView(UpdateView):
     template_name = "parlamentares/parlamentares_cadastro.html"
     form_class = ParlamentaresEditForm
     model = Parlamentar
-    success_url = reverse_lazy('parlamentares')
+    success_url = reverse_lazy('parlamentares:parlamentares')
 
     def form_valid(self, form):
         parlamentar = form.instance
@@ -219,7 +219,8 @@ class ParlamentaresDependentesView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_dependentes', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_dependentes',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresDependentesView, self).\
@@ -257,7 +258,8 @@ class ParlamentaresDependentesEditView(UpdateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_dependentes', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_dependentes',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(ParlamentaresDependentesEditView, self).\
@@ -280,7 +282,7 @@ class ParlamentaresDependentesEditView(UpdateView):
 
 class MesaDiretoraView(FormView):
     template_name = "mesa_diretora/mesa_diretora.html"
-    success_url = reverse_lazy('mesa_diretora')
+    success_url = reverse_lazy('parlamentares:mesa_diretora')
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa)
     def validation(self, request):
@@ -345,7 +347,7 @@ class MesaDiretoraView(FormView):
                 id=int(request.POST['cargo']))
             composicao.save()
 
-            return self.form_valid(form=None)
+            return redirect('parlamentares:mesa_diretora')
 
         elif 'Excluir' in request.POST:
 
@@ -361,7 +363,7 @@ class MesaDiretoraView(FormView):
                     cargo_id=int(ids[1])
                 )
                 composicao.delete()
-            return self.form_valid(form=None)
+            return redirect('parlamentares:mesa_diretora')
         else:
             mesa = ComposicaoMesa.objects.filter(
                 sessao_legislativa=request.POST['sessao'])
@@ -399,7 +401,8 @@ class FiliacaoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_filiacao', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_filiacao',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(FiliacaoView, self).get_context_data(**kwargs)
@@ -439,7 +442,8 @@ class FiliacaoEditView(UpdateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_filiacao', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_filiacao',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(FiliacaoEditView, self).get_context_data(**kwargs)
@@ -472,7 +476,8 @@ class MandatoView(CreateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_mandato', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_mandato',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(MandatoView, self).get_context_data(**kwargs)
@@ -510,7 +515,8 @@ class MandatoEditView(UpdateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares_mandato', kwargs={'pk': pk})
+        return reverse('parlamentares:parlamentares_mandato',
+                       kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
         context = super(MandatoEditView, self).get_context_data(**kwargs)

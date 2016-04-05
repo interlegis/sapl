@@ -3,14 +3,14 @@
 {% load crispy_forms_tags %}
 
 {% block actions %}<!-- Remvoer botões 'Editar' e 'Excluir' -->{% endblock %}
-<!-- 
+<!--
 {% block sections_nav %}
 
 {% endblock %} -->
 
 {% block detail_content %}
 <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'adicionar_proposicao' %}" class="btn btn-default">Nova Proposição</a>
+    <a href="{% url 'materia:adicionar_proposicao' %}" class="btn btn-default">Nova Proposição</a>
  </div>
 <h2><b>Proposições</b></h2>
 	<table class="table table-striped table-bordered">
@@ -26,9 +26,9 @@
 		{% for proposicao in page_obj %}
 			<tr>
 				{% if proposicao.data_envio %}
-					<td><a href="{% url 'editar_proposicao' proposicao.id %}"><b>{{ proposicao.data_envio|date:'d/m/Y H:i' }}</b></a></td>
+					<td><a href="{% url 'materia:editar_proposicao' proposicao.id %}"><b>{{ proposicao.data_envio|date:'d/m/Y H:i' }}</b></a></td>
 				{% else %}
-					<td><a href="{% url 'editar_proposicao' proposicao.id %}"><b>Em elaboração...</b></a></td>
+					<td><a href="{% url 'materia:editar_proposicao' proposicao.id %}"><b>Em elaboração...</b></a></td>
 				{% endif %}
 				<td>{{ proposicao.tipo }}</td>
 		    	<td>{{ proposicao.descricao|safe }}</td>

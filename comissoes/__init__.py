@@ -1,1 +1,1 @@
-default_app_config = 'comissoes.apps.ComissoesAppConfig'
+default_app_config = 'comissoes.apps.AppConfig'

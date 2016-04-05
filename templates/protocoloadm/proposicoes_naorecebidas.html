@@ -8,7 +8,7 @@
 				{% for p in object_list %}
 				<tr>
 					<td>			
-						<a href="{% url 'proposicao_view' p.id %}">
+						<a href="{% url 'protocoloadm:proposicao_view' p.id %}">
 							{{ p.data_envio|date:"d/m/Y" }}
 						</a>
 					</td>

@@ -1,9 +1,12 @@
 from django.conf.urls import url
 
+from .apps import AppConfig
 from .views import controlador_painel  # CronometroPainelCrud,
 from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
                     painel_parlamentares_view, painel_view,
                     painel_votacao_view)
+
+app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^(?P<pk>\d+)/painel$', painel_view, name="painel_principal"),

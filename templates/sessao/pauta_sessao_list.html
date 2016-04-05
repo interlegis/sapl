@@ -8,7 +8,7 @@
 			{% for sessao in page_obj %}
 				<tr>
 					<th>
-						<a href="{% url 'sessaoplenaria:pauta_sessao_detail' sessao.id %}">{{sessao}}</a>
+						<a href="{% url 'sessao:pauta_sessao_detail' sessao.id %}">{{sessao}}</a>
 						<br />
 						Data: {{sessao.data_inicio}} - Abertura {{sessao.hora_inicio}}
 					</th>

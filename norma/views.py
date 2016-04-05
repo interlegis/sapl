@@ -16,13 +16,13 @@ from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
 AssuntoNormaCrud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
 TipoNormaCrud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
 NormaCrud = Crud.build(NormaJuridica, '')
-NormaTemporarioCrud = Crud.build(NormaJuridica, 'normajuridica')
+NormaTemporarioCrud = Crud.build(NormaJuridica, 'norma')
 LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 
 class NormaPesquisaView(FormView):
     template_name = "norma/pesquisa.html"
-    success_url = "normajuridica:norma_pesquisa"
+    success_url = "norma:norma_pesquisa"
     form_class = NormaJuridicaPesquisaForm
 
     def post(self, request, *args, **kwargs):
@@ -42,7 +42,7 @@ class NormaPesquisaView(FormView):
             kwargs['publicacao_final'] = form.data['publicacao_final']
 
         request.session['kwargs'] = kwargs
-        return redirect('list_pesquisa_norma')
+        return redirect('norma:list_pesquisa_norma')
 
 
 class PesquisaNormaListView(ListView):
@@ -113,19 +113,19 @@ class PesquisaNormaListView(ListView):
 class NormaIncluirView(CreateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
-    success_url = reverse_lazy('normajuridica:list')
+    success_url = reverse_lazy('norma:normajuridica_list')
 
     def get_success_url(self):
-        return reverse_lazy('normajuridica:list')
+        return reverse_lazy('norma:norma_pesquisa')
 
     def form_valid(self, form):
         norma = form.save(commit=False)
         norma.timestamp = datetime.now()
         if form.cleaned_data['tipo_materia']:
             materia = MateriaLegislativa.objects.get(
-                            tipo_id=form.data['tipo_materia'],
-                            numero=form.data['numero_materia'],
-                            ano=form.data['ano_materia'])
+                tipo_id=form.data['tipo_materia'],
+                numero=form.data['numero_materia'],
+                ano=form.data['ano_materia'])
             norma.materia = materia
         norma.save()
         return HttpResponseRedirect(self.get_success_url())
@@ -135,7 +135,7 @@ class NormaEditView(UpdateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
     model = NormaJuridica
-    success_url = reverse_lazy('normajuridica:list')
+    success_url = reverse_lazy('norma:pesquisa_norma')
 
     def get_initial(self):
         data = super(NormaEditView, self).get_initial()
@@ -153,9 +153,9 @@ class NormaEditView(UpdateView):
         norma.timestamp = datetime.now()
         if form.cleaned_data['tipo_materia']:
             materia = MateriaLegislativa.objects.get(
-                            tipo_id=form.data['tipo_materia'],
-                            numero=form.data['numero_materia'],
-                            ano=form.data['ano_materia'])
+                tipo_id=form.data['tipo_materia'],
+                numero=form.data['numero_materia'],
+                ano=form.data['ano_materia'])
             norma.materia = materia
         norma.save()
         return HttpResponseRedirect(self.get_success_url())

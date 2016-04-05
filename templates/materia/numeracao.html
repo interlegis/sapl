@@ -21,7 +21,7 @@
 				</thead>
 				{% for n in numeracao %}
 					<tr>
-						<td><a href="{% url 'numeracao_edit' object.id n.id %}">{{n.tipo_materia.sigla}}</a></td>
+						<td><a href="{% url 'materia:numeracao_edit' object.id n.id %}">{{n.tipo_materia.sigla}}</a></td>
 						<td>{{n.tipo_materia.descricao}}</td>
 						<td>{{n.numero_materia}}</td>
 						<td>{{n.ano_materia}}</td>

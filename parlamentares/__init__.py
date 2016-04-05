@@ -1,1 +1,1 @@
-default_app_config = 'parlamentares.apps.ParlamentaresAppConfig'
+default_app_config = 'parlamentares.apps.AppConfig'

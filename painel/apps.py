@@ -3,5 +3,5 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class AppConfig(apps.AppConfig):
-    name = 'lexml'
-    verbose_name = _('LexML')
+    name = 'painel'
+    verbose_name = _('Painel Eletrônico')

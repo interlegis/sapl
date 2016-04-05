@@ -2,6 +2,10 @@ from django.conf.urls import include, url
 
 from lexml.views import LexmlProvedorCrud, LexmlPublicadorCrud
 
+from .apps import AppConfig
+
+app_name = AppConfig.name
+
 urlpatterns = [
     url(r'^sistema/lexml/provedor/',
         include(LexmlProvedorCrud.get_urls())),

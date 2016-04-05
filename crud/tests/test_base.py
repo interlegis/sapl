@@ -140,11 +140,12 @@ def test_layout_detail_fieldsets(monkeypatch):
 
 
 def test_reverse():
-    assert '/countries/' == reverse('country:list')
-    assert '/countries/create' == reverse('country:create')
-    assert '/countries/2' == reverse('country:detail', args=(2,))
-    assert '/countries/2/edit' == reverse('country:update', args=(2,))
-    assert '/countries/2/delete' == reverse('country:delete', args=(2,))
+    assert '/countries/' == reverse('stub_app:country_list')
+    assert '/countries/create' == reverse('stub_app:country_create')
+    assert '/countries/2' == reverse('stub_app:country_detail', args=(2,))
+    assert '/countries/2/edit' == reverse('stub_app:country_update', args=(2,))
+    assert '/countries/2/delete' == reverse(
+        'stub_app:country_delete', args=(2,))
 
 
 def assert_h1(res, title):

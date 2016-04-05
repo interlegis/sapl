@@ -3,7 +3,7 @@
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
     {% if legislatura_id != 0 %}
-      <a href="{% url 'parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="btn btn-default">{% trans 'Incluir Parlamentar' %}</a>
+      <a href="{% url 'parlamentares:parlamentares_cadastro' legislatura_id %}" id="incluir-parlamentar" class="btn btn-default">{% trans 'Incluir Parlamentar' %}</a>
     {% endif %}
   </div>
 {% endblock actions %}

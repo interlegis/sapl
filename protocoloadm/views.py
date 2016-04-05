@@ -41,7 +41,7 @@ class ProtocoloPesquisaView(FormView):
     template_name = 'protocoloadm/protocolo_pesquisa.html'
     form_class = ProtocoloForm
     context_object_name = 'protocolos'
-    success_url = reverse_lazy('protocolo')
+    success_url = reverse_lazy('protocoloadm:protocolo')
 
     def post(self, request, *args, **kwargs):
         form = ProtocoloForm(request.POST or None)
@@ -85,7 +85,7 @@ class ProtocoloPesquisaView(FormView):
                 kwargs['assunto_ementa__icontains'] = request.POST['assunto']
 
             request.session['kwargs'] = kwargs
-            return redirect('protocolo_list')
+            return redirect('protocoloadm:protocolo_list')
         else:
             return self.form_invalid(form)
 
@@ -119,7 +119,7 @@ class AnularProtocoloAdmView(CreateView):
     form_valid_message = _('Protocolo anulado com sucesso!')
 
     def get_success_url(self):
-        return reverse('protocolo')
+        return reverse('protocoloadm:protocolo')
 
     def get_initial(self):
         initial_data = {}
@@ -145,7 +145,7 @@ class ProtocoloDocumentoView(FormValidMessageMixin, CreateView):
     form_valid_message = _('Protocolo cadastrado com sucesso!')
 
     def get_success_url(self):
-        return reverse('protocolo')
+        return reverse('protocoloadm:protocolo')
 
     def form_valid(self, form):
         f = form.save(commit=False)
@@ -182,8 +182,9 @@ class CriarDocumentoProtocolo(CreateView):
         return self.criar_documento(protocolo)
 
     def get_success_url(self):
-        return reverse('protocolo_mostrar', kwargs={'pk': self.kwargs['pk'],
-                                                    'ano': self.kwargs['ano']})
+        return reverse('protocoloadm:protocolo_mostrar',
+                       kwargs={'pk': self.kwargs['pk'],
+                               'ano': self.kwargs['ano']})
 
     def criar_documento(self, protocolo):
 
@@ -254,7 +255,7 @@ class ProtocoloMateriaView(CreateView):
     form_valid_message = _('Matéria cadastrada com sucesso!')
 
     def get_success_url(self):
-        return reverse('protocolo')
+        return reverse('protocoloadm:protocolo')
 
     def form_valid(self, form):
         if self.request.POST['numeracao'] == '1':
@@ -446,10 +447,10 @@ class DetailDocumentoAdministrativo(DetailView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_delete(self):
-        return reverse('pesq_doc_adm')
+        return reverse('protocoloadm:pesq_doc_adm')
 
     def get_success_url(self):
-        return reverse('detail_doc_adm', kwargs={
+        return reverse('protocoloadm:detail_doc_adm', kwargs={
             'pk': self.kwargs['pk']})
 
 
@@ -497,7 +498,7 @@ class DocumentoAcessorioAdministrativoEditView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('doc_ace_adm', kwargs={'pk': pk})
+        return reverse('protocoloadm:doc_ace_adm', kwargs={'pk': pk})
 
 
 class DocumentoAcessorioAdministrativoView(FormView):
@@ -536,7 +537,7 @@ class DocumentoAcessorioAdministrativoView(FormView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('doc_ace_adm', kwargs={'pk': pk})
+        return reverse('protocoloadm:doc_ace_adm', kwargs={'pk': pk})
 
 
 class TramitacaoAdmView(FormView):
@@ -572,8 +573,8 @@ class TramitacaoAdmIncluirView(FormView):
             tramitacao = form.save(commit=False)
             tramitacao.ultima = False
             tramitacao.save()
-            return HttpResponseRedirect(
-                reverse('tramitacao', kwargs={'pk': pk}))
+            return HttpResponseRedirect(reverse(
+                'protocoloadm:tramitacao_adm', kwargs={'pk': pk}))
         else:
             return self.form_invalid(form)
 
@@ -600,7 +601,8 @@ class TramitacaoAdmEditView(FormView):
             tramitacao.ultima = False
             tramitacao.save()
             return HttpResponseRedirect(
-                reverse('tramitacao', kwargs={'pk': tramitacao.documento.id}))
+                reverse('protocoloadm:tramitacao_adm',
+                        kwargs={'pk': tramitacao.documento.id}))
         else:
             return self.form_invalid(form)
 

@@ -19,7 +19,7 @@
 				</thead>
 					{% for r in relatorias %}
 						<tr>
-							<td><a href="{% url 'relatoria_edit' object.id r.id %}">{{r.data_designacao_relator|date:'d/m/Y'}}</a></td>
+							<td><a href="{% url 'materia:relatoria_edit' object.id r.id %}">{{r.data_designacao_relator|date:'d/m/Y'}}</a></td>
 							<td>{{r.comissao}}</td>
 							<td>{{r.parlamentar}}</td>
 						</tr>

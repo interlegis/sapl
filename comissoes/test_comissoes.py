@@ -54,7 +54,7 @@ def test_incluir_parlamentar_submit(client):
                        nome='Cargo',
                        unico=True)
 
-    response = client.post(reverse('comissao:comissao_parlamentar',
+    response = client.post(reverse('comissoes:comissao_parlamentar',
                                    kwargs={'pk': comissao.pk,
                                            'id': composicao.pk}),
                            {'parlamentar_id': filiacao.pk,
@@ -76,7 +76,7 @@ def test_incluir_parlamentar_errors(client):
     comissao = make_comissao()
     composicao = make_composicao(comissao)
 
-    response = client.post(reverse('comissao:comissao_parlamentar',
+    response = client.post(reverse('comissoes:comissao_parlamentar',
                                    kwargs={'pk': comissao.pk,
                                            'id': composicao.pk}),
                            {'salvar': 'salvar'},
@@ -96,7 +96,7 @@ def test_incluir_comissao_submit(client):
                       sigla='T',
                       nome='Teste')
 
-    response = client.post(reverse('comissao:cadastrar_comissao'),
+    response = client.post(reverse('comissoes:cadastrar_comissao'),
                            {'tipo': tipo.pk,
                             'nome': 'Comissão Teste',
                             'sigla': 'CT',
@@ -113,7 +113,7 @@ def test_incluir_comissao_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_incluir_comissao_errors(client):
 
-    response = client.post(reverse('comissao:cadastrar_comissao'),
+    response = client.post(reverse('comissoes:cadastrar_comissao'),
                            {'salvar': 'salvar'},
                            follow=True)
 

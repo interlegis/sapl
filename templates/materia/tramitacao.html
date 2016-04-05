@@ -20,7 +20,7 @@
 				</thead>
 					{% for t in tramitacoes %}
 						<tr>
-							<td><a href="{% url 'tramitacao_edit' object.id t.id %}">{{t.data_tramitacao|date:'d/m/Y'}}</a></td>
+							<td><a href="{% url 'materia:tramitacao_edit' object.id t.id %}">{{t.data_tramitacao|date:'d/m/Y'}}</a></td>
 							<td>{{t.unidade_tramitacao_local}}</td>
 							<td>{{t.unidade_tramitacao_destino}}</td>
 							<td>{{t.status.descricao}}</td>

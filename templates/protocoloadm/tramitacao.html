@@ -22,11 +22,11 @@
 			</tr>
 			{% for t in tramitacoes %}
 				<tr>
-					<td><a href="{% url 'tramitacao_edit' t.id %}">{{t.data_encaminhamento|date:"d/m/Y"}}</a></td>
+					<td><a href="{% url 'protocoloadm:tramitacao_edit' t.id %}">{{t.data_encaminhamento|date:"d/m/Y"}}</a></td>
 					<td>{{t.unidade_tramitacao_local}}</td>
 					<td>{{t.unidade_tramitacao_destino}}</td>
 					<td>{{t.status.sigla}}</td>
-					<td><a href="{% url 'tramitacao_delete' documento.id t.id %}">Excluir</ad></td>
+					<td><a href="{% url 'protocoloadm:tramitacao_delete' documento.id t.id %}">Excluir</ad></td>
 				</tr>
 
 			{% endfor %}
@@ -35,6 +35,6 @@
 		<strong>Nenhuma tramitação cadastrada para este documento.</strong>
 	{% endif %}
 	</br>
-	<a href="{% url 'tramitacao_incluir' documento.id %}" class="button primary">Incluir Tramitação</a>
+	<a href="{% url 'protocoloadm:tramitacao_incluir' documento.id %}" class="button primary">Incluir Tramitação</a>
 </fieldset>
 {% endblock detail_content %}

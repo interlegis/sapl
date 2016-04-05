@@ -12,11 +12,11 @@
 			<tr>
 			<td>
 				<strong>Protocolo:</strong>
-				<a href="{% url 'protocolo_mostrar' p.numero p.ano %}">
+				<a href="{% url 'protocoloadm:protocolo_mostrar' p.numero p.ano %}">
 					{{ p.numero|stringformat:'06d' }}/{{ p.ano }}
 				</a>
 				&nbsp;&nbsp;-&nbsp;&nbsp;
-				<a href="{% url 'relatorio_etiqueta_protocolo' p.numero p.ano %}">
+				<a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}">
 					<img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual">
 				</a></br>
 				<strong>Assunto:</strong> {{ p.assunto_ementa }}</br>
