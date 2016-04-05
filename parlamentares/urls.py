@@ -4,19 +4,19 @@ from parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                  FiliacaoEditView, FiliacaoView,
                                  LegislaturaCrud, MandatoEditView, MandatoView,
                                  MesaDiretoraView, NivelInstrucaoCrud,
-                                 ParlamentaresCadastroView,
+                                 ParlamentarCrud,
                                  ParlamentaresDependentesEditView,
-                                 ParlamentaresDependentesView,
-                                 ParlamentaresEditarView, ParlamentaresView,
-                                 PartidoCrud, SessaoLegislativaCrud,
-                                 TipoAfastamentoCrud, TipoDependenteCrud,
-                                 TipoMilitarCrud)
+                                 ParlamentaresDependentesView, PartidoCrud,
+                                 SessaoLegislativaCrud, TipoAfastamentoCrud,
+                                 TipoDependenteCrud, TipoMilitarCrud)
 
 from .apps import AppConfig
 
 app_name = AppConfig.name
 
 urlpatterns = [
+    url(r'^parlamentares/', include(ParlamentarCrud.get_urls())),
+
     url(r'^sistema/parlamentares/legislatura/',
         include(LegislaturaCrud.get_urls())),
     url(r'^sistema/parlamentares/tipo-dependente/',
@@ -36,10 +36,6 @@ urlpatterns = [
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(CargoMesaCrud.get_urls())),
 
-    url(r'^parlamentares/$',
-        ParlamentaresView.as_view(), name='parlamentares'),
-    url(r'^parlamentares/(?P<pk>\d+)/cadastro$',
-        ParlamentaresCadastroView.as_view(), name='parlamentares_cadastro'),
     url(r'^parlamentares/(?P<pk>\d+)/dependentes$',
         ParlamentaresDependentesView.as_view(),
         name='parlamentares_dependentes'),
@@ -58,9 +54,6 @@ urlpatterns = [
     url(r'^parlamentares/(?P<pk>\d+)/mandato/(?P<dk>\d+)$',
         MandatoEditView.as_view(),
         name='parlamentares_mandato_edit'),
-
-    url(r'^parlamentares/(?P<pk>\d+)/editar$',
-        ParlamentaresEditarView.as_view(), name='parlamentares_editar'),
 
     url(r'^mesa-diretora/$',
         MesaDiretoraView.as_view(), name='mesa_diretora'),

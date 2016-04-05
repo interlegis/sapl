@@ -1,5 +1,3 @@
-import os
-
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
@@ -10,9 +8,7 @@ from django.views.generic import CreateView, FormView, UpdateView
 from crud.base import Crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
-                    FiliacaoForm, MandatoEditForm, MandatoForm,
-                    ParlamentaresEditForm, ParlamentaresForm,
-                    ParlamentaresListForm)
+                    FiliacaoForm, MandatoEditForm, MandatoForm)
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
@@ -93,123 +89,6 @@ def validate(form, parlamentar, filiacao, request):
         return False
     else:
         return True
-
-
-class ParlamentaresView(FormView):
-    template_name = "parlamentares/parlamentares_list.html"
-
-    def get(self, request, *args, **kwargs):
-        form = ParlamentaresListForm()
-
-        if not Legislatura.objects.all():
-            mensagem = _('Cadastre alguma Legislatura antes'
-                         ' de cadastrar algum Parlamentar')
-            messages.add_message(request, messages.INFO, mensagem)
-            return self.render_to_response(
-                {'legislaturas': [],
-                 'legislatura_id': 0,
-                 'form': form,
-                 })
-
-        legislaturas = Legislatura.objects.all().order_by(
-            '-data_inicio', '-data_fim')
-
-        mandatos = Mandato.objects.filter(
-            legislatura_id=legislaturas.first().id)
-
-        parlamentares = []
-        dict_parlamentar = {}
-        for m in mandatos:
-
-            if m.parlamentar.filiacao_set.last():
-                partido = m.parlamentar.filiacao_set.last().partido.sigla
-            else:
-                partido = _('Sem Registro')
-
-            dict_parlamentar = {
-                'id': m.parlamentar.id,
-                'nome': m.parlamentar.nome_parlamentar,
-                'partido': partido,
-                'ativo': m.parlamentar.ativo}
-            parlamentares.append(dict_parlamentar)
-
-        return self.render_to_response(
-            {'legislaturas': legislaturas,
-             'legislatura_id': legislaturas.first().id,
-             'form': form,
-             'parlamentares': parlamentares})
-
-    def post(self, request, *args, **kwargs):
-        form = ParlamentaresListForm(request.POST)
-
-        mandatos = Mandato.objects.filter(
-            legislatura_id=int(form.data['periodo']))
-
-        parlamentares = []
-        dict_parlamentar = {}
-        for m in mandatos:
-
-            if m.parlamentar.filiacao_set.last():
-                partido = m.parlamentar.filiacao_set.last().partido.sigla
-            else:
-                partido = _('Sem Registro')
-
-            dict_parlamentar = {
-                'id': m.parlamentar.id,
-                'nome': m.parlamentar.nome_parlamentar,
-                'partido': partido,
-                'ativo': m.parlamentar.ativo}
-            parlamentares.append(dict_parlamentar)
-
-        return self.render_to_response(
-            {'legislaturas': Legislatura.objects.all().order_by(
-                '-data_inicio', '-data_fim'),
-             'legislatura_id': int(form.data['periodo']),
-             'form': form,
-             'parlamentares': parlamentares})
-
-
-class ParlamentaresCadastroView(CreateView):
-    template_name = "parlamentares/parlamentares_cadastro.html"
-    form_class = ParlamentaresForm
-    model = Parlamentar
-
-    def get_success_url(self):
-        return reverse('parlamentares:parlamentares')
-
-    def get_context_data(self, **kwargs):
-        context = super(ParlamentaresCadastroView, self).get_context_data(
-            **kwargs)
-        legislatura_id = self.kwargs['pk']
-        context.update({'legislatura_id': legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        form.save()
-        return redirect(self.get_success_url())
-
-
-class ParlamentaresEditarView(UpdateView):
-    template_name = "parlamentares/parlamentares_cadastro.html"
-    form_class = ParlamentaresEditForm
-    model = Parlamentar
-    success_url = reverse_lazy('parlamentares:parlamentares')
-
-    def form_valid(self, form):
-        parlamentar = form.instance
-        if 'salvar' in self.request.POST:
-            form.save()
-        elif 'excluir' in self.request.POST:
-            Mandato.objects.get(parlamentar=parlamentar).delete()
-            parlamentar.delete()
-        elif "remover-foto" in self.request.POST:
-            try:
-                os.unlink(parlamentar.fotografia.path)
-            except OSError:
-                pass  # Should log this error!!!!!
-            parlamentar.fotografia = None
-            parlamentar.save()
-        return HttpResponseRedirect(self.get_success_url())
 
 
 class ParlamentaresDependentesView(CreateView):
