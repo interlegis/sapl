@@ -6,6 +6,7 @@ from django.apps import apps
 from django.apps.config import AppConfig
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models
+from django.db.models import CharField, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 
@@ -87,26 +88,41 @@ def info(msg):
 
 
 def warn(msg):
-    print('WARNING! ' + msg)
+    print('CUIDADO! ' + msg)
 
 
 def get_fk_related(field, value, label=None):
+    fields_dict = {}
+
+    if value is None and field.null is False:
+        value = 0
     if value is not None:
         try:
             value = field.related_model.objects.get(id=value)
         except ObjectDoesNotExist:
-            msg = 'FK [%s] not found for value %s ' \
-                '(in %s %s)' % (
+            msg = 'FK [%s] não encontrada para valor %s ' \
+                '(em %s %s)' % (
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # we interpret FK == 0 as actually FK == NONE
-                value = None
-                warn(msg + ' => using NONE for zero value')
+                # se FK == 0, criamos um stub e colocamos o valor '????????
+                # para qualquer CharField ou TextField que possa haver
+                if not field.null:
+                    all_fields = field.related_model._meta.get_fields()
+                    fields_dict = {f.name: '????????????'[:f.max_length]
+                                   for f in all_fields
+                                   if isinstance(f, (CharField, TextField)) and
+                                   not f.choices and not f.blank}
+                    value = mommy.make(field.related_model,
+                                       **fields_dict)
+                    warn(msg + ' => STUB criada para campos não nuláveis!')
+                else:
+                    value = None
+                    warn(msg + ' => usando None para valores iguais a zero!')
             else:
                 value = make_stub(field.related_model, value)
                 stubs_list.append((value.id, field))
-                warn(msg + ' => STUB CREATED')
+                warn(msg + ' => STUB criada!')
         else:
             assert value
     return value
@@ -163,7 +179,6 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
-
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
