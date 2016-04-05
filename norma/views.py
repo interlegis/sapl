@@ -116,7 +116,7 @@ class NormaIncluirView(CreateView):
     success_url = reverse_lazy('norma:normajuridica_list')
 
     def get_success_url(self):
-        return reverse_lazy('normajuridica:list')
+        return reverse_lazy('norma:norma_pesquisa')
 
     def form_valid(self, form):
         norma = form.save(commit=False)
@@ -135,7 +135,7 @@ class NormaEditView(UpdateView):
     template_name = "norma/normajuridica_incluir.html"
     form_class = NormaJuridicaForm
     model = NormaJuridica
-    success_url = reverse_lazy('norma:list')
+    success_url = reverse_lazy('norma:pesquisa_norma')
 
     def get_initial(self):
         data = super(NormaEditView, self).get_initial()
