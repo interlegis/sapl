@@ -178,6 +178,7 @@ class DataMigrator:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
             msg = ("Campo %s (%s) da model %s " %
+
                    (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
