@@ -27,7 +27,6 @@ appconfs = [apps.get_app_config(n) for n in [
     'protocoloadm', ]]
 
 stubs_list = []
-
 unique_constraints = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
@@ -151,25 +150,23 @@ def iter_sql_records(sql, db):
 
 
 def delete_constraints(model):
-    global unique_constraints
     # pega nome da unique constraint dado o nome da tabela
     table = model._meta.db_table
     cursor = exec_sql("SELECT conname FROM pg_constraint WHERE conrelid = "
                       "(SELECT oid FROM pg_class WHERE relname LIKE "
                       "'%s') and contype = 'u';" % (table))
     result = cursor.fetchone()
-    # if theres a result then delete
+    # se existir um resultado, unique constraint será deletado
     if result:
+        warn('Excluindo unique constraint de nome %s' % result)
         args = model._meta.unique_together[0]
         args_list = list(args)
-
         unique_constraints.append([table, result[0], args_list, model])
         exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
                  (table, result[0]))
 
 
 def recreate_constraints():
-    global unique_constraints
     if unique_constraints:
         for constraint in unique_constraints:
             table, name, args, model = constraint
@@ -260,7 +257,7 @@ class DataMigrator:
             obj.delete()
         info('Deletando stubs desnecessários...')
         self.delete_stubs()
-        info('Recreating unique constraints...')
+        info('Recriando unique constraints...')
         recreate_constraints()
 
     def _do_migrate(self, obj):
