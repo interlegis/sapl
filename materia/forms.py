@@ -744,6 +744,7 @@ class MateriaLegislativaPesquisaFields(FilterSet):
              ('ementa', 6)])
 
         self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa Básica'),
                      row1, row2, row3, row4,
