@@ -1,0 +1,17 @@
+localhost:
+  image: postgres
+  environment:
+    POSTGRES_PASSWORD: sapl
+    POSTGRES_USER: sapl
+    POSTGRES_DB: sapl
+  ports:
+    - "5532:5432"
+web:
+  build: .
+  command: bash -c "python3 manage.py bower install && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+  volumes:
+    - .:/sapl
+  ports:
+    - "8000:8000"
+  links:
+    - localhost
