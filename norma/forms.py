@@ -49,6 +49,14 @@ class NormaJuridicaPesquisaForm(ModelForm):
                                             format='%d/%m/%Y',
                                             attrs={'class': 'dateinput'}))
 
+    ano = forms.ModelChoiceField(
+        label='Ano',
+        required=False,
+        queryset=NormaJuridica.objects.order_by('ano').values_list(
+            'ano', flat=True).distinct(),
+        empty_label='Selecione'
+    )
+
     class Meta:
         model = NormaJuridica
         fields = ['tipo',
