@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -58,6 +57,17 @@ class BaseModel(models.Model):
                     msg = self.unique_error_message(
                         self.__class__, tuple(unique_fields))
                     raise ValidationError(msg)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, clean=True):
+        if clean:
+            self.clean()
+        return models.Model.save(
+            self,
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields)
 
 
 class TipoTextoArticulado(models.Model):
@@ -123,6 +133,24 @@ class TextoArticulado(TimestampedMixin):
                 'tipo': self.tipo_ta,
                 'numero': self.numero,
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+
+    def organizar_ordem_de_dispositivos(self):
+
+        dpts = Dispositivo.objects.filter(ta=self)
+
+        if not dpts.exists():
+            return
+
+        ordem_max = dpts.last().ordem
+        dpts.update(ordem=F('ordem') + ordem_max)
+
+        dpts = Dispositivo.objects.filter(
+            ta=self).values_list('pk', flat=True).order_by('ordem')
+
+        count = 0
+        for d in dpts:
+            count += Dispositivo.INTERVALO_ORDEM
+            Dispositivo.objects.filter(pk=d).update(ordem=count)
 
 
 class TipoNota(models.Model):
@@ -532,7 +560,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     texto = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto'))
+        verbose_name=_('Texto Original'))
     texto_atualizador = models.TextField(
         blank=True,
         default='',
@@ -551,7 +579,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     inconstitucionalidade = models.BooleanField(
         default=False,
         choices=utils.YES_NO_CHOICES,
-        verbose_name=_('Inconstitucionalidade'))
+        verbose_name=_('Declarado Inconstitucional'))
     # Relevant attribute only in altering norms
     visibilidade = models.BooleanField(
         default=False,
@@ -581,11 +609,13 @@ class Dispositivo(BaseModel, TimestampedMixin):
         'self',
         blank=True, null=True, default=None,
         related_name='+',
+        on_delete=models.SET_NULL,
         verbose_name=_('Dispositivo Subsequente'))
     dispositivo_substituido = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
         related_name='+',
+        on_delete=models.SET_NULL,
         verbose_name=_('Dispositivo Substituido'))
     dispositivo_pai = models.ForeignKey(
         'self',
@@ -595,7 +625,8 @@ class Dispositivo(BaseModel, TimestampedMixin):
     dispositivo_vigencia = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='+',
+        on_delete=models.SET_NULL,
+        related_name='dispositivos_vigencias_set',
         verbose_name=_('Dispositivo de Vigência'))
     dispositivo_atualizador = models.ForeignKey(
         'self',
@@ -702,10 +733,26 @@ class Dispositivo(BaseModel, TimestampedMixin):
                                 'º' if
                                 self.tipo_dispositivo.
                                 rotulo_ordinal >= 0 else '',)
+                    elif irmaos_mesmo_tipo.count() == 1 and\
+                            irmaos_mesmo_tipo[0].dispositivo0 == 0 and\
+                            self.dispositivo0 == 1:
+                        irmao = irmaos_mesmo_tipo[0]
+                        irmao.dispositivo0 = 1
+                        rr = prefixo[0]
+                        rr += irmao.get_nomenclatura_completa()
+                        irmao.rotulo = rr + t.rotulo_sufixo_texto
+                        irmao.save()
+                        r += prefixo[0]
+
+                        self.dispositivo0 = 2
+                        r += self.get_nomenclatura_completa()
+
                     else:
                         r += prefixo[0]
                         r += self.get_nomenclatura_completa()
         else:
+            if self.dispositivo0 == 0:
+                self.dispositivo0 = 1
             r += prefixo[0]
             r += self.get_nomenclatura_completa()
 
@@ -776,6 +823,27 @@ class Dispositivo(BaseModel, TimestampedMixin):
         self.set_numero_completo(numero)
 
         return (flag_direcao, flag_variacao)
+
+    def transform_in_prior(self, profundidade=-1):
+        numero = self.get_numero_completo()
+
+        numero.reverse()
+
+        if profundidade != -1:
+            profundidade = len(numero) - profundidade - 1
+
+        for i in range(len(numero)):
+            if not numero[i]:
+                continue
+
+            if i > profundidade:
+                continue
+
+            numero[i] -= 1
+            break
+
+        numero.reverse()
+        self.set_numero_completo(numero)
 
     def set_numero_completo(self, *numero):
         numero = numero[0]
@@ -913,7 +981,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     def get_parents(self, ordem='desc'):
         dp = self
         p = []
-        while dp.dispositivo_pai is not None:
+        while dp.dispositivo_pai:
             dp = dp.dispositivo_pai
             if ordem == 'desc':
                 p.append(dp)
@@ -925,7 +993,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     def get_parents_asc(self):
         return self.get_parents(ordem='asc')
 
-    def incrementar_irmaos(self, variacao=0, tipoadd=[]):
+    def incrementar_irmaos(self, variacao=0, tipoadd=[], force=True):
 
         if not self.tipo_dispositivo.contagem_continua:
             irmaos = list(Dispositivo.objects.filter(
@@ -955,6 +1023,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
                     tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
         dp_profundidade = self.get_profundidade()
+
+        if (not force and not variacao and len(irmaos) > 0 and
+                irmaos[0].get_numero_completo() > self.get_numero_completo()):
+            return
 
         irmaos_a_salvar = []
         ultimo_irmao = None
@@ -1029,15 +1101,18 @@ class Dispositivo(BaseModel, TimestampedMixin):
             irmao.save()
 
     def get_proximo_nivel_zero(self):
-        proxima_articulacao = Dispositivo.objects.filter(
+        proxima_articulacao = Dispositivo.objects.order_by('ordem').filter(
             ordem__gt=self.ordem,
             nivel=0,
-            ta_id=self.ta_id)[:1]
+            ta_id=self.ta_id).first()
+        return proxima_articulacao
 
-        if not proxima_articulacao.exists():
-            return None
-
-        return proxima_articulacao[0]
+    def get_nivel_zero_anterior(self):
+        anterior_articulacao = Dispositivo.objects.order_by('ordem').filter(
+            ordem__lt=self.ordem,
+            nivel=0,
+            ta_id=self.ta_id).last()
+        return anterior_articulacao
 
     def is_relative_auto_insert(self, perfil_pk=None):
         if self.dispositivo_pai is not None:
@@ -1076,10 +1151,20 @@ class Dispositivo(BaseModel, TimestampedMixin):
         dp.texto = ''
         dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
-        dp.inicio_eficacia = dispositivo_base.inicio_eficacia
-        dp.inicio_vigencia = dispositivo_base.inicio_vigencia
         dp.publicacao = dispositivo_base.publicacao
-        dp.timestamp = datetime.now()
+
+        dp.dispositivo_vigencia = dispositivo_base.dispositivo_vigencia
+        if dp.dispositivo_vigencia:
+            dp.inicio_eficacia = dp.dispositivo_vigencia.inicio_eficacia
+            dp.inicio_vigencia = dp.dispositivo_vigencia.inicio_vigencia
+            dp.fim_eficacia = dp.dispositivo_vigencia.fim_eficacia
+            dp.fim_vigencia = dp.dispositivo_vigencia.fim_vigencia
+        else:
+            dp.inicio_eficacia = dispositivo_base.inicio_eficacia
+            dp.inicio_vigencia = dispositivo_base.inicio_vigencia
+            dp.fim_eficacia = dispositivo_base.inicio_eficacia
+            dp.fim_vigencia = dispositivo_base.fim_vigencia
+
         dp.ordem = dispositivo_base.ordem
 
         return dp

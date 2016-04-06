@@ -1,11 +1,3 @@
-$( window ).scroll(function() {
-    if (window.pageYOffset <= 180)
-        $( "section.vigencias" ).removeClass("fixed");
-    else if ( ! $( "section.vigencias" ).hasClass("fixed") )
-        $( "section.vigencias" ).addClass("fixed");
-});
-
-
 function isElementInViewport (el) {
 
     //special bonus for those using jQuery

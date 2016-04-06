@@ -1,0 +1,28 @@
+{% extends "compilacao/dispositivo_form.html" %}
+{% load i18n %}
+{% block extra_js %}{{block.super}}
+  <script type="text/javascript">
+    var change_inconstitucionalidade = function() {
+      var datas = $('.dateinput').filter('[name!="inicio_vigencia"]');
+      var _this = this;
+      if ($('[name="inconstitucionalidade"]:checked').val() == "True") {
+        datas.val($('[name="inicio_vigencia"]').val());
+        datas.attr("readonly", "readonly");
+        datas.datepicker( "destroy" );
+      }
+      else {
+        datas.removeAttr("readonly");
+        datas.datepicker();
+      }
+    }
+    $('[name="inconstitucionalidade"]').on('change', change_inconstitucionalidade);
+    $('[name="inicio_vigencia"]').on('change', change_inconstitucionalidade);
+    change_inconstitucionalidade();
+
+    DispostivoSearch({
+      'url_form': '{% url 'compilacao:dispositivo_search_form'%}',
+      'text_button': '{% trans 'Selecionar Dispositivo'%}'
+    });
+    
+  </script>
+{% endblock %}

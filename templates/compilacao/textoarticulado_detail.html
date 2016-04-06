@@ -14,7 +14,7 @@
         {%endif%}
       </li>
       <li><a href="{% url 'compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'compilacao.models.Publicacao' %}</a></li>
-      <li><a href="{% url 'compilacao:ta_text' object.pk %}">{% trans 'Texto da Norma' %}</a></li>
+      <li><a href="{% url 'compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
     {%endif %}
   </ul>
 {% endblock %}

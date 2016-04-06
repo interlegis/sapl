@@ -9,9 +9,6 @@
     <a href="{{ view.create_url }}" class="btn btn-default">
       {% trans 'Adicionar'%} {%model_verbose_name 'compilacao.models.Publicacao'%}
     </a>
-    <a href="{% url 'compilacao:ta_text' view.kwargs.ta_id %}" class="btn btn-default">
-      {% trans 'Voltar'  %}
-    </a>
   </div>
 
   {% if not object_list %}

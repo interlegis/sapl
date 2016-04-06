@@ -6,10 +6,10 @@
   </button>
   <ul class="dropdown-menu" role="menu">
     <li><a href="{% url 'compilacao:tipo_ta_list' %}">{%model_verbose_name_plural 'compilacao.models.TipoTextoArticulado'%}</a></li>
-    <li><a href="{% url 'tipopublicacao:list' %}">{%model_verbose_name_plural 'compilacao.models.TipoPublicacao'%}</a></li>
-    <li><a href="{% url 'veiculopublicacao:list' %}">{%model_verbose_name_plural 'compilacao.models.VeiculoPublicacao'%}</a></li>
-    <li><a href="{% url 'tiponota:list' %}">{%model_verbose_name_plural 'compilacao.models.TipoNota'%}</a></li>
-    <li><a href="{% url 'tipovide:list' %}">{%model_verbose_name_plural 'compilacao.models.TipoVide'%}</a></li>
+    <li><a href="{% url 'compilacao:tipopublicacao_list' %}">{%model_verbose_name_plural 'compilacao.models.TipoPublicacao'%}</a></li>
+    <li><a href="{% url 'compilacao:veiculopublicacao_list' %}">{%model_verbose_name_plural 'compilacao.models.VeiculoPublicacao'%}</a></li>
+    <li><a href="{% url 'compilacao:tiponota_list' %}">{%model_verbose_name_plural 'compilacao.models.TipoNota'%}</a></li>
+    <li><a href="{% url 'compilacao:tipovide_list' %}">{%model_verbose_name_plural 'compilacao.models.TipoVide'%}</a></li>
     <li><a href="#">TODO: Tipo de Dispositivo</a></li>
     <li><a href="#">TODO: Perfil Estrutural de Textos Articulados</a></li>
   </ul>

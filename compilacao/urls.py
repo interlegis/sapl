@@ -31,12 +31,25 @@ urlpatterns_compilacao = [
         views.DispositivoView.as_view(), name='dispositivo'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/refresh',
-        views.DispositivoEditView.as_view(), name='dispositivo_edit'),
+        views.DispositivoSimpleEditView.as_view(), name='dispositivo_refresh'),
+
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit$',
+        views.DispositivoEdicaoBasicaView.as_view(), name='dispositivo_edit'),
+
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/vigencia',
+        views.DispositivoEdicaoVigenciaView.as_view(),
+        name='dispositivo_edit_vigencia'),
+
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/alteracao',
+        views.DispositivoEdicaoAlteracaoView.as_view(),
+        name='dispositivo_edit_alteracao'),
+
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/definidor_vigencia',
+        views.DispositivoDefinidorVigenciaView.as_view(),
+        name='dispositivo_edit_definidor_vigencia'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/actions',
         views.ActionsEditView.as_view(), name='dispositivo_actions'),
-
-
 
     url(r'^(?P<ta_id>[0-9]+)/text/'
         '(?P<dispositivo_id>[0-9]+)/nota/create$',
@@ -62,9 +75,13 @@ urlpatterns_compilacao = [
         '(?P<dispositivo_id>[0-9]+)/vide/(?P<pk>[0-9]+)/delete$',
         views.VideDeleteView.as_view(), name='vide_delete'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/search$',
+    url(r'^search_fragment_form$',
         views.DispositivoSearchFragmentFormView.as_view(),
-        name='search_dispositivo'),
+        name='dispositivo_fragment_form'),
+
+    url(r'^search_form$',
+        views.DispositivoSearchModalView.as_view(),
+        name='dispositivo_search_form'),
 
 
     url(r'^(?P<ta_id>[0-9]+)/publicacao$',
@@ -94,7 +111,7 @@ urlpatterns_compilacao = [
 ]
 
 urlpatterns = [
-    url(r'^ta/', include(urlpatterns_compilacao, 'compilacao', 'compilacao')),
+    url(r'^ta/', include(urlpatterns_compilacao)),
 
     url(r'^ta/config/tipo-nota/',
         include(TipoNotaCrud.get_urls())),

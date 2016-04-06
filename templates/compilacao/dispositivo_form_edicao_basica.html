@@ -1,0 +1,36 @@
+{% extends "compilacao/dispositivo_form.html" %}
+{% load i18n %}
+
+{% block extra_js %}{{block.super}}
+
+  <script type="text/javascript">
+    function atualizaRotulo() {
+      var formData = {  // TODO: Simplificar com um laço
+          'dispositivo0'        : $('[name="dispositivo0"]').val(),
+          'dispositivo1'        : $('[name="dispositivo1"]').val(),
+          'dispositivo2'        : $('[name="dispositivo2"]').val(),
+          'dispositivo3'        : $('[name="dispositivo3"]').val(),
+          'dispositivo4'        : $('[name="dispositivo4"]').val(),
+          'dispositivo5'        : $('[name="dispositivo5"]').val(),
+          'action'              : 'atualiza_rotulo'
+      };
+
+      var url = '#';
+
+      $.get(url, formData).done(function(data) {
+          if (data.rotulo != undefined) {
+              $('[name="rotulo"]').val(data.rotulo);
+              $('[name="dispositivo0"]').val(data.dispositivo0);
+              $('[name="dispositivo1"]').val(data.dispositivo1);
+              $('[name="dispositivo2"]').val(data.dispositivo2);
+              $('[name="dispositivo3"]').val(data.dispositivo3);
+              $('[name="dispositivo4"]').val(data.dispositivo4);
+              $('[name="dispositivo5"]').val(data.dispositivo5);
+              return;
+          }
+        });
+    }
+
+     initTinymce();
+  </script>
+{% endblock %}
