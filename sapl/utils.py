@@ -184,3 +184,9 @@ restringe_tipos_de_arquivo_txt = fabrica_validador_de_tipos_de_arquivo(
     TIPOS_TEXTO_PERMITIDOS, 'restringe_tipos_de_arquivo_txt')
 restringe_tipos_de_arquivo_img = fabrica_validador_de_tipos_de_arquivo(
     TIPOS_IMG_PERMITIDOS, 'restringe_tipos_de_arquivo_img')
+
+
+def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
+    maior_inicio = max(a_inicio, b_inicio)
+    menor_fim = min(a_fim, b_fim)
+    return maior_inicio <= menor_fim
