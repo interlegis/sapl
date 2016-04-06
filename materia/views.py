@@ -1,14 +1,16 @@
-from django_filters.views import FilterView
+import os
 
 from datetime import datetime
-from random import choice
-from string import ascii_letters, digits
+
+from base.models import CasaLegislativa
+from comissoes.models import Comissao, Composicao
+from compilacao.views import IntegracaoTaView
+from crud.base import Crud, make_pagination
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -16,28 +18,29 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
 from django_filters.views import FilterView
 
-from base.models import CasaLegislativa
-from comissoes.models import Comissao, Composicao
-from compilacao.views import IntegracaoTaView
-from crud.base import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
+from random import choice
 from sapl.utils import get_base_url
+from string import ascii_letters, digits
+
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
-                    filtra_tramitacao_status, filtra_tramitacao_destino,
-                    filtra_tramitacao_destino_and_status,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
-                    MateriaLegislativaPesquisaFields, NumeracaoForm,
-                    ProposicaoForm, RelatoriaForm, TramitacaoForm)
+                    MateriaLegislativaFilterSet, NumeracaoForm,
+                    ProposicaoForm, RelatoriaForm, TramitacaoForm,
+                    filtra_tramitacao_destino,
+                    filtra_tramitacao_destino_and_status,
+                    filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,
                      Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
+
 
 OrigemCrud = Crud.build(Origem, 'origem')
 TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,
@@ -1198,7 +1201,7 @@ class ProposicaoListView(ListView):
 
 class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
-    filterset_class = MateriaLegislativaPesquisaFields
+    filterset_class = MateriaLegislativaFilterSet
     paginate_by = 10
 
     def get_context_data(self, **kwargs):
@@ -1221,7 +1224,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         status_tramitacao = data.get('tramitacao__status')
         unidade_destino = data.get('tramitacao__unidade_tramitacao_destino')
-        # import ipdb; ipdb.set_trace()
+
         if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_destino_and_status(status_tramitacao,
                                                          unidade_destino)

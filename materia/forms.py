@@ -1,17 +1,18 @@
+import crispy_layout_mixin
 import django_filters
+import sapl
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
+from crispy_forms.layout import Button, Column, Fieldset, HTML, Layout, Submit
+from crispy_layout_mixin import form_actions
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from django.utils.text import capfirst
 from django_filters import FilterSet
 
-import crispy_layout_mixin
-import sapl
-from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
@@ -603,7 +604,7 @@ class RangeWidgetOverride(forms.MultiWidget):
         return ''.join(rendered_widgets)
 
 
-class MateriaLegislativaPesquisaFields(FilterSet):
+class MateriaLegislativaFilterSet(FilterSet):
 
     numero = django_filters.CharFilter(required=False,
                                        label=u'Número da Matéria',
@@ -707,13 +708,6 @@ class MateriaLegislativaPesquisaFields(FilterSet):
             ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
         )
 
-    # def get_ordering_field(self, choices):
-    #     super(
-    #         MateriaLegislativaPesquisaFields, self).get_ordering_field(choices)
-    #     return forms.ChoiceField(label=_('Ordenação'),
-    #                              required=False,
-    #                              choices=choices)
-
     def get_order_by(self, order_value):
         if order_value == '':
             return []
@@ -725,11 +719,11 @@ class MateriaLegislativaPesquisaFields(FilterSet):
             return ['tipo__sigla', 'ano', 'numero', 'data_apresentacao']
         else:
             return ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao']
-        return super(MateriaLegislativaPesquisaFields,
+        return super(MateriaLegislativaFilterSet,
                      self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
-        super(MateriaLegislativaPesquisaFields, self).__init__(*args, **kwargs)
+        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
 
         row1 = crispy_layout_mixin.to_row(
             [('tipo', 12)])
