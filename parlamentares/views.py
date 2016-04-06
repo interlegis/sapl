@@ -67,7 +67,7 @@ class ParlamentarCrud(Crud):
             for m in object_list:
 
                 if m.parlamentar.filiacao_set.last():
-                    partido = m.parlamentar.filiacao_set.last().partido.sigla
+                    partido = ', '.join(str(p) for p in m.get_partidos())
                 else:
                     partido = _('Sem Registro')
 

@@ -28,4 +28,6 @@ def test_filiacoes():
         (data('2001-03-02'), data('2001-10-01')),
         (data('2001-10-02'), None),
     )]
-    assert mandato.get_partidos() == [f2.partido, f3.partido, f4.partido]
+    assert mandato.get_partidos() == [f2.partido.sigla,
+                                      f3.partido.sigla,
+                                      f4.partido.sigla]

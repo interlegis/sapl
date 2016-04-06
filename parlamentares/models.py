@@ -360,7 +360,7 @@ class Mandato(models.Model):
     def get_partidos(self):
         filicacoes = Filiacao.objects.filter(
             parlamentar=self.parlamentar).order_by('data')
-        return [f.partido
+        return [f.partido.sigla
                 for f in filicacoes
                 if intervalos_tem_intersecao(
                     self.legislatura.data_inicio,
