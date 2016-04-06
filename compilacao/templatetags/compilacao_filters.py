@@ -1,10 +1,11 @@
+
 from django import template
 from django.core.signing import Signer
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from compilacao.models import Dispositivo, TipoDispositivo
+from compilacao.models import Dispositivo
 
 register = template.Library()
 
@@ -131,6 +132,92 @@ def nomenclatura(d):
     return result
 
 
+def update_dispositivos_parents(dpts_parents, ta_id):
+
+    dpts = Dispositivo.objects.order_by('ordem').filter(
+        ta_id=ta_id).values_list(
+        'pk', 'dispositivo_pai_id', 'rotulo', 'tipo_dispositivo__nome',
+        'tipo_dispositivo__rotulo_prefixo_texto')
+
+    for d in dpts:
+        dpts_parents[str(d[0])] = {
+            'd': d, 'p': [], 'h': None}
+
+    def parents(k):
+        pai = dpts_parents[str(k)]['d'][1]
+        p = dpts_parents[str(k)]['p']
+        if not p:
+            if pai:
+                parent_k = [pai, ] + parents(pai)
+            else:
+                parent_k = []
+        else:
+            parent_k = p
+
+        return parent_k
+
+    for k in dpts_parents:
+        dpts_parents[str(k)]['p'] = parents(k)
+
+
+@register.simple_tag
+def heranca(request, d, ignore_ultimo=0, ignore_primeiro=0):
+    ta_dpts_parents = request.session.get('herancas')
+
+    if not ta_dpts_parents:
+        ta_dpts_parents = {}
+
+    ta_id = str(d.ta_id)
+    if ta_id not in ta_dpts_parents:
+        dpts_parents = {}
+        ta_dpts_parents[ta_id] = dpts_parents
+        update_dispositivos_parents(dpts_parents, ta_id)
+
+        herancas_fila = request.session.get('herancas_fila')
+        if not herancas_fila:
+            herancas_fila = []
+
+        herancas_fila.append(ta_id)
+        if len(herancas_fila) > 100:
+            ta_remove = herancas_fila.pop(0)
+            del ta_dpts_parents[str(ta_remove)]
+
+        request.session['herancas_fila'] = herancas_fila
+        request.session['herancas'] = ta_dpts_parents
+
+    d_pk = str(d.pk)
+    h = ta_dpts_parents[ta_id][d_pk]['h']
+
+    if h:
+        return h
+
+    dpts_parents = ta_dpts_parents[ta_id]
+    parents = dpts_parents[d_pk]['p']
+    result = ''
+
+    if parents:
+        pk_last = parents[-1]
+    for pk in parents:
+
+        if ignore_ultimo and pk == pk_last:
+            break
+
+        if ignore_primeiro:
+            ignore_primeiro = 0
+            continue
+
+        p = dpts_parents[str(pk)]['d']
+
+        if p[4] != '':
+            result = p[2] + ' ' + result
+        else:
+            result = '(' + p[3] + ' ' + \
+                p[2] + ')' + ' ' + result
+
+    dpts_parents[d_pk]['h'] = result
+    return result
+
+
 @register.simple_tag
 def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
     result = ''
@@ -159,7 +246,8 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
 
 @register.filter
 def urldetail_content_type(obj):
-    return '%s:detail' % obj.content_type.model
+    return '%s:%s_detail' % (
+        obj.content_type.app_label, obj.content_type.model)
 
 
 @register.filter

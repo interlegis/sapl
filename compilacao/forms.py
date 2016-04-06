@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import timedelta
 
-from crispy_forms.bootstrap import FieldWithButtons, FormActions, StrictButton,\
-    InlineRadios, Alert
+from crispy_forms.bootstrap import (Alert, FieldWithButtons, FormActions,
+                                    InlineRadios, StrictButton)
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
@@ -10,19 +10,17 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                PARTICIPACAO_SOCIAL_CHOICES, Dispositivo, Nota,
-                               Publicacao, TextoArticulado, TipoNota,
-                               TipoPublicacao, TipoTextoArticulado, TipoVide,
-                               VeiculoPublicacao, Vide, TipoDispositivo)
+                               Publicacao, TextoArticulado, TipoDispositivo,
+                               TipoNota, TipoPublicacao, TipoTextoArticulado,
+                               TipoVide, VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crispy_layout_mixin import SaplFormLayout, to_column, to_row
 from sapl import utils
 from sapl.utils import YES_NO_CHOICES
-
 
 error_messages = {
     'required': _('Este campo é obrigatório'),
@@ -516,6 +514,13 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         model = Dispositivo
         fields = []
 
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together':
+                _("Já existe um Dispositivo com características idênticas."),
+            }
+        }
+
     def __init__(self, *args, **kwargs):
 
         layout = []
@@ -598,9 +603,8 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
+            *layout,
             label_cancel=_('Retornar para o Editor Sequencial'))
-
-        self.helper.layout.fields += layout
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
 
@@ -622,9 +626,18 @@ class DispositivoSearchModalForm(Form):
         label=_('Ano do Documento'), required=False)
 
     dispositivos_internos = forms.ChoiceField(
-        label=_('Incluir Dispositivos Internos Imediatos?'),
+        label=_('Dispositivos Internos?'),
         choices=utils.YES_NO_CHOICES,
         widget=forms.RadioSelect(),
+        required=False)
+
+    max_results = forms.ChoiceField(
+        label=_('Limite de Listagem'),
+        choices=[(10, _('Dez Dispositivos')),
+                 (30, _('Trinta Dispositivos')),
+                 (50, _('Cinquenta Dispositivos')),
+                 (0, _('Tudo que atender aos Critérios da Busca'))],
+        widget=forms.Select(),
         required=False)
 
     rotulo_dispositivo = forms.CharField(
@@ -640,20 +653,22 @@ class DispositivoSearchModalForm(Form):
         fields_search = Fieldset(
             _('Busca por um Dispositivo'),
             Row(
-                to_column(('num_ta', 3)),
-                to_column(('ano_ta', 3)),
-                to_column((InlineRadios('dispositivos_internos'), 6))),
+                to_column(('num_ta', 4)),
+                to_column(('ano_ta', 4)),
+                to_column(('max_results', 4))),
             Row(
                 to_column(('tipo_ta', 6)),
                 to_column(('tipo_model', 6))),
-            Row(to_column(('rotulo_dispositivo', 3)),
+            Row(to_column((InlineRadios('dispositivos_internos'), 3)),
+                to_column(('rotulo_dispositivo', 2)),
                 to_column((FieldWithButtons(
                     Field(
                         'texto_dispositivo',
                         placeholder=_('Digite palavras, letras, '
                                       'números ou algo'
                                       ' que estejam no texto.')),
-                    StrictButton(_('Buscar'), css_class='btn-busca')), 9)))
+                    StrictButton(_('Buscar'), css_class='btn-busca')), 7))
+                )
         )
 
         self.helper = FormHelper()
@@ -706,6 +721,13 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
                   'inconstitucionalidade',
                   'dispositivo_vigencia'
                   ]
+
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together':
+                _("Já existe um Dispositivo com características idênticas."),
+            }
+        }
 
     def __init__(self, *args, **kwargs):
 
@@ -849,8 +871,11 @@ class DispositivoDefinidorVigenciaForm(Form):
             *DISPOSITIVO_SELECT_RELATED)
         self.initial['dispositivo_vigencia'] = [d.pk for d in dvs]
 
-        tas = Dispositivo.objects.filter(
-            dispositivo_vigencia_id=pk).values_list('ta', 'ta_publicado')
+        TA_TA_PUB = 'ta_id', 'ta_publicado_id'
+        tas = Dispositivo.objects.order_by(
+            *TA_TA_PUB).filter(dispositivo_vigencia_id=pk).distinct(
+            *TA_TA_PUB).values_list(
+            *TA_TA_PUB)
 
         tas = list(set().union(*list(map(list, zip(*tas)))))
 
@@ -864,3 +889,233 @@ class DispositivoDefinidorVigenciaForm(Form):
             (d.pk, d)
             for d in dvs
             if d.pk in self.initial['dispositivo_vigencia']]
+
+
+class DispositivoEdicaoAlteracaoForm(ModelForm):
+
+    class Meta:
+        model = Dispositivo
+        fields = [
+            'dispositivo_atualizador',
+            'dispositivo_substituido',
+            'dispositivo_subsequente',
+        ]
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                'unique_together':
+                _("Já existe um Dispositivo com características idênticas."),
+            }
+        }
+
+    def __init__(self, *args, **kwargs):
+
+        layout = []
+
+        self.dispositivo_substituido = forms.ModelChoiceField(
+            label=Dispositivo._meta.get_field(
+                'dispositivo_substituido').verbose_name,
+            required=False,
+            queryset=Dispositivo.objects.all())
+        self.dispositivo_subsequente = forms.ModelChoiceField(
+            label=Dispositivo._meta.get_field(
+                'dispositivo_subsequente').verbose_name,
+            required=False,
+            queryset=Dispositivo.objects.all())
+        self.dispositivo_atualizador = forms.ModelChoiceField(
+            label=Dispositivo._meta.get_field(
+                'dispositivo_atualizador').verbose_name,
+            required=False,
+            queryset=Dispositivo.objects.all())
+
+        substituido = Field(
+            'dispositivo_substituido',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_substituido',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+        subsequente = Field(
+            'dispositivo_subsequente',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_subsequente',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+        alterador = Field(
+            'dispositivo_atualizador',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_atualizador',
+            data_type_selection='radio',
+            data_function='alterador',
+            template="compilacao/layout/dispositivo_radio.html")
+
+        layout.append(
+            to_row([
+                (Fieldset(_('Dispositivo Subsitituido'), substituido), 6),
+                (Fieldset(_('Dispositivo Subsequente'), subsequente), 6)]))
+
+        layout.append(
+            Fieldset(
+                _('Dispositivo Alterador'),
+                Div(alterador),
+                css_class="col-md-12"))
+
+        inst = kwargs['instance'] if 'instance' in kwargs else None
+        if inst and inst.tipo_dispositivo.dispositivo_de_articulacao:
+            if 'texto_atualizador' in\
+                    DispositivoEdicaoAlteracaoForm.Meta.fields:
+                DispositivoEdicaoAlteracaoForm.Meta.fields.remove(
+                    'texto_atualizador')
+                DispositivoEdicaoAlteracaoForm.Meta.fields.remove(
+                    'visibilidade')
+        else:
+            if 'texto_atualizador' not in\
+                    DispositivoEdicaoAlteracaoForm.Meta.fields:
+                DispositivoEdicaoAlteracaoForm.Meta.fields.append(
+                    'texto_atualizador')
+                DispositivoEdicaoAlteracaoForm.Meta.fields.append(
+                    'visibilidade')
+
+            self.texto_atualizador = forms.CharField(required=False,
+                                                     label='',
+                                                     widget=forms.Textarea())
+            self.visibilidade = forms.ChoiceField(
+                label=Dispositivo._meta.get_field(
+                    'visibilidade').verbose_name,
+                choices=utils.YES_NO_CHOICES,
+                widget=forms.RadioSelect())
+
+            layout.append(
+                Fieldset(Dispositivo._meta.get_field(
+                    'texto_atualizador').verbose_name,
+                    to_row([(InlineRadios('visibilidade'), 12)]),
+                    to_row([('texto_atualizador', 12)]),
+                    css_class="col-md-12"))
+
+        fields = DispositivoEdicaoAlteracaoForm.Meta.fields
+        if fields:
+            self.base_fields.clear()
+            for f in fields:
+                if hasattr(self, f):
+                    self.base_fields.update({f: getattr(self, f)})
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            *layout,
+            label_cancel=_('Retornar para o Editor Sequencial'))
+
+        super(DispositivoEdicaoAlteracaoForm, self).__init__(*args, **kwargs)
+
+        self.fields['dispositivo_substituido'].choices = []
+        self.fields['dispositivo_subsequente'].choices = []
+        self.fields['dispositivo_atualizador'].choices = []
+        if inst.dispositivo_substituido:
+            self.fields['dispositivo_substituido'].choices = [
+                (inst.dispositivo_substituido.pk,
+                 inst.dispositivo_substituido)]
+
+        if inst.dispositivo_subsequente:
+            self.fields['dispositivo_subsequente'].choices = [
+                (inst.dispositivo_subsequente.pk,
+                 inst.dispositivo_subsequente)]
+
+        if inst.dispositivo_atualizador:
+            self.fields['dispositivo_atualizador'].choices = [
+                (inst.dispositivo_atualizador.pk,
+                 inst.dispositivo_atualizador)]
+
+    def clean_dispositivo_substituido(self):
+        dst = self.cleaned_data['dispositivo_substituido']
+
+        if dst and dst.ta != self.instance.ta:
+            raise ValidationError(_('Não é permitido selecionar um '
+                                    'Dispositivo de outro Texto Articulado.'))
+        if dst and dst.tipo_dispositivo != self.instance.tipo_dispositivo:
+            raise ValidationError(_('Não é permitido selecionar um '
+                                    'Dispositivo de outro Tipo.'))
+        return dst
+
+    def clean_dispositivo_subsequente(self):
+        dsq = self.cleaned_data['dispositivo_subsequente']
+
+        if dsq and dsq.ta != self.instance.ta:
+            raise ValidationError(_('Não é permitido selecionar um '
+                                    'Dispositivo de outro Texto Articulado.'))
+        if dsq and dsq.tipo_dispositivo != self.instance.tipo_dispositivo:
+            raise ValidationError(_('Não é permitido selecionar um '
+                                    'Dispositivo de outro Tipo.'))
+        return dsq
+
+    def clean_dispositivo_atualizador(self):
+        da = self.cleaned_data['dispositivo_atualizador']
+
+        if da and not da.tipo_dispositivo.dispositivo_de_alteracao and\
+                not da.tipo_dispositivo.dispositivo_de_articulacao:
+            raise ValidationError(_('O Dispositivo de Atualização selecionado '
+                                    'não é um Bloco de Alteração.'))
+        return da
+
+    def clean(self):
+        data = self.cleaned_data
+        ndst = data['dispositivo_substituido']
+        nda = data['dispositivo_atualizador']
+
+        if not nda and ndst:
+            raise ValidationError(_('Não é permitido substituir um '
+                                    'Dispositivo sem haver um '
+                                    'Dispositivo Alterador.'))
+
+    def save(self):
+        data = self.cleaned_data
+
+        od = Dispositivo.objects.get(pk=self.instance.pk)
+
+        nd = self.instance
+        ndst = data['dispositivo_substituido']
+        ndsq = data['dispositivo_subsequente']
+        nda = data['dispositivo_atualizador']
+
+        if ndst != od.dispositivo_substituido:
+            if od.dispositivo_substituido:
+                odst = od.dispositivo_substituido
+
+                odst.dispositivo_subsequente = None
+                odst.fim_vigencia = None
+                odst.fim_eficacia = None
+                odst.save()
+
+            if ndst:
+                if ndst.dispositivo_subsequente:
+                    ndst.dispositivo_subsequente.dispositivo_substituido = None
+                    ndst.dispositivo_subsequente.save()
+
+                ndst.dispositivo_subsequente = nd
+                ndst.fim_vigencia = nd.inicio_vigencia - timedelta(days=1)
+                ndst.fim_eficacia = nd.inicio_eficacia - timedelta(days=1)
+                ndst.save()
+
+        if ndsq != od.dispositivo_subsequente:
+            if od.dispositivo_subsequente:
+                odsq = od.dispositivo_subsequente
+
+                odsq.dispositivo_substituido = None
+                odsq.save()
+
+            if ndsq:
+                if ndsq.dispositivo_substituido:
+                    ndsq.dispositivo_substituido.dispositivo_subsequente = None
+                    ndsq.dispositivo_substituido.fim_vigencia = None
+                    ndsq.dispositivo_substituido.fim_eficacia = None
+                    ndsq.dispositivo_substituido.save()
+
+                ndsq.dispositivo_substituido = nd
+                ndsq.save()
+
+        nd.ta_publicado = nda.ta if nda else None
+
+        super(DispositivoEdicaoAlteracaoForm, self).save()
+
+        if nd.dispositivo_subsequente:
+            nd.fim_vigencia = nd.dispositivo_subsequente.inicio_vigencia - \
+                timedelta(days=1)
+            nd.fim_eficacia = nd.dispositivo_subsequente.inicio_eficacia - \
+                timedelta(days=1)
+        nd.save()

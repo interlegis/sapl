@@ -5,46 +5,35 @@
 <div class="controls lista-dispositvo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
   {% include 'bootstrap/layout/field_errors_block.html' %}
 
-
-
-
     {% for choice, dpt in  field.field.choices %}
       {% ifchanged dpt.ta%}
         {% if not forloop.first %}</ul>{% endif %}
           <ul id="ta{{dpt.ta.pk}}">
             <li class="ta_title"><span>{{dpt.ta}}</span></li>
       {% endifchanged %}
-      {% if dpt.is_relative_auto_insert %}
-        <li>
-          <div class="iteminput">
-            <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}" {% if choice|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
+
+      <li>
+        <div class="iteminput">
+          <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}"  {% if choice|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
+        </div>
+        <div class="itemlabel dpt">
+          {% if dpt.nivel > 1 %}
+            <a class="clearfix"  target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% heranca request dpt 1 0 %}</a>
+          {% endif %}
+          <div class="{{ dpt.tipo_dispositivo.class_css }}">
+            <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{dpt.pk}}" >
+              {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
+              {% if dpt.rotulo or dpt.nivel = 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}] - {% endif %}
+              {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
+              <span class="dtxt"
+                    id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}"
+                    pks="{{dpt.dispositivo_substituido_id|default:''}}"
+                    pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+            </div>
           </div>
-          <div class="itemlabel">
-            <label for="r{{dpt.dispositivo_pai.pk}}">{{dpt.dispositivo_pai.rotulo|safe}} - {{dpt.texto|safe}}</label>
-            <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca" title="{% trans 'Abrir Texto deste Dispositivo'%}">{% nomenclatura_heranca dpt 1 1 %}</a>
-           </div>
-        </li>
-      {% elif not dpt.tipo_dispositivo.dispositivo_de_articulacao and not dpt.is_relative_auto_insert %}
-        <li>
-          <div class="iteminput">
-              <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}"  {% if choice|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
-          </div>
-          <div class="itemlabel">
-            <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {{dpt.texto|safe}}</label>
-            <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca" title="{% trans 'Abrir Texto deste Dispositivo'%}">{% nomenclatura_heranca dpt 1 1 %}</a>
-          </div>
-        </li>
-      {% elif dpt.tipo_dispositivo.dispositivo_de_articulacao%}
-        <li>
-          <div class="iteminput">
-              <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}"  {% if choice|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
-          </div>
-          <div class="itemlabel">
-            <label for="r{{dpt.pk}}">{{dpt.rotulo|safe}} - {% if dpt.tipo_dispositivo.dispositivo_de_articulacao %}{{dpt.dispositivos_filhos_set.all.first.texto|safe}}{% else %}{{dpt.texto|safe}}{% endif %}</label>
-            <a target="_blank" href="{% url 'compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca" title="{% trans 'Abrir Texto deste Dispositivo'%}">{% nomenclatura_heranca dpt 1 1 %}</a>
-          </div>
-        </li>
-      {% endif%}
+        </div>
+      </li>
+
       {% if forloop.last %}</ul>{% endif %}
     {% endfor %}
 

@@ -1,7 +1,6 @@
-function initTinymce() {
+function initTinymce(elements) {
     removeTinymce();
-    tinymce.init({
-        mode : "textareas",
+    var config_tinymce = {
         force_br_newlines : false,
         force_p_newlines : false,
         forced_root_block : '',
@@ -10,8 +9,16 @@ function initTinymce() {
         toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
         tools: "inserttable",
         border_css: "/static/styles/style_tinymce.css",
-        content_css: "/static/styles/style_tinymce.css"
-    });
+        content_css: "/static/styles/style_tinymce.css",
+    }
+    if (elements != null) {
+        config_tinymce['elements'] = elements;
+        config_tinymce['mode'] = "exact";
+        }
+    else
+        config_tinymce['mode'] = "textareas";
+
+    tinymce.init(config_tinymce);
 }
 
 function removeTinymce() {
@@ -112,5 +119,5 @@ $(document).ready(function(){
     refreshDatePicker();
     refreshMask();
     autorModal();
-    initTinymce();
+    initTinymce("biografia-parlamentar,casa-informacoes");
 });

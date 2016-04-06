@@ -163,7 +163,7 @@
       {% endif%}
     </div>
   {% endspaceless %}
-  {% if dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+  {% if dpt.tipo_dispositivo.dispositivo_de_alteracao%}
     {%with node=dpt template_name='compilacao/text_list_blocoalteracao.html' %}
       {%include template_name%}
     {%endwith%}

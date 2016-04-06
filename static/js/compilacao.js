@@ -39,6 +39,7 @@ function DispostivoSearch(opts) {
             var field = $(this);
             var data_type_selection = field.attr('data-type-selection');
             var data_field = field.attr('data-field');
+            var data_function = field.attr('data-function');
 
             var onChangeFieldSelects = function(event) {
                 if (data_type_selection == 'checkbox') {
@@ -77,6 +78,7 @@ function DispostivoSearch(opts) {
                 var dispositivos_internos = $("input[name='dispositivos_internos']:checked").val();
                 var rotulo_dispositivo = $("input[name='rotulo_dispositivo']").val();
                 var texto_dispositivo = $("input[name='texto_dispositivo']").val();
+                var max_results = $("select[name='max_results']").val();
                 var url = '';
 
                 if (rotulo_dispositivo.length > 0 || texto_dispositivo.length > 0) {
@@ -97,8 +99,10 @@ function DispostivoSearch(opts) {
                     'texto'                 : texto_dispositivo,
                     'rotulo'                : rotulo_dispositivo,
                     'dispositivos_internos' : dispositivos_internos,
+                    'max_results'           : max_results,
                     'data_type_selection'   : data_type_selection,
                     'data_field'            : data_field,
+                    'data_function'         : data_function,
                 };
 
                 url = '/ta/search_fragment_form';

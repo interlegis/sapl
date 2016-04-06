@@ -40,6 +40,10 @@ urlpatterns_compilacao = [
         views.DispositivoEdicaoVigenciaView.as_view(),
         name='dispositivo_edit_vigencia'),
 
+    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/alteracao',
+        views.DispositivoEdicaoAlteracaoView.as_view(),
+        name='dispositivo_edit_alteracao'),
+
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/definidor_vigencia',
         views.DispositivoDefinidorVigenciaView.as_view(),
         name='dispositivo_edit_definidor_vigencia'),
@@ -107,7 +111,7 @@ urlpatterns_compilacao = [
 ]
 
 urlpatterns = [
-    url(r'^ta/', include(urlpatterns_compilacao, 'compilacao', 'compilacao')),
+    url(r'^ta/', include(urlpatterns_compilacao)),
 
     url(r'^ta/config/tipo-nota/',
         include(TipoNotaCrud.get_urls())),

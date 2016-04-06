@@ -19,7 +19,6 @@
           </li>
     {% endifchanged %}
 
-
     <li>
       <div class="iteminput">
           <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="{{ field.html_name }}" id="dpt{{choice.1.pk}}" value="{{choice.1.pk}}"  {% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} />
@@ -43,10 +42,8 @@
             {% endif %}
           </div>
         </div>
-
       </div>
     </li>
-
 
       {% if forloop.last %}</ul>{% endif %}
     {% endfor %}

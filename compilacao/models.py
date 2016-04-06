@@ -1,5 +1,3 @@
-from builtins import zip
-from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -983,7 +981,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
     def get_parents(self, ordem='desc'):
         dp = self
         p = []
-        while dp.dispositivo_pai is not None:
+        while dp.dispositivo_pai:
             dp = dp.dispositivo_pai
             if ordem == 'desc':
                 p.append(dp)

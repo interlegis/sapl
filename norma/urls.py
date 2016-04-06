@@ -19,7 +19,7 @@ app_name = AppConfig.name
 # url(r'^norma/(?P<pk>[0-9]+)/ta$', NormaTaView.as_view(), name='ta')
 # bem como a classe NormaTaView que está em norma.views
 norma_url_patterns = NormaTemporarioCrud.get_urls() + [
-    url(r'^norma/(?P<pk>[0-9]+)/ta$',
+    url(r'^(?P<pk>[0-9]+)/ta$',
         NormaTaView.as_view(), name='ta')
 ]
 

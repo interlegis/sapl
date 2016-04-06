@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -10,7 +10,6 @@ from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
 from django.db import transaction
 from django.db.models import Q
-from django.forms.models import model_to_dict
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
@@ -19,15 +18,16 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, DeleteView, UpdateView,\
-    FormView
+from django.views.generic.edit import (CreateView, DeleteView, FormView,
+                                       UpdateView)
 from django.views.generic.list import ListView
 
-from compilacao.forms import (DispositivoEdicaoBasicaForm, NotaForm,
-                              PublicacaoForm, TaForm, TipoTaForm, VideForm,
+from compilacao.forms import (DispositivoDefinidorVigenciaForm,
+                              DispositivoEdicaoAlteracaoForm,
+                              DispositivoEdicaoBasicaForm,
                               DispositivoEdicaoVigenciaForm,
-                              DispositivoSearchModalForm,
-                              DispositivoDefinidorVigenciaForm)
+                              DispositivoSearchModalForm, NotaForm,
+                              PublicacaoForm, TaForm, TipoTaForm, VideForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
@@ -35,7 +35,6 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -1283,18 +1282,18 @@ class ActionsEditMixin:
 
             dps = Dispositivo.objects.filter(dispositivo_vigencia_id=dvt.pk,
                                              ta_publicado_id=dvt.ta_id)
+            with transaction.atomic():
+                for d in dps:
+                    if d.dispositivo_substituido:
+                        ds = d.dispositivo_substituido
+                        ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
+                        ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
+                        d.save()
 
-            for d in dps:
-                if d.dispositivo_substituido:
-                    ds = d.dispositivo_substituido
-                    ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
-                    ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
-                    ds.save()
-
-                if d.dispositivo_subsequente:
-                    ds = d.dispositivo_subsequente
-                    d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
-                    d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
+                    if d.dispositivo_subsequente:
+                        ds = d.dispositivo_subsequente
+                        d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
+                        d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
                     d.save()
 
             return {'message': str(_('Dispositivo de Vigência atualizado '
@@ -1616,72 +1615,6 @@ class ActionsEditMixin:
 
         return ''
 
-    """
-    if proxima_articulacao:
-        irmaos_posteriores = Dispositivo.objects.filter(
-            ta_id=base.ta_id,
-            ordem__gt=base.ordem,
-            tipo_dispositivo=base.tipo_dispositivo,
-            ordem__lt=proxima_articulacao.ordem)
-    else:
-        irmaos_posteriores = Dispositivo.objects.filter(
-            ta_id=base.ta_id,
-            ordem__gt=base.ordem,
-            tipo_dispositivo=base.tipo_dispositivo)
-
-    proxima_articulacao = base.get_proximo_nivel_zero()
-
-                # Renumerar Dispostivos de Contagem Contínua de dentro da base
-                if not proxima_articulacao:
-                    dcc = Dispositivo.objects.order_by('ordem').filter(
-                        ta_id=base.ta_id,
-                        ordem__gt=base.ordem,
-                        tipo_dispositivo__contagem_continua=True)
-                else:
-                    dcc = Dispositivo.objects.order_by('ordem').filter(
-                        ta_id=base.ta_id,
-                        ordem__gt=base.ordem,
-                        ordem__lt=proxima_articulacao.ordem,
-                        tipo_dispositivo__contagem_continua=True)
-
-                base_adicao = {}
-
-                nivel_zero_anterior = base.get_nivel_zero_anterior()
-                if nivel_zero_anterior:
-                    nivel_zero_anterior = nivel_zero_anterior.ordem
-                else:
-                    nivel_zero_anterior = 0
-
-                dcc = list(dcc)
-                for d in dcc:  # ultimo DCC do tipo encontrado
-
-                    if d.tipo_dispositivo.class_css not in base_adicao:
-                        ultimo_dcc = Dispositivo.objects.order_by(
-                            'ordem').filter(
-                            ta_id=base.ta_id,
-                            ordem__lt=base.ordem,
-                            ordem__gt=nivel_zero_anterior,
-                            tipo_dispositivo__contagem_continua=True,
-                            tipo_dispositivo=d.tipo_dispositivo).last()
-
-                        if not ultimo_dcc:
-                            break
-
-                        base_adicao[
-                            d.tipo_dispositivo.class_css] = ultimo_dcc.\
-                            dispositivo0
-
-                    d.dispositivo0 += base_adicao[d.tipo_dispositivo.class_css]
-
-                    d.rotulo = d.rotulo_padrao()
-                dcc.reverse()
-                for d in dcc:
-                    d.save()
-
-                base.delete()
-        return ''
-    """
-
     def add_prior(self, context):
         return {}
 
@@ -1694,6 +1627,9 @@ class ActionsEditMixin:
             dp_auto_insert = None
             base = Dispositivo.objects.get(pk=context['dispositivo_id'])
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
+            pub_last = Publicacao.objects.order_by(
+                'data', 'hora').filter(ta=base.ta).last()
+
             variacao = int(context['variacao'])
             parents = [base, ] + base.get_parents()
 
@@ -1791,6 +1727,7 @@ class ActionsEditMixin:
             dp.ordem = ordem
             dp.incrementar_irmaos(variacao, [local_add, ], force=False)
 
+            dp.publicacao = pub_last
             dp.save()
 
             # Inserção automática
@@ -1808,6 +1745,8 @@ class ActionsEditMixin:
                     dp.rotulo = dp.rotulo_padrao()
                     dp.texto = ''
                     dp.ordem = dp.ordem + Dispositivo.INTERVALO_ORDEM
+
+                    dp.publicacao = pub_last
                     dp.save()
                     dp_auto_insert = dp
                 dp = Dispositivo.objects.get(pk=dp_pk)
@@ -1841,7 +1780,6 @@ class ActionsEditMixin:
                         continue
 
                     filho.dispositivo_pai = dp
-                    filho.clean()
                     filho.save()
                     flag_niveis = True
 
@@ -1982,7 +1920,190 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
         if 'perfil_estrutural' in self.request.session:
             context['perfil_pk'] = self.request.session['perfil_estrutural']
 
+        if 'herancas' in self.request.session:
+            del self.request.session['herancas']
+            del self.request.session['herancas_fila']
+
         return self.render_to_json_response(context, **response_kwargs)
+
+
+class DispositivoSearchFragmentFormView(ListView):
+    template_name = 'compilacao/dispositivo_form_search_fragment.html'
+
+    def get(self, request, *args, **kwargs):
+
+        if 'action' in request.GET and request.GET['action'] == 'get_tipos':
+            result = choice_model_type_foreignkey_in_extenal_views(
+                id_tipo_ta=request.GET['tipo_ta'])
+
+            itens = []
+            for i in result:
+                item = {}
+                item[i[0] if i[0] else ''] = str(i[1])
+                itens.append(item)
+            return JsonResponse(itens, safe=False)
+
+        return ListView.get(self, request, *args, **kwargs)
+
+    def get_queryset(self):
+        try:
+
+            n = 10
+            if 'max_results' in self.request.GET:
+                n = int(self.request.GET['max_results'])
+
+            q = Q()
+            if 'initial_ref' in self.request.GET:
+                initial_ref = self.request.GET['initial_ref']
+                if initial_ref:
+                    q = q & Q(pk=initial_ref)
+
+                result = Dispositivo.objects.filter(q).select_related(
+                    'ta').exclude(
+                    tipo_dispositivo__dispositivo_de_alteracao=True)
+
+                return result[:n]
+
+            str_texto = ''
+            texto = ''
+            rotulo = ''
+            num_ta = ''
+            ano_ta = ''
+
+            if 'texto' in self.request.GET:
+                str_texto = self.request.GET['texto']
+
+            texto = str_texto.split(' ')
+
+            if 'rotulo' in self.request.GET:
+                rotulo = self.request.GET['rotulo']
+                if rotulo:
+                    q = q & Q(rotulo__icontains=rotulo)
+
+            for item in texto:
+                if not item:
+                    continue
+                if q:
+                    q = q & (Q(texto__icontains=item) |
+                             Q(texto_atualizador__icontains=item))
+                else:
+                    q = (Q(texto__icontains=item) |
+                         Q(texto_atualizador__icontains=item))
+
+            if 'tipo_ta' in self.request.GET:
+                tipo_ta = self.request.GET['tipo_ta']
+                if tipo_ta:
+                    q = q & Q(ta__tipo_ta_id=tipo_ta)
+
+            if 'num_ta' in self.request.GET:
+                num_ta = self.request.GET['num_ta']
+                if num_ta:
+                    q = q & Q(ta__numero=num_ta)
+
+            if 'ano_ta' in self.request.GET:
+                ano_ta = self.request.GET['ano_ta']
+                if ano_ta:
+                    q = q & Q(ta__ano=ano_ta)
+
+            if not q.children and not n:
+                n = 10
+            q = q & Q(nivel__gt=0)
+
+            result = Dispositivo.objects.order_by(
+                '-ta__data',
+                '-ta__ano',
+                '-ta__numero',
+                'ta',
+                'ordem').filter(q).select_related('ta')
+
+            if 'data_type_selection' in self.request.GET and\
+                    self.request.GET['data_type_selection'] == 'checkbox':
+                result = result.exclude(
+                    tipo_dispositivo__dispositivo_de_alteracao=True)
+            else:
+                if 'data_function' in self.request.GET and\
+                        self.request.GET['data_function'] == 'alterador':
+                    result = result.exclude(
+                        tipo_dispositivo__dispositivo_de_alteracao=False,
+                    )
+                    result = result.exclude(
+                        tipo_dispositivo__dispositivo_de_articulacao=False,
+                    )
+                    print(str(result.query))
+
+            def resultados(r):
+                if n:
+                    return r[:n]
+                else:
+                    return r
+
+                """if num_ta and ano_ta and not rotulo and not str_texto and\
+                        'data_type_selection' in self.request.GET and\
+                        self.request.GET['data_type_selection'] == 'checkbox':
+                    return r
+                else:
+                    return r[:n]"""
+
+            if 'tipo_model' not in self.request.GET:
+                return resultados(result)
+
+            tipo_model = self.request.GET['tipo_model']
+            if not tipo_model:
+                return resultados(result)
+
+            integrations_view_names = get_integrations_view_names()
+
+            tipo_ta = TipoTextoArticulado.objects.get(pk=tipo_ta)
+
+            model_class = None
+            for item in integrations_view_names:
+                if hasattr(item, 'model_type_foreignkey') and\
+                        hasattr(item, 'model'):
+                    if (tipo_ta.content_type.model ==
+                        item.model.__name__.lower() and
+                            tipo_ta.content_type.app_label ==
+                            item.model._meta.app_label):
+
+                        model_class = item.model
+                        model_type_class = item.model_type_foreignkey
+                        tipo_model = item.model_type_foreignkey.objects.get(
+                            pk=tipo_model)
+                        break
+
+            if not model_class:
+                return resultados(result)
+
+            column_field = ''
+            for field in model_class._meta.fields:
+                if field.related_model == model_type_class:
+                    column_field = field.column
+                    break
+
+            if not column_field:
+                return resultados(result)
+
+            r = []
+
+            for d in result:
+                if not d.ta.content_object or\
+                        not hasattr(d.ta.content_object, column_field):
+                    continue
+
+                if tipo_model.pk == getattr(d.ta.content_object, column_field):
+                    r.append(d)
+
+                if (len(r) == n and (not num_ta or
+                                     not ano_ta or rotulo or str_texto)):
+                    break
+            return r
+
+        except Exception as e:
+            print(e)
+
+
+class DispositivoSearchModalView(FormView):
+    template_name = 'compilacao/dispositivo_form_search.html'
+    form_class = DispositivoSearchModalForm
 
 
 class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
@@ -2057,163 +2178,6 @@ class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
         return UpdateView.get(self, request, *args, **kwargs)
 
 
-class DispositivoSearchFragmentFormView(ListView):
-    template_name = 'compilacao/dispositivo_form_search_fragment.html'
-
-    def get(self, request, *args, **kwargs):
-
-        if 'action' in request.GET and request.GET['action'] == 'get_tipos':
-            result = choice_model_type_foreignkey_in_extenal_views(
-                id_tipo_ta=request.GET['tipo_ta'])
-
-            itens = []
-            for i in result:
-                item = {}
-                item[i[0] if i[0] else ''] = str(i[1])
-                itens.append(item)
-            return JsonResponse(itens, safe=False)
-
-        return ListView.get(self, request, *args, **kwargs)
-
-    def get_queryset(self):
-        try:
-
-            n = 50
-            q = Q()
-            if 'initial_ref' in self.request.GET:
-                initial_ref = self.request.GET['initial_ref']
-                if initial_ref:
-                    q = q & Q(pk=initial_ref)
-
-                result = Dispositivo.objects.filter(q).select_related(
-                    'ta').exclude(
-                    tipo_dispositivo__dispositivo_de_alteracao=True)
-
-                return result[:n]
-
-            str_texto = ''
-            texto = ''
-            rotulo = ''
-            num_ta = ''
-            ano_ta = ''
-
-            if 'texto' in self.request.GET:
-                str_texto = self.request.GET['texto']
-
-            texto = str_texto.split(' ')
-
-            if 'rotulo' in self.request.GET:
-                rotulo = self.request.GET['rotulo']
-                if rotulo:
-                    q = q & Q(rotulo__icontains=rotulo)
-
-            for item in texto:
-                if not item:
-                    continue
-                if q:
-                    q = q & (Q(texto__icontains=item) |
-                             Q(texto_atualizador__icontains=item))
-                else:
-                    q = (Q(texto__icontains=item) |
-                         Q(texto_atualizador__icontains=item))
-
-            if 'tipo_ta' in self.request.GET:
-                tipo_ta = self.request.GET['tipo_ta']
-                if tipo_ta:
-                    q = q & Q(ta__tipo_ta_id=tipo_ta)
-
-            if 'num_ta' in self.request.GET:
-                num_ta = self.request.GET['num_ta']
-                if num_ta:
-                    q = q & Q(ta__numero=num_ta)
-
-            if 'ano_ta' in self.request.GET:
-                ano_ta = self.request.GET['ano_ta']
-                if ano_ta:
-                    q = q & Q(ta__ano=ano_ta)
-
-            if not q.children:
-                n = 10
-            q = q & Q(nivel__gt=0)
-
-            result = Dispositivo.objects.order_by(
-                '-ta__data',
-                '-ta__ano',
-                '-ta__numero',
-                'ta',
-                'ordem').filter(q).select_related('ta').exclude(
-                tipo_dispositivo__dispositivo_de_alteracao=True)
-
-            def resultados(r):
-                if num_ta and ano_ta and not rotulo and not str_texto and\
-                        'data_type_selection' in self.request.GET and\
-                        self.request.GET['data_type_selection'] == 'checkbox':
-                    return r
-                else:
-                    return r[:n]
-
-            if 'tipo_model' not in self.request.GET:
-                return resultados(result)
-
-            tipo_model = self.request.GET['tipo_model']
-            if not tipo_model:
-                return resultados(result)
-
-            integrations_view_names = get_integrations_view_names()
-
-            tipo_ta = TipoTextoArticulado.objects.get(pk=tipo_ta)
-
-            model_class = None
-            for item in integrations_view_names:
-                if hasattr(item, 'model_type_foreignkey') and\
-                        hasattr(item, 'model'):
-                    if (tipo_ta.content_type.model ==
-                        item.model.__name__.lower() and
-                            tipo_ta.content_type.app_label ==
-                            item.model._meta.app_label):
-
-                        model_class = item.model
-                        model_type_class = item.model_type_foreignkey
-                        tipo_model = item.model_type_foreignkey.objects.get(
-                            pk=tipo_model)
-                        break
-
-            if not model_class:
-                return resultados(result)
-
-            column_field = ''
-            for field in model_class._meta.fields:
-                if field.related_model == model_type_class:
-                    column_field = field.column
-                    break
-
-            if not column_field:
-                return resultados(result)
-
-            r = []
-
-            for d in result:
-                if not d.ta.content_object or\
-                        not hasattr(d.ta.content_object, column_field):
-                    continue
-
-                if tipo_model.pk == getattr(d.ta.content_object, column_field):
-                    r.append(d)
-
-                if (len(r) == n and (not num_ta or
-                                     not ano_ta or rotulo or str_texto)):
-                    break
-            return r
-
-        except Exception as e:
-            print(e)
-
-
-class DispositivoSearchModalView(FormView):
-    template_name = 'compilacao/dispositivo_form_search.html'
-    form_class = DispositivoSearchModalForm
-
-
 class DispositivoEdicaoVigenciaView(FormMessagesMixin, UpdateView):
     model = Dispositivo
     template_name = 'compilacao/dispositivo_form_vigencia.html'
@@ -2281,12 +2245,50 @@ class DispositivoDefinidorVigenciaView(FormMessagesMixin, FormView):
         form = self.get_form()
         if form.is_valid():
             dvs = form.cleaned_data['dispositivo_vigencia']
-            with transaction.atomic():
-                self.object.dispositivos_vigencias_set.clear()
-                for item in dvs:
-                    d = Dispositivo.objects.get(pk=item)
-                    self.object.dispositivos_vigencias_set.add(d)
+            try:
+                with transaction.atomic():
+                    self.object.dispositivos_vigencias_set.clear()
+                    for item in dvs:
+                        d = Dispositivo.objects.get(pk=item)
+                        self.object.dispositivos_vigencias_set.add(d)
+                    return self.form_valid(form)
+            except:
+                return self.form_invalid(form)
+        else:
+            return self.form_invalid(form)
 
-            return self.form_valid(form)
+
+class DispositivoEdicaoAlteracaoView(FormMessagesMixin, UpdateView):
+    model = Dispositivo
+    template_name = 'compilacao/dispositivo_form_alteracao.html'
+    form_class = DispositivoEdicaoAlteracaoForm
+    form_valid_message = _('Alterações no Dispositivo realizadas com sucesso!')
+    form_invalid_message = _('Houve erro em registrar '
+                             'as alterações no Dispositivo')
+
+    @property
+    def cancel_url(self):
+        return reverse_lazy(
+            'compilacao:ta_text_edit',
+            kwargs={'ta_id': self.kwargs['ta_id']}) + '#' + str(self.object.pk)
+
+    def get_url_this_view(self):
+        return 'compilacao:dispositivo_edit_alteracao'
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'compilacao:dispositivo_edit_alteracao',
+            kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
+
+    def post(self, request, *args, **kwargs):
+        self.object = get_object_or_404(Dispositivo, pk=kwargs['pk'])
+
+        form = self.get_form()
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    return self.form_valid(form)
+            except:
+                return self.form_invalid(form)
         else:
             return self.form_invalid(form)

@@ -31,12 +31,6 @@
         });
     }
 
-    $(document).ready(function() {
-
-      {% if object.tipo_dispositivo.dispositivo_de_articulacao %}
-          setTimeout(removeTinymce, 100);
-      {% endif %}
-
-    });
+     initTinymce();
   </script>
 {% endblock %}
