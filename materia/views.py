@@ -1201,14 +1201,6 @@ class MateriaLegislativaPesquisaView(FilterView):
     filterset_class = MateriaLegislativaPesquisaFields
     paginate_by = 10
 
-    # def get_filterset_kwargs(self, filterset_class):
-    #     """
-    #     Returns the keyword arguments for instanciating the filterset.
-    #     """
-    #     import ipdb; ipdb.set_trace()
-    #     kwargs = {'data': self.request.GET or None}
-    #     return kwargs
-
     def get_context_data(self, **kwargs):
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
@@ -1218,6 +1210,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
+
         return context
 
     def get(self, request, *args, **kwargs):
@@ -1233,7 +1226,7 @@ class MateriaLegislativaPesquisaView(FilterView):
             lista = filtra_tramitacao_destino_and_status(status_tramitacao,
                                                          unidade_destino)
             self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct().order_by
+                id__in=lista).distinct()
 
         elif status_tramitacao:
             lista = filtra_tramitacao_status(status_tramitacao)
@@ -1260,6 +1253,8 @@ class MateriaLegislativaPesquisaView(FilterView):
                                         filter_url=url,
                                         numero_res=len(self.object_list)
                                         )
+
+        self.filterset.form.fields['o'].label = _('Ordenação')
 
         return self.render_to_response(context)
 

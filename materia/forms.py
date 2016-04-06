@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from django.utils.text import capfirst
 from django_filters import FilterSet
 
 import crispy_layout_mixin
@@ -26,6 +27,11 @@ def em_tramitacao():
     return [('', 'Tanto Faz'),
             (True, 'Sim'),
             (False, 'Não')]
+
+
+def ordenacao():
+    return [('data, tipo, ano, numero', 'Data, Tipo, Ano, Numero'),
+            ('tipo, ano, numero, data', 'Tipo, Ano, Numero, Data')]
 
 
 class ProposicaoForm(ModelForm):
@@ -690,24 +696,37 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                                        lookup_expr='icontains',
                                        help_text="")
 
-    ORDER_BY_FIELD = "'numero', 'ano'"
-
     class Meta:
         models = MateriaLegislativa
-        fields = {'tipo',
-                  'ano',
-                  'numero_protocolo',
-                  'data_apresentacao',
-                  'data_publicacao',
-                  'em_tramitacao',
-                  'ementa',
-                  'autoria__autor__id',
-                  'relatoria__parlamentar_id',
-                  'tramitacao__unidade_tramitacao_destino',
-                  'tramitacao__status',
-                  'autoria__autor__tipo',
-                  'autoria__partido',
-                  'local_origem_externa'}
+
+        order_by = (
+            ('', 'Selecione'),
+            ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
+            ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
+            ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
+            ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
+        )
+
+    # def get_ordering_field(self, choices):
+    #     super(
+    #         MateriaLegislativaPesquisaFields, self).get_ordering_field(choices)
+    #     return forms.ChoiceField(label=_('Ordenação'),
+    #                              required=False,
+    #                              choices=choices)
+
+    def get_order_by(self, order_value):
+        if order_value == '':
+            return []
+        elif order_value == 'dataC':
+            return ['data_apresentacao', 'tipo__sigla', 'ano', 'numero']
+        elif order_value == 'dataD':
+            return ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero']
+        elif order_value == 'tipoC':
+            return ['tipo__sigla', 'ano', 'numero', 'data_apresentacao']
+        else:
+            return ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao']
+        return super(MateriaLegislativaPesquisaFields,
+                     self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaPesquisaFields, self).__init__(*args, **kwargs)
@@ -741,7 +760,9 @@ class MateriaLegislativaPesquisaFields(FilterSet):
              ('tramitacao__status', 6)])
         row9 = crispy_layout_mixin.to_row(
             [('em_tramitacao', 6),
-             ('ementa', 6)])
+             ('o', 6)])
+        row10 = crispy_layout_mixin.to_row(
+            [('ementa', 12)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
@@ -750,7 +771,7 @@ class MateriaLegislativaPesquisaFields(FilterSet):
                      row1, row2, row3, row4,
                      HTML(sapl.utils.autor_label),
                      HTML(sapl.utils.autor_modal),
-                     row5, row6, row7, row8, row9,
+                     row5, row6, row7, row8, row9, row10,
                      form_actions(save_label='Pesquisar'))
         )
 
