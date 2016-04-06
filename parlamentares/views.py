@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, UpdateView
 
@@ -34,16 +35,64 @@ class ParlamentarCrud(Crud):
     model = Parlamentar
     help_path = ''
 
-    class BaseMixin(crud.base.BaseMixin):
-        # TODO: partido...
-        list_field_names = ['nome_parlamentar', 'ativo']
-
     class CreateView(crud.base.CrudCreateView):
         form_class = ParlamentarCreateForm
 
         @property
         def layout_key(self):
             return 'ParlamentarCreate'
+
+    class ListView(crud.base.CrudListView):
+        template_name = "parlamentares/parlamentares_list.html"
+        paginate_by = None
+
+        def take_legislatura_id(self):
+            legislaturas = Legislatura.objects.all().order_by(
+                '-data_inicio', '-data_fim')
+
+            try:
+                legislatura_id = int(self.request.GET['periodo'])
+            except MultiValueDictKeyError:
+                legislatura_id = legislaturas.first().id
+
+            return legislatura_id
+
+        def get_queryset(self):
+            mandatos = Mandato.objects.filter(
+                legislatura_id=self.take_legislatura_id())
+            return mandatos
+
+        def get_rows(self, object_list):
+            parlamentares = []
+            for m in object_list:
+
+                if m.parlamentar.filiacao_set.last():
+                    partido = m.parlamentar.filiacao_set.last().partido.sigla
+                else:
+                    partido = _('Sem Registro')
+
+                parlamentar = [
+                    (m.parlamentar.nome_parlamentar, m.parlamentar.id),
+                    (partido, None),
+                    ('Sim' if m.parlamentar.ativo else 'Não', None)
+                ]
+                parlamentares.append(parlamentar)
+            return parlamentares
+
+        def get_headers(self):
+            return ['Parlamentar', 'Partido', 'Ativo?']
+
+        def get_context_data(self, **kwargs):
+            context = super(ParlamentarCrud.ListView, self
+                            ).get_context_data(**kwargs)
+            context.setdefault('title', self.verbose_name_plural)
+
+            # Adiciona legislatura para filtrar parlamentares
+            legislaturas = Legislatura.objects.all().order_by(
+                '-data_inicio', '-data_fim')
+            context['legislaturas'] = legislaturas
+            context['legislatura_id'] = self.take_legislatura_id()
+            return context
 
 
 def validate(form, parlamentar, filiacao, request):
