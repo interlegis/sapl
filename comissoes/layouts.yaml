@@ -14,12 +14,12 @@ TipoComissao:
 
 Comissao:
   Dados Básicos:
-  - nome:9  sigla
-  - tipo  data_criacao  unidade_deliberativa  data_extincao
+  - nome:8  sigla
+  - tipo    data_criacao  unidade_deliberativa  data_extincao
   Dados Complementares:
-  - local_reuniao        agenda_reuniao       telefone_reuniao
+  - local_reuniao  agenda_reuniao  telefone_reuniao
   - endereco_secretaria  telefone_secretaria  fax_secretaria
-  - secretario:4         email
+  - secretario  email
   - finalidade
   Temporária:
   - apelido_temp:8  data_instalacao_temp

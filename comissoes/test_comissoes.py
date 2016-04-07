@@ -96,7 +96,7 @@ def test_incluir_comissao_submit(client):
                       sigla='T',
                       nome='Teste')
 
-    response = client.post(reverse('comissoes:cadastrar_comissao'),
+    response = client.post(reverse('comissoes:comissao_create'),
                            {'tipo': tipo.pk,
                             'nome': 'Comissão Teste',
                             'sigla': 'CT',
@@ -113,7 +113,7 @@ def test_incluir_comissao_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_incluir_comissao_errors(client):
 
-    response = client.post(reverse('comissoes:cadastrar_comissao'),
+    response = client.post(reverse('comissoes:comissao_create'),
                            {'salvar': 'salvar'},
                            follow=True)
 
