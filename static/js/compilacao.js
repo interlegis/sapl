@@ -57,7 +57,7 @@ function DispostivoSearch(opts) {
                     var dpts = field.find('input');
                     dpts.off()
                     dpts.attr('type', 'hidden');
-                    $('<a class="text-danger" href="#">')
+                    $('<a class="text-danger">')
                         .insertBefore(dpts)
                         .append($('<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>'))
                         .on('click', function() {
