@@ -13,6 +13,7 @@ from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
 
+import crud.base
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
@@ -23,7 +24,6 @@ from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
-                    FormularioCadastroForm, FormularioSimplificadoForm,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaPesquisaForm, NumeracaoForm,
                     ProposicaoForm, RelatoriaForm, TramitacaoForm)
@@ -56,16 +56,16 @@ UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
 
-class FormularioSimplificadoView(CreateView):
-    template_name = "materia/formulario_simplificado.html"
-    form_class = FormularioSimplificadoForm
-    success_url = reverse_lazy('materia:materialegislativa_list')
+# TODO qual url?
+class MateriaLegislativaSimplificadaCrud(Crud):
+    model = MateriaLegislativa
+    help_path = ''
 
+    class CreateView(crud.base.CrudCreateView):
 
-class FormularioCadastroView(CreateView):
-    template_name = "materia/formulario_cadastro.html"
-    form_class = FormularioCadastroForm
-    success_url = reverse_lazy('materia:formulario_cadastro')
+        @property
+        def layout_key(self):
+            return 'MateriaLegislativaSimplificado'
 
 
 class MateriaAnexadaView(FormView):
