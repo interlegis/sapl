@@ -23,9 +23,11 @@ function onEventsDneExec(pk, model) {
         });
     }
     else if (model == 'vide') {
-        configFormSearchTA('#dne'+pk, 'radio', 'select_for_vide');
 
-        onChangeParamTA();
+        DispostivoSearch({
+          'url_form': '/ta/search_form',
+          'text_button': 'Definir Dispositivo'
+        });
     }
 }
 
@@ -38,7 +40,7 @@ var onSubmitEditNVForm = function(event) {
     var id_dispositivo = $('#id_dispositivo').val();
 
     if (id_dispositivo == null) { // trata-se de um vide
-        $('#id_dispositivo_ref').remove();
+        //$('#id_dispositivo_ref').remove();
         id_dispositivo = $('#id_dispositivo_base').val();
         model='vide';
     }
