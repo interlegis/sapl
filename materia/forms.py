@@ -7,7 +7,7 @@ from crispy_forms.layout import Button, Column, Fieldset, HTML, Layout, Submit
 from crispy_layout_mixin import form_actions
 
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -28,11 +28,6 @@ def em_tramitacao():
     return [('', 'Tanto Faz'),
             (True, 'Sim'),
             (False, 'Não')]
-
-
-def ordenacao():
-    return [('data, tipo, ano, numero', 'Data, Tipo, Ano, Numero'),
-            ('tipo, ano, numero, data', 'Tipo, Ano, Numero, Data')]
 
 
 class ProposicaoForm(ModelForm):
@@ -558,11 +553,26 @@ class AutoriaForm(ModelForm):
         choices=[(True, _('Sim')), (False, _('Não'))],
     )
 
+    materia_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+
     class Meta:
         model = Autoria
         fields = ['autor',
                   'primeiro_autor',
-                  'partido']
+                  'partido',
+                  'materia_id']
+
+    def clean(self):
+        if self.data['materia_id'] and self.data['autor']:
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    id=self.data['materia_id'])
+                Autoria.objects.get(autor=self.data['autor'],
+                                    materia=materia)
+                raise forms.ValidationError(
+                    _('Essa autoria já foi adicionada!'))
+            except ObjectDoesNotExist:
+                pass
 
     def __init__(self, excluir=False, *args, **kwargs):
 

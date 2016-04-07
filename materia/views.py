@@ -18,6 +18,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
 from django_filters.views import FilterView
 
+from base.models import CasaLegislativa
+from comissoes.models import Comissao, Composicao
+from compilacao.views import IntegracaoTaView
+from crud.base import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
 from random import choice
@@ -1243,10 +1247,14 @@ class MateriaLegislativaPesquisaView(FilterView):
         else:
             self.object_list = self.filterset.qs
 
-        if (data and data.get('numero') is not None):
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/Field
+        # Então a ordem da URL está diferente
+        if (data and data.get('tipo') is not None):
             url = "&"+str(self.request.environ['QUERY_STRING'])
             if url[:5] == "&page":
-                ponto_comeco = url.find('numero=') - 1
+                ponto_comeco = url.find('tipo=') - 1
                 url = url[ponto_comeco:]
         else:
             url = ''
