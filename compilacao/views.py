@@ -400,8 +400,7 @@ class VideMixin(DispositivoSuccessUrlMixin):
     def get_initial(self):
         dispositivo_base = get_object_or_404(
             Dispositivo, pk=self.kwargs.get('dispositivo_id'))
-
-        initial = {'dispositivo_base': dispositivo_base}
+        initial = {'dispositivo_base': dispositivo_base, }
 
         if 'pk' in self.kwargs:
             initial['pk'] = self.kwargs.get('pk')
@@ -440,7 +439,7 @@ class VideCreateView(VideMixin, CreateView):
         self.object = None
         form = self.get_form()
         return self.render_to_response(self.get_context_data(form=form))
-
+"""
     def get_form_kwargs(self):
 
         kwargs = super(VideCreateView, self).get_form_kwargs()
@@ -451,7 +450,7 @@ class VideCreateView(VideMixin, CreateView):
                 choice_model_type_foreignkey_in_extenal_views
             })
 
-        return kwargs
+        return kwargs"""
 
 
 class VideEditView(VideMixin, UpdateView):

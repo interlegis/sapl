@@ -136,9 +136,13 @@ $(document).ready(function() {
     setTimeout(function() {
         var href = location.href.split('#')
         if (href.length == 2) {
-            $('html, body').animate({
-                scrollTop: $('#dptt' + href[1] ).offset().top - window.innerHeight / 9
-            }, 0);
+            try {
+                $('html, body').animate({
+                    scrollTop: $('#dptt' + href[1] ).offset().top - window.innerHeight / 9
+                }, 0);
+            }
+            catch(err) {
+            }
         }
     }, 100);
 

@@ -264,87 +264,28 @@ class NotaForm(ModelForm):
         super(NotaForm, self).__init__(*args, **kwargs)
 
 
-class DispositivoSearchFragmentForm(ModelForm):
-
-    tipo_ta = forms.ModelChoiceField(
-        label=_('Tipo do Texto Articulado'),
-        queryset=TipoTextoArticulado.objects.all(),
-        required=False)
-
-    tipo_model = forms.ChoiceField(
-        choices=[],
-        label=_('Tipos de...'), required=False)
-
-    num_ta = forms.IntegerField(
-        label=_('Número'), required=False)
-    ano_ta = forms.IntegerField(
-        label=_('Ano'), required=False)
-
-    rotulo_dispositivo = forms.CharField(
-        label=_('Rótulo'),
-        required=False)
-
-    texto_dispositivo = forms.CharField(
-        label=_('Pesquisa Textual'),
-        required=False)
-
-    def __init__(self, *args, **kwargs):
-
-        if 'fields_search' in kwargs:
-            fields_search = kwargs['fields_search'].fields
-
-            fields_search.append(Fieldset(
-                _('Busca por um Dispositivo'),
-                Row(
-                    to_column(('num_ta', 6)),
-                    to_column(('ano_ta', 6))),
-                Row(
-                    to_column(('tipo_ta', 6)),
-                    to_column(('tipo_model', 6))),
-                Row(to_column(('rotulo_dispositivo', 3)),
-                    to_column((FieldWithButtons(
-                        Field(
-                            'texto_dispositivo',
-                            placeholder=_('Digite palavras, letras, '
-                                          'números ou algo'
-                                          ' que estejam no texto.')),
-                        StrictButton(_('Buscar'), css_class='btn-busca')), 9)))
-            ))
-
-            fields_search.append(
-                Row(to_column(
-                    (Div(css_class='result-busca-dispositivo'), 12))))
-            kwargs.pop('fields_search')
-
-        if 'choice_model_type_foreignkey_in_extenal_views' in kwargs:
-            ch = kwargs.pop('choice_model_type_foreignkey_in_extenal_views')
-            if 'data' in kwargs:
-                choice = ch(kwargs['data']['tipo_ta'])
-                self.base_fields['tipo_model'].choices = choice
-            elif 'instance' in kwargs and\
-                    isinstance(kwargs['instance'], Dispositivo):
-                choice = ch(kwargs['instance'].ta.tipo_ta_id)
-                self.base_fields['tipo_model'].choices = choice
-
-        super(DispositivoSearchFragmentForm, self).__init__(*args, **kwargs)
-
-
-class VideForm(DispositivoSearchFragmentForm):
+class VideForm(ModelForm):
     dispositivo_base = forms.ModelChoiceField(
         queryset=Dispositivo.objects.all(),
         widget=forms.HiddenInput())
+
     dispositivo_ref = forms.ModelChoiceField(
-        queryset=Dispositivo.objects.all(),
-        widget=forms.HiddenInput())
+        label=Vide._meta.get_field(
+            'dispositivo_ref').verbose_name,
+        queryset=Dispositivo.objects.all())
 
     tipo = forms.ModelChoiceField(
         label=TipoVide._meta.verbose_name,
         queryset=TipoVide.objects.all(),
         required=True,
         error_messages=error_messages)
+    texto = forms.CharField(
+        required=False,
+        label=Vide._meta.get_field(
+            'texto').verbose_name,
+        widget=forms.Textarea())
 
-    pk = forms.IntegerField(widget=forms.HiddenInput(),
-                            required=False)
+    pk = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     class Meta:
         model = Vide
@@ -371,32 +312,46 @@ class VideForm(DispositivoSearchFragmentForm):
                 css_class='btn-primary pull-right')
         )
 
-        fields_form = Div(
+        dispositivo_ref = Field(
+            'dispositivo_ref',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_ref',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+
+        fields_form = []
+        fields_form.append(Div(
             Row(to_column((Field(
                 'tipo',
                 placeholder=_('Selecione um Tipo de Vide')), 12))),
+            Row(to_column((dispositivo_ref, 12))),
+            Row(to_column((buttons, 12)))))
+
+        fields_form.append(Div(
             Row(to_column((Field(
                 'texto',
-                placeholder=_('Texto Adicional ao Vide')), 12))),
-            Row(to_column((buttons, 12))))
-
-        kwargs['fields_search'] = fields_search = Div()
+                placeholder=_('Texto Adicional ao Vide')), 12)))))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
                 Div(HTML(_('Vides')), css_class='panel-heading'),
                 Div(
-                    to_column((
-                        fields_form, 4)),
-                    to_column((
-                        fields_search, 8)), css_class="panel-body"
+                    to_column((fields_form[0], 6)),
+                    to_column((fields_form[1], 6)),
+                    css_class="panel-body"
                 ),
                 css_class="panel panel-primary"
             )
         )
 
         super(VideForm, self).__init__(*args, **kwargs)
+
+        self.fields['dispositivo_ref'].choices = []
+        if self.instance and self.instance.dispositivo_ref_id:
+            self.fields['dispositivo_ref'].choices = [
+                (self.instance.dispositivo_ref.pk,
+                 self.instance.dispositivo_ref)]
 
 
 class PublicacaoForm(ModelForm):
