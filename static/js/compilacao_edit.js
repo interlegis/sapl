@@ -1,6 +1,5 @@
 
 var editortype = "textarea";
-var gets = 0;
 var onSubmitEditForm = function(event) {
 
     var texto = '';

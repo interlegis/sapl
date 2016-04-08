@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -35,6 +35,7 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -2291,3 +2292,80 @@ class DispositivoEdicaoAlteracaoView(FormMessagesMixin, UpdateView):
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
+
+
+class TextPendenciasView(ListView, CompMixin):
+    template_name = 'compilacao/text_pendencias.html'
+
+    def get_queryset(self):
+
+        result = Dispositivo.objects.filter(
+            ta_id=self.kwargs['ta_id']
+        ).select_related(*DISPOSITIVO_SELECT_RELATED)
+
+        for r in result:
+            p = []
+
+            def padd(type_pendencia, msg,
+                     reverse_url=None, _kwargs=None, to_position=None):
+                r.contextual_class = type_pendencia
+                if not _kwargs:
+                    _kwargs = {'ta_id': r.ta_id, 'pk': r.pk}
+                if reverse_url:
+                    p.append((type_pendencia, msg,
+                              reverse_lazy(reverse_url, kwargs=_kwargs),
+                              to_position))
+                else:
+                    p.append((type_pendencia, msg, None, to_position))
+
+            # info
+            if r.rotulo != r.rotulo_padrao(local_insert=1):
+                padd('info', _('Rótulo Diferente do Padrão'),
+                     'compilacao:dispositivo_edit')
+
+            if r.texto_atualizador and r.texto_atualizador != r.texto:
+                padd('info', _('Texto do Dispositivo para o Documento '
+                               'está diferente do texto para o Documento '
+                               'Alterador.'),
+                     'compilacao:dispositivo_edit')
+
+            if r.inconstitucionalidade:
+                if not r.notas.exists():
+                    padd('info', _('Este Dispositivo está definido como '
+                                   'inconstitucional. É aconcelhavel inserir '
+                                   'uma Nota informando esta condição.'),
+                         'compilacao:ta_text', _kwargs={'ta_id': r.ta_id},
+                         to_position=r.pk)
+
+                if not (r.inicio_vigencia == r.fim_vigencia and
+                        r.fim_vigencia == r.inicio_eficacia and
+                        r.inicio_eficacia == r.fim_eficacia):
+                    padd('info', _('Este Dispositivo está definido como '
+                                   'inconstitucional porém existe '
+                                   'diferença entre as datas de vigência e '
+                                   'eficácia.'),
+                         'compilacao:dispositivo_edit_vigencia')
+
+            # warnings
+            if r.dispositivo_vigencia and r.inicio_vigencia != \
+                    r.dispositivo_vigencia.inicio_vigencia:
+                padd('warning',
+                     _('Data de início de Vigência diferente da '
+                       'data início de Vigência do Dispositivo de Vigência'),
+                     'compilacao:dispositivo_edit_vigencia')
+
+            if r.inconstitucionalidade:
+                if r.inicio_vigencia != r.fim_vigencia:
+                    padd('warning', _('Este Dispositivo está definido como '
+                                      'inconstitucional porém existe '
+                                      'período de vigência!'),
+                         'compilacao:dispositivo_edit_vigencia')
+
+            # dangers
+
+            if not r.dispositivo_vigencia:
+                padd('danger',
+                     _('Sem definição de Dispositivo de Vigência'),
+                     'compilacao:dispositivo_edit_vigencia')
+            r.pendencias = p
+        return result

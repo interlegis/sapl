@@ -559,7 +559,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Retornar para o Editor Sequencial'))
+            label_cancel=_('Ir para o Editor Sequencial'))
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
 
@@ -727,7 +727,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Retornar para o Editor Sequencial'))
+            label_cancel=_('Ir para o Editor Sequencial'))
 
         super(DispositivoEdicaoVigenciaForm, self).__init__(*args, **kwargs)
 
@@ -816,7 +816,7 @@ class DispositivoDefinidorVigenciaForm(Form):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Retornar para o Editor Sequencial'))
+            label_cancel=_('Ir para o Editor Sequencial'))
 
         pk = kwargs.pop('pk')
         super(DispositivoDefinidorVigenciaForm, self).__init__(*args, **kwargs)
@@ -955,7 +955,7 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Retornar para o Editor Sequencial'))
+            label_cancel=_('Ir para o Editor Sequencial'))
 
         super(DispositivoEdicaoAlteracaoForm, self).__init__(*args, **kwargs)
 

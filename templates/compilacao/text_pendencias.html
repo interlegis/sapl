@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n compilacao_filters common_tags sass_tags%}
+
+{% block base_content %}
+
+  {% block head_content %}{{block.super}}
+    <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+  {% endblock %}
+
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>{% trans "Dispositivos" %}</th>
+        <th>{% trans "Pendências" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for dpt in object_list %}
+        <tr class="{{dpt.contextual_class}}">
+          <td class="cp" width="60%" {% if not dpt.contextual_class %}colspan=2{% endif %} >
+            <div class="dpt">
+              <div class="{{ dpt.tipo_dispositivo.class_css }}">
+                <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{dpt.pk}}" >
+                  {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
+                  <a href="{% url 'compilacao:ta_text_edit' dpt.ta_id %}#{{dpt.pk}}">{% if dpt.rotulo or dpt.nivel = 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}}{% if dpt.dispositivo_pai_id %} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}{% endif %}] - {% endif %}</a>
+                  {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
+                  <span class="dtxt"
+                        id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}"
+                        pks="{{dpt.dispositivo_substituido_id|default:''}}"
+                        pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+         {% if dpt.contextual_class %}
+           <td>
+             <ul>
+               {% for p in dpt.pendencias %}
+                <li>
+                  {%if p.2 %}
+                    <a target="_blank" class="text-{{p.0}}" href="{{p.2}}{%if p.3 %}#{{p.3}}{% endif %}"><u>{{p.1}}</u></a>
+                  {% else%}
+                    <span class="text-{{p.0}}">{{p.1}}</span>
+                  {% endif %}</li>
+               {% endfor %}
+             </ul>
+           </td>
+         {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
