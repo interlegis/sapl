@@ -647,19 +647,20 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
         )
 
+    order_by_mapping = {
+        '': [],
+        'dataC': ['data_apresentacao', 'tipo__sigla', 'ano', 'numero'],
+        'dataD': ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero'],
+        'tipoC': ['tipo__sigla', 'ano', 'numero', 'data_apresentacao'],
+        'tipoD': ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao'],
+    }
+
     def get_order_by(self, order_value):
-        if order_value == '':
-            return []
-        elif order_value == 'dataC':
-            return ['data_apresentacao', 'tipo__sigla', 'ano', 'numero']
-        elif order_value == 'dataD':
-            return ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero']
-        elif order_value == 'tipoC':
-            return ['tipo__sigla', 'ano', 'numero', 'data_apresentacao']
+        if order_value in self.order_by_mapping:
+            return self.order_by_mapping[order_value]
         else:
-            return ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao']
-        return super(MateriaLegislativaFilterSet,
-                     self).get_order_by(order_value)
+            return super(MateriaLegislativaFilterSet,
+                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
