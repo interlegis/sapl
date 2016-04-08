@@ -7,9 +7,10 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
+
 import crud.base
 from crud.base import Crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
@@ -20,8 +21,7 @@ from sessao.serializers import SessaoPlenariaSerializer
 
 from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
                     MesaForm, OradorDeleteForm, OradorForm, PresencaForm,
-                    VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
+                    VotacaoEditForm, VotacaoForm, VotacaoNominalForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,
