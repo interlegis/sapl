@@ -7,10 +7,10 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
-
+import crud.base
 from crud.base import Crud, make_pagination
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
@@ -20,7 +20,7 @@ from sessao.serializers import SessaoPlenariaSerializer
 
 from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
                     MesaForm, OradorDeleteForm, OradorForm, PresencaForm,
-                    SessaoForm, VotacaoEditForm, VotacaoForm,
+                    VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
@@ -30,13 +30,30 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      VotoParlamentar)
 
 TipoSessaoCrud = Crud.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
-SessaoCrud = Crud.build(SessaoPlenaria, '')
 ExpedienteMateriaCrud = Crud.build(ExpedienteMateria, '')
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 TipoResultadoVotacaoCrud = Crud.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+
+
+class SessaoCrud(Crud):
+    model = SessaoPlenaria
+    help_path = 'sessao_plenaria'
+
+    class BaseMixin(crud.base.BaseMixin):
+        list_field_names = ['numero', 'tipo', 'legislatura',
+                            'sessao_legislativa', 'data_inicio', 'hora_inicio']
+
+    class CrudDetailView(crud.base.BaseMixin, crud.base.DetailView):
+        model = SessaoPlenaria
+        help_path = 'sessao_plenaria'
+
+    class CreateView(crud.base.CrudCreateView):
+
+        def get_success_url(self):
+            return reverse_lazy('sessao:sessaoplenaria_list')
 
 
 class PresencaMixin:
@@ -56,9 +73,10 @@ class PresencaMixin:
                 yield (parlamentar, False)
 
 
-class PresencaView(FormMixin, PresencaMixin, SessaoCrud.CrudDetailView):
+class PresencaView(FormMixin, PresencaMixin, SessaoCrud.DetailView):
     template_name = 'sessao/presenca.html'
     form_class = PresencaForm
+    model = SessaoPlenaria
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -96,7 +114,7 @@ class PresencaView(FormMixin, PresencaMixin, SessaoCrud.CrudDetailView):
         return reverse('sessao:presenca', kwargs={'pk': pk})
 
 
-class PainelView(SessaoCrud.CrudDetailView):
+class PainelView(TemplateView):
     template_name = 'sessao/painel.html'
 
 
@@ -2236,12 +2254,6 @@ class PautaSessaoDetailView(SessaoCrud.CrudDetailView):
         context.update({'materias_ordem': materias_ordem})
 
         return self.render_to_response(context)
-
-
-class SessaoCadastroView(CreateView):
-    template_name = "sessao/sessao_cadastro.html"
-    form_class = SessaoForm
-    success_url = reverse_lazy('sessao:list_sessao')
 
 
 class SessaoPlenariaView(generics.ListAPIView):
