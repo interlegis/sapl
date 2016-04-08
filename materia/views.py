@@ -40,7 +40,6 @@ TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,
 RegimeTramitacaoCrud = Crud.build(RegimeTramitacao, 'regime_tramitacao')
 TipoDocumentoCrud = Crud.build(TipoDocumento, 'tipo_documento')
 TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
-MateriaLegislativaCrud = Crud.build(MateriaLegislativa, '')
 AnexadaCrud = Crud.build(Anexada, '')
 TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
@@ -56,16 +55,12 @@ UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
 
-# TODO qual url?
-class MateriaLegislativaSimplificadaCrud(Crud):
+class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
-    help_path = ''
+    help_path = 'materia_legislativa'
 
-    class CreateView(crud.base.CrudCreateView):
-
-        @property
-        def layout_key(self):
-            return 'MateriaLegislativaSimplificado'
+    class BaseMixin(crud.base.BaseMixin):
+        list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
 
 class MateriaAnexadaView(FormView):
@@ -1408,7 +1403,7 @@ class ProposicaoTaView(IntegracaoTaView):
     model_type_foreignkey = TipoProposicao
 
 
-class AcompanhamentoMateriaView(MateriaLegislativaCrud.CrudDetailView):
+class AcompanhamentoMateriaView(CreateView):
     template_name = "materia/acompanhamento_materia.html"
 
     def get_random_chars(self):
