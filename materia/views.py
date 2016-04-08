@@ -1,11 +1,7 @@
 import os
-
 from datetime import datetime
-
-from base.models import CasaLegislativa
-from comissoes.models import Comissao, Composicao
-from compilacao.views import IntegracaoTaView
-from crud.base import Crud, make_pagination
+from random import choice
+from string import ascii_letters, digits
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
@@ -24,18 +20,14 @@ from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
-from random import choice
 from sapl.utils import get_base_url
-from string import ascii_letters, digits
-
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     FormularioCadastroForm, FormularioSimplificadoForm,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
-                    MateriaLegislativaFilterSet, NumeracaoForm,
-                    ProposicaoForm, RelatoriaForm, TramitacaoForm,
-                    filtra_tramitacao_destino,
+                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
+                    RelatoriaForm, TramitacaoForm, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -44,7 +36,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, 'origem')
 TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,

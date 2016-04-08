@@ -1,18 +1,16 @@
-import crispy_layout_mixin
 import django_filters
-import sapl
-
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Button, Column, Fieldset, HTML, Layout, Submit
-from crispy_layout_mixin import form_actions
-
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django_filters import FilterSet
 
+import crispy_layout_mixin
+import sapl
+from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from parlamentares.models import Parlamentar, Partido
 from sapl.settings import MAX_DOC_UPLOAD_SIZE

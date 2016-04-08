@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags compilacao_filters staticfiles sass_tags %}
+
+{% block head_content %}{{block.super}}
+  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+{% endblock %}
+{% block sections_nav %}
+<ul class="nav nav-pills navbar-right">
+  {% url 'compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
+  {% url 'compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
+  {% url 'compilacao:dispositivo_edit_alteracao' object.ta_id object.pk as edit_alteracao_url %}
+  {% url 'compilacao:dispositivo_edit_definidor_vigencia' object.ta_id object.pk as edit_definidor_vigencia_url %}
+  <li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>
+  <li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>
+  <li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>
+  <li {% if request.get_full_path == edit_alteracao_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>
+  <li><a href="#" class="btn-danger">{% trans 'Alterador' %}</a></li>
+</ul>
+{% endblock sections_nav %}{% trans '' %}
+
+{% block title %}
+  <h1><small>{{object.ta}}</small><br>{% trans 'Edição de Dispositivo' %}</h1>
+{% endblock%}
+{% block base_content %}
+  <div class="btn-group btn-group-sm" role="group">
+    {%for parent in object.get_parents_asc %}
+      {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
+        {%include template_name%}
+      {%endwith%}
+    {%endfor %}
+
+    {%with node=object active=True template_name='compilacao/dispositivo_form_parents.html' %}
+      {%include template_name%}
+    {%endwith%}
+  </div>
+  <br><br>
+  {% crispy form %}
+{% endblock %}
+
+{% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+{% endblock %}

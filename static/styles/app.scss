@@ -120,3 +120,20 @@ body {
 .checkbox input, .radio input {
     display: initial;
 }
+
+.modal {
+  .alert {
+    margin-bottom: 0;
+  }
+}
+
+
+fieldset {
+
+  fieldset {
+    font-size: 95%;
+    legend {
+      font-size: 18px;
+    }
+  }
+}
