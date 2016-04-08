@@ -3,23 +3,21 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from django_filters import FilterSet
 
 import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
-from parlamentares.models import Parlamentar, Partido
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
-                     Numeracao, Origem, Proposicao, Relatoria,
-                     StatusTramitacao, TipoAutor, TipoMateriaLegislativa,
-                     Tramitacao, UnidadeTramitacao)
+                     Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
+                     Tramitacao)
 
 
 def em_tramitacao():
@@ -142,13 +140,13 @@ class DocumentoAcessorioForm(ModelForm):
             [('tipo', 4), ('nome', 4), ('data', 4)])
 
         row2 = crispy_layout_mixin.to_row(
-                 [('autor', 0),
-                  (Button('pesquisar',
-                          'Pesquisar Autor',
-                          css_class='btn btn-primary btn-sm'), 2),
-                  (Button('limpar',
-                          'Limpar Autor',
-                          css_class='btn btn-primary btn-sm'), 10)])
+            [('autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'Limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
 
         row3 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
@@ -194,7 +192,7 @@ class TramitacaoForm(ModelForm):
                                 label='Tramitando',
                                 choices=[(True, 'Sim'), (False, 'Não')],
                                 widget=forms.Select(
-                                  attrs={'class': 'selector'}))
+                                    attrs={'class': 'selector'}))
 
     class Meta:
         model = Tramitacao
@@ -594,13 +592,12 @@ class AutoriaForm(ModelForm):
 
 
 class RangeWidgetOverride(forms.MultiWidget):
+
     def __init__(self, attrs=None):
-        widgets = (forms.DateInput(
-                      format='%d/%m/%Y',
-                      attrs={'class': 'dateinput'}),
-                   forms.DateInput(
-                      format='%d/%m/%Y',
-                      attrs={'class': 'dateinput'}))
+        widgets = (forms.DateInput(format='%d/%m/%Y',
+                                   attrs={'class': 'dateinput'}),
+                   forms.DateInput(format='%d/%m/%Y',
+                                   attrs={'class': 'dateinput'}))
         super(RangeWidgetOverride, self).__init__(widgets, attrs)
 
     def decompress(self, value):
@@ -612,101 +609,35 @@ class RangeWidgetOverride(forms.MultiWidget):
         return ''.join(rendered_widgets)
 
 
-class MateriaLegislativaFilterSet(FilterSet):
+class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
-    numero = django_filters.CharFilter(required=False,
-                                       label=u'Número da Matéria',
-                                       help_text="")
-    numero_protocolo = django_filters.CharFilter(required=False,
-                                                 label=u'Núm. Protocolo',
-                                                 help_text="")
-    ano = django_filters.CharFilter(required=False,
-                                    label=u'Ano da Matéria',
-                                    help_text="")
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride},
+    }}
 
-    tipo = django_filters.ModelChoiceFilter(
-        label=_('Tipo de Matéria'),
-        required=False,
-        queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-        help_text=""
-    )
+    autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
-    data_apresentacao = django_filters.DateFromToRangeFilter(
-                      label=u'Data de Apresentação (Inicial - Final)',
-                      required=False,
-                      help_text="",
-                      widget=RangeWidgetOverride)
-
-    data_publicacao = django_filters.DateFromToRangeFilter(
-                      label=u'Data da Publicação (Inicial - Final)',
-                      required=False,
-                      help_text="",
-                      widget=RangeWidgetOverride)
-
-    autoria__autor = django_filters.CharFilter(
-      widget=forms.HiddenInput(), required=False)
-
-    autoria__autor__tipo = django_filters.ModelChoiceFilter(
-        label=_('Tipo Autor'),
-        required=False,
-        queryset=TipoAutor.objects.all(),
-        empty_label='Selecione',
-        help_text=""
-    )
-
-    autoria__partido = django_filters.ModelChoiceFilter(
-        label=_('Partido (Autor)'),
-        required=False,
-        queryset=Partido.objects.all(),
-        empty_label='Selecione',
-        help_text="")
-
-    relatoria__parlamentar_id = django_filters.ModelChoiceFilter(
-        label='Relator',
-        required=False,
-        queryset=Parlamentar.objects.all().order_by('nome_parlamentar'),
-        empty_label='Selecione',
-        help_text=""
-    )
-
-    local_origem_externa = django_filters.ModelChoiceFilter(
-        label=_('Localização de Origem'),
-        required=False,
-        queryset=Origem.objects.all(),
-        empty_label='Selecione',
-        help_text="")
-
-    tramitacao__unidade_tramitacao_destino = django_filters.ModelChoiceFilter(
-        label=_('Localização Atual'),
-        required=False,
-        queryset=UnidadeTramitacao.objects.all(),
-        empty_label='Selecione',
-        help_text=""
-    )
-
-    tramitacao__status = django_filters.ModelChoiceFilter(
-        label='Situação',
-        required=False,
-        queryset=StatusTramitacao.objects.all(),
-        empty_label='Selecione',
-        help_text=""
-    )
-
-    em_tramitacao = django_filters.ChoiceFilter(required=False,
-                                                label='Tramitando',
-                                                choices=em_tramitacao(),
-                                                widget=forms.Select(
-                                                 attrs={'class': 'selector'}),
-                                                help_text="")
-
-    ementa = django_filters.CharFilter(required=False,
-                                       label=u'Assunto',
-                                       lookup_expr='icontains',
-                                       help_text="")
+    ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
-        models = MateriaLegislativa
+        model = MateriaLegislativa
+        fields = ['numero',
+                  'numero_protocolo',
+                  'ano',
+                  'tipo',
+                  'data_apresentacao',
+                  'data_publicacao',
+                  'autoria__autor__tipo',
+                  'autoria__partido',
+                  'relatoria__parlamentar_id',
+                  'local_origem_externa',
+                  'tramitacao__unidade_tramitacao_destino',
+                  'tramitacao__status',
+                  'em_tramitacao',
+                  ]
 
         order_by = (
             ('', 'Selecione'),
@@ -744,13 +675,13 @@ class MateriaLegislativaFilterSet(FilterSet):
         row4 = crispy_layout_mixin.to_row(
             [('data_publicacao', 6)])
         row5 = crispy_layout_mixin.to_row(
-                 [('autoria__autor', 0),
-                  (Button('pesquisar',
-                          'Pesquisar Autor',
-                          css_class='btn btn-primary btn-sm'), 2),
-                  (Button('limpar',
-                          'limpar Autor',
-                          css_class='btn btn-primary btn-sm'), 10)])
+            [('autoria__autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
         row6 = crispy_layout_mixin.to_row(
             [('autoria__autor__tipo', 6),
              ('autoria__partido', 6)])
@@ -780,9 +711,9 @@ class MateriaLegislativaFilterSet(FilterSet):
 
 def pega_ultima_tramitacao():
     ultimas_tramitacoes = Tramitacao.objects.values(
-                             'materia_id').annotate(data_encaminhamento=Max(
-                                      'data_encaminhamento'),
-                                   id=Max('id')).values_list('id')
+        'materia_id').annotate(data_encaminhamento=Max(
+            'data_encaminhamento'),
+        id=Max('id')).values_list('id')
 
     lista = [item for sublist in ultimas_tramitacoes for item in sublist]
 
@@ -790,28 +721,28 @@ def pega_ultima_tramitacao():
 
 
 def filtra_tramitacao_status(status):
-        lista = pega_ultima_tramitacao()
-        ultimas_tramitacoes = Tramitacao.objects.filter(
-            id__in=lista,
-            status=status).distinct()
-        lista = [ids.materia_id for ids in ultimas_tramitacoes]
-        return lista
+    lista = pega_ultima_tramitacao()
+    ultimas_tramitacoes = Tramitacao.objects.filter(
+        id__in=lista,
+        status=status).distinct()
+    lista = [ids.materia_id for ids in ultimas_tramitacoes]
+    return lista
 
 
 def filtra_tramitacao_destino(destino):
-        lista = pega_ultima_tramitacao()
-        ultimas_tramitacoes = Tramitacao.objects.filter(
-            id__in=lista,
-            unidade_tramitacao_destino=destino).distinct()
-        lista = [ids.materia_id for ids in ultimas_tramitacoes]
-        return lista
+    lista = pega_ultima_tramitacao()
+    ultimas_tramitacoes = Tramitacao.objects.filter(
+        id__in=lista,
+        unidade_tramitacao_destino=destino).distinct()
+    lista = [ids.materia_id for ids in ultimas_tramitacoes]
+    return lista
 
 
 def filtra_tramitacao_destino_and_status(status, destino):
-        lista = pega_ultima_tramitacao()
-        ultimas_tramitacoes = Tramitacao.objects.filter(
-            id__in=lista,
-            status=status,
-            unidade_tramitacao_destino=destino).distinct()
-        lista = [ids.materia_id for ids in ultimas_tramitacoes]
-        return lista
+    lista = pega_ultima_tramitacao()
+    ultimas_tramitacoes = Tramitacao.objects.filter(
+        id__in=lista,
+        status=status,
+        unidade_tramitacao_destino=destino).distinct()
+    lista = [ids.materia_id for ids in ultimas_tramitacoes]
+    return lista
