@@ -11,7 +11,7 @@ from crud.base import Crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
                     FiliacaoForm, MandatoEditForm, MandatoForm,
-                    ParlamentarCreateForm)
+                    ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
@@ -34,6 +34,9 @@ TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 class ParlamentarCrud(Crud):
     model = Parlamentar
     help_path = ''
+
+    class UpdateView(crud.base.CrudUpdateView):
+        form_class = ParlamentarForm
 
     class CreateView(crud.base.CrudCreateView):
         form_class = ParlamentarCreateForm

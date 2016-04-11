@@ -1,10 +1,13 @@
 -r test-requirements.txt
-autopep8
-beautifulsoup4
-django-debug-toolbar
-django-extensions
-flake8
-ipdb
-isort
-pygraphviz
-pytest-ipdb==0.1-prerelease2  # nao instala sem fixar a versao
+autopep8==1.2.2
+beautifulsoup4==4.4.1
+django-debug-toolbar==1.4
+django-extensions==1.6.1
+django-floppyforms==1.6.1
+easy-thumbnails==2.3
+flake8==2.5.4
+ipdb==0.9.0
+isort==4.2.2
+pygraphviz==1.3rc2
+pytest-ipdb==0.1-prerelease2
+
