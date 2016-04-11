@@ -21,7 +21,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Tramitacao)
 
 
-ANO_VAZIO = [('', '---------')] + RANGE_ANOS
+ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
 
 def em_tramitacao():
@@ -628,7 +628,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label=u'Ano da Matéria',
-                                      choices=ANO_VAZIO,
+                                      choices=ANO_CHOICES,
                                       help_text="")
 
     class Meta:
