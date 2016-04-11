@@ -1,8 +1,9 @@
 from django.conf.urls import include, url
 
-from norma.views import (AssuntoNormaCrud, NormaEditView, NormaIncluirView,
-                         NormaPesquisaView, NormaTaView, NormaTemporarioCrud,
-                         PesquisaNormaListView, TipoNormaCrud)
+from norma.views import (AssuntoNormaCrud, NormaCrud,
+                         NormaPesquisaView, NormaTaView,
+                         NormaTemporarioCrud, PesquisaNormaListView,
+                         TipoNormaCrud)
 
 from .apps import AppConfig
 
@@ -24,14 +25,10 @@ norma_url_patterns = NormaTemporarioCrud.get_urls() + [
 ]
 
 urlpatterns = [
-    url(r'^norma/', include(norma_url_patterns)),
+    url(r'^norma/', include(NormaCrud.get_urls())),
 
     url(r'^sistema/norma/tipo/', include(TipoNormaCrud.get_urls())),
     url(r'^sistema/norma/assunto/', include(AssuntoNormaCrud.get_urls())),
-
-    url(r'^norma/incluir$', NormaIncluirView.as_view(), name='norma_incluir'),
-    url(r'^norma/(?P<pk>[0-9]+)/editar$',
-        NormaEditView.as_view(), name='norma_editar'),
     url(r'^norma/pesquisa$',
         NormaPesquisaView.as_view(), name='norma_pesquisa'),
     url(r'^norma/pesquisa-resultado$',
