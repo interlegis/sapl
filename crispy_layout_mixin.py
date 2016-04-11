@@ -67,18 +67,28 @@ def get_field_display(obj, fieldname):
 
 class CrispyLayoutFormMixin:
 
+    @property
+    def layout_key(self):
+        if hasattr(super(CrispyLayoutFormMixin, self), 'layout_key'):
+            return super(CrispyLayoutFormMixin, self).layout_key
+        else:
+            return self.model.__name__
+
     def get_layout(self):
         filename = join(
             dirname(self.model._meta.app_config.models_module.__file__),
             'layouts.yaml')
-        return read_layout_from_yaml(filename, self.model.__name__)
+        return read_layout_from_yaml(filename, self.layout_key)
 
     @property
     def fields(self):
-        '''Returns all fields in the layout'''
-        return [fieldname for legend_rows in self.get_layout()
-                for row in legend_rows[1:]
-                for fieldname, span in row]
+        if hasattr(self, 'form_class') and self.form_class:
+            return None
+        else:
+            '''Returns all fields in the layout'''
+            return [fieldname for legend_rows in self.get_layout()
+                    for row in legend_rows[1:]
+                    for fieldname, span in row]
 
     def get_form(self, form_class=None):
         try:

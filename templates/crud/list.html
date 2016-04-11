@@ -10,6 +10,9 @@
   {% block more_buttons %}{% endblock more_buttons %}
 </div>
 
+<br/><br/>
+{% block extra_content %} {% endblock %}
+
 {% if not rows %}
   <p>{{ NO_ENTRIES_MSG }}</p>
 {% else %}

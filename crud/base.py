@@ -107,6 +107,13 @@ class CrudListView(ListView):
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
 
+    def get_rows(self, object_list):
+        return [self._as_row(obj) for obj in object_list]
+
+    def get_headers(self):
+        return [self.model._meta.get_field(fieldname).verbose_name
+                for fieldname in self.list_field_names]
+
     def _as_row(self, obj):
         return [
             (get_field_display(obj, name)[1], obj.pk if i == 0 else None)
@@ -117,18 +124,17 @@ class CrudListView(ListView):
         context.setdefault('title', self.verbose_name_plural)
 
         # pagination
-        page_obj = context['page_obj']
-        paginator = context['paginator']
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
+        if self.paginate_by:
+            page_obj = context['page_obj']
+            paginator = context['paginator']
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
 
         # rows
         object_list = context['object_list']
-        context['rows'] = [self._as_row(obj) for obj in object_list]
+        context['headers'] = self.get_headers()
+        context['rows'] = self.get_rows(object_list)
 
-        context['headers'] = [
-            self.model._meta.get_field(fieldname).verbose_name
-            for fieldname in self.list_field_names]
         context['NO_ENTRIES_MSG'] = self.no_entries_msg
 
         return context
