@@ -1199,6 +1199,36 @@ class MateriaLegislativaPesquisaView(FilterView):
     filterset_class = MateriaLegislativaFilterSet
     paginate_by = 10
 
+    def get_filterset_kwargs(self, filterset_class):
+        """
+        Returns the keyword arguments for instanciating the filterset.
+        """
+        kwargs = {'data': self.request.GET or None}
+
+        status_tramitacao = self.request.GET.get('tramitacao__status')
+        unidade_destino = self.request.GET.get(
+            'tramitacao__unidade_tramitacao_destino')
+
+        qs = self.get_queryset()
+
+        if status_tramitacao and unidade_destino:
+            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
+                                                         unidade_destino)
+            qs = qs.filter(id__in=lista).distinct()
+
+        elif status_tramitacao:
+            lista = filtra_tramitacao_status(status_tramitacao)
+            qs = qs.filter(id__in=lista).distinct()
+
+        elif unidade_destino:
+            lista = filtra_tramitacao_destino(unidade_destino)
+            qs = qs.filter(id__in=lista).distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
@@ -1212,36 +1242,13 @@ class MateriaLegislativaPesquisaView(FilterView):
         return context
 
     def get(self, request, *args, **kwargs):
-        filterset_class = self.get_filterset_class()
-        self.filterset = self.get_filterset(filterset_class)
-
-        data = self.filterset.data
-
-        status_tramitacao = data.get('tramitacao__status')
-        unidade_destino = data.get('tramitacao__unidade_tramitacao_destino')
-
-        if status_tramitacao and unidade_destino:
-            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
-                                                         unidade_destino)
-            self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct()
-
-        elif status_tramitacao:
-            lista = filtra_tramitacao_status(status_tramitacao)
-            self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct()
-
-        elif unidade_destino:
-            lista = filtra_tramitacao_destino(unidade_destino)
-            self.object_list = self.filterset.qs.filter(
-                id__in=lista).distinct()
-        else:
-            self.object_list = self.filterset.qs
+        super(MateriaLegislativaPesquisaView, self).get(request)
 
         # Se a pesquisa estiver quebrando com a paginação
         # Olhe esta função abaixo
         # Provavelmente você criou um novo campo no Form/Field
         # Então a ordem da URL está diferente
+        data = self.filterset.data
         if (data and data.get('tipo') is not None):
             url = "&"+str(self.request.environ['QUERY_STRING'])
             if url[:5] == "&page":
@@ -1250,13 +1257,13 @@ class MateriaLegislativaPesquisaView(FilterView):
         else:
             url = ''
 
+        self.filterset.form.fields['o'].label = _('Ordenação')
+
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list,
                                         filter_url=url,
                                         numero_res=len(self.object_list)
                                         )
-
-        self.filterset.form.fields['o'].label = _('Ordenação')
 
         return self.render_to_response(context)
 
