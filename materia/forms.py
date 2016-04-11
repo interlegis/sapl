@@ -13,11 +13,15 @@ import sapl
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
+from sapl.utils import RANGE_ANOS
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
                      Tramitacao)
+
+
+ANO_VAZIO = [('', '---------')] + RANGE_ANOS
 
 
 def em_tramitacao():
@@ -621,6 +625,11 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
+
+    ano = django_filters.ChoiceFilter(required=False,
+                                      label=u'Ano da Matéria',
+                                      choices=ANO_VAZIO,
+                                      help_text="")
 
     class Meta:
         model = MateriaLegislativa
