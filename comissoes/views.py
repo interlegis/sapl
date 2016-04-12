@@ -1,27 +1,28 @@
 from django.contrib import messages
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, FormView, ListView
+from django.views.generic import FormView, ListView
 
+import crud.base
 from crud.base import Crud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 
-from .forms import (CadastrarComissaoForm, ComposicaoForm,
-                    ParticipacaoCadastroForm)
+from .forms import ComposicaoForm, ParticipacaoCadastroForm
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
 CargoCrud = Crud.build(CargoComissao, 'cargo_comissao')
 PeriodoComposicaoCrud = Crud.build(Periodo, 'periodo_composicao_comissao')
 TipoComissaoCrud = Crud.build(TipoComissao, 'tipo_comissao')
-ComissaoCrud = Crud.build(Comissao, 'modulo_comissoes')
 
 
-class CadastrarComissaoView(CreateView):
-    template_name = "comissoes/cadastrar_comissao.html"
-    form_class = CadastrarComissaoForm
-    success_url = reverse_lazy('comissoes:comissao_list')
+class ComissaoCrud(Crud):
+    model = Comissao
+    help_path = 'modulo_comissoes'
+
+    class BaseMixin(crud.base.BaseMixin):
+        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao']
 
 
 class ComposicaoView(FormView):
@@ -29,7 +30,6 @@ class ComposicaoView(FormView):
 
     def get(self, request, *args, **kwargs):
         form = ComposicaoForm()
-
         composicoes = Composicao.objects.filter(
             comissao_id=self.kwargs['pk']).order_by('-periodo')
         participacoes = Participacao.objects.all().order_by('parlamentar')
@@ -64,14 +64,6 @@ class ComposicaoView(FormView):
             'form': form,
             'pk': self.kwargs['pk'],
             'object': Comissao.objects.get(id=self.kwargs['pk'])})
-
-
-class MateriasView(ComissaoCrud.CrudDetailView):
-    template_name = 'comissoes/materias.html'
-
-
-class ReunioesView(ComissaoCrud.CrudDetailView):
-    template_name = 'comissoes/reunioes.html'
 
 
 class ComissaoParlamentarIncluirView(FormView):
