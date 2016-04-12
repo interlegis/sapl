@@ -12,8 +12,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoCadastroView, SessaoCrud, SessaoListView,
-                          SessaoPlenariaView, TipoExpedienteCrud,
+                          SessaoCrud, SessaoPlenariaView, TipoExpedienteCrud,
                           TipoResultadoVotacaoCrud, TipoSessaoCrud,
                           VotacaoEditView, VotacaoExpedienteEditView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
@@ -25,7 +24,34 @@ from .apps import AppConfig
 
 app_name = AppConfig.name
 
-urlpatterns_sessao = SessaoCrud.get_urls() + [
+sessao_rest = [
+    url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest')
+]
+
+urlpatterns = [
+    url(r'^sessao/', include(SessaoCrud.get_urls())),
+
+    url(r'^media/(?P<path>.*)$', serve,
+        {'document_root': settings.MEDIA_ROOT}),
+    url(r'^rest/', include(sessao_rest)),
+    url(r'^sistema/sessao-plenaria/tipo/',
+        include(TipoSessaoCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
+        include(TipoResultadoVotacaoCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/tipo-expediente/',
+        include(TipoExpedienteCrud.get_urls())),
+
+    # PAUTA SESSÃO
+    url(r'^pauta-sessao$',
+        PautaSessaoListView.as_view(), name='list_pauta_sessao'),
+    url(r'^pauta-sessao/(?P<pk>\d+)$',
+        PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
+    url(r'^pauta-sessao/(?P<pk>\d+)/expediente/$',
+        PautaExpedienteDetail.as_view(), name='pauta_expediente_detail'),
+    url(r'^pauta-sessao/(?P<pk>\d+)/ordem/$',
+        PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
+
+    # Subnav sessão
     url(r'^(?P<pk>\d+)/expediente$',
         ExpedienteView.as_view(), name='expediente'),
     url(r'^(?P<pk>\d+)/presenca$',
@@ -89,32 +115,4 @@ urlpatterns_sessao = SessaoCrud.get_urls() + [
         VotacaoExpedienteView.as_view(), name='votacaosecretaexp'),
     url(r'^(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosecretaexpedit'),
-    url(r'^sessao-list$',
-        SessaoListView.as_view(), name='list_sessao'),
-    url(r'^pauta-sessao-list$',
-        PautaSessaoListView.as_view(), name='list_pauta_sessao'),
-    url(r'^(?P<pk>\d+)/pauta-sessao-detail$',
-        PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
-    url(r'^cadastro$', SessaoCadastroView.as_view(), name='sessao_cadastro'),
-    url(r'^pauta-sessao/(?P<pk>\d+)/expediente/$',
-        PautaExpedienteDetail.as_view(), name='pauta_expediente_detail'),
-    url(r'^pauta-sessao/(?P<pk>\d+)/ordem/$',
-        PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
-]
-
-sessao_rest = [
-    url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest')
-]
-
-urlpatterns = [
-    url(r'^sessao/', include(urlpatterns_sessao)),
-    url(r'^media/(?P<path>.*)$', serve,
-        {'document_root': settings.MEDIA_ROOT}),
-    url(r'^rest/', include(sessao_rest)),
-    url(r'^sistema/sessao-plenaria/tipo/',
-        include(TipoSessaoCrud.get_urls())),
-    url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
-        include(TipoResultadoVotacaoCrud.get_urls())),
-    url(r'^sistema/sessao-plenaria/tipo-expediente/',
-        include(TipoExpedienteCrud.get_urls()))
 ]
