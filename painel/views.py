@@ -46,7 +46,7 @@ def painel_mensagem_view(request):
     return render(request, 'painel/mensagem.html')
 
 
-def painel_parlamentares_view(request):
+def painel_parlamentar_view(request):
     return render(request, 'painel/parlamentares.html')
 
 

@@ -158,13 +158,13 @@ def validate(form, parlamentar, filiacao, request):
 
 
 class ParlamentaresDependentesView(CreateView):
-    template_name = "parlamentares/parlamentares_dependentes.html"
+    template_name = "parlamentares/parlamentar_dependente.html"
     form_class = DependenteForm
     model = Dependente
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_dependentes',
+        return reverse('parlamentares:parlamentar_dependente',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -196,14 +196,14 @@ class ParlamentaresDependentesView(CreateView):
 
 
 class ParlamentaresDependentesEditView(UpdateView):
-    template_name = "parlamentares/parlamentares_dependentes_edit.html"
+    template_name = "parlamentares/parlamentar_dependente_edit.html"
     form_class = DependenteEditForm
     model = Dependente
     pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_dependentes',
+        return reverse('parlamentares:parlamentar_dependente',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -340,13 +340,13 @@ class MesaDiretoraView(FormView):
 
 
 class FiliacaoView(CreateView):
-    template_name = "parlamentares/parlamentares_filiacao.html"
+    template_name = "parlamentares/parlamentar_filiacao.html"
     form_class = FiliacaoForm
     model = Filiacao
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_filiacao',
+        return reverse('parlamentares:parlamentar_filiacao',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -380,14 +380,14 @@ class FiliacaoView(CreateView):
 
 
 class FiliacaoEditView(UpdateView):
-    template_name = "parlamentares/parlamentares_filiacao_edit.html"
+    template_name = "parlamentares/parlamentar_filiacao_edit.html"
     form_class = FiliacaoEditForm
     model = Filiacao
     pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_filiacao',
+        return reverse('parlamentares:parlamentar_filiacao',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -415,13 +415,13 @@ class FiliacaoEditView(UpdateView):
 
 
 class MandatoView(CreateView):
-    template_name = "parlamentares/parlamentares_mandato.html"
+    template_name = "parlamentares/parlamentar_mandato.html"
     model = Mandato
     form_class = MandatoForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_mandato',
+        return reverse('parlamentares:parlamentar_mandato',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -453,14 +453,14 @@ class MandatoView(CreateView):
 
 
 class MandatoEditView(UpdateView):
-    template_name = "parlamentares/parlamentares_mandato_edit.html"
+    template_name = "parlamentares/parlamentar_mandato_edit.html"
     model = Mandato
     form_class = MandatoEditForm
     pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_mandato',
+        return reverse('parlamentares:parlamentar_mandato',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
