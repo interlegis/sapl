@@ -1,9 +1,8 @@
 from django.conf.urls import include, url
 
-from norma.views import (AssuntoNormaCrud, NormaCrud,
-                         NormaPesquisaView, NormaTaView,
-                         NormaTemporarioCrud, PesquisaNormaListView,
-                         TipoNormaCrud)
+from norma.views import (AssuntoNormaCrud, NormaCrud, NormaPesquisaView,
+                         NormaTaView, NormaTemporarioCrud,
+                         PesquisaNormaListView, TipoNormaCrud)
 
 from .apps import AppConfig
 

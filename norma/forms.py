@@ -3,8 +3,10 @@ from datetime import datetime
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -131,19 +133,30 @@ class NormaJuridicaForm(ModelForm):
                   'observacao',
                   'texto_integral']
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        if (cleaned_data['tipo_materia'] and
+            cleaned_data['numero_materia'] and
+                cleaned_data['ano_materia']):
+
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    tipo_id=cleaned_data['tipo_materia'],
+                    numero=cleaned_data['numero_materia'],
+                    ano=cleaned_data['ano_materia'])
+            except ObjectDoesNotExist:
+                raise forms.ValidationError("Matéria escolhida não existe!")
+            else:
+                cleaned_data['materia'] = materia
+
+        else:
+            cleaned_data['materia'] = None
+        return cleaned_data
+
     def save(self, commit=False):
         norma = super(NormaJuridicaForm, self).save(commit)
         norma.timestamp = datetime.now()
-
-        if ('tipo_materia' and
-                'numero_materia' and
-                'ano_materia' in self.cleaned_data):
-
-            materia = MateriaLegislativa.objects.get(
-                tipo_id=self.cleaned_data['tipo_materia'],
-                numero=self.cleaned_data['numero_materia'],
-                ano=self.cleaned_data['ano_materia'])
-            norma.materia = materia
-
+        norma.materia = self.cleaned_data['materia']
         norma.save()
         return norma
