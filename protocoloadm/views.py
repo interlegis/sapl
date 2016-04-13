@@ -293,7 +293,7 @@ class ProposicaoReceberView(TemplateView):
 
 
 class ProposicoesNaoRecebidasView(ListView):
-    template_name = "protocoloadm/proposicoes_naorecebidas.html"
+    template_name = "protocoloadm/proposicao_naorecebidas.html"
     model = Proposicao
     paginate_by = 10
 
@@ -302,7 +302,7 @@ class ProposicoesNaoRecebidasView(ListView):
 
 
 class ProposicoesNaoIncorporadasView(ListView):
-    template_name = "protocoloadm/proposicoes_naoincorporadas.html"
+    template_name = "protocoloadm/proposicao_naoincorporadas.html"
     model = Proposicao
     paginate_by = 10
 
@@ -313,7 +313,7 @@ class ProposicoesNaoIncorporadasView(ListView):
 
 
 class ProposicoesIncorporadasView(ListView):
-    template_name = "protocoloadm/proposicoes_incorporadas.html"
+    template_name = "protocoloadm/proposicao_incorporadas.html"
     model = Proposicao
     paginate_by = 10
 

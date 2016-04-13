@@ -1,4 +1,4 @@
-{% extends "parlamentares/parlamentares_detail.html" %}
+{% extends "parlamentares/parlamentar_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 {% block actions %}{% endblock %}
@@ -19,7 +19,7 @@
 			</thead>
 			{% for f in filiacoes %}
 				<tr>
-					<td><a href="{% url 'parlamentares:parlamentares_filiacao_edit' object.id f.id %}">{{f.partido.sigla}}</a></td>
+					<td><a href="{% url 'parlamentares:parlamentar_filiacao_edit' object.id f.id %}">{{f.partido.sigla}}</a></td>
 					<td>{{f.data}}</td>
 					<td>{{f.data_desfiliacao|default_if_none:""}}</td>
 				</tr>

@@ -74,7 +74,7 @@ function autorModal() {
     $( "#pesquisar" ).click(function() {
         var query = $("#q").val()
 
-        $.get("/proposicoes/pesquisar_autores?q="+ query, function(
+        $.get("/proposicoes/pesquisar_autor?q="+ query, function(
           data, status){
 
           $("#div-resultado").children().remove();

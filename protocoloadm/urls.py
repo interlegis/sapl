@@ -81,21 +81,21 @@ urlpatterns = [
 
 
     # TODO: move to Proposicoes app
-    url(r'^proposicoes$',
+    url(r'^proposicao$',
         ProposicaoView.as_view(), name='proposicao'),
-    url(r'^proposicoes/proposicao-receber',
+    url(r'^proposicao/proposicao-receber',
         ProposicaoReceberView.as_view(), name='proposicao_receber'),
-    url(r'^proposicoes/proposicoes-naorecebidas',
+    url(r'^proposicao/proposicao-naorecebidas',
         ProposicoesNaoRecebidasView.as_view(),
-        name='proposicoes_naorecebidas'),
-    url(r'^proposicoes/proposicoes-naoincorporadas',
+        name='proposicao_naorecebidas'),
+    url(r'^proposicao/proposicao-naoincorporadas',
         ProposicoesNaoIncorporadasView.as_view(),
-        name='proposicoes_naoincorporadas'),
-    url(r'^proposicoes/proposicoes-incorporadas',
+        name='proposicao_naoincorporadas'),
+    url(r'^proposicao/proposicao-incorporadas',
         ProposicoesIncorporadasView.as_view(),
-        name='proposicoes_incorporadas'),
-    url(r'^proposicoes/(?P<pk>\d+)/proposicao',
+        name='proposicao_incorporadas'),
+    url(r'^proposicao/(?P<pk>\d+)/proposicao',
         ProposicaoDetailView.as_view(), name='proposicao_view'),
-    url(r'^proposicoes/pesquisar_autores',
-        pesquisa_autores, name='pesquisar_autores')
+    url(r'^proposicao/pesquisar_autor',
+        pesquisa_autores, name='pesquisar_autor')
 ]

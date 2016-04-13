@@ -35,9 +35,9 @@ urlpatterns = [
         ProposicaoTaView.as_view(), name='proposicao_ta'),
 
 
-    url(r'^sistema/proposicoes/tipo/',
+    url(r'^sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),
-    url(r'^sistema/proposicoes/autor/', include(AutorCrud.get_urls())),
+    url(r'^sistema/proposicao/autor/', include(AutorCrud.get_urls())),
     url(r'^sistema/materia/tipo/', include(TipoMateriaCrud.get_urls())),
     url(r'^sistema/materia/regime-tramitacao/',
         include(RegimeTramitacaoCrud.get_urls())),

@@ -17,22 +17,34 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 
+import base.urls
+import comissoes.urls
+import compilacao.urls
+import lexml.urls
+import materia.urls
+import norma.urls
+import painel.urls
+import parlamentares.urls
+import protocoloadm.urls
+import relatorios.urls
+import sessao.urls
+
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'', include('comissoes.urls')),
-    url(r'', include('sessao.urls')),
-    url(r'', include('parlamentares.urls')),
-    url(r'', include('materia.urls')),
-    url(r'', include('norma.urls')),
-    url(r'', include('lexml.urls')),
-    url(r'', include('painel.urls')),
-    url(r'', include('protocoloadm.urls')),
-    url(r'', include('compilacao.urls')),
-    url(r'', include('relatorios.urls')),
+    url(r'', include(comissoes.urls)),
+    url(r'', include(sessao.urls)),
+    url(r'', include(parlamentares.urls)),
+    url(r'', include(materia.urls)),
+    url(r'', include(norma.urls)),
+    url(r'', include(lexml.urls)),
+    url(r'', include(painel.urls)),
+    url(r'', include(protocoloadm.urls)),
+    url(r'', include(compilacao.urls)),
+    url(r'', include(relatorios.urls)),
 
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
-    url(r'', include('base.urls')),
+    url(r'', include(base.urls)),
 ]

@@ -53,7 +53,7 @@ def test_filiacao_submit(client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Partido, pk=32)
 
-    client.post(reverse('parlamentares:parlamentares_filiacao',
+    client.post(reverse('parlamentares:parlamentar_filiacao',
                         kwargs={'pk': 14}),
                 {'partido': 32,
                  'data': '2016-03-22',
@@ -70,7 +70,7 @@ def test_dependente_submit(client):
     mommy.make(Partido, pk=32)
     mommy.make(TipoDependente, pk=3)
 
-    client.post(reverse('parlamentares:parlamentares_dependentes',
+    client.post(reverse('parlamentares:parlamentar_dependente',
                         kwargs={'pk': 14}),
                 {'nome': 'Eduardo',
                  'tipo': 3,
@@ -86,7 +86,7 @@ def test_dependente_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_dependente(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentares_dependentes',
+    response = client.post(reverse('parlamentares:parlamentar_dependente',
                                    kwargs={'pk': 14}),
                            {'salvar': 'salvar'},
                            follow=True)
@@ -103,7 +103,7 @@ def test_form_errors_dependente(client):
 def test_form_errors_filiacao(client):
     mommy.make(Parlamentar, pk=14)
 
-    response = client.post(reverse('parlamentares:parlamentares_filiacao',
+    response = client.post(reverse('parlamentares:parlamentar_filiacao',
                                    kwargs={'pk': 14}),
                            {'partido': '',
                             'salvar': 'salvar'},
@@ -120,7 +120,7 @@ def test_mandato_submit(client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Legislatura, pk=5)
 
-    client.post(reverse('parlamentares:parlamentares_mandato',
+    client.post(reverse('parlamentares:parlamentar_mandato',
                         kwargs={'pk': 14}),
                 {'legislatura': 5,
                  'data_fim_mandato': '2016-01-01',
@@ -136,7 +136,7 @@ def test_mandato_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_mandato(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentares_mandato',
+    response = client.post(reverse('parlamentares:parlamentar_mandato',
                                    kwargs={'pk': 14}),
                            {'legislatura': '',
                             'salvar': 'salvar'},
