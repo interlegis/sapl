@@ -1,14 +1,11 @@
 from datetime import datetime
 
-from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.views.generic import CreateView, FormView, ListView, UpdateView
+from django.views.generic import FormView, ListView
 
 import crud.base
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
-from materia.models import MateriaLegislativa
 
 from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
