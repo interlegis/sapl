@@ -27,6 +27,10 @@ class NormaCrud(Crud):
     class UpdateView(crud.base.CrudUpdateView):
         form_class = NormaJuridicaForm
 
+        @property
+        def layout_key(self):
+            return 'NormaJuridicaCreate'
+
         def get_initial(self):
             norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
             if norma.materia:
@@ -37,6 +41,10 @@ class NormaCrud(Crud):
 
     class CreateView(crud.base.CrudCreateView):
         form_class = NormaJuridicaForm
+
+        @property
+        def layout_key(self):
+            return 'NormaJuridicaCreate'
 
     class BaseMixin(crud.base.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'ementa']
