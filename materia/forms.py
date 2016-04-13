@@ -6,7 +6,9 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
+from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
+from django_filters.utils import resolve_field
 
 import crispy_layout_mixin
 import sapl
@@ -622,14 +624,14 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             'widget': RangeWidgetOverride},
     }}
 
-    autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
-
-    ementa = django_filters.CharFilter(lookup_expr='icontains')
-
     ano = django_filters.ChoiceFilter(required=False,
                                       label=u'Ano da Matéria',
                                       choices=ANO_CHOICES,
                                       help_text="")
+
+    autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
+
+    ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = MateriaLegislativa
@@ -673,6 +675,11 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
+        self.filters['autoria__partido'].label = 'Partido do Autor'
+        self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
 
         row1 = crispy_layout_mixin.to_row(
             [('tipo', 12)])
