@@ -3,12 +3,13 @@ from datetime import datetime
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
 from .models import NormaJuridica
@@ -150,6 +151,13 @@ class NormaJuridicaForm(ModelForm):
         else:
             cleaned_data['materia'] = None
         return cleaned_data
+
+    def clean_texto_integral(self):
+        texto_integral = self.cleaned_data.get('texto_integral', False)
+        if texto_integral:
+            if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_integral
 
     def save(self, commit=False):
         norma = super(NormaJuridicaForm, self).save(commit)
