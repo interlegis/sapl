@@ -7,4 +7,4 @@ flake8
 ipdb
 isort
 pygraphviz
-pytest-ipdb
+pytest-ipdb==0.1-prerelease2  # nao instala sem fixar a versao
