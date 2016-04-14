@@ -3,7 +3,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
-from .views import CasaLegislativaTableAuxView, HelpView
+from .views import CasaLegislativaTableAuxView, HelpView, login, logout
 
 app_name = AppConfig.name
 
@@ -14,6 +14,9 @@ urlpatterns = [
         name='help_base'),
     url(r'^casa-legislativa$',
         CasaLegislativaTableAuxView.as_view(), name='casa_legislativa'),
+
+    url(r'^login/$', login, name='login'),
+    url(r'^logout/$', logout, name='logout'),
 ]
 
 # Fix a static asset finding error on Django 1.9 + gunicorn:
