@@ -12,6 +12,10 @@ from crispy_layout_mixin import form_actions
 from .models import Filiacao, Legislatura, Mandato, Parlamentar
 
 
+class ImageThumbnailFileInput(ClearableFileInput):
+    template_name = 'floppyforms/image_thumbnail.html'
+
+
 class ParlamentarForm(ModelForm):
 
     class Meta:
