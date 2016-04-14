@@ -3,7 +3,7 @@ from re import sub
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
@@ -49,11 +49,6 @@ class SessaoCrud(Crud):
     class CrudDetailView(crud.base.BaseMixin, crud.base.DetailView):
         model = SessaoPlenaria
         help_path = 'sessao_plenaria'
-
-    class CreateView(crud.base.CrudCreateView):
-
-        def get_success_url(self):
-            return reverse_lazy('sessao:sessaoplenaria_list')
 
 
 class PresencaMixin:
