@@ -6,9 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
-from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
-from django_filters.utils import resolve_field
 
 import crispy_layout_mixin
 import sapl
@@ -21,7 +19,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
                      Tramitacao)
-
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -601,9 +598,11 @@ class RangeWidgetOverride(forms.MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput'}),
+                                   attrs={'class': 'dateinput',
+                                          'placeholder': 'Inicial'}),
                    forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput'}))
+                                   attrs={'class': 'dateinput',
+                                          'placeholder': 'Final'}))
         super(RangeWidgetOverride, self).__init__(widgets, attrs)
 
     def decompress(self, value):
@@ -621,7 +620,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         'filter_class': django_filters.DateFromToRangeFilter,
         'extra': lambda f: {
             'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-            'widget': RangeWidgetOverride},
+            'widget': RangeWidgetOverride}
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
@@ -688,10 +687,9 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
              ('ano', 4),
              ('numero_protocolo', 4)])
         row3 = crispy_layout_mixin.to_row(
-            [('data_apresentacao', 6)])
+            [('data_apresentacao', 6),
+             ('data_publicacao', 6)])
         row4 = crispy_layout_mixin.to_row(
-            [('data_publicacao', 6)])
-        row5 = crispy_layout_mixin.to_row(
             [('autoria__autor', 0),
              (Button('pesquisar',
                      'Pesquisar Autor',
@@ -699,29 +697,29 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
              (Button('limpar',
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
-        row6 = crispy_layout_mixin.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('autoria__autor__tipo', 6),
              ('autoria__partido', 6)])
-        row7 = crispy_layout_mixin.to_row(
+        row6 = crispy_layout_mixin.to_row(
             [('relatoria__parlamentar_id', 6),
              ('local_origem_externa', 6)])
-        row8 = crispy_layout_mixin.to_row(
+        row7 = crispy_layout_mixin.to_row(
             [('tramitacao__unidade_tramitacao_destino', 6),
              ('tramitacao__status', 6)])
-        row9 = crispy_layout_mixin.to_row(
+        row8 = crispy_layout_mixin.to_row(
             [('em_tramitacao', 6),
              ('o', 6)])
-        row10 = crispy_layout_mixin.to_row(
+        row9 = crispy_layout_mixin.to_row(
             [('ementa', 12)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa Básica'),
-                     row1, row2, row3, row4,
+                     row1, row2, row3,
                      HTML(sapl.utils.autor_label),
                      HTML(sapl.utils.autor_modal),
-                     row5, row6, row7, row8, row9, row10,
+                     row4, row5, row6, row7, row8, row9,
                      form_actions(save_label='Pesquisar'))
         )
 

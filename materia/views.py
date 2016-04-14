@@ -1246,7 +1246,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         # Se a pesquisa estiver quebrando com a paginação
         # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/Field
+        # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if (data and data.get('tipo') is not None):
