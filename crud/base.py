@@ -56,7 +56,7 @@ def make_pagination(index, num_pages):
         return head + [None] + tail
 
 
-class BaseMixin(CrispyLayoutFormMixin):
+class CrudBaseMixin(CrispyLayoutFormMixin):
 
     @classmethod
     def url_name(cls, suffix):
@@ -88,7 +88,7 @@ class BaseMixin(CrispyLayoutFormMixin):
         return self.resolve_url(DELETE, args=(self.object.id,))
 
     def get_template_names(self):
-        names = super(BaseMixin, self).get_template_names()
+        names = super(CrudBaseMixin, self).get_template_names()
         names.append("crud/%s.html" %
                      self.template_name_suffix.lstrip('_'))
         return names
@@ -120,7 +120,8 @@ class CrudListView(ListView):
 
     def _as_row(self, obj):
         return [
-            (get_field_display(obj, name)[1], obj.pk if i == 0 else None)
+            (get_field_display(obj, name)[1],
+             self.resolve_url(DETAIL, args=(obj.id,)) if i == 0 else None)
             for i, name in enumerate(self.list_field_names)]
 
     def get_context_data(self, **kwargs):
@@ -205,7 +206,7 @@ class CrudDeleteView(FormMessagesMixin, DeleteView):
 
 
 class Crud:
-    BaseMixin = BaseMixin
+    BaseMixin = CrudBaseMixin
     ListView = CrudListView
     CreateView = CrudCreateView
     DetailView = CrudDetailView
@@ -220,6 +221,7 @@ class Crud:
             class CrudViewWithBase(cls.BaseMixin, view):
                 model = cls.model
                 help_path = cls.help_path
+                crud = cls
             CrudViewWithBase.__name__ = view.__name__
             return CrudViewWithBase
 
@@ -240,6 +242,7 @@ class Crud:
 
     @classonlymethod
     def build(cls, _model, _help_path):
+
         class ModelCrud(cls):
             model = _model
             help_path = _help_path

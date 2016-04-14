@@ -42,13 +42,13 @@ class SessaoCrud(Crud):
     model = SessaoPlenaria
     help_path = 'sessao_plenaria'
 
-    class BaseMixin(crud.base.BaseMixin):
+    class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['numero', 'tipo', 'legislatura',
                             'sessao_legislativa', 'data_inicio', 'hora_inicio']
 
     # FIXME!!!! corrigir referencias no codigo e remover isso!!!!!
     # fazer com #230
-    class CrudDetailView(crud.base.BaseMixin, crud.base.DetailView):
+    class CrudDetailView(crud.base.CrudDetailView):
         model = SessaoPlenaria
         help_path = 'sessao_plenaria'
 
