@@ -21,7 +21,7 @@ class ComissaoCrud(Crud):
     model = Comissao
     help_path = 'modulo_comissoes'
 
-    class BaseMixin(crud.base.BaseMixin):
+    class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao']
 
 

@@ -9,7 +9,7 @@ from floppyforms import ClearableFileInput
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 
-from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
+from .models import Filiacao, Legislatura, Mandato, Parlamentar
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -100,56 +100,6 @@ class MandatoEditForm(MandatoForm):
 
     def __init__(self, *args, **kwargs):
         super(MandatoEditForm, self).__init__(
-            *args, **kwargs)
-
-        self.helper.layout[0][-1:] = form_actions(more=[
-            HTML('&nbsp;'),
-            Submit('excluir', 'Excluir',
-                   css_class='btn btn-primary')])
-
-
-class DependenteForm(ModelForm):
-
-    class Meta:
-        model = Dependente
-        fields = ['nome',
-                  'data_nascimento',
-                  'tipo',
-                  'sexo',
-                  'cpf',
-                  'rg',
-                  'titulo_eleitor']
-
-    def __init__(self, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('nome', 12)])
-
-        row2 = crispy_layout_mixin.to_row(
-            [('tipo', 4),
-             ('sexo', 4),
-             ('data_nascimento', 4)])
-
-        row3 = crispy_layout_mixin.to_row(
-            [('cpf', 4),
-             ('rg', 4),
-             ('titulo_eleitor', 4)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Cadastro de Dependentes'),
-                     row1, row2, row3,
-                     form_actions())
-
-        )
-        super(DependenteForm, self).__init__(
-            *args, **kwargs)
-
-
-class DependenteEditForm(DependenteForm):
-
-    def __init__(self, *args, **kwargs):
-        super(DependenteEditForm, self).__init__(
             *args, **kwargs)
 
         self.helper.layout[0][-1:] = form_actions(more=[
