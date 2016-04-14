@@ -220,11 +220,5 @@ class Crud:
             model = _model
             help_path = _help_path
 
-            # FIXME!!!! corrigir referencias no codigo e remover isso!!!!!
-            # fazer com #230
-            class CrudDetailView(cls.BaseMixin, cls.DetailView):
-                model = _model
-                help_path = _help_path
-
         ModelCrud.__name__ = '%sCrud' % _model.__name__
         return ModelCrud
