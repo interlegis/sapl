@@ -6,7 +6,7 @@ from string import ascii_letters, digits
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, ListView, TemplateView
 from django_filters.views import FilterView
 
+import crud.base
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
@@ -24,7 +25,6 @@ from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
-                    FormularioCadastroForm, FormularioSimplificadoForm,
                     LegislacaoCitadaForm, MateriaAnexadaForm,
                     MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
                     RelatoriaForm, TramitacaoForm, filtra_tramitacao_destino,
@@ -43,7 +43,6 @@ TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,
 RegimeTramitacaoCrud = Crud.build(RegimeTramitacao, 'regime_tramitacao')
 TipoDocumentoCrud = Crud.build(TipoDocumento, 'tipo_documento')
 TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
-MateriaLegislativaCrud = Crud.build(MateriaLegislativa, '')
 AnexadaCrud = Crud.build(Anexada, '')
 TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
@@ -59,16 +58,12 @@ UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
 
-class FormularioSimplificadoView(CreateView):
-    template_name = "materia/formulario_simplificado.html"
-    form_class = FormularioSimplificadoForm
-    success_url = reverse_lazy('materia:materialegislativa_list')
+class MateriaLegislativaCrud(Crud):
+    model = MateriaLegislativa
+    help_path = 'materia_legislativa'
 
-
-class FormularioCadastroView(CreateView):
-    template_name = "materia/formulario_cadastro.html"
-    form_class = FormularioCadastroForm
-    success_url = reverse_lazy('materia:formulario_cadastro')
+    class BaseMixin(crud.base.BaseMixin):
+        list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
 
 class MateriaAnexadaView(FormView):
@@ -1371,7 +1366,7 @@ class ProposicaoTaView(IntegracaoTaView):
     model_type_foreignkey = TipoProposicao
 
 
-class AcompanhamentoMateriaView(MateriaLegislativaCrud.CrudDetailView):
+class AcompanhamentoMateriaView(CreateView):
     template_name = "materia/acompanhamento_materia.html"
 
     def get_random_chars(self):

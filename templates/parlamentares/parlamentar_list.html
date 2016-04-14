@@ -1,0 +1,18 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block extra_content %}
+	<fieldset class="form-group">
+		<legend>Selecione o Período</legend>
+		<form method="GET">
+			<select name="periodo" class="form-control" onChange="form.submit();">
+				{% for l in legislaturas %}
+					<option value="{{l.id}}" {% if l.id == legislatura_id %} selected {% endif %}>
+						{{l}}
+					</option>
+				{% endfor %}
+			</select>
+		</form>
+	</fieldset>
+	<br/>
+{% endblock %}

@@ -1,18 +1,17 @@
-import os
-
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, UpdateView
 
+import crud.base
 from crud.base import Crud
 
 from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
                     FiliacaoForm, MandatoEditForm, MandatoForm,
-                    ParlamentaresEditForm, ParlamentaresForm,
-                    ParlamentaresListForm)
+                    ParlamentarCreateForm)
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
@@ -24,13 +23,76 @@ ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
 PartidoCrud = Crud.build(Partido, 'partidos')
 DependenteCrud = Crud.build(Dependente, '')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
-ParlamentarCrud = Crud.build(Parlamentar, '')
 FiliacaoCrud = Crud.build(Filiacao, '')
 MandatoCrud = Crud.build(Mandato, '')
 TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
+
+
+class ParlamentarCrud(Crud):
+    model = Parlamentar
+    help_path = ''
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = ParlamentarCreateForm
+
+        @property
+        def layout_key(self):
+            return 'ParlamentarCreate'
+
+    class ListView(crud.base.CrudListView):
+        template_name = "parlamentares/parlamentares_list.html"
+        paginate_by = None
+
+        def take_legislatura_id(self):
+            legislaturas = Legislatura.objects.all().order_by(
+                '-data_inicio', '-data_fim')
+
+            try:
+                legislatura_id = int(self.request.GET['periodo'])
+            except MultiValueDictKeyError:
+                legislatura_id = legislaturas.first().id
+
+            return legislatura_id
+
+        def get_queryset(self):
+            mandatos = Mandato.objects.filter(
+                legislatura_id=self.take_legislatura_id())
+            return mandatos
+
+        def get_rows(self, object_list):
+            parlamentares = []
+            for m in object_list:
+
+                if m.parlamentar.filiacao_set.last():
+                    partido = ', '.join(str(p) for p in m.get_partidos())
+                else:
+                    partido = _('Sem Registro')
+
+                parlamentar = [
+                    (m.parlamentar.nome_parlamentar, m.parlamentar.id),
+                    (partido, None),
+                    ('Sim' if m.parlamentar.ativo else 'Não', None)
+                ]
+                parlamentares.append(parlamentar)
+            return parlamentares
+
+        def get_headers(self):
+            return ['Parlamentar', 'Partido', 'Ativo?']
+
+        def get_context_data(self, **kwargs):
+            context = super(ParlamentarCrud.ListView, self
+                            ).get_context_data(**kwargs)
+            context.setdefault('title', self.verbose_name_plural)
+
+            # Adiciona legislatura para filtrar parlamentares
+            legislaturas = Legislatura.objects.all().order_by(
+                '-data_inicio', '-data_fim')
+            context['legislaturas'] = legislaturas
+            context['legislatura_id'] = self.take_legislatura_id()
+            return context
 
 
 def validate(form, parlamentar, filiacao, request):
@@ -95,131 +157,14 @@ def validate(form, parlamentar, filiacao, request):
         return True
 
 
-class ParlamentaresView(FormView):
-    template_name = "parlamentares/parlamentares_list.html"
-
-    def get(self, request, *args, **kwargs):
-        form = ParlamentaresListForm()
-
-        if not Legislatura.objects.all():
-            mensagem = _('Cadastre alguma Legislatura antes'
-                         ' de cadastrar algum Parlamentar')
-            messages.add_message(request, messages.INFO, mensagem)
-            return self.render_to_response(
-                {'legislaturas': [],
-                 'legislatura_id': 0,
-                 'form': form,
-                 })
-
-        legislaturas = Legislatura.objects.all().order_by(
-            '-data_inicio', '-data_fim')
-
-        mandatos = Mandato.objects.filter(
-            legislatura_id=legislaturas.first().id)
-
-        parlamentares = []
-        dict_parlamentar = {}
-        for m in mandatos:
-
-            if m.parlamentar.filiacao_set.last():
-                partido = m.parlamentar.filiacao_set.last().partido.sigla
-            else:
-                partido = _('Sem Registro')
-
-            dict_parlamentar = {
-                'id': m.parlamentar.id,
-                'nome': m.parlamentar.nome_parlamentar,
-                'partido': partido,
-                'ativo': m.parlamentar.ativo}
-            parlamentares.append(dict_parlamentar)
-
-        return self.render_to_response(
-            {'legislaturas': legislaturas,
-             'legislatura_id': legislaturas.first().id,
-             'form': form,
-             'parlamentares': parlamentares})
-
-    def post(self, request, *args, **kwargs):
-        form = ParlamentaresListForm(request.POST)
-
-        mandatos = Mandato.objects.filter(
-            legislatura_id=int(form.data['periodo']))
-
-        parlamentares = []
-        dict_parlamentar = {}
-        for m in mandatos:
-
-            if m.parlamentar.filiacao_set.last():
-                partido = m.parlamentar.filiacao_set.last().partido.sigla
-            else:
-                partido = _('Sem Registro')
-
-            dict_parlamentar = {
-                'id': m.parlamentar.id,
-                'nome': m.parlamentar.nome_parlamentar,
-                'partido': partido,
-                'ativo': m.parlamentar.ativo}
-            parlamentares.append(dict_parlamentar)
-
-        return self.render_to_response(
-            {'legislaturas': Legislatura.objects.all().order_by(
-                '-data_inicio', '-data_fim'),
-             'legislatura_id': int(form.data['periodo']),
-             'form': form,
-             'parlamentares': parlamentares})
-
-
-class ParlamentaresCadastroView(CreateView):
-    template_name = "parlamentares/parlamentares_cadastro.html"
-    form_class = ParlamentaresForm
-    model = Parlamentar
-
-    def get_success_url(self):
-        return reverse('parlamentares:parlamentares')
-
-    def get_context_data(self, **kwargs):
-        context = super(ParlamentaresCadastroView, self).get_context_data(
-            **kwargs)
-        legislatura_id = self.kwargs['pk']
-        context.update({'legislatura_id': legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        form.save()
-        return redirect(self.get_success_url())
-
-
-class ParlamentaresEditarView(UpdateView):
-    template_name = "parlamentares/parlamentares_cadastro.html"
-    form_class = ParlamentaresEditForm
-    model = Parlamentar
-    success_url = reverse_lazy('parlamentares:parlamentares')
-
-    def form_valid(self, form):
-        parlamentar = form.instance
-        if 'salvar' in self.request.POST:
-            form.save()
-        elif 'excluir' in self.request.POST:
-            Mandato.objects.get(parlamentar=parlamentar).delete()
-            parlamentar.delete()
-        elif "remover-foto" in self.request.POST:
-            try:
-                os.unlink(parlamentar.fotografia.path)
-            except OSError:
-                pass  # Should log this error!!!!!
-            parlamentar.fotografia = None
-            parlamentar.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
 class ParlamentaresDependentesView(CreateView):
-    template_name = "parlamentares/parlamentares_dependentes.html"
+    template_name = "parlamentares/parlamentar_dependente.html"
     form_class = DependenteForm
     model = Dependente
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_dependentes',
+        return reverse('parlamentares:parlamentar_dependente',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -251,14 +196,14 @@ class ParlamentaresDependentesView(CreateView):
 
 
 class ParlamentaresDependentesEditView(UpdateView):
-    template_name = "parlamentares/parlamentares_dependentes_edit.html"
+    template_name = "parlamentares/parlamentar_dependente_edit.html"
     form_class = DependenteEditForm
     model = Dependente
     pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_dependentes',
+        return reverse('parlamentares:parlamentar_dependente',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -395,13 +340,13 @@ class MesaDiretoraView(FormView):
 
 
 class FiliacaoView(CreateView):
-    template_name = "parlamentares/parlamentares_filiacao.html"
+    template_name = "parlamentares/parlamentar_filiacao.html"
     form_class = FiliacaoForm
     model = Filiacao
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_filiacao',
+        return reverse('parlamentares:parlamentar_filiacao',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -435,14 +380,14 @@ class FiliacaoView(CreateView):
 
 
 class FiliacaoEditView(UpdateView):
-    template_name = "parlamentares/parlamentares_filiacao_edit.html"
+    template_name = "parlamentares/parlamentar_filiacao_edit.html"
     form_class = FiliacaoEditForm
     model = Filiacao
     pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_filiacao',
+        return reverse('parlamentares:parlamentar_filiacao',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -470,13 +415,13 @@ class FiliacaoEditView(UpdateView):
 
 
 class MandatoView(CreateView):
-    template_name = "parlamentares/parlamentares_mandato.html"
+    template_name = "parlamentares/parlamentar_mandato.html"
     model = Mandato
     form_class = MandatoForm
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_mandato',
+        return reverse('parlamentares:parlamentar_mandato',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):
@@ -508,14 +453,14 @@ class MandatoView(CreateView):
 
 
 class MandatoEditView(UpdateView):
-    template_name = "parlamentares/parlamentares_mandato_edit.html"
+    template_name = "parlamentares/parlamentar_mandato_edit.html"
     model = Mandato
     form_class = MandatoEditForm
     pk_url_kwarg = 'dk'
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentares_mandato',
+        return reverse('parlamentares:parlamentar_mandato',
                        kwargs={'pk': pk})
 
     def get_context_data(self, **kwargs):

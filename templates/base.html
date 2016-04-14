@@ -49,7 +49,7 @@
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares:mesa_diretora' %}">Mesa Diretora</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'comissoes:comissao_list' %}">Comissões</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li> -->
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares:parlamentares' %}">Parlamentares</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'parlamentares:parlamentar_list' %}">Parlamentares</a></li>
                   </ul>
                 </li>
 
@@ -68,7 +68,7 @@
                   <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materia:list_proposicao' %}">Proposições</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'materia:materialegislativa_list' %}">Matérias Legislativas</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessao:list_sessao' %}">Sessões Plenárias</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessao:sessaoplenaria_list' %}">Sessões Plenárias</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sessao:list_pauta_sessao' %}">Pautas das Sessões</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Atas das Sessões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Reuniões das Comissões</a></li>
@@ -218,6 +218,10 @@
                   <a href="{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
                 </small>
               </address>
+              {% else %}
+                 Casa Legislativa não configurada.
+                 <br>
+                 <a href="/casa-legislativa">Favor configurar clicando aqui</a>
               {% endif %}
             </div>
           </div>

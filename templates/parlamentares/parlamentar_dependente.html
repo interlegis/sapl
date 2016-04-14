@@ -1,4 +1,4 @@
-{% extends "parlamentares/parlamentares_detail.html" %}
+{% extends "parlamentares/parlamentar_detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 {% block actions %}{% endblock %}
@@ -19,7 +19,7 @@
 			</thead>
 			{% for d in dependentes %}
 				<tr>
-					<td><a href="{% url 'parlamentares:parlamentares_dependentes_edit' object.id d.id %}">{{d.nome}}</a></td>
+					<td><a href="{% url 'parlamentares:parlamentar_dependente_edit' object.id d.id %}">{{d.nome}}</a></td>
 					<td>{{d.tipo }}</td>
 					<td>{{d.data_nascimento|default_if_none:""}}</td>
 				</tr>

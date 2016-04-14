@@ -140,11 +140,11 @@ def test_layout_detail_fieldsets(monkeypatch):
 
 
 def test_reverse():
-    assert '/countries/' == reverse('stub_app:country_list')
-    assert '/countries/create' == reverse('stub_app:country_create')
-    assert '/countries/2' == reverse('stub_app:country_detail', args=(2,))
-    assert '/countries/2/edit' == reverse('stub_app:country_update', args=(2,))
-    assert '/countries/2/delete' == reverse(
+    assert '/country/' == reverse('stub_app:country_list')
+    assert '/country/create' == reverse('stub_app:country_create')
+    assert '/country/2' == reverse('stub_app:country_detail', args=(2,))
+    assert '/country/2/edit' == reverse('stub_app:country_update', args=(2,))
+    assert '/country/2/delete' == reverse(
         'stub_app:country_delete', args=(2,))
 
 
@@ -199,7 +199,7 @@ def test_flux_list_paginate_detail(
 
     CountryCrud.ListView.paginate_by = page_size
 
-    res = app.get('/countries/')
+    res = app.get('/country/')
 
     if num_entries == 0:
         assert_on_list_page(res)
@@ -254,7 +254,7 @@ def test_flux_list_create_detail(app, cancel, make_invalid_submit):
     # to have a couple an option for continent field
     stub_continent = mommy.make(Continent)
 
-    res = app.get('/countries/')
+    res = app.get('/country/')
 
     # on list page
     assert_on_list_page(res)
@@ -293,7 +293,7 @@ def test_flux_list_create_detail(app, cancel, make_invalid_submit):
 
         # on redirect to detail page
         created = Country.objects.get(name=stub_name)
-        assert res.url.endswith('/countries/%s' % created.id)
+        assert res.url.endswith('/country/%s' % created.id)
         res = res.follow()
 
         # on detail page
@@ -305,7 +305,7 @@ def test_flux_list_create_detail(app, cancel, make_invalid_submit):
 
 def get_detail_page(app):
     stub = mommy.make(Country, name='Country Stub')
-    res = app.get('/countries/%s' % stub.id)
+    res = app.get('/country/%s' % stub.id)
     # on detail page
     assert_on_detail_page(res, stub.name)
     return stub, res
@@ -333,7 +333,7 @@ def test_flux_detail_update_detail(app, cancel):
         res = form.submit()
 
         # on redirect to detail page
-        assert res.url.endswith('/countries/%s' % stub.id)
+        assert res.url.endswith('/country/%s' % stub.id)
         res = res.follow()
 
         # back to detail page
@@ -362,7 +362,7 @@ def test_flux_detail_delete_list(app, cancel):
         res = res.form.submit()
 
         # on redirect to list page
-        assert res.url.endswith('/countries/')
+        assert res.url.endswith('/country/')
         res = res.follow()
 
         # on list page

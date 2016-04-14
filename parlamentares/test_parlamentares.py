@@ -6,26 +6,46 @@ from .models import (Dependente, Filiacao, Legislatura, Mandato, Parlamentar,
                      Partido, TipoDependente)
 
 
-# vamos refazer a funcionalidade adicionando os campos ogrigatórios de mandato
 @pytest.mark.django_db(transaction=False)
-def TODO_DESLIGADO_RELIGAR_test_cadastro_parlamentar(client):
-    mommy.make(Legislatura, pk=5)
+def test_cadastro_parlamentar(client):
+    legislatura = mommy.make(Legislatura)
 
-    response = client.get(reverse('parlamentares:parlamentares_cadastro',
-                                  kwargs={'pk': 5}))
+    url = reverse('parlamentares:parlamentar_create')
+    response = client.get(url)
     assert response.status_code == 200
 
-    response = client.post(reverse('parlamentares:parlamentares_cadastro',
-                                   kwargs={'pk': 5}),
-                           {'nome_completo': 'Teresa Barbosa',
-                            'nome_parlamentar': 'Terezinha',
-                            'sexo': 'F',
-                            'ativo': 'True'}, follow=True)
+    response = client.post(url, {'nome_completo': 'Teresa Barbosa',
+                                 'nome_parlamentar': 'Terezinha',
+                                 'sexo': 'F',
+                                 'ativo': 'True',
+                                 'legislatura': legislatura.id,
+                                 'data_expedicao_diploma': '2001-01-01'},
+                           follow=True)
 
-    parlamentar = Parlamentar.objects.first()
-    assert "Terezinha" == parlamentar.nome_parlamentar
-    if not parlamentar.ativo:
-        pytest.fail("Parlamentar deve estar ativo")
+    [parlamentar] = Parlamentar.objects.all()
+    assert parlamentar.nome_parlamentar == 'Terezinha'
+    assert parlamentar.sexo == 'F'
+    assert parlamentar.ativo is True
+    # o primeiro mandato é criado
+    [mandato] = Mandato.objects.all()
+    assert mandato.parlamentar == parlamentar
+    assert str(mandato.data_expedicao_diploma) == '2001-01-01'
+    assert mandato.legislatura == legislatura
+    assert mandato.data_fim_mandato == legislatura.data_fim
+
+
+@pytest.mark.django_db(transaction=False)
+def test_incluir_parlamentar_errors(client):
+    url = reverse('parlamentares:parlamentar_create')
+    response = client.post(url)
+    erros_esperados = {campo: ['Este campo é obrigatório.']
+                       for campo in ['legislatura',
+                                     'data_expedicao_diploma',
+                                     'nome_parlamentar',
+                                     'nome_completo',
+                                     'sexo',
+                                     ]}
+    assert response.context_data['form'].errors == erros_esperados
 
 
 @pytest.mark.django_db(transaction=False)
@@ -33,7 +53,7 @@ def test_filiacao_submit(client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Partido, pk=32)
 
-    client.post(reverse('parlamentares:parlamentares_filiacao',
+    client.post(reverse('parlamentares:parlamentar_filiacao',
                         kwargs={'pk': 14}),
                 {'partido': 32,
                  'data': '2016-03-22',
@@ -50,7 +70,7 @@ def test_dependente_submit(client):
     mommy.make(Partido, pk=32)
     mommy.make(TipoDependente, pk=3)
 
-    client.post(reverse('parlamentares:parlamentares_dependentes',
+    client.post(reverse('parlamentares:parlamentar_dependente',
                         kwargs={'pk': 14}),
                 {'nome': 'Eduardo',
                  'tipo': 3,
@@ -66,7 +86,7 @@ def test_dependente_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_dependente(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentares_dependentes',
+    response = client.post(reverse('parlamentares:parlamentar_dependente',
                                    kwargs={'pk': 14}),
                            {'salvar': 'salvar'},
                            follow=True)
@@ -83,7 +103,7 @@ def test_form_errors_dependente(client):
 def test_form_errors_filiacao(client):
     mommy.make(Parlamentar, pk=14)
 
-    response = client.post(reverse('parlamentares:parlamentares_filiacao',
+    response = client.post(reverse('parlamentares:parlamentar_filiacao',
                                    kwargs={'pk': 14}),
                            {'partido': '',
                             'salvar': 'salvar'},
@@ -100,7 +120,7 @@ def test_mandato_submit(client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Legislatura, pk=5)
 
-    client.post(reverse('parlamentares:parlamentares_mandato',
+    client.post(reverse('parlamentares:parlamentar_mandato',
                         kwargs={'pk': 14}),
                 {'legislatura': 5,
                  'data_fim_mandato': '2016-01-01',
@@ -116,7 +136,7 @@ def test_mandato_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_mandato(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentares_mandato',
+    response = client.post(reverse('parlamentares:parlamentar_mandato',
                                    kwargs={'pk': 14}),
                            {'legislatura': '',
                             'salvar': 'salvar'},
@@ -127,23 +147,4 @@ def test_form_errors_mandato(client):
     assert (response.context_data['form'].errors['data_fim_mandato'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['data_expedicao_diploma'] ==
-            ['Este campo é obrigatório.'])
-
-
-@pytest.mark.django_db(transaction=False)
-def test_incluir_parlamentar_errors(client):
-    mommy.make(Legislatura, pk=5)
-
-    response = client.post(reverse('parlamentares:parlamentares_cadastro',
-                                   kwargs={'pk': 5}),
-                           {'salvar': 'salvar'},
-                           follow=True)
-
-    assert (response.context_data['form'].errors['nome_parlamentar'] ==
-            ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['nome_completo'] ==
-            ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['sexo'] ==
-            ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['ativo'] ==
             ['Este campo é obrigatório.'])

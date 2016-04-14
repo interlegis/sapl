@@ -1,10 +1,11 @@
-import datetime
+from datetime import datetime
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.utils import UF, YES_NO_CHOICES, restringe_tipos_de_arquivo_img
+from sapl.utils import (UF, YES_NO_CHOICES, intervalos_tem_intersecao,
+                        restringe_tipos_de_arquivo_img)
 
 
 class Legislatura(models.Model):
@@ -18,7 +19,7 @@ class Legislatura(models.Model):
 
     def __str__(self):
         # XXX Usar id mesmo? Ou criar campo para nº legislatura?
-        current_date = datetime.datetime.now().year
+        current_date = datetime.now().year
         if(self.data_inicio.year <= current_date and
            self.data_fim.year >= current_date):
             current = ' (%s)' % _('Atual')
@@ -353,6 +354,17 @@ class Mandato(models.Model):
         return _('%(parlamentar)s %(legislatura)s') % {
             'parlamentar': self.parlamentar, 'legislatura': self.legislatura
         }
+
+    def get_partidos(self):
+        filicacoes = Filiacao.objects.filter(
+            parlamentar=self.parlamentar).order_by('data')
+        return [f.partido.sigla
+                for f in filicacoes
+                if intervalos_tem_intersecao(
+                    self.legislatura.data_inicio,
+                    self.legislatura.data_fim,
+                    f.data,
+                    f.data_desfiliacao or datetime.max.date())]
 
 
 class CargoMesa(models.Model):
