@@ -59,6 +59,10 @@ h6, .h6 {
     margin: 20px 0px 10px;
 }
 
+.btn:hover, .btn:focus {
+    color: inherit;
+}
+
 // #### CRUD DETAIL ########################################
 p.control-label {
   font-weight: bold;
