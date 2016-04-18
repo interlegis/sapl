@@ -4,11 +4,11 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
   <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'norma:norma_incluir' %}" class="btn btn-default">Adicionar Norma Jurídica</a>
+    <a href="{% url 'norma:normajuridica_create' %}" class="btn btn-default">Adicionar Norma Jurídica</a>
   </div>
   <br /><br /><br />
   {% if object_list %}
-  	<table class="table table-striped table-bordered">
+  	<table class="table table-striped">
   		<thead class="thead-default">
         <tr>
           <th>Tipo da Norma Juridica</th>

@@ -11,17 +11,22 @@ NormaJuridica:
   Identificação Básica:
   - tipo  numero  ano
   - data  esfera_federacao  complemento
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
   - data_publicacao  veiculo_publicacao  pagina_inicio_publicacao  pagina_fim_publicacao
-  - file_FIXME  tip_situacao_norma_FIXME
+  - texto_integral
   - ementa
   - indexacao
   - observacao
 
-NormaJuridica:
+NormaJuridicaCreate:
   Identificação Básica:
-  - tipo:5  numero:2  ano:2  data
+  - tipo  numero  ano
+  - data  esfera_federacao  complemento
+  - tipo_materia  numero_materia  ano_materia
+  - data_publicacao  veiculo_publicacao  pagina_inicio_publicacao  pagina_fim_publicacao
+  - texto_integral
   - ementa
+  - indexacao
+  - observacao
 
 LegislacaoCitada:
   Legislação Citada:

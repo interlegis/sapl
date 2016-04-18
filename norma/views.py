@@ -1,13 +1,11 @@
 from datetime import datetime
 
-from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.views.generic import CreateView, FormView, ListView, UpdateView
+from django.views.generic import FormView, ListView
 
+import crud.base
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
-from materia.models import MateriaLegislativa
 
 from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
@@ -15,9 +13,38 @@ from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
 
 AssuntoNormaCrud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
 TipoNormaCrud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
-NormaCrud = Crud.build(NormaJuridica, '')
 NormaTemporarioCrud = Crud.build(NormaJuridica, 'norma')
 LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
+
+
+class NormaCrud(Crud):
+    model = NormaJuridica
+    help_path = 'norma_juridica'
+
+    class UpdateView(crud.base.CrudUpdateView):
+        form_class = NormaJuridicaForm
+
+        @property
+        def layout_key(self):
+            return 'NormaJuridicaCreate'
+
+        def get_initial(self):
+            norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
+            if norma.materia:
+                self.initial['tipo_materia'] = norma.materia.tipo
+                self.initial['ano_materia'] = norma.materia.ano
+                self.initial['numero_materia'] = norma.materia.numero
+            return self.initial.copy()
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = NormaJuridicaForm
+
+        @property
+        def layout_key(self):
+            return 'NormaJuridicaCreate'
+
+    class BaseMixin(crud.base.BaseMixin):
+        list_field_names = ['tipo', 'numero', 'ano', 'ementa']
 
 
 class NormaPesquisaView(FormView):
@@ -108,57 +135,6 @@ class PesquisaNormaListView(ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
-
-
-class NormaIncluirView(CreateView):
-    template_name = "norma/normajuridica_incluir.html"
-    form_class = NormaJuridicaForm
-    success_url = reverse_lazy('norma:normajuridica_list')
-
-    def get_success_url(self):
-        return reverse_lazy('norma:norma_pesquisa')
-
-    def form_valid(self, form):
-        norma = form.save(commit=False)
-        norma.timestamp = datetime.now()
-        if form.cleaned_data['tipo_materia']:
-            materia = MateriaLegislativa.objects.get(
-                tipo_id=form.data['tipo_materia'],
-                numero=form.data['numero_materia'],
-                ano=form.data['ano_materia'])
-            norma.materia = materia
-        norma.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class NormaEditView(UpdateView):
-    template_name = "norma/normajuridica_incluir.html"
-    form_class = NormaJuridicaForm
-    model = NormaJuridica
-    success_url = reverse_lazy('norma:pesquisa_norma')
-
-    def get_initial(self):
-        data = super(NormaEditView, self).get_initial()
-        norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
-        if norma.materia:
-            data.update({
-                'tipo_materia': norma.materia.tipo,
-                'numero_materia': norma.materia.numero,
-                'ano_materia': norma.materia.ano,
-            })
-        return data
-
-    def form_valid(self, form):
-        norma = form.save(commit=False)
-        norma.timestamp = datetime.now()
-        if form.cleaned_data['tipo_materia']:
-            materia = MateriaLegislativa.objects.get(
-                tipo_id=form.data['tipo_materia'],
-                numero=form.data['numero_materia'],
-                ano=form.data['ano_materia'])
-            norma.materia = materia
-        norma.save()
-        return HttpResponseRedirect(self.get_success_url())
 
 
 class NormaTaView(IntegracaoTaView):

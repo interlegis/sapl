@@ -13,7 +13,7 @@ def test_incluir_norma_submit(client):
                       descricao='Teste')
 
     # Testa POST
-    response = client.post(reverse('norma:norma_incluir'),
+    response = client.post(reverse('norma:normajuridica_create'),
                            {'tipo': tipo.pk,
                             'numero': '1',
                             'ano': '2016',
@@ -33,7 +33,7 @@ def test_incluir_norma_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_incluir_norma_errors(client):
 
-    response = client.post(reverse('norma:norma_incluir'),
+    response = client.post(reverse('norma:normajuridica_create'),
                            {'salvar': 'salvar'},
                            follow=True)
 

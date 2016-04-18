@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
@@ -94,23 +96,20 @@ class NormaJuridicaForm(ModelForm):
 
     # Campos de MateriaLegislativa
     tipo_materia = forms.ModelChoiceField(
-        label='Matéria Legislativa',
+        label='Matéria',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione'
     )
-    numero_materia = forms.CharField(label='Número',
-                                     required=False)
-    ano_materia = forms.ChoiceField(label='Ano',
-                                    required=False,
-                                    choices=RANGE_ANOS)
-
-    def clean_texto_integral(self):
-        texto_integral = self.cleaned_data.get('texto_integral', False)
-        if texto_integral:
-            if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
-            return texto_integral
+    numero_materia = forms.CharField(
+        label='Número Matéria',
+        required=False
+    )
+    ano_materia = forms.ChoiceField(
+        label='Ano Matéria',
+        required=False,
+        choices=RANGE_ANOS,
+    )
 
     class Meta:
         model = NormaJuridica
@@ -130,55 +129,39 @@ class NormaJuridicaForm(ModelForm):
                   'ementa',
                   'indexacao',
                   'observacao',
-                  'texto_integral',
-                  ]
+                  'texto_integral']
 
     def clean(self):
-        data = super(NormaJuridicaForm, self).clean()
+        cleaned_data = self.cleaned_data
 
-        if self.cleaned_data['tipo_materia']:
+        if (cleaned_data['tipo_materia'] and
+            cleaned_data['numero_materia'] and
+                cleaned_data['ano_materia']):
+
             try:
-                MateriaLegislativa.objects.get(
-                    tipo=self.cleaned_data['tipo_materia'],
-                    numero=self.cleaned_data['numero_materia'],
-                    ano=self.cleaned_data['ano_materia'])
+                materia = MateriaLegislativa.objects.get(
+                    tipo_id=cleaned_data['tipo_materia'],
+                    numero=cleaned_data['numero_materia'],
+                    ano=cleaned_data['ano_materia'])
             except ObjectDoesNotExist:
-                msg = 'Matéria adicionada não existe!'
-                raise forms.ValidationError(msg)
+                raise forms.ValidationError("Matéria escolhida não existe!")
+            else:
+                cleaned_data['materia'] = materia
 
-        return data
+        else:
+            cleaned_data['materia'] = None
+        return cleaned_data
 
-    def __init__(self, *args, **kwargs):
+    def clean_texto_integral(self):
+        texto_integral = self.cleaned_data.get('texto_integral', False)
+        if texto_integral:
+            if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_integral
 
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4), ('numero', 4), ('ano', 4)])
-
-        row2 = crispy_layout_mixin.to_row(
-            [('data', 4), ('esfera_federacao', 4), ('complemento', 4)])
-
-        row3 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 4), ('numero_materia', 4), ('ano_materia', 4)])
-
-        row4 = crispy_layout_mixin.to_row(
-            [('data_publicacao', 3), ('veiculo_publicacao', 3),
-             ('pagina_inicio_publicacao', 3), ('pagina_fim_publicacao', 3)])
-
-        row5 = crispy_layout_mixin.to_row(
-            [('texto_integral', 12)])
-
-        row6 = crispy_layout_mixin.to_row(
-            [('ementa', 12)])
-
-        row7 = crispy_layout_mixin.to_row(
-            [('indexacao', 12)])
-
-        row8 = crispy_layout_mixin.to_row(
-            [('observacao', 12)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset('Identificação Básica',
-                     row1, row2, row3, row4, row5, row6, row7, row8),
-            form_actions()
-        )
-        super(NormaJuridicaForm, self).__init__(*args, **kwargs)
+    def save(self, commit=False):
+        norma = super(NormaJuridicaForm, self).save(commit)
+        norma.timestamp = datetime.now()
+        norma.materia = self.cleaned_data['materia']
+        norma.save()
+        return norma
