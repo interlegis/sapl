@@ -72,7 +72,7 @@
                   <div class="ntitulo">Vide: </div>
                   <div class="ntexto">
                     {% if vide.dispositivo_ref.dispositivo_pai.nivel != 0 and vide.dispositivo_ref.dispositivo_pai.tipo_dispositivo.dispositivo_de_articulacao %}
-                      <a href="{%url 'compilacao:ta_text' vide.dispositivo_ref.dispositivo_pai.ta.pk%}#{{vide.dispositivo_ref.dispositivo_pai.pk }}">{{ vide.dispositivo_ref.dispositivo_pai}} - {{ vide.dispositivo_ref.dispositivo_pai.ta}}</a>
+                      <a href="{%url 'compilacao:ta_text' vide.dispositivo_ref.dispositivo_pai.ta.pk%}#{{vide.dispositivo_ref.dispositivo_pai.pk }}">{{ vide.dispositivo_ref}} {% trans 'do'%} {{ vide.dispositivo_ref.dispositivo_pai}} - {{ vide.dispositivo_ref.dispositivo_pai.ta}}</a>
                     {% else %}
                       <a href="{%url 'compilacao:ta_text' vide.dispositivo_ref.ta.pk%}#{{vide.dispositivo_ref.pk }}">{{ vide.dispositivo_ref}} - {{vide.dispositivo_ref.ta}}</a>
                     {% endif %}
@@ -100,7 +100,7 @@
                   <div class="ntitulo">Citado em: </div>
                   <div class="ntexto">
                     {% if vide.dispositivo_base.dispositivo_pai.nivel != 0 and vide.dispositivo_base.dispositivo_pai.tipo_dispositivo.dispositivo_de_articulacao%}
-                    <a href="{%url 'compilacao:ta_text' vide.dispositivo_base.dispositivo_pai.ta.pk%}#{{vide.dispositivo_base.dispositivo_pai.pk }}">{{ vide.dispositivo_base.dispositivo_pai}} - {{ vide.dispositivo_base.dispositivo_pai.ta}}</a>
+                    <a href="{%url 'compilacao:ta_text' vide.dispositivo_base.dispositivo_pai.ta.pk%}#{{vide.dispositivo_base.dispositivo_pai.pk }}">{{ vide.dispositivo_base}} {% trans 'do'%} {{ vide.dispositivo_base.dispositivo_pai}} - {{ vide.dispositivo_base.dispositivo_pai.ta}}</a>
                     {% else %}
                     <a href="{%url 'compilacao:ta_text' vide.dispositivo_base.ta.pk%}#{{vide.dispositivo_base.pk }}">{{ vide.dispositivo_base}} - {{ vide.dispositivo_base.ta}}</a>
                     {% endif %}
