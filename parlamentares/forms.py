@@ -4,6 +4,7 @@ from django import forms
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from floppyforms import ClearableFileInput
 
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
@@ -11,7 +12,19 @@ from crispy_layout_mixin import form_actions
 from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
 
 
-class ParlamentarCreateForm(ModelForm):
+class ImageThumbnailFileInput(ClearableFileInput):
+    template_name = 'floppyforms/image_thumbnail.html'
+
+
+class ParlamentarForm(ModelForm):
+
+    class Meta:
+        model = Parlamentar
+        exclude = []
+        widgets = {'fotografia': ImageThumbnailFileInput}
+
+
+class ParlamentarCreateForm(ParlamentarForm):
 
     legislatura = forms.ModelChoiceField(
         label=_('Legislatura'),
@@ -24,10 +37,6 @@ class ParlamentarCreateForm(ModelForm):
         label=_('Expedição do Diploma'),
         required=True,
     )
-
-    class Meta:
-        model = Parlamentar
-        exclude = []
 
     @transaction.atomic
     def save(self, commit=True):

@@ -59,6 +59,8 @@ INSTALLED_APPS = (
     'djangobower',
     'bootstrap3',  # basically for django_admin_bootstrapped
     'crispy_forms',
+    'easy_thumbnails',
+    'floppyforms',
     'sass_processor',
     'rest_framework',
 
