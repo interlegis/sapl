@@ -7,6 +7,7 @@ from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.db.models import Q
 from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
@@ -732,12 +733,14 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         super(DispositivoEdicaoVigenciaForm, self).__init__(*args, **kwargs)
 
         pubs = Publicacao.objects.order_by(
-            '-data', '-hora').filter(ta=self.instance.ta)
+            '-data', '-hora').filter(Q(ta=self.instance.ta) |
+                                     Q(ta=self.instance.ta_publicado))
         self.fields['publicacao'].choices = [("", "---------")] + [(
-            p.pk, _('%s realizada em %s') % (
+            p.pk, _('%s realizada em %s. %s') % (
                 p.tipo_publicacao,
                 defaultfilters.date(
-                    p.data, "d \d\e F \d\e Y"))) for p in pubs]
+                    p.data, "d \d\e F \d\e Y"),
+                str(p.ta))) for p in pubs]
 
         dvs = Dispositivo.objects.order_by('ordem').filter(
             pk=self.instance.dispositivo_vigencia_id)

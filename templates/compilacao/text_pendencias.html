@@ -6,8 +6,7 @@
   {% block head_content %}{{block.super}}
     <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
   {% endblock %}
-
-  <table class="table table-striped table-hover">
+  <table class="table table-striped table-hover table-pendencias">
     <thead>
       <tr>
         <th>{% trans "Dispositivos" %}</th>
@@ -17,7 +16,7 @@
     <tbody>
       {% for dpt in object_list %}
         <tr class="{{dpt.contextual_class}}">
-          <td class="cp" width="60%" {% if not dpt.contextual_class %}colspan=2{% endif %} >
+          <td class="cp" width="63%" {% if not dpt.contextual_class %}colspan=2{% endif %} >
             <div class="dpt">
               <div class="{{ dpt.tipo_dispositivo.class_css }}">
                 <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{dpt.pk}}" >

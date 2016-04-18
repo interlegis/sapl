@@ -1063,6 +1063,28 @@ a:link:after, a:visited:after {
   }
 }
 
+.table-pendencias {
+  tbody {
+    tr {
+      td {
+        border-top: 1px solid white;
+        padding: 5px;
+        vertical-align: middle;
+        ul {
+          margin: 0px;
+          /*padding: 0px;
+          list-style: none;*/
+          li {
+            &:hover {
+              background-color: rgba(0, 0, 0, 0.1)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 .btn-modal-open {
   float: right;
 }
@@ -1071,9 +1093,11 @@ a:link:after, a:visited:after {
 .class_color_container {
   background: #ddd !important;
 }
+
 .clear {
   clear:both;
 }
+
 .mce-panel {
   /*border: 0px solid #ccc !important;*/
 }
