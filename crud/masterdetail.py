@@ -17,6 +17,16 @@ class MasterDetailCrud(Crud):
         def create_url(self):
             return self.resolve_url(CREATE, args=(self.kwargs['pk'],))
 
+        def get_context_data(self, **kwargs):
+            obj = getattr(self, 'object', None)
+            if obj:
+                root_pk = getattr(obj, self.crud.parent_field).pk
+            else:
+                root_pk = self.kwargs['pk']  # in list and create
+            kwargs.setdefault('root_pk', root_pk)
+            return super(MasterDetailCrud.BaseMixin,
+                         self).get_context_data(**kwargs)
+
     class ListView(CrudListView):
 
         @classmethod
