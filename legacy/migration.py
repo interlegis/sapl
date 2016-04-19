@@ -97,7 +97,7 @@ def warn(msg):
 
 
 def get_fk_related(field, value, label=None):
-    fields_dict = {}
+    # fields_dict = {}
     if value is None and field.null is False:
         value = 0
     if value is not None:
@@ -112,11 +112,12 @@ def get_fk_related(field, value, label=None):
                 # se FK == 0, criamos um stub e colocamos o valor '????????'
                 # para qualquer CharField ou TextField que possa haver
                 if not field.null:
-                    all_fields = field.related_model._meta.get_fields()
-                    fields_dict = {f.name: '????????????'[:f.max_length]
-                                   for f in all_fields
-                                   if isinstance(f, (CharField, TextField)) and
-                                   not f.choices and not f.blank}
+                    # all_fields = field.related_model._meta.get_fields()
+                    # fields_dict = {f.name: '????????????'[:f.max_length]
+                    #                for f in all_fields
+                    #                if isinstance(f, (CharField, TextField)) and
+                    #                not f.choices and not f.blank}
+                    fields_dict = get_fields_dict(field.related_model)
                     value = mommy.make(field.related_model,
                                        **fields_dict)
                     descricao = 'stub criado para campos não nuláveis!'
@@ -229,10 +230,21 @@ def save_relation(obj, problema='', descricao=''):
 
 
 def make_stub(model, id):
-    new = mommy.prepare(model)
+    fields_dict = get_fields_dict(model)
+    new = mommy.prepare(model, **fields_dict)
     save_with_id(new, id)
 
     return new
+
+
+def get_fields_dict(model):
+    all_fields = model._meta.get_fields()
+    fields_dict = {}
+    fields_dict = {f.name: '????????????'[:f.max_length]
+                   for f in all_fields
+                   if isinstance(f, (CharField, TextField)) and
+                   not f.choices and not f.blank}
+    return fields_dict
 
 
 class DataMigrator:
@@ -352,7 +364,7 @@ class DataMigrator:
 
     def delete_stubs(self):
         excluidos = 0
-        for obj in ProblemaMigracao.objects.all().reverse():
+        for obj in ProblemaMigracao.objects.all():
             if obj.content_object:
                 original = obj.content_type.get_all_objects_for_this_type(
                         id=obj.object_id)
@@ -433,12 +445,9 @@ def check_app_no_ind_excluido(app):
 
 
 def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
+    import ipdb; ipdb.set_trace()
     all_fields = model._meta.get_fields()
-    fields_dict = {}
-    fields_dict = {f.name: '????????????'[:f.max_length]
-                   for f in all_fields
-                   if isinstance(f, (CharField, TextField)) and
-                   not f.choices and not f.blank}
+    fields_dict = get_fields_dict(model)
     stub = make(model, _quantity, make_m2m, **fields_dict)
     problema = 'Um stub foi necessário durante a criação de um outro stub'
     descricao = 'Essa entrada é necessária para um dos stubs criados'
