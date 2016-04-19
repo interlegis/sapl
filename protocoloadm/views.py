@@ -3,7 +3,7 @@ from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Max, Q
+from django.db.models import Q, Max
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
