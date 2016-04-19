@@ -5,6 +5,7 @@ import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
+from django.utils import formats
 from django.utils.translation import ugettext as _
 
 
@@ -57,9 +58,9 @@ def get_field_display(obj, fieldname):
     if value is None:
         display = ''
     elif 'date' in str(type(value)):
-        display = value.strftime("%d/%m/%Y")  # TODO: localize
+        display = formats.date_format(value, "SHORT_DATE_FORMAT")
     elif 'bool' in str(type(value)):
-        display = 'Sim' if value else 'Não'
+        display = _('Sim') if value else _('Não')
     else:
         display = str(value)
     return verbose_name, display

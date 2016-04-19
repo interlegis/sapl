@@ -67,7 +67,7 @@ class ProtocoloPesquisaView(FormView):
             #     kwargs['final'] = request.POST['final']
 
             # if request.POST['natureza_processo']:
-            #    kwargs['natureza_processo'] = request.POST['natureza_processo']
+            #  kwargs['natureza_processo'] = request.POST['natureza_processo']
 
             if request.POST['tipo_documento']:
                 kwargs['tipo_documento'] = request.POST['tipo_documento']
@@ -238,6 +238,7 @@ class ComprovanteProtocoloView(TemplateView):
         autenticacao = _("** NULO **")
 
         if not protocolo.anulado:
+            # data is not i18n sensitive 'Y-m-d' is the right format.
             autenticacao = str(protocolo.tipo_processo) + \
                 protocolo.data.strftime("%Y/%m/%d") + \
                 str(protocolo.numero).zfill(6)
