@@ -63,12 +63,6 @@ class ProtocoloPesquisaView(FormView):
                     request.POST['inicial'],
                     '%d/%m/%Y').strftime('%Y-%m-%d')
 
-            # if request.POST['final']:
-            #     kwargs['final'] = request.POST['final']
-
-            if request.POST['natureza_processo']:
-                kwargs['tipo_protocolo'] = request.POST['natureza_processo']
-
             if request.POST['tipo_documento']:
                 kwargs['tipo_documento'] = request.POST['tipo_documento']
 
