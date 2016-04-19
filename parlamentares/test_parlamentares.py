@@ -70,7 +70,7 @@ def test_dependente_submit(client):
     mommy.make(Partido, pk=32)
     mommy.make(TipoDependente, pk=3)
 
-    client.post(reverse('parlamentares:parlamentar_dependente',
+    client.post(reverse('parlamentares:dependente_create',
                         kwargs={'pk': 14}),
                 {'nome': 'Eduardo',
                  'tipo': 3,
@@ -86,7 +86,7 @@ def test_dependente_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_dependente(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentar_dependente',
+    response = client.post(reverse('parlamentares:dependente_create',
                                    kwargs={'pk': 14}),
                            {'salvar': 'salvar'},
                            follow=True)
