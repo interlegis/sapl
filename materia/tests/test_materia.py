@@ -3,13 +3,12 @@ from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
 from comissoes.models import Comissao, TipoComissao
+from materia.models import (Anexada, Autor, Autoria, DespachoInicial,
+                            DocumentoAcessorio, MateriaLegislativa, Numeracao,
+                            Proposicao, RegimeTramitacao, StatusTramitacao,
+                            TipoAutor, TipoDocumento, TipoMateriaLegislativa,
+                            TipoProposicao, Tramitacao, UnidadeTramitacao)
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
-
-from .models import (Anexada, Autor, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
-                     Proposicao, RegimeTramitacao, StatusTramitacao, TipoAutor,
-                     TipoDocumento, TipoMateriaLegislativa, TipoProposicao,
-                     Tramitacao, UnidadeTramitacao)
 
 
 def make_unidade_tramitacao(descricao):

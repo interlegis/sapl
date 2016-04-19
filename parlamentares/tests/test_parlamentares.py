@@ -2,8 +2,8 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from .models import (Dependente, Filiacao, Legislatura, Mandato, Parlamentar,
-                     Partido, TipoDependente)
+from parlamentares.models import (Dependente, Filiacao, Legislatura, Mandato,
+                                  Parlamentar, Partido, TipoDependente)
 
 
 @pytest.mark.django_db(transaction=False)

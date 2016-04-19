@@ -2,7 +2,7 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
-from .models import NormaJuridica, TipoNormaJuridica
+from norma.models import NormaJuridica, TipoNormaJuridica
 
 
 @pytest.mark.django_db(transaction=False)
