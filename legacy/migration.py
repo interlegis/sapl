@@ -7,11 +7,10 @@ from django.apps.config import AppConfig
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import connections, models
-from django.db.models import CharField, ForeignKey, TextField
+from django.db.models import CharField, TextField
 from django.db.models.base import ModelBase
-
 from model_mommy import mommy
-from model_mommy.mommy import make, foreign_key_required
+from model_mommy.mommy import foreign_key_required, make
 
 from base.models import ProblemaMigracao
 from comissoes.models import Composicao, Participacao
@@ -97,7 +96,6 @@ def warn(msg):
 
 
 def get_fk_related(field, value, label=None):
-    # fields_dict = {}
     if value is None and field.null is False:
         value = 0
     if value is not None:
@@ -109,14 +107,7 @@ def get_fk_related(field, value, label=None):
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # se FK == 0, criamos um stub e colocamos o valor '????????'
-                # para qualquer CharField ou TextField que possa haver
                 if not field.null:
-                    # all_fields = field.related_model._meta.get_fields()
-                    # fields_dict = {f.name: '????????????'[:f.max_length]
-                    #                for f in all_fields
-                    #                if isinstance(f, (CharField, TextField)) and
-                    #                not f.choices and not f.blank}
                     fields_dict = get_fields_dict(field.related_model)
                     value = mommy.make(field.related_model,
                                        **fields_dict)
@@ -186,7 +177,7 @@ def recreate_constraints():
             for i in range(len(args)):
                 if isinstance(model._meta.get_field(args[i]),
                               models.ForeignKey):
-                    args[i] = args[i]+'_id'
+                    args[i] = args[i] + '_id'
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
             exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
@@ -200,12 +191,12 @@ def stub_desnecessario(obj):
         if (f.one_to_many or f.one_to_one) and f.auto_created
     ]
     desnecessario = not any(
-            rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
-            for rr in lista)
+        rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
+        for rr in lista)
     if isinstance(obj, TipoMateriaLegislativa):
         desnecessario = not any(
             rr.related_model.objects.filter(
-                **{rr.field.name+'_origem_externa': obj}).exists()
+                **{rr.field.name + '_origem_externa': obj}).exists()
             for rr in lista)
     return desnecessario
 
@@ -248,6 +239,7 @@ def get_fields_dict(model):
 
 
 class DataMigrator:
+
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
 
@@ -286,11 +278,8 @@ class DataMigrator:
                         warn(msg +
                              "=> colocando %s para DateField não nulável" %
                              (value))
-                if field_type == 'CharField' or field_type == 'TextField':
-                    if value is None:
-                        warn(msg + "=> colocando string vazia para valor %s" %
-                             (value))
-                        value = ''
+                if field_type in ['CharField', 'TextField'] and value is None:
+                    value = ''
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs):
@@ -367,7 +356,7 @@ class DataMigrator:
         for obj in ProblemaMigracao.objects.all():
             if obj.content_object:
                 original = obj.content_type.get_all_objects_for_this_type(
-                        id=obj.object_id)
+                    id=obj.object_id)
                 if stub_desnecessario(original[0]):
                     # Se qtd_exclusoes for maior que 1, está deletando mais
                     # objetos do que deveria..
@@ -445,8 +434,6 @@ def check_app_no_ind_excluido(app):
 
 
 def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
-    import ipdb; ipdb.set_trace()
-    all_fields = model._meta.get_fields()
     fields_dict = get_fields_dict(model)
     stub = make(model, _quantity, make_m2m, **fields_dict)
     problema = 'Um stub foi necessário durante a criação de um outro stub'
