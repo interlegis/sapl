@@ -16,3 +16,7 @@ DATABASES['legacy'] = {
 }
 
 DATABASE_ROUTERS = ['legacy.router.LegacyRouter', ]
+
+MOMMY_CUSTOM_FIELDS_GEN = {
+    'django.db.models.ForeignKey': 'legacy.migration.make_with_log'
+}
