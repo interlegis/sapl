@@ -5,12 +5,17 @@ import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.db import connections, models
-from django.db.models import CharField, TextField
+from django.db.models import CharField, ForeignKey, TextField
 from django.db.models.base import ModelBase
-from model_mommy import mommy
 
+from model_mommy import mommy
+from model_mommy.mommy import make, foreign_key_required
+
+from base.models import ProblemaMigracao
 from comissoes.models import Composicao, Participacao
+from materia.models import TipoMateriaLegislativa
 from parlamentares.models import Parlamentar
 from sessao.models import SessaoPlenaria
 
@@ -26,7 +31,6 @@ appconfs = [apps.get_app_config(n) for n in [
     'lexml',
     'protocoloadm', ]]
 
-stubs_list = []
 unique_constraints = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
@@ -81,8 +85,8 @@ def get_renames():
 
     return field_renames, model_renames
 
-
 # MIGRATION #################################################################
+
 
 def info(msg):
     print('INFO: ' + msg)
@@ -115,14 +119,17 @@ def get_fk_related(field, value, label=None):
                                    not f.choices and not f.blank}
                     value = mommy.make(field.related_model,
                                        **fields_dict)
-                    warn(msg + ' => STUB criada para campos não nuláveis!')
+                    descricao = 'stub criado para campos não nuláveis!'
+                    save_relation(value, msg, descricao)
+                    warn(msg + ' => ' + descricao)
                 else:
                     value = None
                     warn(msg + ' => usando None para valores iguais a zero!')
             else:
                 value = make_stub(field.related_model, value)
-                stubs_list.append((value.id, field))
-                warn(msg + ' => STUB criada!')
+                descricao = 'stub criado para entrada orfã!'
+                warn(msg + ' => ' + descricao)
+                save_relation(value, msg, descricao)
         else:
             assert value
     return value
@@ -130,6 +137,11 @@ def get_fk_related(field, value, label=None):
 
 def get_field(model, fieldname):
     return model._meta.get_field(fieldname)
+
+
+def get_url(object):
+    info = (object._meta.app_label, object._meta.model_name)
+    return reverse('admin:%s_%s_change' % info, args=(object.pk,))
 
 
 def exec_sql(sql, db='default'):
@@ -178,6 +190,23 @@ def recreate_constraints():
             args_string += "(" + ', '.join(map(str, args)) + ")"
             exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
                      (table, name, args_string))
+    unique_constraints.clear()
+
+
+def stub_desnecessario(obj):
+    lista = [
+        f for f in obj._meta.get_fields()
+        if (f.one_to_many or f.one_to_one) and f.auto_created
+    ]
+    desnecessario = not any(
+            rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
+            for rr in lista)
+    if isinstance(obj, TipoMateriaLegislativa):
+        desnecessario = not any(
+            rr.related_model.objects.filter(
+                **{rr.field.name+'_origem_externa': obj}).exists()
+            for rr in lista)
+    return desnecessario
 
 
 def save_with_id(new, id):
@@ -193,9 +222,16 @@ def save_with_id(new, id):
     assert new.id == id, 'New id is different from provided!'
 
 
+def save_relation(obj, problema='', descricao=''):
+    link = ProblemaMigracao(content_object=obj, problema=problema,
+                            descricao=descricao, endereco=get_url(obj))
+    link.save()
+
+
 def make_stub(model, id):
     new = mommy.prepare(model)
     save_with_id(new, id)
+
     return new
 
 
@@ -249,6 +285,7 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
 
         self.to_delete = []
+        ProblemaMigracao.objects.all().delete()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
         # exclude logically deleted in legacy base
@@ -256,7 +293,8 @@ class DataMigrator:
         for obj in self.to_delete:
             obj.delete()
         info('Deletando stubs desnecessários...')
-        self.delete_stubs()
+        while self.delete_stubs():
+            pass
         info('Recriando unique constraints...')
         recreate_constraints()
 
@@ -313,12 +351,24 @@ class DataMigrator:
                 self.to_delete.append(new)
 
     def delete_stubs(self):
-        for line in stubs_list:
-            stub, field = line
-            # Filter all objects in model and delete from related model
-            # if quantity is equal to zero
-            if field.model.objects.filter(**{field.name: stub}).exists():
-                field.related_model.objects.get(**{'id': stub}).delete()
+        excluidos = 0
+        for obj in ProblemaMigracao.objects.all().reverse():
+            if obj.content_object:
+                original = obj.content_type.get_all_objects_for_this_type(
+                        id=obj.object_id)
+                if stub_desnecessario(original[0]):
+                    # Se qtd_exclusoes for maior que 1, está deletando mais
+                    # objetos do que deveria..
+                    qtd_exclusoes, *_ = original.delete()
+                    assert qtd_exclusoes == 1
+                    qtd_exclusoes, *_ = obj.delete()
+                    assert qtd_exclusoes == 1
+                    excluidos = excluidos + 1
+            else:
+                resultado, *_ = obj.delete()
+                assert resultado == 1
+                excluidos = excluidos + 1
+        return excluidos
 
 
 def migrate(obj=appconfs):
@@ -378,3 +428,23 @@ def check_app_no_ind_excluido(app):
     for model in app.models.values():
         assert not any(get_ind_excluido(obj) for obj in model.objects.all())
     print('OK!')
+
+# MOMMY MAKE WITH LOG  ######################################################
+
+
+def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
+    all_fields = model._meta.get_fields()
+    fields_dict = {}
+    fields_dict = {f.name: '????????????'[:f.max_length]
+                   for f in all_fields
+                   if isinstance(f, (CharField, TextField)) and
+                   not f.choices and not f.blank}
+    stub = make(model, _quantity, make_m2m, **fields_dict)
+    problema = 'Um stub foi necessário durante a criação de um outro stub'
+    descricao = 'Essa entrada é necessária para um dos stubs criados'
+    ' anteriormente'
+    warn(problema)
+    save_relation(obj=stub, problema=problema, descricao=descricao)
+    return stub
+
+make_with_log.required = foreign_key_required

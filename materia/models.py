@@ -532,13 +532,13 @@ class Tramitacao(models.Model):
     data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
-        related_name='+',
+        related_name='tramitacoes_origem',
         verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
-        related_name='+',
+        related_name='tramitacoes_destino',
         verbose_name=_('Unidade Destino'))
     urgente = models.BooleanField(verbose_name=_('Urgente ?'))
     turno = models.CharField(
