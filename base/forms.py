@@ -8,8 +8,13 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
+from floppyforms import ClearableFileInput
 
 from .models import CasaLegislativa
+
+
+class ImageThumbnailFileInput(ClearableFileInput):
+    template_name = 'floppyforms/image_thumbnail.html'
 
 
 class CasaLegislativaTabelaAuxForm(ModelForm):
@@ -36,7 +41,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
-            'logotipo': forms.FileInput,
+            'logotipo': ImageThumbnailFileInput,
             'informacao_geral': forms.Textarea(
                 attrs={'id': 'casa-informacoes'})
         }
