@@ -187,3 +187,5 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
 # hack to suppress many annoying warnings from crispy_forms
 # see sapl.temp_suppress_crispy_form_warnings
 LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+
+FILTERS_HELP_TEXT_FILTER = False

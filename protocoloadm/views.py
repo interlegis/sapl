@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
+from django_filters.views import FilterView
 
 from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
@@ -16,8 +17,8 @@ from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
-                    ProtocoloDocumentForm, ProtocoloForm, ProtocoloMateriaForm,
-                    TramitacaoAdmForm)
+                    ProtocoloDocumentForm, ProtocoloFilterSet,
+                    ProtocoloMateriaForm, TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
@@ -37,51 +38,63 @@ ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
-class ProtocoloPesquisaView(FormView):
-    template_name = 'protocoloadm/protocolo_pesquisa.html'
-    form_class = ProtocoloForm
-    context_object_name = 'protocolos'
-    success_url = reverse_lazy('protocoloadm:protocolo')
+class ProtocoloPesquisaView(FilterView):
+    model = Protocolo
+    filterset_class = ProtocoloFilterSet
+    paginate_by = 10
 
-    def post(self, request, *args, **kwargs):
-        form = ProtocoloForm(request.POST or None)
+    def get_filterset_kwargs(self, filterset_class):
+        super(ProtocoloPesquisaView,
+              self).get_filterset_kwargs(filterset_class)
 
-        if form.is_valid():
-            kwargs = {}
+        kwargs = {'data': self.request.GET or None}
 
-            if request.POST['tipo_protocolo']:
-                kwargs['tipo_protocolo'] = request.POST['tipo_protocolo']
+        qs = self.get_queryset()
 
-            if request.POST['numero_protocolo']:
-                kwargs['numero'] = request.POST['numero_protocolo']
+        qs = qs.distinct()
 
-            if request.POST['ano']:
-                kwargs['ano'] = request.POST['ano']
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
 
-            if request.POST['inicial']:
-                kwargs['data'] = datetime.strptime(
-                    request.POST['inicial'],
-                    '%d/%m/%Y').strftime('%Y-%m-%d')
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloPesquisaView,
+                        self).get_context_data(**kwargs)
 
-            if request.POST['tipo_documento']:
-                kwargs['tipo_documento'] = request.POST['tipo_documento']
+        paginator = context['paginator']
+        page_obj = context['page_obj']
 
-            if request.POST['interessado']:
-                kwargs['interessado__icontains'] = request.POST['interessado']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
 
-            if request.POST['tipo_materia']:
-                kwargs['tipo_materia'] = request.POST['tipo_materia']
+        return context
 
-            if request.POST['autor']:
-                kwargs['autor'] = request.POST['autor']
+    def get(self, request, *args, **kwargs):
+        super(ProtocoloPesquisaView, self).get(request)
 
-            if request.POST['assunto']:
-                kwargs['assunto_ementa__icontains'] = request.POST['assunto']
-
-            request.session['kwargs'] = kwargs
-            return redirect('protocoloadm:protocolo_list')
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/FilterSet
+        # Então a ordem da URL está diferente
+        data = self.filterset.data
+        if (data and data.get('numero') is not None):
+            url = "&"+str(self.request.environ['QUERY_STRING'])
+            if url[:5] == "&page":
+                ponto_comeco = url.find('numero=') - 1
+                url = url[ponto_comeco:]
         else:
-            return self.form_invalid(form)
+            url = ''
+
+        self.filterset.form.fields['o'].label = _('Ordenação')
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        return self.render_to_response(context)
 
 
 class ProtocoloListView(ListView):
