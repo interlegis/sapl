@@ -12,9 +12,9 @@ class TipoMateriaLegislativa(models.Model):
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição '))
     # XXX o que é isso ?
-    num_automatica = models.BooleanField()
+    num_automatica = models.BooleanField(default=False)
     # XXX o que é isso ?
-    quorum_minimo_votacao = models.PositiveIntegerField()
+    quorum_minimo_votacao = models.PositiveIntegerField(blank=True, null=True)
 
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
