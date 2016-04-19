@@ -44,6 +44,14 @@ class MasterDetailCrud(Crud):
         def get_url_regex(cls):
             return r'^(?P<pk>\d+)/%s/create$' % cls.model._meta.model_name
 
+        def get_form(self, form_class=None):
+            form = super(MasterDetailCrud.CreateView,
+                         self).get_form(form_class)
+            field = self.model._meta.get_field(self.crud.parent_field)
+            parent = field.related_model.objects.get(pk=self.kwargs['pk'])
+            setattr(form.instance, self.crud.parent_field, parent)
+            return form
+
     class DetailView(CrudDetailView):
 
         @classmethod
