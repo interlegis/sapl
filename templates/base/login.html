@@ -2,11 +2,6 @@
 {% load i18n %}
 {% block base_content %}
 
-  {% if form.errors %}
-
-    <p>Usuário e/ou Senha inexistente. Tente novamente.</p>
-  {% endif %}
-
   {% if next %}
     {% if user.is_authenticated %}
       <p>Você não tem acesso a esta página. Se quiser continuar, faça o Login.</p>
@@ -30,6 +25,11 @@
 
                           <p class="bs-component">
                               <table>
+                                {% if form.errors %}
+                                  <div class="alert alert-danger">Usuário e/ou Senha inexistente.
+                                  </div>
+
+                                {% endif %}
                                   <tr>
                                       <td><b>Usuário</b></td>
                                       <td>{{ form.username }}</td>

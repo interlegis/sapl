@@ -31,6 +31,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = ['*']
 
 LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login/?next='
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
