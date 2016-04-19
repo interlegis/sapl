@@ -27,6 +27,7 @@ appconfs = [apps.get_app_config(n) for n in [
     'protocoloadm', ]]
 
 stubs_list = []
+unique_constraints = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
@@ -93,7 +94,6 @@ def warn(msg):
 
 def get_fk_related(field, value, label=None):
     fields_dict = {}
-
     if value is None and field.null is False:
         value = 0
     if value is not None:
@@ -105,7 +105,7 @@ def get_fk_related(field, value, label=None):
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # se FK == 0, criamos um stub e colocamos o valor '????????
+                # se FK == 0, criamos um stub e colocamos o valor '????????'
                 # para qualquer CharField ou TextField que possa haver
                 if not field.null:
                     all_fields = field.related_model._meta.get_fields()
@@ -149,6 +149,37 @@ def iter_sql_records(sql, db):
         yield record
 
 
+def delete_constraints(model):
+    # pega nome da unique constraint dado o nome da tabela
+    table = model._meta.db_table
+    cursor = exec_sql("SELECT conname FROM pg_constraint WHERE conrelid = "
+                      "(SELECT oid FROM pg_class WHERE relname LIKE "
+                      "'%s') and contype = 'u';" % (table))
+    result = cursor.fetchone()
+    # se existir um resultado, unique constraint será deletado
+    if result:
+        warn('Excluindo unique constraint de nome %s' % result)
+        args = model._meta.unique_together[0]
+        args_list = list(args)
+        unique_constraints.append([table, result[0], args_list, model])
+        exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
+                 (table, result[0]))
+
+
+def recreate_constraints():
+    if unique_constraints:
+        for constraint in unique_constraints:
+            table, name, args, model = constraint
+            for i in range(len(args)):
+                if isinstance(model._meta.get_field(args[i]),
+                              models.ForeignKey):
+                    args[i] = args[i]+'_id'
+            args_string = ''
+            args_string += "(" + ', '.join(map(str, args)) + ")"
+            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                     (table, name, args_string))
+
+
 def save_with_id(new, id):
     sequence_name = '%s_id_seq' % type(new)._meta.db_table
     cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
@@ -169,7 +200,6 @@ def make_stub(model, id):
 
 
 class DataMigrator:
-
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
 
@@ -179,6 +209,8 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
+            msg = ("Campo %s (%s) da model %s " %
+                   (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
@@ -187,17 +219,29 @@ class DataMigrator:
                             old_type._meta.pk.name != 'id':
                         label = old.pk
                     else:
-                        label = '-- WITHOUT PK --'
+                        label = '-- SEM PK --'
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
+                if (field_type == 'DateField' and
+                        field.null is False and value is None):
+                    names = [old_fields.name for old_fields
+                             in old._meta.get_fields()]
+                    combined_names = "(" + ")|(".join(names) + ")"
+                    matches = re.search('(ano_\w+)', combined_names)
+                    if not matches:
+                        warn(msg +
+                             '=> colocando valor 0000-01-01 para DateField')
+                        value = '0001-01-01'
+                    else:
+                        value = '%d-01-01' % getattr(old, matches.group(0))
+                        warn(msg +
+                             "=> colocando %s para DateField não nulável" %
+                             (value))
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
-                        warn(
-                            "Field %s (%s) from model %s"
-                            " => settig empty string '' for %s value" %
-                            (field.name, field_type, field.model.__name__,
-                             value))
+                        warn(msg + "=> colocando string vazia para valor %s" %
+                             (value))
                         value = ''
                 setattr(new, field.name, value)
 
@@ -205,14 +249,16 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
 
         self.to_delete = []
-        info('Starting %s migration...' % obj)
+        info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
         # exclude logically deleted in legacy base
-        info('Deleting models with ind_excluido...')
+        info('Deletando models com ind_excluido...')
         for obj in self.to_delete:
             obj.delete()
-        info('Deleting unnecessary stubs...')
+        info('Deletando stubs desnecessários...')
         self.delete_stubs()
+        info('Recriando unique constraints...')
+        recreate_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -229,7 +275,7 @@ class DataMigrator:
                 'Parameter must be a Model, AppConfig or a sequence of them')
 
     def migrate_model(self, model):
-        print('Migrating %s...' % model.__name__)
+        print('Migrando %s...' % model.__name__)
 
         legacy_model_name = self.model_renames.get(model, model.__name__)
         legacy_model = legacy_app.get_model(legacy_model_name)
@@ -238,6 +284,7 @@ class DataMigrator:
         # Clear all model entries
         # They may have been created in a previous migration attempt
         model.objects.all().delete()
+        delete_constraints(model)
 
         # setup migration strategy for tables with or without a pk
         if legacy_pk_name == 'id':
@@ -304,7 +351,7 @@ def adjust_parlamentar(new_parlamentar, old):
     # but data includes null values
     #  => transform None to False
     if value is None:
-        warn('null converted to False')
+        warn('nulo convertido para falso')
         new_parlamentar.unidade_deliberativa = False
 
 
