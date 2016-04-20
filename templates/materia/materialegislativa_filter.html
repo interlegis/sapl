@@ -18,9 +18,12 @@
             <tr><td><h3>Resultados</h3></td></tr>
         </thead>
         {% if page_obj|length %}
-          {% if filter_url %}
-            <h3>Pesquisa concluída com sucesso! Foram encontradas {{numero_res}} matérias.</h3>
-          {% endif %}
+          {% if numero_res > 1 %}
+              <h3>Pesquisa concluída com sucesso! Foram encontradas {{numero_res}} matérias.</h3>
+            {% elif numero_res == 1 %}
+              <h3>Pesquisa concluída com sucesso! Foi encontrada {{numero_res}} matéria.</h3>
+            {% endif %}
+
           {% for m in page_obj %}
             
               <tr>
@@ -40,6 +43,6 @@
         
     </table>
 
-{% include "paginacao_pesquisa_materia.html" %}
+{% include "paginacao.html" %}
 
 {% endblock detail_content %}

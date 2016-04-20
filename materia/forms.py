@@ -489,8 +489,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label=u'Ano da Matéria',
-                                      choices=ANO_CHOICES,
-                                      help_text="")
+                                      choices=ANO_CHOICES)
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
@@ -601,27 +600,23 @@ def pega_ultima_tramitacao():
 
 def filtra_tramitacao_status(status):
     lista = pega_ultima_tramitacao()
-    ultimas_tramitacoes = Tramitacao.objects.filter(
-        id__in=lista,
-        status=status).distinct()
-    lista = [ids.materia_id for ids in ultimas_tramitacoes]
-    return lista
+    return Tramitacao.objects.filter(
+      id__in=lista,
+      status=status).distinct().values_list('materia_id', flat=True)
 
 
 def filtra_tramitacao_destino(destino):
     lista = pega_ultima_tramitacao()
-    ultimas_tramitacoes = Tramitacao.objects.filter(
-        id__in=lista,
-        unidade_tramitacao_destino=destino).distinct()
-    lista = [ids.materia_id for ids in ultimas_tramitacoes]
-    return lista
+    return Tramitacao.objects.filter(
+      id__in=lista,
+      unidade_tramitacao_destino=destino).distinct().values_list(
+      'materia_id', flat=True)
 
 
 def filtra_tramitacao_destino_and_status(status, destino):
     lista = pega_ultima_tramitacao()
-    ultimas_tramitacoes = Tramitacao.objects.filter(
-        id__in=lista,
-        status=status,
-        unidade_tramitacao_destino=destino).distinct()
-    lista = [ids.materia_id for ids in ultimas_tramitacoes]
-    return lista
+    return Tramitacao.objects.filter(
+      id__in=lista,
+      status=status,
+      unidade_tramitacao_destino=destino).distinct().values_list(
+      'materia_id', flat=True)
