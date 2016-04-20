@@ -1,3 +1,4 @@
+import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Field, Fieldset, Layout, Submit
@@ -9,8 +10,6 @@ from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 import sapl
-import django_filters
-
 from crispy_layout_mixin import form_actions
 from materia.models import Autor
 from sapl.utils import RANGE_ANOS
