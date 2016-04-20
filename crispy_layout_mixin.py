@@ -55,6 +55,7 @@ def get_field_display(obj, fieldname):
         value = getattr(obj, 'get_%s_display' % fieldname)()
     else:
         value = getattr(obj, fieldname)
+
     if value is None:
         display = ''
     elif 'date' in str(type(value)):
@@ -62,7 +63,10 @@ def get_field_display(obj, fieldname):
     elif 'bool' in str(type(value)):
         display = _('Sim') if value else _('Não')
     elif 'ImageFieldFile' in str(type(value)):
-        display = '<img src="{}" />'.format(value.url)
+        if value:
+            display = '<img src="{}" />'.format(value.url)
+        else:
+            display = ''
     elif 'FieldFile' in str(type(value)):
         if value:
             display = '<a href="{}">{}</a>'.format(
