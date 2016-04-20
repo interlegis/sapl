@@ -67,6 +67,8 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     interessado = django_filters.CharFilter(lookup_expr='icontains')
 
+    autor = django_filters.CharFilter(widget=forms.HiddenInput())
+
     class Meta:
         model = Protocolo
         fields = ['tipo_protocolo',
@@ -74,7 +76,6 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                   'tipo_documento',
                   'data',
                   'tipo_materia',
-                  'autor'
                   ]
 
         order_by = (
@@ -83,62 +84,63 @@ class ProtocoloFilterSet(django_filters.FilterSet):
             ('DEC', 'Ordem Decrescente'),
         )
 
-        order_by_mapping = {
-            '': [],
-            'CRE': ['ano', 'numero'],
-            'DEC': ['-ano', '-numero'],
-        }
+    order_by_mapping = {
+        '': [],
+        'CRE': ['ano', 'numero'],
+        'DEC': ['-ano', '-numero'],
+    }
 
-        def get_order_by(self, order_value):
-            if order_value in self.order_by_mapping:
-                return self.order_by_mapping[order_value]
-            else:
-                return super(ProtocoloFilterSet,
-                             self).get_order_by(order_value)
+    def get_order_by(self, order_value):
+        if order_value in self.order_by_mapping:
+            return self.order_by_mapping[order_value]
+        else:
+            return super(ProtocoloFilterSet,
+                         self).get_order_by(order_value)
 
-        def __init__(self, *args, **kwargs):
-            super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
 
-            self.filters['autor'].label = 'Tipo de Matéria'
-            self.filters['assunto_ementa'].label = 'Assunto'
+        self.filters['autor'].label = 'Tipo de Matéria'
+        self.filters['assunto_ementa'].label = 'Assunto'
 
-            row1 = crispy_layout_mixin.to_row(
-                [('numero', 6),
-                 ('ano', 6)])
+        row1 = crispy_layout_mixin.to_row(
+            [('numero', 6),
+             ('ano', 6)])
 
-            row2 = crispy_layout_mixin.to_row(
-                [('data', 12)])
+        row2 = crispy_layout_mixin.to_row(
+            [('data', 12)])
 
-            row3 = crispy_layout_mixin.to_row(
-                [('tipo_documento', 4),
-                 ('tipo_protocolo', 4),
-                 ('tipo_materia', 4)])
+        row3 = crispy_layout_mixin.to_row(
+            [('tipo_documento', 4),
+             ('tipo_protocolo', 4),
+             ('tipo_materia', 4)])
 
-            row4 = crispy_layout_mixin.to_row(
-                [('interessado', 6),
-                 ('assunto_ementa', 6)])
+        row4 = crispy_layout_mixin.to_row(
+            [('interessado', 6),
+             ('assunto_ementa', 6)])
 
-            row5 = crispy_layout_mixin.to_row(
-                     [('autor', 0),
-                      (Button('pesquisar',
-                              'Pesquisar Autor',
-                              css_class='btn btn-primary btn-sm'), 2),
-                      (Button('limpar',
-                              'Limpar Autor',
-                              css_class='btn btn-primary btn-sm'), 10)])
-            row6 = crispy_layout_mixin.to_row(
-                [('o', 12)])
+        row5 = crispy_layout_mixin.to_row(
+                 [('autor', 0),
+                  (Button('pesquisar',
+                          'Pesquisar Autor',
+                          css_class='btn btn-primary btn-sm'), 2),
+                  (Button('limpar',
+                          'Limpar Autor',
+                          css_class='btn btn-primary btn-sm'), 10)])
+        row6 = crispy_layout_mixin.to_row(
+            [('o', 12)])
 
-            self.form.helper = FormHelper()
-            self.form.helper.form_method = 'GET'
-            self.form.helper.layout = Layout(Fieldset(_(
-                'Pesquisar Protocolo'),
-                row1, row2,
-                row3, row4,
-                HTML(sapl.utils.autor_label),
-                HTML(sapl.utils.autor_modal),
-                row5, row6,
-                form_actions(save_label='Pesquisar')))
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar Protocolo'),
+                     row1, row2,
+                     row3, row4,
+                     HTML(sapl.utils.autor_label),
+                     HTML(sapl.utils.autor_modal),
+                     row5, row6,
+                     form_actions(save_label='Pesquisar'))
+            )
 
 
 class AnularProcoloAdmForm(ModelForm):
