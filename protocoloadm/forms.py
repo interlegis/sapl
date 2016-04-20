@@ -18,7 +18,7 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
+TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 
 NATUREZA_PROCESSO = [('0', 'Administrativo'),
                      ('1', 'Legislativo'),
@@ -68,10 +68,15 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
+    tipo_protocolo = django_filters.ChoiceFilter(required=False,
+                                                 label='Tipo de Protocolo',
+                                                 choices=TIPOS_PROTOCOLO,
+                                                 widget=forms.Select(
+                                                  attrs={'class': 'selector'}))
+
     class Meta:
         model = Protocolo
-        fields = ['tipo_protocolo',
-                  'numero',
+        fields = ['numero',
                   'tipo_documento',
                   'data',
                   'tipo_materia',
