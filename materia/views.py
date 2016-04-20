@@ -62,7 +62,7 @@ class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
     help_path = 'materia_legislativa'
 
-    class BaseMixin(crud.base.BaseMixin):
+    class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
 
