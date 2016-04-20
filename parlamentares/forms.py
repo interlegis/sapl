@@ -4,16 +4,12 @@ from django import forms
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from floppyforms import ClearableFileInput
 
 import crispy_layout_mixin
+import sapl
 from crispy_layout_mixin import form_actions
 
 from .models import Dependente, Filiacao, Legislatura, Mandato, Parlamentar
-
-
-class ImageThumbnailFileInput(ClearableFileInput):
-    template_name = 'floppyforms/image_thumbnail.html'
 
 
 class ParlamentarForm(ModelForm):
@@ -21,7 +17,9 @@ class ParlamentarForm(ModelForm):
     class Meta:
         model = Parlamentar
         exclude = []
-        widgets = {'fotografia': ImageThumbnailFileInput}
+        widgets = {'fotografia': sapl.utils.ImageThumbnailFileInput,
+                   'biografia': forms.Textarea(
+                        attrs={'id': 'texto-rico'})}
 
 
 class ParlamentarCreateForm(ParlamentarForm):

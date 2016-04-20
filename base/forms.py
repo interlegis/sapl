@@ -4,17 +4,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from floppyforms import ClearableFileInput
 
 import crispy_layout_mixin
+import sapl
 from crispy_layout_mixin import form_actions
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 
 from .models import CasaLegislativa
-
-
-class ImageThumbnailFileInput(ClearableFileInput):
-    template_name = 'floppyforms/image_thumbnail.html'
 
 
 class CasaLegislativaTabelaAuxForm(ModelForm):
@@ -41,9 +37,9 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
-            'logotipo': ImageThumbnailFileInput,
+            'logotipo': sapl.utils.ImageThumbnailFileInput,
             'informacao_geral': forms.Textarea(
-                attrs={'id': 'casa-informacoes'})
+                attrs={'id': 'texto-rico'})
         }
 
     def clean_logotipo(self):

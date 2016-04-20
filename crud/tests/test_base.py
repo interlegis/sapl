@@ -87,7 +87,7 @@ def test_layout_fieldnames(_layout, result):
     assert view.list_field_names == result
 
 
-def test_layout_detail_fieldsets(monkeypatch):
+def test_layout_detail_fieldsets():
 
     stub = mommy.make(Country,
                       name='Brazil',
@@ -183,7 +183,7 @@ def assert_on_detail_page(res, stub_name):
     (9, 4, [(0, 4), (4, 8), (8, 9)], ['Anterior', '1', '2', '3', 'Próxima']),
 ])
 def test_flux_list_paginate_detail(
-        app, monkeypatch, num_entries, page_size, ranges, page_list):
+        app, num_entries, page_size, ranges, page_list):
 
     entries_labels = []
     for i in range(num_entries):

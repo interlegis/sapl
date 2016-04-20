@@ -105,8 +105,16 @@ function autorModal() {
               id = res.val();
               nome = res.text();
 
-              $("#id_autor").val(id);
               $("#nome_autor").text(nome);
+
+              // MateriaLegislativa pesquisa Autor via a tabela Autoria
+              if ($('#id_autoria__autor').length) {
+                $('#id_autoria__autor').val(id);
+              }
+              // Protocolo pesquisa a própria tabela de Autor
+              if ($('#id_autor').length) {
+                $("#id_autor").val(id);
+              }
 
               dialog.dialog( "close" );
           });
@@ -119,5 +127,5 @@ $(document).ready(function(){
     refreshDatePicker();
     refreshMask();
     autorModal();
-    initTinymce("biografia-parlamentar,casa-informacoes");
+    initTinymce("texto-rico");
 });

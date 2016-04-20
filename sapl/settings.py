@@ -122,8 +122,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', cast=str)
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str)
 EMAIL_PORT = config('EMAIL_PORT', cast=int)
 
-MAX_DOC_UPLOAD_SIZE = 5*1024*1024  # 5MB
-MAX_IMAGE_UPLOAD_SIZE = 2*1024*1024  # 2MB
+MAX_DOC_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -188,4 +188,5 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
 # see sapl.temp_suppress_crispy_form_warnings
 LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
+# suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False

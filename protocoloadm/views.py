@@ -245,6 +245,7 @@ class ComprovanteProtocoloView(TemplateView):
         autenticacao = _("** NULO **")
 
         if not protocolo.anulado:
+            # data is not i18n sensitive 'Y-m-d' is the right format.
             autenticacao = str(protocolo.tipo_processo) + \
                 protocolo.data.strftime("%Y/%m/%d") + \
                 str(protocolo.numero).zfill(6)

@@ -3,9 +3,6 @@ from django.core.urlresolvers import reverse
 
 
 @pytest.mark.parametrize("test_input,kwargs,expected", [
-    ('materia:pesquisar_materia_list',
-        {},
-        '/materia/pesquisar-materia-list'),
     ('materia:relatoria_edit',
         {'pk': '11', 'id': '99'},
         '/materia/11/relatoria/99/edit'),

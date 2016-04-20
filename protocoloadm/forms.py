@@ -118,6 +118,11 @@ class ProtocoloFilterSet(django_filters.FilterSet):
              ('tipo_materia', 4)])
 
         row3 = crispy_layout_mixin.to_row(
+            [('tipo_documento', 4),
+             ('tipo_protocolo', 4),
+             ('tipo_materia', 4)])
+
+        row3 = crispy_layout_mixin.to_row(
             [('interessado', 6),
              ('assunto_ementa', 6)])
 
