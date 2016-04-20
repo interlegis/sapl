@@ -43,7 +43,7 @@ class CasaLegislativaTabelaAuxForm(ModelForm):
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
             'logotipo': ImageThumbnailFileInput,
             'informacao_geral': forms.Textarea(
-                attrs={'id': 'casa-informacoes'})
+                attrs={'id': 'texto-rico'})
         }
 
     def clean_logotipo(self):

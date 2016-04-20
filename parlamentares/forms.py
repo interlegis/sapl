@@ -21,7 +21,9 @@ class ParlamentarForm(ModelForm):
     class Meta:
         model = Parlamentar
         exclude = []
-        widgets = {'fotografia': ImageThumbnailFileInput}
+        widgets = {'fotografia': ImageThumbnailFileInput,
+                   'biografia': forms.Textarea(
+                        attrs={'id': 'texto-rico'})}
 
 
 class ParlamentarCreateForm(ParlamentarForm):

@@ -119,5 +119,5 @@ $(document).ready(function(){
     refreshDatePicker();
     refreshMask();
     autorModal();
-    initTinymce("biografia-parlamentar,casa-informacoes");
+    initTinymce("texto-rico");
 });
