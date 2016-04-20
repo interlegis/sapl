@@ -1244,7 +1244,7 @@ class MateriaLegislativaPesquisaView(FilterView):
         # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
-        if (data and data.get('tipo')):
+        if (data and data.get('tipo') is not None):
             url = "&"+str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('tipo=') - 1
