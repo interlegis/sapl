@@ -56,7 +56,7 @@ def make_pagination(index, num_pages):
         return head + [None] + tail
 
 
-class BaseMixin(CrispyLayoutFormMixin):
+class CrudBaseMixin(CrispyLayoutFormMixin):
 
     @classmethod
     def url_name(cls, suffix):
@@ -88,7 +88,7 @@ class BaseMixin(CrispyLayoutFormMixin):
         return self.resolve_url(DELETE, args=(self.object.id,))
 
     def get_template_names(self):
-        names = super(BaseMixin, self).get_template_names()
+        names = super(CrudBaseMixin, self).get_template_names()
         names.append("crud/%s.html" %
                      self.template_name_suffix.lstrip('_'))
         return names
@@ -104,6 +104,10 @@ class BaseMixin(CrispyLayoutFormMixin):
 
 class CrudListView(ListView):
 
+    @classmethod
+    def get_url_regex(cls):
+        return r'^$'
+
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
 
@@ -116,7 +120,8 @@ class CrudListView(ListView):
 
     def _as_row(self, obj):
         return [
-            (get_field_display(obj, name)[1], obj.pk if i == 0 else None)
+            (get_field_display(obj, name)[1],
+             self.resolve_url(DETAIL, args=(obj.id,)) if i == 0 else None)
             for i, name in enumerate(self.list_field_names)]
 
     def get_context_data(self, **kwargs):
@@ -142,6 +147,10 @@ class CrudListView(ListView):
 
 class CrudCreateView(FormMessagesMixin, CreateView):
 
+    @classmethod
+    def get_url_regex(cls):
+        return r'^create$'
+
     form_valid_message, form_invalid_message = FORM_MESSAGES[CREATE]
 
     @property
@@ -157,7 +166,18 @@ class CrudCreateView(FormMessagesMixin, CreateView):
         return super(CrudCreateView, self).get_context_data(**kwargs)
 
 
+class CrudDetailView(DetailView):
+
+    @classmethod
+    def get_url_regex(cls):
+        return r'^(?P<pk>\d+)$'
+
+
 class CrudUpdateView(FormMessagesMixin, UpdateView):
+
+    @classmethod
+    def get_url_regex(cls):
+        return r'^(?P<pk>\d+)/edit$'
 
     form_valid_message, form_invalid_message = FORM_MESSAGES[UPDATE]
 
@@ -171,6 +191,10 @@ class CrudUpdateView(FormMessagesMixin, UpdateView):
 
 class CrudDeleteView(FormMessagesMixin, DeleteView):
 
+    @classmethod
+    def get_url_regex(cls):
+        return r'^(?P<pk>\d+)/delete$'
+
     form_valid_message, form_invalid_message = FORM_MESSAGES[DELETE]
 
     @property
@@ -182,10 +206,10 @@ class CrudDeleteView(FormMessagesMixin, DeleteView):
 
 
 class Crud:
-    BaseMixin = BaseMixin
+    BaseMixin = CrudBaseMixin
     ListView = CrudListView
     CreateView = CrudCreateView
-    DetailView = DetailView
+    DetailView = CrudDetailView
     UpdateView = CrudUpdateView
     DeleteView = CrudDeleteView
     help_path = ''
@@ -197,6 +221,7 @@ class Crud:
             class CrudViewWithBase(cls.BaseMixin, view):
                 model = cls.model
                 help_path = cls.help_path
+                crud = cls
             CrudViewWithBase.__name__ = view.__name__
             return CrudViewWithBase
 
@@ -208,14 +233,16 @@ class Crud:
 
         return [url(regex, view.as_view(), name=view.url_name(suffix))
                 for regex, view, suffix in [
-                    (r'^$', CrudListView, LIST),
-                    (r'^create$', CrudCreateView, CREATE),
-                    (r'^(?P<pk>\d+)$', CrudDetailView, DETAIL),
-                    (r'^(?P<pk>\d+)/edit$', CrudUpdateView, UPDATE),
-                    (r'^(?P<pk>\d+)/delete$', CrudDeleteView, DELETE), ]]
+                    (CrudListView.get_url_regex(), CrudListView, LIST),
+                    (CrudCreateView.get_url_regex(), CrudCreateView, CREATE),
+                    (CrudDetailView.get_url_regex(), CrudDetailView, DETAIL),
+                    (CrudUpdateView.get_url_regex(), CrudUpdateView, UPDATE),
+                    (CrudDeleteView.get_url_regex(), CrudDeleteView, DELETE),
+        ]]
 
     @classonlymethod
     def build(cls, _model, _help_path):
+
         class ModelCrud(cls):
             model = _model
             help_path = _help_path

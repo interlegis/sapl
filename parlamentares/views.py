@@ -8,10 +8,10 @@ from django.views.generic import CreateView, FormView, UpdateView
 
 import crud.base
 from crud.base import Crud
+from crud.masterdetail import MasterDetailCrud
 
-from .forms import (DependenteEditForm, DependenteForm, FiliacaoEditForm,
-                    FiliacaoForm, MandatoEditForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm)
+from .forms import (FiliacaoEditForm, FiliacaoForm, ParlamentarCreateForm,
+                    ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
@@ -21,7 +21,6 @@ CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
 LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
 ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
 PartidoCrud = Crud.build(Partido, 'partidos')
-DependenteCrud = Crud.build(Dependente, '')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
 FiliacaoCrud = Crud.build(Filiacao, '')
 MandatoCrud = Crud.build(Mandato, '')
@@ -29,6 +28,9 @@ TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
+
+DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
+MandatoCrud = MasterDetailCrud.build(Mandato, 'parlamentar', '')
 
 
 class ParlamentarCrud(Crud):
@@ -158,74 +160,6 @@ def validate(form, parlamentar, filiacao, request):
         return False
     else:
         return True
-
-
-class ParlamentaresDependentesView(CreateView):
-    template_name = "parlamentares/parlamentar_dependente.html"
-    form_class = DependenteForm
-    model = Dependente
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentar_dependente',
-                       kwargs={'pk': pk})
-
-    def get_context_data(self, **kwargs):
-        context = super(ParlamentaresDependentesView, self).\
-            get_context_data(**kwargs)
-        pk = self.kwargs['pk']
-        parlamentar = Parlamentar.objects.get(pk=pk)
-        dependentes = Dependente.objects.filter(
-            parlamentar=parlamentar).order_by('nome', 'tipo')
-
-        if len(parlamentar.mandato_set.all()) == 0:
-            legislatura_id = 0
-        else:
-            legislatura_id = parlamentar.mandato_set.last().legislatura.id
-
-        context.update({'object': parlamentar,
-                        'dependentes': dependentes,
-                        # precisa de legislatura_id???
-                        'legislatura_id': legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        parlamentar_id = self.kwargs['pk']
-        dependente = form.save(commit=False)
-        parlamentar = Parlamentar.objects.get(id=parlamentar_id)
-        dependente.parlamentar = parlamentar
-        dependente.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class ParlamentaresDependentesEditView(UpdateView):
-    template_name = "parlamentares/parlamentar_dependente_edit.html"
-    form_class = DependenteEditForm
-    model = Dependente
-    pk_url_kwarg = 'dk'
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentar_dependente',
-                       kwargs={'pk': pk})
-
-    def get_context_data(self, **kwargs):
-        context = super(ParlamentaresDependentesEditView, self).\
-            get_context_data(**kwargs)
-        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
-        context.update({
-            'object': parlamentar,
-            'legislatura_id': parlamentar.mandato_set.last(
-            ).legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        if 'salvar' in self.request.POST:
-            form.save()
-        elif 'excluir' in self.request.POST:
-            dependente = form.instance
-            dependente.delete()
-        return HttpResponseRedirect(self.get_success_url())
 
 
 class MesaDiretoraView(FormView):
@@ -414,75 +348,4 @@ class FiliacaoEditView(UpdateView):
                 return self.form_invalid(form)
 
             filiacao.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class MandatoView(CreateView):
-    template_name = "parlamentares/parlamentar_mandato.html"
-    model = Mandato
-    form_class = MandatoForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentar_mandato',
-                       kwargs={'pk': pk})
-
-    def get_context_data(self, **kwargs):
-        context = super(MandatoView, self).get_context_data(**kwargs)
-        pid = self.kwargs['pk']
-        parlamentar = Parlamentar.objects.get(id=pid)
-        mandatos = Mandato.objects.filter(parlamentar=parlamentar)
-
-        if len(parlamentar.mandato_set.all()) == 0:
-            legislatura_id = 0
-        else:
-            legislatura_id = parlamentar.mandato_set.last().legislatura.id
-
-        context.update(
-            {'object': parlamentar,
-             'mandatos': mandatos,
-             'legislatura_id': legislatura_id
-             }
-        )
-        return context
-
-    def form_valid(self, form):
-        pid = self.kwargs['pk']
-        parlamentar = Parlamentar.objects.get(id=pid)
-        mandato = form.save(commit=False)
-        mandato.parlamentar = parlamentar
-        mandato.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class MandatoEditView(UpdateView):
-    template_name = "parlamentares/parlamentar_mandato_edit.html"
-    model = Mandato
-    form_class = MandatoEditForm
-    pk_url_kwarg = 'dk'
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentar_mandato',
-                       kwargs={'pk': pk})
-
-    def get_context_data(self, **kwargs):
-        context = super(MandatoEditView, self).get_context_data(**kwargs)
-        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
-        context.update(
-            {'object': parlamentar,
-             'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        form = self.get_form()
-        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
-        if 'salvar' in self.request.POST:
-            mandato = form.save(commit=False)
-            mandato.parlamentar = parlamentar
-            mandato.save()
-        elif 'excluir' in self.request.POST:
-            form.instance.delete()
-
         return HttpResponseRedirect(self.get_success_url())

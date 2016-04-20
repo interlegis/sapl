@@ -69,7 +69,8 @@ Filiacao:
 Mandato:
   Mandato:
   - legislatura  coligacao  votos_recebidos
-  - ind_titular_FIXME  dat_inicio_mandato_FIXME  data_fim_mandato  data_expedicao_diploma
+  - data_fim_mandato  data_expedicao_diploma
+  - tipo_afastamento
   - observacao
 
 TipoDependente:

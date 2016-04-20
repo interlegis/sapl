@@ -70,7 +70,7 @@ def test_dependente_submit(client):
     mommy.make(Partido, pk=32)
     mommy.make(TipoDependente, pk=3)
 
-    client.post(reverse('parlamentares:parlamentar_dependente',
+    client.post(reverse('parlamentares:dependente_create',
                         kwargs={'pk': 14}),
                 {'nome': 'Eduardo',
                  'tipo': 3,
@@ -86,7 +86,7 @@ def test_dependente_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_dependente(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentar_dependente',
+    response = client.post(reverse('parlamentares:dependente_create',
                                    kwargs={'pk': 14}),
                            {'salvar': 'salvar'},
                            follow=True)
@@ -120,7 +120,7 @@ def test_mandato_submit(client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Legislatura, pk=5)
 
-    client.post(reverse('parlamentares:parlamentar_mandato',
+    client.post(reverse('parlamentares:mandato_create',
                         kwargs={'pk': 14}),
                 {'legislatura': 5,
                  'data_fim_mandato': '2016-01-01',
@@ -136,7 +136,7 @@ def test_mandato_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_mandato(client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('parlamentares:parlamentar_mandato',
+    response = client.post(reverse('parlamentares:mandato_create',
                                    kwargs={'pk': 14}),
                            {'legislatura': '',
                             'salvar': 'salvar'},

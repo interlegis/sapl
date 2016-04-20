@@ -43,7 +43,7 @@ class NormaCrud(Crud):
         def layout_key(self):
             return 'NormaJuridicaCreate'
 
-    class BaseMixin(crud.base.BaseMixin):
+    class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'ementa']
 
 

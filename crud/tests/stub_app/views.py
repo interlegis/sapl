@@ -1,6 +1,7 @@
 from crud.base import Crud, CrudListView
+from crud.masterdetail import MasterDetailCrud
 
-from .models import Country
+from .models import City, Country
 
 
 class CountryCrud(Crud):
@@ -9,3 +10,8 @@ class CountryCrud(Crud):
 
     class ListView(CrudListView):
         paginate_by = 10
+
+
+class CityCrud(MasterDetailCrud):
+    model = City
+    help_path = 'help_path',
