@@ -1,7 +1,7 @@
 - title: Início
   url: parlamentar_detail
 - title: Mandatos
-  url: parlamentar_mandato
+  url: mandato_list
 - title: Filiações Partidárias
   url: parlamentar_filiacao
 - title: Dependentes
