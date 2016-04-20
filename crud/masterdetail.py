@@ -70,6 +70,10 @@ class MasterDetailCrud(Crud):
         def get_url_regex(cls):
             return r'^%s/(?P<pk>\d+)/delete$' % cls.model._meta.model_name
 
+        def get_success_url(self):
+            pk = getattr(self.get_object(), self.crud.parent_field).pk
+            return self.resolve_url(LIST, args=(pk,))
+
     @classonlymethod
     def build(cls, model, parent_field, help_path):
         crud = super(MasterDetailCrud, cls).build(model, help_path)
