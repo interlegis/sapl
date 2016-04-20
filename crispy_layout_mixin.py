@@ -61,6 +61,15 @@ def get_field_display(obj, fieldname):
         display = formats.date_format(value, "SHORT_DATE_FORMAT")
     elif 'bool' in str(type(value)):
         display = _('Sim') if value else _('Não')
+    elif 'ImageFieldFile' in str(type(value)):
+        display = '<img src="{}" />'.format(value.url)
+    elif 'FieldFile' in str(type(value)):
+        if value:
+            display = '<a href="{}">{}</a>'.format(
+                                                value.url,
+                                                value.name.split('/')[-1:][0])
+        else:
+            display = ''
     else:
         display = str(value)
     return verbose_name, display
