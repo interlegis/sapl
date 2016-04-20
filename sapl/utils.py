@@ -6,6 +6,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from floppyforms import ClearableFileInput
 
 
 autor_label = '''
@@ -31,6 +32,10 @@ autor_modal = '''
               hidden="true" />
    </div>
 '''
+
+
+class ImageThumbnailFileInput(ClearableFileInput):
+    template_name = 'floppyforms/image_thumbnail.html'
 
 
 def register_all_models_in_admin(module_name):
