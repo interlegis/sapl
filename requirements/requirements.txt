@@ -7,6 +7,7 @@ django-compressor==2.0
 django-crispy-forms==1.6.0
 python-decouple==3.0
 django-extra-views==0.7.1
+django-filter==0.13.0
 django-model-utils==2.4
 django-sass-processor==0.3.4
 django==1.9.5
