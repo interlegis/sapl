@@ -104,22 +104,20 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         self.filters['assunto_ementa'].label = 'Assunto'
 
         row1 = crispy_layout_mixin.to_row(
-            [('numero', 6),
-             ('ano', 6)])
+            [('numero', 4),
+             ('ano', 4),
+             ('data', 4)])
 
         row2 = crispy_layout_mixin.to_row(
-            [('data', 12)])
-
-        row3 = crispy_layout_mixin.to_row(
             [('tipo_documento', 4),
              ('tipo_protocolo', 4),
              ('tipo_materia', 4)])
 
-        row4 = crispy_layout_mixin.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('interessado', 6),
              ('assunto_ementa', 6)])
 
-        row5 = crispy_layout_mixin.to_row(
+        row4 = crispy_layout_mixin.to_row(
                  [('autor', 0),
                   (Button('pesquisar',
                           'Pesquisar Autor',
@@ -127,7 +125,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                   (Button('limpar',
                           'Limpar Autor',
                           css_class='btn btn-primary btn-sm'), 10)])
-        row6 = crispy_layout_mixin.to_row(
+        row5 = crispy_layout_mixin.to_row(
             [('o', 12)])
 
         self.form.helper = FormHelper()
@@ -135,10 +133,10 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Protocolo'),
                      row1, row2,
-                     row3, row4,
+                     row3,
                      HTML(sapl.utils.autor_label),
                      HTML(sapl.utils.autor_modal),
-                     row5, row6,
+                     row4, row5,
                      form_actions(save_label='Pesquisar'))
             )
 

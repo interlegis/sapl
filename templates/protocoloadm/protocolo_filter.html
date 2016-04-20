@@ -28,11 +28,11 @@
           {% for p in page_obj %}
             <tr>
               <td>
-                <strong>Protocolo:</strong>
+                <strong>Protocolo:
                 <a href="{% url 'protocoloadm:protocolo_mostrar' p.numero p.ano %}">
                   {{ p.numero|stringformat:'06d' }}/{{ p.ano }}
-                </a>
-                &nbsp;&nbsp;-&nbsp;&nbsp;
+                </a></strong>
+                &nbsp;&nbsp;<strong>-</strong>&nbsp;&nbsp;
                 
                 <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}">
                   <img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual">
@@ -65,6 +65,6 @@
         
     </table>
 
-{% include "paginacao_pesquisa_materia.html" %}
+{% include "paginacao.html" %}
 
 {% endblock detail_content %}

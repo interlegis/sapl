@@ -80,7 +80,7 @@ class ProtocoloPesquisaView(FilterView):
         data = self.filterset.data
         if (data and data.get('numero') is not None):
             url = "&"+str(self.request.environ['QUERY_STRING'])
-            if url[:5] == "&page":
+            if url.startswith("&page"):
                 ponto_comeco = url.find('numero=') - 1
                 url = url[ponto_comeco:]
         else:
