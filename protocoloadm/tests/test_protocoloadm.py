@@ -3,8 +3,8 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from .forms import AnularProcoloAdmForm
-from .models import Protocolo
+from protocoloadm.forms import AnularProcoloAdmForm
+from protocoloadm.models import Protocolo
 
 
 @pytest.mark.django_db(transaction=False)

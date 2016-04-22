@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from model_mommy import mommy
 
-from .models import Filiacao, Legislatura, Mandato
+from parlamentares.models import Filiacao, Legislatura, Mandato
 
 pytestmark = pytest.mark.django_db
 

@@ -2,10 +2,9 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
+from comissoes.models import (CargoComissao, Comissao, Composicao,
+                              Participacao, Periodo, TipoComissao)
 from parlamentares.models import Filiacao, Parlamentar, Partido
-
-from .models import (CargoComissao, Comissao, Composicao, Participacao,
-                     Periodo, TipoComissao)
 
 
 def make_composicao(comissao):
