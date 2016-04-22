@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
+from materia.forms import RangeWidgetOverride
 from materia.models import Autor
 from sapl.utils import RANGE_ANOS
 
@@ -26,27 +27,6 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
 
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
-
-
-# Importar essa classe de materias.views quando for feito o Merge do branch 217
-class RangeWidgetOverride(forms.MultiWidget):
-
-    def __init__(self, attrs=None):
-        widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
-                                          'placeholder': 'Inicial'}),
-                   forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
-                                          'placeholder': 'Final'}))
-        super(RangeWidgetOverride, self).__init__(widgets, attrs)
-
-    def decompress(self, value):
-        if value:
-            return [value.start, value.stop]
-        return [None, None]
-
-    def format_output(self, rendered_widgets):
-        return ''.join(rendered_widgets)
 
 
 class ProtocoloFilterSet(django_filters.FilterSet):
