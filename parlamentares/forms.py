@@ -53,67 +53,68 @@ class ParlamentarCreateForm(ParlamentarForm):
         return parlamentar
 
 
-class FiliacaoForm(ModelForm):
+def validate(data, data_desfiliacao, parlamentar, filiacao):
+    data_filiacao = data
+    data_desfiliacao = data_desfiliacao
 
-    def validate(data, data_desfiliacao, parlamentar, filiacao):
-        data_filiacao = data
-        data_desfiliacao = data_desfiliacao
+    # Dá erro caso a data de desfiliação seja anterior a de filiação
+    if data_desfiliacao and data_desfiliacao < data_filiacao:
+        error_msg = _("A data de filiação não pode anterior \
+                      à data de desfiliação")
+        raise forms.ValidationError(error_msg)
+        return False
 
-        # Dá erro caso a data de desfiliação seja anterior a de filiação
-        if data_desfiliacao and data_desfiliacao < data_filiacao:
-            error_msg = _("A data de filiação não pode anterior \
-                          à data de desfiliação")
+    # Esse bloco garante que não haverá intersecção entre os
+    # períodos de filiação
+    id_filiacao_atual = filiacao.pk
+    todas_filiacoes = parlamentar.filiacao_set.all()
+
+    for filiacoes in todas_filiacoes:
+        if (not filiacoes.data_desfiliacao and
+                filiacoes.id != id_filiacao_atual):
+            error_msg = _("O parlamentar não pode se filiar a algum partido \
+                       sem antes se desfiliar do partido anterior")
             raise forms.ValidationError(error_msg)
             return False
 
-        # Esse bloco garante que não haverá intersecção entre os
-        # períodos de filiação
-        id_filiacao_atual = filiacao.pk
-        todas_filiacoes = parlamentar.filiacao_set.all()
+    error_msg = None
+    for filiacoes in todas_filiacoes:
+        if filiacoes.id != id_filiacao_atual:
 
-        for filiacoes in todas_filiacoes:
-            if (not filiacoes.data_desfiliacao and
-                    filiacoes.id != id_filiacao_atual):
-                error_msg = _("O parlamentar não pode se filiar a algum partido \
-                           sem antes se desfiliar do partido anterior")
-                raise forms.ValidationError(error_msg)
-                return False
+            data_init = filiacoes.data
+            data_fim = filiacoes.data_desfiliacao
 
-        error_msg = None
-        for filiacoes in todas_filiacoes:
-            if filiacoes.id != id_filiacao_atual:
+            if data_init <= data_filiacao < data_fim:
 
-                data_init = filiacoes.data
-                data_fim = filiacoes.data_desfiliacao
+                error_msg = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
+                break
 
-                if data_init <= data_filiacao < data_fim:
+            if (data_desfiliacao and
+                    data_init < data_desfiliacao < data_fim):
 
-                    error_msg = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                    break
+                error_msg = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
+                break
 
-                if (data_desfiliacao and
-                        data_init < data_desfiliacao < data_fim):
+            if (data_desfiliacao and
+                data_filiacao <= data_init and
+                    data_desfiliacao >= data_fim):
 
-                    error_msg = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                    break
+                error_msg = _("A data de filiação e \
+                        desfiliação não podem estar no intervalo \
+                        de outro período de filiação")
+                break
 
-                if (data_desfiliacao and
-                    data_filiacao <= data_init and
-                        data_desfiliacao >= data_fim):
+    if error_msg:
+        raise forms.ValidationError(error_msg)
 
-                    error_msg = _("A data de filiação e \
-                            desfiliação não podem estar no intervalo \
-                            de outro período de filiação")
-                    break
+    return True
 
-        if error_msg:
-            raise forms.ValidationError(error_msg)
 
-        return True
+class FiliacaoForm(ModelForm):
 
     class Meta:
         model = Filiacao
@@ -126,9 +127,9 @@ class FiliacaoForm(ModelForm):
         filiacao = super(FiliacaoForm, self).save(commit)
 
         if not validate(self.cleaned_data['data'],
-                        self.cleaned_data['data_desfiliacao'],
-                        filiacao.parlamentar,
-                        filiacao):
+                             self.cleaned_data['data_desfiliacao'],
+                             filiacao.parlamentar,
+                             filiacao):
             return self.form_invalid(form)
 
         filiacao.save()
