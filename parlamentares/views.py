@@ -37,19 +37,11 @@ class FiliacaoCrud(MasterDetailCrud):
     parent_field = 'parlamentar'
     help_path = ''
 
-    class CreateView(crud.masterdetail.CrudCreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = FiliacaoForm
 
-        @classmethod
-        def get_url_regex(self):
-            return r'^(?P<pk>\d+)/%s/create$' % self.model._meta.model_name
-
-    class UpdateView(crud.masterdetail.CrudUpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = FiliacaoForm
-
-        @classmethod
-        def get_url_regex(self):
-            return r'^%s/(?P<pk>\d+)/edit$' % self.model._meta.model_name
 
 
 class ParlamentarCrud(Crud):

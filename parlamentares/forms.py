@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -59,8 +60,8 @@ def validate(data, data_desfiliacao, parlamentar, filiacao):
 
     # Dá erro caso a data de desfiliação seja anterior a de filiação
     if data_desfiliacao and data_desfiliacao < data_filiacao:
-        error_msg = _("A data de filiação não pode anterior \
-                      à data de desfiliação")
+        error_msg = _("A data de desfiliação não pode anterior \
+                      à data de filiação")
         raise forms.ValidationError(error_msg)
         return False
 
@@ -125,11 +126,10 @@ class FiliacaoForm(ModelForm):
     @transaction.atomic
     def save(self, commit=False):
         filiacao = super(FiliacaoForm, self).save(commit)
-
         if not validate(self.cleaned_data['data'],
-                             self.cleaned_data['data_desfiliacao'],
-                             filiacao.parlamentar,
-                             filiacao):
+                        self.cleaned_data['data_desfiliacao'],
+                        filiacao.parlamentar,
+                        filiacao):
             return self.form_invalid(form)
 
         filiacao.save()
