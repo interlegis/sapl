@@ -55,36 +55,81 @@ class ParlamentarCreateForm(ParlamentarForm):
 
 class FiliacaoForm(ModelForm):
 
+    def validate(data, data_desfiliacao, parlamentar, filiacao):
+        data_filiacao = data
+        data_desfiliacao = data_desfiliacao
+
+        # Dá erro caso a data de desfiliação seja anterior a de filiação
+        if data_desfiliacao and data_desfiliacao < data_filiacao:
+            error_msg = _("A data de filiação não pode anterior \
+                          à data de desfiliação")
+            raise forms.ValidationError(error_msg)
+            return False
+
+        # Esse bloco garante que não haverá intersecção entre os
+        # períodos de filiação
+        id_filiacao_atual = filiacao.pk
+        todas_filiacoes = parlamentar.filiacao_set.all()
+
+        for filiacoes in todas_filiacoes:
+            if (not filiacoes.data_desfiliacao and
+                    filiacoes.id != id_filiacao_atual):
+                error_msg = _("O parlamentar não pode se filiar a algum partido \
+                           sem antes se desfiliar do partido anterior")
+                raise forms.ValidationError(error_msg)
+                return False
+
+        error_msg = None
+        for filiacoes in todas_filiacoes:
+            if filiacoes.id != id_filiacao_atual:
+
+                data_init = filiacoes.data
+                data_fim = filiacoes.data_desfiliacao
+
+                if data_init <= data_filiacao < data_fim:
+
+                    error_msg = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
+                    break
+
+                if (data_desfiliacao and
+                        data_init < data_desfiliacao < data_fim):
+
+                    error_msg = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
+                    break
+
+                if (data_desfiliacao and
+                    data_filiacao <= data_init and
+                        data_desfiliacao >= data_fim):
+
+                    error_msg = _("A data de filiação e \
+                            desfiliação não podem estar no intervalo \
+                            de outro período de filiação")
+                    break
+
+        if error_msg:
+            raise forms.ValidationError(error_msg)
+
+        return True
+
     class Meta:
         model = Filiacao
         fields = ['partido',
                   'data',
                   'data_desfiliacao']
 
-    def __init__(self, *args, **kwargs):
+    @transaction.atomic
+    def save(self, commit=False):
+        filiacao = super(FiliacaoForm, self).save(commit)
 
-        row1 = crispy_layout_mixin.to_row(
-            [('partido', 4),
-             ('data', 4),
-             ('data_desfiliacao', 4)])
+        if not validate(self.cleaned_data['data'],
+                        self.cleaned_data['data_desfiliacao'],
+                        filiacao.parlamentar,
+                        filiacao):
+            return self.form_invalid(form)
 
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Adicionar Filiação'), row1,
-                     form_actions())
-
-        )
-        super(FiliacaoForm, self).__init__(
-            *args, **kwargs)
-
-
-class FiliacaoEditForm(FiliacaoForm):
-
-    def __init__(self, *args, **kwargs):
-        super(FiliacaoEditForm, self).__init__(
-            *args, **kwargs)
-
-        self.helper.layout[0][-1:] = form_actions(more=[
-            HTML('&nbsp;'),
-            Submit('excluir', 'Excluir',
-                   css_class='btn btn-primary')])
+        filiacao.save()
+        return filiacao

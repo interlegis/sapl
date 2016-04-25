@@ -7,11 +7,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, FormView, UpdateView
 
 import crud.base
+import crud.masterdetail
 from crud.base import Crud
 from crud.masterdetail import MasterDetailCrud
 
-from .forms import (FiliacaoEditForm, FiliacaoForm, ParlamentarCreateForm,
-                    ParlamentarForm)
+from .forms import FiliacaoForm, ParlamentarCreateForm, ParlamentarForm
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
@@ -22,8 +22,6 @@ LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
 ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
 PartidoCrud = Crud.build(Partido, 'partidos')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
-FiliacaoCrud = Crud.build(Filiacao, '')
-MandatoCrud = Crud.build(Mandato, '')
 TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
@@ -31,6 +29,19 @@ TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
 MandatoCrud = MasterDetailCrud.build(Mandato, 'parlamentar', '')
+FiliacaoCrud = MasterDetailCrud.build(Filiacao, 'parlamentar', '')
+
+
+# class FiliacaoCrud(MasterDetailCrud):
+#     model = Filiacao
+#     parent_field = 'parlamentar'
+#     help_path = ''
+#
+#     class CreateView(crud.masterdetail.CrudCreateView):
+#         form_class = FiliacaoForm
+#
+#     class UpdateView(crud.masterdetail.CrudUpdateView):
+#         form_class = FiliacaoForm
 
 
 class ParlamentarCrud(Crud):
@@ -274,78 +285,3 @@ class MesaDiretoraView(FormView):
                     'parlamentares': parlamentares_vagos,
                     'cargos_vagos': cargos_vagos
                 })
-
-
-class FiliacaoView(CreateView):
-    template_name = "parlamentares/parlamentar_filiacao.html"
-    form_class = FiliacaoForm
-    model = Filiacao
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentar_filiacao',
-                       kwargs={'pk': pk})
-
-    def get_context_data(self, **kwargs):
-        context = super(FiliacaoView, self).get_context_data(**kwargs)
-        pid = self.kwargs['pk']
-        parlamentar = Parlamentar.objects.get(id=pid)
-        filiacoes = Filiacao.objects.filter(parlamentar=parlamentar)
-
-        if len(parlamentar.mandato_set.all()) == 0:
-            legislatura_id = 0
-        else:
-            legislatura_id = parlamentar.mandato_set.last().legislatura.id
-
-        context.update(
-            {'object': parlamentar,
-             'filiacoes': filiacoes,
-             'legislatura_id': legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        if 'salvar' in self.request.POST:
-            filiacao = form.save(commit=False)
-            parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
-            filiacao.parlamentar = parlamentar
-
-            if not validate(form, parlamentar, filiacao, self.request):
-                return self.form_invalid(form)
-
-            filiacao.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class FiliacaoEditView(UpdateView):
-    template_name = "parlamentares/parlamentar_filiacao_edit.html"
-    form_class = FiliacaoEditForm
-    model = Filiacao
-    pk_url_kwarg = 'dk'
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('parlamentares:parlamentar_filiacao',
-                       kwargs={'pk': pk})
-
-    def get_context_data(self, **kwargs):
-        context = super(FiliacaoEditView, self).get_context_data(**kwargs)
-        parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
-        context.update(
-            {'object': parlamentar,
-             'legislatura_id': parlamentar.mandato_set.last(
-             ).legislatura_id})
-        return context
-
-    def form_valid(self, form):
-        filiacao = form.save(commit=False)
-        if 'excluir' in self.request.POST:
-            filiacao.delete()
-        elif 'salvar' in self.request.POST:
-            parlamentar = Parlamentar.objects.get(id=self.kwargs['pk'])
-            filiacao.parlamentar = parlamentar
-
-            if not validate(form, parlamentar, filiacao, self.request):
-                return self.form_invalid(form)
-
-            filiacao.save()
-        return HttpResponseRedirect(self.get_success_url())
