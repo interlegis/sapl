@@ -4,6 +4,7 @@ from django import forms
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from floppyforms.widgets import ClearableFileInput
 
 import crispy_layout_mixin
 import sapl
@@ -23,7 +24,7 @@ class ParlamentarForm(ModelForm):
         exclude = []
         widgets = {'fotografia': sapl.utils.ImageThumbnailFileInput,
                    'biografia': forms.Textarea(
-                        attrs={'id': 'texto-rico'})}
+                       attrs={'id': 'texto-rico'})}
 
 
 class ParlamentarCreateForm(ParlamentarForm):
