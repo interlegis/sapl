@@ -104,7 +104,7 @@ def validate(data, data_desfiliacao, parlamentar, filiacao):
                 break
 
     if error_msg:
-        raise forms.ValidationError(error_msg)
+        return [False, error_msg]
 
     return [True, '']
 
@@ -118,8 +118,10 @@ class FiliacaoForm(ModelForm):
                   'data_desfiliacao']
 
     def clean(self):
-        filiacao = super(FiliacaoForm, self).save(commit=False)
+        if self.errors:
+            return self.errors
 
+        filiacao = super(FiliacaoForm, self).save(commit=False)
         validacao = validate(self.cleaned_data['data'],
                              self.cleaned_data['data_desfiliacao'],
                              filiacao.parlamentar,
