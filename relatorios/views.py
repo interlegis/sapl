@@ -162,8 +162,8 @@ def relatorio_materia(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response[
-        'Content-Disposition'] = 'attachment; filename="relatorio_materia.pdf"'
+    response['Content-Disposition'] = (
+        'inline; filename="relatorio_materia.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -265,8 +265,7 @@ def relatorio_capa_processo(request):
 
     response = HttpResponse(content_type='application/pdf')
     response[
-        'Content-Disposition'] = (
-            'attachment; filename="relatorio_processo.pdf"')
+        'Content-Disposition'] = ('inline; filename="relatorio_processo.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -306,9 +305,8 @@ def relatorio_ordem_dia(request):
 
     response = HttpResponse(content_type='application/pdf')
 
-    response[
-        'Content-Disposition'] = (
-            'attachment; filename="relatorio_ordem_dia.pdf"')
+    response['Content-Disposition'] = (
+        'inline; filename="relatorio_ordem_dia.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -339,9 +337,8 @@ def relatorio_documento_administrativo(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response[
-        'Content-Disposition'] = (
-            'attachment; filename="relatorio_documento_administrativo.pdf"')
+    response['Content-Disposition'] = (
+            'inline; filename="relatorio_documento_administrativo.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -406,8 +403,8 @@ def relatorio_espelho(request):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response[
-        'Content-Disposition'] = 'attachment; filename="relatorio_espelho.pdf"'
+    response['Content-Disposition'] = (
+        'inline; filename="relatorio_espelho.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -767,7 +764,7 @@ def relatorio_sessao_plenaria(request, pk):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = (
-        'attachment; filename="relatorio_protocolo.pdf"')
+        'inline; filename="relatorio_protocolo.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -859,7 +856,7 @@ def relatorio_protocolo(request):
     response = HttpResponse(content_type='application/pdf')
     response[
         'Content-Disposition'] = (
-            'attachment; filename="relatorio_protocolo.pdf"')
+            'inline; filename="relatorio_protocolo.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -897,7 +894,7 @@ def relatorio_etiqueta_protocolo(request, nro, ano):
     response = HttpResponse(content_type='application/pdf')
     response[
         'Content-Disposition'] = (
-            'attachment; filename="relatorio_etiqueta_protocolo.pdf"')
+            'inline; filename="relatorio_etiqueta_protocolo.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
@@ -976,7 +973,7 @@ def relatorio_pauta_sessao(request):
     response = HttpResponse(content_type='application/pdf')
     response[
         'Content-Disposition'] = (
-            'attachment; filename="relatorio_pauta_sessao.pdf"')
+            'inline; filename="relatorio_pauta_sessao.pdf"')
 
     casa = CasaLegislativa.objects.first()
 
