@@ -1,110 +1,112 @@
-from datetime import date
-
+import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Field, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
-from materia.models import Autor, TipoMateriaLegislativa
+from materia.forms import RangeWidgetOverride
+from materia.models import Autor
 from sapl.utils import RANGE_ANOS
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido')]
+TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 
 NATUREZA_PROCESSO = [('0', 'Administrativo'),
                      ('1', 'Legislativo'),
                      ('', 'Ambos')]
 
 
-def get_range_anos():
-    return [('', 'Selecione')] \
-        + [(year, year) for year in range(date.today().year, 1960, -1)]
+ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
 
-class ProtocoloForm(forms.Form):
+class ProtocoloFilterSet(django_filters.FilterSet):
 
-    YEARS = get_range_anos()
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': 'Data (%s)' % (_('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
 
-    tipo_protocolo = forms.ChoiceField(required=False,
-                                       label='Tipo de Protocolo',
-                                       choices=TIPOS_PROTOCOLO,
-                                       widget=forms.Select(
-                                           attrs={'class': 'selector'}))
+    ano = django_filters.ChoiceFilter(required=False,
+                                      label=u'Ano da Matéria',
+                                      choices=ANO_CHOICES)
 
-    numero_protocolo = forms.CharField(
-        label='Número de Protocolo', required=False)
+    assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
 
-    ano = forms.ChoiceField(required=False,
-                            label='Ano',
-                            choices=YEARS,
-                            widget=forms.Select(
-                                attrs={'class': 'selector'}))
+    interessado = django_filters.CharFilter(lookup_expr='icontains')
 
-    inicial = forms.DateField(label='Data Inicial',
-                              required=False,
-                              widget=forms.TextInput(
-                                  attrs={'class': 'dateinput'}))
+    autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
-    final = forms.DateField(label='Data Final', required=False,
-                            widget=forms.TextInput(
-                                attrs={'class': 'dateinput'}))
+    tipo_protocolo = django_filters.ChoiceFilter(required=False,
+                                                 label='Tipo de Protocolo',
+                                                 choices=TIPOS_PROTOCOLO,
+                                                 widget=forms.Select(
+                                                  attrs={'class': 'selector'}))
 
-    natureza_processo = forms.ChoiceField(required=False,
-                                          label='Natureza Processo',
-                                          choices=[
-                                              ('0', 'Administrativo'),
-                                              ('1', 'Legislativo'),
-                                              ('', 'Ambos')])
+    class Meta:
+        model = Protocolo
+        fields = ['numero',
+                  'tipo_documento',
+                  'data',
+                  'tipo_materia',
+                  ]
 
-    tipo_documento = forms.ModelChoiceField(
-        label='Tipo de Documento',
-        required=False,
-        queryset=TipoDocumentoAdministrativo.objects.all(),
-        empty_label='Selecione',
-    )
+        order_by = (
+            ('', 'Selecione'),
+            ('CRE', 'Ordem Crescente'),
+            ('DEC', 'Ordem Decrescente'),
+        )
 
-    interessado = forms.CharField(label='Interessado', required=False)
+    order_by_mapping = {
+        '': [],
+        'CRE': ['ano', 'numero'],
+        'DEC': ['-ano', '-numero'],
+    }
 
-    tipo_materia = forms.ModelChoiceField(
-        label='Tipo de Matéria',
-        required=False,
-        queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-    )
-
-    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    assunto = forms.CharField(label='Assunto', required=False)
+    def get_order_by(self, order_value):
+        if order_value in self.order_by_mapping:
+            return self.order_by_mapping[order_value]
+        else:
+            return super(ProtocoloFilterSet,
+                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
+        super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['autor'].label = 'Tipo de Matéria'
+        self.filters['assunto_ementa'].label = 'Assunto'
 
         row1 = crispy_layout_mixin.to_row(
-            [('numero_protocolo', 6),
-             ('ano', 6)])
+            [('numero', 4),
+             ('ano', 4),
+             ('data', 4)])
 
         row2 = crispy_layout_mixin.to_row(
-            [('inicial', 6),
-             ('final', 6)])
+            [('tipo_documento', 4),
+             ('tipo_protocolo', 4),
+             ('tipo_materia', 4)])
 
         row3 = crispy_layout_mixin.to_row(
             [('tipo_documento', 4),
              ('tipo_protocolo', 4),
              ('tipo_materia', 4)])
 
-        row4 = crispy_layout_mixin.to_row(
+        row3 = crispy_layout_mixin.to_row(
             [('interessado', 6),
-             ('assunto', 6)])
+             ('assunto_ementa', 6)])
 
-        row5 = crispy_layout_mixin.to_row(
+        row4 = crispy_layout_mixin.to_row(
                  [('autor', 0),
                   (Button('pesquisar',
                           'Pesquisar Autor',
@@ -112,21 +114,20 @@ class ProtocoloForm(forms.Form):
                   (Button('limpar',
                           'Limpar Autor',
                           css_class='btn btn-primary btn-sm'), 10)])
+        row5 = crispy_layout_mixin.to_row(
+            [('o', 12)])
 
-        row6 = crispy_layout_mixin.to_row(
-            [('natureza_processo', 12)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(Fieldset(_('Pesquisar Protocolo'),
-                                    row1, row2,
-                                    row3, row4,
-                                    HTML(sapl.utils.autor_label),
-                                    HTML(sapl.utils.autor_modal),
-                                    row5,
-                                    row6,
-                                    form_actions(save_label='Pesquisar')))
-        super(ProtocoloForm, self).__init__(
-            *args, **kwargs)
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar Protocolo'),
+                     row1, row2,
+                     row3,
+                     HTML(sapl.utils.autor_label),
+                     HTML(sapl.utils.autor_modal),
+                     row4, row5,
+                     form_actions(save_label='Pesquisar'))
+            )
 
 
 class AnularProcoloAdmForm(ModelForm):
