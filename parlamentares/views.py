@@ -29,7 +29,6 @@ TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
 MandatoCrud = MasterDetailCrud.build(Mandato, 'parlamentar', '')
-# FiliacaoCrud = MasterDetailCrud.build(Filiacao, 'parlamentar', '')
 
 
 class FiliacaoCrud(MasterDetailCrud):

@@ -62,8 +62,7 @@ def validate(data, data_desfiliacao, parlamentar, filiacao):
     if data_desfiliacao and data_desfiliacao < data_filiacao:
         error_msg = _("A data de desfiliação não pode anterior \
                       à data de filiação")
-        raise forms.ValidationError(error_msg)
-        return False
+        return [False, error_msg]
 
     # Esse bloco garante que não haverá intersecção entre os
     # períodos de filiação
@@ -75,8 +74,7 @@ def validate(data, data_desfiliacao, parlamentar, filiacao):
                 filiacoes.id != id_filiacao_atual):
             error_msg = _("O parlamentar não pode se filiar a algum partido \
                        sem antes se desfiliar do partido anterior")
-            raise forms.ValidationError(error_msg)
-            return False
+            return [False, error_msg]
 
     error_msg = None
     for filiacoes in todas_filiacoes:
@@ -112,7 +110,7 @@ def validate(data, data_desfiliacao, parlamentar, filiacao):
     if error_msg:
         raise forms.ValidationError(error_msg)
 
-    return True
+    return [True, '']
 
 
 class FiliacaoForm(ModelForm):
@@ -123,14 +121,20 @@ class FiliacaoForm(ModelForm):
                   'data',
                   'data_desfiliacao']
 
-    @transaction.atomic
-    def save(self, commit=False):
-        filiacao = super(FiliacaoForm, self).save(commit)
-        if not validate(self.cleaned_data['data'],
-                        self.cleaned_data['data_desfiliacao'],
-                        filiacao.parlamentar,
-                        filiacao):
-            return self.form_invalid(form)
+    def clean(self):
+        filiacao = super(FiliacaoForm, self).save(commit=False)
 
-        filiacao.save()
-        return filiacao
+        validacao = validate(self.cleaned_data['data'],
+                             self.cleaned_data['data_desfiliacao'],
+                             filiacao.parlamentar,
+                             filiacao)
+
+        if not validacao[0]:
+            raise ValidationError(validacao[1])
+
+        return self.cleaned_data
+
+    # @transaction.atomic
+    # def save(self, commit=True):
+    #     filiacao = super(FiliacaoForm, self).save(commit)
+    #     return filiacao
