@@ -1,5 +1,3 @@
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -7,9 +5,7 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 
-import crispy_layout_mixin
 import sapl
-from crispy_layout_mixin import form_actions
 
 from .models import Filiacao, Legislatura, Mandato, Parlamentar
 
@@ -133,8 +129,3 @@ class FiliacaoForm(ModelForm):
             raise ValidationError(validacao[1])
 
         return self.cleaned_data
-
-    # @transaction.atomic
-    # def save(self, commit=True):
-    #     filiacao = super(FiliacaoForm, self).save(commit)
-    #     return filiacao
