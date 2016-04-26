@@ -53,7 +53,7 @@ def test_filiacao_submit(client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Partido, pk=32)
 
-    client.post(reverse('parlamentares:parlamentar_filiacao',
+    client.post(reverse('parlamentares:filiacao_create',
                         kwargs={'pk': 14}),
                 {'partido': 32,
                  'data': '2016-03-22',
@@ -103,7 +103,7 @@ def test_form_errors_dependente(client):
 def test_form_errors_filiacao(client):
     mommy.make(Parlamentar, pk=14)
 
-    response = client.post(reverse('parlamentares:parlamentar_filiacao',
+    response = client.post(reverse('parlamentares:filiacao_create',
                                    kwargs={'pk': 14}),
                            {'partido': '',
                             'salvar': 'salvar'},

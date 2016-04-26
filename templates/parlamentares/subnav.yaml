@@ -3,6 +3,6 @@
 - title: Mandatos
   url: mandato_list
 - title: Filiações Partidárias
-  url: parlamentar_filiacao
+  url: filiacao_list
 - title: Dependentes
   url: dependente_list

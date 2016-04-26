@@ -1,8 +1,7 @@
 from django.conf.urls import include, url
 
 from parlamentares.views import (CargoMesaCrud, ColigacaoCrud, DependenteCrud,
-                                 FiliacaoEditView, FiliacaoView,
-                                 LegislaturaCrud, MandatoCrud,
+                                 FiliacaoCrud, LegislaturaCrud, MandatoCrud,
                                  MesaDiretoraView, NivelInstrucaoCrud,
                                  ParlamentarCrud, PartidoCrud,
                                  SessaoLegislativaCrud, TipoAfastamentoCrud,
@@ -15,7 +14,7 @@ app_name = AppConfig.name
 urlpatterns = [
     url(r'^parlamentar/', include(
         ParlamentarCrud.get_urls() + DependenteCrud.get_urls() +
-        MandatoCrud.get_urls()
+        FiliacaoCrud.get_urls() + MandatoCrud.get_urls()
     )),
 
     url(r'^sistema/parlamentar/legislatura/',
@@ -36,13 +35,6 @@ urlpatterns = [
         include(SessaoLegislativaCrud.get_urls())),
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(CargoMesaCrud.get_urls())),
-
-    url(r'^parlamentar/(?P<pk>\d+)/filiacao$',
-        FiliacaoView.as_view(),
-        name='parlamentar_filiacao'),
-    url(r'^parlamentar/(?P<pk>\d+)/filiacao/(?P<dk>\d+)$',
-        FiliacaoEditView.as_view(),
-        name='parlamentar_filiacao_edit'),
 
     url(r'^mesa-diretora/$',
         MesaDiretoraView.as_view(), name='mesa_diretora'),
