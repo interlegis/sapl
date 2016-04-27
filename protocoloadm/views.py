@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Max
 from django.http import HttpResponse, HttpResponseRedirect
@@ -632,6 +633,22 @@ class TramitacaoAdmDeleteView(DetailView):
 
         return self.render_to_response({'documento': documento,
                                         'tramitacoes': tramitacoes})
+
+
+def get_nome_autor(request):
+    nome_autor = ''
+    if request.method == 'GET':
+        id = request.GET.get('id', '')
+        try:
+            autor = Autor.objects.get(pk=id)
+            if autor.parlamentar:
+                nome_autor = autor.parlamentar.nome_parlamentar
+            elif autor.comissao:
+                nome_autor = autor.comissao.nome
+        except ObjectDoesNotExist:
+            pass
+    return HttpResponse("{\"nome\":\"" + nome_autor + "\"}",
+                        content_type="application/json; charset=utf-8")
 
 
 def pesquisa_autores(request):
