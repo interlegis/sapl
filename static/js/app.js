@@ -70,7 +70,6 @@ function autorModal() {
 
       clean_if_exists("#id_autor");
       clean_if_exists("#id_autoria__autor");
-
     });
 
     $("#button-id-pesquisar").click(function() {
