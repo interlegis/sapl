@@ -59,7 +59,7 @@ function autorModal() {
       }
     });
 
-    $( "#button-id-limpar" ).click(function() {
+    $("#button-id-limpar").click(function() {
       $("#nome_autor").text('');
       $("#id_autor").val('');
     });
@@ -71,7 +71,7 @@ function autorModal() {
       $("#selecionar").attr("hidden", "hidden");
     });
 
-    $( "#pesquisar" ).click(function() {
+    $("#pesquisar").click(function() {
         var query = $("#q").val()
 
         $.get("/proposicao/pesquisar_autor?q="+ query, function(
@@ -121,6 +121,15 @@ function autorModal() {
         });
       });
     });
+
+    if ($("#id_autor").length > 0) { // se campo existir
+      if ($("#id_autor").val() != "") { // e não for vazio
+        var id = $("#id_autor").val();
+        $.get("/proposicao/get_nome_autor?id=" + id, function(data, status){
+            $("#nome_autor").text(data.nome);
+        });
+      }
+    }
 }
 
 $(document).ready(function(){

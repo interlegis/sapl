@@ -22,7 +22,8 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 TramitacaoAdmDeleteView, TramitacaoAdmEditView,
                                 TramitacaoAdmIncluirView,
                                 TramitacaoAdministrativoCrud,
-                                TramitacaoAdmView, pesquisa_autores)
+                                TramitacaoAdmView, get_nome_autor,
+                                pesquisa_autores)
 
 from .apps import AppConfig
 
@@ -97,5 +98,7 @@ urlpatterns = [
     url(r'^proposicao/(?P<pk>\d+)/proposicao',
         ProposicaoDetailView.as_view(), name='proposicao_view'),
     url(r'^proposicao/pesquisar_autor',
-        pesquisa_autores, name='pesquisar_autor')
+        pesquisa_autores, name='pesquisar_autor'),
+    url(r'^proposicao/get_nome_autor',
+        get_nome_autor, name='get_nome_autor')
 ]
