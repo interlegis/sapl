@@ -61,7 +61,7 @@ function autorModal() {
 
     $( "#button-id-limpar" ).click(function() {
       $("#nome_autor").text('');
-      $("#id_autor").val(null);
+      $("#id_autor").val('');
     });
 
     $("#button-id-pesquisar").click(function() {
