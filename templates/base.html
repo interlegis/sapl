@@ -103,7 +103,7 @@
                 </li>
 
             </ul>
-            <ul class="nav navbar-nav navbar-right">
+            <ul class="nav navbar-nav navbar-right" id="autenticacao">
             {% if not user.is_authenticated %}
               <li><a href="{% url 'base:login' %}?next={{ current_path }}">Login</a></li>
             {% else %}

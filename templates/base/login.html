@@ -26,7 +26,7 @@
                           <p class="bs-component">
                               <table>
                                 {% if form.errors %}
-                                  <div class="alert alert-danger">Usuário e/ou Senha inexistente.
+                                  <div class="alert alert-danger">Usuário e/ou Senha inválidos.
                                   </div>
 
                                 {% endif %}
@@ -60,7 +60,7 @@
 
   <script>
   {% if not user.is_authenticated %}
-  $("ul.nav.navbar-nav.navbar-right").css("display","none");
+   $("#autenticacao") .css("display","none");
   {% endif %}
   </script>
 

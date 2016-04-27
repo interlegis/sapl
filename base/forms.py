@@ -118,6 +118,6 @@ class LoginForm(AuthenticationForm):
                                 attrs={
                                  'class': 'form-control', 'name': 'username'}))
     password = forms.CharField(label="Password", max_length=30,
-                               widget=forms.TextInput(
+                               widget=forms.PasswordInput(
                                 attrs={
                                  'class': 'form-control', 'name': 'password'}))
