@@ -61,7 +61,16 @@ function autorModal() {
 
     $("#button-id-limpar").click(function() {
       $("#nome_autor").text('');
-      $("#id_autor").val('');
+
+      function clean_if_exists(fieldname) {
+        if ($(fieldname).length > 0) {
+          $(fieldname).val('');
+        }
+      }
+
+      clean_if_exists("#id_autor");
+      clean_if_exists("#id_autoria__autor");
+
     });
 
     $("#button-id-pesquisar").click(function() {
@@ -122,14 +131,19 @@ function autorModal() {
       });
     });
 
-    if ($("#id_autor").length > 0) { // se campo existir
-      if ($("#id_autor").val() != "") { // e não for vazio
-        var id = $("#id_autor").val();
-        $.get("/proposicao/get_nome_autor?id=" + id, function(data, status){
-            $("#nome_autor").text(data.nome);
-        });
+    function get_nome_autor(fieldname) {
+      if ($(fieldname).length > 0) { // se campo existir
+        if ($(fieldname).val() != "") { // e não for vazio
+          var id = $(fieldname).val();
+          $.get("/proposicao/get_nome_autor?id=" + id, function(data, status){
+              $("#nome_autor").text(data.nome);
+          });
+        }
       }
     }
+
+    get_nome_autor("#id_autor");
+    get_nome_autor("#id_autoria__autor");
 }
 
 $(document).ready(function(){
