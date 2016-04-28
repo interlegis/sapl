@@ -15,10 +15,9 @@ from norma.models import LegislacaoCitada, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
-                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
-                     Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
-                     Tramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autor, DespachoInicial,
+                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
+                     Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao)
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -401,60 +400,6 @@ class AnexadaForm(ModelForm):
     class Meta:
         model = Anexada
         fields = ['tipo', 'numero', 'ano', 'data_anexacao', 'data_desanexacao']
-
-
-class AutoriaForm(ModelForm):
-    autor = forms.ModelChoiceField(
-        label=_('Autor'),
-        required=True,
-        queryset=Autor.objects.all().order_by('tipo', 'nome'),
-    )
-    primeiro_autor = forms.ChoiceField(
-        label=_('Primeiro Autor'),
-        required=True,
-        choices=[(True, _('Sim')), (False, _('Não'))],
-    )
-
-    materia_id = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    class Meta:
-        model = Autoria
-        fields = ['autor',
-                  'primeiro_autor',
-                  'partido',
-                  'materia_id']
-
-    def clean(self):
-        if self.data['materia_id'] and self.data['autor']:
-            try:
-                materia = MateriaLegislativa.objects.get(
-                    id=self.data['materia_id'])
-                Autoria.objects.get(autor=self.data['autor'],
-                                    materia=materia)
-                raise forms.ValidationError(
-                    _('Essa autoria já foi adicionada!'))
-            except ObjectDoesNotExist:
-                pass
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('autor', 4), ('primeiro_autor', 4), ('partido', 4)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Adicionar Autoria'),
-                row1,
-                form_actions(more=more)
-            )
-        )
-        super(AutoriaForm, self).__init__(
-            *args, **kwargs)
 
 
 class RangeWidgetOverride(forms.MultiWidget):

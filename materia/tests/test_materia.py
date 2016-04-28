@@ -124,7 +124,7 @@ def test_autoria_submit(client):
     autor = mommy.make(Autor, tipo=tipo_autor, nome='Autor Teste')
 
     # Testa POST
-    response = client.post(reverse('materia:autoria',
+    response = client.post(reverse('materia:autoria_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'autor': autor.pk,
                             'primeiro_autor': True,
@@ -305,7 +305,7 @@ def test_form_errors_anexada(client):
 def test_form_errors_autoria(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:autoria',
+    response = client.post(reverse('materia:autoria_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'materia_id': materia_principal.pk,
                             'partido': '',
@@ -314,8 +314,6 @@ def test_form_errors_autoria(client):
                            follow=True)
 
     assert (response.context_data['form'].errors['autor'] ==
-            ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['primeiro_autor'] ==
             ['Este campo é obrigatório.'])
 
 

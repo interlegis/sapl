@@ -3,11 +3,10 @@ from django.conf.urls import include, url
 from materia.views import (AcompanhamentoConfirmarView,
                            AcompanhamentoExcluirView,
                            AcompanhamentoMateriaView, AnexadaCrud, AutorCrud,
-                           AutoriaEditView, AutoriaView,
-                           DespachoInicialEditView, DespachoInicialView,
-                           DocumentoAcessorioEditView, DocumentoAcessorioView,
-                           LegislacaoCitadaEditView, LegislacaoCitadaView,
-                           MateriaLegislativaCrud,
+                           AutoriaCrud, DespachoInicialEditView,
+                           DespachoInicialView, DocumentoAcessorioEditView,
+                           DocumentoAcessorioView, LegislacaoCitadaEditView,
+                           LegislacaoCitadaView, MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoEditView, NumeracaoView, OrgaoCrud,
                            OrigemCrud, ProposicaoEditView, ProposicaoListView,
@@ -25,7 +24,8 @@ app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
-                              AnexadaCrud.get_urls())),
+                              AnexadaCrud.get_urls() +
+                              AutoriaCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -74,10 +74,6 @@ urlpatterns = [
         TramitacaoView.as_view(), name='tramitacao_materia'),
     url(r'^materia/(?P<pk>\d+)/tramitacao/(?P<id>\d+)/edit$',
         TramitacaoEditView.as_view(), name='tramitacao_edit'),
-    url(r'^materia/(?P<pk>\d+)/autoria$',
-        AutoriaView.as_view(), name='autoria'),
-    url(r'^materia/(?P<pk>\d+)/autoria/(?P<id>\d+)/edit$',
-        AutoriaEditView.as_view(), name='autoria_edit'),
     url(r'^materia/(?P<pk>\d+)/relatoria/(?P<id>\d+)/edit$',
         RelatoriaEditView.as_view(), name='relatoria_edit'),
     url(r'^materia/proposicao$',

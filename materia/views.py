@@ -22,10 +22,9 @@ from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
-from parlamentares.models import Partido
 from sapl.utils import get_base_url
 
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
+from .forms import (AcompanhamentoMateriaForm, AnexadaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     LegislacaoCitadaForm, MateriaLegislativaFilterSet,
                     NumeracaoForm, ProposicaoForm, RelatoriaForm,
@@ -48,7 +47,6 @@ TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
 AnexadaCrud = Crud.build(Anexada, '')
 TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
-AutoriaCrud = Crud.build(Autoria, '')
 DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
 NumeracaoCrud = Crud.build(Numeracao, '')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
@@ -58,6 +56,8 @@ ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
+
+AutoriaCrud = MasterDetailCrud.build(Autoria, 'materia', '')
 
 
 class AnexadaCrud(MasterDetailCrud):
@@ -956,87 +956,6 @@ class TramitacaoEditView(CreateView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
-
-
-class AutoriaView(CreateView):
-    template_name = "materia/autoria.html"
-    form_class = AutoriaForm
-    form_valid_message = _('Autoria cadastrada com sucesso!')
-    model = Autoria
-
-    def get_initial(self):
-        initial = super(AutoriaView, self).get_initial()
-        initial['materia_id'] = self.kwargs['pk']
-        return initial
-
-    def get_context_data(self, **kwargs):
-        context = super(AutoriaView, self).get_context_data(**kwargs)
-
-        materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
-        autorias = Autoria.objects.filter(materia=materia)
-
-        context.update({'object': materia,
-                        'autorias': autorias})
-        return context
-
-    def form_valid(self, form):
-        materia = MateriaLegislativa.objects.get(id=form.data['materia_id'])
-        if 'salvar' in self.request.POST:
-            autoria = Autoria()
-            autoria.autor = Autor.objects.get(id=form.data['autor'])
-            autoria.materia = materia
-            autoria.primeiro_autor = form.data['primeiro_autor']
-
-            if form.data['partido']:
-                filiacao_autor = Partido.objects.get(id=form.data['partido'])
-                autoria.partido = filiacao_autor
-
-            autoria.save()
-
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:autoria', kwargs={'pk': pk})
-
-
-class AutoriaEditView(CreateView):
-    template_name = "materia/autoria_edit.html"
-    form_class = AutoriaForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        autoria = Autoria.objects.get(id=self.kwargs['id'])
-        form = AutoriaForm(instance=autoria, excluir=True)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form})
-
-    def post(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        form = self.get_form()
-        if form.is_valid():
-            autoria = Autoria.objects.get(id=self.kwargs['id'])
-            if 'salvar' in request.POST:
-                autoria.autor = Autor.objects.get(id=form.data['autor'])
-                autoria.primeiro_autor = form.data['primeiro_autor']
-                if 'partido' in form.data:
-                    autoria.partido = Partido.objects.get(
-                        id=form.data['partido'])
-                autoria.materia = materia
-                autoria.save()
-            elif 'Excluir' in request.POST:
-                autoria.delete()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:autoria', kwargs={'pk': pk})
 
 
 class ProposicaoListView(ListView):
