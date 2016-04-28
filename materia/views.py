@@ -151,6 +151,34 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             return 'LegislacaoCitadaDetail'
 
 
+class LegislacaoCitadaCrud(MasterDetailCrud):
+    model = LegislacaoCitada
+    parent_field = 'materia'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['norma', 'disposicoes']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = LegislacaoCitadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = LegislacaoCitadaForm
+
+        def get_initial(self):
+            self.initial['tipo_norma'] = self.object.norma.tipo.id
+            self.initial['numero_norma'] = self.object.norma.numero
+            self.initial['ano_norma'] = self.object.norma.ano
+
+            return self.initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'LegislacaoCitadaDetail'
+
+
 class NumeracaoCrud(MasterDetailCrud):
     model = Numeracao
     parent_field = 'materia'
