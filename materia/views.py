@@ -355,6 +355,43 @@ class MateriaLegislativaCrud(Crud):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
 
+class DocumentoAcessorioView(CreateView):
+    template_name = "materia/documento_acessorio.html"
+    form_class = DocumentoAcessorioForm
+
+    def get(self, request, *args, **kwargs):
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        docs = DocumentoAcessorio.objects.filter(
+            materia_id=kwargs['pk']).order_by('data')
+        form = DocumentoAcessorioForm()
+
+        return self.render_to_response(
+            {'object': materia,
+             'form': form,
+             'docs': docs})
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+        docs_list = DocumentoAcessorio.objects.filter(
+            materia_id=kwargs['pk'])
+
+        if form.is_valid():
+            documento_acessorio = form.save(commit=False)
+            documento_acessorio.materia = materia
+            documento_acessorio.save()
+            return self.form_valid(form)
+        else:
+            return self.render_to_response({'form': form,
+                                            'object': materia,
+                                            'docs': docs_list})
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
+
+
+>>>>>>> Init crud legislação citada
 class AcompanhamentoConfirmarView(TemplateView):
 
     def get_redirect_url(self):
