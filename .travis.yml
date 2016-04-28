@@ -15,5 +15,6 @@ before script:
   - npm install -g bower
   - bower install
   - manage.py migrate
-scripts:
+
+script:
   - test_and_check_qa
