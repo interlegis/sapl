@@ -107,8 +107,6 @@ def get_fk_related(field, value, label=None):
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # se FK == 0, criamos um stub e colocamos o valor '????????'
-                # para qualquer CharField ou TextField que possa haver
                 if not field.null:
                     fields_dict = get_fields_dict(field.related_model)
                     value = mommy.make(field.related_model,
