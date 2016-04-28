@@ -104,7 +104,6 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             self.initial['tipo'] = self.object.norma.tipo.id
             self.initial['numero'] = self.object.norma.numero
             self.initial['ano'] = self.object.norma.ano
-
             return self.initial
 
     class DetailView(MasterDetailCrud.DetailView):
