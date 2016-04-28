@@ -209,7 +209,7 @@ class TramitacaoForm(ModelForm):
             return self.errors
 
         ultima_tramitacao = Tramitacao.objects.filter(
-                materia_id=self.instance.materia.id).last()
+            materia_id=self.instance.materia.id).last()
 
         if ultima_tramitacao:
             destino = ultima_tramitacao.unidade_tramitacao_destino
@@ -508,25 +508,25 @@ def pega_ultima_tramitacao():
 def filtra_tramitacao_status(status):
     lista = pega_ultima_tramitacao()
     return Tramitacao.objects.filter(
-      id__in=lista,
-      status=status).distinct().values_list('materia_id', flat=True)
+        id__in=lista,
+        status=status).distinct().values_list('materia_id', flat=True)
 
 
 def filtra_tramitacao_destino(destino):
     lista = pega_ultima_tramitacao()
     return Tramitacao.objects.filter(
-      id__in=lista,
-      unidade_tramitacao_destino=destino).distinct().values_list(
-      'materia_id', flat=True)
+        id__in=lista,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
 
 
 def filtra_tramitacao_destino_and_status(status, destino):
     lista = pega_ultima_tramitacao()
     return Tramitacao.objects.filter(
-      id__in=lista,
-      status=status,
-      unidade_tramitacao_destino=destino).distinct().values_list(
-      'materia_id', flat=True)
+        id__in=lista,
+        status=status,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
 
 
 class DespachoInicialForm(ModelForm):

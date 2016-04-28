@@ -27,8 +27,7 @@ urlpatterns = [
                               DespachoInicialCrud.get_urls() +
                               NumeracaoCrud.get_urls() +
                               LegislacaoCitadaCrud.get_urls() +
-                              TramitacaoCrud.get_urls() +
-                              LegislacaoCitadaCrud.get_urls())),
+                              TramitacaoCrud.get_urls()))
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
