@@ -9,7 +9,7 @@ services:
 
 install:
   - pip install -r requirements/test-requirements.txt
-  - python setup.py -q install
+  - setup.py -q
 
 before script:
   - psql -c 'create database travis_ci_test;' -U postgres
