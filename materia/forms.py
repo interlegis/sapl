@@ -320,7 +320,7 @@ class NumeracaoForm(ModelForm):
             return self.errors
 
         try:
-            materia_anexada = MateriaLegislativa.objects.get(
+            MateriaLegislativa.objects.get(
                 numero=self.cleaned_data['numero_materia'],
                 ano=self.cleaned_data['ano_materia'],
                 tipo=self.cleaned_data['tipo_materia'])
