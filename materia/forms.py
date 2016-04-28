@@ -373,7 +373,6 @@ class AnexadaForm(ModelForm):
     ano = forms.CharField(label='Ano', required=True)
 
     def clean(self):
-
         if self.errors:
             return self.errors
 
@@ -401,8 +400,7 @@ class AnexadaForm(ModelForm):
 
     class Meta:
         model = Anexada
-        fields = ['tipo', 'numero', 'ano',
-                  'data_anexacao', 'data_desanexacao']
+        fields = ['tipo', 'numero', 'ano', 'data_anexacao', 'data_desanexacao']
 
 
 class AutoriaForm(ModelForm):

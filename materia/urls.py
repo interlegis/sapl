@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 
 from materia.views import (AcompanhamentoConfirmarView,
                            AcompanhamentoExcluirView,
-                           AcompanhamentoMateriaView, AutorCrud,
+                           AcompanhamentoMateriaView, AnexadaCrud, AutorCrud,
                            AutoriaEditView, AutoriaView,
                            DespachoInicialEditView, DespachoInicialView,
                            DocumentoAcessorioEditView, DocumentoAcessorioView,
@@ -17,7 +17,7 @@ from materia.views import (AcompanhamentoConfirmarView,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
                            TipoMateriaCrud, TipoProposicaoCrud,
                            TramitacaoEditView, TramitacaoView,
-                           UnidadeTramitacaoCrud, AnexadaCrud)
+                           UnidadeTramitacaoCrud)
 
 from .apps import AppConfig
 
@@ -52,10 +52,6 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    # url(r'^materia/(?P<pk>\d+)/materia-anexada$',
-    #     MateriaAnexadaView.as_view(), name='materia_anexada'),
-    # url(r'^materia/(?P<pk>\d+)/materia-anexada/(?P<id>\d+)/edit',
-    #     MateriaAnexadaEditView.as_view(), name='materia_anexada_edit'),
     url(r'^materia/(?P<pk>\d+)/despacho-inicial$',
         DespachoInicialView.as_view(), name='despacho_inicial'),
     url(r'^materia/(?P<pk>\d+)/despacho-inicial/(?P<id>\d+)/edit',

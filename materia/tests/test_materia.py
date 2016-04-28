@@ -97,7 +97,7 @@ def test_materia_anexada_submit(client):
     materia_anexada = MateriaLegislativa.objects.get(numero=32, ano=2004)
 
     # Testa POST
-    response = client.post(reverse('materia:materia_anexada',
+    response = client.post(reverse('materia:anexada_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'tipo': materia_anexada.tipo.pk,
                             'numero': materia_anexada.numero,
@@ -286,7 +286,7 @@ def test_tramitacao_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_anexada(client):
     materia_principal = make_materia_principal()
-    response = client.post(reverse('materia:materia_anexada',
+    response = client.post(reverse('materia:anexada_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)
