@@ -389,14 +389,14 @@ class AnexadaForm(ModelForm):
                     ' de matérias legislativas.')
             raise ValidationError(msg)
         else:
-            cleaned_data['materia_anexada_id'] = materia_anexada.id
+            cleaned_data['materia_anexada'] = materia_anexada
 
         return cleaned_data
 
     def save(self, commit=False):
         anexada = super(AnexadaForm, self).save(commit)
-        anexada.materia_anexada_id = self.cleaned_data['materia_anexada_id']
-        import ipdb; ipdb.set_trace()
+        anexada.materia_anexada = self.cleaned_data['materia_anexada']
+        anexada.save()
         return anexada
 
     class Meta:
