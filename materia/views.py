@@ -76,18 +76,9 @@ class AnexadaCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        def layout_display(self):
-            # context = super(MasterDetailCrud.DetailView, self).get_context_data(**kwargs)
-            # import ipdb; ipdb.set_trace()
-            # if self.object:
-            #     context['tipo'] = self.object.materia_anexada.tipo
-            #     context['numero'] = self.object.materia_anexada.numero
-            #     context['ano'] = self.object.materia_anexada.ano
-            # context.update(context)
-            # return context
-            return [self.object.materia_anexada.tipo,
-                    self.object.materia_anexada.numero,
-                    self.object.materia_anexada.ano]
+        @property
+        def layout_key(self):
+            return 'AnexadaDetail'
 
 
 class MateriaLegislativaCrud(Crud):

@@ -41,6 +41,12 @@ Anexada:
   - tipo numero ano
   - data_anexacao  data_desanexacao
 
+AnexadaDetail:
+  Matéria Anexada:
+  - materia_principal
+  - materia_anexada
+  - data_anexacao  data_desanexacao
+
 TipoAutor:
   Tipo Autor:
   - descricao
