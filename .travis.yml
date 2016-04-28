@@ -1,4 +1,18 @@
 language: python
-python: 3.4
-install: "pip install -r requirements/dev-requirements.txt"
-script: py.test
+
+python:
+  - "3.4.3"
+
+install:
+  - pip install .
+  - sudo ln -s /usr/bin/nodejs /usr/bin/node
+  - sudo npm install -g bower
+  - pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
+  - pip install -r requirements/test-requirements.txt
+  - python setup.py -q install
+
+before script:
+  -./manage.py bower install
+  -./manage.py migrate
+scripts:
+  - test_and_check_qa.sh
