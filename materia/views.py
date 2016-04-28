@@ -21,7 +21,7 @@ from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
-from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
+from norma.models import LegislacaoCitada
 from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
@@ -81,6 +81,34 @@ class DespachoInicialCrud(MasterDetailCrud):
         form_class = DespachoInicialForm
 
 
+class LegislacaoCitadaCrud(MasterDetailCrud):
+    model = LegislacaoCitada
+    parent_field = 'materia'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['norma', 'disposicoes']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = LegislacaoCitadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = LegislacaoCitadaForm
+
+        def get_initial(self):
+            self.initial['tipo_norma'] = self.object.norma.tipo.id
+            self.initial['numero_norma'] = self.object.norma.numero
+            self.initial['ano_norma'] = self.object.norma.ano
+
+            return self.initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'LegislacaoCitadaDetail'
+
+
 class NumeracaoCrud(MasterDetailCrud):
     model = Numeracao
     parent_field = 'materia'
@@ -107,7 +135,7 @@ class AnexadaCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = AnexadaForm
 
-        def get_initial(self, **kwargs):
+        def get_initial(self):
             self.initial['tipo'] = self.object.materia_anexada.tipo.id
             self.initial['numero'] = self.object.materia_anexada.numero
             self.initial['ano'] = self.object.materia_anexada.ano
@@ -127,132 +155,6 @@ class MateriaLegislativaCrud(Crud):
 
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
-
-
-class LegislacaoCitadaView(FormView):
-    template_name = "materia/legislacao_citada.html"
-    form_class = LegislacaoCitadaForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao = LegislacaoCitada.objects.filter(materia_id=kwargs['pk'])
-        form = LegislacaoCitadaForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'legislacao': legislacao})
-
-    def post(self, request, *args, **kwargs):
-        form = LegislacaoCitadaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao_list = LegislacaoCitada.objects.filter(
-            materia_id=kwargs['pk'])
-
-        if form.is_valid():
-            legislacao = LegislacaoCitada()
-
-            try:
-                norma = NormaJuridica.objects.get(
-                    tipo_id=form.cleaned_data['tipo'],
-                    numero=form.cleaned_data['numero'],
-                    ano=form.cleaned_data['ano'])
-            except ObjectDoesNotExist:
-                msg = _('Norma Juridica não existe.')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response({'form': form,
-                                                'object': materia,
-                                                'legislacao': legislacao_list})
-            legislacao.materia = materia
-            legislacao.norma = norma
-            legislacao.disposicoes = form.cleaned_data['disposicoes']
-            legislacao.parte = form.cleaned_data['parte']
-            legislacao.livro = form.cleaned_data['livro']
-            legislacao.titulo = form.cleaned_data['titulo']
-            legislacao.capitulo = form.cleaned_data['capitulo']
-            legislacao.secao = form.cleaned_data['secao']
-            legislacao.subsecao = form.cleaned_data['subsecao']
-            legislacao.artigo = form.cleaned_data['artigo']
-            legislacao.paragrafo = form.cleaned_data['paragrafo']
-            legislacao.inciso = form.cleaned_data['inciso']
-            legislacao.alinea = form.cleaned_data['alinea']
-            legislacao.item = form.cleaned_data['item']
-
-            legislacao.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'legislacao': legislacao_list})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:legislacao_citada', kwargs={'pk': pk})
-
-
-class LegislacaoCitadaEditView(FormView):
-    template_name = "materia/legislacao_citada_edit.html"
-    form_class = LegislacaoCitadaForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:legislacao_citada', kwargs={'pk': pk})
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao = LegislacaoCitada.objects.get(id=kwargs['id'])
-        form = LegislacaoCitadaForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'legislacao': legislacao,
-             'tipos_norma': TipoNormaJuridica.objects.all()})
-
-    def post(self, request, *args, **kwargs):
-        form = LegislacaoCitadaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao = LegislacaoCitada.objects.get(id=kwargs['id'])
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                legislacao.delete()
-                return self.form_valid(form)
-            elif 'salvar' in request.POST:
-                try:
-                    norma = NormaJuridica.objects.get(
-                        tipo_id=form.cleaned_data['tipo'],
-                        numero=form.cleaned_data['numero'],
-                        ano=form.cleaned_data['ano'])
-                except ObjectDoesNotExist:
-                    msg = _('Norma Juridica não existe.')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'form': form,
-                         'object': materia,
-                         'legislacao': legislacao,
-                         'tipos_norma': TipoNormaJuridica.objects.all()})
-                legislacao.materia = materia
-                legislacao.norma = norma
-                legislacao.disposicoes = form.cleaned_data['disposicoes']
-                legislacao.parte = form.cleaned_data['parte']
-                legislacao.livro = form.cleaned_data['livro']
-                legislacao.titulo = form.cleaned_data['titulo']
-                legislacao.capitulo = form.cleaned_data['capitulo']
-                legislacao.secao = form.cleaned_data['secao']
-                legislacao.subsecao = form.cleaned_data['subsecao']
-                legislacao.artigo = form.cleaned_data['artigo']
-                legislacao.paragrafo = form.cleaned_data['paragrafo']
-                legislacao.inciso = form.cleaned_data['inciso']
-                legislacao.alinea = form.cleaned_data['alinea']
-                legislacao.item = form.cleaned_data['item']
-
-                legislacao.save()
-                return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': materia})
 
 
 class DocumentoAcessorioView(CreateView):

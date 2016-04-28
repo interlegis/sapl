@@ -270,42 +270,6 @@ class LegislacaoCitadaForm(ModelForm):
                   'alinea',
                   'item']
 
-    def __init__(self, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4),
-             ('numero', 4),
-             ('ano', 4)])
-
-        row2 = crispy_layout_mixin.to_row(
-            [('disposicoes', 3),
-             ('parte', 3),
-             ('livro', 3),
-             ('titulo', 3)])
-
-        row3 = crispy_layout_mixin.to_row(
-            [('capitulo', 3),
-             ('secao', 3),
-             ('subsecao', 3),
-             ('artigo', 3)])
-
-        row4 = crispy_layout_mixin.to_row(
-            [('paragrafo', 3),
-             ('inciso', 3),
-             ('alinea', 3),
-             ('item', 3)])
-
-        self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Legislação Citada'),
-                row1, row2, row3, row4,
-                form_actions()
-            )
-        )
-        super(LegislacaoCitadaForm, self).__init__(*args, **kwargs)
-
 
 class NumeracaoForm(ModelForm):
 
