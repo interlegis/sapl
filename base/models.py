@@ -58,6 +58,7 @@ class ProblemaMigracao(models.Model):
     descricao = models.CharField(max_length=300, null=True,
                                  verbose_name=_('Descrição'))
     endereco = models.URLField(null=True, verbose_name=_('Endereço'))
+    eh_stub = models.BooleanField(verbose_name='É stub?')
 
     class Meta:
         verbose_name = _('Problema na Migração')
