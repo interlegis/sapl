@@ -5,7 +5,6 @@ python:
   - "3.4.3"
 
 install:
-  - node_modules
   - sudo npm install -g bower
   - pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
   - pip install -r requirements/test-requirements.txt
