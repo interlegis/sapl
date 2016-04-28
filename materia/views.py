@@ -25,10 +25,9 @@ from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm,
-                    DespachoInicialForm, DocumentoAcessorioForm,
-                    LegislacaoCitadaForm, MateriaLegislativaFilterSet,
-                    NumeracaoForm, ProposicaoForm, RelatoriaForm,
-                    TramitacaoForm, filtra_tramitacao_destino,
+                    DocumentoAcessorioForm, LegislacaoCitadaForm,
+                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
+                    RelatoriaForm, TramitacaoForm, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -58,6 +57,7 @@ UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
 AutoriaCrud = MasterDetailCrud.build(Autoria, 'materia', '')
+DespachoInicialCrud = MasterDetailCrud.build(DespachoInicial, 'materia', '')
 
 
 class AnexadaCrud(MasterDetailCrud):
@@ -94,77 +94,6 @@ class MateriaLegislativaCrud(Crud):
 
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
-
-
-class DespachoInicialView(CreateView):
-    template_name = "materia/despacho_inicial.html"
-    form_class = DespachoInicialForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.filter(materia_id=materia.id)
-        form = DespachoInicialForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'despachos': despacho})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.filter(materia_id=materia.id)
-
-        if form.is_valid():
-            despacho = DespachoInicial()
-            despacho.comissao = form.cleaned_data['comissao']
-            despacho.materia = materia
-            despacho.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'despachos': despacho})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
-
-
-class DespachoInicialEditView(CreateView):
-    template_name = "materia/despacho_inicial_edit.html"
-    form_class = DespachoInicialForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.get(id=kwargs['id'])
-        form = DespachoInicialForm(instance=despacho, excluir=True)
-
-        return self.render_to_response({'object': materia, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.get(id=kwargs['id'])
-
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                despacho.delete()
-            elif 'salvar' in request.POST:
-                despacho.comissao = form.cleaned_data['comissao']
-                despacho.materia = materia
-                despacho.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'despacho': despacho,
-                 'comissoes': Comissao.objects.all()})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
 
 
 class LegislacaoCitadaView(FormView):

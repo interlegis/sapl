@@ -112,3 +112,7 @@ Tramitacao:
   - status  turno  urgente
   - unidade_tramitacao_destino  data_encaminhamento  data_fim_prazo
   - texto
+
+DespachoInicial:
+  Despacho Inicial:
+  - comissao

@@ -154,7 +154,7 @@ def test_despacho_inicial_submit(client):
                           data_criacao='2016-03-18')
 
     # Testa POST
-    response = client.post(reverse('materia:despacho_inicial',
+    response = client.post(reverse('materia:despachoinicial_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'comissao': comissao.pk,
                             'salvar': 'salvar'},
@@ -321,7 +321,7 @@ def test_form_errors_autoria(client):
 def test_form_errors_despacho_inicial(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:despacho_inicial',
+    response = client.post(reverse('materia:despachoinicial_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)

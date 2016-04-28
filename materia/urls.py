@@ -3,10 +3,10 @@ from django.conf.urls import include, url
 from materia.views import (AcompanhamentoConfirmarView,
                            AcompanhamentoExcluirView,
                            AcompanhamentoMateriaView, AnexadaCrud, AutorCrud,
-                           AutoriaCrud, DespachoInicialEditView,
-                           DespachoInicialView, DocumentoAcessorioEditView,
-                           DocumentoAcessorioView, LegislacaoCitadaEditView,
-                           LegislacaoCitadaView, MateriaLegislativaCrud,
+                           AutoriaCrud, DespachoInicialCrud,
+                           DocumentoAcessorioEditView, DocumentoAcessorioView,
+                           LegislacaoCitadaEditView, LegislacaoCitadaView,
+                           MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoEditView, NumeracaoView, OrgaoCrud,
                            OrigemCrud, ProposicaoEditView, ProposicaoListView,
@@ -25,7 +25,8 @@ app_name = AppConfig.name
 urlpatterns = [
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
                               AnexadaCrud.get_urls() +
-                              AutoriaCrud.get_urls())),
+                              AutoriaCrud.get_urls() +
+                              DespachoInicialCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -52,10 +53,6 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    url(r'^materia/(?P<pk>\d+)/despacho-inicial$',
-        DespachoInicialView.as_view(), name='despacho_inicial'),
-    url(r'^materia/(?P<pk>\d+)/despacho-inicial/(?P<id>\d+)/edit',
-        DespachoInicialEditView.as_view(), name='despacho_inicial_edit'),
     url(r'^materia/(?P<pk>\d+)/legislacao-citada$',
         LegislacaoCitadaView.as_view(), name='legislacao_citada'),
     url(r'^materia/(?P<pk>\d+)/legislacao-citada/(?P<id>\d+)/edit',

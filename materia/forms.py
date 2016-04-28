@@ -15,9 +15,9 @@ from norma.models import LegislacaoCitada, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import (AcompanhamentoMateria, Anexada, Autor, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
-                     Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autor, DocumentoAcessorio,
+                     MateriaLegislativa, Numeracao, Proposicao, Relatoria,
+                     TipoMateriaLegislativa, Tramitacao)
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -334,28 +334,6 @@ class NumeracaoForm(ModelForm):
             )
         )
         super(NumeracaoForm, self).__init__(*args, **kwargs)
-
-
-class DespachoInicialForm(ModelForm):
-
-    class Meta:
-        model = DespachoInicial
-        fields = ['comissao']
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Adicionar Despacho Inicial'),
-                'comissao',
-                form_actions(more=more)
-            )
-        )
-        super(DespachoInicialForm, self).__init__(*args, **kwargs)
 
 
 class AnexadaForm(ModelForm):
