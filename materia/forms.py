@@ -359,7 +359,7 @@ class DespachoInicialForm(ModelForm):
         super(DespachoInicialForm, self).__init__(*args, **kwargs)
 
 
-class MateriaAnexadaForm(ModelForm):
+class AnexadaForm(ModelForm):
 
     tipo = forms.ModelChoiceField(
         label='Tipo',
@@ -372,36 +372,37 @@ class MateriaAnexadaForm(ModelForm):
 
     ano = forms.CharField(label='Ano', required=True)
 
+    def clean(self):
+
+        if self.errors:
+            return self.errors
+
+        cleaned_data = self.cleaned_data
+
+        try:
+            materia_anexada = MateriaLegislativa.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser anexada não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['materia_anexada_id'] = materia_anexada.id
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        anexada = super(AnexadaForm, self).save(commit)
+        anexada.materia_anexada_id = self.cleaned_data['materia_anexada_id']
+        import ipdb; ipdb.set_trace()
+        return anexada
+
     class Meta:
         model = Anexada
         fields = ['tipo', 'numero', 'ano',
                   'data_anexacao', 'data_desanexacao']
-        widgets = {
-            'data_anexacao': forms.DateInput(attrs={'class': 'dateinput'}),
-            'data_desanexacao': forms.DateInput(attrs={'class': 'dateinput'}),
-        }
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4), ('numero', 4), ('ano', 4)])
-        row2 = crispy_layout_mixin.to_row(
-            [('data_anexacao', 6), ('data_desanexacao', 6)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Anexar Matéria'),
-                row1, row2,
-                form_actions(more=more)
-            )
-        )
-        super(MateriaAnexadaForm, self).__init__(
-            *args, **kwargs)
 
 
 class AutoriaForm(ModelForm):

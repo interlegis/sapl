@@ -15,19 +15,21 @@ from django.views.generic import CreateView, FormView, ListView, TemplateView
 from django_filters.views import FilterView
 
 import crud.base
+import crud.masterdetail
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
+from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from parlamentares.models import Partido
 from sapl.utils import get_base_url
 
-from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
+from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
-                    LegislacaoCitadaForm, MateriaAnexadaForm,
-                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
-                    RelatoriaForm, TramitacaoForm, filtra_tramitacao_destino,
+                    LegislacaoCitadaForm, MateriaLegislativaFilterSet,
+                    NumeracaoForm, ProposicaoForm, RelatoriaForm,
+                    TramitacaoForm, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -58,6 +60,36 @@ UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
 
+class AnexadaCrud(MasterDetailCrud):
+    model = Anexada
+    parent_field = 'materia_principal'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['materia_anexada', 'data_anexacao']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexadaForm
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def layout_display(self):
+            # context = super(MasterDetailCrud.DetailView, self).get_context_data(**kwargs)
+            # import ipdb; ipdb.set_trace()
+            # if self.object:
+            #     context['tipo'] = self.object.materia_anexada.tipo
+            #     context['numero'] = self.object.materia_anexada.numero
+            #     context['ano'] = self.object.materia_anexada.ano
+            # context.update(context)
+            # return context
+            return [self.object.materia_anexada.tipo,
+                    self.object.materia_anexada.numero,
+                    self.object.materia_anexada.ano]
+
+
 class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
     help_path = 'materia_legislativa'
@@ -66,163 +98,163 @@ class MateriaLegislativaCrud(Crud):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
 
-class MateriaAnexadaView(FormView):
-    template_name = "materia/materia_anexada.html"
-    form_class = MateriaAnexadaForm
-    form_valid_message = _('Matéria anexada com sucesso!')
-
-    def get(self, request, *args, **kwargs):
-        form = MateriaAnexadaForm()
-        materia = MateriaLegislativa.objects.get(
-            id=kwargs['pk'])
-        anexadas = Anexada.objects.filter(
-            materia_principal_id=kwargs['pk'])
-
-        return self.render_to_response({'object': materia,
-                                        'anexadas': anexadas,
-                                        'form': form})
-
-    def form_invalid(self,
-                     form,
-                     request,
-                     mat_principal,
-                     anexadas,
-                     msg='Erro ineseperado.'):
-        messages.add_message(request, messages.ERROR, msg)
-        return self.render_to_response(
-            {'form': form,
-             'object': mat_principal,
-             'anexadas': anexadas})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        anexadas = Anexada.objects.filter(
-            materia_principal_id=kwargs['pk'])
-        mat_principal = MateriaLegislativa.objects.get(
-            id=kwargs['pk'])
-
-        if form.is_valid():
-            tipo = form.cleaned_data['tipo']
-            numero = form.cleaned_data['numero']
-            ano = form.cleaned_data['ano']
-            data_anexacao = form.cleaned_data['data_anexacao']
-            data_desanexacao = form.cleaned_data['data_desanexacao']
-
-            try:
-                mat_anexada = MateriaLegislativa.objects.get(
-                    numero=numero, ano=ano, tipo=tipo)
-
-                if mat_principal.tipo == mat_anexada.tipo:
-                    msg = _('A matéria a ser anexada não pode ser do mesmo'
-                            ' tipo da matéria principal.')
-                    self.form_invalid(
-                        form, request, mat_principal, anexadas, msg)
-                anexada = Anexada()
-                anexada.materia_principal = mat_principal
-                anexada.materia_anexada = mat_anexada
-                anexada.data_anexacao = data_anexacao
-                if data_desanexacao:
-                    anexada.data_desanexacao = data_desanexacao
-
-                anexada.save()
-            except ObjectDoesNotExist:
-                msg = _('A matéria a ser anexada não existe no cadastro'
-                        ' de matérias legislativas.')
-                self.form_invalid(form, request, mat_principal, anexadas, msg)
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': mat_principal,
-                 'anexadas': anexadas})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:materia_anexada', kwargs={'pk': pk})
-
-
-class MateriaAnexadaEditView(FormView):
-    template_name = "materia/materia_anexada_edit.html"
-    form_class = MateriaAnexadaForm
-
-    def form_invalid(self,
-                     form,
-                     request,
-                     mat_principal,
-                     msg='Erro ineseperado.'):
-        messages.add_message(request, messages.ERROR, msg)
-        return self.render_to_response(
-            {'form': form, 'object': mat_principal})
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        anexada = Anexada.objects.get(id=kwargs['id'])
-
-        data = {}
-        data['tipo'] = anexada.materia_anexada.tipo
-        data['numero'] = anexada.materia_anexada.numero
-        data['ano'] = anexada.materia_anexada.ano
-        data['data_anexacao'] = anexada.data_anexacao
-        data['data_desanexacao'] = anexada.data_desanexacao
-
-        form = MateriaAnexadaForm(initial=data, excluir=True)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        anexada = Anexada.objects.get(id=kwargs['id'])
-        mat_principal = MateriaLegislativa.objects.get(
-            id=kwargs['pk'])
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                anexada.delete()
-                return self.form_valid(form)
-            elif 'salvar' in request.POST:
-
-                tipo = form.cleaned_data['tipo']
-                numero = form.cleaned_data['numero']
-                ano = form.cleaned_data['ano']
-                data_anexacao = form.cleaned_data['data_anexacao']
-
-                if 'data_desanexacao' in request.POST:
-                    data_desanexacao = form.cleaned_data['data_desanexacao']
-
-                try:
-                    mat_anexada = MateriaLegislativa.objects.get(
-                        numero=numero, ano=ano, tipo=tipo)
-
-                    if mat_principal.tipo == mat_anexada.tipo:
-                        msg = _('A matéria a ser anexada não pode ser do mesmo \
-                        tipo da matéria principal.')
-                        self.form_invalid(form, request, mat_principal, msg)
-
-                    anexada.materia_principal = mat_principal
-                    anexada.materia_anexada = mat_anexada
-                    anexada.data_anexacao = data_anexacao
-
-                    if data_desanexacao:
-                        anexada.data_desanexacao = data_desanexacao
-
-                    anexada.save()
-                    return self.form_valid(form)
-
-                except ObjectDoesNotExist:
-                    msg = _('A matéria a ser anexada não existe no cadastro \
-                        de matérias legislativas.')
-                    self.form_invalid(form, request, mat_principal, msg)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'materia': mat_principal})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia_anexada', kwargs={'pk': pk})
+# class MateriaAnexadaView(FormView):
+#     template_name = "materia/materia_anexada.html"
+#     form_class = MateriaAnexadaForm
+#     form_valid_message = _('Matéria anexada com sucesso!')
+#
+#     def get(self, request, *args, **kwargs):
+#         form = MateriaAnexadaForm()
+#         materia = MateriaLegislativa.objects.get(
+#             id=kwargs['pk'])
+#         anexadas = Anexada.objects.filter(
+#             materia_principal_id=kwargs['pk'])
+#
+#         return self.render_to_response({'object': materia,
+#                                         'anexadas': anexadas,
+#                                         'form': form})
+#
+#     def form_invalid(self,
+#                      form,
+#                      request,
+#                      mat_principal,
+#                      anexadas,
+#                      msg='Erro ineseperado.'):
+#         messages.add_message(request, messages.ERROR, msg)
+#         return self.render_to_response(
+#             {'form': form,
+#              'object': mat_principal,
+#              'anexadas': anexadas})
+#
+#     def post(self, request, *args, **kwargs):
+#         form = self.get_form()
+#
+#         anexadas = Anexada.objects.filter(
+#             materia_principal_id=kwargs['pk'])
+#         mat_principal = MateriaLegislativa.objects.get(
+#             id=kwargs['pk'])
+#
+#         if form.is_valid():
+#             tipo = form.cleaned_data['tipo']
+#             numero = form.cleaned_data['numero']
+#             ano = form.cleaned_data['ano']
+#             data_anexacao = form.cleaned_data['data_anexacao']
+#             data_desanexacao = form.cleaned_data['data_desanexacao']
+#
+#             try:
+#                 mat_anexada = MateriaLegislativa.objects.get(
+#                     numero=numero, ano=ano, tipo=tipo)
+#
+#                 if mat_principal.tipo == mat_anexada.tipo:
+#                     msg = _('A matéria a ser anexada não pode ser do mesmo'
+#                             ' tipo da matéria principal.')
+#                     self.form_invalid(
+#                         form, request, mat_principal, anexadas, msg)
+#                 anexada = Anexada()
+#                 anexada.materia_principal = mat_principal
+#                 anexada.materia_anexada = mat_anexada
+#                 anexada.data_anexacao = data_anexacao
+#                 if data_desanexacao:
+#                     anexada.data_desanexacao = data_desanexacao
+#
+#                 anexada.save()
+#             except ObjectDoesNotExist:
+#                 msg = _('A matéria a ser anexada não existe no cadastro'
+#                         ' de matérias legislativas.')
+#                 self.form_invalid(form, request, mat_principal, anexadas, msg)
+#             return self.form_valid(form)
+#         else:
+#             return self.render_to_response(
+#                 {'form': form,
+#                  'object': mat_principal,
+#                  'anexadas': anexadas})
+#
+#     def get_success_url(self):
+#         pk = self.kwargs['pk']
+#         return reverse('materia:materia_anexada', kwargs={'pk': pk})
+#
+#
+# class MateriaAnexadaEditView(FormView):
+#     template_name = "materia/materia_anexada_edit.html"
+#     form_class = MateriaAnexadaForm
+#
+#     def form_invalid(self,
+#                      form,
+#                      request,
+#                      mat_principal,
+#                      msg='Erro ineseperado.'):
+#         messages.add_message(request, messages.ERROR, msg)
+#         return self.render_to_response(
+#             {'form': form, 'object': mat_principal})
+#
+#     def get(self, request, *args, **kwargs):
+#         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+#         anexada = Anexada.objects.get(id=kwargs['id'])
+#
+#         data = {}
+#         data['tipo'] = anexada.materia_anexada.tipo
+#         data['numero'] = anexada.materia_anexada.numero
+#         data['ano'] = anexada.materia_anexada.ano
+#         data['data_anexacao'] = anexada.data_anexacao
+#         data['data_desanexacao'] = anexada.data_desanexacao
+#
+#         form = MateriaAnexadaForm(initial=data, excluir=True)
+#
+#         return self.render_to_response(
+#             {'object': materia,
+#              'form': form})
+#
+#     def post(self, request, *args, **kwargs):
+#         form = self.get_form()
+#
+#         anexada = Anexada.objects.get(id=kwargs['id'])
+#         mat_principal = MateriaLegislativa.objects.get(
+#             id=kwargs['pk'])
+#         if form.is_valid():
+#             if 'Excluir' in request.POST:
+#                 anexada.delete()
+#                 return self.form_valid(form)
+#             elif 'salvar' in request.POST:
+#
+#                 tipo = form.cleaned_data['tipo']
+#                 numero = form.cleaned_data['numero']
+#                 ano = form.cleaned_data['ano']
+#                 data_anexacao = form.cleaned_data['data_anexacao']
+#
+#                 if 'data_desanexacao' in request.POST:
+#                     data_desanexacao = form.cleaned_data['data_desanexacao']
+#
+#                 try:
+#                     mat_anexada = MateriaLegislativa.objects.get(
+#                         numero=numero, ano=ano, tipo=tipo)
+#
+#                     if mat_principal.tipo == mat_anexada.tipo:
+#                         msg = _('A matéria a ser anexada não pode ser do mesmo \
+#                         tipo da matéria principal.')
+#                         self.form_invalid(form, request, mat_principal, msg)
+#
+#                     anexada.materia_principal = mat_principal
+#                     anexada.materia_anexada = mat_anexada
+#                     anexada.data_anexacao = data_anexacao
+#
+#                     if data_desanexacao:
+#                         anexada.data_desanexacao = data_desanexacao
+#
+#                     anexada.save()
+#                     return self.form_valid(form)
+#
+#                 except ObjectDoesNotExist:
+#                     msg = _('A matéria a ser anexada não existe no cadastro \
+#                         de matérias legislativas.')
+#                     self.form_invalid(form, request, mat_principal, msg)
+#         else:
+#             return self.render_to_response(
+#                 {'form': form,
+#                  'materia': mat_principal})
+#
+#     def get_success_url(self):
+#         pk = self.kwargs['pk']
+#         return reverse('materia_anexada', kwargs={'pk': pk})
 
 
 class DespachoInicialView(CreateView):

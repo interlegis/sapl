@@ -37,11 +37,8 @@ MateriaLegislativa:
   - observacao
 
 Anexada:
-  Matéria Legislativa:
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
-  - data_anexacao  data_desanexacao
   Matéria Anexada:
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - tipo numero ano
   - data_anexacao  data_desanexacao
 
 TipoAutor:

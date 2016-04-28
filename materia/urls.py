@@ -7,7 +7,6 @@ from materia.views import (AcompanhamentoConfirmarView,
                            DespachoInicialEditView, DespachoInicialView,
                            DocumentoAcessorioEditView, DocumentoAcessorioView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
-                           MateriaAnexadaEditView, MateriaAnexadaView,
                            MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoEditView, NumeracaoView, OrgaoCrud,
@@ -18,14 +17,15 @@ from materia.views import (AcompanhamentoConfirmarView,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
                            TipoMateriaCrud, TipoProposicaoCrud,
                            TramitacaoEditView, TramitacaoView,
-                           UnidadeTramitacaoCrud)
+                           UnidadeTramitacaoCrud, AnexadaCrud)
 
 from .apps import AppConfig
 
 app_name = AppConfig.name
 
 urlpatterns = [
-    url(r'^materia/', include(MateriaLegislativaCrud.get_urls())),
+    url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
+                              AnexadaCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -52,10 +52,10 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    url(r'^materia/(?P<pk>\d+)/materia-anexada$',
-        MateriaAnexadaView.as_view(), name='materia_anexada'),
-    url(r'^materia/(?P<pk>\d+)/materia-anexada/(?P<id>\d+)/edit',
-        MateriaAnexadaEditView.as_view(), name='materia_anexada_edit'),
+    # url(r'^materia/(?P<pk>\d+)/materia-anexada$',
+    #     MateriaAnexadaView.as_view(), name='materia_anexada'),
+    # url(r'^materia/(?P<pk>\d+)/materia-anexada/(?P<id>\d+)/edit',
+    #     MateriaAnexadaEditView.as_view(), name='materia_anexada_edit'),
     url(r'^materia/(?P<pk>\d+)/despacho-inicial$',
         DespachoInicialView.as_view(), name='despacho_inicial'),
     url(r'^materia/(?P<pk>\d+)/despacho-inicial/(?P<id>\d+)/edit',
