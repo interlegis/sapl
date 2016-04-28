@@ -70,8 +70,7 @@ DocumentoAcessorio:
 
 Numeracao:
   Numeração:
-  - tipo_materia  numero_materia
-  - ano_materia  data_materia
+  - tipo_materia numero_materia ano_materia data_materia
 
 Orgao:
   Órgão:

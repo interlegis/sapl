@@ -8,8 +8,8 @@ from materia.views import (AcompanhamentoConfirmarView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
                            MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
-                           NumeracaoEditView, NumeracaoView, OrgaoCrud,
-                           OrigemCrud, ProposicaoEditView, ProposicaoListView,
+                           NumeracaoCrud, OrgaoCrud, OrigemCrud,
+                           ProposicaoEditView, ProposicaoListView,
                            ProposicaoTaView, ProposicaoView,
                            RegimeTramitacaoCrud, RelatoriaEditView,
                            RelatoriaView, StatusTramitacaoCrud, TipoAutorCrud,
@@ -26,7 +26,8 @@ urlpatterns = [
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
                               AnexadaCrud.get_urls() +
                               AutoriaCrud.get_urls() +
-                              DespachoInicialCrud.get_urls())),
+                              DespachoInicialCrud.get_urls() +
+                              NumeracaoCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -57,10 +58,6 @@ urlpatterns = [
         LegislacaoCitadaView.as_view(), name='legislacao_citada'),
     url(r'^materia/(?P<pk>\d+)/legislacao-citada/(?P<id>\d+)/edit',
         LegislacaoCitadaEditView.as_view(), name='legislacao_citada_edit'),
-    url(r'^materia/(?P<pk>\d+)/numeracao$',
-        NumeracaoView.as_view(), name='numeracao'),
-    url(r'^materia/(?P<pk>\d+)/numeracao/(?P<id>\d+)/edit',
-        NumeracaoEditView.as_view(), name='numeracao_edit'),
     url(r'^materia/(?P<pk>\d+)/documento-acessorio$',
         DocumentoAcessorioView.as_view(), name='documento_acessorio'),
     url(r'^materia/(?P<pk>\d+)/documento-acessorio/(?P<id>\d+)/edit',
