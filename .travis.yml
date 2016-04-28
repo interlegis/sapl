@@ -16,4 +16,4 @@ before script:
   - bower install
   - manage.py migrate
 scripts:
-  - test_and_check_qa.sh
+  - test_and_check_qa
