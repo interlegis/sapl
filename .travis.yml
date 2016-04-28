@@ -4,12 +4,15 @@ sudo: true
 python:
   - "3.4.3"
 
+services:
+  - postgresql
+
 install:
-  - pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm
   - pip install -r requirements/test-requirements.txt
   - python setup.py -q install
 
 before script:
+  - psql -c 'create database travis_ci_test;' -U postgres
   - npm install -g bower
   - bower install
   - manage.py migrate
