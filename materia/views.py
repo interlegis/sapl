@@ -15,19 +15,20 @@ from django.views.generic import CreateView, FormView, ListView, TemplateView
 from django_filters.views import FilterView
 
 import crud.base
+import crud.masterdetail
 from base.models import CasaLegislativa
 from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
+from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
-from parlamentares.models import Partido
 from sapl.utils import get_base_url
 
-from .forms import (AcompanhamentoMateriaForm, AutoriaForm,
+from .forms import (AcompanhamentoMateriaForm, AnexadaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
-                    LegislacaoCitadaForm, MateriaAnexadaForm,
-                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
-                    RelatoriaForm, TramitacaoForm, filtra_tramitacao_destino,
+                    LegislacaoCitadaForm, MateriaLegislativaFilterSet,
+                    NumeracaoForm, ProposicaoForm, RelatoriaForm,
+                    TramitacaoForm, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -46,7 +47,6 @@ TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
 AnexadaCrud = Crud.build(Anexada, '')
 TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
-AutoriaCrud = Crud.build(Autoria, '')
 DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
 NumeracaoCrud = Crud.build(Numeracao, '')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
@@ -57,6 +57,48 @@ StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
+AutoriaCrud = MasterDetailCrud.build(Autoria, 'materia', '')
+
+
+class DespachoInicialCrud(MasterDetailCrud):
+    model = DespachoInicial
+    parent_field = 'materia'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = DespachoInicialForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = DespachoInicialForm
+
+
+class AnexadaCrud(MasterDetailCrud):
+    model = Anexada
+    parent_field = 'materia_principal'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['materia_anexada', 'data_anexacao']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexadaForm
+
+        def get_initial(self, **kwargs):
+            self.initial['tipo'] = self.object.materia_anexada.tipo.id
+            self.initial['numero'] = self.object.materia_anexada.numero
+            self.initial['ano'] = self.object.materia_anexada.ano
+
+            return self.initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'AnexadaDetail'
+
 
 class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
@@ -64,236 +106,6 @@ class MateriaLegislativaCrud(Crud):
 
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
-
-
-class MateriaAnexadaView(FormView):
-    template_name = "materia/materia_anexada.html"
-    form_class = MateriaAnexadaForm
-    form_valid_message = _('Matéria anexada com sucesso!')
-
-    def get(self, request, *args, **kwargs):
-        form = MateriaAnexadaForm()
-        materia = MateriaLegislativa.objects.get(
-            id=kwargs['pk'])
-        anexadas = Anexada.objects.filter(
-            materia_principal_id=kwargs['pk'])
-
-        return self.render_to_response({'object': materia,
-                                        'anexadas': anexadas,
-                                        'form': form})
-
-    def form_invalid(self,
-                     form,
-                     request,
-                     mat_principal,
-                     anexadas,
-                     msg='Erro ineseperado.'):
-        messages.add_message(request, messages.ERROR, msg)
-        return self.render_to_response(
-            {'form': form,
-             'object': mat_principal,
-             'anexadas': anexadas})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        anexadas = Anexada.objects.filter(
-            materia_principal_id=kwargs['pk'])
-        mat_principal = MateriaLegislativa.objects.get(
-            id=kwargs['pk'])
-
-        if form.is_valid():
-            tipo = form.cleaned_data['tipo']
-            numero = form.cleaned_data['numero']
-            ano = form.cleaned_data['ano']
-            data_anexacao = form.cleaned_data['data_anexacao']
-            data_desanexacao = form.cleaned_data['data_desanexacao']
-
-            try:
-                mat_anexada = MateriaLegislativa.objects.get(
-                    numero=numero, ano=ano, tipo=tipo)
-
-                if mat_principal.tipo == mat_anexada.tipo:
-                    msg = _('A matéria a ser anexada não pode ser do mesmo'
-                            ' tipo da matéria principal.')
-                    self.form_invalid(
-                        form, request, mat_principal, anexadas, msg)
-                anexada = Anexada()
-                anexada.materia_principal = mat_principal
-                anexada.materia_anexada = mat_anexada
-                anexada.data_anexacao = data_anexacao
-                if data_desanexacao:
-                    anexada.data_desanexacao = data_desanexacao
-
-                anexada.save()
-            except ObjectDoesNotExist:
-                msg = _('A matéria a ser anexada não existe no cadastro'
-                        ' de matérias legislativas.')
-                self.form_invalid(form, request, mat_principal, anexadas, msg)
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': mat_principal,
-                 'anexadas': anexadas})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:materia_anexada', kwargs={'pk': pk})
-
-
-class MateriaAnexadaEditView(FormView):
-    template_name = "materia/materia_anexada_edit.html"
-    form_class = MateriaAnexadaForm
-
-    def form_invalid(self,
-                     form,
-                     request,
-                     mat_principal,
-                     msg='Erro ineseperado.'):
-        messages.add_message(request, messages.ERROR, msg)
-        return self.render_to_response(
-            {'form': form, 'object': mat_principal})
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        anexada = Anexada.objects.get(id=kwargs['id'])
-
-        data = {}
-        data['tipo'] = anexada.materia_anexada.tipo
-        data['numero'] = anexada.materia_anexada.numero
-        data['ano'] = anexada.materia_anexada.ano
-        data['data_anexacao'] = anexada.data_anexacao
-        data['data_desanexacao'] = anexada.data_desanexacao
-
-        form = MateriaAnexadaForm(initial=data, excluir=True)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        anexada = Anexada.objects.get(id=kwargs['id'])
-        mat_principal = MateriaLegislativa.objects.get(
-            id=kwargs['pk'])
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                anexada.delete()
-                return self.form_valid(form)
-            elif 'salvar' in request.POST:
-
-                tipo = form.cleaned_data['tipo']
-                numero = form.cleaned_data['numero']
-                ano = form.cleaned_data['ano']
-                data_anexacao = form.cleaned_data['data_anexacao']
-
-                if 'data_desanexacao' in request.POST:
-                    data_desanexacao = form.cleaned_data['data_desanexacao']
-
-                try:
-                    mat_anexada = MateriaLegislativa.objects.get(
-                        numero=numero, ano=ano, tipo=tipo)
-
-                    if mat_principal.tipo == mat_anexada.tipo:
-                        msg = _('A matéria a ser anexada não pode ser do mesmo \
-                        tipo da matéria principal.')
-                        self.form_invalid(form, request, mat_principal, msg)
-
-                    anexada.materia_principal = mat_principal
-                    anexada.materia_anexada = mat_anexada
-                    anexada.data_anexacao = data_anexacao
-
-                    if data_desanexacao:
-                        anexada.data_desanexacao = data_desanexacao
-
-                    anexada.save()
-                    return self.form_valid(form)
-
-                except ObjectDoesNotExist:
-                    msg = _('A matéria a ser anexada não existe no cadastro \
-                        de matérias legislativas.')
-                    self.form_invalid(form, request, mat_principal, msg)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'materia': mat_principal})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia_anexada', kwargs={'pk': pk})
-
-
-class DespachoInicialView(CreateView):
-    template_name = "materia/despacho_inicial.html"
-    form_class = DespachoInicialForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.filter(materia_id=materia.id)
-        form = DespachoInicialForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'despachos': despacho})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.filter(materia_id=materia.id)
-
-        if form.is_valid():
-            despacho = DespachoInicial()
-            despacho.comissao = form.cleaned_data['comissao']
-            despacho.materia = materia
-            despacho.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'despachos': despacho})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
-
-
-class DespachoInicialEditView(CreateView):
-    template_name = "materia/despacho_inicial_edit.html"
-    form_class = DespachoInicialForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.get(id=kwargs['id'])
-        form = DespachoInicialForm(instance=despacho, excluir=True)
-
-        return self.render_to_response({'object': materia, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        despacho = DespachoInicial.objects.get(id=kwargs['id'])
-
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                despacho.delete()
-            elif 'salvar' in request.POST:
-                despacho.comissao = form.cleaned_data['comissao']
-                despacho.materia = materia
-                despacho.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'despacho': despacho,
-                 'comissoes': Comissao.objects.all()})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:despacho_inicial', kwargs={'pk': pk})
 
 
 class LegislacaoCitadaView(FormView):
@@ -1085,87 +897,6 @@ class TramitacaoEditView(CreateView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
-
-
-class AutoriaView(CreateView):
-    template_name = "materia/autoria.html"
-    form_class = AutoriaForm
-    form_valid_message = _('Autoria cadastrada com sucesso!')
-    model = Autoria
-
-    def get_initial(self):
-        initial = super(AutoriaView, self).get_initial()
-        initial['materia_id'] = self.kwargs['pk']
-        return initial
-
-    def get_context_data(self, **kwargs):
-        context = super(AutoriaView, self).get_context_data(**kwargs)
-
-        materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
-        autorias = Autoria.objects.filter(materia=materia)
-
-        context.update({'object': materia,
-                        'autorias': autorias})
-        return context
-
-    def form_valid(self, form):
-        materia = MateriaLegislativa.objects.get(id=form.data['materia_id'])
-        if 'salvar' in self.request.POST:
-            autoria = Autoria()
-            autoria.autor = Autor.objects.get(id=form.data['autor'])
-            autoria.materia = materia
-            autoria.primeiro_autor = form.data['primeiro_autor']
-
-            if form.data['partido']:
-                filiacao_autor = Partido.objects.get(id=form.data['partido'])
-                autoria.partido = filiacao_autor
-
-            autoria.save()
-
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:autoria', kwargs={'pk': pk})
-
-
-class AutoriaEditView(CreateView):
-    template_name = "materia/autoria_edit.html"
-    form_class = AutoriaForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        autoria = Autoria.objects.get(id=self.kwargs['id'])
-        form = AutoriaForm(instance=autoria, excluir=True)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form})
-
-    def post(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        form = self.get_form()
-        if form.is_valid():
-            autoria = Autoria.objects.get(id=self.kwargs['id'])
-            if 'salvar' in request.POST:
-                autoria.autor = Autor.objects.get(id=form.data['autor'])
-                autoria.primeiro_autor = form.data['primeiro_autor']
-                if 'partido' in form.data:
-                    autoria.partido = Partido.objects.get(
-                        id=form.data['partido'])
-                autoria.materia = materia
-                autoria.save()
-            elif 'Excluir' in request.POST:
-                autoria.delete()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:autoria', kwargs={'pk': pk})
 
 
 class ProposicaoListView(ListView):

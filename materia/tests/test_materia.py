@@ -97,7 +97,7 @@ def test_materia_anexada_submit(client):
     materia_anexada = MateriaLegislativa.objects.get(numero=32, ano=2004)
 
     # Testa POST
-    response = client.post(reverse('materia:materia_anexada',
+    response = client.post(reverse('materia:anexada_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'tipo': materia_anexada.tipo.pk,
                             'numero': materia_anexada.numero,
@@ -124,7 +124,7 @@ def test_autoria_submit(client):
     autor = mommy.make(Autor, tipo=tipo_autor, nome='Autor Teste')
 
     # Testa POST
-    response = client.post(reverse('materia:autoria',
+    response = client.post(reverse('materia:autoria_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'autor': autor.pk,
                             'primeiro_autor': True,
@@ -154,7 +154,7 @@ def test_despacho_inicial_submit(client):
                           data_criacao='2016-03-18')
 
     # Testa POST
-    response = client.post(reverse('materia:despacho_inicial',
+    response = client.post(reverse('materia:despachoinicial_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'comissao': comissao.pk,
                             'salvar': 'salvar'},
@@ -286,7 +286,7 @@ def test_tramitacao_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_anexada(client):
     materia_principal = make_materia_principal()
-    response = client.post(reverse('materia:materia_anexada',
+    response = client.post(reverse('materia:anexada_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)
@@ -305,7 +305,7 @@ def test_form_errors_anexada(client):
 def test_form_errors_autoria(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:autoria',
+    response = client.post(reverse('materia:autoria_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'materia_id': materia_principal.pk,
                             'partido': '',
@@ -315,15 +315,13 @@ def test_form_errors_autoria(client):
 
     assert (response.context_data['form'].errors['autor'] ==
             ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['primeiro_autor'] ==
-            ['Este campo é obrigatório.'])
 
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_despacho_inicial(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:despacho_inicial',
+    response = client.post(reverse('materia:despachoinicial_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)

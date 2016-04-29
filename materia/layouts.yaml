@@ -37,11 +37,14 @@ MateriaLegislativa:
   - observacao
 
 Anexada:
-  Matéria Legislativa:
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
-  - data_anexacao  data_desanexacao
   Matéria Anexada:
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
+  - tipo numero ano
+  - data_anexacao  data_desanexacao
+
+AnexadaDetail:
+  Matéria Anexada:
+  - materia_principal
+  - materia_anexada
   - data_anexacao  data_desanexacao
 
 TipoAutor:
@@ -55,7 +58,7 @@ Autor:
 
 Autoria:
   Autoria:
-  - tip_autor_FIXME  nom_autor_FIXME  primeiro_autor
+  - autor  partido  primeiro_autor
 
 DocumentoAcessorio:
   Documento Acessório:
@@ -109,3 +112,7 @@ Tramitacao:
   - status  turno  urgente
   - unidade_tramitacao_destino  data_encaminhamento  data_fim_prazo
   - texto
+
+DespachoInicial:
+  Despacho Inicial:
+  - comissao

@@ -1,11 +1,11 @@
 - title: Início
   url: materialegislativa_detail
 - title: Anexada
-  url: materia_anexada
+  url: anexada_list
 - title: Autoria
-  url: autoria
+  url: autoria_list
 - title: Despacho Inicial
-  url: despacho_inicial
+  url: despachoinicial_list
 - title: Documento Acessório
   url: documento_acessorio
 - title: Legislação Citada
