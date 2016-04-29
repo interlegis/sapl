@@ -15,9 +15,10 @@ from norma.models import LegislacaoCitada, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import (AcompanhamentoMateria, Anexada, Autor, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
-                     Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
+                     Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
+                     Tramitacao)
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -559,13 +560,31 @@ class DespachoInicialForm(ModelForm):
         if self.errors:
             return self.errors
 
-        cleaned_data = self.cleaned_data
-
         if DespachoInicial.objects.filter(
             materia=self.instance.materia,
             comissao=self.cleaned_data['comissao'],
         ).exists():
             msg = _('Esse Despacho já foi cadastrado.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data
+
+
+class AutoriaForm(ModelForm):
+
+    class Meta:
+        model = Autoria
+        fields = ['autor', 'partido', 'primeiro_autor']
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        if Autoria.objects.filter(
+            materia=self.instance.materia,
+            autor=self.cleaned_data['autor'],
+        ).exists():
+            msg = _('Esse Autor já foi cadastrado.')
             raise ValidationError(msg)
 
         return self.cleaned_data

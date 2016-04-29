@@ -24,7 +24,7 @@ from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.utils import get_base_url
 
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm,
+from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     LegislacaoCitadaForm, MateriaLegislativaFilterSet,
                     NumeracaoForm, ProposicaoForm, RelatoriaForm,
@@ -56,7 +56,17 @@ StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 TramitacaoCrud = Crud.build(Tramitacao, '')
 
-AutoriaCrud = MasterDetailCrud.build(Autoria, 'materia', '')
+
+class AutoriaCrud(MasterDetailCrud):
+    model = Autoria
+    parent_field = 'materia'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AutoriaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AutoriaForm
 
 
 class DespachoInicialCrud(MasterDetailCrud):
