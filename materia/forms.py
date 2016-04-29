@@ -315,25 +315,30 @@ class NumeracaoForm(ModelForm):
                   'ano_materia',
                   'data_materia']
 
-    def __init__(self, excluir=False, *args, **kwargs):
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
+    def clean(self):
+        if self.errors:
+            return self.errors
 
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 12)])
-        row2 = crispy_layout_mixin.to_row(
-            [('numero_materia', 4), ('ano_materia', 4), ('data_materia', 4)])
+        try:
+            MateriaLegislativa.objects.get(
+                numero=self.cleaned_data['numero_materia'],
+                ano=self.cleaned_data['ano_materia'],
+                tipo=self.cleaned_data['tipo_materia'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser inclusa não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
 
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Numeração'),
-                row1, row2,
-                form_actions(more=more)
-            )
-        )
-        super(NumeracaoForm, self).__init__(*args, **kwargs)
+        if Numeracao.objects.filter(
+            materia=self.instance.materia,
+            tipo_materia=self.cleaned_data['tipo_materia'],
+            ano_materia=self.cleaned_data['ano_materia'],
+            numero_materia=self.cleaned_data['numero_materia']
+        ).exists():
+            msg = _('Essa numeração já foi cadastrada.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data
 
 
 class AnexadaForm(ModelForm):

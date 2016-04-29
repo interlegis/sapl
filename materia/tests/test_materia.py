@@ -170,17 +170,14 @@ def test_despacho_inicial_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_numeracao_submit(client):
     materia_principal = make_materia_principal()
+    materia = make_materia_principal()
 
-    # Cria dados para inserir na numeração
-    tipo = mommy.make(TipoMateriaLegislativa,
-                      sigla='T2',
-                      descricao='Teste_2')
     # Testa POST
-    response = client.post(reverse('materia:numeracao',
+    response = client.post(reverse('materia:numeracao_create',
                                    kwargs={'pk': materia_principal.pk}),
-                           {'tipo_materia': tipo.pk,
-                            'numero_materia': '341',
-                            'ano_materia': 2015,
+                           {'tipo_materia': materia.tipo.pk,
+                            'numero_materia': materia.numero,
+                            'ano_materia': materia.ano,
                             'data_materia': '2016-03-21',
                             'salvar': 'salvar'},
                            follow=True)
@@ -189,8 +186,8 @@ def test_numeracao_submit(client):
 
     # Verifica se a numeração foi criada
     numeracao = Numeracao.objects.first()
-    assert numeracao.tipo_materia == tipo
-    assert numeracao.ano_materia == 2015
+    assert numeracao.tipo_materia == materia.tipo
+    assert numeracao.ano_materia == materia.ano
 
 
 @pytest.mark.django_db(transaction=False)
@@ -366,7 +363,7 @@ def test_form_errors_legislacao_citada(client):
 def test_form_errors_numeracao(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:numeracao',
+    response = client.post(reverse('materia:numeracao_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)

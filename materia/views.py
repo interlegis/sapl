@@ -48,7 +48,6 @@ AnexadaCrud = Crud.build(Anexada, '')
 TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
 DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
-NumeracaoCrud = Crud.build(Numeracao, '')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
 RelatoriaCrud = Crud.build(Relatoria, '')
 TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
@@ -70,6 +69,18 @@ class DespachoInicialCrud(MasterDetailCrud):
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DespachoInicialForm
+
+
+class NumeracaoCrud(MasterDetailCrud):
+    model = Numeracao
+    parent_field = 'materia'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = NumeracaoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = NumeracaoForm
 
 
 class AnexadaCrud(MasterDetailCrud):
@@ -232,80 +243,6 @@ class LegislacaoCitadaEditView(FormView):
             return self.render_to_response(
                 {'form': form,
                  'object': materia})
-
-
-class NumeracaoView(CreateView):
-    template_name = "materia/numeracao.html"
-    form_class = NumeracaoForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        numeracao = Numeracao.objects.filter(materia_id=kwargs['pk'])
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': self.get_form(),
-             'numeracao': numeracao})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        numeracao_list = Numeracao.objects.filter(
-            materia_id=kwargs['pk'])
-
-        if form.is_valid():
-            numeracao = form.save(commit=False)
-            numeracao.materia = materia
-            numeracao.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'numeracao': numeracao_list})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:numeracao', kwargs={'pk': pk})
-
-
-class NumeracaoEditView(CreateView):
-    template_name = "materia/numeracao_edit.html"
-    form_class = NumeracaoForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        numeracao = Numeracao.objects.get(id=kwargs['id'])
-        form = NumeracaoForm(instance=numeracao, excluir=True)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'numeracao': numeracao})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        numeracao = Numeracao.objects.get(id=kwargs['id'])
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                numeracao.delete()
-            elif 'salvar' in request.POST:
-                numeracao.materia = materia
-                numeracao.tipo_materia = form.cleaned_data['tipo_materia']
-                numeracao.numero_materia = form.cleaned_data['numero_materia']
-                numeracao.ano_materia = form.cleaned_data['ano_materia']
-                numeracao.data_materia = form.cleaned_data['data_materia']
-                numeracao.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'numeracao': numeracao})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:numeracao', kwargs={'pk': pk})
 
 
 class DocumentoAcessorioView(CreateView):

@@ -317,6 +317,11 @@ class Numeracao(models.Model):
     class Meta:
         verbose_name = _('Numeração')
         verbose_name_plural = _('Numerações')
+        ordering = ('materia',
+                    'tipo_materia',
+                    'numero_materia',
+                    'ano_materia',
+                    'data_materia',)
 
     def __str__(self):
         return _('Nº%(numero)s %(tipo)s - %(data)s') % {
