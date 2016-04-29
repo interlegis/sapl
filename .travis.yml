@@ -10,7 +10,6 @@ services:
 install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz pkg-config python-psycopg2 nodejs npm
   - pip install -r requirements/test-requirements.txt
-  - sudo ln -s /usr/bin/nodejs /usr/bin/node
   - sudo npm install -g bower
 
 before script:
