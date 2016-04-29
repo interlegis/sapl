@@ -14,13 +14,12 @@ install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz postgresql-contrib pkg-config python-psycopg2 nodejs npm
   - sudo ln -s /usr/bin/node
   - npm install -g bower
-  - npm install -g bower
+  - bower install
   - pip install -r requirements/test-requirements.txt
 
 before script:
   - cp .env_dev .env
   - psql -c 'create database travis_ci_test;' -U postgres
-  - bower install
   - manage.py migrate
 
 script: ./test_and_check_qa.sh
