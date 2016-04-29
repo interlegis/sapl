@@ -18,7 +18,6 @@ install:
 
 before_script:
   - cp .env_dev .env
-  - psql -c 'create database travis_ci_test;' -U postgres
   - bower install
   - manage.py migrate
 
