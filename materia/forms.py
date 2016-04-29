@@ -340,21 +340,6 @@ class NumeracaoForm(ModelForm):
 
         return self.cleaned_data
 
-    def save(self, commit=False):
-        numeracao = super(NumeracaoForm, self).save(commit)
-        try:
-            Numeracao.objects.get(materia=numeracao.materia,
-                                  tipo_materia=numeracao.tipo_materia,
-                                  ano_materia=numeracao.ano_materia,
-                                  numero_materia=numeracao.numero_materia)
-        except ObjectDoesNotExist:
-            numeracao.save()
-        else:
-            msg = _('Essa numeração já existe.')
-            raise ValidationError(msg)
-
-        return numeracao
-
 
 class AnexadaForm(ModelForm):
 
