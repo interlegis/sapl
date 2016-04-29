@@ -316,7 +316,6 @@ class NumeracaoForm(ModelForm):
                   'data_materia']
 
     def clean(self):
-
         if self.errors:
             return self.errors
 
@@ -328,6 +327,15 @@ class NumeracaoForm(ModelForm):
         except ObjectDoesNotExist:
             msg = _('A matéria a ser inclusa não existe no cadastro'
                     ' de matérias legislativas.')
+            raise ValidationError(msg)
+
+        if Numeracao.objects.filter(
+            materia=self.instance.materia,
+            tipo_materia=self.cleaned_data['tipo_materia'],
+            ano_materia=self.cleaned_data['ano_materia'],
+            numero_materia=self.cleaned_data['numero_materia']
+        ).exists():
+            msg = _('Essa numeração já foi cadastrada.')
             raise ValidationError(msg)
 
         return self.cleaned_data
