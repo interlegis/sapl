@@ -11,6 +11,7 @@ install:
   - pip install -r requirements/test-requirements.txt
 
 before script:
+  - cp .env.travis .env
   - psql -c 'create database travis_ci_test;' -U postgres
   - npm install -g bower
   - bower install
