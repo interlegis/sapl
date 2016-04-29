@@ -7,16 +7,19 @@ python:
 services:
   - postgresql
 
+addons:
+  postgresql: "9.3"
+
 install:
-  - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz pkg-config python-psycopg2 nodejs npm
+  - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz postgresql-contrib pkg-config python-psycopg2 nodejs npm
   - sudo ln -s /usr/bin/node
+  - npm install -g bower
   - npm install -g bower
   - pip install -r requirements/test-requirements.txt
 
 before script:
   - cp .env_dev .env
   - psql -c 'create database travis_ci_test;' -U postgres
-  - npm install -g bower
   - bower install
   - manage.py migrate
 
