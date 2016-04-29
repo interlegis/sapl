@@ -14,11 +14,11 @@ install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz postgresql-contrib pkg-config python-psycopg2 nodejs npm
   - sudo ln -s /usr/bin/node
   - npm install -g bower
+  - ./manage.py bower install
   - pip install -r requirements/test-requirements.txt
 
 before_script:
   - cp .env_dev .env
-  - manage.py bower install
   - manage.py migrate
 
 script: ./test_and_check_qa.sh
