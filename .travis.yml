@@ -20,5 +20,5 @@ before_script:
   - npm install -g bower
 
 script: 
-  - python manage.py bower install
+  - ./manage.py bower install
   - ./test_and_check_qa.sh
