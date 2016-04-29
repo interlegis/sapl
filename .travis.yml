@@ -17,4 +17,4 @@ before script:
   - manage.py migrate
 
 script:
-  - test_and_check_qa.sh
+  - ./test_and_check_qa
