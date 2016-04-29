@@ -102,11 +102,11 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
 
             return self.initial
 
-    class DetailView(MasterDetailCrud.DetailView):
-
-        @property
-        def layout_key(self):
-            return 'LegislacaoCitadaDetail'
+    # class DetailView(MasterDetailCrud.DetailView):
+    #
+    #     @property
+    #     def layout_key(self):
+    #         return 'LegislacaoCitadaDetail'
 
 
 class NumeracaoCrud(MasterDetailCrud):

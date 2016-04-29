@@ -30,14 +30,14 @@ NormaJuridicaCreate:
 
 LegislacaoCitada:
   Legislação Citada:
-  - tipo_norma  numero_norma  ano_norma
+  - tipo  numero  ano
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
 
-LegislacaoCitadaDetail:
-  Legislação Citada:
-  - norma
-  - disposicoes  parte  livro  titulo
-  - capitulo  secao  subsecao  artigo
-  - paragrafo  inciso  alinea  item
+# LegislacaoCitadaDetail:
+#   Legislação Citada:
+#   - norma
+#   - disposicoes  parte  livro  titulo
+#   - capitulo  secao  subsecao  artigo
+#   - paragrafo  inciso  alinea  item
