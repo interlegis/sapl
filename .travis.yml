@@ -9,10 +9,15 @@ services:
 
 install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz pkg-config python-psycopg2 nodejs npm
-  - pip install -r requirements/test-requirements.txt
+  - sudo apt-get install curl -y
+  - sudo npm cache clean -f
+  - sudo npm install -g n
+  - sudo n stable
   - sudo npm install -g bower
+  - pip install -r requirements/test-requirements.txt
 
 before script:
+  - cp .env_dev .env
   - psql -c 'create database travis_ci_test;' -U postgres
   - npm install -g bower
   - bower install
