@@ -18,6 +18,5 @@ install:
 before_script:
   - cp .env_dev .env
   - npm install -g bower
-  - manage.py migrate
 
 script: ./test_and_check_qa.sh
