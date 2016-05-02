@@ -109,7 +109,7 @@ DATABASES = {
         'USER': 'sapl',
         'PASSWORD': '',
         'HOST': 'localhost',
-        'PORT': '5466',
+        'PORT': '',
     }
 }
 
