@@ -1,5 +1,5 @@
 language: python
-sudo: true
+sudo: required
 
 python:
   - "3.4.3"
@@ -17,6 +17,7 @@ install:
   - pip install --upgrade setuptools
 
 before_script:
+  - sudo service postgresql restart
   - npm install -g bower
   - cp sapl/settings_travis.py sapl/settings.py
   - sed -i -e 's/getpass.getuser()/"postgres"/g' sapl/settings.py
