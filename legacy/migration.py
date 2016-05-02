@@ -9,7 +9,9 @@ from django.db import connections, models
 from django.db.models import CharField, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
+from model_mommy.mommy import foreign_key_required, make
 
+from base.models import ProblemaMigracao
 from comissoes.models import Composicao, Participacao
 from parlamentares.models import Parlamentar
 from sessao.models import SessaoPlenaria
@@ -26,7 +28,6 @@ appconfs = [apps.get_app_config(n) for n in [
     'lexml',
     'protocoloadm', ]]
 
-stubs_list = []
 unique_constraints = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
@@ -81,8 +82,8 @@ def get_renames():
 
     return field_renames, model_renames
 
-
 # MIGRATION #################################################################
+
 
 def info(msg):
     print('INFO: ' + msg)
@@ -93,7 +94,6 @@ def warn(msg):
 
 
 def get_fk_related(field, value, label=None):
-    fields_dict = {}
     if value is None and field.null is False:
         value = 0
     if value is not None:
@@ -105,24 +105,20 @@ def get_fk_related(field, value, label=None):
                     field.name, value,
                     field.model.__name__, label or '---')
             if value == 0:
-                # se FK == 0, criamos um stub e colocamos o valor '????????'
-                # para qualquer CharField ou TextField que possa haver
                 if not field.null:
-                    all_fields = field.related_model._meta.get_fields()
-                    fields_dict = {f.name: '????????????'[:f.max_length]
-                                   for f in all_fields
-                                   if isinstance(f, (CharField, TextField)) and
-                                   not f.choices and not f.blank}
+                    fields_dict = get_fields_dict(field.related_model)
                     value = mommy.make(field.related_model,
                                        **fields_dict)
-                    warn(msg + ' => STUB criada para campos não nuláveis!')
+                    descricao = 'stub criado para campos não nuláveis!'
+                    save_relation(value, msg, descricao, eh_stub=True)
+                    warn(msg + ' => ' + descricao)
                 else:
                     value = None
-                    warn(msg + ' => usando None para valores iguais a zero!')
             else:
                 value = make_stub(field.related_model, value)
-                stubs_list.append((value.id, field))
-                warn(msg + ' => STUB criada!')
+                descricao = 'stub criado para entrada orfã!'
+                warn(msg + ' => ' + descricao)
+                save_relation(value, msg, descricao, eh_stub=True)
         else:
             assert value
     return value
@@ -173,11 +169,23 @@ def recreate_constraints():
             for i in range(len(args)):
                 if isinstance(model._meta.get_field(args[i]),
                               models.ForeignKey):
-                    args[i] = args[i]+'_id'
+                    args[i] = args[i] + '_id'
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
             exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
                      (table, name, args_string))
+    unique_constraints.clear()
+
+
+def stub_desnecessario(obj):
+    lista_fields = [
+        f for f in obj._meta.get_fields()
+        if (f.one_to_many or f.one_to_one) and f.auto_created
+    ]
+    desnecessario = not any(
+        rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
+        for rr in lista_fields)
+    return desnecessario
 
 
 def save_with_id(new, id):
@@ -193,15 +201,34 @@ def save_with_id(new, id):
     assert new.id == id, 'New id is different from provided!'
 
 
+def save_relation(obj, problema='', descricao='', eh_stub=False):
+    link = ProblemaMigracao(content_object=obj, problema=problema,
+                            descricao=descricao, eh_stub=eh_stub)
+    link.save()
+
+
 def make_stub(model, id):
-    new = mommy.prepare(model)
+    fields_dict = get_fields_dict(model)
+    new = mommy.prepare(model, **fields_dict)
     save_with_id(new, id)
+
     return new
+
+
+def get_fields_dict(model):
+    all_fields = model._meta.get_fields()
+    fields_dict = {}
+    fields_dict = {f.name: '????????????'[:f.max_length]
+                   for f in all_fields
+                   if isinstance(f, (CharField, TextField)) and
+                   not f.choices and not f.blank}
+    return fields_dict
 
 
 class DataMigrator:
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
+        self.data_mudada = {}
 
     def populate_renamed_fields(self, new, old):
         renames = self.field_renames[type(new)]
@@ -209,7 +236,7 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
-            msg = ("Campo %s (%s) da model %s " %
+            msg = ("O valor do campo %s (%s) da model %s era inválido" %
                    (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
@@ -230,18 +257,24 @@ class DataMigrator:
                     combined_names = "(" + ")|(".join(names) + ")"
                     matches = re.search('(ano_\w+)', combined_names)
                     if not matches:
+                        descricao = 'A data 0001-01-01 foi colocada no lugar'
                         warn(msg +
-                             '=> colocando valor 0000-01-01 para DateField')
+                             ' => ' + descricao)
                         value = '0001-01-01'
+                        self.data_mudada['obj'] = new
+                        self.data_mudada['descricao'] = descricao
+                        self.data_mudada['problema'] = msg
                     else:
                         value = '%d-01-01' % getattr(old, matches.group(0))
+                        descricao = ('A data %s para foi colocada no lugar'
+                                     % value)
+                        self.data_mudada['obj'] = new
+                        self.data_mudada['descricao'] = descricao
+                        self.data_mudada['problema'] = msg
                         warn(msg +
-                             "=> colocando %s para DateField não nulável" %
-                             (value))
+                             '=> ' + descricao)
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
-                        warn(msg + "=> colocando string vazia para valor %s" %
-                             (value))
                         value = ''
                 setattr(new, field.name, value)
 
@@ -249,6 +282,7 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
 
         self.to_delete = []
+        ProblemaMigracao.objects.all().delete()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
         # exclude logically deleted in legacy base
@@ -256,7 +290,8 @@ class DataMigrator:
         for obj in self.to_delete:
             obj.delete()
         info('Deletando stubs desnecessários...')
-        self.delete_stubs()
+        while self.delete_stubs():
+            pass
         info('Recriando unique constraints...')
         recreate_constraints()
 
@@ -309,16 +344,29 @@ class DataMigrator:
             if adjust:
                 adjust(new, old)
             save(new, old)
+            if self.data_mudada:
+                save_relation(**self.data_mudada)
+                self.data_mudada.clear()
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
 
     def delete_stubs(self):
-        for line in stubs_list:
-            stub, field = line
-            # Filter all objects in model and delete from related model
-            # if quantity is equal to zero
-            if field.model.objects.filter(**{field.name: stub}).exists():
-                field.related_model.objects.get(**{'id': stub}).delete()
+        excluidos = 0
+        for obj in ProblemaMigracao.objects.all():
+            if obj.content_object and obj.eh_stub:
+                original = obj.content_type.get_all_objects_for_this_type(
+                    id=obj.object_id)
+                if stub_desnecessario(original[0]):
+                    qtd_exclusoes, *_ = original.delete()
+                    assert qtd_exclusoes == 1
+                    qtd_exclusoes, *_ = obj.delete()
+                    assert qtd_exclusoes == 1
+                    excluidos = excluidos + 1
+            elif not obj.content_object and not obj.eh_stub:
+                qtd_exclusoes, *_ = obj.delete()
+                assert qtd_exclusoes == 1
+                excluidos = excluidos + 1
+        return excluidos
 
 
 def migrate(obj=appconfs):
@@ -346,13 +394,14 @@ def adjust_participacao(new_participacao, old):
 
 
 def adjust_parlamentar(new_parlamentar, old):
-    value = new_parlamentar.unidade_deliberativa
-    # Field is defined as not null in legacy db,
-    # but data includes null values
-    #  => transform None to False
-    if value is None:
-        warn('nulo convertido para falso')
-        new_parlamentar.unidade_deliberativa = False
+    if old.ind_unid_deliberativa:
+        value = new_parlamentar.unidade_deliberativa
+        # Field is defined as not null in legacy db,
+        # but data includes null values
+        #  => transform None to False
+        if value is None:
+            warn('nulo convertido para falso')
+            new_parlamentar.unidade_deliberativa = False
 
 
 def adjust_sessaoplenaria(new, old):
@@ -378,3 +427,18 @@ def check_app_no_ind_excluido(app):
     for model in app.models.values():
         assert not any(get_ind_excluido(obj) for obj in model.objects.all())
     print('OK!')
+
+# MOMMY MAKE WITH LOG  ######################################################
+
+
+def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
+    fields_dict = get_fields_dict(model)
+    stub = make(model, _quantity, make_m2m, **fields_dict)
+    problema = 'Um stub foi necessário durante a criação de um outro stub'
+    descricao = 'Essa entrada é necessária para um dos stubs criados'
+    ' anteriormente'
+    warn(problema)
+    save_relation(stub, problema, descricao, eh_stub=True)
+    return stub
+
+make_with_log.required = foreign_key_required

@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -45,3 +47,17 @@ class CasaLegislativa(models.Model):
     class Meta:
         verbose_name = _('Casa Legislativa')
         verbose_name_plural = _('Casas Legislativas')
+
+
+class ProblemaMigracao(models.Model):
+    content_type = models.ForeignKey(ContentType,
+                                     verbose_name=_('Tipo de Content'))
+    object_id = models.PositiveIntegerField(verbose_name=_('ID do Objeto'))
+    content_object = GenericForeignKey('content_type', 'object_id')
+    problema = models.CharField(max_length=300, verbose_name=_('Problema'))
+    descricao = models.CharField(max_length=300, verbose_name=_('Descrição'))
+    eh_stub = models.BooleanField(verbose_name='É stub?')
+
+    class Meta:
+        verbose_name = _('Problema na Migração')
+        verbose_name_plural = _('Problemas na Migração')
