@@ -130,11 +130,6 @@ def get_field(model, fieldname):
     return model._meta.get_field(fieldname)
 
 
-def get_url(object):
-    info = (object._meta.app_label, object._meta.model_name)
-    return reverse('admin:%s_%s_change' % info, args=(object.pk,))
-
-
 def exec_sql(sql, db='default'):
     cursor = connections[db].cursor()
     cursor.execute(sql)
@@ -185,18 +180,13 @@ def recreate_constraints():
 
 
 def stub_desnecessario(obj):
-    lista = [
+    lista_fields = [
         f for f in obj._meta.get_fields()
         if (f.one_to_many or f.one_to_one) and f.auto_created
     ]
     desnecessario = not any(
         rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
-        for rr in lista if rr)
-    if isinstance(obj, TipoMateriaLegislativa):
-        desnecessario = not any(
-            rr.related_model.objects.filter(
-                **{rr.field.name + '_origem_externa': obj}).exists()
-            for rr in lista if rr)
+        for rr in lista_fields)
     return desnecessario
 
 
@@ -215,8 +205,7 @@ def save_with_id(new, id):
 
 def save_relation(obj, problema='', descricao='', eh_stub=False):
     link = ProblemaMigracao(content_object=obj, problema=problema,
-                            descricao=descricao, endereco=get_url(obj),
-                            eh_stub=eh_stub)
+                            descricao=descricao, eh_stub=eh_stub)
     link.save()
 
 
@@ -272,7 +261,7 @@ class DataMigrator:
                     if not matches:
                         descricao = 'A data 0001-01-01 foi colocada no lugar'
                         warn(msg +
-                             '=> ' + descricao)
+                             ' => ' + descricao)
                         value = '0001-01-01'
                         self.data_mudada['obj'] = new
                         self.data_mudada['descricao'] = descricao

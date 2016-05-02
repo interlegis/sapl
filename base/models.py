@@ -2,8 +2,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from sapl.utils import UF
 
 
@@ -59,7 +57,6 @@ class ProblemaMigracao(models.Model):
                                 verbose_name=_('Problema'))
     descricao = models.CharField(max_length=300, null=True,
                                  verbose_name=_('Descrição'))
-    endereco = models.URLField(null=True, verbose_name=_('Endereço'))
     eh_stub = models.BooleanField(verbose_name='É stub?')
 
     class Meta:

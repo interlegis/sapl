@@ -80,7 +80,7 @@ class MateriaLegislativa(models.Model):
         TipoMateriaLegislativa,
         blank=True,
         null=True,
-        related_name='+',
+        related_name='tipo_origem_externa_set',
         verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
         max_length=5, blank=True, verbose_name=_('Número'))
