@@ -191,11 +191,6 @@ class RelatoriaForm(ModelForm):
 
 
 class TramitacaoForm(ModelForm):
-    urgente = forms.ChoiceField(required=False,
-                                label='Tramitando',
-                                choices=[(True, 'Sim'), (False, 'Não')],
-                                widget=forms.Select(
-                                    attrs={'class': 'selector'}))
 
     class Meta:
         model = Tramitacao
@@ -208,6 +203,22 @@ class TramitacaoForm(ModelForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto']
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        ultima_tramitacao = Tramitacao.objects.filter(
+                materia_id=self.instance.materia.id).last()
+
+        if ultima_tramitacao:
+            destino = ultima_tramitacao.unidade_tramitacao_destino
+            if (destino != self.cleaned_data['unidade_tramitacao_local']):
+                msg = _('A origem da nova tramitação deve ser igual ao '
+                        'destino  da última adicionada!')
+                raise ValidationError(msg)
+
+        return self.cleaned_data
 
 
 class LegislacaoCitadaForm(ModelForm):

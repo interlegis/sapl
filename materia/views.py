@@ -55,7 +55,21 @@ ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 
-TramitacaoCrud = MasterDetailCrud.build(Tramitacao, 'materia', '')
+
+class TramitacaoCrud(MasterDetailCrud):
+    model = Tramitacao
+    parent_field = 'materia'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
+                            'unidade_tramitacao_destino', 'status']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = TramitacaoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = TramitacaoForm
 
 
 class AutoriaCrud(MasterDetailCrud):
