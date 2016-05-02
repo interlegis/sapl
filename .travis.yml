@@ -16,6 +16,8 @@ install:
   - pip install -r requirements/dev-requirements.txt
   - pip install --upgrade setuptools
 
+# https://dockyard.com/blog/ruby/2013/03/29/running-postgresql-9-2-on-travis-ci
+
 before_script:
   - sudo /etc/init.d/postgresql stop
   - sudo cp /etc/postgresql/9.2/main/pg_hba.conf ./
