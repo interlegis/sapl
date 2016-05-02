@@ -288,6 +288,13 @@ class LegislacaoCitadaForm(ModelForm):
         else:
             cleaned_data['norma'] = norma
 
+        if LegislacaoCitada.objects.filter(
+            materia=self.instance.materia,
+            norma=cleaned_data['norma']
+        ).exists():
+            msg = _('Essa legislação já foi cadastrada.')
+            raise ValidationError(msg)
+
         return cleaned_data
 
     def save(self, commit=False):
