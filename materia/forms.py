@@ -316,50 +316,33 @@ class NumeracaoForm(ModelForm):
                   'ano_materia',
                   'data_materia']
 
-    def __init__(self, excluir=False, *args, **kwargs):
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
+    def clean(self):
+        if self.errors:
+            return self.errors
 
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 12)])
-        row2 = crispy_layout_mixin.to_row(
-            [('numero_materia', 4), ('ano_materia', 4), ('data_materia', 4)])
+        try:
+            MateriaLegislativa.objects.get(
+                numero=self.cleaned_data['numero_materia'],
+                ano=self.cleaned_data['ano_materia'],
+                tipo=self.cleaned_data['tipo_materia'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser inclusa não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
 
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Numeração'),
-                row1, row2,
-                form_actions(more=more)
-            )
-        )
-        super(NumeracaoForm, self).__init__(*args, **kwargs)
+        if Numeracao.objects.filter(
+            materia=self.instance.materia,
+            tipo_materia=self.cleaned_data['tipo_materia'],
+            ano_materia=self.cleaned_data['ano_materia'],
+            numero_materia=self.cleaned_data['numero_materia']
+        ).exists():
+            msg = _('Essa numeração já foi cadastrada.')
+            raise ValidationError(msg)
 
-
-class DespachoInicialForm(ModelForm):
-
-    class Meta:
-        model = DespachoInicial
-        fields = ['comissao']
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Adicionar Despacho Inicial'),
-                'comissao',
-                form_actions(more=more)
-            )
-        )
-        super(DespachoInicialForm, self).__init__(*args, **kwargs)
+        return self.cleaned_data
 
 
-class MateriaAnexadaForm(ModelForm):
+class AnexadaForm(ModelForm):
 
     tipo = forms.ModelChoiceField(
         label='Tipo',
@@ -372,90 +355,35 @@ class MateriaAnexadaForm(ModelForm):
 
     ano = forms.CharField(label='Ano', required=True)
 
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        cleaned_data = self.cleaned_data
+
+        try:
+            materia_anexada = MateriaLegislativa.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser anexada não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['materia_anexada'] = materia_anexada
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        anexada = super(AnexadaForm, self).save(commit)
+        anexada.materia_anexada = self.cleaned_data['materia_anexada']
+        anexada.save()
+        return anexada
+
     class Meta:
         model = Anexada
-        fields = ['tipo', 'numero', 'ano',
-                  'data_anexacao', 'data_desanexacao']
-        widgets = {
-            'data_anexacao': forms.DateInput(attrs={'class': 'dateinput'}),
-            'data_desanexacao': forms.DateInput(attrs={'class': 'dateinput'}),
-        }
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4), ('numero', 4), ('ano', 4)])
-        row2 = crispy_layout_mixin.to_row(
-            [('data_anexacao', 6), ('data_desanexacao', 6)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Anexar Matéria'),
-                row1, row2,
-                form_actions(more=more)
-            )
-        )
-        super(MateriaAnexadaForm, self).__init__(
-            *args, **kwargs)
-
-
-class AutoriaForm(ModelForm):
-    autor = forms.ModelChoiceField(
-        label=_('Autor'),
-        required=True,
-        queryset=Autor.objects.all().order_by('tipo', 'nome'),
-    )
-    primeiro_autor = forms.ChoiceField(
-        label=_('Primeiro Autor'),
-        required=True,
-        choices=[(True, _('Sim')), (False, _('Não'))],
-    )
-
-    materia_id = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    class Meta:
-        model = Autoria
-        fields = ['autor',
-                  'primeiro_autor',
-                  'partido',
-                  'materia_id']
-
-    def clean(self):
-        if self.data['materia_id'] and self.data['autor']:
-            try:
-                materia = MateriaLegislativa.objects.get(
-                    id=self.data['materia_id'])
-                Autoria.objects.get(autor=self.data['autor'],
-                                    materia=materia)
-                raise forms.ValidationError(
-                    _('Essa autoria já foi adicionada!'))
-            except ObjectDoesNotExist:
-                pass
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('autor', 4), ('primeiro_autor', 4), ('partido', 4)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Adicionar Autoria'),
-                row1,
-                form_actions(more=more)
-            )
-        )
-        super(AutoriaForm, self).__init__(
-            *args, **kwargs)
+        fields = ['tipo', 'numero', 'ano', 'data_anexacao', 'data_desanexacao']
 
 
 class RangeWidgetOverride(forms.MultiWidget):
@@ -620,3 +548,43 @@ def filtra_tramitacao_destino_and_status(status, destino):
       status=status,
       unidade_tramitacao_destino=destino).distinct().values_list(
       'materia_id', flat=True)
+
+
+class DespachoInicialForm(ModelForm):
+
+    class Meta:
+        model = DespachoInicial
+        fields = ['comissao']
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        if DespachoInicial.objects.filter(
+            materia=self.instance.materia,
+            comissao=self.cleaned_data['comissao'],
+        ).exists():
+            msg = _('Esse Despacho já foi cadastrado.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data
+
+
+class AutoriaForm(ModelForm):
+
+    class Meta:
+        model = Autoria
+        fields = ['autor', 'partido', 'primeiro_autor']
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        if Autoria.objects.filter(
+            materia=self.instance.materia,
+            autor=self.cleaned_data['autor'],
+        ).exists():
+            msg = _('Esse Autor já foi cadastrado.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data

@@ -229,7 +229,8 @@ class Autoria(models.Model):
     partido = models.ForeignKey(Partido, blank=True, null=True)
     autor = models.ForeignKey(Autor)
     materia = models.ForeignKey(MateriaLegislativa)
-    primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'))
+    primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
+                                         choices=YES_NO_CHOICES)
 
     class Meta:
         verbose_name = _('Autoria')
@@ -316,6 +317,11 @@ class Numeracao(models.Model):
     class Meta:
         verbose_name = _('Numeração')
         verbose_name_plural = _('Numerações')
+        ordering = ('materia',
+                    'tipo_materia',
+                    'numero_materia',
+                    'ano_materia',
+                    'data_materia',)
 
     def __str__(self):
         return _('Nº%(numero)s %(tipo)s - %(data)s') % {

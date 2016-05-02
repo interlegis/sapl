@@ -2,16 +2,14 @@ from django.conf.urls import include, url
 
 from materia.views import (AcompanhamentoConfirmarView,
                            AcompanhamentoExcluirView,
-                           AcompanhamentoMateriaView, AutorCrud,
-                           AutoriaEditView, AutoriaView,
-                           DespachoInicialEditView, DespachoInicialView,
+                           AcompanhamentoMateriaView, AnexadaCrud, AutorCrud,
+                           AutoriaCrud, DespachoInicialCrud,
                            DocumentoAcessorioEditView, DocumentoAcessorioView,
                            LegislacaoCitadaEditView, LegislacaoCitadaView,
-                           MateriaAnexadaEditView, MateriaAnexadaView,
                            MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
-                           NumeracaoEditView, NumeracaoView, OrgaoCrud,
-                           OrigemCrud, ProposicaoEditView, ProposicaoListView,
+                           NumeracaoCrud, OrgaoCrud, OrigemCrud,
+                           ProposicaoEditView, ProposicaoListView,
                            ProposicaoTaView, ProposicaoView,
                            RegimeTramitacaoCrud, RelatoriaEditView,
                            RelatoriaView, StatusTramitacaoCrud, TipoAutorCrud,
@@ -25,7 +23,11 @@ from .apps import AppConfig
 app_name = AppConfig.name
 
 urlpatterns = [
-    url(r'^materia/', include(MateriaLegislativaCrud.get_urls())),
+    url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
+                              AnexadaCrud.get_urls() +
+                              AutoriaCrud.get_urls() +
+                              DespachoInicialCrud.get_urls() +
+                              NumeracaoCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -52,22 +54,10 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    url(r'^materia/(?P<pk>\d+)/materia-anexada$',
-        MateriaAnexadaView.as_view(), name='materia_anexada'),
-    url(r'^materia/(?P<pk>\d+)/materia-anexada/(?P<id>\d+)/edit',
-        MateriaAnexadaEditView.as_view(), name='materia_anexada_edit'),
-    url(r'^materia/(?P<pk>\d+)/despacho-inicial$',
-        DespachoInicialView.as_view(), name='despacho_inicial'),
-    url(r'^materia/(?P<pk>\d+)/despacho-inicial/(?P<id>\d+)/edit',
-        DespachoInicialEditView.as_view(), name='despacho_inicial_edit'),
     url(r'^materia/(?P<pk>\d+)/legislacao-citada$',
         LegislacaoCitadaView.as_view(), name='legislacao_citada'),
     url(r'^materia/(?P<pk>\d+)/legislacao-citada/(?P<id>\d+)/edit',
         LegislacaoCitadaEditView.as_view(), name='legislacao_citada_edit'),
-    url(r'^materia/(?P<pk>\d+)/numeracao$',
-        NumeracaoView.as_view(), name='numeracao'),
-    url(r'^materia/(?P<pk>\d+)/numeracao/(?P<id>\d+)/edit',
-        NumeracaoEditView.as_view(), name='numeracao_edit'),
     url(r'^materia/(?P<pk>\d+)/documento-acessorio$',
         DocumentoAcessorioView.as_view(), name='documento_acessorio'),
     url(r'^materia/(?P<pk>\d+)/documento-acessorio/(?P<id>\d+)/edit',
@@ -78,10 +68,6 @@ urlpatterns = [
         TramitacaoView.as_view(), name='tramitacao_materia'),
     url(r'^materia/(?P<pk>\d+)/tramitacao/(?P<id>\d+)/edit$',
         TramitacaoEditView.as_view(), name='tramitacao_edit'),
-    url(r'^materia/(?P<pk>\d+)/autoria$',
-        AutoriaView.as_view(), name='autoria'),
-    url(r'^materia/(?P<pk>\d+)/autoria/(?P<id>\d+)/edit$',
-        AutoriaEditView.as_view(), name='autoria_edit'),
     url(r'^materia/(?P<pk>\d+)/relatoria/(?P<id>\d+)/edit$',
         RelatoriaEditView.as_view(), name='relatoria_edit'),
     url(r'^materia/proposicao$',
