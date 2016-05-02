@@ -36,6 +36,7 @@ before_script:
   - sed -i -e 's/getpass.getuser()/"postgres"/g' sapl/settings.py
   - psql -c 'create database sapl;' -U postgres
 
+
 script:
   - ./manage.py migrate
   - ./manage.py bower install
