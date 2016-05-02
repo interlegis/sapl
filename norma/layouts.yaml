@@ -35,9 +35,9 @@ LegislacaoCitada:
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
 
-# LegislacaoCitadaDetail:
-#   Legislação Citada:
-#   - norma
-#   - disposicoes  parte  livro  titulo
-#   - capitulo  secao  subsecao  artigo
-#   - paragrafo  inciso  alinea  item
+LegislacaoCitadaDetail:
+  Legislação Citada:
+  - norma
+  - disposicoes  parte  livro  titulo
+  - capitulo  secao  subsecao  artigo
+  - paragrafo  inciso  alinea  item

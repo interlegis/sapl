@@ -89,6 +89,11 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['norma', 'disposicoes']
 
+        def resolve_url(self, suffix, args=None):
+            namespace = 'materia'
+            return reverse('%s:%s' % (namespace, self.url_name(suffix)),
+                           args=args)
+
     class CreateView(MasterDetailCrud.CreateView):
         form_class = LegislacaoCitadaForm
 
@@ -96,17 +101,17 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
         form_class = LegislacaoCitadaForm
 
         def get_initial(self):
-            self.initial['tipo_norma'] = self.object.norma.tipo.id
-            self.initial['numero_norma'] = self.object.norma.numero
-            self.initial['ano_norma'] = self.object.norma.ano
+            self.initial['tipo'] = self.object.norma.tipo.id
+            self.initial['numero'] = self.object.norma.numero
+            self.initial['ano'] = self.object.norma.ano
 
             return self.initial
 
-    # class DetailView(MasterDetailCrud.DetailView):
-    #
-    #     @property
-    #     def layout_key(self):
-    #         return 'LegislacaoCitadaDetail'
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'LegislacaoCitadaDetail'
 
 
 class NumeracaoCrud(MasterDetailCrud):

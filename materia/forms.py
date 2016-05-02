@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
-from norma.models import LegislacaoCitada, TipoNormaJuridica
+from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
@@ -269,6 +269,32 @@ class LegislacaoCitadaForm(ModelForm):
                   'inciso',
                   'alinea',
                   'item']
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        cleaned_data = self.cleaned_data
+
+        try:
+            norma = NormaJuridica.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A norma a ser inclusa não existe no cadastro'
+                    ' de normas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['norma'] = norma
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        legislacao = super(LegislacaoCitadaForm, self).save(commit)
+        legislacao.norma = self.cleaned_data['norma']
+        legislacao.save()
+        return legislacao
 
 
 class NumeracaoForm(ModelForm):
