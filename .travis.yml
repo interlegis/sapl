@@ -14,6 +14,7 @@ install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz postgresql-contrib pkg-config python-psycopg2 nodejs npm
   - sudo ln -s /usr/bin/node
   - pip install -r requirements/dev-requirements.txt
+  - pip install --upgrade setuptools
 
 before_script:
   - cp .env_dev .env

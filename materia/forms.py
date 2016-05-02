@@ -1,3 +1,4 @@
+import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
 from django import forms
@@ -6,8 +7,6 @@ from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-
-import django_filters
 
 import crispy_layout_mixin
 import sapl
