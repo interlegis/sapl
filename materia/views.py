@@ -71,6 +71,13 @@ class TramitacaoCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoForm
 
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            return qs.filter(**kwargs).order_by('-data_tramitacao')
+
 
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
