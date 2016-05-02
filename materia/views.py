@@ -391,7 +391,6 @@ class DocumentoAcessorioView(CreateView):
         return reverse('materia:documento_acessorio', kwargs={'pk': pk})
 
 
->>>>>>> Init crud legislação citada
 class AcompanhamentoConfirmarView(TemplateView):
 
     def get_redirect_url(self):
