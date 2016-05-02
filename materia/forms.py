@@ -209,35 +209,6 @@ class TramitacaoForm(ModelForm):
                   'data_fim_prazo',
                   'texto']
 
-    def __init__(self, excluir=False, *args, **kwargs):
-        row1 = crispy_layout_mixin.to_row(
-            [('data_tramitacao', 6), ('unidade_tramitacao_local', 6)])
-
-        row2 = crispy_layout_mixin.to_row(
-            [('status', 5), ('turno', 5), ('urgente', 2)])
-
-        row3 = crispy_layout_mixin.to_row(
-            [('unidade_tramitacao_destino', 12)])
-
-        row4 = crispy_layout_mixin.to_row(
-            [('data_encaminhamento', 6), ('data_fim_prazo', 6)])
-
-        row5 = crispy_layout_mixin.to_row(
-            [('texto', 12)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Incluir Tramitação'),
-                     row1, row2, row3, row4, row5,
-                     ),
-            form_actions(more=more)
-        )
-        super(TramitacaoForm, self).__init__(
-            *args, **kwargs)
-
 
 class LegislacaoCitadaForm(ModelForm):
 

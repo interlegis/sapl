@@ -54,7 +54,8 @@ TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
-TramitacaoCrud = Crud.build(Tramitacao, '')
+
+TramitacaoCrud = MasterDetailCrud.build(Tramitacao, 'materia', '')
 
 
 class AutoriaCrud(MasterDetailCrud):
@@ -639,117 +640,6 @@ def do_envia_email_tramitacao(request, materia):
 
     enviar_emails(sender, recipients, messages)
     return None
-
-
-class TramitacaoView(CreateView):
-    template_name = "materia/tramitacao.html"
-    form_class = TramitacaoForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacoes = Tramitacao.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_tramitacao')
-        form = self.get_form()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'tramitacoes': tramitacoes})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacoes_list = Tramitacao.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_tramitacao')
-
-        if form.is_valid():
-            ultima_tramitacao = Tramitacao.objects.filter(
-                materia_id=kwargs['pk']).last()
-            if ultima_tramitacao:
-                destino = ultima_tramitacao.unidade_tramitacao_destino
-                cleaned_data = form.cleaned_data['unidade_tramitacao_local']
-                if (destino == cleaned_data):
-                    tramitacao = form.save(commit=False)
-                    tramitacao.materia = materia
-                    tramitacao.save()
-                else:
-                    msg = _('A origem da nova tramitação \
-                            deve ser igual ao destino da última adicionada!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'form': form,
-                         'object': materia,
-                         'tramitacoes': tramitacoes_list})
-
-                    do_envia_email_tramitacao(request, materia)
-            else:
-                tramitacao = form.save(commit=False)
-                tramitacao.materia = materia
-                tramitacao.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'tramitacoes': tramitacoes_list})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
-
-
-class TramitacaoEditView(CreateView):
-    template_name = "materia/tramitacao_edit.html"
-    form_class = TramitacaoForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacao = Tramitacao.objects.get(id=kwargs['id'])
-        form = TramitacaoForm(excluir=True, instance=tramitacao)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'tramitacao': tramitacao})
-
-    def post(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacao = Tramitacao.objects.get(id=kwargs['id'])
-        form = self.get_form()
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                if tramitacao == Tramitacao.objects.filter(
-                        materia=materia).last():
-                    tramitacao.delete()
-                else:
-                    msg = _('Somente a útlima tramitação pode ser deletada!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'object': materia,
-                         'form': form,
-                         'tramitacao': tramitacao})
-            elif 'salvar' in request.POST:
-                tramitacao.status = form.cleaned_data['status']
-                tramitacao.turno = form.cleaned_data['turno']
-                tramitacao.urgente = form.cleaned_data['urgente']
-                tramitacao.unidade_tramitacao_destino = form.cleaned_data[
-                    'unidade_tramitacao_destino']
-                tramitacao.data_encaminhamento = form.cleaned_data[
-                    'data_encaminhamento']
-                tramitacao.data_fim_prazo = form.cleaned_data['data_fim_prazo']
-                tramitacao.texto = form.cleaned_data['texto']
-
-                tramitacao.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'tramitacao': tramitacao})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
 
 
 class ProposicaoListView(ListView):

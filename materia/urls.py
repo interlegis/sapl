@@ -13,8 +13,7 @@ from materia.views import (AcompanhamentoConfirmarView,
                            RegimeTramitacaoCrud, RelatoriaEditView,
                            RelatoriaView, StatusTramitacaoCrud, TipoAutorCrud,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
-                           TipoMateriaCrud, TipoProposicaoCrud,
-                           TramitacaoEditView, TramitacaoView,
+                           TipoMateriaCrud, TipoProposicaoCrud, TramitacaoCrud,
                            UnidadeTramitacaoCrud)
 
 from .apps import AppConfig
@@ -27,7 +26,8 @@ urlpatterns = [
                               AutoriaCrud.get_urls() +
                               DespachoInicialCrud.get_urls() +
                               NumeracaoCrud.get_urls() +
-                              LegislacaoCitadaCrud.get_urls())),
+                              LegislacaoCitadaCrud.get_urls() +
+                              TramitacaoCrud.get_urls())),
 
 
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -60,10 +60,6 @@ urlpatterns = [
         DocumentoAcessorioEditView.as_view(), name='documento_acessorio_edit'),
     url(r'^materia/(?P<pk>\d+)/relatoria$',
         RelatoriaView.as_view(), name='relatoria'),
-    url(r'^materia/(?P<pk>\d+)/tramitacao$',
-        TramitacaoView.as_view(), name='tramitacao_materia'),
-    url(r'^materia/(?P<pk>\d+)/tramitacao/(?P<id>\d+)/edit$',
-        TramitacaoEditView.as_view(), name='tramitacao_edit'),
     url(r'^materia/(?P<pk>\d+)/relatoria/(?P<id>\d+)/edit$',
         RelatoriaEditView.as_view(), name='relatoria_edit'),
     url(r'^materia/proposicao$',

@@ -107,9 +107,9 @@ UnidadeTramitacao:
 
 Tramitacao:
   Tramitação:
-  - cod_ult_tram_dest_FIXME  unidade_tramitacao_local
+  - unidade_tramitacao_local unidade_tramitacao_destino
+  - data_tramitacao data_encaminhamento data_fim_prazo
   - status  turno  urgente
-  - unidade_tramitacao_destino  data_encaminhamento  data_fim_prazo
   - texto
 
 DespachoInicial:
