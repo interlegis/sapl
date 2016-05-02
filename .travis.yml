@@ -20,7 +20,7 @@ before_script:
   - cp .env_dev .env
   - npm install -g bower
   - psql -c 'create database sapl;' -U postgres
-  - sed -i -e 's/getpass.getuser()/"postgres"/g' settings.py
+  - sed -i -e 's/getpass.getuser()/"postgres"/g' sapl/settings.py
   - python manage.py syncdb –migrate –noinput
 
 script:
