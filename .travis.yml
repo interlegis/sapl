@@ -8,13 +8,7 @@ services:
   - postgresql
 
 addons:
-  postgresql: "9.3.12"
-
-env:
-  - DB=postgres
-
-before_install:
-  - export DJANGO_SETTINGS_MODULE=ledenbestand.settings.local
+  postgresql: "9.3"
 
 install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz postgresql-contrib pkg-config python-psycopg2 nodejs npm
@@ -23,8 +17,21 @@ install:
   - pip install --upgrade setuptools
 
 before_script:
+  - sudo /etc/init.d/postgresql stop
+  - sudo cp /etc/postgresql/9.2/main/pg_hba.conf ./
+  - sudo apt-get remove postgresql postgresql-9.2 -qq --purge
+  - source /etc/lsb-release
+  - echo "deb http://apt.postgresql.org/pub/repos/apt/ $DISTRIB_CODENAME-pgdg main" > pgdg.list
+  - sudo mv pgdg.list /etc/apt/sources.list.d/
+  - wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
+  - sudo apt-get update
+  - sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install postgresql-9.3 postgresql-contrib-9.3 -qq
+  - sudo /etc/init.d/postgresql stop
+  - sudo cp ./pg_hba.conf /etc/postgresql/9.3/main
+  - sudo /etc/init.d/postgresql start
   - npm install -g bower
   - cp .env_dev .env
+  - sed -i -e 's/getpass.getuser()/"postgres"/g' sapl/settings.py
   - psql -c 'create database sapl;' -U postgres
   - python manage.py syncdb –migrate –noinput
 
