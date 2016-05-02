@@ -283,7 +283,7 @@ class LegislacaoCitadaForm(ModelForm):
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
             msg = _('A norma a ser inclusa não existe no cadastro'
-                    ' de normas.')
+                    ' de Normas.')
             raise ValidationError(msg)
         else:
             cleaned_data['norma'] = norma
@@ -292,7 +292,7 @@ class LegislacaoCitadaForm(ModelForm):
             materia=self.instance.materia,
             norma=cleaned_data['norma']
         ).exists():
-            msg = _('Essa legislação já foi cadastrada.')
+            msg = _('Essa Legislação já foi cadastrada.')
             raise ValidationError(msg)
 
         return cleaned_data
