@@ -17,10 +17,10 @@ install:
   - pip install --upgrade setuptools
 
 before_script:
-  - cp sapl/settings_travis.py sapl/settings.py
   - npm install -g bower
-  - psql -c 'create database sapl;' -U postgres
+  - cp sapl/settings_travis.py sapl/settings.py
   - sed -i -e 's/getpass.getuser()/"postgres"/g' sapl/settings.py
+  - psql -c 'create database sapl;' -U postgres
   - python manage.py syncdb –migrate –noinput
 
 script:
