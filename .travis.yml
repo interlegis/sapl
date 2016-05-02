@@ -7,6 +7,14 @@ python:
 services:
   - postgresql
 
+addons:
+  postgresql: "9.3.12"
+
+env:
+  - DB=postgres
+
+before_install:
+  - export DJANGO_SETTINGS_MODULE=ledenbestand.settings.local
 
 install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz postgresql-contrib pkg-config python-psycopg2 nodejs npm
