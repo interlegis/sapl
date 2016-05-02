@@ -33,9 +33,8 @@ before_script:
   - cp .env_dev .env
   - sed -i -e 's/getpass.getuser()/"postgres"/g' sapl/settings.py
   - psql -c 'create database sapl;' -U postgres
-  - python manage.py syncdb –migrate –noinput
 
 script:
-  - python manage.py test
+  - ./manage.py migrate
   - ./manage.py bower install
   - ./test_and_check_qa.sh
