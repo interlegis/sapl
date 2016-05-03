@@ -4,7 +4,7 @@ from random import choice
 from string import ascii_letters, digits
 
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
@@ -88,7 +88,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
             if tramitacao.pk != materia.tramitacao_set.last().pk:
                 msg = _('Somente a útlima tramitação pode ser deletada!')
-                # raise ValidationError(msg)
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:

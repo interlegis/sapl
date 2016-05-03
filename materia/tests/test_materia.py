@@ -256,7 +256,7 @@ def test_tramitacao_submit(client):
                                    descricao='Status_Teste')
     # Testa POST
     response = client.post(
-        reverse('materia:tramitacao_materia',
+        reverse('materia:tramitacao_create',
                 kwargs={'pk': materia_principal.pk}),
         {'unidade_tramitacao_local': make_unidade_tramitacao(
             'Unidade Local').pk,
@@ -382,7 +382,7 @@ def test_form_errors_numeracao(client):
 def test_form_errors_tramitacao(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:tramitacao_materia',
+    response = client.post(reverse('materia:tramitacao_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)
