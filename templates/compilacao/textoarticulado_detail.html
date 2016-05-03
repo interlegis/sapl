@@ -25,6 +25,7 @@
     <div class="clearfix">
       <div class="actions btn-group pull-right" role="group">
         <a href="{% url 'compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+        <a href="{% url 'compilacao:ta_text_notificacoes' object.pk %}" class="btn btn-default">{% trans 'Notificações' %}</a>
         <a href="{% url 'compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
       </div>
     </div>

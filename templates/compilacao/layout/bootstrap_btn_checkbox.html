@@ -1,0 +1,12 @@
+{% load crispy_forms_filters %}
+{% load l10n %}
+<div class="controls {{ field_class }} btn-group" data-toggle="buttons" {% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
+  {% include 'bootstrap3/layout/field_errors_block.html' %}
+  {% for choice in field.field.choices %}
+    <label class="btn btn-default {% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %}active{% endif %}">
+      <input type="checkbox" {% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked="checked" {% endif %} name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
+      <span class="text-{{choice.0}}" >{{ choice.1|unlocalize }}</span>
+    </label>
+  {% endfor %}
+  {% include 'bootstrap3/layout/help_text.html' %}
+</div>

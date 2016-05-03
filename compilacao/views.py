@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
-                                       UpdateView)
+                                       UpdateView, FormMixin)
 from django.views.generic.list import ListView
 
 from compilacao.forms import (DispositivoDefinidorVigenciaForm,
@@ -28,7 +28,8 @@ from compilacao.forms import (DispositivoDefinidorVigenciaForm,
                               DispositivoEdicaoBasicaForm,
                               DispositivoEdicaoVigenciaForm,
                               DispositivoSearchModalForm, NotaForm,
-                              PublicacaoForm, TaForm, TipoTaForm, VideForm)
+                              PublicacaoForm, TaForm, TipoTaForm, VideForm,
+                              TextNotificacoesForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
@@ -36,6 +37,7 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -2294,8 +2296,40 @@ class DispositivoEdicaoAlteracaoView(FormMessagesMixin, UpdateView):
             return self.form_invalid(form)
 
 
-class TextPendenciasView(ListView, CompMixin):
-    template_name = 'compilacao/text_pendencias.html'
+class TextNotificacoesView(ListView, CompMixin, FormView):
+    template_name = 'compilacao/text_notificacoes.html'
+    form_class = TextNotificacoesForm
+
+    def get(self, request, *args, **kwargs):
+        self.object = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        return super(TextNotificacoesView, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        if 'object' not in kwargs:
+            kwargs['object'] = self.object
+        return super(TextNotificacoesView, self).get_context_data(**kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy('compilacao:ta_text_notificacoes',
+                            kwargs=self.kwargs)
+
+    def get_initial(self):
+        initial = {}
+
+        if self.request.method == 'POST':
+            if 'type_notificacoes' in self.request.POST:
+                self.request.session[
+                    'type_notificacoes'] = self.request.POST.getlist(
+                    'type_notificacoes')
+            else:
+                self.request.session['type_notificacoes'] = []
+        elif 'type_notificacoes' in self.request.session:
+            initial['type_notificacoes'] = self.request.session[
+                'type_notificacoes']
+        else:
+            initial['type_notificacoes'] = []
+
+        return initial
 
     def get_queryset(self):
 
@@ -2305,57 +2339,57 @@ class TextPendenciasView(ListView, CompMixin):
 
         p = []
 
-        def padd(r, type_pendencia, reverse_url=None, test=True, msg='',
+        def padd(r, type_notificacao, reverse_url=None, test=True, msg='',
                  kwargs=None, to_position=None):
 
             if not test:
                 return
 
-            r.contextual_class = type_pendencia
+            r.contextual_class = type_notificacao
             if not kwargs:
                 kwargs = {'ta_id': r.ta_id, 'pk': r.pk}
             if reverse_url:
-                p.append((type_pendencia, msg,
+                p.append((type_notificacao, msg,
                           reverse_lazy(reverse_url, kwargs=kwargs),
                           to_position))
             else:
-                p.append((type_pendencia, msg, None, to_position))
+                p.append((type_notificacao, msg, None, to_position))
 
         def success(r):
-            type_pendencia = 'success'
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            type_notificacao = 'success'
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.inconstitucionalidade,
                  _('Declarado Inconstitucional.'))
 
-            padd(r, type_pendencia, 'compilacao:ta_text_edit',
+            padd(r, type_notificacao, 'compilacao:ta_text_edit',
                  r.ta_publicado and r.dispositivo_atualizador,
                  _('Dispositivo alterado em %s' % r.ta_publicado),
                  {'ta_id': r.ta_publicado_id}, r.dispositivo_atualizador_id)
 
         def info(r):
-            type_pendencia = 'info'
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            type_notificacao = 'info'
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.publicacao and
                  r.dispositivo_vigencia and
                  r.publicacao.data != r.dispositivo_vigencia.inicio_vigencia,
                  _('Data da publicação associada ao Dispositivo difere da data'
                    ' de inicio de vigência do Dispositivo de vigência.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.publicacao and r.publicacao.data != r.inicio_vigencia,
                  _('Data da publicação associada ao Dispositivo difere '
                    'da data de inicio de vigência.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit',
                  r.rotulo != r.rotulo_padrao(local_insert=1),
                  _('Rótulo Diferente do Padrão'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit',
                  r.texto_atualizador and r.texto_atualizador != r.texto,
                  _('Texto do Dispositivo para o Documento '
                    'está diferente do texto para o Documento Alterador.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
                  r.texto_atualizador and r.texto_atualizador == r.texto,
                  _('Texto do Dispositivo no Documento Alterador '
                    'está igual ao Texto no Documento Original. '
@@ -2363,21 +2397,21 @@ class TextPendenciasView(ListView, CompMixin):
                    'Alterador.'))
 
         def warning(r):
-            type_pendencia = 'warning'
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            type_notificacao = 'warning'
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.dispositivo_vigencia and r.inicio_vigencia !=
                  r.dispositivo_vigencia.inicio_vigencia,
                  _('Data de início de Vigência difere da data início de '
                    'Vigência do Dispositivo de Vigência'))
 
-            padd(r, type_pendencia, 'compilacao:ta_text',
+            padd(r, type_notificacao, 'compilacao:ta_text',
                  r.inconstitucionalidade and not r.notas.exists(),
                  _('Dispositivo está definido como inconstitucional. É '
                    'aconcelhavel inserir uma Nota informando esta condição.'),
                  kwargs={'ta_id': r.ta_id},
                  to_position=r.pk)
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.inconstitucionalidade and not (
                      r.inicio_vigencia == r.fim_vigencia and
                      r.fim_vigencia == r.inicio_eficacia and
@@ -2386,74 +2420,84 @@ class TextPendenciasView(ListView, CompMixin):
                    'existe diferença entre as datas início e fim de '
                    'vigência e eficácia.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.publicacao and
                  r.ta_publicado and r.ta_publicado != r.publicacao.ta,
                  _('A Publicação associada a este Dispositivo não é '
                    'uma publicação do Texto Articulado Alterador.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  not r.publicacao,
                  _('Dispositivo sem registro de publicação.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.texto and r.tipo_dispositivo.dispositivo_de_articulacao,
                  _('Dispositivos de Articulação não '
                    'deveriam armazenar texto.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
-                 not r.texto and r.tipo_dispositivo.dispositivo_de_articulacao,
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
+                 not r.texto and
+                 not r.tipo_dispositivo.dispositivo_de_articulacao,
                  _('Dispositivo está sem texto.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
                  r.texto_atualizador and not r.ta_publicado,
                  _('Existe Texto Atualizador, porém este Dispositivo não '
                    'está associado a nenhum Documento Atualizador.'))
 
         def danger(r):
-            type_pendencia = 'danger'
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            type_notificacao = 'danger'
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  not r.dispositivo_vigencia,
                  _('Dispositivo sem definição de Dispositivo de Vigência.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_vigencia',
                  r.inconstitucionalidade and
                  r.inicio_vigencia != r.fim_vigencia,
                  _('Dispositivo está definido como inconstitucional porém '
                    'existe período de vigência.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
                  r.ta_publicado and not r.dispositivo_atualizador,
                  _('Dispositivo está associado a um Texto Articulado '
                    'Atualizador mas, a nenhum Dispositivo Atualizador.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
                  not r.dispositivo_atualizador and
                  r.dispositivo_substituido,
                  _('Dispositivo está substituindo outro mas não foi informado '
                    'o Dispositivo Atualizador.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido and
                  r.dispositivo_substituido.tipo_dispositivo !=
                  r.tipo_dispositivo,
                  _('Dispositivo está substituindo um Dispositivo '
                    'de outro tipo.'))
 
-            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido and
                  r.dispositivo_substituido.ta != r.ta,
                  _('Dispositivo está substituindo um Dispositivo de outro '
                    'Texto Articulado.'))
 
+        rr = []
         for r in result:
             p = []
             r.contextual_class = ""
 
-            # sucess
-            success(r)
-            info(r)
-            warning(r)
-            danger(r)
+            type_notificacoes = []
+            if 'type_notificacoes' in self.request.session:
+                type_notificacoes = self.request.session['type_notificacoes']
 
-            r.pendencias = p
+            if isinstance(type_notificacoes, list):
+                for f in type_notificacoes:
+                    if f != 'default':
+                        locals()[f](r)
 
-        return result
+            r.notificacoes = p
+
+            if p or 'default' in type_notificacoes:
+                rr.append(r)
+
+        return rr
