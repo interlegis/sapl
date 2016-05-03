@@ -2,7 +2,7 @@
 coverage
 django-webtest
 flake8==2.5.4
-isort
+isort==4.2.5
 model_mommy
 pep8
 pytest
