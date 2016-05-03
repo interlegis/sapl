@@ -1,7 +1,5 @@
 -r requirements.txt
 coverage==4.0.3
-django-bootstrap3==7.0.1
-django-bower==5.1.0
 django-webtest
 flake8==2.5.4
 isort==4.2.5
