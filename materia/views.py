@@ -81,15 +81,19 @@ class TramitacaoCrud(MasterDetailCrud):
     class DeleteView(MasterDetailCrud.DeleteView):
 
         def delete(self, request, *args, **kwargs):
-            tramitacao = Tramitacao.objects.get(
-                    id=self.kwargs['pk'])
+            tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
             materia = MateriaLegislativa.objects.get(id=tramitacao.materia.id)
+            url = reverse('materia:tramitacao_list',
+                          kwargs={'pk': tramitacao.materia.id})
+
             if tramitacao.pk != materia.tramitacao_set.last().pk:
-                    msg = _('Somente a útlima tramitação pode ser deletada!')
-                    raise ValidationError(msg)
+                msg = _('Somente a útlima tramitação pode ser deletada!')
+                # raise ValidationError(msg)
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(url)
             else:
-                self.get_object().delete()
-                return HttpResponseRedirect(self.cancel_url())
+                tramitacao.delete()
+                return HttpResponseRedirect(url)
 
 
 class AutoriaCrud(MasterDetailCrud):
