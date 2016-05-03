@@ -4,7 +4,7 @@ from random import choice
 from string import ascii_letters, digits
 
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
@@ -77,6 +77,19 @@ class TramitacaoCrud(MasterDetailCrud):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao')
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, request, *args, **kwargs):
+            tramitacao = Tramitacao.objects.get(
+                    id=self.kwargs['pk'])
+            materia = MateriaLegislativa.objects.get(id=tramitacao.materia.id)
+            if tramitacao.pk != materia.tramitacao_set.last().pk:
+                    msg = _('Somente a útlima tramitação pode ser deletada!')
+                    raise ValidationError(msg)
+            else:
+                self.get_object().delete()
+                return HttpResponseRedirect(self.cancel_url())
 
 
 class AutoriaCrud(MasterDetailCrud):
