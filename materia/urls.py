@@ -29,12 +29,11 @@ urlpatterns = [
                               DespachoInicialCrud.get_urls() +
                               NumeracaoCrud.get_urls())),
 
-
+    # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
         MateriaTaView.as_view(), name='materia_ta'),
     url(r'^materia/proposicao/(?P<pk>[0-9]+)/ta$',
         ProposicaoTaView.as_view(), name='proposicao_ta'),
-
 
     url(r'^sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),

@@ -123,20 +123,21 @@ function getForm(_this) {
 
 function onReadyNotasVides() {
 
-        $('.dne-nota').removeClass('dne-nota');
-        $('.dne-form').html('');
+    $('.dne-nota').removeClass('dne-nota');
+    $('.dne-form').html('');
 
-        $('.dne .btn-action').off();
-        $('.dn .btn-action').off();
+    $('.dne .btn-action').off();
+    $('.dn .btn-action').off();
 
-        $('.dne .btn-action, .dn .btn-action').not('.btn-nota-delete').not('.btn-vide-delete').click(function(){
-            getForm(this);
-        });
+    $('.dne .btn-action, .dn .btn-action').not('.btn-nota-delete').not('.btn-vide-delete').click(function(){
+        getForm(this);
+    });
 
-        $('.dn .btn-nota-delete, .dn .btn-vide-delete').click(function(){
-            onDelete(this);
-        });
+    $('.dn .btn-nota-delete, .dn .btn-vide-delete').click(function(){
+        onDelete(this);
+    });
 }
+
 $(document).ready(function() {
     onReadyNotasVides()
 });

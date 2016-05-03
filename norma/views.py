@@ -13,7 +13,6 @@ from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
 
 AssuntoNormaCrud = Crud.build(AssuntoNorma, 'assunto_norma_juridica')
 TipoNormaCrud = Crud.build(TipoNormaJuridica, 'tipo_norma_juridica')
-NormaTemporarioCrud = Crud.build(NormaJuridica, 'norma')
 LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 

@@ -6,6 +6,7 @@ from braces.views import FormMessagesMixin
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages import constants
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
 from django.db import transaction
@@ -2291,3 +2292,168 @@ class DispositivoEdicaoAlteracaoView(FormMessagesMixin, UpdateView):
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
+
+
+class TextPendenciasView(ListView, CompMixin):
+    template_name = 'compilacao/text_pendencias.html'
+
+    def get_queryset(self):
+
+        result = Dispositivo.objects.filter(
+            ta_id=self.kwargs['ta_id']
+        ).select_related(*DISPOSITIVO_SELECT_RELATED)
+
+        p = []
+
+        def padd(r, type_pendencia, reverse_url=None, test=True, msg='',
+                 kwargs=None, to_position=None):
+
+            if not test:
+                return
+
+            r.contextual_class = type_pendencia
+            if not kwargs:
+                kwargs = {'ta_id': r.ta_id, 'pk': r.pk}
+            if reverse_url:
+                p.append((type_pendencia, msg,
+                          reverse_lazy(reverse_url, kwargs=kwargs),
+                          to_position))
+            else:
+                p.append((type_pendencia, msg, None, to_position))
+
+        def success(r):
+            type_pendencia = 'success'
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.inconstitucionalidade,
+                 _('Declarado Inconstitucional.'))
+
+            padd(r, type_pendencia, 'compilacao:ta_text_edit',
+                 r.ta_publicado and r.dispositivo_atualizador,
+                 _('Dispositivo alterado em %s' % r.ta_publicado),
+                 {'ta_id': r.ta_publicado_id}, r.dispositivo_atualizador_id)
+
+        def info(r):
+            type_pendencia = 'info'
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.publicacao and
+                 r.dispositivo_vigencia and
+                 r.publicacao.data != r.dispositivo_vigencia.inicio_vigencia,
+                 _('Data da publicação associada ao Dispositivo difere da data'
+                   ' de inicio de vigência do Dispositivo de vigência.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.publicacao and r.publicacao.data != r.inicio_vigencia,
+                 _('Data da publicação associada ao Dispositivo difere '
+                   'da data de inicio de vigência.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit',
+                 r.rotulo != r.rotulo_padrao(local_insert=1),
+                 _('Rótulo Diferente do Padrão'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit',
+                 r.texto_atualizador and r.texto_atualizador != r.texto,
+                 _('Texto do Dispositivo para o Documento '
+                   'está diferente do texto para o Documento Alterador.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+                 r.texto_atualizador and r.texto_atualizador == r.texto,
+                 _('Texto do Dispositivo no Documento Alterador '
+                   'está igual ao Texto no Documento Original. '
+                   'Não é necessário manter armazenado o texto no Documento '
+                   'Alterador.'))
+
+        def warning(r):
+            type_pendencia = 'warning'
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.dispositivo_vigencia and r.inicio_vigencia !=
+                 r.dispositivo_vigencia.inicio_vigencia,
+                 _('Data de início de Vigência difere da data início de '
+                   'Vigência do Dispositivo de Vigência'))
+
+            padd(r, type_pendencia, 'compilacao:ta_text',
+                 r.inconstitucionalidade and not r.notas.exists(),
+                 _('Dispositivo está definido como inconstitucional. É '
+                   'aconcelhavel inserir uma Nota informando esta condição.'),
+                 kwargs={'ta_id': r.ta_id},
+                 to_position=r.pk)
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.inconstitucionalidade and not (
+                     r.inicio_vigencia == r.fim_vigencia and
+                     r.fim_vigencia == r.inicio_eficacia and
+                     r.inicio_eficacia == r.fim_eficacia),
+                 _('Dispositivo está definido como inconstitucional porém '
+                   'existe diferença entre as datas início e fim de '
+                   'vigência e eficácia.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.publicacao and
+                 r.ta_publicado and r.ta_publicado != r.publicacao.ta,
+                 _('A Publicação associada a este Dispositivo não é '
+                   'uma publicação do Texto Articulado Alterador.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 not r.publicacao,
+                 _('Dispositivo sem registro de publicação.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.texto and r.tipo_dispositivo.dispositivo_de_articulacao,
+                 _('Dispositivos de Articulação não '
+                   'deveriam armazenar texto.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 not r.texto and r.tipo_dispositivo.dispositivo_de_articulacao,
+                 _('Dispositivo está sem texto.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+                 r.texto_atualizador and not r.ta_publicado,
+                 _('Existe Texto Atualizador, porém este Dispositivo não '
+                   'está associado a nenhum Documento Atualizador.'))
+
+        def danger(r):
+            type_pendencia = 'danger'
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 not r.dispositivo_vigencia,
+                 _('Dispositivo sem definição de Dispositivo de Vigência.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_vigencia',
+                 r.inconstitucionalidade and
+                 r.inicio_vigencia != r.fim_vigencia,
+                 _('Dispositivo está definido como inconstitucional porém '
+                   'existe período de vigência.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+                 r.ta_publicado and not r.dispositivo_atualizador,
+                 _('Dispositivo está associado a um Texto Articulado '
+                   'Atualizador mas, a nenhum Dispositivo Atualizador.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+                 not r.dispositivo_atualizador and
+                 r.dispositivo_substituido,
+                 _('Dispositivo está substituindo outro mas não foi informado '
+                   'o Dispositivo Atualizador.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido.tipo_dispositivo !=
+                 r.tipo_dispositivo,
+                 _('Dispositivo está substituindo um Dispositivo '
+                   'de outro tipo.'))
+
+            padd(r, type_pendencia, 'compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido.ta != r.ta,
+                 _('Dispositivo está substituindo um Dispositivo de outro '
+                   'Texto Articulado.'))
+
+        for r in result:
+            p = []
+            r.contextual_class = ""
+
+            # sucess
+            success(r)
+            info(r)
+            warning(r)
+            danger(r)
+
+            r.pendencias = p
+
+        return result
