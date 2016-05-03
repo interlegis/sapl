@@ -1,6 +1,7 @@
 -r requirements.txt
 coverage
 django-webtest
+flake8==2.5.4
 isort
 model_mommy
 pep8

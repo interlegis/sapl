@@ -41,4 +41,5 @@ before_script:
 script:
   - ./manage.py migrate
   - ./manage.py bower install
+  - pip freeze
   - ./test_and_check_qa.sh
