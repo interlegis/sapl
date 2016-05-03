@@ -58,6 +58,8 @@ ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 
+RelatoriaCrud = MasterDetailCrud.build(Relatoria, 'materia', '')
+
 
 class RelatoriaCrud(MasterDetailCrud):
     model = Relatoria

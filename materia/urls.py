@@ -55,6 +55,13 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
+<<<<<<< 87cd7406270bf42bacab49bf32b87b7c838c72d0
+=======
+    url(r'^materia/(?P<pk>\d+)/documento-acessorio$',
+        DocumentoAcessorioView.as_view(), name='documento_acessorio'),
+    url(r'^materia/(?P<pk>\d+)/documento-acessorio/(?P<id>\d+)/edit',
+        DocumentoAcessorioEditView.as_view(), name='documento_acessorio_edit'),
+>>>>>>> Init crud relatoria
     url(r'^materia/proposicao$',
         ProposicaoView.as_view(), name='adicionar_proposicao'),
     url(r'^materia/proposicao_list$',
