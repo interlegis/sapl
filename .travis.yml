@@ -16,6 +16,8 @@ install:
   - pip install -r requirements/dev-requirements.txt
   - pip install --upgrade setuptools
 
+# Line 24 to 35 is a hack found in this link below
+# It was used to fix an error in database building
 # https://dockyard.com/blog/ruby/2013/03/29/running-postgresql-9-2-on-travis-ci
 
 before_script:

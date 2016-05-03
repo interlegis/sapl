@@ -1,12 +1,10 @@
 import json
-
-from braces.views import FormValidMessageMixin
-from crud.base import Crud, make_pagination
 from datetime import date, datetime
 
+from braces.views import FormValidMessageMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Max, Q
+from django.db.models import Q, Max
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
@@ -14,6 +12,7 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
