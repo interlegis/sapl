@@ -49,11 +49,12 @@ TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
 DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
-RelatoriaCrud = Crud.build(Relatoria, '')
 TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
+
+RelatoriaCrud = MasterDetailCrud.build(Relatoria, 'materia', '')
 
 
 class TramitacaoCrud(MasterDetailCrud):

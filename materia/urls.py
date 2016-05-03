@@ -10,8 +10,8 @@ from materia.views import (AcompanhamentoConfirmarView,
                            NumeracaoCrud, OrgaoCrud, OrigemCrud,
                            ProposicaoEditView, ProposicaoListView,
                            ProposicaoTaView, ProposicaoView,
-                           RegimeTramitacaoCrud, RelatoriaEditView,
-                           RelatoriaView, StatusTramitacaoCrud, TipoAutorCrud,
+                           RegimeTramitacaoCrud, RelatoriaCrud,
+                           StatusTramitacaoCrud, TipoAutorCrud,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
                            TipoMateriaCrud, TipoProposicaoCrud, TramitacaoCrud,
                            UnidadeTramitacaoCrud)
@@ -27,7 +27,8 @@ urlpatterns = [
                               DespachoInicialCrud.get_urls() +
                               NumeracaoCrud.get_urls() +
                               LegislacaoCitadaCrud.get_urls() +
-                              TramitacaoCrud.get_urls()))
+                              TramitacaoCrud.get_urls() +
+                              RelatoriaCrud.get_urls()))
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -57,10 +58,6 @@ urlpatterns = [
         DocumentoAcessorioView.as_view(), name='documento_acessorio'),
     url(r'^materia/(?P<pk>\d+)/documento-acessorio/(?P<id>\d+)/edit',
         DocumentoAcessorioEditView.as_view(), name='documento_acessorio_edit'),
-    url(r'^materia/(?P<pk>\d+)/relatoria$',
-        RelatoriaView.as_view(), name='relatoria'),
-    url(r'^materia/(?P<pk>\d+)/relatoria/(?P<id>\d+)/edit$',
-        RelatoriaEditView.as_view(), name='relatoria_edit'),
     url(r'^materia/proposicao$',
         ProposicaoView.as_view(), name='adicionar_proposicao'),
     url(r'^materia/proposicao_list$',
