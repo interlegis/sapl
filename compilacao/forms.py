@@ -4,7 +4,7 @@ from crispy_forms.bootstrap import (Alert, FieldWithButtons, FormActions,
                                     InlineRadios, StrictButton)
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
-                                 Layout, Row)
+                                 Layout, Row, Submit)
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db.models import Q
@@ -1077,3 +1077,28 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
             nd.fim_eficacia = nd.dispositivo_subsequente.inicio_eficacia - \
                 timedelta(days=1)
         nd.save()
+
+
+class TextNotificacoesForm(Form):
+
+    type_notificacoes = forms.ChoiceField(
+        label=_('Níveis de Notificações'),
+        choices=[('default', _('Mostrar Dispositivos sem Notificações!')),
+                 ('success', _('Informações!')),
+                 ('info', _('Boas Práticas!')),
+                 ('warning', _('Alertas!')),
+                 ('danger', _('Erros!'))],
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        field_type_notificacoes = to_row([(Field(
+            'type_notificacoes',
+            template="compilacao/layout/bootstrap_btn_checkbox.html"), 10),
+            (Submit('submit-form', _('Filtrar'),
+                    css_class='btn btn-primary pull-right'), 2)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(field_type_notificacoes)
+
+        super(TextNotificacoesForm, self).__init__(*args, **kwargs)

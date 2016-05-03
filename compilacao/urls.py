@@ -27,8 +27,8 @@ urlpatterns_compilacao = [
     url(r'^(?P<ta_id>[0-9]+)/text/edit',
         views.TextEditView.as_view(), name='ta_text_edit'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/pendencias',
-        views.TextPendenciasView.as_view(), name='ta_text_pendencias'),
+    url(r'^(?P<ta_id>[0-9]+)/text/notifications',
+        views.TextNotificacoesView.as_view(), name='ta_text_notificacoes'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/$',
         views.DispositivoView.as_view(), name='dispositivo'),

@@ -1,16 +1,21 @@
 {% extends "base.html" %}
-{% load i18n compilacao_filters common_tags sass_tags%}
+{% load i18n crispy_forms_tags compilacao_filters common_tags sass_tags%}
 
 {% block base_content %}
-
+{{title}}
   {% block head_content %}{{block.super}}
     <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
   {% endblock %}
-  <table class="table table-striped table-hover table-pendencias">
+  
+  
+  {% crispy form %}
+  
+  
+  <table class="table table-striped table-hover table-notificacoes">
     <thead>
       <tr>
         <th>{% trans "Dispositivos" %}</th>
-        <th>{% trans "Pendências" %}</th>
+        <th>{% trans "Notificações" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -34,7 +39,7 @@
          {% if dpt.contextual_class %}
            <td>
              <ul>
-               {% for p in dpt.pendencias %}
+               {% for p in dpt.notificacoes %}
                 <li>
                   {%if p.2 %}
                     <a target="_blank" class="text-{{p.0}}" href="{{p.2}}{%if p.3 %}#{{p.3}}{% endif %}"><u>{{p.1}}</u></a>
