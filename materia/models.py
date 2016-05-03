@@ -156,8 +156,10 @@ class AcompanhamentoMateria(models.Model):
 
 
 class Anexada(models.Model):
-    materia_principal = models.ForeignKey(MateriaLegislativa, related_name='+')
-    materia_anexada = models.ForeignKey(MateriaLegislativa, related_name='+')
+    materia_principal = models.ForeignKey(
+        MateriaLegislativa, related_name='materia_principal_set')
+    materia_anexada = models.ForeignKey(
+        MateriaLegislativa, related_name='materia_anexada_set')
     data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
     data_desanexacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Desanexação'))

@@ -165,7 +165,7 @@ class TramitacaoAdministrativo(models.Model):
         UnidadeTramitacao,
         blank=True,
         null=True,
-        related_name='+',
+        related_name='adm_tramitacoes_origem',
         verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
@@ -173,7 +173,7 @@ class TramitacaoAdministrativo(models.Model):
         UnidadeTramitacao,
         blank=True,
         null=True,
-        related_name='+',
+        related_name='adm_tramitacoes_destino',
         verbose_name=_('Unidade Destino'))
     ultima = models.BooleanField()
     texto = models.TextField(

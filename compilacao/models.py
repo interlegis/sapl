@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -340,7 +339,7 @@ class TipoDispositivo(BaseModel):
         through='TipoDispositivoRelationship',
         through_fields=('pai', 'filho_permitido'),
         symmetrical=False,
-        related_name='+')
+        related_name='relacaoes_pai_filho')
 
     class Meta:
         verbose_name = _('Tipo de Dispositivo')
@@ -608,13 +607,13 @@ class Dispositivo(BaseModel, TimestampedMixin):
     dispositivo_subsequente = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='+',
+        related_name='dispositivo_subsequente_set',
         on_delete=models.SET_NULL,
         verbose_name=_('Dispositivo Subsequente'))
     dispositivo_substituido = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
-        related_name='+',
+        related_name='dispositivo_substituido_set',
         on_delete=models.SET_NULL,
         verbose_name=_('Dispositivo Substituido'))
     dispositivo_pai = models.ForeignKey(
@@ -1213,10 +1212,10 @@ class Vide(TimestampedMixin):
     dispositivo_base = models.ForeignKey(
         Dispositivo,
         verbose_name=_('Dispositivo Base'),
-        related_name='cita')
+        related_name='dispositivo_base_set')
     dispositivo_ref = models.ForeignKey(
         Dispositivo,
-        related_name='citado',
+        related_name='dispositivo_citado_set',
         verbose_name=_('Dispositivo Referido'))
 
     class Meta:
@@ -1265,7 +1264,7 @@ class Nota(TimestampedMixin):
     dispositivo = models.ForeignKey(
         Dispositivo,
         verbose_name=_('Dispositivo da Nota'),
-        related_name='notas')
+        related_name='dispositivo_nota_set')
 
     owner = models.ForeignKey(User, verbose_name=_('Dono da Nota'))
     publicidade = models.PositiveSmallIntegerField(
