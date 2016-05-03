@@ -1,11 +1,11 @@
 -r requirements.txt
-coverage
+coverage==4.0.3
 django-webtest
 flake8==2.5.4
 isort==4.2.5
-model_mommy
-pep8
-pytest
-pytest-cov
-pytest-django
-webtest
+model_mommy==1.2.6
+pep8==1.7.0
+pytest==2.7.2
+pytest-cov==2.2.1
+pytest-django==2.9.1
+webtest==2.0.21

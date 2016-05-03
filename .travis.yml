@@ -13,7 +13,7 @@ addons:
 install:
   - sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz pkg-config python-psycopg2 nodejs npm
   - sudo ln -s /usr/bin/node
-  - pip install -r requirements/dev-requirements.txt
+  - pip install -r requirements/test-requirements.txt
   - pip install --upgrade setuptools
 
 # Line 24 to 35 is a hack found in this link below
