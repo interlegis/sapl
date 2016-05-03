@@ -38,6 +38,7 @@ function refreshMask() {
     $('.cep').mask("00000-000", {placeholder:"_____-___"});
     $('.rg').mask("0.000.000", {placeholder:"_.___.___"});
     $('.titulo_eleitor').mask("0000.0000.0000.0000", {placeholder:"____.____.____.____"});
+    $('.dateinput').mask('00/00/0000');
     $('.hora').mask("00:00", {placeholder:"hh:mm"});
     $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
 }
