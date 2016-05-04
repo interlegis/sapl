@@ -176,6 +176,13 @@ class RelatoriaForm(ModelForm):
 
         return cleaned_data
 
+    class Meta:
+        model = Relatoria
+        model = Relatoria
+        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
+                  'data_destituicao_relator', 'tipo_fim_relatoria']
+        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+
 
 class TramitacaoForm(ModelForm):
 
