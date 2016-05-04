@@ -80,10 +80,10 @@ class ParlamentarCrud(Crud):
             parlamentares = []
             for m in object_list:
                 ultima_filiacao = m.parlamentar.filiacao_set.first()
-                if ultima_filiacao:
+                if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
                     partido = ultima_filiacao.partido.sigla
                 else:
-                    partido = _('Sem Registro')
+                    partido = _('Sem Partido')
 
                 parlamentar = [
                     (m.parlamentar.nome_parlamentar, m.parlamentar.id),
