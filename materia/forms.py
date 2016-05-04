@@ -176,18 +176,10 @@ class RelatoriaForm(ModelForm):
 
     class Meta:
         model = Relatoria
-        fields = ['data_designacao_relator',
-                  'comissao',
-                  'parlamentar',
-                  'data_destituicao_relator',
-                  'tipo_fim_relatoria'
-                  ]
-        widgets = {
-            'data_designacao_relator': forms.DateInput(attrs={
-                'class': 'dateinput'}),
-            'data_destituicao_relator': forms.DateInput(attrs={
-                                                        'class': 'dateinput'}),
-        }
+        model = Relatoria
+        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
+                  'data_destituicao_relator', 'tipo_fim_relatoria']
+        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
 
 
 class TramitacaoForm(ModelForm):
