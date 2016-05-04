@@ -57,7 +57,21 @@ ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 
-RelatoriaCrud = MasterDetailCrud.build(Relatoria, 'materia', '')
+
+class RelatoriaCrud(MasterDetailCrud):
+    model = Relatoria
+    parent_field = 'materia'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = RelatoriaForm
+
+        def get_initial(self):
+            self.initial['comissao'] = 8
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RelatoriaForm
 
 
 class RelatoriaCrud(MasterDetailCrud):
