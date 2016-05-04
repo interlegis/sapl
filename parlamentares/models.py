@@ -306,6 +306,7 @@ class Filiacao(models.Model):
     class Meta:
         verbose_name = _('Filiação')
         verbose_name_plural = _('Filiações')
+        ordering = ('parlamentar', '-data', '-data_desfiliacao')
 
     def __str__(self):
         return _('%(parlamentar)s - %(partido)s') % {
