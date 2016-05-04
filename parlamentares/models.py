@@ -306,6 +306,8 @@ class Filiacao(models.Model):
     class Meta:
         verbose_name = _('Filiação')
         verbose_name_plural = _('Filiações')
+        # A ordenação descrescente por data é importante para listagem de
+        # parlamentares e tela de Filiações do Parlamentar
         ordering = ('parlamentar', '-data', '-data_desfiliacao')
 
     def __str__(self):

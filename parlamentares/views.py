@@ -79,9 +79,9 @@ class ParlamentarCrud(Crud):
         def get_rows(self, object_list):
             parlamentares = []
             for m in object_list:
-
-                if m.parlamentar.filiacao_set.last():
-                    partido = ', '.join(str(p) for p in m.get_partidos())
+                ultima_filiacao = m.parlamentar.filiacao_set.last()
+                if ultima_filiacao:
+                    partido = ultima_filiacao.partido.sigla
                 else:
                     partido = _('Sem Registro')
 
