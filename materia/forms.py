@@ -178,10 +178,23 @@ class RelatoriaForm(ModelForm):
 
     class Meta:
         model = Relatoria
-        model = Relatoria
         fields = ['data_designacao_relator', 'comissao', 'parlamentar',
                   'data_destituicao_relator', 'tipo_fim_relatoria']
+
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        try:
+            comissao = Comissao.objects.get(id=self.initial['comissao'])
+        except ObjectDoesNotExist:
+            msg = _('A localização atual deve ser uma comissão.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['comissao'] = comissao
+
+        return cleaned_data
 
 
 class TramitacaoForm(ModelForm):
