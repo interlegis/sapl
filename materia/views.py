@@ -3,6 +3,9 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import (HTML, Button, Column, Div, Fieldset, Layout,
+                                 Submit)
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -14,8 +17,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView
 from django_filters.views import FilterView
 
+import crispy_layout_mixin
 import crud.base
 import crud.masterdetail
+import sapl
 from base.models import CasaLegislativa
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
@@ -128,6 +133,25 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = DocumentoAcessorioForm
+
+        def get_form(self, form_class=None):
+            form = super(CreateView, self).get_form(form_class)
+            form.helper.layout = self.get_layout()
+
+            autor_row = crispy_layout_mixin.to_row(
+                [('autor', 0),
+                 (Button('pesquisar',
+                         'Pesquisar Autor',
+                         css_class='btn btn-primary btn-sm'), 2),
+                 (Button('limpar',
+                         'Limpar Autor',
+                         css_class='btn btn-primary btn-sm'), 10)])
+
+            form.helper.layout[0][2][0] = autor_row
+            form.helper.layout[0][1].append(HTML(sapl.utils.autor_label))
+            form.helper.layout[0][1].append(HTML(sapl.utils.autor_modal))
+
+            return form
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
