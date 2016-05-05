@@ -389,42 +389,6 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_redirect_url())
 
 
-class DocumentoAcessorioEditView(CreateView):
-    template_name = "materia/documento_acessorio_edit.html"
-    form_class = DocumentoAcessorioForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
-        form = DocumentoAcessorioForm(instance=documento, excluir=True)
-        return self.render_to_response({'object': materia, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                documento.delete()
-            elif 'salvar' in request.POST:
-                documento.materia = materia
-                documento.tipo = form.cleaned_data['tipo']
-                documento.data = form.cleaned_data['data']
-                documento.nome = form.cleaned_data['nome']
-                documento.autor = form.cleaned_data['autor']
-                documento.ementa = form.cleaned_data['ementa']
-                documento.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'doc': documento})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
-
-
 def load_email_templates(templates, context={}):
 
     emails = []

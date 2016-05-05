@@ -121,8 +121,6 @@ class DocumentoAcessorioForm(ModelForm):
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
         widgets = {'autor': forms.HiddenInput()}
 
-        widgets = {'autor': forms.HiddenInput()}
-
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
         try:
