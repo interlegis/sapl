@@ -131,6 +131,10 @@ class DocumentoAcessorioForm(ModelForm):
             if autor_field:
                 return str(Autor.objects.get(id=autor_field))
 
+    def __init__(self, *args, **kwargs):
+        super(DocumentoAcessorioForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+
 
 class RelatoriaForm(ModelForm):
 
