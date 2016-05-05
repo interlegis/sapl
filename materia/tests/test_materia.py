@@ -403,7 +403,7 @@ def test_form_errors_tramitacao(client):
 def test_form_errors_relatoria(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:relatoria',
+    response = client.post(reverse('materia:relatoria_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)

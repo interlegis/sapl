@@ -11,13 +11,12 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, FormView, ListView, TemplateView
+from django.views.generic import CreateView, ListView, TemplateView
 from django_filters.views import FilterView
 
 import crud.base
 import crud.masterdetail
 from base.models import CasaLegislativa
-from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
