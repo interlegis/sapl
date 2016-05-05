@@ -9,11 +9,11 @@
 - title: Documento Acessório
   url: documento_acessorio
 - title: Legislação Citada
-  url: legislacao_citada
+  url: legislacaocitada_list
 - title: Numeração
   url: numeracao_list
 - title: Tramitação
-  url: tramitacao_materia
+  url: tramitacao_list
 - title: Relatoria
   url: relatoria
 

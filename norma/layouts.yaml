@@ -30,7 +30,14 @@ NormaJuridicaCreate:
 
 LegislacaoCitada:
   Legislação Citada:
-  - tip_norma_FIXME  num_norma_FIXME  ano_norma_FIXME
+  - tipo  numero  ano
+  - disposicoes  parte  livro  titulo
+  - capitulo  secao  subsecao  artigo
+  - paragrafo  inciso  alinea  item
+
+LegislacaoCitadaDetail:
+  Legislação Citada:
+  - norma
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item

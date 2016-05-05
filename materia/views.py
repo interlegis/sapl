@@ -21,7 +21,7 @@ from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
-from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
+from norma.models import LegislacaoCitada
 from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
@@ -54,7 +54,45 @@ TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
-TramitacaoCrud = Crud.build(Tramitacao, '')
+
+
+class TramitacaoCrud(MasterDetailCrud):
+    model = Tramitacao
+    parent_field = 'materia'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
+                            'unidade_tramitacao_destino', 'status']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = TramitacaoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = TramitacaoForm
+
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            return qs.filter(**kwargs).order_by('-data_tramitacao')
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, request, *args, **kwargs):
+            tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
+            materia = MateriaLegislativa.objects.get(id=tramitacao.materia.id)
+            url = reverse('materia:tramitacao_list',
+                          kwargs={'pk': tramitacao.materia.id})
+
+            if tramitacao.pk != materia.tramitacao_set.last().pk:
+                msg = _('Somente a útlima tramitação pode ser deletada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(url)
+            else:
+                tramitacao.delete()
+                return HttpResponseRedirect(url)
 
 
 class AutoriaCrud(MasterDetailCrud):
@@ -79,6 +117,38 @@ class DespachoInicialCrud(MasterDetailCrud):
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DespachoInicialForm
+
+
+class LegislacaoCitadaCrud(MasterDetailCrud):
+    model = LegislacaoCitada
+    parent_field = 'materia'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['norma', 'disposicoes']
+
+        def resolve_url(self, suffix, args=None):
+            namespace = 'materia'
+            return reverse('%s:%s' % (namespace, self.url_name(suffix)),
+                           args=args)
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = LegislacaoCitadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = LegislacaoCitadaForm
+
+        def get_initial(self):
+            self.initial['tipo'] = self.object.norma.tipo.id
+            self.initial['numero'] = self.object.norma.numero
+            self.initial['ano'] = self.object.norma.ano
+            return self.initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'LegislacaoCitadaDetail'
 
 
 class NumeracaoCrud(MasterDetailCrud):
@@ -107,7 +177,7 @@ class AnexadaCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = AnexadaForm
 
-        def get_initial(self, **kwargs):
+        def get_initial(self):
             self.initial['tipo'] = self.object.materia_anexada.tipo.id
             self.initial['numero'] = self.object.materia_anexada.numero
             self.initial['ano'] = self.object.materia_anexada.ano
@@ -127,132 +197,6 @@ class MateriaLegislativaCrud(Crud):
 
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
-
-
-class LegislacaoCitadaView(FormView):
-    template_name = "materia/legislacao_citada.html"
-    form_class = LegislacaoCitadaForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao = LegislacaoCitada.objects.filter(materia_id=kwargs['pk'])
-        form = LegislacaoCitadaForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'legislacao': legislacao})
-
-    def post(self, request, *args, **kwargs):
-        form = LegislacaoCitadaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao_list = LegislacaoCitada.objects.filter(
-            materia_id=kwargs['pk'])
-
-        if form.is_valid():
-            legislacao = LegislacaoCitada()
-
-            try:
-                norma = NormaJuridica.objects.get(
-                    tipo_id=form.cleaned_data['tipo'],
-                    numero=form.cleaned_data['numero'],
-                    ano=form.cleaned_data['ano'])
-            except ObjectDoesNotExist:
-                msg = _('Norma Juridica não existe.')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response({'form': form,
-                                                'object': materia,
-                                                'legislacao': legislacao_list})
-            legislacao.materia = materia
-            legislacao.norma = norma
-            legislacao.disposicoes = form.cleaned_data['disposicoes']
-            legislacao.parte = form.cleaned_data['parte']
-            legislacao.livro = form.cleaned_data['livro']
-            legislacao.titulo = form.cleaned_data['titulo']
-            legislacao.capitulo = form.cleaned_data['capitulo']
-            legislacao.secao = form.cleaned_data['secao']
-            legislacao.subsecao = form.cleaned_data['subsecao']
-            legislacao.artigo = form.cleaned_data['artigo']
-            legislacao.paragrafo = form.cleaned_data['paragrafo']
-            legislacao.inciso = form.cleaned_data['inciso']
-            legislacao.alinea = form.cleaned_data['alinea']
-            legislacao.item = form.cleaned_data['item']
-
-            legislacao.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'legislacao': legislacao_list})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:legislacao_citada', kwargs={'pk': pk})
-
-
-class LegislacaoCitadaEditView(FormView):
-    template_name = "materia/legislacao_citada_edit.html"
-    form_class = LegislacaoCitadaForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:legislacao_citada', kwargs={'pk': pk})
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao = LegislacaoCitada.objects.get(id=kwargs['id'])
-        form = LegislacaoCitadaForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'legislacao': legislacao,
-             'tipos_norma': TipoNormaJuridica.objects.all()})
-
-    def post(self, request, *args, **kwargs):
-        form = LegislacaoCitadaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        legislacao = LegislacaoCitada.objects.get(id=kwargs['id'])
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                legislacao.delete()
-                return self.form_valid(form)
-            elif 'salvar' in request.POST:
-                try:
-                    norma = NormaJuridica.objects.get(
-                        tipo_id=form.cleaned_data['tipo'],
-                        numero=form.cleaned_data['numero'],
-                        ano=form.cleaned_data['ano'])
-                except ObjectDoesNotExist:
-                    msg = _('Norma Juridica não existe.')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'form': form,
-                         'object': materia,
-                         'legislacao': legislacao,
-                         'tipos_norma': TipoNormaJuridica.objects.all()})
-                legislacao.materia = materia
-                legislacao.norma = norma
-                legislacao.disposicoes = form.cleaned_data['disposicoes']
-                legislacao.parte = form.cleaned_data['parte']
-                legislacao.livro = form.cleaned_data['livro']
-                legislacao.titulo = form.cleaned_data['titulo']
-                legislacao.capitulo = form.cleaned_data['capitulo']
-                legislacao.secao = form.cleaned_data['secao']
-                legislacao.subsecao = form.cleaned_data['subsecao']
-                legislacao.artigo = form.cleaned_data['artigo']
-                legislacao.paragrafo = form.cleaned_data['paragrafo']
-                legislacao.inciso = form.cleaned_data['inciso']
-                legislacao.alinea = form.cleaned_data['alinea']
-                legislacao.item = form.cleaned_data['item']
-
-                legislacao.save()
-                return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'object': materia})
 
 
 class DocumentoAcessorioView(CreateView):
@@ -733,117 +677,6 @@ def do_envia_email_tramitacao(request, materia):
 
     enviar_emails(sender, recipients, messages)
     return None
-
-
-class TramitacaoView(CreateView):
-    template_name = "materia/tramitacao.html"
-    form_class = TramitacaoForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacoes = Tramitacao.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_tramitacao')
-        form = self.get_form()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'tramitacoes': tramitacoes})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacoes_list = Tramitacao.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_tramitacao')
-
-        if form.is_valid():
-            ultima_tramitacao = Tramitacao.objects.filter(
-                materia_id=kwargs['pk']).last()
-            if ultima_tramitacao:
-                destino = ultima_tramitacao.unidade_tramitacao_destino
-                cleaned_data = form.cleaned_data['unidade_tramitacao_local']
-                if (destino == cleaned_data):
-                    tramitacao = form.save(commit=False)
-                    tramitacao.materia = materia
-                    tramitacao.save()
-                else:
-                    msg = _('A origem da nova tramitação \
-                            deve ser igual ao destino da última adicionada!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'form': form,
-                         'object': materia,
-                         'tramitacoes': tramitacoes_list})
-
-                    do_envia_email_tramitacao(request, materia)
-            else:
-                tramitacao = form.save(commit=False)
-                tramitacao.materia = materia
-                tramitacao.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'tramitacoes': tramitacoes_list})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
-
-
-class TramitacaoEditView(CreateView):
-    template_name = "materia/tramitacao_edit.html"
-    form_class = TramitacaoForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacao = Tramitacao.objects.get(id=kwargs['id'])
-        form = TramitacaoForm(excluir=True, instance=tramitacao)
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'tramitacao': tramitacao})
-
-    def post(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        tramitacao = Tramitacao.objects.get(id=kwargs['id'])
-        form = self.get_form()
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                if tramitacao == Tramitacao.objects.filter(
-                        materia=materia).last():
-                    tramitacao.delete()
-                else:
-                    msg = _('Somente a útlima tramitação pode ser deletada!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'object': materia,
-                         'form': form,
-                         'tramitacao': tramitacao})
-            elif 'salvar' in request.POST:
-                tramitacao.status = form.cleaned_data['status']
-                tramitacao.turno = form.cleaned_data['turno']
-                tramitacao.urgente = form.cleaned_data['urgente']
-                tramitacao.unidade_tramitacao_destino = form.cleaned_data[
-                    'unidade_tramitacao_destino']
-                tramitacao.data_encaminhamento = form.cleaned_data[
-                    'data_encaminhamento']
-                tramitacao.data_fim_prazo = form.cleaned_data['data_fim_prazo']
-                tramitacao.texto = form.cleaned_data['texto']
-
-                tramitacao.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'tramitacao': tramitacao})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:tramitacao_materia', kwargs={'pk': pk})
 
 
 class ProposicaoListView(ListView):

@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 import crispy_layout_mixin
 import sapl
 from crispy_layout_mixin import form_actions
-from norma.models import LegislacaoCitada, TipoNormaJuridica
+from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
@@ -191,11 +191,6 @@ class RelatoriaForm(ModelForm):
 
 
 class TramitacaoForm(ModelForm):
-    urgente = forms.ChoiceField(required=False,
-                                label='Tramitando',
-                                choices=[(True, 'Sim'), (False, 'Não')],
-                                widget=forms.Select(
-                                    attrs={'class': 'selector'}))
 
     class Meta:
         model = Tramitacao
@@ -209,34 +204,21 @@ class TramitacaoForm(ModelForm):
                   'data_fim_prazo',
                   'texto']
 
-    def __init__(self, excluir=False, *args, **kwargs):
-        row1 = crispy_layout_mixin.to_row(
-            [('data_tramitacao', 6), ('unidade_tramitacao_local', 6)])
+    def clean(self):
+        if self.errors:
+            return self.errors
 
-        row2 = crispy_layout_mixin.to_row(
-            [('status', 5), ('turno', 5), ('urgente', 2)])
+        ultima_tramitacao = Tramitacao.objects.filter(
+                materia_id=self.instance.materia.id).last()
 
-        row3 = crispy_layout_mixin.to_row(
-            [('unidade_tramitacao_destino', 12)])
+        if ultima_tramitacao:
+            destino = ultima_tramitacao.unidade_tramitacao_destino
+            if (destino != self.cleaned_data['unidade_tramitacao_local']):
+                msg = _('A origem da nova tramitação deve ser igual ao '
+                        'destino  da última adicionada!')
+                raise ValidationError(msg)
 
-        row4 = crispy_layout_mixin.to_row(
-            [('data_encaminhamento', 6), ('data_fim_prazo', 6)])
-
-        row5 = crispy_layout_mixin.to_row(
-            [('texto', 12)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Incluir Tramitação'),
-                     row1, row2, row3, row4, row5,
-                     ),
-            form_actions(more=more)
-        )
-        super(TramitacaoForm, self).__init__(
-            *args, **kwargs)
+        return self.cleaned_data
 
 
 class LegislacaoCitadaForm(ModelForm):
@@ -270,41 +252,38 @@ class LegislacaoCitadaForm(ModelForm):
                   'alinea',
                   'item']
 
-    def __init__(self, *args, **kwargs):
+    def clean(self):
+        if self.errors:
+            return self.errors
 
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4),
-             ('numero', 4),
-             ('ano', 4)])
+        cleaned_data = self.cleaned_data
 
-        row2 = crispy_layout_mixin.to_row(
-            [('disposicoes', 3),
-             ('parte', 3),
-             ('livro', 3),
-             ('titulo', 3)])
+        try:
+            norma = NormaJuridica.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A norma a ser inclusa não existe no cadastro'
+                    ' de Normas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['norma'] = norma
 
-        row3 = crispy_layout_mixin.to_row(
-            [('capitulo', 3),
-             ('secao', 3),
-             ('subsecao', 3),
-             ('artigo', 3)])
+        if LegislacaoCitada.objects.filter(
+            materia=self.instance.materia,
+            norma=cleaned_data['norma']
+        ).exists():
+            msg = _('Essa Legislação já foi cadastrada.')
+            raise ValidationError(msg)
 
-        row4 = crispy_layout_mixin.to_row(
-            [('paragrafo', 3),
-             ('inciso', 3),
-             ('alinea', 3),
-             ('item', 3)])
+        return cleaned_data
 
-        self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Legislação Citada'),
-                row1, row2, row3, row4,
-                form_actions()
-            )
-        )
-        super(LegislacaoCitadaForm, self).__init__(*args, **kwargs)
+    def save(self, commit=False):
+        legislacao = super(LegislacaoCitadaForm, self).save(commit)
+        legislacao.norma = self.cleaned_data['norma']
+        legislacao.save()
+        return legislacao
 
 
 class NumeracaoForm(ModelForm):
