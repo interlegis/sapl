@@ -1,0 +1,48 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %}{% endblock %}
+
+{% block sections_nav %} {% endblock %}
+
+{% block detail_content %}
+  <h1><b>Pesquisar Documento Administrativo</b></h1>
+  <br></br>
+ 
+
+  {% crispy filter.form %}
+        
+  <p></p>
+  <table class="table table-striped table-bordered">
+        <thead class="thead-default">
+            <tr><td><h3>Resultados</h3></td></tr>
+        </thead>
+        {% if page_obj|length %}
+          {% if numero_res > 1 %}
+              <h3>Pesquisa concluída com sucesso! Foram encontrados {{numero_res}} documentos.</h3>
+            {% elif numero_res == 1 %}
+              <h3>Pesquisa concluída com sucesso! Foi encontrado {{numero_res}} documento.</h3>
+            {% endif %}
+
+          {% for d in page_obj %}
+            
+              <tr>
+                  <td>
+                      <strong><a href="{% url 'protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
+                      {{ d.assunto|safe }}</br>
+                      <!-- <strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}} --></br>
+                      <p></p>
+              </tr>
+          {% endfor %}
+        {% else  %}
+            <tr>
+                <td>
+                    <h3>Nenhum documento encontrado com essas especificações</h3>
+                 </tr>
+        {% endif %}
+        
+    </table>
+
+{% include "paginacao.html" %}
+
+{% endblock detail_content %}

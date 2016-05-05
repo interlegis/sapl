@@ -28,6 +28,10 @@ NATUREZA_PROCESSO = [('', 'Ambos'),
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
+EM_TRAMITACAO = [('', 'Tanto Faz'),
+                 (0, 'Sim'),
+                 (1, 'Não')]
+
 
 class ProtocoloFilterSet(django_filters.FilterSet):
 
@@ -103,11 +107,6 @@ class ProtocoloFilterSet(django_filters.FilterSet):
              ('tipo_materia', 4)])
 
         row3 = crispy_layout_mixin.to_row(
-            [('tipo_documento', 4),
-             ('tipo_protocolo', 4),
-             ('tipo_materia', 4)])
-
-        row3 = crispy_layout_mixin.to_row(
             [('interessado', 6),
              ('assunto_ementa', 6)])
 
@@ -133,6 +132,95 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                      HTML(sapl.utils.autor_label),
                      HTML(sapl.utils.autor_modal),
                      row4, row5, row6,
+                     form_actions(save_label='Pesquisar'))
+            )
+
+
+class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': 'Data (%s)' % (_('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    ano = django_filters.ChoiceFilter(required=False,
+                                      label=u'Ano',
+                                      choices=ANO_CHOICES)
+
+    tramitacao = django_filters.ChoiceFilter(required=False,
+                                             label=u'Em Tramitação?',
+                                             choices=EM_TRAMITACAO)
+
+    assunto = django_filters.CharFilter(lookup_expr='icontains')
+
+    interessado = django_filters.CharFilter(lookup_expr='icontains')
+
+
+    class Meta:
+        model = DocumentoAdministrativo
+        fields = ['tipo',
+                  'numero',
+                  'numero_protocolo',
+                  'data',
+                  'tramitacaoadministrativo__unidade_tramitacao_local',
+                  'tramitacaoadministrativo__status']
+
+        order_by = (
+            ('', 'Selecione'),
+            ('CRE', 'Ordem Crescente'),
+            ('DEC', 'Ordem Decrescente'),
+        )
+
+    order_by_mapping = {
+        '': [],
+        'CRE': ['ano', 'numero'],
+        'DEC': ['-ano', '-numero'],
+    }
+
+    def get_order_by(self, order_value):
+        if order_value in self.order_by_mapping:
+            return self.order_by_mapping[order_value]
+        else:
+            return super(DocumentoAdministrativoFilterSet,
+                         self).get_order_by(order_value)
+
+    def __init__(self, *args, **kwargs):
+        super(DocumentoAdministrativoFilterSet, self).__init__(*args, **kwargs)
+        
+        local_atual = 'tramitacaoadministrativo__unidade_tramitacao_local'
+        self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['tramitacaoadministrativo__status'].label = 'Situação'
+        self.filters[local_atual].label = 'Localização Atual'
+
+        row1 = crispy_layout_mixin.to_row(
+            [('tipo', 6),
+             ('numero', 6)])
+
+        row2 = crispy_layout_mixin.to_row(
+            [('ano', 4),
+             ('numero_protocolo', 4),
+             ('data', 4)])
+
+        row3 = crispy_layout_mixin.to_row(
+            [('interessado', 4),
+             ('assunto', 4),
+             ('tramitacao', 4)])
+
+        row4 = crispy_layout_mixin.to_row(
+            [('tramitacaoadministrativo__unidade_tramitacao_local', 6),
+             ('tramitacaoadministrativo__status', 6)])
+
+        row5 = crispy_layout_mixin.to_row(
+            [('o', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar Protocolo'),
+                     row1, row2,
+                     row3,row4, row5,
                      form_actions(save_label='Pesquisar'))
             )
 
