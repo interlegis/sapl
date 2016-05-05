@@ -41,6 +41,9 @@ class FiliacaoCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = FiliacaoForm
 
+    class ListView(MasterDetailCrud.ListView):
+        ordering = '-data'
+
 
 class ParlamentarCrud(Crud):
     model = Parlamentar
@@ -79,7 +82,8 @@ class ParlamentarCrud(Crud):
         def get_rows(self, object_list):
             parlamentares = []
             for m in object_list:
-                ultima_filiacao = m.parlamentar.filiacao_set.first()
+                ultima_filiacao = m.parlamentar.filiacao_set.\
+                                    order_by('-data').first()
                 if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
                     partido = ultima_filiacao.partido.sigla
                 else:
