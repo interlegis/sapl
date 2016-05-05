@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 import sapl
+from comissoes.models import Comissao
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
@@ -176,10 +177,23 @@ class RelatoriaForm(ModelForm):
 
     class Meta:
         model = Relatoria
-        model = Relatoria
         fields = ['data_designacao_relator', 'comissao', 'parlamentar',
                   'data_destituicao_relator', 'tipo_fim_relatoria']
+
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        try:
+            comissao = Comissao.objects.get(id=self.initial['comissao'])
+        except ObjectDoesNotExist:
+            msg = _('A localização atual deve ser uma comissão.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['comissao'] = comissao
+
+        return cleaned_data
 
 
 class TramitacaoForm(ModelForm):

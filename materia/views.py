@@ -64,8 +64,21 @@ class RelatoriaCrud(MasterDetailCrud):
         form_class = RelatoriaForm
 
         def get_initial(self):
-            self.initial['comissao'] = 8
-            return self.initial
+            materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+
+            loc_atual = Tramitacao.objects.filter(
+                materia=materia).last()
+
+            if loc_atual is None:
+                localizacao = 0
+            else:
+                comissao = loc_atual.unidade_tramitacao_destino.comissao
+                if comissao:
+                    localizacao = comissao.pk
+                else:
+                    localizacao = 0
+
+            return {'comissao': localizacao}
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = RelatoriaForm
@@ -319,183 +332,6 @@ class DocumentoAcessorioEditView(CreateView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('materia:documento_acessorio', kwargs={'pk': pk})
-
-
-class RelatoriaEditView(FormView):
-    template_name = "materia/relatoria_edit.html"
-    form_class = RelatoriaForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:relatoria', kwargs={'pk': pk})
-
-    def get(self, request, *args, **kwargs):
-        form = RelatoriaForm()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatoria = Relatoria.objects.get(
-            id=kwargs['id'])
-        composicao = Composicao.objects.filter(
-            comissao=relatoria.comissao).last()
-        parlamentares = composicao.participacao_set.all()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'relatoria': relatoria,
-             'tipo_fim_relatorias': TipoFimRelatoria.objects.all(),
-             'parlamentares': parlamentares})
-
-    def post(self, request, *args, **kwargs):
-        form = RelatoriaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatoria = Relatoria.objects.get(id=kwargs['id'])
-        composicao = Composicao.objects.filter(
-            comissao=relatoria.comissao).last()
-        parlamentares = composicao.participacao_set.all()
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                relatoria.delete()
-                return self.form_valid(form)
-            elif 'salvar' in request.POST:
-                relatoria.materia = materia
-                relatoria.comissao = relatoria.comissao
-                relatoria.data_designacao_relator = form.cleaned_data[
-                    'data_designacao_relator']
-                relatoria.data_destituicao_relator = form.cleaned_data[
-                    'data_destituicao_relator']
-                relatoria.parlamentar = form.cleaned_data['parlamentar']
-                relatoria.tipo_fim_relatoria = form.cleaned_data[
-                    'tipo_fim_relatoria']
-                relatoria.save()
-                return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatoria': relatoria,
-                 'tipo_fim_relatorias': TipoFimRelatoria.objects.all(),
-                 'parlamentares': parlamentares})
-
-
-class RelatoriaView(FormView):
-    template_name = "materia/relatoria.html"
-    form_class = RelatoriaForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:relatoria', kwargs={'pk': pk})
-
-    def post(self, request, *args, **kwargs):
-        form = RelatoriaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-
-        if not materia.tramitacao_set.all():
-            msg = _(
-                'Adicione alguma Tramitação antes de adicionar uma Comissão!')
-            messages.add_message(request, messages.INFO, msg)
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
-                 })
-        else:
-            relatorias = Relatoria.objects.filter(
-                materia_id=kwargs['pk']).order_by(
-                    '-data_designacao_relator')
-            localizacao = Tramitacao.objects.filter(
-                materia=materia).last()
-
-            comissao = Comissao.objects.get(
-                id=localizacao.unidade_tramitacao_destino.comissao.id)
-
-            if form.is_valid():
-                relatoria = form.save(commit=False)
-                relatoria.materia = materia
-                relatoria.comissao = comissao
-                relatoria.save()
-                return self.form_valid(form)
-            else:
-                try:
-                    composicao = Composicao.objects.get(comissao=comissao)
-                except ObjectDoesNotExist:
-                    msg = _('Não há composição nesta Comissão!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'object': materia,
-                         'form': form,
-                         'relatorias': relatorias,
-                         'comissao': comissao})
-
-                parlamentares = composicao.participacao_set.all()
-
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'relatorias': relatorias,
-                     'comissao': comissao,
-                     'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
-                     'parlamentares': parlamentares})
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatorias = Relatoria.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_designacao_relator')
-        form = RelatoriaForm()
-
-        localizacao = Tramitacao.objects.filter(
-            materia=materia).last()
-
-        if not materia.tramitacao_set.all():
-            msg = _(
-                'Adicione alguma Tramitação antes de adicionar uma Comissão!')
-            messages.add_message(request, messages.INFO, msg)
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatorias': relatorias,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
-                 })
-        elif not localizacao.unidade_tramitacao_destino.comissao:
-            msg = _('O local atual deve  ser uma Comissão!')
-            messages.add_message(request, messages.INFO, msg)
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatorias': relatorias})
-        else:
-            try:
-                comissao = Comissao.objects.get(
-                    id=localizacao.unidade_tramitacao_destino.comissao.id)
-                composicao = Composicao.objects.filter(
-                    comissao=comissao).last()
-                if not composicao:
-                    msg = _('Não há composição nesta Comissão!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'object': materia,
-                         'form': form,
-                         'relatorias': relatorias,
-                         'comissao': comissao})
-                parlamentares = composicao.participacao_set.all()
-            except ObjectDoesNotExist:
-                msg = _('O local atual deve  ser uma Comissão!')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'relatorias': relatorias})
-            else:
-                composicao = Composicao.objects.filter(
-                    comissao=comissao).last()
-                parlamentares = composicao.participacao_set.all()
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'relatorias': relatorias,
-                     'comissao': comissao,
-                     'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
-                     'parlamentares': parlamentares})
 
 
 def load_email_templates(templates, context={}):
