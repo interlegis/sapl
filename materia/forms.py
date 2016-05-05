@@ -119,7 +119,6 @@ class DocumentoAcessorioForm(ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
-
         widgets = {'autor': forms.HiddenInput()}
 
     def clean_autor(self):
