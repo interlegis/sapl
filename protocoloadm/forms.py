@@ -21,9 +21,9 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 
-NATUREZA_PROCESSO = [('0', 'Administrativo'),
-                     ('1', 'Legislativo'),
-                     ('', 'Ambos')]
+NATUREZA_PROCESSO = [('', 'Ambos'),
+                     ('0', 'Administrativo'),
+                     ('1', 'Legislativo')]
 
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
@@ -52,6 +52,11 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                                                  label='Tipo de Protocolo',
                                                  choices=TIPOS_PROTOCOLO,
                                                  widget=forms.Select(
+                                                  attrs={'class': 'selector'}))
+    tipo_processo = django_filters.ChoiceFilter(required=False,
+                                                label='Natureza do Processo',
+                                                choices=NATUREZA_PROCESSO,
+                                                widget=forms.Select(
                                                   attrs={'class': 'selector'}))
 
     class Meta:
@@ -115,6 +120,8 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                           'Limpar Autor',
                           css_class='btn btn-primary btn-sm'), 10)])
         row5 = crispy_layout_mixin.to_row(
+            [('tipo_processo', 12)])
+        row6 = crispy_layout_mixin.to_row(
             [('o', 12)])
 
         self.form.helper = FormHelper()
@@ -125,7 +132,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                      row3,
                      HTML(sapl.utils.autor_label),
                      HTML(sapl.utils.autor_modal),
-                     row4, row5,
+                     row4, row5, row6,
                      form_actions(save_label='Pesquisar'))
             )
 

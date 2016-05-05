@@ -1,12 +1,11 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.messages import constants
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
 from django.db import transaction
@@ -19,8 +18,8 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import (CreateView, DeleteView, FormView,
-                                       UpdateView, FormMixin)
+from django.views.generic.edit import (CreateView, DeleteView,
+                                       FormView, UpdateView)
 from django.views.generic.list import ListView
 
 from compilacao.forms import (DispositivoDefinidorVigenciaForm,
@@ -28,8 +27,8 @@ from compilacao.forms import (DispositivoDefinidorVigenciaForm,
                               DispositivoEdicaoBasicaForm,
                               DispositivoEdicaoVigenciaForm,
                               DispositivoSearchModalForm, NotaForm,
-                              PublicacaoForm, TaForm, TipoTaForm, VideForm,
-                              TextNotificacoesForm)
+                              PublicacaoForm, TaForm, TextNotificacoesForm,
+                              TipoTaForm, VideForm)
 from compilacao.models import (Dispositivo, Nota,
                                PerfilEstruturalTextoArticulado, Publicacao,
                                TextoArticulado, TipoDispositivo, TipoNota,
@@ -37,7 +36,6 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
