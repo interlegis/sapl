@@ -62,11 +62,9 @@ Autoria:
 
 DocumentoAcessorio:
   Documento Acessório:
-  - tipo  nome
-  - data  autor
-  - nom_arquivo_FIXME
+  - tipo nome data
+  - autor
   - ementa
-  - txt_observacao_FIXME
 
 Numeracao:
   Numeração:

@@ -115,18 +115,11 @@ class AcompanhamentoMateriaForm(ModelForm):
 
 
 class DocumentoAcessorioForm(ModelForm):
-    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
+    # autor = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     class Meta:
         model = DocumentoAcessorio
-        fields = ['tipo',
-                  'nome',
-                  'data',
-                  'autor',
-                  'ementa']
-        widgets = {
-            'data': forms.DateInput(attrs={'class': 'dateinput'})
-        }
+        fields = ['tipo', 'nome', 'data', 'autor', 'ementa']
 
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
@@ -137,40 +130,6 @@ class DocumentoAcessorioForm(ModelForm):
         else:
             if autor_field:
                 return str(Autor.objects.get(id=autor_field))
-
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4), ('nome', 4), ('data', 4)])
-
-        row2 = crispy_layout_mixin.to_row(
-            [('autor', 0),
-             (Button('pesquisar',
-                     'Pesquisar Autor',
-                     css_class='btn btn-primary btn-sm'), 2),
-             (Button('limpar',
-                     'Limpar Autor',
-                     css_class='btn btn-primary btn-sm'), 10)])
-
-        row3 = crispy_layout_mixin.to_row(
-            [('ementa', 12)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Documento Acessório'),
-                row1,
-                HTML(sapl.utils.autor_label),
-                HTML(sapl.utils.autor_modal),
-                row2, row3,
-                form_actions(more=more)
-            )
-        )
-        super(DocumentoAcessorioForm, self).__init__(*args, **kwargs)
 
 
 class RelatoriaForm(ModelForm):
