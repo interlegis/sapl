@@ -400,7 +400,7 @@ class PesquisarDocumentoAdministrativoView(FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if (data and data.get('tipo') is not None):
-            url = "&"+str(self.request.environ['QUERY_STRING'])
+            url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('tipo=') - 1
                 url = url[ponto_comeco:]
