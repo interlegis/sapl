@@ -30,7 +30,6 @@
                   <td>
                       <strong><a href="{% url 'protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
                       {{ d.assunto|safe }}</br>
-                      <!-- <strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}} --></br>
                       <p></p>
               </tr>
           {% endfor %}
