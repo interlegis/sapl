@@ -17,8 +17,8 @@ from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
-                    DocumentoAdministrativoForm,
-                    DocumentoAdministrativoFilterSet, ProposicaoSimpleForm,
+                    DocumentoAdministrativoFilterSet,
+                    DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
                     ProtocoloMateriaForm, TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
@@ -416,7 +416,6 @@ class PesquisarDocumentoAdministrativoView(FilterView):
                                         )
 
         return self.render_to_response(context)
-    
 
 
 class DetailDocumentoAdministrativo(DetailView):
