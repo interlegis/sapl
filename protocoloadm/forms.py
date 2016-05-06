@@ -137,7 +137,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
 
 class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
-
+    
     filter_overrides = {models.DateField: {
         'filter_class': django_filters.DateFromToRangeFilter,
         'extra': lambda f: {
@@ -164,7 +164,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                   'numero',
                   'numero_protocolo',
                   'data',
-                  'tramitacaoadministrativo__unidade_tramitacao_local',
+                  'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
 
         order_by = (
@@ -189,7 +189,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super(DocumentoAdministrativoFilterSet, self).__init__(*args, **kwargs)
         
-        local_atual = 'tramitacaoadministrativo__unidade_tramitacao_local'
+        local_atual = 'tramitacaoadministrativo__unidade_tramitacao_destino'
         self.filters['tipo'].label = 'Tipo de Documento'
         self.filters['tramitacaoadministrativo__status'].label = 'Situação'
         self.filters[local_atual].label = 'Localização Atual'
@@ -209,7 +209,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
              ('tramitacao', 4)])
 
         row4 = crispy_layout_mixin.to_row(
-            [('tramitacaoadministrativo__unidade_tramitacao_local', 6),
+            [('tramitacaoadministrativo__unidade_tramitacao_destino', 6),
              ('tramitacaoadministrativo__status', 6)])
 
         row5 = crispy_layout_mixin.to_row(
@@ -218,7 +218,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisar Protocolo'),
+            Fieldset(_('Pesquisar Documento'),
                      row1, row2,
                      row3,row4, row5,
                      form_actions(save_label='Pesquisar'))
