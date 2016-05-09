@@ -134,9 +134,8 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = DocumentoAcessorioForm
 
-        def get_form(self, form_class=None):
-            form = super(CreateView, self).get_form(form_class)
-            form.helper.layout = self.get_layout()
+        def __init__(self, *args, **kwargs):
+            super(CreateView, self).__init__(*args, **kwargs)
 
             autor_row = crispy_layout_mixin.to_row(
                 [('autor', 0),
@@ -147,11 +146,21 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
                          'Limpar Autor',
                          css_class='btn btn-primary btn-sm'), 10)])
 
-            form.helper.layout[0][2][0] = autor_row
-            form.helper.layout[0][1].append(HTML(sapl.utils.autor_label))
-            form.helper.layout[0][1].append(HTML(sapl.utils.autor_modal))
+            self.helper = FormHelper()
+            self.helper.layout = Layout(
+                crispy_layout_mixin.to_row(self.get_layout()[0][1]),
+                HTML(sapl.utils.autor_label),
+                HTML(sapl.utils.autor_modal),
+                crispy_layout_mixin.to_row(self.get_layout()[0][2]),
+                crispy_layout_mixin.to_row(self.get_layout()[0][3]),
+            )
+            # self.helper.layout[3][0][0] = autor_row
+            # import ipdb; ipdb.set_trace()
 
-            return form
+        def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
