@@ -152,7 +152,15 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             # Adiciona o novo campo 'autor' e mecanismo de busca
             self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
             self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
-            self.helper.layout[0][1][0] = autor_row
+            self.helper.layout[0][1] = autor_row
+
+            # Remove botões que estão fora do form
+            self.helper.layout[1].pop()
+
+            # Adiciona novos botões dentro do form
+            self.helper.layout[0][2][0].insert(1, form_actions(more=[
+                HTML('<a href="{{ view.cancel_url }}"'
+                     ' class="btn btn-inverse">Cancelar</a>')]))
 
             super(CreateView, self).__init__(*args, **kwargs)
 
