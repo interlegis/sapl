@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
+from crispy_layout_mixin import form_actions
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
@@ -167,7 +168,6 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, *args, **kwargs):
-            super(CreateView, self).__init__(*args, **kwargs)
             autor_row = crispy_layout_mixin.to_row(
                 [('autor', 0),
                  (Button('pesquisar',
