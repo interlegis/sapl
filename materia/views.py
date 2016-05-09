@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
+from crispy_layout_mixin import form_actions
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Fieldset, Layout,
@@ -135,8 +136,6 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, *args, **kwargs):
-            super(CreateView, self).__init__(*args, **kwargs)
-
             autor_row = crispy_layout_mixin.to_row(
                 [('autor', 0),
                  (Button('pesquisar',
@@ -147,15 +146,15 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
                          css_class='btn btn-primary btn-sm'), 10)])
 
             self.helper = FormHelper()
-            self.helper.layout = Layout(
-                crispy_layout_mixin.to_row(self.get_layout()[0][1]),
-                HTML(sapl.utils.autor_label),
-                HTML(sapl.utils.autor_modal),
-                crispy_layout_mixin.to_row(self.get_layout()[0][2]),
-                crispy_layout_mixin.to_row(self.get_layout()[0][3]),
-            )
-            self.helper.layout[3] = autor_row
-            # import ipdb; ipdb.set_trace()
+            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
+                *self.get_layout())
+
+            # Adiciona o novo campo 'autor' e mecanismo de busca
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
+            self.helper.layout[0][1][0] = autor_row
+
+            super(CreateView, self).__init__(*args, **kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
