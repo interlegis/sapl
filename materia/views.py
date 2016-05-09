@@ -154,7 +154,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
                 crispy_layout_mixin.to_row(self.get_layout()[0][2]),
                 crispy_layout_mixin.to_row(self.get_layout()[0][3]),
             )
-            # self.helper.layout[3][0][0] = autor_row
+            self.helper.layout[3] = autor_row
             # import ipdb; ipdb.set_trace()
 
         def get_context_data(self, **kwargs):
