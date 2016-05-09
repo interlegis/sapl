@@ -2,11 +2,9 @@ import os
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
-from crispy_layout_mixin import form_actions
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, Button, Column, Div, Fieldset, Layout,
-                                 Submit)
+from crispy_forms.layout import HTML, Button
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -24,6 +22,7 @@ import crud.masterdetail
 import sapl
 from base.models import CasaLegislativa
 from compilacao.views import IntegracaoTaView
+from crispy_layout_mixin import form_actions
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada
