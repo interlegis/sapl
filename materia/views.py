@@ -166,14 +166,8 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = DocumentoAcessorioForm
 
-<<<<<<< c9d78fc1838416100fa92533705a9f4c2985190e
         def __init__(self, *args, **kwargs):
-=======
-        def get_form(self, form_class=None):
-            form = super(CreateView, self).get_form(form_class)
-            form.helper.layout = self.get_layout()
-
->>>>>>> Monta layout para autor
+            super(CreateView, self).__init__(*args, **kwargs)
             autor_row = crispy_layout_mixin.to_row(
                 [('autor', 0),
                  (Button('pesquisar',
@@ -183,7 +177,6 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
                          'Limpar Autor',
                          css_class='btn btn-primary btn-sm'), 10)])
 
-<<<<<<< c9d78fc1838416100fa92533705a9f4c2985190e
             self.helper = FormHelper()
             self.helper.layout = crispy_layout_mixin.SaplFormLayout(
                 *self.get_layout())
@@ -202,18 +195,19 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
                      ' class="btn btn-inverse">Cancelar</a>')]))
 
             super(CreateView, self).__init__(*args, **kwargs)
+            self.helper = FormHelper()
+            self.helper.layout = Layout(
+                crispy_layout_mixin.to_row(self.get_layout()[0][1]),
+                HTML(sapl.utils.autor_label),
+                HTML(sapl.utils.autor_modal),
+                crispy_layout_mixin.to_row(self.get_layout()[0][2]),
+                crispy_layout_mixin.to_row(self.get_layout()[0][3]),
+            )
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
             context['helper'] = self.helper
             return context
-=======
-            form.helper.layout[0][2][0] = autor_row
-            form.helper.layout[0][1].append(HTML(sapl.utils.autor_label))
-            form.helper.layout[0][1].append(HTML(sapl.utils.autor_modal))
-
-            return form
->>>>>>> Monta layout para autor
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
