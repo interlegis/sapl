@@ -14,9 +14,9 @@ from model_mommy.mommy import foreign_key_required, make
 from base.models import ProblemaMigracao
 from comissoes.models import Composicao, Participacao
 from materia.models import StatusTramitacao, Tramitacao
-from parlamentares.models import Parlamentar
-from sessao.models import SessaoPlenaria, OrdemDia
 from norma.models import NormaJuridica
+from parlamentares.models import Parlamentar
+from sessao.models import OrdemDia, SessaoPlenaria
 
 # BASE ######################################################################
 
