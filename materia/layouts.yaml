@@ -87,13 +87,22 @@ TipoProposicao:
   - materia_ou_documento  tipo_documento
   - modelo
 
-Proposicao:
+ProposicaoCreate:
   Proposição:
   - tipo  data_envio
   - descricao
   Materia:
   - tipo_materia numero_materia ano_materia
-  Texto:
+  Complemento:
+  - texto_original
+
+Proposicao:
+  Proposição:
+  - tipo  data_envio
+  - descricao
+  Materia:
+  - materia
+  Complemento:
   - texto_original
 
 StatusTramitacao:

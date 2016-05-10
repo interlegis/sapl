@@ -63,13 +63,30 @@ class ProposicaoCrud(Crud):
     help_path = ''
 
     class BaseMixin(crud.base.CrudBaseMixin):
-        list_field_names = ['data_envio', 'tipo', 'descricao']
+        list_field_names = ['data_envio', 'descricao', 'tipo']
 
     class CreateView(crud.base.CrudCreateView):
         form_class = ProposicaoForm
 
+        @property
+        def layout_key(self):
+            return 'ProposicaoCreate'
+
     class UpdateView(crud.base.CrudUpdateView):
         form_class = ProposicaoForm
+
+        @property
+        def layout_key(self):
+            return 'ProposicaoCreate'
+
+    class ListView(crud.base.CrudListView):
+        def get_rows(self, object_list):
+
+            for obj in object_list:
+                if obj.data_envio is None:
+                    obj.data_envio = 'Em elaboração...'
+
+            return [self._as_row(obj) for obj in object_list]
 
 
 class RelatoriaCrud(MasterDetailCrud):
