@@ -133,6 +133,9 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
     parent_field = 'materia'
     help_path = ''
 
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['nome', 'tipo', 'data', 'autor', 'arquivo']
+
     class CreateView(MasterDetailCrud.CreateView):
         form_class = DocumentoAcessorioForm
 
@@ -159,7 +162,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             self.helper.layout[1].pop()
 
             # Adiciona novos botões dentro do form
-            self.helper.layout[0][2][0].insert(1, form_actions(more=[
+            self.helper.layout[0][3][0].insert(1, form_actions(more=[
                 HTML('<a href="{{ view.cancel_url }}"'
                      ' class="btn btn-inverse">Cancelar</a>')]))
 
@@ -196,7 +199,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             self.helper.layout[1].pop()
 
             # Adiciona novos botões dentro do form
-            self.helper.layout[0][2][0].insert(1, form_actions(more=[
+            self.helper.layout[0][3][0].insert(1, form_actions(more=[
                 HTML('<a href="{{ view.cancel_url }}"'
                      ' class="btn btn-inverse">Cancelar</a>')]))
 

@@ -65,6 +65,7 @@ DocumentoAcessorio:
   - tipo nome data
   - autor
   - ementa
+  - arquivo
 
 Numeracao:
   Numeração:
