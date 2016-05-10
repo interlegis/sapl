@@ -65,10 +65,7 @@ DocumentoAcessorio:
   - tipo nome data
   - autor
   - ementa
-<<<<<<< 17f3a6f60978fa9227d01d199824271efa5fcdf7
   - arquivo
-=======
->>>>>>> Init crud documento acessório
 
 Numeracao:
   Numeração:
