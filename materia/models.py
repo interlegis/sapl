@@ -271,12 +271,18 @@ class TipoDocumento(models.Model):
 class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     tipo = models.ForeignKey(TipoDocumento, verbose_name=_('Tipo'))
-    nome = models.CharField(max_length=30, verbose_name=_('Descrição'))
+    nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
         max_length=50, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
+    arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Texto Integral'),
+        validators=[restringe_tipos_de_arquivo_txt])
 
     class Meta:
         verbose_name = _('Documento Acessório')

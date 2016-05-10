@@ -62,11 +62,10 @@ Autoria:
 
 DocumentoAcessorio:
   Documento Acessório:
-  - tipo  nome
-  - data  autor
-  - nom_arquivo_FIXME
+  - tipo nome data
+  - autor
   - ementa
-  - txt_observacao_FIXME
+  - arquivo
 
 Numeracao:
   Numeração:
@@ -78,9 +77,9 @@ Orgao:
 
 Relatoria:
   Relatoria:
-  - data_designacao_relator
-  - dados_FIXME
-  - data_destituicao_relator  tipo_fim_relatoria
+  - comissao
+  - data_designacao_relator data_destituicao_relator
+  - parlamentar tipo_fim_relatoria
 
 TipoProposicao:
   Tipo Proposição:

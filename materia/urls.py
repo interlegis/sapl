@@ -4,14 +4,14 @@ from materia.views import (AcompanhamentoConfirmarView,
                            AcompanhamentoExcluirView,
                            AcompanhamentoMateriaView, AnexadaCrud, AutorCrud,
                            AutoriaCrud, DespachoInicialCrud,
-                           DocumentoAcessorioEditView, DocumentoAcessorioView,
-                           LegislacaoCitadaCrud, MateriaLegislativaCrud,
+                           DocumentoAcessorioCrud, LegislacaoCitadaCrud,
+                           MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoCrud, OrgaoCrud, OrigemCrud,
                            ProposicaoEditView, ProposicaoListView,
                            ProposicaoTaView, ProposicaoView,
-                           RegimeTramitacaoCrud, RelatoriaEditView,
-                           RelatoriaView, StatusTramitacaoCrud, TipoAutorCrud,
+                           RegimeTramitacaoCrud, RelatoriaCrud,
+                           StatusTramitacaoCrud, TipoAutorCrud,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
                            TipoMateriaCrud, TipoProposicaoCrud, TramitacaoCrud,
                            UnidadeTramitacaoCrud)
@@ -28,7 +28,8 @@ urlpatterns = [
                               NumeracaoCrud.get_urls() +
                               LegislacaoCitadaCrud.get_urls() +
                               TramitacaoCrud.get_urls() +
-                              LegislacaoCitadaCrud.get_urls())),
+                              RelatoriaCrud.get_urls() +
+                              DocumentoAcessorioCrud.get_urls())),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -54,14 +55,6 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    url(r'^materia/(?P<pk>\d+)/documento-acessorio$',
-        DocumentoAcessorioView.as_view(), name='documento_acessorio'),
-    url(r'^materia/(?P<pk>\d+)/documento-acessorio/(?P<id>\d+)/edit',
-        DocumentoAcessorioEditView.as_view(), name='documento_acessorio_edit'),
-    url(r'^materia/(?P<pk>\d+)/relatoria$',
-        RelatoriaView.as_view(), name='relatoria'),
-    url(r'^materia/(?P<pk>\d+)/relatoria/(?P<id>\d+)/edit$',
-        RelatoriaEditView.as_view(), name='relatoria_edit'),
     url(r'^materia/proposicao$',
         ProposicaoView.as_view(), name='adicionar_proposicao'),
     url(r'^materia/proposicao_list$',

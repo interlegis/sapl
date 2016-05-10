@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import crispy_layout_mixin
 import sapl
+from comissoes.models import Comissao
 from crispy_layout_mixin import form_actions
 from norma.models import LegislacaoCitada, NormaJuridica, TipoNormaJuridica
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
@@ -114,18 +115,12 @@ class AcompanhamentoMateriaForm(ModelForm):
 
 
 class DocumentoAcessorioForm(ModelForm):
-    autor = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     class Meta:
         model = DocumentoAcessorio
-        fields = ['tipo',
-                  'nome',
-                  'data',
-                  'autor',
-                  'ementa']
-        widgets = {
-            'data': forms.DateInput(attrs={'class': 'dateinput'})
-        }
+        fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
+
+        widgets = {'autor': forms.HiddenInput()}
 
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
@@ -137,57 +132,28 @@ class DocumentoAcessorioForm(ModelForm):
             if autor_field:
                 return str(Autor.objects.get(id=autor_field))
 
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 4), ('nome', 4), ('data', 4)])
-
-        row2 = crispy_layout_mixin.to_row(
-            [('autor', 0),
-             (Button('pesquisar',
-                     'Pesquisar Autor',
-                     css_class='btn btn-primary btn-sm'), 2),
-             (Button('limpar',
-                     'Limpar Autor',
-                     css_class='btn btn-primary btn-sm'), 10)])
-
-        row3 = crispy_layout_mixin.to_row(
-            [('ementa', 12)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Documento Acessório'),
-                row1,
-                HTML(sapl.utils.autor_label),
-                HTML(sapl.utils.autor_modal),
-                row2, row3,
-                form_actions(more=more)
-            )
-        )
-        super(DocumentoAcessorioForm, self).__init__(*args, **kwargs)
-
 
 class RelatoriaForm(ModelForm):
 
     class Meta:
         model = Relatoria
-        fields = ['data_designacao_relator',
-                  'comissao',
-                  'parlamentar',
-                  'data_destituicao_relator',
-                  'tipo_fim_relatoria'
-                  ]
-        widgets = {
-            'data_designacao_relator': forms.DateInput(attrs={
-                'class': 'dateinput'}),
-            'data_destituicao_relator': forms.DateInput(attrs={
-                                                        'class': 'dateinput'}),
-        }
+        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
+                  'data_destituicao_relator', 'tipo_fim_relatoria']
+
+        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        try:
+            comissao = Comissao.objects.get(id=self.initial['comissao'])
+        except ObjectDoesNotExist:
+            msg = _('A localização atual deve ser uma comissão.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['comissao'] = comissao
+
+        return cleaned_data
 
 
 class TramitacaoForm(ModelForm):
@@ -209,7 +175,7 @@ class TramitacaoForm(ModelForm):
             return self.errors
 
         ultima_tramitacao = Tramitacao.objects.filter(
-                materia_id=self.instance.materia.id).last()
+            materia_id=self.instance.materia.id).last()
 
         if ultima_tramitacao:
             destino = ultima_tramitacao.unidade_tramitacao_destino
@@ -508,25 +474,25 @@ def pega_ultima_tramitacao():
 def filtra_tramitacao_status(status):
     lista = pega_ultima_tramitacao()
     return Tramitacao.objects.filter(
-      id__in=lista,
-      status=status).distinct().values_list('materia_id', flat=True)
+        id__in=lista,
+        status=status).distinct().values_list('materia_id', flat=True)
 
 
 def filtra_tramitacao_destino(destino):
     lista = pega_ultima_tramitacao()
     return Tramitacao.objects.filter(
-      id__in=lista,
-      unidade_tramitacao_destino=destino).distinct().values_list(
-      'materia_id', flat=True)
+        id__in=lista,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
 
 
 def filtra_tramitacao_destino_and_status(status, destino):
     lista = pega_ultima_tramitacao()
     return Tramitacao.objects.filter(
-      id__in=lista,
-      status=status,
-      unidade_tramitacao_destino=destino).distinct().values_list(
-      'materia_id', flat=True)
+        id__in=lista,
+        status=status,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
 
 
 class DespachoInicialForm(ModelForm):

@@ -205,7 +205,7 @@ def test_documento_acessorio_submit(client):
                       descricao='Teste')
 
     # Testa POST
-    response = client.post(reverse('materia:documento_acessorio',
+    response = client.post(reverse('materia:documentoacessorio_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'tipo': tipo.pk,
                             'nome': 'teste_nome',
@@ -331,7 +331,7 @@ def test_form_errors_despacho_inicial(client):
 def test_form_errors_documento_acessorio(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:documento_acessorio',
+    response = client.post(reverse('materia:documentoacessorio_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)
@@ -403,7 +403,7 @@ def test_form_errors_tramitacao(client):
 def test_form_errors_relatoria(client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('materia:relatoria',
+    response = client.post(reverse('materia:relatoria_create',
                                    kwargs={'pk': materia_principal.pk}),
                            {'salvar': 'salvar'},
                            follow=True)

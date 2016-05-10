@@ -18,8 +18,8 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import (CreateView, DeleteView,
-                                       FormView, UpdateView)
+from django.views.generic.edit import (CreateView, DeleteView, FormView,
+                                       UpdateView)
 from django.views.generic.list import ListView
 
 from compilacao.forms import (DispositivoDefinidorVigenciaForm,

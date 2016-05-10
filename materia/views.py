@@ -3,6 +3,8 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Button
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -11,14 +13,16 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, FormView, ListView, TemplateView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django_filters.views import FilterView
 
+import crispy_layout_mixin
 import crud.base
 import crud.masterdetail
+import sapl
 from base.models import CasaLegislativa
-from comissoes.models import Comissao, Composicao
 from compilacao.views import IntegracaoTaView
+from crispy_layout_mixin import form_actions
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada
@@ -47,13 +51,42 @@ TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
 AnexadaCrud = Crud.build(Anexada, '')
 TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
-DocumentoAcessorioCrud = Crud.build(DocumentoAcessorio, '')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
-RelatoriaCrud = Crud.build(Relatoria, '')
 TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
+
+RelatoriaCrud = MasterDetailCrud.build(Relatoria, 'materia', '')
+
+
+class RelatoriaCrud(MasterDetailCrud):
+    model = Relatoria
+    parent_field = 'materia'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = RelatoriaForm
+
+        def get_initial(self):
+            materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+
+            loc_atual = Tramitacao.objects.filter(
+                materia=materia).last()
+
+            if loc_atual is None:
+                localizacao = 0
+            else:
+                comissao = loc_atual.unidade_tramitacao_destino.comissao
+                if comissao:
+                    localizacao = comissao.pk
+                else:
+                    localizacao = 0
+
+            return {'comissao': localizacao}
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RelatoriaForm
 
 
 class TramitacaoCrud(MasterDetailCrud):
@@ -93,6 +126,89 @@ class TramitacaoCrud(MasterDetailCrud):
             else:
                 tramitacao.delete()
                 return HttpResponseRedirect(url)
+
+
+class DocumentoAcessorioCrud(MasterDetailCrud):
+    model = DocumentoAcessorio
+    parent_field = 'materia'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['nome', 'tipo', 'data', 'autor', 'arquivo']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = DocumentoAcessorioForm
+
+        def __init__(self, *args, **kwargs):
+            autor_row = crispy_layout_mixin.to_row(
+                [('autor', 0),
+                 (Button('pesquisar',
+                         'Pesquisar Autor',
+                         css_class='btn btn-primary btn-sm'), 2),
+                 (Button('limpar',
+                         'Limpar Autor',
+                         css_class='btn btn-primary btn-sm'), 10)])
+
+            self.helper = FormHelper()
+            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
+                *self.get_layout())
+
+            # Adiciona o novo campo 'autor' e mecanismo de busca
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
+            self.helper.layout[0][1] = autor_row
+
+            # Remove botões que estão fora do form
+            self.helper.layout[1].pop()
+
+            # Adiciona novos botões dentro do form
+            self.helper.layout[0][3][0].insert(1, form_actions(more=[
+                HTML('<a href="{{ view.cancel_url }}"'
+                     ' class="btn btn-inverse">Cancelar</a>')]))
+
+            super(CreateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = DocumentoAcessorioForm
+
+        def __init__(self, *args, **kwargs):
+            autor_row = crispy_layout_mixin.to_row(
+                [('autor', 0),
+                 (Button('pesquisar',
+                         'Pesquisar Autor',
+                         css_class='btn btn-primary btn-sm'), 2),
+                 (Button('limpar',
+                         'Limpar Autor',
+                         css_class='btn btn-primary btn-sm'), 10)])
+
+            self.helper = FormHelper()
+            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
+                *self.get_layout())
+
+            # Adiciona o novo campo 'autor' e mecanismo de busca
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
+            self.helper.layout[0][1] = autor_row
+
+            # Remove botões que estão fora do form
+            self.helper.layout[1].pop()
+
+            # Adiciona novos botões dentro do form
+            self.helper.layout[0][3][0].insert(1, form_actions(more=[
+                HTML('<a href="{{ view.cancel_url }}"'
+                     ' class="btn btn-inverse">Cancelar</a>')]))
+
+            super(UpdateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
 
 
 class AutoriaCrud(MasterDetailCrud):
@@ -142,33 +258,6 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             self.initial['tipo'] = self.object.norma.tipo.id
             self.initial['numero'] = self.object.norma.numero
             self.initial['ano'] = self.object.norma.ano
-            return self.initial
-
-    class DetailView(MasterDetailCrud.DetailView):
-
-        @property
-        def layout_key(self):
-            return 'LegislacaoCitadaDetail'
-
-
-class LegislacaoCitadaCrud(MasterDetailCrud):
-    model = LegislacaoCitada
-    parent_field = 'materia'
-    help_path = ''
-
-    class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['norma', 'disposicoes']
-
-    class CreateView(MasterDetailCrud.CreateView):
-        form_class = LegislacaoCitadaForm
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = LegislacaoCitadaForm
-
-        def get_initial(self):
-            self.initial['tipo_norma'] = self.object.norma.tipo.id
-            self.initial['numero_norma'] = self.object.norma.numero
-            self.initial['ano_norma'] = self.object.norma.ano
 
             return self.initial
 
@@ -296,219 +385,6 @@ class AcompanhamentoExcluirView(TemplateView):
             pass
 
         return HttpResponseRedirect(self.get_redirect_url())
-
-
-class DocumentoAcessorioEditView(CreateView):
-    template_name = "materia/documento_acessorio_edit.html"
-    form_class = DocumentoAcessorioForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
-        form = DocumentoAcessorioForm(instance=documento, excluir=True)
-        return self.render_to_response({'object': materia, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        documento = DocumentoAcessorio.objects.get(id=kwargs['id'])
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                documento.delete()
-            elif 'salvar' in request.POST:
-                documento.materia = materia
-                documento.tipo = form.cleaned_data['tipo']
-                documento.data = form.cleaned_data['data']
-                documento.nome = form.cleaned_data['nome']
-                documento.autor = form.cleaned_data['autor']
-                documento.ementa = form.cleaned_data['ementa']
-                documento.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'doc': documento})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
-
-
-class RelatoriaEditView(FormView):
-    template_name = "materia/relatoria_edit.html"
-    form_class = RelatoriaForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:relatoria', kwargs={'pk': pk})
-
-    def get(self, request, *args, **kwargs):
-        form = RelatoriaForm()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatoria = Relatoria.objects.get(
-            id=kwargs['id'])
-        composicao = Composicao.objects.filter(
-            comissao=relatoria.comissao).last()
-        parlamentares = composicao.participacao_set.all()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'relatoria': relatoria,
-             'tipo_fim_relatorias': TipoFimRelatoria.objects.all(),
-             'parlamentares': parlamentares})
-
-    def post(self, request, *args, **kwargs):
-        form = RelatoriaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatoria = Relatoria.objects.get(id=kwargs['id'])
-        composicao = Composicao.objects.filter(
-            comissao=relatoria.comissao).last()
-        parlamentares = composicao.participacao_set.all()
-
-        if form.is_valid():
-            if 'excluir' in request.POST:
-                relatoria.delete()
-                return self.form_valid(form)
-            elif 'salvar' in request.POST:
-                relatoria.materia = materia
-                relatoria.comissao = relatoria.comissao
-                relatoria.data_designacao_relator = form.cleaned_data[
-                    'data_designacao_relator']
-                relatoria.data_destituicao_relator = form.cleaned_data[
-                    'data_destituicao_relator']
-                relatoria.parlamentar = form.cleaned_data['parlamentar']
-                relatoria.tipo_fim_relatoria = form.cleaned_data[
-                    'tipo_fim_relatoria']
-                relatoria.save()
-                return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatoria': relatoria,
-                 'tipo_fim_relatorias': TipoFimRelatoria.objects.all(),
-                 'parlamentares': parlamentares})
-
-
-class RelatoriaView(FormView):
-    template_name = "materia/relatoria.html"
-    form_class = RelatoriaForm
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:relatoria', kwargs={'pk': pk})
-
-    def post(self, request, *args, **kwargs):
-        form = RelatoriaForm(request.POST)
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-
-        if not materia.tramitacao_set.all():
-            msg = _(
-                'Adicione alguma Tramitação antes de adicionar uma Comissão!')
-            messages.add_message(request, messages.INFO, msg)
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
-                 })
-        else:
-            relatorias = Relatoria.objects.filter(
-                materia_id=kwargs['pk']).order_by(
-                    '-data_designacao_relator')
-            localizacao = Tramitacao.objects.filter(
-                materia=materia).last()
-
-            comissao = Comissao.objects.get(
-                id=localizacao.unidade_tramitacao_destino.comissao.id)
-
-            if form.is_valid():
-                relatoria = form.save(commit=False)
-                relatoria.materia = materia
-                relatoria.comissao = comissao
-                relatoria.save()
-                return self.form_valid(form)
-            else:
-                try:
-                    composicao = Composicao.objects.get(comissao=comissao)
-                except ObjectDoesNotExist:
-                    msg = _('Não há composição nesta Comissão!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'object': materia,
-                         'form': form,
-                         'relatorias': relatorias,
-                         'comissao': comissao})
-
-                parlamentares = composicao.participacao_set.all()
-
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'relatorias': relatorias,
-                     'comissao': comissao,
-                     'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
-                     'parlamentares': parlamentares})
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        relatorias = Relatoria.objects.filter(
-            materia_id=kwargs['pk']).order_by('-data_designacao_relator')
-        form = RelatoriaForm()
-
-        localizacao = Tramitacao.objects.filter(
-            materia=materia).last()
-
-        if not materia.tramitacao_set.all():
-            msg = _(
-                'Adicione alguma Tramitação antes de adicionar uma Comissão!')
-            messages.add_message(request, messages.INFO, msg)
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatorias': relatorias,
-                 'tipo_fim_relatoria': TipoFimRelatoria.objects.all()
-                 })
-        elif not localizacao.unidade_tramitacao_destino.comissao:
-            msg = _('O local atual deve  ser uma Comissão!')
-            messages.add_message(request, messages.INFO, msg)
-            return self.render_to_response(
-                {'object': materia,
-                 'form': form,
-                 'relatorias': relatorias})
-        else:
-            try:
-                comissao = Comissao.objects.get(
-                    id=localizacao.unidade_tramitacao_destino.comissao.id)
-                composicao = Composicao.objects.filter(
-                    comissao=comissao).last()
-                if not composicao:
-                    msg = _('Não há composição nesta Comissão!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response(
-                        {'object': materia,
-                         'form': form,
-                         'relatorias': relatorias,
-                         'comissao': comissao})
-                parlamentares = composicao.participacao_set.all()
-            except ObjectDoesNotExist:
-                msg = _('O local atual deve  ser uma Comissão!')
-                messages.add_message(request, messages.INFO, msg)
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'relatorias': relatorias})
-            else:
-                composicao = Composicao.objects.filter(
-                    comissao=comissao).last()
-                parlamentares = composicao.participacao_set.all()
-                return self.render_to_response(
-                    {'object': materia,
-                     'form': form,
-                     'relatorias': relatorias,
-                     'comissao': comissao,
-                     'tipo_fim_relatoria': TipoFimRelatoria.objects.all(),
-                     'parlamentares': parlamentares})
 
 
 def load_email_templates(templates, context={}):
