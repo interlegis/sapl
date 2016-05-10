@@ -27,8 +27,14 @@ TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
-MandatoCrud = MasterDetailCrud.build(Mandato, 'parlamentar', '')
 
+class MandatoCrud(MasterDetailCrud):
+    model = Mandato
+    parent_field = 'parlamentar'
+    help_path = ''
+
+    class ListView(MasterDetailCrud.ListView):
+        ordering = ('-data_fim_mandato')
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
