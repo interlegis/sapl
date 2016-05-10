@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from datetime import datetime
 
 import crispy_layout_mixin
 import sapl
@@ -51,6 +52,12 @@ class ProposicaoForm(ModelForm):
             if texto_original.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_original
+
+    def clean_data_envio(self):
+        data_envio = self.cleaned_data.get('data_envio')
+        if (not data_envio) and bool(self.initial):
+            data_envio = datetime.now()
+        return data_envio
 
     def clean(self):
         cleaned_data = self.cleaned_data
