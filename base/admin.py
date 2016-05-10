@@ -11,7 +11,7 @@ admin.site.unregister(ProblemaMigracao)
 
 @admin.register(ProblemaMigracao)
 class ProblemaMigracaoAdmin(admin.ModelAdmin):
-    list_display = ["content_type", "object_id", "problema",
+    list_display = ["content_type", "object_id", "nome_campo", "problema",
                     "descricao", "get_url"]
 
     def get_url(self, obj):

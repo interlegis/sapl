@@ -113,7 +113,8 @@ def get_fk_related(field, value, label=None):
                     value = mommy.make(field.related_model,
                                        **fields_dict)
                     descricao = 'stub criado para campos não nuláveis!'
-                    save_relation(value, msg, descricao, eh_stub=True)
+                    save_relation(value, [field.name], msg, descricao,
+                                  eh_stub=True)
                     warn(msg + ' => ' + descricao)
                 else:
                     value = None
@@ -121,7 +122,8 @@ def get_fk_related(field, value, label=None):
                 value = make_stub(field.related_model, value)
                 descricao = 'stub criado para entrada orfã!'
                 warn(msg + ' => ' + descricao)
-                save_relation(value, msg, descricao, eh_stub=True)
+                save_relation(value, [field.name], msg, descricao,
+                              eh_stub=True)
         else:
             assert value
     return value
@@ -204,9 +206,12 @@ def save_with_id(new, id):
     assert new.id == id, 'New id is different from provided!'
 
 
-def save_relation(obj, problema='', descricao='', eh_stub=False):
-    link = ProblemaMigracao(content_object=obj, problema=problema,
-                            descricao=descricao, eh_stub=eh_stub)
+def save_relation(obj, nome_campo='', problema='', descricao='',
+                  eh_stub=False):
+    link = ProblemaMigracao(
+        content_object=obj, nome_campo=nome_campo, problema=problema,
+        descricao=descricao, eh_stub=eh_stub,
+    )
     link.save()
 
 
@@ -256,16 +261,19 @@ class DataMigrator:
                     value = getattr(old, old_field_name)
                 if field_type == 'DateField' and \
                         not field.null and value is None:
-                    descricao = 'A data 0001-01-01 foi colocada no lugar'
-                    warn(msg +
-                         ' => ' + descricao)
-                    value = '0001-01-01'
-                    self.data_mudada['obj'] = new
-                    self.data_mudada['descricao'] = descricao
-                    self.data_mudada['problema'] = msg
-                if field_type in ('CharField', 'TextField') and field.blank \
-                        and value is None:
-                    value = ''
+                        descricao = 'A data 0001-01-01 foi colocada no lugar'
+                        problema = 'O valor da data era nulo ou inválido'
+                        warn(msg +
+                             ' => ' + descricao)
+                        value = '0001-01-01'
+                        self.data_mudada['obj'] = new
+                        self.data_mudada['descricao'] = descricao
+                        self.data_mudada['problema'] = problema
+                        self.data_mudada.setdefault('nome_campo', []).\
+                            append(field.name)
+                if field_type == 'CharField' or field_type == 'TextField':
+                    if value is None:
+                        value = ''
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs):
