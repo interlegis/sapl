@@ -56,40 +56,6 @@ class ProposicaoForm(ModelForm):
         model = Proposicao
         fields = ['tipo', 'data_envio', 'descricao', 'texto_original']
 
-    def __init__(self, excluir=False, *args, **kwargs):
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 8), ('data_envio', 4)])
-        row2 = crispy_layout_mixin.to_row(
-            [('descricao', 12)])
-        row3 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 4), ('numero_materia', 4), ('ano_materia', 4)])
-        row4 = crispy_layout_mixin.to_row(
-            [('texto_original', 12)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Incluir Proposição'),
-                     row1, row2, row3, row4,
-                     HTML("""
-                    <div class="img-responsive" width="225" height="300"
-                      src="{{ MEDIA_URL }}{{ form.texto_original.value }}">
-                      <br /><br />
-                    <input type="submit"
-                               name="remover-texto"
-                               id="remover-texto"
-                               class="btn btn-warning"
-                               value="Remover Texto"/>
-                    <p></p>
-                           """, ),
-                     form_actions(more=more))
-        )
-        super(ProposicaoForm, self).__init__(
-            *args, **kwargs)
-
 
 class AcompanhamentoMateriaForm(ModelForm):
 

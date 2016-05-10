@@ -54,11 +54,22 @@ TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
 AutorCrud = Crud.build(Autor, 'autor')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
 TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
-ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 
-RelatoriaCrud = MasterDetailCrud.build(Relatoria, 'materia', '')
+
+class ProposicaoCrud(Crud):
+    model = Proposicao
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['data_envio', 'tipo', 'descricao']
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = ProposicaoForm
+
+    class UpdateView(crud.base.CrudUpdateView):
+        form_class = ProposicaoForm
 
 
 class RelatoriaCrud(MasterDetailCrud):
@@ -624,27 +635,6 @@ def do_envia_email_tramitacao(request, materia):
     return None
 
 
-class ProposicaoListView(ListView):
-    template_name = "materia/proposicao/proposicao_list.html"
-    paginate_by = 10
-    model = Proposicao
-
-    def get_queryset(self):
-        return Proposicao.objects.all().order_by('data_envio',
-                                                 'tipo',
-                                                 'descricao')
-
-    def get_context_data(self, **kwargs):
-        context = super(ProposicaoListView, self).get_context_data(**kwargs)
-
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-        return context
-
-
 class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
@@ -717,99 +707,6 @@ class MateriaLegislativaPesquisaView(FilterView):
                                         )
 
         return self.render_to_response(context)
-
-
-class ProposicaoView(CreateView):
-    template_name = "materia/proposicao/proposicao.html"
-    form_class = ProposicaoForm
-
-    def get_success_url(self):
-        return reverse('materia:list_proposicao')
-
-    def get(self, request, *args, **kwargs):
-        return self.render_to_response({'form': self.get_form()})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        if form.is_valid():
-            proposicao = form.save(commit=False)
-            tipo = TipoProposicao.objects.get(id=form.data['tipo'])
-            if tipo.descricao == 'Parecer':
-                try:
-                    materia = MateriaLegislativa.objects.get(
-                        tipo_id=int(form.data['tipo_materia']),
-                        ano=int(form.data['ano_materia']),
-                        numero=int(form.data['numero_materia']))
-                except ObjectDoesNotExist:
-                    msg = _('Matéria adicionada não existe!')
-                    messages.add_message(request, messages.INFO, msg)
-                    return self.render_to_response({'form': form})
-                else:
-                    proposicao.autor = materia.autoria_set.first().autor
-                    proposicao.materia = materia
-            proposicao.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form})
-
-
-class ProposicaoEditView(CreateView):
-    template_name = "materia/proposicao/proposicao.html"
-    form_class = ProposicaoForm
-
-    def get_success_url(self):
-        return reverse('materia:list_proposicao')
-
-    def get(self, request, *args, **kwargs):
-        proposicao = Proposicao.objects.get(id=kwargs['pk'])
-        return self.render_to_response({'form': ProposicaoForm(
-            excluir=True,
-            instance=proposicao)})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        proposicao = Proposicao.objects.get(id=kwargs['pk'])
-        if form.is_valid():
-            if 'Excluir' in request.POST:
-                if proposicao.data_envio:
-                    proposicao.data_envio = None
-                    proposicao.save()
-                else:
-                    proposicao.delete()
-            if 'salvar' or "remover-foto" in request.POST:
-                if 'texto_original' in request.FILES:
-                    # if os.unlink(proposicao.texto_original.path):
-                    #     proposicao.texto_original = None
-                    proposicao.texto_original = request.FILES['texto_original']
-                tipo = TipoProposicao.objects.get(id=form.data['tipo'])
-                proposicao.tipo = tipo
-                proposicao.descricao = form.data['descricao']
-                if tipo.descricao == 'Parecer':
-                    try:
-                        materia = MateriaLegislativa.objects.get(
-                            tipo_id=int(form.data['tipo_materia']),
-                            ano=int(form.data['ano_materia']),
-                            numero=int(form.data['numero_materia']))
-                    except ObjectDoesNotExist:
-                        msg = _('Matéria adicionada não existe!')
-                        messages.add_message(request, messages.INFO, msg)
-                        return self.render_to_response({'form': form})
-                    else:
-                        proposicao.autor = materia.autoria_set.first().autor
-                        proposicao.materia = materia
-                if not proposicao.data_envio:
-                    proposicao.data_envio = datetime.now()
-                if "remover-texto" in request.POST:
-                    try:
-                        os.unlink(proposicao.texto_original.path)
-                    except OSError:
-                        pass  # Should log this error!!!!!
-                    proposicao.texto_original = None
-                proposicao.save()
-            return redirect(self.get_success_url())
-        else:
-            return self.render_to_response({'form': form})
 
 
 class MateriaTaView(IntegracaoTaView):

@@ -8,8 +8,7 @@ from materia.views import (AcompanhamentoConfirmarView,
                            MateriaLegislativaCrud,
                            MateriaLegislativaPesquisaView, MateriaTaView,
                            NumeracaoCrud, OrgaoCrud, OrigemCrud,
-                           ProposicaoEditView, ProposicaoListView,
-                           ProposicaoTaView, ProposicaoView,
+                           ProposicaoCrud, ProposicaoTaView,
                            RegimeTramitacaoCrud, RelatoriaCrud,
                            StatusTramitacaoCrud, TipoAutorCrud,
                            TipoDocumentoCrud, TipoFimRelatoriaCrud,
@@ -29,7 +28,8 @@ urlpatterns = [
                               LegislacaoCitadaCrud.get_urls() +
                               TramitacaoCrud.get_urls() +
                               RelatoriaCrud.get_urls() +
-                              DocumentoAcessorioCrud.get_urls())),
+                              DocumentoAcessorioCrud.get_urls() +
+                              ProposicaoCrud.get_urls())),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
@@ -55,12 +55,6 @@ urlpatterns = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    url(r'^materia/proposicao$',
-        ProposicaoView.as_view(), name='adicionar_proposicao'),
-    url(r'^materia/proposicao_list$',
-        ProposicaoListView.as_view(), name='list_proposicao'),
-    url(r'^materia/proposicao/(?P<pk>[0-9]+)/edit$',
-        ProposicaoEditView.as_view(), name='editar_proposicao'),
     url(r'^materia/pesquisar-materia$',
         MateriaLegislativaPesquisaView.as_view(), name='pesquisar_materia'),
     url(r'^materia/(?P<pk>\d+)/acompanhar-materia/$',
