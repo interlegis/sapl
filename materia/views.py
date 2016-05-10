@@ -13,7 +13,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django_filters.views import FilterView
 
 import crispy_layout_mixin
@@ -170,6 +170,40 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
+
+        def __init__(self, *args, **kwargs):
+            autor_row = crispy_layout_mixin.to_row(
+                [('autor', 0),
+                 (Button('pesquisar',
+                         'Pesquisar Autor',
+                         css_class='btn btn-primary btn-sm'), 2),
+                 (Button('limpar',
+                         'Limpar Autor',
+                         css_class='btn btn-primary btn-sm'), 10)])
+
+            self.helper = FormHelper()
+            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
+                *self.get_layout())
+
+            # Adiciona o novo campo 'autor' e mecanismo de busca
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
+            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
+            self.helper.layout[0][1] = autor_row
+
+            # Remove botões que estão fora do form
+            self.helper.layout[1].pop()
+
+            # Adiciona novos botões dentro do form
+            self.helper.layout[0][2][0].insert(1, form_actions(more=[
+                HTML('<a href="{{ view.cancel_url }}"'
+                     ' class="btn btn-inverse">Cancelar</a>')]))
+
+            super(UpdateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
 
 
 class AutoriaCrud(MasterDetailCrud):
