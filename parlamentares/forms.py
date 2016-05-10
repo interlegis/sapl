@@ -106,8 +106,8 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
                 data_inicio = filiacoes.data
                 data_fim = filiacoes.data_desfiliacao
 
-                # Se ainda desfiliado, preenche uma desfiliacao ficticia
-                # para fins de checagem de interseccao
+                # Se filiacao ainda em aberto, preenche uma desfiliacao
+                # ficticia para fins de checagem de interseccao
                 if not data_fim:
                     data_fim = date.today()
 
