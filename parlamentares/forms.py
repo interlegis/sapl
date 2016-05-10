@@ -111,7 +111,6 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
                 if not data_fim:
                     data_fim = date.today()
 
-
                 # finalmente verifica intersecao
                 if intervalos_tem_intersecao(data_inicio, data_fim,
                                              data_filiacao, data_desfiliacao):
