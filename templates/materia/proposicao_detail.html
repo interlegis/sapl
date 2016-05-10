@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block base_content %}
+
+  <div class="clearfix">
+    {% block actions %}
+    <div class="actions btn-group pull-right" role="group">
+      {% if proposicao.data_envio %}
+        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
+        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição' %}</a>
+      {% else %}
+        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
+        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
+      {% endif %}
+    </div>
+    {% endblock actions %}
+  </div>
+
+  {% block detail_content %}
+    {% for fieldset in view.layout_display %}
+    <h2 class="legend">{{ fieldset.legend }}</h2>
+    {% for row in fieldset.rows %}
+    <div class="row-fluid">
+      {% for column in row %}
+      <div class="col-sm-{{ column.span }}">
+        <div id="div_id_{{ column.id }}" class="form-group">
+          <p class="control-label">{{ column.verbose_name }}</p>
+          <div class="controls">
+            <p class="form-control-static">{{ column.text|safe }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    {% endfor %}
+  {% endblock detail_content %}
+
+{% endblock base_content %}

@@ -90,6 +90,21 @@ class ProposicaoCrud(Crud):
 
             return [self._as_row(obj) for obj in object_list]
 
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, request, *args, **kwargs):
+            proposicao = Proposicao.objects.get(id=self.kwargs['pk'])
+
+            if not proposicao.data_envio:
+                proposicao.delete()
+                return HttpResponseRedirect(reverse('materia:proposicao_list'))
+            else:
+                proposicao.data_envio = None
+                proposicao.save()
+                return HttpResponseRedirect(
+                    reverse('materia:proposicao_detail',
+                            kwargs={'pk': proposicao.pk}))
+
 
 class RelatoriaCrud(MasterDetailCrud):
     model = Relatoria
