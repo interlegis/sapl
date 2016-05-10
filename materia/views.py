@@ -80,6 +80,8 @@ class ProposicaoCrud(Crud):
             return 'ProposicaoCreate'
 
     class ListView(crud.base.CrudListView):
+        ordering = ['-data_envio', 'descricao']
+
         def get_rows(self, object_list):
 
             for obj in object_list:
