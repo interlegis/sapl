@@ -77,17 +77,6 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
                                    desfiliar do partido anterior")
                     return [False, error_msg]
 
-            primeira_filiacao = todas_filiacoes.first()
-
-            # se novo registro tem data de desfiliacao aberta
-            # e eh anterior a primeira data de filiacao já existente.
-            if (not data_desfiliacao and
-            data_filiacao <= primeira_filiacao.data):
-                    error_msg = _("O parlamentar não pode se filiar \
-                                   ,sem uma data de desfiliação, \
-                                   a algum partido anterior")
-                    return [False, error_msg]
-
     # checa intervalos de interseccao
     error_msg = None
     for filiacoes in todas_filiacoes:
