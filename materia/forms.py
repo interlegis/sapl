@@ -451,7 +451,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa Básica'),
+            Fieldset(_('Pesquisa de Matéria'),
                      row1, row2, row3,
                      HTML(sapl.utils.autor_label),
                      HTML(sapl.utils.autor_modal),

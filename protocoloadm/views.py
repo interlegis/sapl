@@ -17,6 +17,7 @@ from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
+                    DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
                     ProtocoloMateriaForm, TramitacaoAdmForm)
@@ -358,69 +359,63 @@ class ProposicaoDetailView(DetailView):
         return context
 
 
-class PesquisarDocumentoAdministrativo(TemplateView):
-    template_name = "protocoloadm/pesquisa_doc_adm.html"
+class PesquisarDocumentoAdministrativoView(FilterView):
+    model = DocumentoAdministrativo
+    filterset_class = DocumentoAdministrativoFilterSet
+    paginate_by = 10
 
-    def get_tipos_doc(self):
-        return TipoDocumentoAdministrativo.objects.all()
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarDocumentoAdministrativoView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset()
+
+        qs = qs.distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarDocumentoAdministrativoView,
+                        self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
+        return context
 
     def get(self, request, *args, **kwargs):
-        return self.render_to_response(
-            {"tipos_doc": TipoDocumentoAdministrativo.objects.all()}
-        )
+        super(PesquisarDocumentoAdministrativoView, self).get(request)
 
-    def post(self, request, *args, **kwargs):
-
-        if request.POST['tipo_documento']:
-            kwargs['tipo_id'] = request.POST['tipo_documento']
-
-        if request.POST['numero']:
-            kwargs['numero'] = request.POST['numero']
-
-        if request.POST['ano']:
-            kwargs['ano'] = request.POST['ano']
-
-        if request.POST['numero_protocolo']:
-            kwargs['numero_protocolo'] = request.POST['numero_protocolo']
-
-        if request.POST['periodo_inicial']:
-            kwargs['periodo_inicial'] = request.POST['periodo_inicial']
-
-        if request.POST['periodo_final']:
-            kwargs['periodo_final'] = request.POST['periodo_final']
-
-        if request.POST['interessado']:
-            kwargs['interessado'] = request.POST['interessado']
-
-        if request.POST['assunto']:
-            kwargs['assunto_ementa__icontains'] = request.POST['assunto']
-
-        if request.POST['tramitacao']:
-            if request.POST['tramitacao'] == 1:
-                kwargs['tramitacao'] = True
-            elif request.POST['tramitacao'] == 0:
-                kwargs['tramitacao'] = False
-            else:
-                kwargs['tramitacao'] = request.POST['tramitacao']
-
-        # TODO
-        # if request.POST['localizacao']:
-        #     kwargs['localizacao'] = request.POST['localizacao']
-
-        # if request.POST['situacao']:
-        #     kwargs['situacao'] = request.POST['situacao']
-
-        doc = DocumentoAdministrativo.objects.filter(**kwargs)
-
-        if len(doc) == 0:
-            return self.render_to_response(
-                {'error': _('Nenhum resultado encontrado!'),
-                    "tipos_doc": TipoDocumentoAdministrativo.objects.all()}
-            )
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/FilterSet
+        # Então a ordem da URL está diferente
+        data = self.filterset.data
+        if (data and data.get('tipo') is not None):
+            url = "&" + str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('tipo=') - 1
+                url = url[ponto_comeco:]
         else:
-            return self.render_to_response(
-                {'documentos': doc}
-            )
+            url = ''
+
+        self.filterset.form.fields['o'].label = _('Ordenação')
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        return self.render_to_response(context)
 
 
 class DetailDocumentoAdministrativo(DetailView):
