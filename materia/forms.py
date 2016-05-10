@@ -1,13 +1,14 @@
+from datetime import datetime
+
 import django_filters
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-from datetime import datetime
 
 import crispy_layout_mixin
 import sapl
@@ -61,7 +62,6 @@ class ProposicaoForm(ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-
         if cleaned_data['tipo'].descricao == 'Parecer':
             try:
                 materia = MateriaLegislativa.objects.get(
@@ -124,26 +124,6 @@ class DocumentoAcessorioForm(ModelForm):
 
 
 class RelatoriaForm(ModelForm):
-
-    class Meta:
-        model = Relatoria
-        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
-                  'data_destituicao_relator', 'tipo_fim_relatoria']
-
-        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
-
-    def clean(self):
-        cleaned_data = self.cleaned_data
-
-        try:
-            comissao = Comissao.objects.get(id=self.initial['comissao'])
-        except ObjectDoesNotExist:
-            msg = _('A localização atual deve ser uma comissão.')
-            raise ValidationError(msg)
-        else:
-            cleaned_data['comissao'] = comissao
-
-        return cleaned_data
 
     class Meta:
         model = Relatoria

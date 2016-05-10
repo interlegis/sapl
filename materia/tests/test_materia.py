@@ -416,7 +416,7 @@ def test_form_errors_relatoria(client):
 
 @pytest.mark.django_db(transaction=False)
 def test_proposicao_submit(client):
-    response = client.post(reverse('materia:adicionar_proposicao'),
+    response = client.post(reverse('materia:proposicao_create'),
                            {'tipo': mommy.make(TipoProposicao, pk=3).pk,
                             'descricao': 'Teste proposição',
                             'salvar': 'salvar'},
@@ -432,7 +432,7 @@ def test_proposicao_submit(client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_proposicao(client):
 
-    response = client.post(reverse('materia:adicionar_proposicao'),
+    response = client.post(reverse('materia:proposicao_create'),
                            {'salvar': 'salvar'},
                            follow=True)
 
