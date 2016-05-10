@@ -28,8 +28,9 @@ urlpatterns = [
                               LegislacaoCitadaCrud.get_urls() +
                               TramitacaoCrud.get_urls() +
                               RelatoriaCrud.get_urls() +
-                              DocumentoAcessorioCrud.get_urls() +
-                              ProposicaoCrud.get_urls())),
+                              DocumentoAcessorioCrud.get_urls())),
+
+    url(r'proposicao/', include(ProposicaoCrud.get_urls())),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',

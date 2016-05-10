@@ -52,6 +52,24 @@ class ProposicaoForm(ModelForm):
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_original
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        if cleaned_data['tipo'].descricao == 'Parecer':
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    tipo_id=cleaned_data['tipo_materia'],
+                    ano=cleaned_data['ano_materia'],
+                    numero=cleaned_data['numero_materia'])
+            except ObjectDoesNotExist:
+                msg = _('Matéria adicionada não existe!')
+                raise ValidationError(msg)
+            else:
+                cleaned_data['materia'] = materia
+                cleaned_data['autor'] = materia.autoria_set.first().autor
+
+        return cleaned_data
+
     class Meta:
         model = Proposicao
         fields = ['tipo', 'data_envio', 'descricao', 'texto_original']
