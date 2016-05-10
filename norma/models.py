@@ -166,12 +166,18 @@ class LegislacaoCitada(models.Model):
 class VinculoNormaJuridica(models.Model):
     TIPO_VINCULO_CHOICES = (
         ('A', _('Altera a norma')),
-        ('R', _('Revoga a norma')),
+        ('R', _('Revoga integralmente a norma')),
         ('P', _('Revoga parcialmente a norma')),
-        ('T', _('Revoga por consolidação a norma')),
+        ('T', _('Revoga integralmente por consolidação')),
         ('C', _('Norma correlata')),
-        ('I', _('Suspende a execução da norma')),
+        ('S', _('Ressalva a norma')),
+        ('E', _('Reedita a norma')),
+        ('I', _('Reedita a norma com alteração')),
         ('G', _('Regulamenta a norma')),
+        ('K', _('Suspende parcialmente a norma')),
+        ('L', _('Suspende integralmente a norma')),
+        ('N', _('Julgada integralmente inconstitucional')),
+        ('O', _('Julgada parcialmente inconstitucional')),
     )
 
     # TODO M2M ???

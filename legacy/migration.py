@@ -13,8 +13,10 @@ from model_mommy.mommy import foreign_key_required, make
 
 from base.models import ProblemaMigracao
 from comissoes.models import Composicao, Participacao
+from materia.models import StatusTramitacao, Tramitacao
 from parlamentares.models import Parlamentar
-from sessao.models import SessaoPlenaria
+from sessao.models import SessaoPlenaria, OrdemDia
+from norma.models import NormaJuridica
 
 # BASE ######################################################################
 
@@ -229,6 +231,7 @@ class DataMigrator:
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
         self.data_mudada = {}
+        self.choice_valida = {}
 
     def populate_renamed_fields(self, new, old):
         renames = self.field_renames[type(new)]
@@ -250,32 +253,18 @@ class DataMigrator:
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
-                if (field_type == 'DateField' and
-                        field.null is False and value is None):
-                    names = [old_fields.name for old_fields
-                             in old._meta.get_fields()]
-                    combined_names = "(" + ")|(".join(names) + ")"
-                    matches = re.search('(ano_\w+)', combined_names)
-                    if not matches:
-                        descricao = 'A data 0001-01-01 foi colocada no lugar'
-                        warn(msg +
-                             ' => ' + descricao)
-                        value = '0001-01-01'
-                        self.data_mudada['obj'] = new
-                        self.data_mudada['descricao'] = descricao
-                        self.data_mudada['problema'] = msg
-                    else:
-                        value = '%d-01-01' % getattr(old, matches.group(0))
-                        descricao = ('A data %s para foi colocada no lugar'
-                                     % value)
-                        self.data_mudada['obj'] = new
-                        self.data_mudada['descricao'] = descricao
-                        self.data_mudada['problema'] = msg
-                        warn(msg +
-                             '=> ' + descricao)
-                if field_type == 'CharField' or field_type == 'TextField':
-                    if value is None:
-                        value = ''
+                if field_type == 'DateField' and \
+                        not field.null and value is None:
+                    descricao = 'A data 0001-01-01 foi colocada no lugar'
+                    warn(msg +
+                         ' => ' + descricao)
+                    value = '0001-01-01'
+                    self.data_mudada['obj'] = new
+                    self.data_mudada['descricao'] = descricao
+                    self.data_mudada['problema'] = msg
+                if field_type in ('CharField', 'TextField') and field.blank \
+                        and value is None:
+                    value = ''
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs):
@@ -339,6 +328,9 @@ class DataMigrator:
 
         # convert old records to new ones
         for old in old_records:
+            if model.__name__ == 'SessaoPlenaria' and not old.pk:
+                old.delete()
+                continue
             new = model()
             self.populate_renamed_fields(new, old)
             if adjust:
@@ -404,14 +396,44 @@ def adjust_parlamentar(new_parlamentar, old):
             new_parlamentar.unidade_deliberativa = False
 
 
+def adjust_normajuridica(new, old):
+    # O 'S' vem de 'Selecionar'. Na versão antiga do SAPL, quando uma opção do
+    # combobox era selecionada, o sistema pegava a primeira letra da seleção,
+    # sendo F para Federal, E para Estadual, M para Municipal e o S para
+    # Selecionar, que era a primeira opção quando nada era selecionado.
+    if old.tip_esfera_federacao == 'S':
+        new.esfera_federacao = ''
+
+
+def adjust_ordemdia(new, old):
+    if not old.tip_votacao:
+        new.tipo_votacao = 1
+
+
+def adjust_statustramitacao(new, old):
+    if old.ind_fim_tramitacao:
+        new.indicador = 'R'
+    else:
+        new.indicador = 'F'
+
+
+def adjust_tramitacao(new, old):
+    if old.sgl_turno == 'Ú':
+        new.turno = 'U'
+
+
 def adjust_sessaoplenaria(new, old):
     assert not old.tip_expediente
 
 
 MIGRATION_ADJUSTMENTS = {
+    NormaJuridica: adjust_normajuridica,
+    OrdemDia: adjust_ordemdia,
     Participacao: adjust_participacao,
     Parlamentar: adjust_parlamentar,
     SessaoPlenaria: adjust_sessaoplenaria,
+    StatusTramitacao: adjust_statustramitacao,
+    Tramitacao: adjust_tramitacao,
 }
 
 # CHECKS ####################################################################
