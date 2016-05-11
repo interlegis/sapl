@@ -155,6 +155,39 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
 
 
+def montar_row_autor():
+    autor_row = crispy_layout_mixin.to_row(
+        [('autor', 0),
+         (Button('pesquisar',
+                 'Pesquisar Autor',
+                 css_class='btn btn-primary btn-sm'), 2),
+         (Button('limpar',
+                 'Limpar Autor',
+                 css_class='btn btn-primary btn-sm'), 10)])
+
+    return autor_row
+
+
+def montar_helper_documento_acessorio(self):
+    autor_row = montar_row_autor()
+    self.helper = FormHelper()
+    self.helper.layout = crispy_layout_mixin.SaplFormLayout(
+        *self.get_layout())
+
+    # Adiciona o novo campo 'autor' e mecanismo de busca
+    self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
+    self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
+    self.helper.layout[0][1] = autor_row
+
+    # Remove botões que estão fora do form
+    self.helper.layout[1].pop()
+
+    # Adiciona novos botões dentro do form
+    self.helper.layout[0][2][0].insert(1, form_actions(more=[
+        HTML('<a href="{{ view.cancel_url }}"'
+             ' class="btn btn-inverse">Cancelar</a>')]))
+
+
 class DocumentoAcessorioCrud(MasterDetailCrud):
     model = DocumentoAcessorio
     parent_field = 'materia'
@@ -167,41 +200,8 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, *args, **kwargs):
-            autor_row = crispy_layout_mixin.to_row(
-                [('autor', 0),
-                 (Button('pesquisar',
-                         'Pesquisar Autor',
-                         css_class='btn btn-primary btn-sm'), 2),
-                 (Button('limpar',
-                         'Limpar Autor',
-                         css_class='btn btn-primary btn-sm'), 10)])
-
-            self.helper = FormHelper()
-            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
-                *self.get_layout())
-
-            # Adiciona o novo campo 'autor' e mecanismo de busca
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
-            self.helper.layout[0][1] = autor_row
-
-            # Remove botões que estão fora do form
-            self.helper.layout[1].pop()
-
-            # Adiciona novos botões dentro do form
-            self.helper.layout[0][3][0].insert(1, form_actions(more=[
-                HTML('<a href="{{ view.cancel_url }}"'
-                     ' class="btn btn-inverse">Cancelar</a>')]))
-
+            montar_helper_documento_acessorio(self)
             super(CreateView, self).__init__(*args, **kwargs)
-            self.helper = FormHelper()
-            self.helper.layout = Layout(
-                crispy_layout_mixin.to_row(self.get_layout()[0][1]),
-                HTML(sapl.utils.autor_label),
-                HTML(sapl.utils.autor_modal),
-                crispy_layout_mixin.to_row(self.get_layout()[0][2]),
-                crispy_layout_mixin.to_row(self.get_layout()[0][3]),
-            )
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
@@ -212,32 +212,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, *args, **kwargs):
-            autor_row = crispy_layout_mixin.to_row(
-                [('autor', 0),
-                 (Button('pesquisar',
-                         'Pesquisar Autor',
-                         css_class='btn btn-primary btn-sm'), 2),
-                 (Button('limpar',
-                         'Limpar Autor',
-                         css_class='btn btn-primary btn-sm'), 10)])
-
-            self.helper = FormHelper()
-            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
-                *self.get_layout())
-
-            # Adiciona o novo campo 'autor' e mecanismo de busca
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
-            self.helper.layout[0][1] = autor_row
-
-            # Remove botões que estão fora do form
-            self.helper.layout[1].pop()
-
-            # Adiciona novos botões dentro do form
-            self.helper.layout[0][3][0].insert(1, form_actions(more=[
-                HTML('<a href="{{ view.cancel_url }}"'
-                     ' class="btn btn-inverse">Cancelar</a>')]))
-
+            montar_helper_documento_acessorio(self)
             super(UpdateView, self).__init__(*args, **kwargs)
 
         def get_context_data(self, **kwargs):
