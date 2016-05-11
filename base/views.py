@@ -42,7 +42,7 @@ class CasaLegislativaTableAuxView(FormView):
             casa = CasaLegislativa.objects.first()
             if casa:
                 if ("remover" in request.POST or
-                   (form.cleaned_data['logotipo'] and casa.logotipo)):
+                        (form.cleaned_data['logotipo'] and casa.logotipo)):
                     try:
                         os.unlink(casa.logotipo.path)
                     except OSError:
