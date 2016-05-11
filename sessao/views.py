@@ -21,7 +21,7 @@ from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
 from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
-                    MesaForm, OradorDeleteForm, OradorForm, PresencaForm,
+                    MesaForm, PresencaForm,
                     VotacaoEditForm, VotacaoForm, VotacaoNominalForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
@@ -37,6 +37,15 @@ TipoResultadoVotacaoCrud = Crud.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+
+
+class OradorExpedienteCrud(MasterDetailCrud):
+    model = OradorExpediente
+    parent_field = 'sessao_plenaria'
+    help_path = ''
+
+    class ListView(MasterDetailCrud.ListView):
+        ordering = ['numero_ordem', 'parlamentar']
 
 
 class OradorCrud(MasterDetailCrud):
@@ -696,161 +705,6 @@ class EditExpedienteOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
         pk = self.kwargs['pk']
         return reverse('sessao:expedienteordemdia_list',
                        kwargs={'pk': pk})
-
-
-class OradorExpedienteDelete(FormMixin, SessaoCrud.CrudDetailView):
-    template_name = 'sessao/delete_orador.html'
-    form_class = OradorDeleteForm
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        orador_id = kwargs['oid']
-
-        form = OradorDeleteForm(request.POST)
-
-        if form.is_valid():
-            orador = OradorExpediente.objects.get(
-                sessao_plenaria_id=self.object.id,
-                parlamentar_id=orador_id)
-            orador.delete()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sessao:oradorexpediente', kwargs={'pk': pk})
-
-
-class OradorExpedienteEdit(FormMixin, SessaoCrud.CrudDetailView):
-    template_name = 'sessao/edit_orador.html'
-    form_class = OradorForm
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = OradorForm(request.POST)
-
-        if form.is_valid():
-            orador_id = kwargs['oid']
-
-            orador = OradorExpediente.objects.get(
-                sessao_plenaria_id=self.object.id,
-                parlamentar_id=orador_id)
-            orador.delete()
-
-            orador = OradorExpediente()
-            orador.sessao_plenaria_id = self.object.id
-            orador.numero_ordem = request.POST['numero_ordem']
-            orador.parlamentar = Parlamentar.objects.get(
-                id=orador_id)
-            orador.url_discurso = request.POST['url_discurso']
-            orador.save()
-
-            return self.form_valid(form)
-        else:
-            context = self.get_context_data(object=self.object)
-            orador_id = kwargs['oid']
-
-            parlamentar = Parlamentar.objects.get(id=orador_id)
-            orador = OradorExpediente.objects.get(
-                sessao_plenaria=self.object, parlamentar=parlamentar)
-
-            orador = {'parlamentar': parlamentar,
-                      'url_discurso': orador.url_discurso}
-            context.update({'orador': orador})
-            context.update({'form': form})
-            return self.render_to_response(context)
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        orador_id = kwargs['oid']
-
-        parlamentar = Parlamentar.objects.get(id=orador_id)
-        orador = OradorExpediente.objects.get(
-            sessao_plenaria=self.object, parlamentar=parlamentar)
-
-        orador = {'parlamentar': parlamentar, 'numero_ordem':
-                  orador.numero_ordem, 'url_discurso': orador.url_discurso}
-        context.update({'orador': orador})
-
-        return self.render_to_response(context)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sessao:oradorexpediente', kwargs={'pk': pk})
-
-
-class OradorExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
-    template_name = 'sessao/orador_expediente.html'
-    form_class = OradorForm
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = OradorForm(request.POST)
-
-        if 'adicionar' in request.POST:
-            if form.is_valid():
-                orador = OradorExpediente()
-                orador.sessao_plenaria_id = self.object.id
-                orador.numero_ordem = request.POST['numero_ordem']
-                orador.parlamentar = Parlamentar.objects.get(
-                    id=request.POST['parlamentar'])
-                orador.url_discurso = request.POST['url_discurso']
-                orador.save()
-                return self.form_valid(form)
-            else:
-                return self.form_invalid(form)
-        elif 'reordenar' in request.POST:
-            orador = OradorExpediente.objects.filter(
-                sessao_plenaria_id=self.object.id)
-            ordem_num = 1
-            for o in orador:
-                o.numero_ordem = ordem_num
-                o.save()
-                ordem_num += 1
-            return self.get(self, request, args, kwargs)
-
-    def get_candidatos_orador(self):
-        self.object = self.get_object()
-        lista_parlamentares = []
-        lista_oradores = []
-
-        for parlamentar in Parlamentar.objects.all():
-            if parlamentar.ativo:
-                lista_parlamentares.append(parlamentar)
-
-        for orador in OradorExpediente.objects.filter(
-                sessao_plenaria_id=self.object.id):
-            parlamentar = Parlamentar.objects.get(
-                id=orador.parlamentar_id)
-            lista_oradores.append(parlamentar)
-
-        lista = list(set(lista_parlamentares) - set(lista_oradores))
-        lista.sort(key=lambda x: x.nome_parlamentar)
-        return lista
-
-    def get_oradores(self):
-        self.object = self.get_object()
-
-        for orador in OradorExpediente.objects.filter(
-                sessao_plenaria_id=self.object.id):
-            numero_ordem = orador.numero_ordem
-            url_discurso = orador.url_discurso
-            parlamentar = Parlamentar.objects.get(
-                id=orador.parlamentar_id)
-            yield(numero_ordem, url_discurso, parlamentar)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sessao:oradorexpediente', kwargs={'pk': pk})
 
 
 class MesaView(FormMixin, SessaoCrud.CrudDetailView):

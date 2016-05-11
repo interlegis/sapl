@@ -41,5 +41,9 @@ RegistroVotacao:
   - observacao
 
 Orador:
-  Orador:
+  Orador das Explicações Pessoais:
+  - numero_ordem parlamentar url_discurso
+
+OradorExpediente:
+  Orador do Expediente:
   - numero_ordem parlamentar url_discurso

@@ -2,10 +2,6 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
-class OradorForm():
-    pass
-
-
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)
@@ -30,18 +26,6 @@ class MateriaOrdemDiaForm(forms.Form):
     tipo_materia = forms.IntegerField(required=True, label=_('Tipo Matéria'))
     observacao = forms.CharField(required=False, label=_('Ementa'))
     error_message = forms.CharField(required=False, label=_('Matéria'))
-
-
-class OradorForm(forms.Form):
-    numero_ordem = forms.IntegerField(
-        required=True,
-        label=_('Ordem de pronunciamento'))
-    parlamentar = forms.CharField(required=False, max_length=20)
-    url_discurso = forms.CharField(required=False, max_length=100)
-
-
-class OradorDeleteForm(forms.Form):
-    pass
 
 
 class MesaForm(forms.Form):

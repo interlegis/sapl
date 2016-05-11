@@ -16,7 +16,7 @@
     - title: Matérias Expediente
       url: expedienteordemdia_list
     - title: Oradores do Expediente
-      url: oradorexpediente
+      url: oradorexpediente_list
 
 - title: Ordem do Dia
   children:

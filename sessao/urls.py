@@ -6,8 +6,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           ExpedienteOrdemDiaView, ExpedienteView,
                           ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView,
-                          OradorExpedienteDelete, OradorExpedienteEdit,
-                          OradorExpedienteView, PainelView,
+                          PainelView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
@@ -17,7 +16,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, OradorCrud)
+                          VotacaoView, OradorCrud, OradorExpedienteCrud)
 
 from .apps import AppConfig
 
@@ -28,7 +27,8 @@ sessao_rest = [
 ]
 
 urlpatterns = [
-    url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls())),
+    url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
+        OradorExpedienteCrud.get_urls())),
 
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
@@ -60,12 +60,6 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
-    url(r'^(?P<pk>\d+)/oradorexpediente$',
-        OradorExpedienteView.as_view(), name='oradorexpediente'),
-    url(r'^(?P<pk>\d+)/oradorexpediente/excluir/(?P<oid>\d+)$',
-        OradorExpedienteDelete.as_view(), name='oradorexcluir'),
-    url(r'^(?P<pk>\d+)/oradorexpediente/editar/(?P<oid>\d+)$',
-        OradorExpedienteEdit.as_view(), name='oradoreditar'),
     url(r'^(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
     url(r'^(?P<pk>\d+)/materiaordemdia/list$',
         ListMateriaOrdemDiaView.as_view(), name='materiaordemdia_list'),
