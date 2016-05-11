@@ -34,7 +34,7 @@ class MandatoCrud(MasterDetailCrud):
     help_path = ''
 
     class ListView(MasterDetailCrud.ListView):
-        ordering = ('-data_fim_mandato')
+        ordering = ('-legislatura__data_inicio')
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
