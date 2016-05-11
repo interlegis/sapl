@@ -1,3 +1,5 @@
+import django_filters
+
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.forms import ModelForm
@@ -56,6 +58,14 @@ class ExpedienteMateriaForm(ModelForm):
         expediente.save()
         return expediente
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Fieldset, Layout
+
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
+
+from .models import SessaoPlenaria
+
 
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
@@ -101,3 +111,33 @@ class VotacaoForm(forms.Form):
 
 class VotacaoEditForm(forms.Form):
     pass
+
+
+class PesquisaSessaoPlenaria(django_filters.FilterSet):
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = ['data_inicio__year',
+                  'data_inicio__month',
+                  'data_inicio__day',
+                  'tipo',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+        super(PesquisaSessaoPlenaria, self).__init__(*args, **kwargs)
+
+        # self.filters['tipo'].label = 'Tipo de Matéria'
+
+        row1 = crispy_layout_mixin.to_row(
+            [('data_inicio__year', 3),
+             ('data_inicio__month', 3),
+             ('data_inicio__day', 3),
+             ('tipo', 3)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Sessao Plenária'),
+                     row1,
+                     form_actions(save_label='Pesquisar'))
+        )
