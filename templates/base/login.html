@@ -1,8 +1,9 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block base_content %}
-
-  {% if next %}
+  
+  <!-- O bloco comentado é para ser implementado após as autorizacoes -->
+  <!-- {% if next %}
     {% if user.is_authenticated %}
       <p>Você não tem acesso a esta página. Se quiser continuar, faça o Login.</p>
       
@@ -10,7 +11,7 @@
         <p>Por favor, faça o Login para acessar esta página.</p>
       {% endif %}
 
-  {% endif %}
+  {% endif %} -->
 
   <div class="container">
       <div class="row">
@@ -20,7 +21,7 @@
                       <h3 class="panel-title">Entrar</h3>
                   </div>
                   <div class="panel-body">
-                    <form method="post" action="{% url 'base:login' %}">
+                    <form id="login-form" method="post" action="{% url 'base:login' %}">
                         {% csrf_token %}
 
                           <p class="bs-component">
