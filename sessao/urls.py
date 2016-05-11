@@ -5,8 +5,8 @@ from sapl import settings
 from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           ExpedienteOrdemDiaView, ExpedienteView,
                           ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
-                          MateriaOrdemDiaView, MesaView,
-                          PainelView,
+                          MateriaOrdemDiaView, MesaView, OradorCrud,
+                          OradorExpedienteCrud, PainelView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
@@ -16,7 +16,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, OradorCrud, OradorExpedienteCrud)
+                          VotacaoView)
 
 from .apps import AppConfig
 

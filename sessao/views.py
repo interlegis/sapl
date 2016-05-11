@@ -10,19 +10,20 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from rest_framework import generics
-from crud.masterdetail import MasterDetailCrud
 
-import crud.masterdetail
 import crud.base
+import crud.masterdetail
 from crud.base import Crud, make_pagination
+from crud.masterdetail import MasterDetailCrud
 from materia.models import (Autoria, DocumentoAcessorio,
                             TipoMateriaLegislativa, Tramitacao)
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
+
 from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
-                    MesaForm, PresencaForm,
-                    VotacaoEditForm, VotacaoForm, VotacaoNominalForm)
+                    MesaForm, PresencaForm, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,

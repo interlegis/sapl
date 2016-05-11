@@ -28,6 +28,7 @@ TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
 
+
 class MandatoCrud(MasterDetailCrud):
     model = Mandato
     parent_field = 'parlamentar'
@@ -35,6 +36,7 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__data_inicio')
+
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
