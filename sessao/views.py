@@ -39,22 +39,21 @@ TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
 
 
-class OradorExpedienteCrud(MasterDetailCrud):
-    model = OradorExpediente
-    parent_field = 'sessao_plenaria'
-    help_path = ''
-
-    class ListView(MasterDetailCrud.ListView):
-        ordering = ['numero_ordem', 'parlamentar']
-
-
 class OradorCrud(MasterDetailCrud):
-    model = Orador
+    model = ''
     parent_field = 'sessao_plenaria'
     help_path = ''
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
+
+
+class OradorExpedienteCrud(OradorCrud):
+    model = OradorExpediente
+
+
+class OradorCrud(OradorCrud):
+    model = Orador
 
 
 class SessaoCrud(Crud):
