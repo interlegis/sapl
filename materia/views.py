@@ -57,7 +57,34 @@ ProposicaoCrud = Crud.build(Proposicao, '')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
 
-RelatoriaCrud = MasterDetailCrud.build(Relatoria, 'materia', '')
+
+class RelatoriaCrud(MasterDetailCrud):
+    model = Relatoria
+    parent_field = 'materia'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = RelatoriaForm
+
+        def get_initial(self):
+            materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+
+            loc_atual = Tramitacao.objects.filter(
+                materia=materia).last()
+
+            if loc_atual is None:
+                localizacao = 0
+            else:
+                comissao = loc_atual.unidade_tramitacao_destino.comissao
+                if comissao:
+                    localizacao = comissao.pk
+                else:
+                    localizacao = 0
+
+            return {'comissao': localizacao}
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RelatoriaForm
 
 
 class RelatoriaCrud(MasterDetailCrud):
@@ -128,6 +155,39 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
 
 
+def montar_row_autor():
+    autor_row = crispy_layout_mixin.to_row(
+        [('autor', 0),
+         (Button('pesquisar',
+                 'Pesquisar Autor',
+                 css_class='btn btn-primary btn-sm'), 2),
+         (Button('limpar',
+                 'Limpar Autor',
+                 css_class='btn btn-primary btn-sm'), 10)])
+
+    return autor_row
+
+
+def montar_helper_documento_acessorio(self):
+    autor_row = montar_row_autor()
+    self.helper = FormHelper()
+    self.helper.layout = crispy_layout_mixin.SaplFormLayout(
+        *self.get_layout())
+
+    # Adiciona o novo campo 'autor' e mecanismo de busca
+    self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
+    self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
+    self.helper.layout[0][1] = autor_row
+
+    # Remove botões que estão fora do form
+    self.helper.layout[1].pop()
+
+    # Adiciona novos botões dentro do form
+    self.helper.layout[0][3][0].insert(1, form_actions(more=[
+        HTML('<a href="{{ view.cancel_url }}"'
+             ' class="btn btn-inverse">Cancelar</a>')]))
+
+
 class DocumentoAcessorioCrud(MasterDetailCrud):
     model = DocumentoAcessorio
     parent_field = 'materia'
@@ -140,32 +200,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, *args, **kwargs):
-            autor_row = crispy_layout_mixin.to_row(
-                [('autor', 0),
-                 (Button('pesquisar',
-                         'Pesquisar Autor',
-                         css_class='btn btn-primary btn-sm'), 2),
-                 (Button('limpar',
-                         'Limpar Autor',
-                         css_class='btn btn-primary btn-sm'), 10)])
-
-            self.helper = FormHelper()
-            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
-                *self.get_layout())
-
-            # Adiciona o novo campo 'autor' e mecanismo de busca
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
-            self.helper.layout[0][1] = autor_row
-
-            # Remove botões que estão fora do form
-            self.helper.layout[1].pop()
-
-            # Adiciona novos botões dentro do form
-            self.helper.layout[0][3][0].insert(1, form_actions(more=[
-                HTML('<a href="{{ view.cancel_url }}"'
-                     ' class="btn btn-inverse">Cancelar</a>')]))
-
+            montar_helper_documento_acessorio(self)
             super(CreateView, self).__init__(*args, **kwargs)
 
         def get_context_data(self, **kwargs):
@@ -177,32 +212,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, *args, **kwargs):
-            autor_row = crispy_layout_mixin.to_row(
-                [('autor', 0),
-                 (Button('pesquisar',
-                         'Pesquisar Autor',
-                         css_class='btn btn-primary btn-sm'), 2),
-                 (Button('limpar',
-                         'Limpar Autor',
-                         css_class='btn btn-primary btn-sm'), 10)])
-
-            self.helper = FormHelper()
-            self.helper.layout = crispy_layout_mixin.SaplFormLayout(
-                *self.get_layout())
-
-            # Adiciona o novo campo 'autor' e mecanismo de busca
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_label))
-            self.helper.layout[0][0].append(HTML(sapl.utils.autor_modal))
-            self.helper.layout[0][1] = autor_row
-
-            # Remove botões que estão fora do form
-            self.helper.layout[1].pop()
-
-            # Adiciona novos botões dentro do form
-            self.helper.layout[0][3][0].insert(1, form_actions(more=[
-                HTML('<a href="{{ view.cancel_url }}"'
-                     ' class="btn btn-inverse">Cancelar</a>')]))
-
+            montar_helper_documento_acessorio(self)
             super(UpdateView, self).__init__(*args, **kwargs)
 
         def get_context_data(self, **kwargs):
@@ -258,7 +268,6 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             self.initial['tipo'] = self.object.norma.tipo.id
             self.initial['numero'] = self.object.norma.numero
             self.initial['ano'] = self.object.norma.ano
-
             return self.initial
 
     class DetailView(MasterDetailCrud.DetailView):
@@ -314,42 +323,6 @@ class MateriaLegislativaCrud(Crud):
 
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
-
-
-class DocumentoAcessorioView(CreateView):
-    template_name = "materia/documento_acessorio.html"
-    form_class = DocumentoAcessorioForm
-
-    def get(self, request, *args, **kwargs):
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        docs = DocumentoAcessorio.objects.filter(
-            materia_id=kwargs['pk']).order_by('data')
-        form = DocumentoAcessorioForm()
-
-        return self.render_to_response(
-            {'object': materia,
-             'form': form,
-             'docs': docs})
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-        docs_list = DocumentoAcessorio.objects.filter(
-            materia_id=kwargs['pk'])
-
-        if form.is_valid():
-            documento_acessorio = form.save(commit=False)
-            documento_acessorio.materia = materia
-            documento_acessorio.save()
-            return self.form_valid(form)
-        else:
-            return self.render_to_response({'form': form,
-                                            'object': materia,
-                                            'docs': docs_list})
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('materia:documento_acessorio', kwargs={'pk': pk})
 
 
 class AcompanhamentoConfirmarView(TemplateView):

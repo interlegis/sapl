@@ -119,6 +119,7 @@ class DocumentoAcessorioForm(ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
+        widgets = {'autor': forms.HiddenInput()}
 
         widgets = {'autor': forms.HiddenInput()}
 
@@ -134,6 +135,26 @@ class DocumentoAcessorioForm(ModelForm):
 
 
 class RelatoriaForm(ModelForm):
+
+    class Meta:
+        model = Relatoria
+        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
+                  'data_destituicao_relator', 'tipo_fim_relatoria']
+
+        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        try:
+            comissao = Comissao.objects.get(id=self.initial['comissao'])
+        except ObjectDoesNotExist:
+            msg = _('A localização atual deve ser uma comissão.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['comissao'] = comissao
+
+        return cleaned_data
 
     class Meta:
         model = Relatoria
