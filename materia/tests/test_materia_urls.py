@@ -9,11 +9,11 @@ from django.core.urlresolvers import reverse
     ('materia:tramitacao_update',
         {'pk': '8'},
         '/materia/tramitacao/8/edit'),
-    ('materia:adicionar_proposicao', {}, '/materia/proposicao'),
-    ('materia:editar_proposicao',
+    ('materia:proposicao_create', {}, '/proposicao/create'),
+    ('materia:proposicao_update',
         {'pk': '3'},
-        '/materia/proposicao/3/edit'),
-    ('materia:list_proposicao', {}, '/materia/proposicao_list'),
+        '/proposicao/3/edit'),
+    ('materia:proposicao_list', {}, '/proposicao/'),
 ])
 def test_reverse(test_input, kwargs, expected):
     assert reverse(test_input, kwargs=kwargs) == expected

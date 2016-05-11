@@ -1,0 +1,14 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block actions %}
+  <div class="actions btn-group pull-right" role="group">
+    {% if proposicao.data_envio %}
+      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
+      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição Enviada' %}</a>
+    {% else %}
+      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
+      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
+    {% endif %}
+  </div>
+{% endblock actions %}

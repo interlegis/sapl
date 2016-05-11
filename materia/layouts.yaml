@@ -87,12 +87,23 @@ TipoProposicao:
   - materia_ou_documento  tipo_documento
   - modelo
 
+ProposicaoCreate:
+  Proposição:
+  - tipo  data_envio
+  - descricao
+  Materia:
+  - tipo_materia numero_materia ano_materia
+  Complemento:
+  - texto_original
+
 Proposicao:
   Proposição:
-  - tipo  dat_criacao_FIXME  data_recebimento
-  - descricao_FIXME
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
-  - nom_arquivo_FIXME  modelo_FIXME
+  - tipo  data_envio
+  - descricao
+  Materia:
+  - materia
+  Complemento:
+  - texto_original
 
 StatusTramitacao:
   Status Tramitação:

@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import django_filters
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -52,43 +54,33 @@ class ProposicaoForm(ModelForm):
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
             return texto_original
 
+    def clean_data_envio(self):
+        data_envio = self.cleaned_data.get('data_envio')
+        if (not data_envio) and bool(self.initial):
+            data_envio = datetime.now()
+        return data_envio
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if 'tipo' in cleaned_data:
+            if cleaned_data['tipo'].descricao == 'Parecer':
+                try:
+                    materia = MateriaLegislativa.objects.get(
+                        tipo_id=cleaned_data['tipo_materia'],
+                        ano=cleaned_data['ano_materia'],
+                        numero=cleaned_data['numero_materia'])
+                except ObjectDoesNotExist:
+                    msg = _('Matéria adicionada não existe!')
+                    raise ValidationError(msg)
+                else:
+                    cleaned_data['materia'] = materia
+                    cleaned_data['autor'] = materia.autoria_set.first().autor
+
+        return cleaned_data
+
     class Meta:
         model = Proposicao
         fields = ['tipo', 'data_envio', 'descricao', 'texto_original']
-
-    def __init__(self, excluir=False, *args, **kwargs):
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        row1 = crispy_layout_mixin.to_row(
-            [('tipo', 8), ('data_envio', 4)])
-        row2 = crispy_layout_mixin.to_row(
-            [('descricao', 12)])
-        row3 = crispy_layout_mixin.to_row(
-            [('tipo_materia', 4), ('numero_materia', 4), ('ano_materia', 4)])
-        row4 = crispy_layout_mixin.to_row(
-            [('texto_original', 12)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Incluir Proposição'),
-                     row1, row2, row3, row4,
-                     HTML("""
-                    <div class="img-responsive" width="225" height="300"
-                      src="{{ MEDIA_URL }}{{ form.texto_original.value }}">
-                      <br /><br />
-                    <input type="submit"
-                               name="remover-texto"
-                               id="remover-texto"
-                               class="btn btn-warning"
-                               value="Remover Texto"/>
-                    <p></p>
-                           """, ),
-                     form_actions(more=more))
-        )
-        super(ProposicaoForm, self).__init__(
-            *args, **kwargs)
 
 
 class AcompanhamentoMateriaForm(ModelForm):
@@ -119,8 +111,6 @@ class DocumentoAcessorioForm(ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
-        widgets = {'autor': forms.HiddenInput()}
-
         widgets = {'autor': forms.HiddenInput()}
 
     def clean_autor(self):
