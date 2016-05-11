@@ -435,7 +435,6 @@ def test_form_errors_proposicao(client):
     response = client.post(reverse('materia:proposicao_create'),
                            {'salvar': 'salvar'},
                            follow=True)
-
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['descricao'] ==
