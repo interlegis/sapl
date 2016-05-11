@@ -39,3 +39,7 @@ RegistroVotacao:
   - votacao_branco_FIXME  ind_votacao_presidente_FIXME
   - tipo_resultado_votacao
   - observacao
+
+Orador:
+  Orador:
+  - numero_ordem parlamentar url_discurso

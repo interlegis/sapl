@@ -2,6 +2,10 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
+class OradorForm():
+    pass
+
+
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)

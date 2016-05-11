@@ -4,7 +4,6 @@ from django.views.static import serve
 from sapl import settings
 from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           ExpedienteOrdemDiaView, ExpedienteView,
-                          ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
                           ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView,
                           OradorExpedienteDelete, OradorExpedienteEdit,
@@ -18,7 +17,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView)
+                          VotacaoView, OradorCrud)
 
 from .apps import AppConfig
 
@@ -29,7 +28,7 @@ sessao_rest = [
 ]
 
 urlpatterns = [
-    url(r'^sessao/', include(SessaoCrud.get_urls())),
+    url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls())),
 
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
@@ -84,12 +83,6 @@ urlpatterns = [
         ExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_create'),
     url(r'^(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
-    url(r'^(?P<pk>\d+)/explicacao$',
-        ExplicacaoView.as_view(), name='explicacao'),
-    url(r'^(?P<pk>\d+)/explicacao/excluir/(?P<oid>\d+)$',
-        ExplicacaoDelete.as_view(), name='explicacaoexcluir'),
-    url(r'^(?P<pk>\d+)/explicacao/editar/(?P<oid>\d+)$',
-        ExplicacaoEdit.as_view(), name='explicacaoeditar'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalView.as_view(), name='votacaonominal'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
