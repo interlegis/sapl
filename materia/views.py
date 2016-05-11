@@ -183,7 +183,7 @@ def montar_helper_documento_acessorio(self):
     self.helper.layout[1].pop()
 
     # Adiciona novos botões dentro do form
-    self.helper.layout[0][2][0].insert(1, form_actions(more=[
+    self.helper.layout[0][3][0].insert(1, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
              ' class="btn btn-inverse">Cancelar</a>')]))
 
