@@ -106,7 +106,28 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                class="btn btn-primary"
                                role="button">Abrir Votação</a>''' % (url)
                         obj.resultado = btn_abrir
-
+                else:
+                    url = ''
+                    if obj.tipo_votacao == 1:
+                        url = reverse('sessao:votacaosimbolicaexpedit',
+                                      kwargs={
+                                        'pk': obj.sessao_plenaria_id,
+                                        'oid': obj.materia_id,
+                                        'mid': obj.pk})
+                    elif obj.tipo_votacao == 2:
+                            url = reverse('sessao:votacaonominalexpedit',
+                                          kwargs={
+                                            'pk': obj.sessao_plenaria_id,
+                                            'oid': bj.materia_id,
+                                            'mid': obj.pk})
+                    elif obj.tipo_votacao == 3:
+                        url = reverse('sessao:votacaosecretaexpedit',
+                                      kwargs={
+                                        'pk': obj.sessao_plenaria_id,
+                                        'oid': obj.materia_id,
+                                        'mid': obj.pk})
+                    obj.resultado = '<a href="%s">%s</a>' % (url,
+                                                             obj.resultado)
             return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):
