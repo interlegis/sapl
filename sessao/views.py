@@ -20,6 +20,7 @@ from materia.models import (Autoria, DocumentoAcessorio,
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
+from django.http.response import HttpResponseRedirect
 
 from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
                     MesaForm, PresencaForm, VotacaoEditForm, VotacaoForm,
@@ -51,7 +52,8 @@ def abrir_votacao_view(request, pk, spk):
         expediente = ExpedienteMateria.objects.get(id=pk)
         expediente.votacao_aberta = True
         expediente.save()
-    return reverse('sessao:expedientemateria_list', kwargs={'pk': spk})
+    return HttpResponseRedirect(
+        reverse('sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
 class ExpedienteMateriaCrud(MasterDetailCrud):
@@ -1394,7 +1396,7 @@ class VotacaoNominalExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessao:expedienteordemdia_list',
+        return reverse('sessao:expedientemateria_list',
                        kwargs={'pk': pk})
 
 
@@ -1471,7 +1473,7 @@ class VotacaoNominalExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessao:expedienteordemdia_list',
+        return reverse('sessao:expedientemateria_list',
                        kwargs={'pk': pk})
 
 
@@ -1592,7 +1594,7 @@ class VotacaoExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessao:expedienteordemdia_list',
+        return reverse('sessao:expedientemateria_list',
                        kwargs={'pk': pk})
 
 
@@ -1607,7 +1609,7 @@ class VotacaoExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sessao:expedienteordemdia_list',
+        return reverse('sessao:expedientemateria_list',
                        kwargs={'pk': pk})
 
     def get_tipos_votacao(self):
