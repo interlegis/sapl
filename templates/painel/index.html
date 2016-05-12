@@ -1,4 +1,4 @@
-{% load i18n %}                                                                                                              
+{% load i18n %}
 {% load staticfiles %}
 <!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
@@ -11,15 +11,15 @@
       <!-- TODO: does it need this head_title here? -->
       <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>      
+      <script type="text/javascript" src="{% static 'jquery/dist/jquery.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jQuery-runner/build/jquery.runner.js' %}"></script>
 
       <STYLE type="text/css">
         @media screen {
             body {font-size: medium; color: white; line-height: 1em; background: black;}
         }
       </STYLE>
-      
+
       <script type="text/javascript">
          $(document).ready(function() {
 
@@ -28,7 +28,7 @@
                  if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
                     return i;
              }
-             
+
              function startTime() {
                  var today=new Date();
                  var h=today.getHours();
@@ -82,12 +82,12 @@
 
                   $("#sessao_plenaria").text(data["sessao_plenaria"])
                   $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
-                  $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])            
+                  $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
 
                   if (data["status_painel"] === "FECHADO") {
                     $("#message").text("PAINEL ENCONTRA-SE FECHADO");
                     return;
-                  }                  
+                  }
 
 
                   var presentes = $("#parlamentares");
@@ -104,16 +104,16 @@
                   if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
                       if(data["tipo_votacao"] == "Nominal") {
                           jQuery.each(data["votos"], function(index, parlamentar) {
-                             $('<li />', {text: parlamentar.parlamentar + ' / ' + parlamentar.partido + '/ Voto: ' + parlamentar.voto}).appendTo(presentes);                     
+                             $('<li />', {text: parlamentar.parlamentar + ' / ' + parlamentar.partido + '/ Voto: ' + parlamentar.voto}).appendTo(presentes);
                           });
                       }
                   }else{
-                    jQuery.each(presentes_ordem_dia, function(index, parlamentar) {                     
-                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);                      
+                    jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
+                      $('<li />', {text: parlamentar.nome + '/' + parlamentar.partido}).appendTo(presentes);
                     });
                   }
 
-                //console.debug(presentes_ordem_dia)              
+                //console.debug(presentes_ordem_dia)
 
                 var votacao = $("#votacao")
 
@@ -122,7 +122,7 @@
                 }
                 else if (data["num_presentes_expediente"] != null){
                   num_presentes_ordem_dia = data["num_presentes_expediente"]
-                } 
+                }
 
                 votacao.children().remove()
                 votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
@@ -130,25 +130,25 @@
                 votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
                 votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
                 votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
-                
 
-                  var discurso_current = data["cronometro_discurso"];                  
+
+                  var discurso_current = data["cronometro_discurso"];
                   if (discurso_current != discurso_previous) {
                     $('#cronometro_discurso').runner(discurso_current);
                     discurso_previous = discurso_current;
                   }
 
-                  var aparte_current = data["cronometro_aparte"];                  
+                  var aparte_current = data["cronometro_aparte"];
                   if (aparte_current != aparte_previous) {
                     $('#cronometro_aparte').runner(aparte_current);
                     aparte_previous = aparte_current;
                   }
 
-                  var ordem_current = data["cronometro_ordem"];                  
+                  var ordem_current = data["cronometro_ordem"];
                   if (ordem_current != ordem_previous) {
                     $('#cronometro_ordem').runner(ordem_current);
                     ordem_previous = ordem_current;
-                  }                  
+                  }
 
                   $("#materia_legislativa_texto").text(data["materia_legislativa_texto"])
                   $("#observacao_materia").text(data["observacao_materia"])
@@ -182,17 +182,17 @@
             </tr>
             <tr>
                 <td>DISCURSO:</td>
-                <td><span id="cronometro_discurso"></span></td>                
+                <td><span id="cronometro_discurso"></span></td>
             </tr>
             <tr>
                 <td>APARTE:</td>
-                <td><span id="cronometro_aparte"></span></td>                
+                <td><span id="cronometro_aparte"></span></td>
             </tr>
             <tr>
                 <td>QUESTÃO DE ORDEM:</td>
                 <td><span id="cronometro_ordem"></span></td>
             </tr>
-        </table>        
+        </table>
         <table>
             <tr>
                <td>
