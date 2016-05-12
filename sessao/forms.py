@@ -64,7 +64,19 @@ from crispy_forms.layout import Fieldset, Layout
 import crispy_layout_mixin
 from crispy_layout_mixin import form_actions
 
+from sapl.utils import RANGE_MESES, RANGE_DIAS_MES
+
 from .models import SessaoPlenaria
+
+
+def pega_anos():
+    anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+    anos = [(k.year, k.year) for k in anos_list]
+    return anos
+
+ANO_CHOICES = [('', '---------')] + pega_anos()
+MES_CHOICES = [('', '---------')] + RANGE_MESES
+DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
 
 
 class PresencaForm(forms.Form):
@@ -113,20 +125,23 @@ class VotacaoEditForm(forms.Form):
     pass
 
 
-class PesquisaSessaoPlenaria(django_filters.FilterSet):
+class SessaoPlenariaFilterSet(django_filters.FilterSet):
+    data_inicio__year = django_filters.ChoiceFilter(required=False,
+                                                    label=u'Ano',
+                                                    choices=ANO_CHOICES)
+    data_inicio__month = django_filters.ChoiceFilter(required=False,
+                                                     label=u'Mês',
+                                                     choices=MES_CHOICES)
+    data_inicio__day = django_filters.ChoiceFilter(required=False,
+                                                   label=u'Dia',
+                                                   choices=DIA_CHOICES)
 
     class Meta:
         model = SessaoPlenaria
-        fields = ['data_inicio__year',
-                  'data_inicio__month',
-                  'data_inicio__day',
-                  'tipo',
-                  ]
+        fields = ['tipo']
 
     def __init__(self, *args, **kwargs):
-        super(PesquisaSessaoPlenaria, self).__init__(*args, **kwargs)
-
-        # self.filters['tipo'].label = 'Tipo de Matéria'
+        super(SessaoPlenariaFilterSet, self).__init__(*args, **kwargs)
 
         row1 = crispy_layout_mixin.to_row(
             [('data_inicio__year', 3),

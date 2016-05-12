@@ -9,6 +9,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
+from django_filters.views import FilterView
 from rest_framework import generics
 
 import crud.base
@@ -23,7 +24,8 @@ from sessao.serializers import SessaoPlenariaSerializer
 from django.http.response import HttpResponseRedirect
 
 from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
-                    MesaForm, PresencaForm, VotacaoEditForm, VotacaoForm,
+                    MesaForm, PresencaForm, SessaoPlenariaFilterSet,
+                    VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, ExpedienteMateriaForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
@@ -1865,3 +1867,60 @@ class PautaOrdemDetail(SessaoCrud.CrudDetailView):
              'norma': norma,
              'doc_ace': doc_ace,
              'tramitacao': tramitacao})
+
+
+class PesquisarSessaoPlenariaView(FilterView):
+    model = SessaoPlenaria
+    filterset_class = SessaoPlenariaFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarSessaoPlenariaView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset()
+
+        qs = qs.distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarSessaoPlenariaView,
+                        self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarSessaoPlenariaView, self).get(request)
+
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/FilterSet
+        # Então a ordem da URL está diferente
+        data = self.filterset.data
+        if (data and data.get('data_inicio__year') is not None):
+            url = "&" + str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('data_inicio__year=') - 1
+                url = url[ponto_comeco:]
+        else:
+            url = ''
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        return self.render_to_response(context)

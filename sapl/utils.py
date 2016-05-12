@@ -131,6 +131,23 @@ UF = [
 
 RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
 
+RANGE_MESES = [
+    (1, 'Janeiro'),
+    (2, 'Fevereiro'),
+    (3, 'Março'),
+    (4, 'Abril'),
+    (5, 'Maio'),
+    (6, 'Junho'),
+    (7, 'Julho'),
+    (8, 'Agosto'),
+    (9, 'Setembro'),
+    (10, 'Outubro'),
+    (11, 'Novembro'),
+    (12, 'Dezembro'),
+]
+
+RANGE_DIAS_MES = [(n, n) for n in range(1, 32)]
+
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
     'application/x-vnd.oasis.opendocument.text',

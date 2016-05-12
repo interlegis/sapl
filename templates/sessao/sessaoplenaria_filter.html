@@ -1,0 +1,47 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %}{% endblock %}
+
+{% block sections_nav %} {% endblock %}
+
+{% block detail_content %}
+  <h1><b>Pesquisar Sessão Plenária</b></h1>
+  <br></br>
+ 
+
+  {% crispy filter.form %}
+  {% if filter_url %}      
+  <p></p>
+  <table class="table table-striped table-bordered">
+        <thead class="thead-default">
+            <tr><td><h3>Resultados</h3></td></tr>
+        </thead>
+        {% if page_obj|length %}
+          {% if numero_res > 1 %}
+              <h3>Pesquisa concluída com sucesso! Foram encontradas {{numero_res}} sessões.</h3>
+            {% elif numero_res == 1 %}
+              <h3>Pesquisa concluída com sucesso! Foi encontrada {{numero_res}} sessão.</h3>
+            {% endif %}
+
+          {% for s in page_obj %}
+            
+              <tr>
+                  <td>
+                      <strong><a href="{% url 'sessao:sessaoplenaria_detail' s.id %}">{{s.numero}}ª Sessão {{s.tipo.nome}} da {{s.sessao_legislativa.numero}}ª Sessão Legislativa da {{s.legislatura.id}}ª Legislatura</strong></a></br>
+                      <p></p>
+              </tr>
+          {% endfor %}
+        {% else  %}
+            <tr>
+                <td>
+                    <h3>Nenhuma Sessão Plenária encontrada com essas especificações</h3>
+                 </tr>
+        {% endif %}
+        
+    </table>
+
+{% include "paginacao.html" %}
+{% endif %}
+
+{% endblock detail_content %}
