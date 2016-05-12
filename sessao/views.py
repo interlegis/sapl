@@ -83,7 +83,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                 url = reverse('sessao:votacaonominalexp',
                                               kwargs={
                                                 'pk': obj.sessao_plenaria_id,
-                                                'oid': bj.materia_id,
+                                                'oid': obj.materia_id,
                                                 'mid': obj.pk})
                         elif obj.tipo_votacao == 3:
                             url = reverse('sessao:votacaosecretaexp',
@@ -1472,7 +1472,7 @@ class VotacaoNominalExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
             expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
-            expediente.resultado = None
+            expediente.resultado = ''
             expediente.votacao_aberta = False
             expediente.save()
 
@@ -1688,7 +1688,7 @@ class VotacaoExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
             expediente.votacao_aberta = False
-            expediente.resultado = None
+            expediente.resultado = ''
             expediente.save()
 
         return self.form_valid(form)
