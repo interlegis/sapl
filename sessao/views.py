@@ -2,7 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.utils.html import strip_tags
@@ -39,6 +39,21 @@ TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
 
 
+def abrir_votacao_view(request, pk, spk):
+    existe_votacao_aberta = ExpedienteMateria.objects.filter(
+                sessao_plenaria_id=spk, votacao_aberta=True
+            ).exists()
+    if existe_votacao_aberta:
+        msg = _('Já existe uma matéria com votação aberta. Para abrir '
+                'outra, termine ou feche a votação existente.')
+        raise ValidationError(msg)
+    else:
+        expediente = ExpedienteMateria.objects.get(id=pk)
+        expediente.votacao_aberta = True
+        expediente.save()
+    return reverse('sessao:expedientemateria_list', kwargs={'pk': spk})
+
+
 class ExpedienteMateriaCrud(MasterDetailCrud):
     model = ExpedienteMateria
     parent_field = 'sessao_plenaria'
@@ -50,19 +65,47 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'materia', 'resultado']
-        # 
-        # def get_rows(self, object_list):
-        #
-        #     btn_abrir = '''
-        #         Matéria não votada <br />
-        #         <a href="">
-        #             Abrir Votação
-        #         </a>'''
-        #     for obj in object_list:
-        #         if not obj.resultado:
-        #             obj.resultado = btn_abrir
-        #
-        #     return [self._as_row(obj) for obj in object_list]
+
+        def get_rows(self, object_list):
+            for obj in object_list:
+                if not obj.resultado:
+                    if obj.votacao_aberta:
+                        url = ''
+                        if obj.tipo_votacao == 1:
+                            url = reverse('sessao:votacaosimbolicaexp',
+                                          kwargs={
+                                            'pk': obj.sessao_plenaria_id,
+                                            'oid': obj.materia_id,
+                                            'mid': obj.pk})
+                        elif obj.tipo_votacao == 2:
+                                url = reverse('sessao:votacaonominalexp',
+                                              kwargs={
+                                                'pk': obj.sessao_plenaria_id,
+                                                'oid': bj.materia_id,
+                                                'mid': obj.pk})
+                        elif obj.tipo_votacao == 3:
+                            url = reverse('sessao:votacaosecretaexp',
+                                          kwargs={
+                                            'pk': obj.sessao_plenaria_id,
+                                            'oid': obj.materia_id,
+                                            'mid': obj.pk})
+
+                        btn_registrar = '''
+                            <a href="%s"
+                               class="btn btn-primary"
+                               role="button">Registrar Votação</a>''' % (url)
+                        obj.resultado = btn_registrar
+                    else:
+                        url = reverse('sessao:abrir_votacao', kwargs={
+                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id})
+                        btn_abrir = '''
+                            Matéria não votada<br />
+                            <a href="%s"
+                               class="btn btn-primary"
+                               role="button">Abrir Votação</a>''' % (url)
+                        obj.resultado = btn_abrir
+
+            return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm

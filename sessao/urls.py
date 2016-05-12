@@ -16,7 +16,7 @@ from sessao.views import (EditMateriaOrdemDiaView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, ExpedienteMateriaCrud)
+                          VotacaoView, ExpedienteMateriaCrud, abrir_votacao_view)
 
 from .apps import AppConfig
 
@@ -29,6 +29,9 @@ sessao_rest = [
 urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
         OradorExpedienteCrud.get_urls() + ExpedienteMateriaCrud.get_urls())),
+
+    url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao$', abrir_votacao_view,
+        name="abrir_votacao"),
 
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
