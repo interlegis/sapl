@@ -14,7 +14,7 @@
     - title: Expediente Diversos
       url: expediente
     - title: Matérias Expediente
-      url: expedienteordemdia_list
+      url: expedientemateria_list
     - title: Oradores do Expediente
       url: oradorexpediente_list
 

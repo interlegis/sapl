@@ -1,5 +1,60 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.forms import ModelForm
+from .models import ExpedienteMateria
+from materia.models import TipoMateriaLegislativa, MateriaLegislativa
+from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+
+
+class ExpedienteMateriaForm(ModelForm):
+
+    tipo_materia = forms.ModelChoiceField(
+        label=_('Tipo Matéria'),
+        required=True,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+    )
+
+    numero_materia = forms.CharField(
+        label='Número Matéria', required=True)
+
+    ano_materia = forms.CharField(
+        label='Ano Matéria', required=True)
+
+    data_ordem = forms.CharField(
+        initial=datetime.now().strftime('%d/%m/%Y'),
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+
+    class Meta:
+        model = ExpedienteMateria
+        fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
+                  'numero_materia', 'ano_materia', 'tipo_votacao']
+
+    def clean_data_ordem(self):
+        return datetime.now()
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        try:
+            materia = MateriaLegislativa.objects.get(
+                numero=self.cleaned_data['numero_materia'],
+                ano=self.cleaned_data['ano_materia'],
+                tipo=self.cleaned_data['tipo_materia'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser inclusa não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['materia'] = materia
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        expediente = super(ExpedienteMateriaForm, self).save(commit)
+        expediente.materia = self.cleaned_data['materia']
+        expediente.save()
+        return expediente
 
 
 class PresencaForm(forms.Form):

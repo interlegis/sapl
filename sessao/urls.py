@@ -2,9 +2,9 @@ from django.conf.urls import include, url
 from django.views.static import serve
 
 from sapl import settings
-from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
-                          ExpedienteOrdemDiaView, ExpedienteView,
-                          ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
+from sessao.views import (EditMateriaOrdemDiaView,
+                          ExpedienteView,
+                          ListMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView, OradorCrud,
                           OradorExpedienteCrud, PainelView,
                           PautaExpedienteDetail, PautaOrdemDetail,
@@ -16,7 +16,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView)
+                          VotacaoView, ExpedienteMateriaCrud)
 
 from .apps import AppConfig
 
@@ -28,7 +28,7 @@ sessao_rest = [
 
 urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
-        OradorExpedienteCrud.get_urls())),
+        OradorExpedienteCrud.get_urls() + ExpedienteMateriaCrud.get_urls())),
 
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
@@ -69,12 +69,6 @@ urlpatterns = [
         EditMateriaOrdemDiaView.as_view(), name='materiaordemdia_edit'),
     url(r'^(?P<pk>\d+)/materiaordemdia/create$',
         MateriaOrdemDiaView.as_view(), name='materiaordemdia_create'),
-    url(r'^(?P<pk>\d+)/expedienteordemdia/list$',
-        ListExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_list'),
-    url(r'^(?P<pk>\d+)/expedienteordemdia/edit/(?P<oid>\d+)$',
-        EditExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_edit'),
-    url(r'^(?P<pk>\d+)/expedienteordemdia/create$',
-        ExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_create'),
     url(r'^(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
