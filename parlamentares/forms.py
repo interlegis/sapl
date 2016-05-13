@@ -71,7 +71,7 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
             ultima_filiacao = todas_filiacoes.last()
             # Se ultima filiacao aberta e insercao posterior a esta filiacao
             if (not ultima_filiacao.data_desfiliacao and
-                data_filiacao >= ultima_filiacao.data):
+                    data_filiacao >= ultima_filiacao.data):
                     error_msg = _("O parlamentar não pode se filiar \
                                    a novo partido sem antes se \
                                    desfiliar do partido anterior")

@@ -28,18 +28,6 @@ class MateriaOrdemDiaForm(forms.Form):
     error_message = forms.CharField(required=False, label=_('Matéria'))
 
 
-class OradorForm(forms.Form):
-    numero_ordem = forms.IntegerField(
-        required=True,
-        label=_('Ordem de pronunciamento'))
-    parlamentar = forms.CharField(required=False, max_length=20)
-    url_discurso = forms.CharField(required=False, max_length=100)
-
-
-class OradorDeleteForm(forms.Form):
-    pass
-
-
 class MesaForm(forms.Form):
     parlamentar = forms.IntegerField(required=True)
     cargo = forms.IntegerField(required=True)

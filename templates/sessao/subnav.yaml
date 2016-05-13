@@ -7,7 +7,7 @@
     - title: Presença
       url: presenca
     - title: Explicações Pessoais
-      url: explicacao
+      url: orador_list
 
 - title: Expedientes
   children:
@@ -16,7 +16,7 @@
     - title: Matérias Expediente
       url: expedienteordemdia_list
     - title: Oradores do Expediente
-      url: oradorexpediente
+      url: oradorexpediente_list
 
 - title: Ordem do Dia
   children:
