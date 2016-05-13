@@ -7,16 +7,16 @@
     - title: Presença
       url: presenca
     - title: Explicações Pessoais
-      url: explicacao
+      url: orador_list
 
 - title: Expedientes
   children:
     - title: Expediente Diversos
       url: expediente
     - title: Matérias Expediente
-      url: expedienteordemdia_list
+      url: expedientemateria_list
     - title: Oradores do Expediente
-      url: oradorexpediente
+      url: oradorexpediente_list
 
 - title: Ordem do Dia
   children:

@@ -39,3 +39,24 @@ RegistroVotacao:
   - votacao_branco_FIXME  ind_votacao_presidente_FIXME
   - tipo_resultado_votacao
   - observacao
+
+Orador:
+  Orador das Explicações Pessoais:
+  - numero_ordem parlamentar url_discurso
+
+OradorExpediente:
+  Orador do Expediente:
+  - numero_ordem parlamentar url_discurso
+
+ExpedienteMateria:
+  Matéria do Expediente:
+  - data_ordem numero_ordem
+  - tipo_materia numero_materia ano_materia
+  - tipo_votacao
+  - observacao
+
+ExpedienteMateriaDetail:
+  Matérias do Expediente:
+  - materia
+  - tipo_votacao
+  - observacao

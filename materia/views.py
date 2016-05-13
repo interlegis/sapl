@@ -1,7 +1,6 @@
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
-from crispy_layout_mixin import form_actions
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
@@ -102,35 +101,6 @@ class ProposicaoCrud(Crud):
                 return HttpResponseRedirect(
                     reverse('materia:proposicao_detail',
                             kwargs={'pk': proposicao.pk}))
-
-
-class RelatoriaCrud(MasterDetailCrud):
-    model = Relatoria
-    parent_field = 'materia'
-    help_path = ''
-
-    class CreateView(MasterDetailCrud.CreateView):
-        form_class = RelatoriaForm
-
-        def get_initial(self):
-            materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
-
-            loc_atual = Tramitacao.objects.filter(
-                materia=materia).last()
-
-            if loc_atual is None:
-                localizacao = 0
-            else:
-                comissao = loc_atual.unidade_tramitacao_destino.comissao
-                if comissao:
-                    localizacao = comissao.pk
-                else:
-                    localizacao = 0
-
-            return {'comissao': localizacao}
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = RelatoriaForm
 
 
 class RelatoriaCrud(MasterDetailCrud):

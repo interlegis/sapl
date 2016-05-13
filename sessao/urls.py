@@ -2,13 +2,11 @@ from django.conf.urls import include, url
 from django.views.static import serve
 
 from sapl import settings
-from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
-                          ExpedienteOrdemDiaView, ExpedienteView,
-                          ExplicacaoDelete, ExplicacaoEdit, ExplicacaoView,
-                          ListExpedienteOrdemDiaView, ListMateriaOrdemDiaView,
-                          MateriaOrdemDiaView, MesaView,
-                          OradorExpedienteDelete, OradorExpedienteEdit,
-                          OradorExpedienteView, PainelView,
+from sessao.views import (EditMateriaOrdemDiaView,
+                          ExpedienteView,
+                          ListMateriaOrdemDiaView,
+                          MateriaOrdemDiaView, MesaView, OradorCrud,
+                          OradorExpedienteCrud, PainelView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
                           PresencaOrdemDiaView, PresencaView, ResumoView,
@@ -18,7 +16,7 @@ from sessao.views import (EditExpedienteOrdemDiaView, EditMateriaOrdemDiaView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView)
+                          VotacaoView, ExpedienteMateriaCrud, abrir_votacao_view)
 
 from .apps import AppConfig
 
@@ -29,7 +27,11 @@ sessao_rest = [
 ]
 
 urlpatterns = [
-    url(r'^sessao/', include(SessaoCrud.get_urls())),
+    url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
+        OradorExpedienteCrud.get_urls() + ExpedienteMateriaCrud.get_urls())),
+
+    url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao$', abrir_votacao_view,
+        name="abrir_votacao"),
 
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
@@ -61,12 +63,6 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
-    url(r'^(?P<pk>\d+)/oradorexpediente$',
-        OradorExpedienteView.as_view(), name='oradorexpediente'),
-    url(r'^(?P<pk>\d+)/oradorexpediente/excluir/(?P<oid>\d+)$',
-        OradorExpedienteDelete.as_view(), name='oradorexcluir'),
-    url(r'^(?P<pk>\d+)/oradorexpediente/editar/(?P<oid>\d+)$',
-        OradorExpedienteEdit.as_view(), name='oradoreditar'),
     url(r'^(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
     url(r'^(?P<pk>\d+)/materiaordemdia/list$',
         ListMateriaOrdemDiaView.as_view(), name='materiaordemdia_list'),
@@ -76,20 +72,8 @@ urlpatterns = [
         EditMateriaOrdemDiaView.as_view(), name='materiaordemdia_edit'),
     url(r'^(?P<pk>\d+)/materiaordemdia/create$',
         MateriaOrdemDiaView.as_view(), name='materiaordemdia_create'),
-    url(r'^(?P<pk>\d+)/expedienteordemdia/list$',
-        ListExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_list'),
-    url(r'^(?P<pk>\d+)/expedienteordemdia/edit/(?P<oid>\d+)$',
-        EditExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_edit'),
-    url(r'^(?P<pk>\d+)/expedienteordemdia/create$',
-        ExpedienteOrdemDiaView.as_view(), name='expedienteordemdia_create'),
     url(r'^(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
-    url(r'^(?P<pk>\d+)/explicacao$',
-        ExplicacaoView.as_view(), name='explicacao'),
-    url(r'^(?P<pk>\d+)/explicacao/excluir/(?P<oid>\d+)$',
-        ExplicacaoDelete.as_view(), name='explicacaoexcluir'),
-    url(r'^(?P<pk>\d+)/explicacao/editar/(?P<oid>\d+)$',
-        ExplicacaoEdit.as_view(), name='explicacaoeditar'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalView.as_view(), name='votacaonominal'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
