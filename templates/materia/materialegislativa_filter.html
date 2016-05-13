@@ -29,8 +29,19 @@
               <tr>
                   <td>
                       <strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
-                      {{ m.ementa|safe }}</br>
-                      <strong>Localização Atual:</strong> {{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
+                      <strong>Autores:</strong>
+                      {% for a in m.autoria_set.all %}
+                        {% if not forloop.first %}
+                          , &nbsp;&nbsp; {{a.autor|default_if_none:"Não Informado"}}
+                        {% else %}
+                          &nbsp;{{a.autor|default_if_none:"Não Informado"}}
+                        {% endif %} 
+                      {% endfor %}
+                      </br>
+                      <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
+                      <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não Informada"}}</br>
+                      <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
+                      <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
                       <p></p>
               </tr>
           {% endfor %}
