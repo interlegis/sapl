@@ -17,9 +17,12 @@ from .models import ExpedienteMateria, SessaoPlenaria
 
 
 def pega_anos():
-    anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
-    anos = [(k.year, k.year) for k in anos_list]
-    return anos
+    try:
+        anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+        anos = [(k.year, k.year) for k in anos_list]
+        return anos
+    except:
+        return []
 
 ANO_CHOICES = [('', '---------')] + pega_anos()
 MES_CHOICES = [('', '---------')] + RANGE_MESES
