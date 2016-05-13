@@ -1,10 +1,29 @@
-from django import forms
-from django.utils.translation import ugettext_lazy as _
-from django.forms import ModelForm
-from .models import ExpedienteMateria
-from materia.models import TipoMateriaLegislativa, MateriaLegislativa
 from datetime import datetime
+
+import django_filters
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Fieldset, Layout
+from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
+
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
+from materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.utils import RANGE_DIAS_MES, RANGE_MESES
+
+from .models import ExpedienteMateria, SessaoPlenaria
+
+
+def pega_anos():
+    anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+    anos = [(k.year, k.year) for k in anos_list]
+    return anos
+
+ANO_CHOICES = [('', '---------')] + pega_anos()
+MES_CHOICES = [('', '---------')] + RANGE_MESES
+DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
 
 
 class ExpedienteMateriaForm(ModelForm):
@@ -101,3 +120,36 @@ class VotacaoForm(forms.Form):
 
 class VotacaoEditForm(forms.Form):
     pass
+
+
+class SessaoPlenariaFilterSet(django_filters.FilterSet):
+    data_inicio__year = django_filters.ChoiceFilter(required=False,
+                                                    label=u'Ano',
+                                                    choices=ANO_CHOICES)
+    data_inicio__month = django_filters.ChoiceFilter(required=False,
+                                                     label=u'Mês',
+                                                     choices=MES_CHOICES)
+    data_inicio__day = django_filters.ChoiceFilter(required=False,
+                                                   label=u'Dia',
+                                                   choices=DIA_CHOICES)
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = ['tipo']
+
+    def __init__(self, *args, **kwargs):
+        super(SessaoPlenariaFilterSet, self).__init__(*args, **kwargs)
+
+        row1 = crispy_layout_mixin.to_row(
+            [('data_inicio__year', 3),
+             ('data_inicio__month', 3),
+             ('data_inicio__day', 3),
+             ('tipo', 3)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Sessao Plenária'),
+                     row1,
+                     form_actions(save_label='Pesquisar'))
+        )

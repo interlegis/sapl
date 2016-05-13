@@ -2,21 +2,21 @@ from django.conf.urls import include, url
 from django.views.static import serve
 
 from sapl import settings
-from sessao.views import (EditMateriaOrdemDiaView,
-                          ExpedienteView,
-                          ListMateriaOrdemDiaView,
+from sessao.views import (EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
+                          ExpedienteView, ListMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView, OradorCrud,
                           OradorExpedienteCrud, PainelView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
-                          PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoCrud, SessaoPlenariaView, TipoExpedienteCrud,
+                          PesquisarSessaoPlenariaView, PresencaOrdemDiaView,
+                          PresencaView, ResumoView, SessaoCrud,
+                          SessaoPlenariaView, TipoExpedienteCrud,
                           TipoResultadoVotacaoCrud, TipoSessaoCrud,
                           VotacaoEditView, VotacaoExpedienteEditView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, ExpedienteMateriaCrud, abrir_votacao_view)
+                          VotacaoView, abrir_votacao_view)
 
 from .apps import AppConfig
 
@@ -74,6 +74,8 @@ urlpatterns = [
         MateriaOrdemDiaView.as_view(), name='materiaordemdia_create'),
     url(r'^(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
+    url(r'^sessao/pesquisar-sessao$',
+        PesquisarSessaoPlenariaView.as_view(), name='pesquisar_sessao'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalView.as_view(), name='votacaonominal'),
     url(r'^(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',

@@ -8,7 +8,8 @@ from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
 app_name = AppConfig.name
 
 urlpatterns = [
-    url(r'^painel_principal/(?P<pk>\d+)$', painel_view, name="painel_principal"),
+    url(r'^painel_principal/(?P<pk>\d+)$', painel_view,
+        name="painel_principal"),
     url(r'^painel/(?P<pk>\d+)/dados$', get_dados_painel, name='dados_painel'),
     url(r'^painel/controlador$',
         controlador_painel, name='painel_controlador'),
