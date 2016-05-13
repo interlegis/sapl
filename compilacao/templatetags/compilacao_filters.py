@@ -100,7 +100,7 @@ def render_actions_head(view, d_atual):
     if view.pk_view == view.pk_edit and d_atual.pk == view.pk_view:
         return True
 
-    # conteudo e menu no filho
+    # conteudo e menu no filho - ocorre nas inclusões feitas através do editor
     if view.pk_view != view.pk_edit and d_atual.pk == view.pk_edit:
         return True
 

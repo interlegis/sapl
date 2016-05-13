@@ -68,7 +68,7 @@
           {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
 
           <span class="dtxt"
-                id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}" 
+                id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}"
                 pks="{{dpt.dispositivo_substituido_id|default:''}}"
                 pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
           {% if dpt.ta_publicado_id %}
