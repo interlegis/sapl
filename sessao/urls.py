@@ -2,22 +2,21 @@ from django.conf.urls import include, url
 from django.views.static import serve
 
 from sapl import settings
-from sessao.views import (EditMateriaOrdemDiaView,
-                          ExpedienteView,
-                          ListMateriaOrdemDiaView,
+from sessao.views import (EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
+                          ExpedienteView, ListMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView, OradorCrud,
                           OradorExpedienteCrud, PainelView,
                           PautaExpedienteDetail, PautaOrdemDetail,
                           PautaSessaoDetailView, PautaSessaoListView,
-                          PesquisarSessaoPlenariaView,
-                          PresencaOrdemDiaView, PresencaView, ResumoView,
-                          SessaoCrud, SessaoPlenariaView, TipoExpedienteCrud,
+                          PesquisarSessaoPlenariaView, PresencaOrdemDiaView,
+                          PresencaView, ResumoView, SessaoCrud,
+                          SessaoPlenariaView, TipoExpedienteCrud,
                           TipoResultadoVotacaoCrud, TipoSessaoCrud,
                           VotacaoEditView, VotacaoExpedienteEditView,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, ExpedienteMateriaCrud, abrir_votacao_view)
+                          VotacaoView, abrir_votacao_view)
 
 from .apps import AppConfig
 

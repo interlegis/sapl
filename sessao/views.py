@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
+from django.http.response import HttpResponseRedirect
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
@@ -21,12 +22,11 @@ from materia.models import (Autoria, DocumentoAcessorio,
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
-from django.http.response import HttpResponseRedirect
 
-from .forms import (ExpedienteForm, ListMateriaForm, MateriaOrdemDiaForm,
-                    MesaForm, PresencaForm, SessaoPlenariaFilterSet,
-                    VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm, ExpedienteMateriaForm)
+from .forms import (ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
+                    MateriaOrdemDiaForm, MesaForm, PresencaForm,
+                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      IntegranteMesa, MateriaLegislativa, Orador,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,
@@ -120,7 +120,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             url = reverse('sessao:votacaonominalexpedit',
                                           kwargs={
                                             'pk': obj.sessao_plenaria_id,
-                                            'oid': bj.materia_id,
+                                            'oid': obj.materia_id,
                                             'mid': obj.pk})
                     elif obj.tipo_votacao == 3:
                         url = reverse('sessao:votacaosecretaexpedit',

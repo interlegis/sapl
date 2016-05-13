@@ -1,12 +1,29 @@
-import django_filters
-
-from django import forms
-from django.utils.translation import ugettext_lazy as _
-from django.forms import ModelForm
-from .models import ExpedienteMateria
-from materia.models import TipoMateriaLegislativa, MateriaLegislativa
 from datetime import datetime
+
+import django_filters
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Fieldset, Layout
+from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
+
+import crispy_layout_mixin
+from crispy_layout_mixin import form_actions
+from materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.utils import RANGE_DIAS_MES, RANGE_MESES
+
+from .models import ExpedienteMateria, SessaoPlenaria
+
+
+def pega_anos():
+    anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+    anos = [(k.year, k.year) for k in anos_list]
+    return anos
+
+ANO_CHOICES = [('', '---------')] + pega_anos()
+MES_CHOICES = [('', '---------')] + RANGE_MESES
+DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
 
 
 class ExpedienteMateriaForm(ModelForm):
@@ -57,26 +74,6 @@ class ExpedienteMateriaForm(ModelForm):
         expediente.materia = self.cleaned_data['materia']
         expediente.save()
         return expediente
-
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Fieldset, Layout
-
-import crispy_layout_mixin
-from crispy_layout_mixin import form_actions
-
-from sapl.utils import RANGE_MESES, RANGE_DIAS_MES
-
-from .models import SessaoPlenaria
-
-
-def pega_anos():
-    anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
-    anos = [(k.year, k.year) for k in anos_list]
-    return anos
-
-ANO_CHOICES = [('', '---------')] + pega_anos()
-MES_CHOICES = [('', '---------')] + RANGE_MESES
-DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
 
 
 class PresencaForm(forms.Form):
