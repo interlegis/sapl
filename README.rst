@@ -3,62 +3,130 @@
  :alt: 'Stories in Ready'
 
 ***********************************************
-SAPL - Legislative Process Support System
+SAPL - Sistema de Apoio ao Processo Legislativo
 ***********************************************
 
-This page brings together useful information on the current development of
-**SAPL - Sistema de Apoio ao Processo Legislativo** (Legislative Process Support System).
+Esta página reúne informações úteis sobre o desenvolvimento atual do SAPL.
 
-That means all information presented here applies only to **version 3.1** and greater.
-
-For more information about the the project as a whole and the current working version of the system (2.5)
-please visit the `project page at Interlegis wiki <https://colab.interlegis.leg.br/wiki/ProjetoSapl>`_.
+Isso significa que toda a informação aqui apresentada aplica-se apenas para a versão 3.1 e superior.
 
 
-Development Environment Installation
-====================================
+Para obter mais informações sobre o projeto como um todo e a versão de trabalho
+atual do sistema (2.5), visite a página do `projeto na Interlegis wiki <https://colab.interlegis.leg.br/wiki/ProjetoSapl>`_.
 
-* Install the following system dependencies (command bellow for Ubuntu)::
+
+Instalação do Ambiente de Desenvolvimento
+=========================================
+
+Instalar as seguintes dependências do sistema (Roteiro testado no Ubuntu 16.04 64bits)::
+----------------------------------------------------------------------------------------
+
+* ::
 
     sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz \
-    pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 nodejs npm \
+    pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
+    software-properties-common build-essential libxml2-dev libjpeg-dev \
+    libssl-dev libffi-dev libxslt1-dev python3-setuptools curl
 
-    sudo ln -s /usr/bin/nodejs /usr/bin/node
+    sudo easy_install3 pip lxml
 
+    sudo -i
+    curl -sL https://deb.nodesource.com/setup_5.x | bash -
+    exit
+    sudo apt-get install nodejs
+
+    sudo npm install npm -g
     sudo npm install -g bower
 
-* Setup git, following the instructions in https://help.github.com/articles/set-up-git.
+Criar virtualenv usando python 3 para o projeto.
+--------------------------------------------------
 
-* Fork and clone this repository, following the instructions in https://help.github.com/articles/fork-a-repo.
+* Para usar `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_, instale com::
 
-* If you don't have pip installed then execute the following instructions:
+    sudo pip install virtualenvwrapper
 
-    sudo apt-get install python-pip python-dev build-essential
-    sudo pip install --upgrade pip
-    sudo pip install --upgrade virtualenv
+    mkdir ~/Envs
 
-* Create a virtualenv using python 3 for the project and activate it.
-  If you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_::
+* Edite o arquivo .bashrc e adicione eu seu final as configurações abaixo para o virtualenvwrapper::
 
-    mkvirtualenv -p /usr/bin/python3 sapl
+    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/Envs
+    source /usr/local/bin/virtualenvwrapper.sh
 
-* Install python dependencies (run on the project root)::
+* Saia do terminal e entre novamente para as configurações do virtualenvwrapper serem carregadas. Após isso crie o ambiente virtual de desenvolvimento para o SAPL::
+
+    mkvirtualenv sapl
+
+* Crie arquivo .project em ~/.virtualenv/sapl::
+
+    echo "$HOME/Envs/sapl" > .project
+
+
+Clonar o projeto do github, ou fazer um fork e depois clonar
+------------------------------------------------------------
+
+* Para apenas clonar do repositório do Interlegis::
+
+    cd ~/Envs
+    git clone git://github.com/interlegis/sapl
+    exit
+
+* Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente:
+
+  * É necessário ter uma conta no github - é gratuíto.
+  * Acessar https://github.com/interlegis/sapl e clicar em fork.
+  * Será criado um domínio pelo qual será possível **clonar, corrigir, customizar, melhorar, contribuir, etc**::
+
+      cd ~/Envs
+      git clone git://github.com/[SEU NOME]/sapl
+      exit
+
+* As configurações e instruções de uso para o git estão espalhadas pela internet e possui muito coisa bacana. As tarefas básicas de git e suas interações com github são tranquilas de aprender.
+
+Instalação e configuração das dependências do projeto
+-----------------------------------------------------
+
+* Acesse o terminal e entre no virtualenv (Esse procedimento será sempre necessário para iniciar qualquer contribuição)::
+
+    workon sapl
+
+* Instalar dependências ``python``::
 
     pip install -r requirements/dev-requirements.txt
+
+* Configurar Postgresql:
+
+  * Acessar Postrgresql para criar o banco ``sapl`` com a role ``sapl`` (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar::
+
+      sudo su - postgres
+
+      CREATE ROLE sapl LOGIN
+        ENCRYPTED PASSWORD 'sapl'
+        NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;
+
+      ALTER ROLE sapl VALID UNTIL 'infinity';
+
+      CREATE DATABASE sapl
+        WITH OWNER = sapl
+             ENCODING = 'UTF8'
+             TABLESPACE = pg_default
+             LC_COLLATE = 'pt_BR.UTF-8'
+             LC_CTYPE = 'pt_BR.UTF-8'
+             CONNECTION LIMIT = -1;
+
+      \q
+
+* Configurar arquivo ``.env``:
+
+  * Criação da SECRET_KEY
+
+  * Criar arquivo ``.env`` na pasta ~/Envs/sapl/sapl/.env:
+
 
 * Install bower dependencies (run on the project root)::
 
     ./manage.py bower install
-
-* Install `PostgreSQL <https://help.ubuntu.com/community/PostgreSQL>`_ if you haven't already.
-
-* Create a ``sapl`` role with:
-
-  - Password ``sapl``
-  - The privilege ``can create databases``
-  - A big expiration date (or infinite, using eg ``ALTER ROLE SAPL VALID UNTIL 'infinity';``)
-
-* Create a database ``sapl`` with owner ``sapl``.
 
 * Either run ``./manage.py migrate`` (for an empty database) or restore a database dump.
 
