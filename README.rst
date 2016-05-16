@@ -18,7 +18,13 @@ atual do sistema (2.5), visite a página do `projeto na Interlegis wiki <https:/
 Instalação do Ambiente de Desenvolvimento
 =========================================
 
-Instalar as seguintes dependências do sistema (Roteiro testado no Ubuntu 16.04 64bits)::
+* Procedimento testado nos seguintes SO's:
+
+  * `Ubuntu 16.04 64bits <https://github.com/interlegis/sapl/blob/master/README.rst>`_;
+
+        * edite e incremente outros, ou ainda, crie outros readme's dentro do projeto para outros SO's e adicione o link aqui.
+
+Instalar as seguintes dependências do sistema::
 ----------------------------------------------------------------------------------------
 
 * ::
@@ -38,8 +44,8 @@ Instalar as seguintes dependências do sistema (Roteiro testado no Ubuntu 16.04 
     sudo npm install npm -g
     sudo npm install -g bower
 
-Criar virtualenv usando python 3 para o projeto.
---------------------------------------------------
+Instalar o virtualenv usando python 3 para o projeto.
+-----------------------------------------------------
 
 * Para usar `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/install.html#basic-installation>`_, instale com::
 
@@ -47,21 +53,14 @@ Criar virtualenv usando python 3 para o projeto.
 
     mkdir ~/Envs
 
-* Edite o arquivo .bashrc e adicione eu seu final as configurações abaixo para o virtualenvwrapper::
+* Edite o arquivo ``.bashrc`` e adicione ao seu final as configurações abaixo para o virtualenvwrapper::
 
     export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
     export WORKON_HOME=$HOME/.virtualenvs
     export PROJECT_HOME=$HOME/Envs
     source /usr/local/bin/virtualenvwrapper.sh
 
-* Saia do terminal e entre novamente para as configurações do virtualenvwrapper serem carregadas. Após isso crie o ambiente virtual de desenvolvimento para o SAPL::
-
-    mkvirtualenv sapl
-
-* Crie arquivo .project em ~/.virtualenv/sapl::
-
-    echo "$HOME/Envs/sapl" > .project
-
+* Saia do terminal e entre novamente para que as configurações do virtualenvwrapper sejam carregadas.
 
 Clonar o projeto do github, ou fazer um fork e depois clonar
 ------------------------------------------------------------
@@ -70,34 +69,40 @@ Clonar o projeto do github, ou fazer um fork e depois clonar
 
     cd ~/Envs
     git clone git://github.com/interlegis/sapl
-    exit
 
-* Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente:
+* Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente são:
 
-  * É necessário ter uma conta no github - é gratuíto.
-  * Acessar https://github.com/interlegis/sapl e clicar em fork.
-  * Será criado um domínio pelo qual será possível **clonar, corrigir, customizar, melhorar, contribuir, etc**::
+  * Criar uma conta no github - é gratuíto.
+  * Acessar https://github.com/interlegis/sapl e clicar em **Fork**.
+
+  Será criado um domínio pelo qual será possível **clonar, corrigir, customizar, melhorar, contribuir, etc**::
 
       cd ~/Envs
       git clone git://github.com/[SEU NOME]/sapl
-      exit
 
-* As configurações e instruções de uso para o git estão espalhadas pela internet e possui muito coisa bacana. As tarefas básicas de git e suas interações com github são tranquilas de aprender.
+* As configurações e instruções de uso para o git estão espalhadas pela internet e possui muito coisa bacana. As tarefas básicas de git e suas interações com github são tranquilas de se aprender.
+
+
+Criar o ambiente virtual de desenvolvimento para o SAPL
+-------------------------------------------------------
+* ::
+
+    mkvirtualenv sapl -a $HOME/Envs/sapl -p /usr/bin/python3
 
 Instalação e configuração das dependências do projeto
 -----------------------------------------------------
 
-* Acesse o terminal e entre no virtualenv (Esse procedimento será sempre necessário para iniciar qualquer contribuição)::
+* **Acesse o terminal e entre no virtualenv**::
 
     workon sapl
 
-* Instalar dependências ``python``::
+* **Instalar dependências ``python``**::
 
     pip install -r requirements/dev-requirements.txt
 
-* Configurar Postgresql:
+* **Configurar Postgresql**:
 
-  * Acessar Postrgresql para criar o banco ``sapl`` com a role ``sapl`` (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar::
+  * Acessar Postrgresql para criar o banco ``sapl`` com a role ``sapl``::
 
       sudo su - postgres
 
@@ -117,34 +122,72 @@ Instalação e configuração das dependências do projeto
 
       \q
 
-* Configurar arquivo ``.env``:
+  * Se você possui uma cópia da base de dados do SAPL, essa é a hora para restaurá-la.
+  * Obs: no ambiente de desenvolvimento, a role deve ter permissão para criar outro banco. Isso é usado pelos testes automatizados.
+  * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
-  * Criação da SECRET_KEY
+* **Configurar arquivo ``.env``**:
 
-  * Criar arquivo ``.env`` na pasta ~/Envs/sapl/sapl/.env:
+  * Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
+
+    É necessário criar um projeto fake para extrair uma chave SECRET_KEY::
+
+        mkdir ~/Envs/temp
+        cd ~/Envs/temp
+
+        django-admin startproject sapl_temp
+
+        grep SECRET_KEY sapl_temp/sapl_temp/settings.py
+
+    Copie a linha que aparecerá, volte para a pasta do projeto SAPL e apague sua pasta temporária::
+
+        cd ~/Envs/sapl
+        rm -R ~/Envs/temp
+
+  * Criar o arquivo ``.env`` dentro da pasta ~/Envs/sapl/sapl/.env::
+
+      DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
+      SECRET_KEY = Gere alguma chave e coloque aqui
+      DEBUG = [True/False]
+      EMAIL_USE_TLS = [True/False]
+      EMAIL_PORT = [Set this parameter]
+      EMAIL_HOST = [Set this parameter]
+      EMAIL_HOST_USER = [Set this parameter]
+      EMAIL_HOST_PASSWORD = [Set this parameter]
+
+    * Uma configuração mínima para atender os procedimentos acima seria::
+
+        DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
+        SECRET_KEY = 'Substitua esta linha pela copiada acima'
+        DEBUG = True
+        EMAIL_USE_TLS = True
+        EMAIL_PORT = 587
+        EMAIL_HOST =
+        EMAIL_HOST_USER =
+        EMAIL_HOST_PASSWORD =
 
 
-* Install bower dependencies (run on the project root)::
+
+* Instalar as dependências do ``bower``::
 
     ./manage.py bower install
 
-* Either run ``./manage.py migrate`` (for an empty database) or restore a database dump.
+* Atualizar e/ou criar a base de dados para refletir o modelo da versão clonada::
 
-* In ``sapl/sapl`` directory create one file called ``.env``. Write the following attributes in it:
+   ./manage.py migrate
 
-  - DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
-  - SECRET_KEY = Generate some key and paste here
-  - DEBUG = [True/False]
-  - EMAIL_USE_TLS = [True/False]
-  - EMAIL_PORT = [Set this parameter]
-  - EMAIL_HOST = [Set this parameter]
-  - EMAIL_HOST_USER = [Set this parameter]
-  - EMAIL_HOST_PASSWORD = [Set this parameter]
+* Subir o servidor do django::
 
-`Generate your secret key here <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_
+   ./manage.py runserver
 
-Instructions for Translators
-============================
+* Acesse o SAPL em::
+
+   http://localhost:8000/
+
+
+
+Instruções para Tradução
+========================
 
 We use `Transifex <https://www.transifex.com>`_  to manage the project's translations.
 If you want to contribute, please setup an account there and request to join us at
@@ -203,31 +246,29 @@ Best practices
   We suggest you open an issue to discuss new features. That can be made in Portuguese, as well as in English.
 
 
-Tests
------
+Testes
+------
 
-* Write tests for all the functionality you implement.
+* Escrever testes para todas as funcionalidades que você implementar.
 
-* Keep the test coverage near 100%.
+* Manter a cobertura de testes próximo a 100%.
 
-* To run all tests activate your virtualenv and issue these commands
-  **at the root of the repository**::
+* Para executar todos os testes você deve entrar em seu virtualenv e executar este comando **na raiz do seu projeto**::
 
     py.test
 
-* To run the tests with coverage issue the command::
+* Para executar os teste de cobertura use::
 
     py.test --cov . --cov-report term --cov-report html && firefox htmlcov/index.html
 
-* The first time you run the tests after a migration (``./manage.py migrate``) use the db recreation option.
-  This needs to be done only once::
+* Na primeira vez que for executar os testes após uma migração (``./manage.py migrate``) use a opção de recriação da base de testes.
+  É necessário fazer usar esta opção apenas uma vez::
 
     py.test --create-db
 
 Issues
 ------
 
-* Open all issues about the current development version (3.1) at the
-  `Github Issue Tracker <https://github.com/interlegis/sapl/issues>`_.
+* Abra todas as questões sobre o desenvolvimento atual no `Github Issue Tracker <https://github.com/interlegis/sapl/issues>`_.
 
-* You can file issues in either Portuguese or English (at least for the time being).
+* Você pode escrever suas ``issues`` em Português ou Inglês (ao menos por enquanto).
