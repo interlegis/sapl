@@ -21,7 +21,7 @@ from sapl.utils import RANGE_ANOS
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
-                     Tramitacao)
+                     Tramitacao, UnidadeTramitacao)
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -30,6 +30,25 @@ def em_tramitacao():
     return [('', 'Tanto Faz'),
             (True, 'Sim'),
             (False, 'Não')]
+
+
+class UnidadeTramitacaoForm(ModelForm):
+
+    class Meta:
+        model = UnidadeTramitacao
+        fields = ['comissao', 'orgao', 'parlamentar']
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        for key in list(cleaned_data.keys()):
+            if cleaned_data[key] == None:
+                del cleaned_data[key]
+
+        if len(cleaned_data) != 1:
+            msg = _('Somente um campo deve preenchido!')
+            raise ValidationError(msg)
+        return cleaned_data
 
 
 class ProposicaoForm(ModelForm):

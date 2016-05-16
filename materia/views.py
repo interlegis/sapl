@@ -30,7 +30,8 @@ from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     LegislacaoCitadaForm, MateriaLegislativaFilterSet,
                     NumeracaoForm, ProposicaoForm, RelatoriaForm,
-                    TramitacaoForm, filtra_tramitacao_destino,
+                    TramitacaoForm, UnidadeTramitacaoForm,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -52,7 +53,17 @@ AutorCrud = Crud.build(Autor, 'autor')
 OrgaoCrud = Crud.build(Orgao, 'orgao')
 TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
-UnidadeTramitacaoCrud = Crud.build(UnidadeTramitacao, 'unidade_tramitacao')
+
+
+class UnidadeTramitacaoCrud(Crud):
+    model = UnidadeTramitacao
+    help_path = 'unidade_tramitacao'
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = UnidadeTramitacaoForm
+
+    class UpdateView(crud.base.CrudUpdateView):
+        form_class = UnidadeTramitacaoForm
 
 
 class ProposicaoCrud(Crud):
