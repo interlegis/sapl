@@ -150,10 +150,10 @@ Instalação e configuração das dependências do projeto
       SECRET_KEY = Gere alguma chave e coloque aqui
       DEBUG = [True/False]
       EMAIL_USE_TLS = [True/False]
-      EMAIL_PORT = [Set this parameter]
-      EMAIL_HOST = [Set this parameter]
-      EMAIL_HOST_USER = [Set this parameter]
-      EMAIL_HOST_PASSWORD = [Set this parameter]
+      EMAIL_PORT = [Insira este parâmetro]
+      EMAIL_HOST = [Insira este parâmetro]
+      EMAIL_HOST_USER = [Insira este parâmetro]
+      EMAIL_HOST_PASSWORD = [Insira este parâmetro]
 
     * Uma configuração mínima para atender os procedimentos acima seria::
 
@@ -191,61 +191,61 @@ Instalação e configuração das dependências do projeto
 Instruções para Tradução
 ========================
 
-We use `Transifex <https://www.transifex.com>`_  to manage the project's translations.
-If you want to contribute, please setup an account there and request to join us at
-the `Transifex SAPL Page <https://www.transifex.com/projects/p/sapl>`_.
-Once your join request is accepted, you can start to translate.
+Nós utilizamos o `Transifex <https://www.transifex.com>`_  para gerenciar as traduções do projeto.
+Se você deseja contribuir, por favor crie uma conta no site e peça para se juntar a nós em `Transifex SAPL Page <https://www.transifex.com/projects/p/sapl>`_.
+Assim que for aceito, você já pode começar a traduzir.
 
-To integrate the last translations on a working instance follow these steps:
+Para integrar as últimas traduções ao projeto atual, siga estes passos:
 
-* Follow the instructions at `Development Environment Installation`_.
+* Siga as instruções em `Development Environment Installation`_.
 
-* Install `Transifex Client <http://docs.transifex.com/client/config/>`_.
+* Instale `Transifex Client <http://docs.transifex.com/client/config/>`_.
 
-.. warning::
-   The Transifex Client stores passwords in plain text on the file ``~/.transifexrc``.
+.. Aviso::
+   O Transifex Client armazena senhas em 'plain text' no arquivo ``~/.transifexrc``.
 
-   We personally prefer to log into Transifex website with social network credentials and change the password used for the client frequently.
+   Nós preferimos logar no site do Transifex por meio de redes sociais (GitHub, Google Plus, Linkedin) e modificar, frequentemente, a senha utilizada pelo client.
 
-* `Pull translations <http://docs.transifex.com/client/pull/>`_  or `push translations <http://docs.transifex.com/client/push/>`_  using the client. Pull only on a clean repo, i.e. commit your changes before pulling new translations.
+* `Pull translations <http://docs.transifex.com/client/pull/>`_  ou `push translations <http://docs.transifex.com/client/push/>`_  usando o client. Faça o Pull somente com o repositório vazio, isto é, faça o commit de suas mudanças antes de fazer o Pull de novas traduções.
 
-* Run the program with ``.manage.py runserver`` and check the system to see the translations into effect.
+* Execute o programa com ``.manage.py runserver`` e cheque o sistema para ver se as traduções tiveram efeito.
 
-.. note::
-  The browser language preference is used to choose the translations to display.
+.. Nota::
+  O idioma do browser é utilizado para escolher as traduções que devem mostradas.
 
 
-General implementation guidelines
-=================================
 
-Best practices
+Orientações gerais de implementação
+===================================
+
+Boas Práticas
 --------------
 
-* Use English for all the code, commit messages and project docs.
+* Utilize a língua portuguesa em todo o código, nas mensagens de commit e na documentação do projeto.
 
-* Commit messages following the standard 50/72 columns. Start every commit message with a verb in infinitive. For more info on this please check:
+* Mensagens de commit seguem o padrão de 50/72 colunas. Comece toda mensagem de commit com o verbo no infinitivo. Para mais informações, clique nos links abaixo:
 
   - Http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
   - Http://stackoverflow.com/questions/2290016/git-commit-messages-50-72-formatting
 
-* Keep all code in standard PEP8 (without exceptions).
+* Mantenha todo o código de acordo com o padrão da PEP8 (sem exceções).
 
-* Before every ``git push``:
-  - Run ``git pull --rebase`` (almost always).
-  - In exceptional cases simply use ``git pull`` to produce a merge.
+* Antes de todo ``git push``:
+  - Execute ``git pull --rebase`` (quase sempre).
+  - Em casos excepcionais, faça somente ``git pull`` para criar um merge.
 
-* Before ``git commit``, always:
-  - Run ``./manage.py check``
-  - Run all tests with ``py.test`` at the root of the project tree
+* Antes de ``git commit``, sempre:
+  - Execute ``./manage.py check``
+  - Execute todos os testes com ``py.test`` na pasta raiz do projeto
 
-.. attention::
-    The database user ``sapl`` needs to have the permission ``create database`` in postgres for the tests to complete successfully
+.. Atenção::
+    O usuário do banco de dados ``sapl`` deve ter a permissão ``create database`` no postgres para que os testes tenham sucesso
 
-* If you're not part of the core team, fork the repo and submit pull requests.
-  All are welcome to contribute. Please make a separate pull request for each bugfix/new feature.
+* Se você não faz parte da equipe principal, faça o fork deste repositório e envie pull requests.
+  Todos são bem-vindos para contribuir. Por favor, faça uma pull request separada para cada correção ou criação de novas funcionalidades.
 
-* New features are subject to approval, since they may impact a lot of people.
-  We suggest you open an issue to discuss new features. That can be made in Portuguese, as well as in English.
+* Novas funcionalidades estão sujeitas a aprovação, uma vez que elas podem ter impacto em várias pessoas.
+  Nós sugerimos que você abra uma nova issue para discutir novas funcionalidades. Elas podem ser escritas tanto em Português, quanto em Inglês.
 
 
 Testes
