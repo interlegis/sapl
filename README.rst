@@ -201,7 +201,8 @@ Para integrar as últimas traduções ao projeto atual, siga estes passos:
 
 * Instale `Transifex Client <http://docs.transifex.com/client/config/>`_.
 
-.. Aviso::
+Aviso:
+
    O Transifex Client armazena senhas em 'plain text' no arquivo ``~/.transifexrc``.
 
    Nós preferimos logar no site do Transifex por meio de redes sociais (GitHub, Google Plus, Linkedin) e modificar, frequentemente, a senha utilizada pelo client.
@@ -210,7 +211,8 @@ Para integrar as últimas traduções ao projeto atual, siga estes passos:
 
 * Execute o programa com ``.manage.py runserver`` e cheque o sistema para ver se as traduções tiveram efeito.
 
-.. Nota::
+Nota:
+
   O idioma do browser é utilizado para escolher as traduções que devem mostradas.
 
 
@@ -238,7 +240,8 @@ Boas Práticas
   - Execute ``./manage.py check``
   - Execute todos os testes com ``py.test`` na pasta raiz do projeto
 
-.. Atenção::
+Atenção:
+
     O usuário do banco de dados ``sapl`` deve ter a permissão ``create database`` no postgres para que os testes tenham sucesso
 
 * Se você não faz parte da equipe principal, faça o fork deste repositório e envie pull requests.
