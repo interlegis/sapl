@@ -176,6 +176,10 @@ Instalação e configuração das dependências do projeto
 
    ./manage.py migrate
 
+* Atualizar arquivos estáticos::
+
+   ./manage.py collectstatic --noinput
+
 * Subir o servidor do django::
 
    ./manage.py runserver
@@ -183,8 +187,6 @@ Instalação e configuração das dependências do projeto
 * Acesse o SAPL em::
 
    http://localhost:8000/
-
-
 
 Instruções para Tradução
 ========================
