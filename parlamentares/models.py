@@ -26,7 +26,7 @@ class Legislatura(models.Model):
         else:
             current = ''
 
-        return _('%(id)sº (%(start)s - %(end)s)%(current)s') % {
+        return _('%(id)sª (%(start)s - %(end)s)%(current)s') % {
             'id': self.id,
             'start': self.data_inicio.year,
             'end': self.data_fim.year,
