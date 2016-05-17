@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
+
 import crud.base
 from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
@@ -24,8 +25,8 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo,
-                     TipoInstituicao)
+                     TipoDocumentoAdministrativo, TipoInstituicao,
+                     TramitacaoAdministrativo)
 
 TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
 DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')

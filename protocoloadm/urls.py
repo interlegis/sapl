@@ -19,11 +19,12 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 ProtocoloPesquisaView,
                                 StatusTramitacaoAdministrativoCrud,
                                 TipoDocumentoAdministrativoCrud,
-                                TramitacaoAdmDeleteView, TramitacaoAdmEditView,
+                                TipoInstituicaoCrud, TramitacaoAdmDeleteView,
+                                TramitacaoAdmEditView,
                                 TramitacaoAdmIncluirView,
                                 TramitacaoAdministrativoCrud,
                                 TramitacaoAdmView, get_nome_autor,
-                                pesquisa_autores, TipoInstituicaoCrud)
+                                pesquisa_autores)
 
 from .apps import AppConfig
 

@@ -18,6 +18,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
+
 CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = Crud.build(Partido, 'partidos')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
