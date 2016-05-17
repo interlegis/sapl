@@ -32,7 +32,7 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     VotoParlamentar, Bancada)
 
 TipoSessaoCrud = Crud.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 OrdemDiaCrud = Crud.build(OrdemDia, '')
@@ -53,6 +53,14 @@ def reordernar_materias_expediente(request, pk):
 
     return HttpResponseRedirect(
         reverse('sessao:expedientemateria_list', kwargs={'pk': pk}))
+
+
+class BancadaCrud(Crud):
+    model = Bancada
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['nome', 'legislatura']
 
 
 def abrir_votacao_view(request, pk, spk):

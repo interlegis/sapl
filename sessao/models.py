@@ -3,9 +3,30 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from materia.models import MateriaLegislativa
-from parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
+from parlamentares.models import (CargoMesa, Legislatura, Parlamentar, Partido,
                                   SessaoLegislativa)
 from sapl.utils import YES_NO_CHOICES, restringe_tipos_de_arquivo_txt
+
+
+class Bancada(models.Model):
+    legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
+    nome = models.CharField(
+        max_length=80,
+        verbose_name=_('Nome da Bancada, Bloco, Frente ou Grupo'))
+    partido = models.ForeignKey(Partido, blank=True, null=True,
+                                verbose_name=_('Partido'))
+    data_criacao = models.DateField(blank=True, null=True,
+                                    verbose_name=_('Data Criação'))
+    data_extincao = models.DateField(blank=True, null=True,
+                                     verbose_name=_('Data Extinção'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Bancada')
+        verbose_name_plural = _('Bancadas')
+
+    def __str__(self):
+        return self.nome
 
 
 class TipoSessaoPlenaria(models.Model):
