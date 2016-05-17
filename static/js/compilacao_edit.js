@@ -266,17 +266,23 @@ function reloadFunctionClicks() {
     $('#editdi_texto').focus();
     $( ".bloco_alteracao" ).sortable({
       revert: true,
-        stop: function( event, ui ) {
-            var pk = ui.item.attr('pk');
-            var pk_bloco = ui.item.closest('.bloco').closest('.dpt').attr('pk');
-            console.log(pk+ ' - '+ pk_bloco);
-        },
+      stop: function( event, ui ) {
+          var pk = ui.item.attr('pk');
+          var pk_bloco = ui.item.closest('.bloco').closest('.dpt').attr('pk');
+          console.log(pk+ ' - '+ pk_bloco);
+      },
     });
 
     $( ".bloco_alteracao .dpt" ).draggable({
       connectToSortable: ".bloco_alteracao",
       revert: 'invalid',
       zIndex: 1,
+      drag: function( event, ui ) {
+          $( ".bloco_alteracao" ).css('border-width', '2px');
+      },
+      stop: function( event, ui ) {
+          $( ".bloco_alteracao" ).css('border-width', '0px');
+      },
     });
 
     $( ".bloco_alteracao" ).disableSelection();
