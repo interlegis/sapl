@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
-
+import crud.base
 from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
@@ -30,13 +30,18 @@ TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
 DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-StatusTramitacaoAdministrativoCrud = Crud.build(
-    StatusTramitacaoAdministrativo, '')
 TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
-
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+
+
+class StatusTramitacaoAdministrativoCrud(Crud):
+    model = StatusTramitacaoAdministrativo
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['sigla', 'descricao']
 
 
 class ProtocoloPesquisaView(FilterView):
