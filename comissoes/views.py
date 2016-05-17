@@ -4,7 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, ListView
 
 import crud.base
+import crud.masterdetail
 from crud.base import Crud
+from crud.masterdetail import MasterDetailCrud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 
@@ -17,53 +19,20 @@ PeriodoComposicaoCrud = Crud.build(Periodo, 'periodo_composicao_comissao')
 TipoComissaoCrud = Crud.build(TipoComissao, 'tipo_comissao')
 
 
+class ComposicaoCrud(MasterDetailCrud):
+    model = Composicao
+    parent_field = 'comissao'
+    help_path = ''
+
+    # class ListView(MasterDetailCrud.ListView):
+
+
 class ComissaoCrud(Crud):
     model = Comissao
     help_path = 'modulo_comissoes'
 
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao']
-
-
-class ComposicaoView(FormView):
-    template_name = 'comissoes/composicao.html'
-
-    def get(self, request, *args, **kwargs):
-        form = ComposicaoForm()
-        composicoes = Composicao.objects.filter(
-            comissao_id=self.kwargs['pk']).order_by('-periodo')
-        participacoes = Participacao.objects.all().order_by('parlamentar')
-
-        if composicoes:
-            composicao_id = composicoes.first().id
-            msg = ''
-        else:
-            composicao_id = 0
-            msg = _('Ainda não há uma composição formada!')
-            messages.add_message(request, messages.INFO, msg)
-
-        return self.render_to_response({
-            'participacoes': participacoes,
-            'composicoes': composicoes,
-            'composicao_id': composicao_id,
-            'form': form,
-            'pk': self.kwargs['pk'],
-            'object': Comissao.objects.get(id=self.kwargs['pk'])})
-
-    def post(self, request, *args, **kwargs):
-        form = ComposicaoForm(request.POST)
-
-        composicoes = Composicao.objects.filter(
-            comissao_id=self.kwargs['pk']).order_by('-periodo')
-        participacoes = Participacao.objects.all()
-
-        return self.render_to_response({
-            'participacoes': participacoes,
-            'composicoes': composicoes,
-            'composicao_id': int(form.data['periodo']),
-            'form': form,
-            'pk': self.kwargs['pk'],
-            'object': Comissao.objects.get(id=self.kwargs['pk'])})
 
 
 class ComissaoParlamentarIncluirView(FormView):
