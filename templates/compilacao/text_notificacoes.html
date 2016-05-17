@@ -1,12 +1,10 @@
-{% extends "base.html" %}
+{% extends "compilacao/textoarticulado_detail.html" %}
 {% load i18n crispy_forms_tags compilacao_filters common_tags sass_tags%}
 
 {% block base_content %}
-{{title}}
   {% block head_content %}{{block.super}}
     <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
   {% endblock %}
-  
   
   {% crispy form %}
   

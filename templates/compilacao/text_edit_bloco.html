@@ -48,7 +48,7 @@
           {% endfor %}
         </ul>
 
-        <ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}menu_flutuante{%endif%}">
+        <ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao and not dpt.tipo_dispositivo.dispositivo_de_alteracao%}menu_flutuante{% elif dpt.tipo_dispositivo.dispositivo_de_alteracao and dpt.tipo_dispositivo.dispositivo_de_articulacao%}menu_flutuante_fixo{%endif%}">
           {% if dpt.dispositivo_subsequente == None %}
             {% for inserts in view|select_provaveis_inserts:request %}
               {% if inserts.itens %}
@@ -130,7 +130,9 @@
     {% endif %}
     <div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
       {% spaceless %}
-        <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}} - {{dpt.ordem}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
+        {% if not dpt.tipo_dispositivo.dispositivo_de_alteracao %}
+          <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}} - {{dpt.ordem}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
+        {% endif %}
         {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
           <a class="link_alterador" href="{% url 'compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
             {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
@@ -139,7 +141,7 @@
           </a>
         {% endif %}
       {% endspaceless %}
-      {% if dpt.tipo_dispositivo.class_css == 'bloco_alteracao'%}
+      {% if dpt.tipo_dispositivo.dispositivo_de_alteracao %}
         {%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
           {%include template_name%}
         {%endwith%}

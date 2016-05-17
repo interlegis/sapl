@@ -156,7 +156,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
                 $('#dpt'+pk_refresh).css('min-height', $('.actions_right').height()*2);
                 $('.actions_inserts').removeClass('menu_flutuante');
             }
-            else if (_editortype == 'detail') {
+            else if (_editortype == 'detail') { //TODO: código obsoleto - confirmar retirada desta condição
                 $('.csform .btn-salvar').parent().removeClass("displaynone");
                 $('.csform .btn-salvar,  .csform .fields').removeClass("displaynone");
                 $('#dpt'+pk_refresh).css('min-height', $('.actions_right').height()*2);
@@ -164,7 +164,6 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             }
 
             $(".edt-"+_editortype).addClass('selected');
-            //$(".container").addClass('class_color_container');
 
             if (flag_actions_vibible == null || flag_actions_vibible) {
                 $('#dpt'+pk_edit).addClass('dpt-selected');
@@ -265,6 +264,28 @@ function reloadFunctionClicks() {
     $('.btn-action').on('click', clickUpdateDispositivo);
 
     $('#editdi_texto').focus();
+    $( ".bloco_alteracao" ).sortable({
+      revert: true,
+      stop: function( event, ui ) {
+          var pk = ui.item.attr('pk');
+          var pk_bloco = ui.item.closest('.bloco').closest('.dpt').attr('pk');
+          console.log(pk+ ' - '+ pk_bloco);
+      },
+    });
+
+    $( ".bloco_alteracao .dpt" ).draggable({
+      connectToSortable: ".bloco_alteracao",
+      revert: 'invalid',
+      zIndex: 1,
+      drag: function( event, ui ) {
+          $( ".bloco_alteracao" ).css('border-width', '2px');
+      },
+      stop: function( event, ui ) {
+          $( ".bloco_alteracao" ).css('border-width', '0px');
+      },
+    });
+
+    $( ".bloco_alteracao" ).disableSelection();
 }
 
 $(document).ready(function() {
@@ -283,5 +304,10 @@ $(document).ready(function() {
     if (href.length == 2 && href[1] != '') {
         clickUpdateDispositivo(null, href[1], href[1], 'refresh', true);
     }
+
+    $('main').click(function(event) {
+        if (event.target == this || event.target == this.firstElementChild)
+            clearEditSelected();
+    });
 
 });
