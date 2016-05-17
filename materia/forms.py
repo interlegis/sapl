@@ -42,7 +42,7 @@ class UnidadeTramitacaoForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         for key in list(cleaned_data.keys()):
-            if cleaned_data[key] == None:
+            if cleaned_data[key] is None:
                 del cleaned_data[key]
 
         if len(cleaned_data) != 1:
