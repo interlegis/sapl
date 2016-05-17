@@ -32,7 +32,7 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
                      OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar, Bancada)
+                     VotoParlamentar, Bancada, CargoBancada)
 
 TipoSessaoCrud = Crud.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 OrdemDiaCrud = Crud.build(OrdemDia, '')
@@ -40,6 +40,7 @@ TipoResultadoVotacaoCrud = Crud.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+CargoBancadaCrud = Crud.build(CargoBancada, '')
 
 
 def reordernar_materias_expediente(request, pk):

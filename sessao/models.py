@@ -8,6 +8,23 @@ from parlamentares.models import (CargoMesa, Legislatura, Parlamentar, Partido,
 from sapl.utils import YES_NO_CHOICES, restringe_tipos_de_arquivo_txt
 
 
+class CargoBancada(models.Model):
+    nome_cargo = models.CharField(max_length=80,
+                                  verbose_name=_('Cargo de Bancada'))
+    cargo_unico = models.CharField(
+        max_length=10,
+        verbose_name=_('Cargo Único'),
+        choices=YES_NO_CHOICES,
+        default=False)
+
+    class Meta:
+        verbose_name = _('Cargo de Bancada')
+        verbose_name_plural = _('Cargos de Bancada')
+
+    def __str__(self):
+        return self.nome_cargo
+
+
 class Bancada(models.Model):
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     nome = models.CharField(
