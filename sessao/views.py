@@ -27,12 +27,12 @@ from .forms import (ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
                     MateriaOrdemDiaForm, MesaForm, PresencaForm,
                     SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
-from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
-                     IntegranteMesa, MateriaLegislativa, Orador,
-                     OradorExpediente, OrdemDia, PresencaOrdemDia,
+from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
+                     ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
+                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar, Bancada, CargoBancada)
+                     VotoParlamentar)
 
 TipoSessaoCrud = Crud.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 OrdemDiaCrud = Crud.build(OrdemDia, '')
