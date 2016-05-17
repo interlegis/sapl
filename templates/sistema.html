@@ -81,9 +81,9 @@
 
 	<h2>Módulo Administrativo</h2>
   <div class="row">
-    <div class="col-md-6"><a href="#" class="btn btn-link">Tipo de Documento</a></div>
+    <div class="col-md-6"><a href="{% url 'protocoloadm:tipodocumentoadministrativo_list' %}" class="btn btn-link">Tipo de Documento</a></div>
     <div class="col-md-6"><a href="#" class="btn btn-link">Tipo de Instituição</a></div>
-    <div class="col-md-6"><a href="#" class="btn btn-link">Status de Tramitação</a></div>
+    <div class="col-md-6"><a href="{% url 'protocoloadm:statustramitacaoadministrativo_list' %}" class="btn btn-link">Status de Tramitação</a></div>
   </div>
 
 {% endblock base_content %}

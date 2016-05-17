@@ -26,8 +26,7 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo,
-                                             '')
+TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
 DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
