@@ -24,7 +24,8 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo,
+                     TipoInstituicao)
 
 TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
 DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
@@ -34,6 +35,7 @@ TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+TipoInstituicaoCrud = Crud.build(TipoInstituicao, '')
 
 
 class StatusTramitacaoAdministrativoCrud(Crud):
