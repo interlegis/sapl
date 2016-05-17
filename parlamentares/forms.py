@@ -17,6 +17,25 @@ class ImageThumbnailFileInput(ClearableFileInput):
     template_name = 'floppyforms/image_thumbnail.html'
 
 
+class LegislaturaForm(ModelForm):
+    class Meta:
+        model = Legislatura
+        exclude = []
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        data_inicio = cleaned_data['data_inicio']
+        data_fim = cleaned_data['data_fim']
+        data_eleicao = cleaned_data['data_eleicao']
+
+        if data_inicio >= data_fim or data_eleicao >= data_inicio:
+            raise ValidationError(_('A data início deve ser menor que a data \
+                                    fim, e a data eleição deve ser menor que\
+                                    a data início'))
+
+        return cleaned_data
+
+
 class ParlamentarForm(ModelForm):
 
     class Meta:
