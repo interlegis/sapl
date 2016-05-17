@@ -440,7 +440,7 @@ class VideCreateView(VideMixin, CreateView):
         self.object = None
         form = self.get_form()
         return self.render_to_response(self.get_context_data(form=form))
-"""
+    """
     def get_form_kwargs(self):
 
         kwargs = super(VideCreateView, self).get_form_kwargs()
@@ -1031,9 +1031,7 @@ class DispositivoSimpleEditView(TextEditView):
         return itens
 
     def select_provaveis_inserts(self, request=None):
-
         try:
-
             if request and 'perfil_estrutural' not in request.session:
                 self.set_perfil_in_session(request)
 
@@ -1247,8 +1245,12 @@ class DispositivoSimpleEditView(TextEditView):
             #    result.insert(1, r)
 
             # remover temporariamente a opção inserir antes
-            # confirmar falta de necessidade
+            # confirmar necessidade
             if len(result) > 2:
+                result.pop()
+
+            if tipb.dispositivo_de_articulacao and\
+                    tipb.dispositivo_de_alteracao:
                 result.pop()
 
         except Exception as e:

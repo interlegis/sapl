@@ -980,43 +980,41 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                 (inst.dispositivo_atualizador.pk,
                  inst.dispositivo_atualizador)]
 
-    def clean_dispositivo_substituido(self):
-        dst = self.cleaned_data['dispositivo_substituido']
+    def clean(self):
+        """os cleans individuais do framework não puderam ser usados devido
+            a última validação compor dois valores
+        """
+        data = self.cleaned_data
 
+        dst = data['dispositivo_substituido']
+        dsq = data['dispositivo_subsequente']
+        da = data['dispositivo_atualizador']
+
+        if dst == self.instance:
+            raise ValidationError(_('Não é permitido selecionar o próprio '
+                                    'Dispositivo como seu substituto.'))
         if dst and dst.ta != self.instance.ta:
             raise ValidationError(_('Não é permitido selecionar um '
                                     'Dispositivo de outro Texto Articulado.'))
         if dst and dst.tipo_dispositivo != self.instance.tipo_dispositivo:
             raise ValidationError(_('Não é permitido selecionar um '
                                     'Dispositivo de outro Tipo.'))
-        return dst
 
-    def clean_dispositivo_subsequente(self):
-        dsq = self.cleaned_data['dispositivo_subsequente']
-
+        if dsq == self.instance:
+            raise ValidationError(_('Não é permitido selecionar o próprio '
+                                    'Dispositivo como seu subsequente.'))
         if dsq and dsq.ta != self.instance.ta:
             raise ValidationError(_('Não é permitido selecionar um '
                                     'Dispositivo de outro Texto Articulado.'))
         if dsq and dsq.tipo_dispositivo != self.instance.tipo_dispositivo:
             raise ValidationError(_('Não é permitido selecionar um '
                                     'Dispositivo de outro Tipo.'))
-        return dsq
 
-    def clean_dispositivo_atualizador(self):
-        da = self.cleaned_data['dispositivo_atualizador']
-
-        if da and not da.tipo_dispositivo.dispositivo_de_alteracao and\
-                not da.tipo_dispositivo.dispositivo_de_articulacao:
+        if da and not (da.tipo_dispositivo.dispositivo_de_alteracao and
+                       da.tipo_dispositivo.dispositivo_de_articulacao):
             raise ValidationError(_('O Dispositivo de Atualização selecionado '
                                     'não é um Bloco de Alteração.'))
-        return da
-
-    def clean(self):
-        data = self.cleaned_data
-        ndst = data['dispositivo_substituido']
-        nda = data['dispositivo_atualizador']
-
-        if not nda and ndst:
+        if not da and dst:
             raise ValidationError(_('Não é permitido substituir um '
                                     'Dispositivo sem haver um '
                                     'Dispositivo Alterador.'))
