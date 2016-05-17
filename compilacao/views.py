@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -36,7 +36,6 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -134,7 +133,7 @@ def choice_models_in_extenal_views():
 class CompMixin:
 
     @property
-    def title(self):        
+    def title(self):
         try:
             return self.get_object()
         except:

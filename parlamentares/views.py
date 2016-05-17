@@ -10,8 +10,8 @@ import crud.masterdetail
 from crud.base import Crud
 from crud.masterdetail import MasterDetailCrud
 
-from .forms import (FiliacaoForm, LegislaturaForm,
-                    ParlamentarCreateForm, ParlamentarForm)
+from .forms import (FiliacaoForm, LegislaturaForm, ParlamentarCreateForm,
+                    ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
                      Filiacao, Legislatura, Mandato, NivelInstrucao,
                      Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
