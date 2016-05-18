@@ -54,8 +54,16 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ComposicaoColigacaoForm
 
+        def get_initial(self):
+            id = self.kwargs['pk']
+            return {'coligacao_id': id}
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ComposicaoColigacaoForm
+
+        def get_initial(self):
+            id = self.kwargs['pk']
+            return {'coligacao_id': id}
 
     class ListView(MasterDetailCrud.ListView):
         ordering = '-partido__sigla'

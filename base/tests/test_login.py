@@ -12,15 +12,15 @@ def user():
 
 def test_login_aparece_na_barra_para_usuario_nao_logado(client):
     response = client.get('/')
-    assert '<a href="/login/?next=">Login</a>' in str(response.content)
+    assert '<a href="/login/">Login</a>' in str(response.content)
 
 
 def test_username_do_usuario_logado_aparece_na_barra(client, user):
     assert client.login(username='jfirmino', password='123')
     response = client.get('/')
-    assert '<a href="/login/?next=">Login</a>' not in str(response.content)
+    assert '<a href="/login/">Login</a>' not in str(response.content)
     assert 'jfirmino' in str(response.content)
-    assert '<a href="/logout/?next=">Sair</a>' in str(response.content)
+    assert '<a href="/logout/">Sair</a>' in str(response.content)
 
 
 def test_nome_completo_do_usuario_logado_aparece_na_barra(client, user):
@@ -30,9 +30,9 @@ def test_nome_completo_do_usuario_logado_aparece_na_barra(client, user):
     user.save()
     assert client.login(username='jfirmino', password='123')
     response = client.get('/')
-    assert '<a href="/login/?next=">Login</a>' not in str(response.content)
+    assert '<a href="/login/">Login</a>' not in str(response.content)
     assert 'Joao Firmino' in str(response.content)
-    assert '<a href="/logout/?next=">Sair</a>' in str(response.content)
+    assert '<a href="/logout/">Sair</a>' in str(response.content)
 
 
 @pytest.mark.urls('base.tests.teststub_urls')

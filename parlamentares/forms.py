@@ -164,6 +164,14 @@ class ComposicaoColigacaoForm(ModelForm):
         fields = ['partido']
 
     def clean(self):
-        if self.errors:
-            return self.errors
-        return self.cleaned_data
+        cleaned_data = self.cleaned_data
+        pk = self.initial['coligacao_id']
+        if (ComposicaoColigacao.objects.filter(
+           coligacao_id=pk,
+           partido=cleaned_data.get('partido')).exists()):
+            msg = _('Esse partido já foi cadastrado nesta coligação.')
+            raise ValidationError(msg)
+        else:
+            if self.errors:
+                return self.errors
+            return self.cleaned_data
