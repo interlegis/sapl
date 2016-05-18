@@ -45,43 +45,16 @@ def make_filiacao():
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_parlamentar_submit(client):
-    comissao = make_comissao()
-    composicao = make_composicao(comissao)
-    filiacao = make_filiacao()
-    cargo = mommy.make(CargoComissao,
-                       nome='Cargo',
-                       unico=True)
-
-    response = client.post(reverse('comissoes:comissao_parlamentar',
-                                   kwargs={'pk': comissao.pk,
-                                           'id': composicao.pk}),
-                           {'parlamentar_id': filiacao.pk,
-                            'cargo': cargo.pk,
-                            'data_designacao': '2016-03-22',
-                            'titular': True,
-                            'salvar': 'salvar'},
-                           follow=True)
-    assert response.status_code == 200
-
-    participacao = Participacao.objects.first()
-    assert participacao.parlamentar == filiacao.parlamentar
-    assert participacao.cargo.nome == 'Cargo'
-    assert participacao.composicao == composicao
-
-
-@pytest.mark.django_db(transaction=False)
 def test_incluir_parlamentar_errors(client):
     comissao = make_comissao()
     composicao = make_composicao(comissao)
 
-    response = client.post(reverse('comissoes:comissao_parlamentar',
-                                   kwargs={'pk': comissao.pk,
-                                           'id': composicao.pk}),
+    response = client.post(reverse('comissoes:participacao_create',
+                                   kwargs={'pk': composicao.pk}),
                            {'salvar': 'salvar'},
                            follow=True)
 
-    assert (response.context_data['form'].errors['parlamentar_id'] ==
+    assert (response.context_data['form'].errors['parlamentar'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['cargo'] ==
             ['Este campo é obrigatório.'])
