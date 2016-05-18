@@ -10,11 +10,13 @@ import crud.masterdetail
 from crud.base import Crud
 from crud.masterdetail import MasterDetailCrud
 
-from .forms import FiliacaoForm, ParlamentarCreateForm, ParlamentarForm
-from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
-                     Filiacao, Legislatura, Mandato, NivelInstrucao,
-                     Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
-                     TipoAfastamento, TipoDependente)
+from .forms import (ComposicaoColigacaoForm, FiliacaoForm,
+                    ParlamentarCreateForm, ParlamentarForm)
+
+from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
+                     Dependente, Filiacao, Legislatura, Mandato,
+                     NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
+                     SituacaoMilitar, TipoAfastamento, TipoDependente)
 
 CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
 LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
@@ -36,6 +38,21 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__data_inicio')
+
+
+class ComposicaoColigacaoCrud(MasterDetailCrud):
+    model = ComposicaoColigacao
+    parent_field = 'coligacao'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ComposicaoColigacaoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ComposicaoColigacaoForm
+
+    class ListView(MasterDetailCrud.ListView):
+        ordering = '-partido__sigla'
 
 
 class FiliacaoCrud(MasterDetailCrud):

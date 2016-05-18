@@ -10,7 +10,8 @@ from floppyforms.widgets import ClearableFileInput
 import sapl
 from sapl.utils import intervalos_tem_intersecao
 
-from .models import Filiacao, Legislatura, Mandato, Parlamentar
+from .models import (ComposicaoColigacao, Filiacao, Legislatura,
+                     Mandato, Parlamentar)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -134,4 +135,16 @@ class FiliacaoForm(ModelForm):
         if not validacao[0]:
             raise ValidationError(validacao[1])
 
+        return self.cleaned_data
+
+
+class ComposicaoColigacaoForm(ModelForm):
+
+    class Meta:
+        model = ComposicaoColigacao
+        fields = ['partido']
+
+    def clean(self):
+        if self.errors:
+            return self.errors
         return self.cleaned_data
