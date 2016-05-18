@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
-from parlamentares.views import (CargoMesaCrud, ColigacaoCrud, DependenteCrud,
+from parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
+                                 ComposicaoColigacaoCrud, DependenteCrud,
                                  FiliacaoCrud, LegislaturaCrud, MandatoCrud,
                                  MesaDiretoraView, NivelInstrucaoCrud,
                                  ParlamentarCrud, PartidoCrud,
@@ -16,6 +17,9 @@ urlpatterns = [
         ParlamentarCrud.get_urls() + DependenteCrud.get_urls() +
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls()
     )),
+    url(r'^coligacao/',
+        include(ColigacaoCrud.get_urls() +
+                ComposicaoColigacaoCrud.get_urls())),
 
     url(r'^sistema/parlamentar/legislatura/',
         include(LegislaturaCrud.get_urls())),
@@ -23,8 +27,6 @@ urlpatterns = [
         include(TipoDependenteCrud.get_urls())),
     url(r'^sistema/parlamentar/nivel-instrucao/',
         include(NivelInstrucaoCrud.get_urls())),
-    url(r'^sistema/parlamentar/coligacao/',
-        include(ColigacaoCrud.get_urls())),
     url(r'^sistema/parlamentar/tipo-afastamento/',
         include(TipoAfastamentoCrud.get_urls())),
     url(r'^sistema/parlamentar/tipo-militar/',
