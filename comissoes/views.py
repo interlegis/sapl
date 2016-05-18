@@ -10,13 +10,18 @@ from crud.masterdetail import MasterDetailCrud
 from materia.models import Tramitacao
 from parlamentares.models import Filiacao
 
-from .forms import ComposicaoForm, ParticipacaoCadastroForm
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
 CargoCrud = Crud.build(CargoComissao, 'cargo_comissao')
 PeriodoComposicaoCrud = Crud.build(Periodo, 'periodo_composicao_comissao')
 TipoComissaoCrud = Crud.build(TipoComissao, 'tipo_comissao')
+
+
+class ParticipacaoCrud(MasterDetailCrud):
+    model = Participacao
+    parent_field = 'composicao'
+    help_path = ''
 
 
 class ComposicaoCrud(MasterDetailCrud):

@@ -28,3 +28,10 @@ Comissao:
 Composicao:
   Composição:
   - periodo
+
+Participacao:
+  Participação:
+  - parlamentar cargo titular
+  - data_designacao data_desligamento
+  - motivo_desligamento
+  - observacao
