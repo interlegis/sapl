@@ -19,8 +19,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
 CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
-LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
-ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
 PartidoCrud = Crud.build(Partido, 'partidos')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
 TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
@@ -38,6 +36,14 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__data_inicio')
+
+
+class ColigacaoCrud(Crud):
+    model = Coligacao
+    help_path = 'tabelas_auxiliares#coligacao'
+
+    class ListView(crud.base.CrudListView):
+        ordering = ('-legislatura__data_inicio', 'nome')
 
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):
