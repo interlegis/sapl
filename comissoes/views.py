@@ -18,10 +18,45 @@ PeriodoComposicaoCrud = Crud.build(Periodo, 'periodo_composicao_comissao')
 TipoComissaoCrud = Crud.build(TipoComissao, 'tipo_comissao')
 
 
+def pegar_url_composicao(pk):
+    participacao = Participacao.objects.get(id=pk)
+    comp_pk = participacao.composicao.pk
+    url = reverse('comissoes:composicao_detail', kwargs={'pk': comp_pk})
+    return url
+
+
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
     parent_field = 'composicao'
     help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+
+        def get_success_url(self):
+            return reverse(
+                'comissoes:composicao_detail', kwargs={'pk': self.kwargs['pk']}
+            )
+
+        def cancel_url(self):
+            return reverse(
+                'comissoes:composicao_detail', kwargs={'pk': self.kwargs['pk']}
+            )
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        def get_success_url(self):
+            return pegar_url_composicao(self.kwargs['pk'])
+
+        def cancel_url(self):
+            return pegar_url_composicao(self.kwargs['pk'])
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def get_success_url(self):
+            return pegar_url_composicao(self.kwargs['pk'])
+
+        def cancel_url(self):
+            return pegar_url_composicao(self.kwargs['pk'])
 
 
 class ComposicaoCrud(MasterDetailCrud):
