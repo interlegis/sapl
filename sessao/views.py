@@ -63,6 +63,9 @@ class BancadaCrud(Crud):
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['nome', 'legislatura']
 
+    class ListView(crud.base.CrudListView):
+        ordering = 'legislatura'
+
 
 def abrir_votacao_view(request, pk, spk):
     existe_votacao_aberta = ExpedienteMateria.objects.filter(
