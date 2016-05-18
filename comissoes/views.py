@@ -24,38 +24,14 @@ class ComposicaoCrud(MasterDetailCrud):
     parent_field = 'comissao'
     help_path = ''
 
-    class ListView(MasterDetailCrud.ListView):
-        template_name = 'comissoes/composicao_list.html'
-
-        def get_queryset(self):
-            return Participacao.objects.all().order_by('parlamentar')
+    class DetailView(MasterDetailCrud.DetailView):
 
         def get(self, request, *args, **kwargs):
-            self.object_list = self.get_queryset()
-            form = ComposicaoForm(request.GET or None)
-
-            composicoes = Composicao.objects.filter(
-                comissao_id=self.kwargs['pk']).order_by('-periodo')
-            participacoes = Participacao.objects.all().order_by('parlamentar')
-
-            if composicoes:
-                composicao_id = composicoes.first().id
-                msg = ''
-            else:
-                composicao_id = 0
-                msg = _('Ainda não há uma composição formada!')
-                messages.add_message(request, messages.INFO, msg)
-
-            if request.GET:
-                composicao_id = int(form.data['periodo'])
-
-            return self.render_to_response({
-                'participacoes': participacoes,
-                'composicoes': composicoes,
-                'composicao_id': composicao_id,
-                'form': form,
-                'pk': self.kwargs['pk'],
-                'object': Comissao.objects.get(id=self.kwargs['pk'])})
+            self.object = self.get_object()
+            context = self.get_context_data(object=self.object)
+            composicao = Composicao.objects.get(id=self.kwargs['pk'])
+            context['participacoes'] = composicao.participacao_set.all()
+            return self.render_to_response(context)
 
 
 class ComissaoCrud(Crud):
