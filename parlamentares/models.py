@@ -95,7 +95,8 @@ class Partido(models.Model):
 
 class ComposicaoColigacao(models.Model):
     # TODO M2M
-    partido = models.ForeignKey(Partido, verbose_name=_('Partido'))
+    partido = models.ForeignKey(Partido,
+                                verbose_name=_('Partidos da Coligação'))
     coligacao = models.ForeignKey(Coligacao)
 
     class Meta:
