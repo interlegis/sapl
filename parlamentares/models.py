@@ -14,6 +14,7 @@ class Legislatura(models.Model):
     data_eleicao = models.DateField(verbose_name=_('Data Eleição'))
 
     class Meta:
+        ordering = ['-data_inicio']
         verbose_name = _('Legislatura')
         verbose_name_plural = _('Legislaturas')
 
