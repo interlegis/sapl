@@ -23,10 +23,10 @@ from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
 
-from .forms import (ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
-                    MateriaOrdemDiaForm, MesaForm, PresencaForm,
-                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
+from .forms import (BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
+                    ListMateriaForm, MateriaOrdemDiaForm, MesaForm,
+                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
+                    VotacaoForm, VotacaoNominalForm)
 from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
                      ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
@@ -65,6 +65,12 @@ class BancadaCrud(Crud):
 
     class ListView(crud.base.CrudListView):
         ordering = 'legislatura'
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = BancadaForm
+
+    class UpdateView(crud.base.CrudUpdateView):
+        form_class = BancadaForm
 
 
 def abrir_votacao_view(request, pk, spk):
