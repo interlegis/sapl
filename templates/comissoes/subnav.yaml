@@ -1,6 +1,6 @@
 - title: Início
   url: comissao_detail
 - title: Composição
-  url: composicao
+  url: composicao_list
 - title: Matérias em Tramitação
   url: materias_em_tramitacao

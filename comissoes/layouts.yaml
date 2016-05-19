@@ -24,3 +24,14 @@ Comissao:
   Temporária:
   - apelido_temp:8  data_instalacao_temp
   - data_final_prevista_temp  data_prorrogada_temp  data_fim_comissao
+
+Composicao:
+  Composição:
+  - periodo
+
+Participacao:
+  Participação:
+  - parlamentar cargo titular
+  - data_designacao data_desligamento
+  - motivo_desligamento
+  - observacao
