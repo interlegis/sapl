@@ -27,6 +27,10 @@ def subnav(context, path=None):
     if root_pk:
         request = context['request']
         app = request.resolver_match.app_name
+        # Esse IF elimina o bug do subnav em Tabelas Auxiliares
+        # e também em proposições
+        if request.path.find(app) == -1:
+            return
         default_path = '%s/subnav.yaml' % app
         path = os.path.join(TEMPLATES_DIR, path or default_path)
         if os.path.exists(path):
