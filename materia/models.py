@@ -482,9 +482,8 @@ class StatusTramitacao(models.Model):
 
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=60, verbose_name=_('Descrição'))
-    # TODO make specific migration considering both ind_fim_tramitacao,
-    # ind_retorno_tramitacao
     indicador = models.CharField(
+        blank=True,
         max_length=1, verbose_name=_('Indicador da Tramitação'),
         choices=INDICADOR_CHOICES)
 

@@ -328,9 +328,6 @@ class DataMigrator:
 
         # convert old records to new ones
         for old in old_records:
-            if model.__name__ == 'SessaoPlenaria' and not old.pk:
-                old.delete()
-                continue
             new = model()
             self.populate_renamed_fields(new, old)
             if adjust:
@@ -406,15 +403,18 @@ def adjust_normajuridica(new, old):
 
 
 def adjust_ordemdia(new, old):
+    # Prestar atenção
     if not old.tip_votacao:
         new.tipo_votacao = 1
 
 
 def adjust_statustramitacao(new, old):
     if old.ind_fim_tramitacao:
+        new.indicador = 'F'
+    elif old.ind_retorno_tramitacao:
         new.indicador = 'R'
     else:
-        new.indicador = 'F'
+        new.indicador = ''
 
 
 def adjust_tramitacao(new, old):
