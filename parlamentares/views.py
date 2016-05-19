@@ -10,16 +10,15 @@ import crud.masterdetail
 from crud.base import Crud
 from crud.masterdetail import MasterDetailCrud
 
-from .forms import (FiliacaoForm, LegislaturaForm, ParlamentarCreateForm,
-                    ParlamentarForm)
-from .models import (CargoMesa, Coligacao, ComposicaoMesa, Dependente,
-                     Filiacao, Legislatura, Mandato, NivelInstrucao,
-                     Parlamentar, Partido, SessaoLegislativa, SituacaoMilitar,
-                     TipoAfastamento, TipoDependente)
+from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
+                    ParlamentarCreateForm, ParlamentarForm)
+
+from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
+                     Dependente, Filiacao, Legislatura, Mandato,
+                     NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
+                     SituacaoMilitar, TipoAfastamento, TipoDependente)
 
 CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
-# LegislaturaCrud = Crud.build(Legislatura, 'tabelas_auxiliares#legislatura')
-ColigacaoCrud = Crud.build(Coligacao, 'coligacao')
 PartidoCrud = Crud.build(Partido, 'partidos')
 SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
 TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
@@ -37,6 +36,37 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__data_inicio')
+
+
+class ColigacaoCrud(Crud):
+    model = Coligacao
+    help_path = 'tabelas_auxiliares#coligacao'
+
+    class ListView(crud.base.CrudListView):
+        ordering = ('-legislatura__data_inicio', 'nome')
+
+
+class ComposicaoColigacaoCrud(MasterDetailCrud):
+    model = ComposicaoColigacao
+    parent_field = 'coligacao'
+    help_path = ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ComposicaoColigacaoForm
+
+        def get_initial(self):
+            id = self.kwargs['pk']
+            return {'coligacao_id': id}
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ComposicaoColigacaoForm
+
+        def get_initial(self):
+            id = self.kwargs['pk']
+            return {'coligacao_id': id}
+
+    class ListView(MasterDetailCrud.ListView):
+        ordering = '-partido__sigla'
 
 
 class LegislaturaCrud(Crud):

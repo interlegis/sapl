@@ -1,0 +1,10 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block actions %}
+  <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'parlamentares:composicaocoligacao_list' object.pk %}" class="btn btn-default">{% trans 'Ver Composição' %}</a>
+      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+  </div>
+{% endblock actions %}

@@ -88,3 +88,7 @@ TipoAfastamento:
 SituacaoMilitar:
   Tipo Situação Militar:
   - descricao
+
+ComposicaoColigacao:
+  'Nome do Partido':
+  - partido
