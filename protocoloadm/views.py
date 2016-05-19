@@ -12,6 +12,7 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+import crud.base
 from crud.base import Crud, make_pagination
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
@@ -24,20 +25,29 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+                     TipoDocumentoAdministrativo, TipoInstituicao,
+                     TramitacaoAdministrativo)
 
-TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo,
-                                             '')
+TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
 DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-StatusTramitacaoAdministrativoCrud = Crud.build(
-    StatusTramitacaoAdministrativo, '')
 TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
-
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+TipoInstituicaoCrud = Crud.build(TipoInstituicao, '')
+
+
+class StatusTramitacaoAdministrativoCrud(Crud):
+    model = StatusTramitacaoAdministrativo
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['sigla', 'indicador', 'descricao']
+
+    class ListView(crud.base.CrudListView):
+        ordering = 'sigla'
 
 
 class ProtocoloPesquisaView(FilterView):

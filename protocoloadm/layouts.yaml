@@ -46,3 +46,7 @@ Protocolo:
   - assunto_ementa
   - autor
   - observacao
+
+TipoInstituicao:
+  Tipo de Instituição:
+  - descricao
