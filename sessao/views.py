@@ -42,6 +42,19 @@ TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
 
 
+def reordernar_materias_expediente(request, pk):
+    expedientes = ExpedienteMateria.objects.filter(
+                    sessao_plenaria_id=pk)
+    exp_num = 1
+    for e in expedientes:
+        e.numero_ordem = exp_num
+        e.save()
+        exp_num += 1
+
+    return HttpResponseRedirect(
+        reverse('sessao:expedientemateria_list', kwargs={'pk': pk}))
+
+
 def abrir_votacao_view(request, pk, spk):
     existe_votacao_aberta = ExpedienteMateria.objects.filter(
                 sessao_plenaria_id=spk, votacao_aberta=True

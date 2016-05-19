@@ -16,7 +16,8 @@ from sessao.views import (EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
                           VotacaoExpedienteView, VotacaoNominalEditView,
                           VotacaoNominalExpedienteEditView,
                           VotacaoNominalExpedienteView, VotacaoNominalView,
-                          VotacaoView, abrir_votacao_view)
+                          VotacaoView, abrir_votacao_view,
+                          reordernar_materias_expediente)
 
 from .apps import AppConfig
 
@@ -32,6 +33,8 @@ urlpatterns = [
 
     url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao$', abrir_votacao_view,
         name="abrir_votacao"),
+    url(r'^(?P<pk>\d+)/reordenar-expediente$', reordernar_materias_expediente,
+        name="reordenar_expediente"),
 
     url(r'^media/(?P<path>.*)$', serve,
         {'document_root': settings.MEDIA_ROOT}),
