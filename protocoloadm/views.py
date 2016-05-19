@@ -44,7 +44,7 @@ class StatusTramitacaoAdministrativoCrud(Crud):
     help_path = ''
 
     class BaseMixin(crud.base.CrudBaseMixin):
-        list_field_names = ['sigla', 'descricao']
+        list_field_names = ['sigla', 'indicador', 'descricao']
 
     class ListView(crud.base.CrudListView):
         ordering = 'sigla'
