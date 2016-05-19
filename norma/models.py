@@ -175,8 +175,10 @@ class VinculoNormaJuridica(models.Model):
     )
 
     # TODO M2M ???
-    norma_referente = models.ForeignKey(NormaJuridica, related_name='+')
-    norma_referida = models.ForeignKey(NormaJuridica, related_name='+')
+    norma_referente = models.ForeignKey(
+        NormaJuridica, related_name='norma_referente_set')
+    norma_referida = models.ForeignKey(
+        NormaJuridica, related_name='norma_referida_set')
     tipo_vinculo = models.CharField(
         max_length=1, blank=True, choices=TIPO_VINCULO_CHOICES)
 
