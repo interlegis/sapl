@@ -27,6 +27,14 @@ class ParticipacaoCrud(MasterDetailCrud):
     parent_field = 'composicao'
     help_path = ''
 
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get(self, request, *args, **kwargs):
+            self.object = self.get_object()
+            context = self.get_context_data(object=self.object)
+            context['root_pk'] = self.object.composicao.comissao.pk
+            return self.render_to_response(context)
+
     class CreateView(MasterDetailCrud.CreateView):
 
         def get_success_url(self):
