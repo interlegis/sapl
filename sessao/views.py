@@ -23,13 +23,13 @@ from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
 from sessao.serializers import SessaoPlenariaSerializer
 
-from .forms import (ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
-                    MateriaOrdemDiaForm, MesaForm, PresencaForm,
-                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
-from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao,
-                     IntegranteMesa, MateriaLegislativa, Orador,
-                     OradorExpediente, OrdemDia, PresencaOrdemDia,
+from .forms import (BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
+                    ListMateriaForm, MateriaOrdemDiaForm, MesaForm,
+                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
+                    VotacaoForm, VotacaoNominalForm)
+from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
+                     ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
+                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
                      RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
@@ -40,6 +40,7 @@ TipoResultadoVotacaoCrud = Crud.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoExpedienteCrud = Crud.build(TipoExpediente, 'tipo_expediente')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+CargoBancadaCrud = Crud.build(CargoBancada, '')
 
 
 def reordernar_materias_expediente(request, pk):
@@ -53,6 +54,23 @@ def reordernar_materias_expediente(request, pk):
 
     return HttpResponseRedirect(
         reverse('sessao:expedientemateria_list', kwargs={'pk': pk}))
+
+
+class BancadaCrud(Crud):
+    model = Bancada
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['nome', 'legislatura']
+
+    class ListView(crud.base.CrudListView):
+        ordering = 'legislatura'
+
+    class CreateView(crud.base.CrudCreateView):
+        form_class = BancadaForm
+
+    class UpdateView(crud.base.CrudUpdateView):
+        form_class = BancadaForm
 
 
 def abrir_votacao_view(request, pk, spk):

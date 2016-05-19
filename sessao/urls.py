@@ -2,7 +2,8 @@ from django.conf.urls import include, url
 from django.views.static import serve
 
 from sapl import settings
-from sessao.views import (EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
+from sessao.views import (BancadaCrud, CargoBancadaCrud,
+                          EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
                           ExpedienteView, ListMateriaOrdemDiaView,
                           MateriaOrdemDiaView, MesaView, OradorCrud,
                           OradorExpedienteCrud, PainelView,
@@ -45,6 +46,10 @@ urlpatterns = [
         include(TipoResultadoVotacaoCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-expediente/',
         include(TipoExpedienteCrud.get_urls())),
+    url(r'^sistema/bancada/',
+        include(BancadaCrud.get_urls())),
+    url(r'^sistema/cargo-bancada/',
+        include(CargoBancadaCrud.get_urls())),
 
     # PAUTA SESSÃO
     url(r'^pauta-sessao$',

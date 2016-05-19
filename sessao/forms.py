@@ -13,7 +13,7 @@ from crispy_layout_mixin import form_actions
 from materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import RANGE_DIAS_MES, RANGE_MESES
 
-from .models import ExpedienteMateria, SessaoPlenaria
+from .models import Bancada, ExpedienteMateria, SessaoPlenaria
 
 
 def pega_anos():
@@ -27,6 +27,22 @@ def pega_anos():
 ANO_CHOICES = [('', '---------')] + pega_anos()
 MES_CHOICES = [('', '---------')] + RANGE_MESES
 DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
+
+
+class BancadaForm(ModelForm):
+
+    class Meta:
+        model = Bancada
+        fields = ['legislatura', 'nome', 'partido', 'data_criacao',
+                  'data_extincao', 'descricao']
+
+    def clean(self):
+        if self.cleaned_data['data_extincao']:
+            if (self.cleaned_data['data_extincao'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        return self.cleaned_data
 
 
 class ExpedienteMateriaForm(ModelForm):

@@ -60,3 +60,14 @@ ExpedienteMateriaDetail:
   - materia
   - tipo_votacao
   - observacao
+
+Bancada:
+  Bancada:
+  - legislatura
+  - nome partido
+  - data_criacao data_extincao
+  - descricao
+
+CargoBancada:
+  Cargo de Bancada:
+  - nome_cargo:8 cargo_unico
