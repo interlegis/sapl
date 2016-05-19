@@ -46,6 +46,9 @@ class StatusTramitacaoAdministrativoCrud(Crud):
     class BaseMixin(crud.base.CrudBaseMixin):
         list_field_names = ['sigla', 'descricao']
 
+    class ListView(crud.base.CrudListView):
+        ordering = 'sigla'
+
 
 class ProtocoloPesquisaView(FilterView):
     model = Protocolo
