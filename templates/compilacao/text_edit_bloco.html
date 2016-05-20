@@ -126,7 +126,7 @@
 
     {% if view.pk_view == 0 and view.pk_edit == 0 or view.pk_edit != view.pk_view %}
       {% if not dpt.rotulo and not dpt.texto and dpt.tipo_dispositivo.dispositivo_de_articulacao%}
-        <div class="btns-action actions_left">
+        <div class="btns-action actions_right">
           <a class="btn-edit" pk="{{dpt.pk}}">{% trans 'Editar'%} {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}</a>
         </div>
       {% endif %}
