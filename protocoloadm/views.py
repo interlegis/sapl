@@ -34,7 +34,6 @@ DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
 StatusTramitacaoAdministrativoCrud = Crud.build(
     StatusTramitacaoAdministrativo, '')
-TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 
 # FIXME precisa de uma chave diferente para o layout

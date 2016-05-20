@@ -38,8 +38,6 @@ urlpatterns = [
         include(StatusTramitacaoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/tipo-instituicao/',
         include(TipoInstituicaoCrud.get_urls())),
-    url(r'^protocoloadm/tramitacao-adm/',
-        include(TramitacaoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/protocolo-doc/',
         include(ProtocoloDocumentoCrud.get_urls())),
     url(r'^protocoloadm/protocolo-mat/',
