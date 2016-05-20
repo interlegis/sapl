@@ -5,15 +5,15 @@
 {% block sections_nav %} {% endblock %}
 
 {% block actions %}
+  <h1><b>Documentos Administrativos</b></h1>
   <div class="actions btn-group pull-right" role="group">
-    <a href="docadm/create" class="btn btn-default">{% trans 'Adicionar Documento' %}</a>
+    <a href="docadm/create" class="btn btn-default">{% trans 'Adicionar Documento Administrativo' %}</a>
   </div>
 {% endblock actions %}
 
 
 {% block detail_content %}
-  <h1><b>Pesquisar Documento Administrativo</b></h1>
-  <br></br>
+
  
 
   {% crispy filter.form %}

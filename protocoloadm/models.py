@@ -186,7 +186,6 @@ class TramitacaoAdministrativo(models.Model):
         null=True,
         related_name='adm_tramitacoes_destino',
         verbose_name=_('Unidade Destino'))
-    ultima = models.BooleanField()
     texto = models.TextField(
         blank=True, verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(

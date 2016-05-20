@@ -19,20 +19,17 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 ProtocoloPesquisaView,
                                 StatusTramitacaoAdministrativoCrud,
                                 TipoDocumentoAdministrativoCrud,
-                                TipoInstituicaoCrud, TramitacaoAdmDeleteView,
-                                TramitacaoAdmEditView,
-                                TramitacaoAdmIncluirView,
-                                TramitacaoAdministrativoCrud,
-                                TramitacaoAdmView, get_nome_autor,
-                                pesquisa_autores)
-
+                                TipoInstituicaoCrud,
+                                TramitacaoAdmCrud, 
+                                get_nome_autor, pesquisa_autores)
 from .apps import AppConfig
 
 app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/',
-        include(DocumentoAdministrativoCrud.get_urls())),
+        include(DocumentoAdministrativoCrud.get_urls() +
+                TramitacaoAdmCrud.get_urls())),
     url(r'^protocoloadm/tipo-documento-adm/',
         include(TipoDocumentoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/doc-acessorio/',

@@ -14,6 +14,15 @@ DocumentoAdministrativo:
   - dias_prazo  data_fim_prazo
   - observacao
 
+TramitacaoAdministrativo:
+  Indentificação Básica:
+  - data_tramitacao  unidade_tramitacao_local
+  - unidade_tramitacao_destino  status
+
+  Outras Informações:
+  - dias_prazo  data_fim_prazo
+  - observacao
+
 DocumentoAcessorioAdministrativo:
   Documento Acessório:
   - tipo  nome  data
