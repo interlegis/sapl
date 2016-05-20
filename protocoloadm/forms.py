@@ -5,6 +5,7 @@ from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
@@ -541,15 +542,20 @@ class TramitacaoAdmForm(ModelForm):
             msg = _('Você deixou campos obrigatórios em branco!')
             raise ValidationError(msg)
 
-        # ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
-        #     documento_id=self.instance.documento.id).last()
+        ultima_data_tram = TramitacaoAdministrativo.objects.filter(
+            documento_id=5).aggregate(Max('data_tramitacao'))
+        data = ultima_data_tram.get('data_encaminhamento__max')
 
-        # if ultima_tramitacao:
-        #     destino = ultima_tramitacao.unidade_tramitacao_destino
-        #     if (destino != self.cleaned_data['unidade_tramitacao_local']):
-        #         msg = _('A origem da nova tramitação deve ser igual ao '
-        #                 'destino  da última adicionada!')
-        #         raise ValidationError(msg)
+        ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
+            documento_id=5, data_encaminhamento=data).order_by(
+            'data_encaminhamento').first()
+
+        if ultima_tramitacao:
+            destino = ultima_tramitacao.unidade_tramitacao_destino
+            if (destino != self.cleaned_data['unidade_tramitacao_local']):
+                msg = _('A origem da nova tramitação deve ser igual ao '
+                        'destino  da última adicionada!')
+                raise ValidationError(msg)
 
         return self.cleaned_data
 

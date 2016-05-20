@@ -12,7 +12,6 @@ from crud.masterdetail import MasterDetailCrud
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
-
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
