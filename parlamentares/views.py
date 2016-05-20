@@ -12,12 +12,10 @@ from crud.masterdetail import MasterDetailCrud
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
-
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
-
 
 CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = Crud.build(Partido, 'partidos')

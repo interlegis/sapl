@@ -24,7 +24,6 @@ from crispy_layout_mixin import form_actions
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
 from norma.models import LegislacaoCitada
-from sapl.utils import get_base_url
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -155,8 +154,18 @@ class TramitacaoCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoForm
 
+        def post(self, request, *args, **kwargs):
+            materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+            do_envia_email_tramitacao(request, materia)
+            return super(CreateView, self).post(request, *args, **kwargs)
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoForm
+
+        def post(self, request, *args, **kwargs):
+            materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+            do_envia_email_tramitacao(request, materia)
+            return super(UpdateView, self).post(request, *args, **kwargs)
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -423,6 +432,148 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_redirect_url())
 
 
+class MateriaLegislativaPesquisaView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = MateriaLegislativaFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(MateriaLegislativaPesquisaView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        status_tramitacao = self.request.GET.get('tramitacao__status')
+        unidade_destino = self.request.GET.get(
+            'tramitacao__unidade_tramitacao_destino')
+
+        qs = self.get_queryset()
+
+        if status_tramitacao and unidade_destino:
+            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
+                                                         unidade_destino)
+            qs = qs.filter(id__in=lista).distinct()
+
+        elif status_tramitacao:
+            lista = filtra_tramitacao_status(status_tramitacao)
+            qs = qs.filter(id__in=lista).distinct()
+
+        elif unidade_destino:
+            lista = filtra_tramitacao_destino(unidade_destino)
+            qs = qs.filter(id__in=lista).distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MateriaLegislativaPesquisaView,
+                        self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(MateriaLegislativaPesquisaView, self).get(request)
+
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/FilterSet
+        # Então a ordem da URL está diferente
+        data = self.filterset.data
+        if (data and data.get('tipo') is not None):
+            url = "&"+str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('tipo=') - 1
+                url = url[ponto_comeco:]
+        else:
+            url = ''
+
+        self.filterset.form.fields['o'].label = _('Ordenação')
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        return self.render_to_response(context)
+
+
+class MateriaTaView(IntegracaoTaView):
+    model = MateriaLegislativa
+    model_type_foreignkey = TipoMateriaLegislativa
+
+
+class ProposicaoTaView(IntegracaoTaView):
+    model = Proposicao
+    model_type_foreignkey = TipoProposicao
+
+
+class AcompanhamentoMateriaView(CreateView):
+    template_name = "materia/acompanhamento_materia.html"
+
+    def get_random_chars(self):
+        s = ascii_letters + digits
+        return ''.join(choice(s) for i in range(choice([6, 7])))
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+
+        return self.render_to_response(
+            {'form': AcompanhamentoMateriaForm(),
+             'materia': materia})
+
+    def post(self, request, *args, **kwargs):
+        form = AcompanhamentoMateriaForm(request.POST)
+        pk = self.kwargs['pk']
+        materia = MateriaLegislativa.objects.get(id=pk)
+
+        if form.is_valid():
+
+            email = form.cleaned_data['email']
+            usuario = request.user
+
+            hash_txt = self.get_random_chars()
+
+            try:
+                AcompanhamentoMateria.objects.get(
+                    email=email,
+                    materia=materia,
+                    hash=hash_txt)
+            except ObjectDoesNotExist:
+                acompanhar = form.save(commit=False)
+                acompanhar.hash = hash_txt
+                acompanhar.materia = materia
+                acompanhar.usuario = usuario.username
+                acompanhar.confirmado = False
+                acompanhar.save()
+
+                do_envia_email_confirmacao(request, materia, email)
+
+            else:
+                return self.render_to_response(
+                    {'form': form,
+                     'materia': materia,
+                     'error': _('Essa matéria já está\
+                     sendo acompanhada por este e-mail.')})
+            return self.form_valid(form)
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'materia': materia})
+
+    def get_success_url(self):
+        return reverse('sessao:list_pauta_sessao')
+
+
 def load_email_templates(templates, context={}):
 
     emails = []
@@ -617,145 +768,3 @@ def do_envia_email_tramitacao(request, materia):
 
     enviar_emails(sender, recipients, messages)
     return None
-
-
-class MateriaLegislativaPesquisaView(FilterView):
-    model = MateriaLegislativa
-    filterset_class = MateriaLegislativaFilterSet
-    paginate_by = 10
-
-    def get_filterset_kwargs(self, filterset_class):
-        super(MateriaLegislativaPesquisaView,
-              self).get_filterset_kwargs(filterset_class)
-
-        kwargs = {'data': self.request.GET or None}
-
-        status_tramitacao = self.request.GET.get('tramitacao__status')
-        unidade_destino = self.request.GET.get(
-            'tramitacao__unidade_tramitacao_destino')
-
-        qs = self.get_queryset()
-
-        if status_tramitacao and unidade_destino:
-            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
-                                                         unidade_destino)
-            qs = qs.filter(id__in=lista).distinct()
-
-        elif status_tramitacao:
-            lista = filtra_tramitacao_status(status_tramitacao)
-            qs = qs.filter(id__in=lista).distinct()
-
-        elif unidade_destino:
-            lista = filtra_tramitacao_destino(unidade_destino)
-            qs = qs.filter(id__in=lista).distinct()
-
-        kwargs.update({
-            'queryset': qs,
-        })
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super(MateriaLegislativaPesquisaView,
-                        self).get_context_data(**kwargs)
-
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
-        return context
-
-    def get(self, request, *args, **kwargs):
-        super(MateriaLegislativaPesquisaView, self).get(request)
-
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
-        data = self.filterset.data
-        if (data and data.get('tipo') is not None):
-            url = "&"+str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
-        else:
-            url = ''
-
-        self.filterset.form.fields['o'].label = _('Ordenação')
-
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list)
-                                        )
-
-        return self.render_to_response(context)
-
-
-class MateriaTaView(IntegracaoTaView):
-    model = MateriaLegislativa
-    model_type_foreignkey = TipoMateriaLegislativa
-
-
-class ProposicaoTaView(IntegracaoTaView):
-    model = Proposicao
-    model_type_foreignkey = TipoProposicao
-
-
-class AcompanhamentoMateriaView(CreateView):
-    template_name = "materia/acompanhamento_materia.html"
-
-    def get_random_chars(self):
-        s = ascii_letters + digits
-        return ''.join(choice(s) for i in range(choice([6, 7])))
-
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-        materia = MateriaLegislativa.objects.get(id=pk)
-
-        return self.render_to_response(
-            {'form': AcompanhamentoMateriaForm(),
-             'materia': materia})
-
-    def post(self, request, *args, **kwargs):
-        form = AcompanhamentoMateriaForm(request.POST)
-        pk = self.kwargs['pk']
-        materia = MateriaLegislativa.objects.get(id=pk)
-
-        if form.is_valid():
-
-            email = form.cleaned_data['email']
-            usuario = request.user
-
-            hash_txt = self.get_random_chars()
-
-            try:
-                AcompanhamentoMateria.objects.get(
-                    email=email,
-                    materia=materia,
-                    hash=hash_txt)
-            except ObjectDoesNotExist:
-                acompanhar = form.save(commit=False)
-                acompanhar.hash = hash_txt
-                acompanhar.materia = materia
-                acompanhar.usuario = usuario.username
-                acompanhar.confirmado = False
-                acompanhar.save()
-
-                do_envia_email_confirmacao(request, materia, email)
-
-            else:
-                return self.render_to_response(
-                    {'form': form,
-                     'materia': materia,
-                     'error': _('Essa matéria já está\
-                     sendo acompanhada por este e-mail.')})
-            return self.form_valid(form)
-        else:
-            return self.render_to_response(
-                {'form': form,
-                 'materia': materia})
-
-    def get_success_url(self):
-        return reverse('sessao:list_pauta_sessao')
