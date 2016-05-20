@@ -1,6 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block actions %}
+<h1><b>Protocolos</b></h1>
 <div class="actions btn-group pull-right" role="group">
   <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Pesquisa Protocolo' %}</a>
   <a href="{% url 'protocoloadm:protocolar_doc' %}" class="btn btn-default">{% trans 'Protocolar Documento' %}</a>

@@ -1,9 +1,9 @@
 import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -523,7 +523,6 @@ class TramitacaoAdmForm(ModelForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
-                  'documento',
                   ]
 
         widgets = {
@@ -532,22 +531,21 @@ class TramitacaoAdmForm(ModelForm):
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
         }
 
-    def __init__(self, *args, **kwargs):
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Incluir Tramitação'),
-                     'data_tramitacao',
-                     'unidade_tramitacao_local',
-                     'status',
-                     'unidade_tramitacao_destino',
-                     'data_encaminhamento',
-                     'data_fim_prazo',
-                     'texto'),
-            Field('documento', type="hidden"),
-            form_actions()
-        )
-        super(TramitacaoAdmForm, self).__init__(
-            *args, **kwargs)
+    def clean(self):
+        if self.errors:
+            return self.errors
+
+        # ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
+        #     documento_id=self.instance.documento.id).last()
+
+        # if ultima_tramitacao:
+        #     destino = ultima_tramitacao.unidade_tramitacao_destino
+        #     if (destino != self.cleaned_data['unidade_tramitacao_local']):
+        #         msg = _('A origem da nova tramitação deve ser igual ao '
+        #                 'destino  da última adicionada!')
+        #         raise ValidationError(msg)
+
+        return self.cleaned_data
 
 
 class DocumentoAdministrativoForm(ModelForm):

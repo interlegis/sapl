@@ -1,4 +1,6 @@
 import json
+import crud.base
+
 from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
@@ -13,6 +15,7 @@ from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
 from crud.base import Crud, make_pagination
+from crud.masterdetail import MasterDetailCrud
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
@@ -28,7 +31,6 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
 
 TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo,
                                              '')
-DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
 StatusTramitacaoAdministrativoCrud = Crud.build(
@@ -38,6 +40,16 @@ ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+
+
+class DocumentoAdministrativoCrud(Crud):
+    model = DocumentoAdministrativo
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['tipo', 'numero', 'ano', 'data',
+                            'numero_protocolo', 'assunto',
+                            'interessado', 'tramitacao', 'texto_integral']
 
 
 class ProtocoloPesquisaView(FilterView):
@@ -542,6 +554,28 @@ class DocumentoAcessorioAdministrativoView(FormView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('protocoloadm:doc_ace_adm', kwargs={'pk': pk})
+
+
+class TramitacaoAdmCrud(MasterDetailCrud):
+    model = TramitacaoAdministrativo
+    parent_field = 'documento'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
+                            'unidade_tramitacao_destino', 'status']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = TramitacaoAdmForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = TramitacaoAdmForm
+
+    class ListView(MasterDetailCrud.ListView):
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            return qs.filter(**kwargs).order_by('-data_tramitacao')
 
 
 class TramitacaoAdmView(FormView):

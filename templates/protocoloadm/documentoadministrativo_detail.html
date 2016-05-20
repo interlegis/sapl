@@ -1,0 +1,10 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% block actions %}
+<h1><b>Protocolos</b></h1>
+<div class="actions btn-group pull-right" role="group">
+<a href="{% url 'protocoloadm:tramitacaoadministrativo_list' object.pk %}" class="btn btn-default">{% trans 'Tramitações' %}</a>
+  <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+  <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+</div>
+{% endblock actions %}
