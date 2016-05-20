@@ -22,6 +22,7 @@ from protocoloadm.views import (AnularProtocoloAdmView,
                                 TipoInstituicaoCrud,
                                 TramitacaoAdmCrud,
                                 get_nome_autor, pesquisa_autores)
+
 from .apps import AppConfig
 
 app_name = AppConfig.name
@@ -63,7 +64,6 @@ urlpatterns = [
     url(r'^protocoloadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
         DocumentoAcessorioAdministrativoEditView.as_view(),
         name='doc_ace_adm_edit'),
-
 
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
