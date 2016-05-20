@@ -535,6 +535,12 @@ class TramitacaoAdmForm(ModelForm):
         if self.errors:
             return self.errors
 
+        if (not self.cleaned_data['data_tramitacao'] or
+           not self.cleaned_data['status'] or
+           not self.cleaned_data['unidade_tramitacao_local']):
+            msg = _('Você deixou campos obrigatórios em branco!')
+            raise ValidationError(msg)
+
         # ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
         #     documento_id=self.instance.documento.id).last()
 
