@@ -268,9 +268,13 @@ function reloadFunctionClicks() {
       revert: true,
       stop: function( event, ui ) {
           var pk = ui.item.attr('pk');
-          var pk_bloco = ui.item.closest('.bloco').closest('.dpt').attr('pk');
-          console.log(pk+ ' - '+ pk_bloco);
-      },
+          var bloco_pk = ui.item.closest('.bloco').closest('.dpt').attr('pk');
+
+          url = pk+'/actions?action=move_dpt_alterado&index='+ui.item.index()+'&bloco_pk='+bloco_pk;
+          $.get(url).done(function( data ) {
+              console.log(pk+ ' - '+ bloco_pk);
+          });
+      }
     });
 
     $( ".bloco_alteracao .dpt" ).draggable({
@@ -278,10 +282,10 @@ function reloadFunctionClicks() {
       revert: 'invalid',
       zIndex: 1,
       drag: function( event, ui ) {
-          $( ".bloco_alteracao" ).css('border-width', '2px');
+          $( ".bloco_alteracao" ).addClass('drag');
       },
       stop: function( event, ui ) {
-          $( ".bloco_alteracao" ).css('border-width', '0px');
+          $( ".bloco_alteracao" ).removeClass('drag');
       },
     });
 
