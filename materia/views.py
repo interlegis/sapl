@@ -155,13 +155,17 @@ class TramitacaoCrud(MasterDetailCrud):
         form_class = TramitacaoForm
 
         def post(self, request, *args, **kwargs):
-            form = self.get_form()
             materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
             do_envia_email_tramitacao(request, materia)
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoForm
+
+        def post(self, request, *args, **kwargs):
+            materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+            do_envia_email_tramitacao(request, materia)
+            return super(UpdateView, self).post(request, *args, **kwargs)
 
     class ListView(MasterDetailCrud.ListView):
 
