@@ -9,14 +9,23 @@
   <div class="actions btn-group pull-right" role="group">
     <a href="docadm/create" class="btn btn-default">{% trans 'Adicionar Documento Administrativo' %}</a>
   </div>
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'protocoloadm:pesq_doc_adm' %}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+    </div>
+  {% endif %}
+
 {% endblock actions %}
 
 
 {% block detail_content %}
 
- 
+  {% if not filter_url %}
+    
+    {% crispy filter.form %}
 
-  {% crispy filter.form %}
+  {% endif %}
+
   {% if filter_url %}      
   <p></p>
   <table class="table table-striped table-bordered">
