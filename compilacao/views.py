@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -36,6 +36,7 @@ from compilacao.models import (Dispositivo, Nota,
                                VeiculoPublicacao, Vide)
 from compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from crud.base import Crud, CrudListView, make_pagination
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -1249,9 +1250,9 @@ class DispositivoSimpleEditView(TextEditView):
             if len(result) > 2:
                 result.pop()
 
-            if tipb.dispositivo_de_articulacao and\
-                    tipb.dispositivo_de_alteracao:
-                result.pop()
+            # if tipb.dispositivo_de_articulacao and\
+            #        tipb.dispositivo_de_alteracao:
+            #    result.pop()
 
         except Exception as e:
             print(e)
@@ -1337,7 +1338,7 @@ class ActionsEditMixin:
         try:
             with transaction.atomic():
                 data['message'] = str(self.remover_dispositivo(base, bloco))
-                ta_base.organizar_ordem_de_dispositivos()
+                ta_base.ordenar_dispositivos()
         except Exception as e:
             print(e)
             data['pk'] = context['dispositivo_id']
@@ -1858,6 +1859,13 @@ class ActionsEditMixin:
 
                     filho.rotulo = filho.rotulo_padrao()
                     filho.save()
+
+            ''' Reordenar ordem de bloco atualizador casa a inserção seja
+            dentro de um bloco de alteração'''
+
+            if dp.tipo_dispositivo.dispositivo_de_alteracao and\
+                    not dp.tipo_dispositivo.dispositivo_de_articulacao:
+                dp.dispositivo_pai.ordenar_bloco_alteracao()
 
         except Exception as e:
             print(e)

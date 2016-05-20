@@ -133,7 +133,7 @@ class TextoArticulado(TimestampedMixin):
                 'numero': self.numero,
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
-    def organizar_ordem_de_dispositivos(self):
+    def ordenar_dispositivos(self):
 
         dpts = Dispositivo.objects.filter(ta=self)
 
@@ -1148,6 +1148,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             dispositivo_base.get_numero_completo())
         dp.nivel = dispositivo_base.nivel
         dp.texto = ''
+        dp.visibilidade = True
         dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
         dp.publicacao = dispositivo_base.publicacao
@@ -1202,6 +1203,32 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
             else:
                 dispositivo.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+
+    def ordenar_bloco_alteracao(self):
+        if not self.tipo_dispositivo.dispositivo_de_articulacao or\
+           not self.tipo_dispositivo.dispositivo_de_alteracao:
+            return
+
+        filhos = Dispositivo.objects.order_by(
+            'ordem_bloco_atualizador').filter(
+            Q(dispositivo_pai_id=self.pk) |
+            Q(dispositivo_atualizador_id=self.pk))
+
+        if not filhos.exists():
+            return
+
+        ordem_max = filhos.last().ordem_bloco_atualizador
+        filhos.update(
+            ordem_bloco_atualizador=F('ordem_bloco_atualizador') + ordem_max)
+
+        filhos = filhos.values_list(
+            'pk', flat=True).order_by('ordem_bloco_atualizador')
+
+        count = 0
+        for d in filhos:
+            count += Dispositivo.INTERVALO_ORDEM
+            Dispositivo.objects.filter(pk=d).update(
+                ordem_bloco_atualizador=count)
 
 
 class Vide(TimestampedMixin):
