@@ -10,8 +10,8 @@ from floppyforms.widgets import ClearableFileInput
 import sapl
 from sapl.utils import intervalos_tem_intersecao
 
-from .models import (ComposicaoColigacao, Filiacao, Legislatura,
-                     Mandato, Parlamentar)
+from .models import (ComposicaoColigacao, Filiacao, Legislatura, Mandato,
+                     Parlamentar)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):

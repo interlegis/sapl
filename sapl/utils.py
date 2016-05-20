@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 
+
 autor_label = '''
     <div class="col-xs-12">
        Autor: <span id="nome_autor" name="nome_autor">

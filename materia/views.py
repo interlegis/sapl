@@ -739,7 +739,6 @@ def do_envia_email_tramitacao(request, materia):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
-    import ipdb; ipdb.set_trace()
     destinatarios = AcompanhamentoMateria.objects.filter(materia=materia,
                                                          confirmado=True)
     casa = CasaLegislativa.objects.first()
