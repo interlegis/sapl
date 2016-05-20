@@ -1,6 +1,4 @@
 import json
-import crud.base
-
 from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
@@ -14,6 +12,7 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+import crud.base
 from crud.base import Crud, make_pagination
 from crud.masterdetail import MasterDetailCrud
 from materia.models import Proposicao, TipoMateriaLegislativa
