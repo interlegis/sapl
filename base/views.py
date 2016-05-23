@@ -1,9 +1,3 @@
-import os
-from functools import lru_cache
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
-from django.views.generic import FormView
 from django.views.generic.base import TemplateView
 
 import crud.base
@@ -13,7 +7,6 @@ from .forms import CasaLegislativaForm
 from .models import CasaLegislativa
 
 
-# @lru_cache(maxsize=1)
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
 

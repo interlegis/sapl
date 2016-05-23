@@ -1,14 +1,8 @@
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Fieldset, Layout
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _
-
-import crispy_layout_mixin
 import sapl
-from crispy_layout_mixin import form_actions
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 
 from .models import CasaLegislativa
