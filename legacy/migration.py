@@ -474,7 +474,8 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     descricao = 'Essa entrada é necessária para um dos stubs criados'
     ' anteriormente'
     warn(problema)
-    save_relation(stub, problema, descricao, eh_stub=True)
+    save_relation(obj=stub, problema=problema,
+                  descricao=descricao, eh_stub=True)
     return stub
 
 make_with_log.required = foreign_key_required
