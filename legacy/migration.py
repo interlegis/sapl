@@ -16,6 +16,7 @@ from comissoes.models import Composicao, Participacao
 from materia.models import StatusTramitacao, Tramitacao
 from norma.models import NormaJuridica
 from parlamentares.models import Parlamentar
+from protocoloadm.models import StatusTramitacaoAdministrativo
 from sessao.models import OrdemDia, SessaoPlenaria
 
 # BASE ######################################################################
@@ -417,6 +418,10 @@ def adjust_statustramitacao(new, old):
         new.indicador = ''
 
 
+def adjust_statustramitacaoadm(new, old):
+    adjust_statustramitacao(new, old)
+
+
 def adjust_tramitacao(new, old):
     if old.sgl_turno == 'Ú':
         new.turno = 'U'
@@ -433,6 +438,7 @@ MIGRATION_ADJUSTMENTS = {
     Parlamentar: adjust_parlamentar,
     SessaoPlenaria: adjust_sessaoplenaria,
     StatusTramitacao: adjust_statustramitacao,
+    StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
     Tramitacao: adjust_tramitacao,
 }
 
