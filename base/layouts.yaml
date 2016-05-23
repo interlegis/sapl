@@ -1,0 +1,10 @@
+CasaLegislativa:
+  Casa Legislativa:
+  - codigo:2 nome sigla
+  - endereco:8 cep
+  - municipio:10 uf
+  - telefone fax
+  - logotipo
+  - endereco_web
+  - email
+  - informacao_geral
