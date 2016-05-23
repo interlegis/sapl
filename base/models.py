@@ -54,6 +54,9 @@ class ProblemaMigracao(models.Model):
                                      verbose_name=_('Tipo de Content'))
     object_id = models.PositiveIntegerField(verbose_name=_('ID do Objeto'))
     content_object = GenericForeignKey('content_type', 'object_id')
+    nome_campo = models.CharField(max_length=100,
+                                  blank=True,
+                                  verbose_name='Nome do(s) Campo(s)')
     problema = models.CharField(max_length=300, verbose_name=_('Problema'))
     descricao = models.CharField(max_length=300, verbose_name=_('Descrição'))
     eh_stub = models.BooleanField(verbose_name='É stub?')
