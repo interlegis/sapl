@@ -14,7 +14,7 @@ from model_mommy.mommy import foreign_key_required, make
 from base.models import ProblemaMigracao
 from comissoes.models import Composicao, Participacao
 from materia.models import StatusTramitacao, Tramitacao
-from norma.models import NormaJuridica
+from norma.models import AssuntoNormaRelationship, NormaJuridica
 from parlamentares.models import Parlamentar
 from protocoloadm.models import StatusTramitacaoAdministrativo
 from sessao.models import OrdemDia, SessaoPlenaria
@@ -261,16 +261,16 @@ class DataMigrator:
                     value = getattr(old, old_field_name)
                 if field_type == 'DateField' and \
                         not field.null and value is None:
-                        descricao = 'A data 0001-01-01 foi colocada no lugar'
-                        problema = 'O valor da data era nulo ou inválido'
-                        warn(msg +
-                             ' => ' + descricao)
-                        value = '0001-01-01'
-                        self.data_mudada['obj'] = new
-                        self.data_mudada['descricao'] = descricao
-                        self.data_mudada['problema'] = problema
-                        self.data_mudada.setdefault('nome_campo', []).\
-                            append(field.name)
+                    descricao = 'A data 0001-01-01 foi colocada no lugar'
+                    problema = 'O valor da data era nulo ou inválido'
+                    warn(msg +
+                         ' => ' + descricao)
+                    value = '0001-01-01'
+                    self.data_mudada['obj'] = new
+                    self.data_mudada['descricao'] = descricao
+                    self.data_mudada['problema'] = problema
+                    self.data_mudada.setdefault('nome_campo', []).\
+                        append(field.name)
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None:
                         value = ''
@@ -333,15 +333,18 @@ class DataMigrator:
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
-        adjust = MIGRATION_ADJUSTMENTS.get(model)
+        ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
+        ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
 
         # convert old records to new ones
         for old in old_records:
             new = model()
             self.populate_renamed_fields(new, old)
-            if adjust:
-                adjust(new, old)
+            if ajuste_antes_salvar:
+                ajuste_antes_salvar(new, old)
             save(new, old)
+            if ajuste_depois_salvar:
+                ajuste_depois_salvar(new, old)
             if self.data_mudada:
                 save_relation(**self.data_mudada)
                 self.data_mudada.clear()
@@ -439,8 +442,16 @@ def adjust_sessaoplenaria(new, old):
     assert not old.tip_expediente
 
 
-MIGRATION_ADJUSTMENTS = {
-    NormaJuridica: adjust_normajuridica,
+def adjust_normajuridica(new, old):
+    lista_ids_assunto = old.cod_assunto.split(',')
+    for id_assunto in lista_ids_assunto:
+        relacao = AssuntoNormaRelationship()
+        relacao.assunto_id = int(id_assunto)
+        relacao.norma_id = new.pk
+        relacao.save()
+
+
+AJUSTE_ANTES_SALVAR = {
     OrdemDia: adjust_ordemdia,
     Participacao: adjust_participacao,
     Parlamentar: adjust_parlamentar,
@@ -448,6 +459,10 @@ MIGRATION_ADJUSTMENTS = {
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
     Tramitacao: adjust_tramitacao,
+}
+
+AJUSTE_DEPOIS_SALVAR = {
+    NormaJuridica: adjust_normajuridica,
 }
 
 # CHECKS ####################################################################
