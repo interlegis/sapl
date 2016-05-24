@@ -13,7 +13,7 @@ from model_mommy.mommy import foreign_key_required, make
 
 from sapl.base.models import ProblemaMigracao
 from sapl.comissoes.models import Composicao, Participacao
-from sapl.materia.models import StatusTramitacao, Tramitacao
+from sapl.materia.models import StatusTramitacao, TipoProposicao, Tramitacao
 from sapl.norma.models import AssuntoNormaRelationship, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import StatusTramitacaoAdministrativo
@@ -377,7 +377,24 @@ def migrate(obj=appconfs):
 
 # MIGRATION_ADJUSTMENTS #####################################################
 
-def adjust_participacao(new_participacao, old):
+def adjust_ordemdia(new, old):
+    # Prestar atenção
+    if not old.tip_votacao:
+        new.tipo_votacao = 1
+
+
+def adjust_parlamentar(new, old):
+    if old.ind_unid_deliberativa:
+        value = new.unidade_deliberativa
+        # Field is defined as not null in legacy db,
+        # but data includes null values
+        #  => transform None to False
+        if value is None:
+            warn('nulo convertido para falso')
+            new.unidade_deliberativa = False
+
+
+def adjust_participacao(new, old):
     composicao = Composicao()
     composicao.comissao, composicao.periodo = [
         get_fk_related(Composicao._meta.get_field(name), value)
@@ -391,33 +408,21 @@ def adjust_participacao(new_participacao, old):
         [composicao] = already_created
     else:
         composicao.save()
-    new_participacao.composicao = composicao
+    new.composicao = composicao
 
 
-def adjust_parlamentar(new_parlamentar, old):
-    if old.ind_unid_deliberativa:
-        value = new_parlamentar.unidade_deliberativa
-        # Field is defined as not null in legacy db,
-        # but data includes null values
-        #  => transform None to False
-        if value is None:
-            warn('nulo convertido para falso')
-            new_parlamentar.unidade_deliberativa = False
+def adjust_sessaoplenaria(new, old):
+    assert not old.tip_expediente
 
 
-def adjust_normajuridica(new, old):
-    # O 'S' vem de 'Selecionar'. Na versão antiga do SAPL, quando uma opção do
-    # combobox era selecionada, o sistema pegava a primeira letra da seleção,
-    # sendo F para Federal, E para Estadual, M para Municipal e o S para
-    # Selecionar, que era a primeira opção quando nada era selecionado.
-    if old.tip_esfera_federacao == 'S':
-        new.esfera_federacao = ''
-
-
-def adjust_ordemdia(new, old):
-    # Prestar atenção
-    if not old.tip_votacao:
-        new.tipo_votacao = 1
+def adjust_tipoproposicao(new, old):
+    if new.materia_ou_documento == 'M':
+        field = TipoProposicao.tipo_materia.field
+        value = get_fk_related(field=field, value=old.tip_mat_ou_doc)
+    elif new.materia_ou_documento == 'D':
+        field = TipoProposicao.tipo_documento.field
+        value = get_fk_related(field=field, value=old.tip_mat_ou_doc)
+    setattr(new, field.name, value)
 
 
 def adjust_statustramitacao(new, old):
@@ -438,11 +443,18 @@ def adjust_tramitacao(new, old):
         new.turno = 'U'
 
 
-def adjust_sessaoplenaria(new, old):
-    assert not old.tip_expediente
+def adjust_normajuridica_antes_salvar(new, old):
+    # Ajusta choice de esfera_federacao
+    # O 'S' vem de 'Selecionar'. Na versão antiga do SAPL, quando uma opção do
+    # combobox era selecionada, o sistema pegava a primeira letra da seleção,
+    # sendo F para Federal, E para Estadual, M para Municipal e o S para
+    # Selecionar, que era a primeira opção quando nada era selecionado.
+    if old.tip_esfera_federacao == 'S':
+        new.esfera_federacao = ''
 
 
-def adjust_normajuridica(new, old):
+def adjust_normajuridica_depois_salvar(new, old):
+    # Ajusta relação M2M
     lista_ids_assunto = old.cod_assunto.split(',')
     for id_assunto in lista_ids_assunto:
         relacao = AssuntoNormaRelationship()
@@ -452,17 +464,19 @@ def adjust_normajuridica(new, old):
 
 
 AJUSTE_ANTES_SALVAR = {
+    NormaJuridica: adjust_normajuridica_antes_salvar,
     OrdemDia: adjust_ordemdia,
-    Participacao: adjust_participacao,
     Parlamentar: adjust_parlamentar,
+    Participacao: adjust_participacao,
     SessaoPlenaria: adjust_sessaoplenaria,
+    TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
     Tramitacao: adjust_tramitacao,
 }
 
 AJUSTE_DEPOIS_SALVAR = {
-    NormaJuridica: adjust_normajuridica,
+    NormaJuridica: adjust_normajuridica_depois_salvar,
 }
 
 # CHECKS ####################################################################
