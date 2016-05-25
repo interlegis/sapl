@@ -1,19 +1,22 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block actions %}{% endblock %}
+{% block actions %}
+  <h1><b>Matérias Legislativas</b></h1>
+  <div class="actions btn-group pull-right" role="group">
+    <a href="create" class="btn btn-default">{% trans 'Adicionar Matéria Legislativa' %}</a>
+  </div>
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+  {% endif %}
+{% endblock %}
 
 {% block sections_nav %} 
 {% endblock %}
 
 {% block detail_content %}
-  <h1><b>Pesquisar Matéria</b></h1>
-  <br></br>
-    {% if filter_url %}
-      <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-      </div>
-    {% endif %}
  
   {% if not filter_url %}
     {% crispy filter.form %}
