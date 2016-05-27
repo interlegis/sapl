@@ -122,6 +122,7 @@ Instalação e configuração das dependências do projeto
              CONNECTION LIMIT = -1;
 
       \q
+      exit
 
   * Se você possui uma cópia da base de dados do SAPL, essa é a hora para restaurá-la.
   * Obs: no ambiente de desenvolvimento, a role deve ter permissão para criar outro banco. Isso é usado pelos testes automatizados.
