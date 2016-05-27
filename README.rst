@@ -96,7 +96,7 @@ Instalação e configuração das dependências do projeto
 
     workon sapl
 
-* **Instalar dependências ``python``**::
+* **Instalar dependências python**::
 
     pip install -r requirements/dev-requirements.txt
 
@@ -105,6 +105,7 @@ Instalação e configuração das dependências do projeto
   * Acessar Postrgresql para criar o banco ``sapl`` com a role ``sapl``::
 
       sudo su - postgres
+      psql
 
       CREATE ROLE sapl LOGIN
         ENCRYPTED PASSWORD 'sapl'
@@ -126,7 +127,7 @@ Instalação e configuração das dependências do projeto
   * Obs: no ambiente de desenvolvimento, a role deve ter permissão para criar outro banco. Isso é usado pelos testes automatizados.
   * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
-* **Configurar arquivo ``.env``**:
+* **Configurar arquivo .env **:
 
   * Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
 
