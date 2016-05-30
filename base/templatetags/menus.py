@@ -27,8 +27,17 @@ def subnav(context, path=None):
     if root_pk:
         request = context['request']
         app = request.resolver_match.app_name
-        # Esse IF elimina o bug do subnav em Tabelas Auxiliares
-        # e também em proposições
+        # Esse IF elimina o bug que ocorria nas Tabelas Auxiliares
+        # Algumas recebiam a nav-bar de seu app gerada pelo APP CRUD
+        # Essa nav-bar é indesejada nesses casos
+        # A solução encontrada foi verificar se havia 'sistema' na URL
+        # ou se o nome do app estava presente na URL
+        # Para essa Solução haviam duas exceções, pois o nome base das URLs
+        # de comissões e parlamentares são diferentes do nome do app
+        # Deve-se cuidar para que o nome base das URLs sejam
+        # iguais ao nome do app Ex: app = 'parlamentares' e
+        # url = 'parlamentares/...'
+
         if (request.path.find('parlamentar') != -1 and
            app == 'parlamentares' or
            request.path.find('comissao') != -1 and app == 'comissoes'):
