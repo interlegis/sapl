@@ -22,7 +22,8 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
-                    ProtocoloMateriaForm, TramitacaoAdmForm)
+                    ProtocoloMateriaForm, TramitacaoAdmEditForm,
+                    TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
@@ -579,13 +580,13 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmForm
 
     class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = TramitacaoAdmForm
+        form_class = TramitacaoAdmEditForm
 
     class ListView(MasterDetailCrud.ListView):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao')
+            return qs.filter(**kwargs).order_by('-id')
 
 
 def get_nome_autor(request):

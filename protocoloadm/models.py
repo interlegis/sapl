@@ -166,16 +166,12 @@ class StatusTramitacaoAdministrativo(models.Model):
 class TramitacaoAdministrativo(models.Model):
     status = models.ForeignKey(
         StatusTramitacaoAdministrativo,
-        blank=True,
-        null=True,
         verbose_name=_('Status'))
     documento = models.ForeignKey(DocumentoAdministrativo)
     data_tramitacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Tramitação'))
+        verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
-        blank=True,
-        null=True,
         related_name='adm_tramitacoes_origem',
         verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
