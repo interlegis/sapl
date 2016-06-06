@@ -3,7 +3,5 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-	<legend>Pesquisa Avançada</legend>
-		{% crispy form %}
-	</fieldset>
+	{{ form.as_p }}
 {% endblock detail_content %}

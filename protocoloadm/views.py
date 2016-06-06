@@ -14,6 +14,7 @@ from django_filters.views import FilterView
 
 import crud.base
 from crud.base import Crud, make_pagination
+from crud.masterdetail import MasterDetailCrud
 from materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
@@ -21,7 +22,8 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
-                    ProtocoloMateriaForm, TramitacaoAdmForm)
+                    ProtocoloMateriaForm, TramitacaoAdmEditForm,
+                    TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
@@ -29,14 +31,25 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      TramitacaoAdministrativo)
 
 TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
-DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
+StatusTramitacaoAdministrativoCrud = Crud.build(
+    StatusTramitacaoAdministrativo, '')
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
+
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 TipoInstituicaoCrud = Crud.build(TipoInstituicao, '')
+
+
+class DocumentoAdministrativoCrud(Crud):
+    model = DocumentoAdministrativo
+    help_path = ''
+
+    class BaseMixin(crud.base.CrudBaseMixin):
+        list_field_names = ['tipo', 'numero', 'ano', 'data',
+                            'numero_protocolo', 'assunto',
+                            'interessado', 'tramitacao', 'texto_integral']
 
 
 class StatusTramitacaoAdministrativoCrud(Crud):
@@ -554,90 +567,26 @@ class DocumentoAcessorioAdministrativoView(FormView):
         return reverse('protocoloadm:doc_ace_adm', kwargs={'pk': pk})
 
 
-class TramitacaoAdmView(FormView):
-    template_name = "protocoloadm/tramitacao.html"
+class TramitacaoAdmCrud(MasterDetailCrud):
+    model = TramitacaoAdministrativo
+    parent_field = 'documento'
+    help_path = ''
 
-    def get(self, request, *args, **kwargs):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
+                            'unidade_tramitacao_destino', 'status']
 
-        pk = kwargs['pk']
-        documento = DocumentoAdministrativo.objects.get(id=pk)
-        tramitacoes = TramitacaoAdministrativo.objects.filter(
-            documento=documento).order_by('-data_tramitacao')
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = TramitacaoAdmForm
 
-        return self.render_to_response({'documento': documento,
-                                        'tramitacoes': tramitacoes})
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = TramitacaoAdmEditForm
 
-
-class TramitacaoAdmIncluirView(FormView):
-    template_name = "protocoloadm/tramitacao_incluir.html"
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        documento = DocumentoAdministrativo.objects.get(id=pk)
-        data = {'documento': documento}
-        form = TramitacaoAdmForm(initial=data)
-
-        return self.render_to_response({'documento': documento, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        form = TramitacaoAdmForm(request.POST or None)
-
-        if form.is_valid():
-            tramitacao = form.save(commit=False)
-            tramitacao.ultima = False
-            tramitacao.save()
-            return HttpResponseRedirect(reverse(
-                'protocoloadm:tramitacao_adm', kwargs={'pk': pk}))
-        else:
-            return self.form_invalid(form)
-
-
-class TramitacaoAdmEditView(FormView):
-
-    template_name = "protocoloadm/tramitacao_edit.html"
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
-        documento = tramitacao.documento
-        form = TramitacaoAdmForm(instance=tramitacao)
-
-        return self.render_to_response({'documento': documento, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
-        form = TramitacaoAdmForm(request.POST, instance=tramitacao)
-
-        if form.is_valid():
-            tramitacao = form.save(commit=False)
-            tramitacao.ultima = False
-            tramitacao.save()
-            return HttpResponseRedirect(
-                reverse('protocoloadm:tramitacao_adm',
-                        kwargs={'pk': tramitacao.documento.id}))
-        else:
-            return self.form_invalid(form)
-
-
-class TramitacaoAdmDeleteView(DetailView):
-
-    template_name = "protocoloadm/tramitacao.html"
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        oid = kwargs['oid']
-
-        documento = DocumentoAdministrativo.objects.get(id=pk)
-
-        tramitacao = TramitacaoAdministrativo.objects.get(id=oid)
-        tramitacao.delete()
-        tramitacoes = TramitacaoAdministrativo.objects.filter(
-            documento=documento)
-
-        return self.render_to_response({'documento': documento,
-                                        'tramitacoes': tramitacoes})
+    class ListView(MasterDetailCrud.ListView):
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            return qs.filter(**kwargs).order_by('-id')
 
 
 def get_nome_autor(request):

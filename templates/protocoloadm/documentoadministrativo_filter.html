@@ -1,16 +1,31 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block actions %}{% endblock %}
 
 {% block sections_nav %} {% endblock %}
 
-{% block detail_content %}
-  <h1><b>Pesquisar Documento Administrativo</b></h1>
-  <br></br>
- 
+{% block actions %}
+  <h1><b>Documentos Administrativos</b></h1>
+  <div class="actions btn-group pull-right" role="group">
+    <a href="docadm/create" class="btn btn-default">{% trans 'Adicionar Documento Administrativo' %}</a>
+  </div>
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'protocoloadm:pesq_doc_adm' %}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+    </div>
+  {% endif %}
 
-  {% crispy filter.form %}
+{% endblock actions %}
+
+
+{% block detail_content %}
+
+  {% if not filter_url %}
+    
+    {% crispy filter.form %}
+
+  {% endif %}
+
   {% if filter_url %}      
   <p></p>
   <table class="table table-striped table-bordered">
