@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -9,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from compilacao.utils import int_to_letter, int_to_roman
 from sapl import utils
+from sapl.utils import get_user_model
 
 
 class TimestampedMixin(models.Model):
@@ -1293,7 +1293,7 @@ class Nota(TimestampedMixin):
         verbose_name=_('Dispositivo da Nota'),
         related_name='dispositivo_nota_set')
 
-    owner = models.ForeignKey(User, verbose_name=_('Dono da Nota'))
+    owner = models.ForeignKey(get_user_model(), verbose_name=_('Dono da Nota'))
     publicidade = models.PositiveSmallIntegerField(
         choices=NOTAS_PUBLICIDADE_CHOICES,
         verbose_name=_('Nível de Publicidade'))
