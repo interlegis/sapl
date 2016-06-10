@@ -1,0 +1,133 @@
+Origem:
+  Origem:
+  - nome:8  sigla
+
+TipoMateriaLegislativa:
+  Tipo Matéria Legislativa:
+  - sigla:4  descricao
+
+RegimeTramitacao:
+  Tipo de Documento:
+  - descricao
+
+TipoDocumento:
+  Regime Tramitação:
+  - descricao
+
+TipoFimRelatoria:
+  Tipo Fim de Relatoria:
+  - descricao
+
+MateriaLegislativa:
+  Identificação Básica:
+  - tipo  numero  ano
+  - data_apresentacao  numero_protocolo  tipo_apresentacao
+  - texto_original
+  Outras Informações:
+  - apelido  dias_prazo  polemica
+  - objeto  regime_tramitacao  em_tramitacao
+  - data_fim_prazo  data_publicacao  complementar
+  Origem Externa:
+  - tipo_origem_externa  numero_origem_externa  ano_origem_externa
+  - local_origem_externa  data_origem_externa
+  Dados Textuais:
+  - ementa
+  - indexacao
+  - observacao
+
+Anexada:
+  Matéria Anexada:
+  - tipo numero ano
+  - data_anexacao  data_desanexacao
+
+AnexadaDetail:
+  Matéria Anexada:
+  - materia_principal
+  - materia_anexada
+  - data_anexacao  data_desanexacao
+
+TipoAutor:
+  Tipo Autor:
+  - descricao
+
+Autor:
+  Autor:
+  - tipo:3  nome
+  - username
+
+Autoria:
+  Autoria:
+  - autor  partido  primeiro_autor
+
+DocumentoAcessorio:
+  Documento Acessório:
+  - tipo nome data
+  - autor
+  - ementa
+  - arquivo
+
+Numeracao:
+  Numeração:
+  - tipo_materia numero_materia ano_materia data_materia
+
+Orgao:
+  Órgão:
+  - nome:4  sigla  telefone  endereco  unidade_deliberativa
+
+Relatoria:
+  Relatoria:
+  - comissao
+  - data_designacao_relator data_destituicao_relator
+  - parlamentar tipo_fim_relatoria
+
+TipoProposicao:
+  Tipo Proposição:
+  - descricao
+  - materia_ou_documento  tipo_documento
+  - modelo
+
+ProposicaoCreate:
+  Proposição:
+  - tipo  data_envio
+  - descricao
+  Materia:
+  - tipo_materia numero_materia ano_materia
+  Complemento:
+  - texto_original
+
+Proposicao:
+  Proposição:
+  - tipo  data_envio
+  - descricao
+  Materia:
+  - materia
+  Complemento:
+  - texto_original
+
+StatusTramitacao:
+  Status Tramitação:
+  - indicador:3  sigla:2  descricao
+
+UnidadeTramitacao:
+  Unidade Tramitação:
+  - orgao
+  - comissao
+  - parlamentar
+
+Tramitacao:
+  Tramitação:
+  - unidade_tramitacao_local unidade_tramitacao_destino
+  - data_tramitacao data_encaminhamento data_fim_prazo
+  - status  turno  urgente
+  - texto
+
+DespachoInicial:
+  Despacho Inicial:
+  - comissao
+
+LegislacaoCitadaDetail:
+  Legislação Citada:
+  - norma
+  - disposicoes  parte  livro  titulo
+  - capitulo  secao  subsecao  artigo
+  - paragrafo  inciso  alinea  item

@@ -1,6 +1,6 @@
 
 
-from base.views import get_casalegislativa
+from sapl.base.views import get_casalegislativa
 
 
 def parliament_info(request):

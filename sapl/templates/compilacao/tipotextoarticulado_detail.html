@@ -1,0 +1,51 @@
+{% extends "base.html" %} {% load i18n %} {% load compilacao_filters %}
+{% load common_tags %}
+
+{% block base_content %}
+
+  {% block sections_nav %}
+  {% endblock %}
+
+  <div class="clearfix">
+    {% block actions %}
+      <div class="actions btn-group pull-right" role="group">
+        <a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_edit' object.pk %}">{% trans 'Editar' %}</a>
+        <a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_delete' object.pk %}">{% trans 'Excluir' %}</a>
+      </div>
+    {% endblock actions %}
+  </div>
+
+  {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
+    <fieldset>
+      <legend>{%trans 'Identificação Básica'%}</legend>
+      <div class="row">
+        <div class="col-md-2">
+          <div id="div_id_tipo" class="holder">
+            <label>{% field_verbose_name object 'sigla' %}</label>
+            <p>{{ object.sigla}}</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div id="div_id_numero" class="holder">
+            <label>{% field_verbose_name object 'descricao' %}</label>
+            <p>{{ object.descricao}}</p>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div id="div_id_ano" class="holder">
+            <label>{% field_verbose_name object 'content_type' %}</label>
+            <p>{{ object.content_type|default:""}}</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div id="div_id_ano" class="holder">
+            <label>{% field_verbose_name object 'participacao_social' %}</label>
+            <p>{{ object.get_participacao_social_display}}</p>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  {% endblock detail_content %}
+{% endblock base_content %}

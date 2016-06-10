@@ -1,0 +1,9 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% block actions %}
+<div class="actions btn-group pull-right" role="group">
+  <a href="{% url 'sapl.protocoloadm:protocolar_doc' %}" class="btn btn-default">{% trans 'Protocolar Documento' %}</a>
+  <a href="{% url 'sapl.protocoloadm:protocolar_mat' %}" class="btn btn-default">{% trans 'Protocolar Matéria' %}</a>
+  <a href="{% url 'sapl.protocoloadm:anular_protocolo' %}" class="btn btn-default">{% trans 'Anular Protocolo' %}</a>
+</div>
+{% endblock actions %}

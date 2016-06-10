@@ -1,13 +1,20 @@
 from datetime import date
 from functools import wraps
+import os.path
 
+from compressor.utils import get_class
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
+from django.core.checks import Warning, register
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 import magic
+
+
+def get_settings_auth_user_model():
+    return getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 autor_label = '''
@@ -40,7 +47,8 @@ class ImageThumbnailFileInput(ClearableFileInput):
 
 
 def register_all_models_in_admin(module_name):
-    appname = module_name.split('.')[0]
+    appname = module_name.split('.')
+    appname = appname[1] if appname[0] == 'sapl' else appname[0]
     app = apps.get_app_config(appname)
     for model in app.get_models():
         class CustomModelAdmin(admin.ModelAdmin):
@@ -53,10 +61,6 @@ def register_all_models_in_admin(module_name):
 
 def xstr(s):
     return '' if s is None else str(s)
-
-
-def get_user_model():
-    return getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 def get_client_ip(request):

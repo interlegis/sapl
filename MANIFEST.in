@@ -1,0 +1,6 @@
+include README.rst LICENSE.txt
+recursive-include sapl *.html *.yaml
+recursive-include sapl/static *
+recursive-include sapl/relatorios/templates *.py
+global-exclude __pycache__
+global-exclude *.py[co]

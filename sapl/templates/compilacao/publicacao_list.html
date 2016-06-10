@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+{% load common_tags %}
+
+{% block base_content %}
+
+  <div class="actions btn-group pull-right" role="group">
+    <a href="{{ view.create_url }}" class="btn btn-default">
+      {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.Publicacao'%}
+    </a>
+  </div>
+
+  {% if not object_list %}
+    <p>{{ NO_ENTRIES_MSG }}</p>
+  {% else %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'data' %}</th>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'hora' %}</th>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'numero' %}</th>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'ano' %}</th>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'edicao' %}</th>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'veiculo_publicacao' %}</th>
+          <th>{% fieldclass_verbose_name 'sapl.compilacao.models.Publicacao' 'tipo_publicacao' %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pub in object_list %}
+          <tr>
+            <td><a href="{% url 'sapl.compilacao:ta_pub_detail' view.kwargs.ta_id pub.pk%}">{{ pub.data }}</a></td>
+            <td>{{ pub.hora|time:'H:i:s' }}</td>
+            <td>{{ pub.numero|default:'' }}</td>
+            <td>{{ pub.ano|default:'' }}</td>
+            <td>{{ pub.edicao|default:'' }}</td>
+            <td>{{ pub.veiculo_publicacao }}</td>
+            <td>{{ pub.tipo_publicacao}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {%endif%}
+  {% include 'paginacao.html'%}
+{% endblock %}

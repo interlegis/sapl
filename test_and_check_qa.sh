@@ -3,5 +3,5 @@
 # QA checks: run this before every commit
 
 py.test
-py.test --ds=crud.tests.settings crud/tests
+py.test --ds=sapl.crud.tests.settings sapl/crud/tests
 ./check_qa.sh
