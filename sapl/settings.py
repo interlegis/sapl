@@ -118,6 +118,10 @@ DATABASES = {
     )
 }
 
+# troque no caso de reimplementação da classe User conforme
+# https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model
+AUTH_USER_MODEL = 'auth.User'
+
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 EMAIL_HOST = config('EMAIL_HOST', cast=str)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', cast=str)

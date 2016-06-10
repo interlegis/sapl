@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm
+
 import sapl
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 

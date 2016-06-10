@@ -235,12 +235,19 @@ Boas Práticas
 * Mantenha todo o código de acordo com o padrão da PEP8 (sem exceções).
 
 * Antes de todo ``git push``:
+
   - Execute ``git pull --rebase`` (quase sempre).
   - Em casos excepcionais, faça somente ``git pull`` para criar um merge.
 
 * Antes de ``git commit``, sempre:
+
   - Execute ``./manage.py check``
   - Execute todos os testes com ``py.test`` na pasta raiz do projeto
+
+* Em caso de Implementação de modelo que envolva a classe from django.contrib.auth.models.User, não a use diretamente, use para isso a função get_user_model() de sapl.utils. Exemplo:
+
+  - no lugar de ``owner = models.ForeignKey(User, ... )``
+  - use ``owner = models.ForeignKey(get_user_model(), ... )``
 
 Atenção:
 
@@ -251,6 +258,7 @@ Atenção:
 
 * Novas funcionalidades estão sujeitas a aprovação, uma vez que elas podem ter impacto em várias pessoas.
   Nós sugerimos que você abra uma nova issue para discutir novas funcionalidades. Elas podem ser escritas tanto em Português, quanto em Inglês.
+
 
 
 Testes

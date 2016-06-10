@@ -488,7 +488,7 @@ class MateriaLegislativaPesquisaView(FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if (data and data.get('tipo') is not None):
-            url = "&"+str(self.request.environ['QUERY_STRING'])
+            url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('tipo=') - 1
                 url = url[ponto_comeco:]
@@ -599,7 +599,7 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
                  casa_legislativa.municipio + '-' +
                  casa_legislativa.uf)
 
-    base_url = get_base_url(request)
+    base_url = sapl.utils.get_base_url(request)
     materia_url = reverse('materia:acompanhar_materia',
                           kwargs={'pk': materia.id})
     confirmacao_url = reverse('materia:acompanhar_confirmar',
@@ -636,7 +636,7 @@ def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
                  casa_legislativa.municipio + '-' +
                  casa_legislativa.uf)
 
-    base_url = get_base_url(request)
+    base_url = sapl.utils.get_base_url(request)
     url_materia = reverse('materia:acompanhar_materia',
                           kwargs={'pk': materia.id})
     url_excluir = reverse('materia:acompanhar_excluir',

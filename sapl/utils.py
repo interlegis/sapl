@@ -1,12 +1,13 @@
 from datetime import date
 from functools import wraps
 
-import magic
 from django.apps import apps
+from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+import magic
 
 
 autor_label = '''
@@ -52,6 +53,10 @@ def register_all_models_in_admin(module_name):
 
 def xstr(s):
     return '' if s is None else str(s)
+
+
+def get_user_model():
+    return getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 def get_client_ip(request):
