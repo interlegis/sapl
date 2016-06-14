@@ -9,46 +9,14 @@ def cria_grupos_permissoes():
 
     # Cria todos os grupos necessários para a aplicação
 
-    if not Group.objects.filter(name="Operador Geral").exists():
-        op_geral = Group.objects.create(name="Operador Geral")
-    else:
-        op_geral = Group.objects.get(name="Operador Geral")
-
-    if not Group.objects.filter(name="Operador de Protocolo").exists():
-        op_prot = Group.objects.create(name="Operador de Protocolo")
-    else:
-        op_prot = Group.objects.get(name="Operador de Protocolo")
-
-    if not Group.objects.filter(name="Operador de Sessão").exists():
-        op_sessao = Group.objects.create(name="Operador de Sessão")
-    else:
-        op_sessao = Group.objects.get(name="Operador de Sessão")
-
-    if not Group.objects.filter(name="Operador de Comissão").exists():
-        op_comissao = Group.objects.create(name="Operador de Comissão")
-    else:
-        op_comissao = Group.objects.get(name="Operador de Comissão")
-
-    if not Group.objects.filter(name="Operador de Administração").exists():
-        op_adm = Group.objects.create(name="Operador de Administração")
-    else:
-        op_adm = Group.objects.get(name="Operador de Administração")
-
-    if not Group.objects.filter(name="Operador de Norma Jurídica").exists():
-        op_norma = Group.objects.create(name="Operador de Norma Jurídica")
-    else:
-        op_norma = Group.objects.get(name="Operador de Norma Jurídica")
-
-    if not Group.objects.filter(name="Operador de Matéria Legislativa").exists():
-        op_materia = Group.objects.create(
-            name="Operador de Matéria Legislativa")
-    else:
-        op_materia = Group.objects.get(name="Operador de Matéria Legislativa")
-
-    if not Group.objects.filter(name="Autor").exists():
-        op_autor = Group.objects.create(name="Autor")
-    else:
-        op_autor = Group.objects.get(name="Autor")
+    op_geral = Group.objects.get_or_create(name="Operador Geral")
+    op_prot = Group.objects.get_or_create(name="Operador de Protocolo")
+    op_sessao = Group.objects.get_or_create(name="Operador de Sessão")
+    op_comissao = Group.objects.get_or_create(name="Operador de Comissão")
+    op_adm = Group.objects.get_or_create(name="Operador de Administração")
+    op_norma = Group.objects.get_or_create(name="Operador de Norma Jurídica")
+    op_materia = Group.objects.get_or_create(name="Operador de Matéria Legislativa")
+    op_autor = Group.objects.get_or_create(name="Autor")
 
     # Base
 
