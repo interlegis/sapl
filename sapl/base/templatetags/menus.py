@@ -52,7 +52,6 @@ def subnav(context, path=None):
 
 
 def resolve_urls_inplace(menu, pk, app, request_path):
-    print(menu)
     if isinstance(menu, list):
         list_active = ''
         for item in menu:
