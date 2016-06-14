@@ -15,8 +15,8 @@ DATABASES['legacy'] = {
     'PORT': '3306',
 }
 
-DATABASE_ROUTERS = ['legacy.router.LegacyRouter', ]
+DATABASE_ROUTERS = ['sapl.legacy.router.LegacyRouter', ]
 
 MOMMY_CUSTOM_FIELDS_GEN = {
-    'django.db.models.ForeignKey': 'legacy.migration.make_with_log'
+    'django.db.models.ForeignKey': 'sapl.legacy.migration.make_with_log'
 }

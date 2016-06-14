@@ -1,0 +1,131 @@
+{% extends "compilacao/textoarticulado_detail.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+{% load staticfiles %}
+{% load sass_tags %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block head_content %}{{block.super}}
+  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
+{% endblock %}
+
+{% block title%}
+  <h1><b>Edição:</b> {{ view.title }} - <i>{% trans 'Texto Multivigente' %}</i></h1>
+{% endblock %}
+
+{% block actions %}
+  <div class="clearfix">
+    <div class="actions btn-toolbar pull-right" role="toolbar">
+      <div class="actions btn-group" role="group">
+        <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+      </div>
+      {% include 'compilacao/textoarticulado_menu_config.html' %}
+    </div>
+  </div>
+{% endblock actions %}
+
+{% block base_content %}{{block.super}}
+
+<div id="message_block"><div id="msg">{% trans 'Aguarde... Atualizando informações!!!'%}</div></div>
+
+<div id="modal-message" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="alert" role="alert">
+        <button type="button" class="close fa-times fa" aria-label="Close"></button>
+        <div id="message"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="cp cpe">
+      {% include 'compilacao/text_edit_bloco.html'%}
+  </div>
+
+<div class="modal fade" id="modal-help" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-xs modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans "Fechar" %}"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Orientações Gerais <small>Dicas e Boas Práticas</small></h4>
+      </div>
+      <div class="modal-body">
+        {% blocktrans %}
+          <ol>
+            <li>As opções de inserção e exclusão tem precedência sobre qualquer alteração feita na edição avançada.
+            </li>
+            <li>Os Perfis Estruturais controlam as possibilidades do inserção do Editor. Perfis Estruturais servem para guiar as permissões de inserções relativas e podem, caso configurados de acordo, guiar a construção do Texto para se enquadrar em legislação e/ou regras específicas.</li>
+            <li>O Editor pode estar em quatro modos:
+            <ol>
+              <li><strong>(E) Editor Simples:</strong> Edição Básica de Texto, além de novas inserções e exclusões. É recomendável o uso deste sempre que possível.</li>
+              <li><strong>(E+) Editor Rico:</strong> Edição do texto com o editor TinyMCE. Neste editor é possível registro de tabelas e textos customizados</li>
+              <li><strong>(E*) Editor Avançado:</strong> Edição e Lançamento de Dispositivos Originais, Alterados e Alteradores, além de todos os dados que controlam a compilação. </li>
+              <li><strong>(C) Construtor Estrutural:</strong> Neste modo, o editor foca na inserção de Dispositivos e busca deixar mais acessíveis estas ações.</li>
+
+            </ol></li>
+            <li>A Edição Avançada é complexa e sensível a erros de edição. É recomendável o uso cuidadoso e consciente das funcionalidades. Ela será tratada num tópico aparte.</li>
+            <li>Gere toda a estrutura básica sem adicionar texto, isso evitará erros estruturais e otimizará seu trabalho por:
+              <ol>
+                <li>Facilitar o trabalho local aí, de seu navegador.</li>
+                <li>Diminuir o tráfego de rede.</li>
+                <li>Desonerar os servidores que processam e armazenam seus dados.</li>
+              </ol>
+            </li>
+            <li>Inserir os Dispositivos na sequência natural é mais produtivo para você, além de ser também mais simples para o algorítmo que controla este processo. Quanto maior a mudança estutural, mais lento será o procedimento. </li>
+            <li>A Opção DVt (Dispositivo de Vigência do Texto) redefine o dispositivo em seleção como o dispositivo de vigência de todos os outros, inclusive os dispositivos alterados, caso se trate de um Texto Alterador.
+              <ol>
+                <li>O Dispositivo de Vigência de Dispositivos Alterados é, quase sempre, o Dispositivo do Texto Alterador, e não do Texto Alterado.</li>
+                <li>Ao usar a opção DVt, todas as datas de início de vigência serão reenquadradas para a data de vigência do dispositivo de vigência. Posteriormente, alterações manuais poderão ser feitas.</li>
+                <li>Ao fazer alterações de dispositivos, a opção DVt manipula automáticamente as datas de fim de vigência dos Dispositivos substituidos, ou seja, ao definir um Dispositivo de Vigência de um Dispositivo Alterado, automaticamente será encerrado a vigência de seu antecessor. O mesmo ocorre para dispositivos que possuem sucessores. </li>
+                <li>Após usar a opção DVt, alterações manuais poderão ser feitas no Editor Avançado e, não sendo usado novamente a opção Dvt, essas alterações manuais serão mantidas.</li>
+              </ol>
+            </li>
+              <li>A criação de Tipos de Dispositivos é dinâmica e deverão estar amarrados por perfis estuturais configuráveis. Por serem tarefas técnicas e complicadas, criar/editar tipos de dispositivos e perfis estuturais estão disponíveis apenas na área de edição técnica do SAPL (admin).
+              </li>
+            </ol>
+            <ul>
+                <li>As exclusões e inserções, quando acionadas, renumeram e redefinem os rótulos, tanto de dispositivos locais, quanto os DCC's.</li>
+              </ul>
+            <hr>
+            <h4>Exclusões</h4>
+            <ol>
+              <li>A exclusão de Dispositivos é um processo moroso e complicado, principalmente se o que está sendo excluido for, ou envolver, os DCC's - Dispositivos de Contagem Continua, como é o caso do Tipo de Dispositivo (Artigo), que é um tipo comum nos Textos Articulados Brasileiros.
+                As exclusões podem ser diretas, individuais ou em bloco:
+                <ol>
+                  <li><strong>Diretas:</strong> Dispositivos que não possuam itens internos são excluidos diretamente.</li>
+                  <li><strong>Individuais:</strong> Dispositivos que possuam itens internos e estes podem ser reenquadrados no Dispositivo imediatamente anterior
+                    <ul>
+                      <li>Ainda Não foi implementado a transferência de conteúdo na exclusão individual de DCC's que estão estruturalmente separados. Ex: Um artigo possui parágrafos, se seu artigo imediatamente anterior estiver no mesmo sub-grupo, esses parágrafos, na exclusão individual, serão transferidos para o artigo anterior, no entanto, se estiverem em sub-grupo separados, o artigo será completamente excluido como em uma exclusão em bloco.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Em Bloco:</strong> Todo o conteúdo incluído no Dispositivo em edição será excluído.</li>
+                </ol>
+              </li>
+            </ol>
+            <hr>
+            <h4>Edição Avançada</h4>
+            <ol>
+              <li>...
+              </li>
+            </ol>
+
+
+        {% endblocktrans %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Fechar" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock base_content %}
+
+{% block foot_js %}
+  {{block.super}}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
+{% endblock %}

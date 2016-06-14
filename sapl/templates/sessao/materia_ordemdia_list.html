@@ -1,0 +1,84 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+
+{% if form.errors %}
+	<div class="alert-box alert">
+		<ul>
+			{% for field in form %}
+				{% if field.errors %}
+					{% if field.label == 'votacao_aberta' %}
+						<li>Já existe uma matéria com a votação aberta!<br />
+						Para abrir outra, termine ou feche a votação existente!</li>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+		</ul>
+	</div>
+{% endif %}
+
+Matérias da Ordem do Dia
+<table class="table table-striped table-bordered">
+	<thead class="thead-default">
+		<tr>
+		  <th>Matéria</th>
+		  <th>Ementa</th>
+		  <th>Resultado da Votação</th>
+		</tr>
+	</thead>
+  {% for m in materias_ordem %}
+	  <tr>
+			<td>
+		    {{m.numero}} - <a href="{% url 'sapl.sessao:materiaordemdia_edit' m.pk m.oid %}">{{m.titulo}}</a>
+		    &nbsp;
+		    </br>
+		    <strong>Autor{{m.autor|length|pluralize:"es"}}</strong>: {{m.autor|join:', '}}
+			</td>
+
+	  	<td>{{m.ementa|safe}}</td>
+
+			<td>
+		    {% if m.resultado %}
+			    {% if m.tipo_votacao == 1 %}
+			    	<b><a href="{% url 'sapl.sessao:votacaosimbolicaedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+			    {% elif m.tipo_votacao == 2 %}
+			    	<b><a href="{% url 'sapl.sessao:votacaonominaledit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+			    {% elif m.tipo_votacao == 3%}
+			    	<b><a href="{% url 'sapl.sessao:votacaosecretaedit' m.pk m.oid m.ordem_id %}">{{m.resultado}}</a></b>
+			    {% endif %}
+		    {% else %}
+			    Matéria não votada <br />
+			    {% if m.votacao_aberta %}
+				    {% if m.tipo_votacao == 1 %}
+				    	<b><a href="{% url 'sapl.sessao:votacaosimbolica' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+				    {% elif m.tipo_votacao == 2 %}
+				    	<b><a href="{% url 'sapl.sessao:votacaonominal' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+				    {% elif m.tipo_votacao == 3%}
+				    	<b><a href="{% url 'sapl.sessao:votacaosecreta' m.pk m.oid m.ordem_id %}">Registrar Votação</a></b>
+				    {% endif %}
+		    	{% else %}
+		    		<form method="POST" action="{% url 'sapl.sessao:materiaordemdia_list' object.pk %}">
+				      {% csrf_token %}
+				      <input type="hidden" id="ordem_id" name="ordem_id" value="{{ m.ordem_id }}">
+				      <input type="submit" id="abrir-votacao" name="abrir-votacao" value="Abrir Votação" class="btn btn-primary">
+			    	</form>
+			    {% endif %}
+		    {% endif %}
+			</td>
+	  </tr>
+  {% endfor %}
+</table>
+</br>
+
+<form method="POST" action="{% url 'sapl.sessao:materiaordemdia_list' object.pk %}">
+	{% csrf_token %}
+	<input type="hidden" name="error_message" id="error_message" />
+	<a href="{% url 'sapl.sessao:materiaordemdia_create' object.pk %}" class="btn btn-primary">{% trans 'Adicionar Matérias' %}</a>
+	&nbsp;&nbsp;&nbsp;
+	<input type="submit" id="materia_reorder" name="materia_reorder" value="Reordenar Matérias da Ordem do Dia" class="btn btn-primary" />
+	&nbsp;&nbsp;&nbsp;
+	<input type="submit" id="incluir_varias" name="incluir_varias" value="Incluir Várias Matérias" class="btn btn-primary" />
+</form>
+
+{% endblock detail_content %}

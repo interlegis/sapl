@@ -6,9 +6,9 @@ from string import digits
 from django.apps import apps
 from django.db.models.fields import CharField, TextField
 
-from materia.models import Orgao, Origem
-from norma.models import AssuntoNorma
-from parlamentares.models import Municipio, NivelInstrucao, Partido
+from sapl.materia.models import Orgao, Origem
+from sapl.norma.models import AssuntoNorma
+from sapl.parlamentares.models import Municipio, NivelInstrucao, Partido
 from sapl.settings import SAPL_APPS
 
 sapl_appconfs = [apps.get_app_config(n) for n in SAPL_APPS]

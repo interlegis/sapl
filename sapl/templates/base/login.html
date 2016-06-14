@@ -1,0 +1,68 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% block base_content %}
+  
+  <!-- O bloco comentado é para ser implementado após as autorizacoes -->
+  <!-- {% if next %}
+    {% if user.is_authenticated %}
+      <p>Você não tem acesso a esta página. Se quiser continuar, faça o Login.</p>
+      
+      {% else %}
+        <p>Por favor, faça o Login para acessar esta página.</p>
+      {% endif %}
+
+  {% endif %} -->
+
+  <div class="container">
+      <div class="row">
+          <div class="col-md-4 col-md-offset-4">
+              <div class="login-panel panel panel-default">
+                  <div class="panel-heading">
+                      <h3 class="panel-title">Entrar</h3>
+                  </div>
+                  <div class="panel-body">
+                    <form id="login-form" method="post" action="{% url 'sapl.base:login' %}">
+                        {% csrf_token %}
+
+                          <p class="bs-component">
+                              <table>
+                                {% if form.errors %}
+                                  <div class="alert alert-danger">Usuário e/ou Senha inválidos.
+                                  </div>
+
+                                {% endif %}
+                                  <tr>
+                                      <td><b>Usuário</b></td>
+                                      <td>{{ form.username }}</td>
+                                  </tr>
+                                  <tr>
+                                      <td><b>Senha</b></td>
+                                      <td>{{ form.password }}</td>
+                                  </tr>
+                              </table>
+                          </p>
+                          <p class="bs-component">
+                              <center>
+                                  <input class="btn btn-success btn-sm" type="submit" value="login" />
+                              </center>
+                          </p>
+                          <input type="hidden" name="next" value="{{ next }}" />
+                    </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+{% endblock base_content %}
+
+  {% block javascript %}
+
+
+  <script>
+  {% if not user.is_authenticated %}
+   $("#autenticacao") .css("display","none");
+  {% endif %}
+  </script>
+
+  {% endblock %}

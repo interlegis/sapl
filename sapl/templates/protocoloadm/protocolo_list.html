@@ -1,0 +1,41 @@
+{% extends "protocoloadm/protocoloadm_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block detail_content %}
+{% if protocolos %}
+	<table>
+		<tr><td><h2>Resultados</h2></td>
+		</tr>
+		{% for p in protocolos %}
+			<tr>
+			<td>
+				<strong>Protocolo:</strong>
+				<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' p.numero p.ano %}">
+					{{ p.numero|stringformat:'06d' }}/{{ p.ano }}
+				</a>
+				&nbsp;&nbsp;-&nbsp;&nbsp;
+				<a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}">
+					<img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual">
+				</a></br>
+				<strong>Assunto:</strong> {{ p.assunto_ementa }}</br>
+				<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.timestamp|date:"H:m:s" }}</br>
+				<strong>Interessado:</strong> {{ p.interessado }}</br>
+				<strong>Natureza do Processo:</strong>
+					{% if p.tipo_processo == 0 %}
+						Administrativo
+					{% elif p.tipo_processo == 1 %}
+						Matéria Legislativa
+					{% endif %}</br>
+				<strong>Classificação:</strong> {{ p.tipo_documento }} </br>
+				<p></p>
+			</td>
+			</tr>
+		{% endfor %}
+	</table>
+	{% include "paginacao.html" %}
+{% else %}
+	<h2>Nenhum Registro recuperado</h2>
+{% endif %}
+{% endblock detail_content %}

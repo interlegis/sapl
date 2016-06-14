@@ -1,7 +1,0 @@
-{% extends "crud/list.html" %}
-{% load i18n %}
-{% block more_buttons %}
-  <a href="{% url 'sessao:pesquisar_sessao' %}" class="btn btn-default">
-    {% blocktrans with verbose_name=view.verbose_name %} Pesquisar {{ verbose_name }} {% endblocktrans %}
-  </a>
-{% endblock %}

@@ -8,6 +8,10 @@ https://docs.djangoproject.com/en/1.8/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
+
+Quick-start development settings - unsuitable for production
+See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
+
 """
 from decouple import config
 from dj_database_url import parse as db_url
@@ -16,14 +20,12 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
-BASE_DIR = Path(__file__).ancestor(2)
+BASE_DIR = Path(__file__).ancestor(1)
+PROJECT_DIR = Path(__file__).ancestor(2)
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -35,16 +37,16 @@ LOGIN_URL = '/login/?next='
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
-    'base',
-    'parlamentares',
-    'comissoes',
-    'materia',
-    'norma',
-    'sessao',
-    'lexml',
-    'painel',
-    'protocoloadm',
-    'compilacao',
+    'sapl.base',
+    'sapl.parlamentares',
+    'sapl.comissoes',
+    'sapl.materia',
+    'sapl.norma',
+    'sapl.sessao',
+    'sapl.lexml',
+    'sapl.painel',
+    'sapl.protocoloadm',
+    'sapl.compilacao',
 )
 
 INSTALLED_APPS = (
@@ -88,7 +90,7 @@ ROOT_URLCONF = 'sapl.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': ['sapl/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,7 +115,7 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 
 DATABASES = {
     'default': config(
-        'DATABASE_URL',
+        'DATABASE_URL', default='sqlite://:memory:',
         cast=db_url,
     )
 }
@@ -122,11 +124,11 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = 'auth.User'
 
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_HOST = config('EMAIL_HOST', cast=str)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', cast=str)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', cast=str)
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 
 MAX_DOC_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
@@ -154,7 +156,7 @@ LOCALE_PATHS = (
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR.child("collected_static")
+STATIC_ROOT = PROJECT_DIR.child("collected_static")
 STATICFILES_DIRS = (BASE_DIR.child("static"),)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -163,7 +165,7 @@ STATICFILES_FINDERS = (
     'sass_processor.finders.CssFinder',
 )
 
-MEDIA_ROOT = BASE_DIR.child("media")
+MEDIA_ROOT = PROJECT_DIR.child("media")
 MEDIA_URL = '/media/'
 
 DAB_FIELD_RENDERER = \
@@ -172,7 +174,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap3'
 CRISPY_FAIL_SILENTLY = not DEBUG
 
-BOWER_COMPONENTS_ROOT = BASE_DIR.child("bower")
+BOWER_COMPONENTS_ROOT = PROJECT_DIR.child("bower")
 BOWER_INSTALLED_APPS = (
     'bootstrap-sass#3.3.6',
     'components-font-awesome#4.5.0',

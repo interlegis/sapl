@@ -1,0 +1,23 @@
+{% extends "protocoloadm/protocoloadm_detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block detail_content %}
+	<strong>Protocolo:</strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }}</br>
+	<strong>Assunto:</strong> {{ protocolo.assunto_ementa }}</br>
+	<strong>Data Protocolo:</strong> {{ protocolo.data|date:"d/m/Y" }} - Horário: {{ protocolo.timestamp|date:"H:m:s" }}</br>
+	<strong>Interessado:</strong> {{ protocolo.interessado }}</br>
+	<!-- TODO: convert if-else to custom tag -->
+	<strong>Natureza do Processo:</strong>{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
+	<strong>Classificação:</strong> {{ protocolo.tipo_documento }} </br>
+	<strong>Número de Páginas:</strong> {{ protocolo.numero_paginas }} </br>
+	<strong>Observação:</strong>{{ protocolo.observacao|default:"Não há" }}</br>
+
+	<br />
+
+	<strong>Documento Vinculado:</strong></br>
+	<a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.numero protocolo.ano %}" class="btn btn-primary">Criar Documento</a>
+	&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.numero protocolo.ano %}" target="popup" class="btn btn-primary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=800, height=600')">Comprovante
+	</a>
+{% endblock detail_content %}

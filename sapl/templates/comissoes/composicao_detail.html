@@ -1,0 +1,31 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block detail_content %}
+	<table class="table table-striped">
+		<thead class="thead-default">
+			<tr>
+				<th>Nome</th>
+				<th>Cargo</th>
+				<th>Titular</th>
+				<th>Designação</th>
+				<th>Desligamento</th>
+				<th>Motivo</th>
+				<th>Observação</th>
+			</tr>
+		</thead>
+		{% for participacao in participacoes %}
+				<tr>
+					<td><a href="{% url 'sapl.comissoes:participacao_detail' participacao.pk %}">{{participacao.parlamentar.nome_parlamentar}}</a></td>
+					<td>{{participacao.cargo}}</td>
+					<td>{{participacao.titular|yesno:"Sim,Não"}}</td>
+					<td>{{participacao.data_designacao|date:"d/m/Y"}}</td>
+					<td>{{participacao.data_desligamento|date:"d/m/Y"|default:"-"}}</td>
+					<td>{{participacao.motivo_desligamento|default:"-"}}</td>
+					<td>{{participacao.observacao|default:"-"}}</td>
+				</tr>
+		{% endfor %}
+	</table>
+
+	<a href="{% url 'sapl.comissoes:participacao_create' composicao.pk %}" class="btn btn-primary">Incluir Parlamentar</a>
+{% endblock detail_content %}
