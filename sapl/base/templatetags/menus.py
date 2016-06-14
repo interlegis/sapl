@@ -37,29 +37,37 @@ def subnav(context, path=None):
         yaml_path = '%s/subnav.yaml' % app_template
 
         try:
-            """ Por padrão, são carragados dois Loaders,  
-            filesystem.Loader - busca em TEMPLATES_DIRS do projeto atual
-            app_directories.Loader - busca em todas apps instaladas
-            A função abaixo é nativa e busca em todos os Loaders Configurados.
+            """ Por padrão, são carragados dois Loaders,
+                filesystem.Loader - busca em TEMPLATE_DIRS do projeto atual
+                app_directories.Loader - busca em todas apps instaladas
+                A função nativa abaixo busca em todos os Loaders Configurados.
             """
             yaml_template = template.loader.get_template(yaml_path)
             menu = yaml.load(open(yaml_template.origin.name, 'r'))
-            resolve_urls_inplace(menu, root_pk, app)
+            resolve_urls_inplace(menu, root_pk, app, request.path)
         except:
-            # um erro será lançado por get_template se não for encontrado
-            # yaml_path em nenhum de locais registrados.
             pass
 
     return {'menu': menu}
 
 
-def resolve_urls_inplace(menu, pk, app):
+def resolve_urls_inplace(menu, pk, app, request_path):
+    print(menu)
     if isinstance(menu, list):
+        list_active = ''
         for item in menu:
-            resolve_urls_inplace(item, pk, app)
+            menuactive = resolve_urls_inplace(item, pk, app, request_path)
+            list_active = menuactive if menuactive else list_active
+            if not isinstance(item, list):
+                item['active'] = menuactive
+
+        return list_active
     else:
         if 'url' in menu:
             menu['url'] = reverse('%s:%s' % (app, menu['url']),
                                   kwargs={'pk': pk})
+            menu['active'] = 'active' if request_path == menu['url'] else ''
         if 'children' in menu:
-            resolve_urls_inplace(menu['children'], pk, app)
+            menu['active'] = resolve_urls_inplace(
+                menu['children'], pk, app, request_path)
+        return menu['active']
