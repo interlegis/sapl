@@ -4,7 +4,8 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic import ListView
 
-from sapl.crud.base import Crud, CrudBaseMixin
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudUpdateView, CrudDeleteView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Tramitacao
 
@@ -120,57 +121,25 @@ class ComposicaoCrud(MasterDetailCrud):
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
         permission_required = permissoes_comissoes()
 
-        def get_success_url(self):
-            return reverse(
-                'sapl.comissoes:composicao_detail',
-                kwargs={'pk': self.kwargs['pk']}
-            )
-
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
         permission_required = permissoes_comissoes()
 
-        def get_success_url(self):
-            return reverse(
-                'sapl.comissoes:composicao_detail',
-                kwargs={'pk': self.kwargs['pk']}
-            )
-
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
         permission_required = permissoes_comissoes()
-
-        def get_success_url(self):
-            return reverse(
-                'sapl.comissoes:composicao_list')
 
 
 class ComissaoCrud(Crud):
     model = Comissao
     help_path = 'modulo_comissoes'
 
-    class CreateView(PermissionRequiredMixin, Crud.CreateView):
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
         permission_required = permissoes_comissoes()
 
-        def get_success_url(self):
-            return reverse(
-                'sapl.comissoes:comissoes_detail',
-                kwargs={'pk': self.kwargs['pk']}
-            )
-
-    class UpdateView(PermissionRequiredMixin, Crud.UpdateView):
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         permission_required = permissoes_comissoes()
 
-        def get_success_url(self):
-            return reverse(
-                'sapl.comissoes:comissoes_detail',
-                kwargs={'pk': self.kwargs['pk']}
-            )
-
-    class DeleteView(PermissionRequiredMixin, Crud.DeleteView):
+    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_comissoes()
-
-        def get_success_url(self):
-            return reverse(
-                'sapl.comissoes:comissoes_list')
 
     class BaseMixin(CrudBaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao']
