@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic.base import TemplateView
 
 from sapl.crud.base import Crud, CrudBaseMixin, CrudCreateView, CrudUpdateView
@@ -14,17 +15,20 @@ class CasaLegislativaCrud(Crud):
     model = CasaLegislativa
     help_path = ''
 
-    class BaseMixin(CrudBaseMixin):
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = {'base.add_casalegislativa'}
         list_field_names = ['codigo', 'nome', 'sigla']
 
-    class CreateView(CrudCreateView):
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
+        permission_required = {'base.add_casa_legislativa'}
         form_class = CasaLegislativaForm
 
-    class UpdateView(CrudUpdateView):
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+        permission_required = {'base.change_casalegislativa'}
         form_class = CasaLegislativaForm
 
 
-class HelpView(TemplateView):
+class HelpView(PermissionRequiredMixin, TemplateView):
     # XXX treat non existing template as a 404!!!!
 
     def get_template_names(self):
