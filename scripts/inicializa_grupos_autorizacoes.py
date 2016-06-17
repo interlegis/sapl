@@ -15,7 +15,8 @@ def cria_grupos_permissoes():
     op_comissao = Group.objects.get_or_create(name="Operador de Comissão")
     op_adm = Group.objects.get_or_create(name="Operador de Administração")
     op_norma = Group.objects.get_or_create(name="Operador de Norma Jurídica")
-    op_materia = Group.objects.get_or_create(name="Operador de Matéria Legislativa")
+    op_materia = Group.objects.get_or_create(
+        name="Operador de Matéria Legislativa")
     op_autor = Group.objects.get_or_create(name="Autor")
 
     # Base
