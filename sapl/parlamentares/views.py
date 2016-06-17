@@ -1,11 +1,15 @@
 from django.contrib import messages
+from django.contrib.auth.models import Permission
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
-from sapl.crud.base import Crud, CrudCreateView, CrudListView, CrudUpdateView
+from sapl.crud.base import (Crud, CrudCreateView, CrudListView, CrudUpdateView,
+                            CrudBaseMixin)
 from sapl.crud.masterdetail import MasterDetailCrud
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
@@ -15,15 +19,81 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
-CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
-PartidoCrud = Crud.build(Partido, 'partidos')
-SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
-TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
-NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
-TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
-TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
-
 DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
+
+
+def permissoes_parlamentares():
+    lista_permissoes = []
+    cts = ContentType.objects.filter(app_label='parlamentares')
+    perms_parlamentares = list(Permission.objects.filter(content_type__in=cts))
+    for p in perms_parlamentares:
+        lista_permissoes.append('parlamentares.' + p.codename)
+    return set(lista_permissoes)
+
+
+class CargoMesaCrud(Crud):
+    model = CargoMesa
+    help_path = 'cargo_mesa'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['descricao', 'unico']
+
+
+class PartidoCrud(Crud):
+    model = Partido
+    help_path = 'partidos'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['nome', 'sigla', 'data_criacao', 'data_extincao']
+
+
+class SessaoLegislativaCrud(Crud):
+    model = SessaoLegislativa
+    help_path = 'sessao_legislativa'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['numero', 'tipo', 'legislatura', 'data_inicio',
+                            'data_fim', 'data_inicio_intervalo',
+                            'data_fim_intervalo']
+
+
+class TipoDependenteCrud(Crud):
+    model = TipoDependente
+    help_path = 'nivel_instrucao'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['descricao']
+
+
+class NivelInstrucaoCrud(Crud):
+    model = NivelInstrucao
+    help_path = 'tipo_dependente'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['descricao']
+
+
+class TipoAfastamentoCrud(Crud):
+    model = TipoAfastamento
+    help_path = 'tipo_afastamento'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['descricao', 'dispositivo', 'fim_mandato']
+
+
+class TipoMilitarCrud(Crud):
+    model = SituacaoMilitar
+    help_path = 'tipo_situa_militar'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['descricao']
 
 
 class MandatoCrud(MasterDetailCrud):
