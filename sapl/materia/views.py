@@ -41,18 +41,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-OrigemCrud = Crud.build(Origem, 'origem')
-TipoMateriaCrud = Crud.build(TipoMateriaLegislativa,
-                             'tipo_materia_legislativa')
-RegimeTramitacaoCrud = Crud.build(RegimeTramitacao, 'regime_tramitacao')
-TipoDocumentoCrud = Crud.build(TipoDocumento, 'tipo_documento')
-TipoFimRelatoriaCrud = Crud.build(TipoFimRelatoria, 'fim_relatoria')
 AnexadaCrud = Crud.build(Anexada, '')
-TipoAutorCrud = Crud.build(TipoAutor, 'tipo_autor')
-AutorCrud = Crud.build(Autor, 'autor')
-OrgaoCrud = Crud.build(Orgao, 'orgao')
-TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
-StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 
 
 def permissoes_materia():
@@ -62,6 +51,98 @@ def permissoes_materia():
     for p in perms_materia:
         lista_permissoes.append('materia.' + p.codename)
     return set(lista_permissoes)
+
+
+class OrigemCrud(Crud):
+    model = Origem
+    help_path = 'origem'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['nome', 'sigla']
+
+
+class TipoMateriaCrud(Crud):
+    model = TipoMateriaLegislativa
+    help_path = 'tipo_materia_legislativa'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['sigla', 'descricao']
+
+
+class RegimeTramitacaoCrud(Crud):
+    model = RegimeTramitacao
+    help_path = 'regime_tramitacao'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['descricao']
+
+
+class TipoDocumentoCrud(Crud):
+    model = TipoDocumento
+    help_path = 'tipo_documento'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['descricao']
+
+
+class TipoFimRelatoriaCrud(Crud):
+    model = TipoFimRelatoria
+    help_path = 'fim_relatoria'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['descricao']
+
+
+class TipoAutorCrud(Crud):
+    model = TipoAutor
+    help_path = 'tipo_autor'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['descricao']
+
+
+class AutorCrud(Crud):
+    model = Autor
+    help_path = 'autor'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['username', 'tipo', 'nome']
+
+
+class OrgaoCrud(Crud):
+    model = Orgao
+    help_path = 'orgao'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['nome', 'sigla', 'telefone',
+                            'unidade_deliberativa']
+
+
+class TipoProposicaoCrud(Crud):
+    model = TipoProposicao
+    help_path = 'tipo_proposicao'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['descricao', 'materia_ou_documento',
+                            'tipo_materia', 'modelo']
+
+
+class StatusTramitacaoCrud(Crud):
+    model = StatusTramitacao
+    help_path = 'status_tramitacao'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_materia()
+        list_field_names = ['sigla', 'descricao', 'indicador']
 
 
 class UnidadeTramitacaoCrud(Crud):
