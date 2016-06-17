@@ -40,7 +40,7 @@ class SessaoLegislativa(models.Model):
         ('E', 'extraordinaria', _('Extraordinária')),
     )
 
-    legislatura = models.ForeignKey(Legislatura)
+    legislatura = models.ForeignKey(Legislatura, verbose_name=Legislatura)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     tipo = models.CharField(
         max_length=1, verbose_name=_('Tipo'), choices=TIPO_SESSAO_CHOICES)
