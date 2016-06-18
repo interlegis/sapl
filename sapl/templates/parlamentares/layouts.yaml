@@ -1,6 +1,6 @@
-
+{% load i18n %}
 CargoMesa:
-  Cargo na Mesa:
+  {% trans 'Cargo na Mesa'%}:
   - descricao:10  unico
 
 Legislatura:

@@ -43,7 +43,8 @@ def subnav(context, path=None):
                 A função nativa abaixo busca em todos os Loaders Configurados.
             """
             yaml_template = template.loader.get_template(yaml_path)
-            menu = yaml.load(open(yaml_template.origin.name, 'r'))
+            rendered = yaml_template.render()
+            menu = yaml.load(rendered)
             resolve_urls_inplace(menu, root_pk, app, context)
         except:
             pass
