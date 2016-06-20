@@ -59,7 +59,6 @@ class OrigemCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['nome', 'sigla']
 
 
 class TipoMateriaCrud(Crud):
@@ -68,7 +67,6 @@ class TipoMateriaCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['sigla', 'descricao']
 
 
 class RegimeTramitacaoCrud(Crud):
@@ -77,7 +75,6 @@ class RegimeTramitacaoCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['descricao']
 
 
 class TipoDocumentoCrud(Crud):
@@ -86,7 +83,6 @@ class TipoDocumentoCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['descricao']
 
 
 class TipoFimRelatoriaCrud(Crud):
@@ -95,7 +91,6 @@ class TipoFimRelatoriaCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['descricao']
 
 
 class TipoAutorCrud(Crud):
@@ -104,7 +99,6 @@ class TipoAutorCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['descricao']
 
 
 class AutorCrud(Crud):
@@ -113,7 +107,6 @@ class AutorCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['username', 'tipo', 'nome']
 
 
 class OrgaoCrud(Crud):
@@ -122,8 +115,6 @@ class OrgaoCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['nome', 'sigla', 'telefone',
-                            'unidade_deliberativa']
 
 
 class TipoProposicaoCrud(Crud):
@@ -132,8 +123,6 @@ class TipoProposicaoCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['descricao', 'materia_ou_documento',
-                            'tipo_materia', 'modelo']
 
 
 class StatusTramitacaoCrud(Crud):
@@ -142,7 +131,6 @@ class StatusTramitacaoCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         permission_required = permissoes_materia()
-        list_field_names = ['sigla', 'descricao', 'indicador']
 
 
 class UnidadeTramitacaoCrud(Crud):
@@ -195,7 +183,7 @@ class ProposicaoCrud(Crud):
 
             return [self._as_row(obj) for obj in object_list]
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_materia()
 
         def delete(self, request, *args, **kwargs):
