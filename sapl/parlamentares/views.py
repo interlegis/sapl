@@ -1,7 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.models import Permission
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -12,6 +10,8 @@ from sapl.crud.base import (Crud, CrudCreateView, CrudListView, CrudUpdateView,
                             CrudBaseMixin, CrudDeleteView)
 from sapl.crud.masterdetail import MasterDetailCrud
 
+from sapl.utils import permissoes_parlamentares
+
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
@@ -20,15 +20,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
 DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
-
-
-def permissoes_parlamentares():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='parlamentares')
-    perms_parlamentares = list(Permission.objects.filter(content_type__in=cts))
-    for p in perms_parlamentares:
-        lista_permissoes.append('parlamentares.' + p.codename)
-    return set(lista_permissoes)
 
 
 class CargoMesaCrud(Crud):

@@ -3,8 +3,6 @@ from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
@@ -18,7 +16,8 @@ from django_filters.views import FilterView
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudListView, make_pagination,
                             CrudCreateView, CrudUpdateView, CrudDeleteView)
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa
-from sapl.utils import create_barcode, get_client_ip
+from sapl.utils import (create_barcode, get_client_ip, permissoes_protocoloadm,
+                        permissoes_adm)
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -40,24 +39,6 @@ ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 TipoInstituicaoCrud = Crud.build(TipoInstituicao, '')
-
-
-def permissoes_protocoloadm():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='protocoloadm')
-    perms_protocolo = list(Permission.objects.filter(content_type__in=cts))
-    for p in perms_protocolo:
-        lista_permissoes.append('protocoloadm.' + p.codename)
-    return set(lista_permissoes)
-
-
-def permissoes_adm():
-    lista_permissoes = []
-    perms_adm = Permission.objects.filter(
-        group__name='Operador de Administração')
-    for p in perms_adm:
-        lista_permissoes.append('protocoloadm.' + p.codename)
-    return set(lista_permissoes)
 
 
 class StatusTramitacaoAdministrativoCrud(Crud):

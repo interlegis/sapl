@@ -1,25 +1,15 @@
 from django.core.urlresolvers import reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.views.generic import ListView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, CrudDeleteView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Tramitacao
+from sapl.utils import permissoes_comissoes
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
-
-
-def permissoes_comissoes():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='comissoes')
-    perms_comissoes = list(Permission.objects.filter(content_type__in=cts))
-    for p in perms_comissoes:
-        lista_permissoes.append('comissoes.' + p.codename)
-    return set(lista_permissoes)
 
 
 def pegar_url_composicao(pk):
