@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -11,12 +12,18 @@ from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
+from sapl.utils import permissoes_painel
 
 from .models import Cronometro
 
 CronometroPainelCrud = Crud.build(Cronometro, '')
 
 
+def check_permission(user):
+    return user.has_perms(permissoes_painel())
+
+
+@user_passes_test(check_permission)
 def controlador_painel(request):
 
     painel_created = Painel.objects.get_or_create(data_painel=date.today())
@@ -37,23 +44,28 @@ def controlador_painel(request):
     return render(request, 'painel/controlador.html', context)
 
 
+@user_passes_test(check_permission)
 def painel_view(request, pk):
     context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk}
     return render(request, 'painel/index.html', context)
 
 
+@user_passes_test(check_permission)
 def painel_mensagem_view(request):
     return render(request, 'painel/mensagem.html')
 
 
+@user_passes_test(check_permission)
 def painel_parlamentar_view(request):
     return render(request, 'painel/parlamentares.html')
 
 
+@user_passes_test(check_permission)
 def painel_votacao_view(request):
     return render(request, 'painel/votacao.html')
 
 
+@user_passes_test(check_permission)
 def cronometro_painel(request):
     request.session[request.GET['tipo']] = request.GET['action']
     return HttpResponse({})
@@ -316,6 +328,7 @@ def get_votos_nominal(response, materia):
     return response
 
 
+@user_passes_test(check_permission)
 def get_dados_painel(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
     cronometro_discurso = get_cronometro_status(request, 'discurso')

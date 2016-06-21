@@ -17,7 +17,18 @@ def cria_grupos_permissoes():
     op_norma = Group.objects.get_or_create(name="Operador de Norma Jurídica")
     op_materia = Group.objects.get_or_create(
         name="Operador de Matéria Legislativa")
+    op_painel = Group.objects.get_or_create(name="Operador de Painel")
     op_autor = Group.objects.get_or_create(name="Autor")
+
+    op_geral = op_geral[0]
+    op_prot = op_prot[0]
+    op_sessao = op_sessao[0]
+    op_comissao = op_comissao[0]
+    op_adm = op_adm[0]
+    op_norma = op_norma[0]
+    op_materia = op_materia[0]
+    op_painel = op_painel[0]
+    op_autor = op_autor[0]
 
     # Base
 
@@ -76,6 +87,11 @@ def cria_grupos_permissoes():
     cts = ContentType.objects.filter(app_label='sessao')
     perms_sessao = list(Permission.objects.filter(content_type__in=cts))
 
+    # Painel
+
+    cts = ContentType.objects.filter(app_label='painel')
+    perms_painel = list(Permission.objects.filter(content_type__in=cts))
+
     # Autor
 
     perms_autor = Permission.objects.get(name="Can add Proposição")
@@ -103,6 +119,10 @@ def cria_grupos_permissoes():
     # Configura Permissoes Operador de Materia
     for p in perms_materia:
         op_materia.permissions.add(p)
+
+    # Configura Permissoes Operador de Painel
+    for p in perms_painel:
+        op_painel.permissions.add(p)
 
     # Configura Permissoes Autor
     op_autor.permissions.add(perms_autor)
