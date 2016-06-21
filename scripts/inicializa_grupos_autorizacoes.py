@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -137,6 +137,39 @@ def cria_grupos_permissoes():
     for p in perms_op_geral:
         op_geral.permissions.add(p)
     op_geral.permissions.add(perms_autor)
+
+    # Cria usuarios
+    op_geral_user = User.objects.get_or_create(username='op_geral')[0]
+    op_geral_user.set_password('interlegis')
+    op_geral.user_set.add(op_geral_user)
+
+    op_materia_user = User.objects.get_or_create(username='op_materia')[0]
+    op_materia_user.set_password('interlegis')
+    op_materia.user_set.add(op_materia_user)
+
+    op_prot_user = User.objects.get_or_create(username='op_protocolo')[0]
+    op_prot_user.set_password('interlegis')
+    op_prot.user_set.add(op_prot_user)
+
+    op_sessao_user = User.objects.get_or_create(username='op_sessao')[0]
+    op_sessao_user.set_password('interlegis')
+    op_sessao.user_set.add(op_sessao_user)
+
+    op_comissao_user = User.objects.get_or_create(username='op_comissao')[0]
+    op_comissao_user.set_password('interlegis')
+    op_comissao.user_set.add(op_comissao_user)
+
+    op_adm_user = User.objects.get_or_create(username='op_adm')[0]
+    op_adm_user.set_password('interlegis')
+    op_adm.user_set.add(op_adm_user)
+
+    op_norma_user = User.objects.get_or_create(username='op_norma')[0]
+    op_norma_user.set_password('interlegis')
+    op_norma.user_set.add(op_norma_user)
+
+    op_painel_user = User.objects.get_or_create(username='op_painel')[0]
+    op_painel_user.set_password('interlegis')
+    op_painel.user_set.add(op_norma_user)
 
 if __name__ == '__main__':
     cria_grupos_permissoes()
