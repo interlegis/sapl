@@ -19,8 +19,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
-DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
-
 
 class CargoMesaCrud(Crud):
     model = CargoMesa
@@ -75,6 +73,21 @@ class TipoMilitarCrud(Crud):
     help_path = 'tipo_situa_militar'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+
+
+class DependenteCrud(MasterDetailCrud):
+    model = Dependente
+    parent_field = 'parlamentar'
+    help_path = ''
+
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        permission_required = permissoes_parlamentares()
+
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
 
