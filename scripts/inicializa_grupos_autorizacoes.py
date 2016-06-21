@@ -171,5 +171,9 @@ def cria_grupos_permissoes():
     op_painel_user.set_password('interlegis')
     op_painel.user_set.add(op_norma_user)
 
+    op_autor_user = User.objects.get_or_create(username='op_autor')[0]
+    op_autor_user.set_password('interlegis')
+    op_autor.user_set.add(op_autor_user)
+
 if __name__ == '__main__':
     cria_grupos_permissoes()
