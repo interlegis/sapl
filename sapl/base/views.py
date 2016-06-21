@@ -44,3 +44,14 @@ class HelpView(PermissionRequiredMixin, TemplateView):
 
     def get_template_names(self):
         return ['ajuda/%s.html' % self.kwargs['topic']]
+
+
+class SistemaView(PermissionRequiredMixin, TemplateView):
+    template_name = 'sistema.html'
+    permission_required = ''
+
+    def has_perm(self):
+        if self.request.user.is_superuser:
+            return True
+        else:
+            return False

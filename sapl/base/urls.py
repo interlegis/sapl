@@ -4,13 +4,13 @@ from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
 from .forms import LoginForm
-from .views import CasaLegislativaCrud, HelpView
+from .views import CasaLegislativaCrud, HelpView, SistemaView
 
 app_name = AppConfig.name
 
 
 urlpatterns = [
-    url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),
+    url(r'^sistema/', SistemaView.as_view()),
     url(r'^ajuda/(?P<topic>\w+)$', HelpView.as_view(), name='help_topic'),
     url(r'^ajuda/', TemplateView.as_view(template_name='ajuda/index.html'),
         name='help_base'),
