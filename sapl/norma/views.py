@@ -1,29 +1,19 @@
 from datetime import datetime
 
-from django.contrib.auth.models import Permission
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect
 from django.views.generic import FormView, ListView
 
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudUpdateView, make_pagination)
+from sapl.utils import permissoes_norma
 
 from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
 LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
-
-
-def permissoes_norma():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='norma')
-    perms_norma = list(Permission.objects.filter(content_type__in=cts))
-    for p in perms_norma:
-        lista_permissoes.append('norma.' + p.codename)
-    return set(lista_permissoes)
 
 
 class AssuntoNormaCrud(Crud):

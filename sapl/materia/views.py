@@ -5,9 +5,7 @@ from string import ascii_letters, digits
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django.contrib import messages
-from django.contrib.auth.models import Permission
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
@@ -24,7 +22,8 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudListView,
                             CrudUpdateView, CrudDeleteView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
-from sapl.utils import autor_label, autor_modal, get_base_url
+from sapl.utils import (autor_label, autor_modal, get_base_url,
+                        permissoes_materia)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -42,15 +41,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Tramitacao, UnidadeTramitacao)
 
 AnexadaCrud = Crud.build(Anexada, '')
-
-
-def permissoes_materia():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='materia')
-    perms_materia = list(Permission.objects.filter(content_type__in=cts))
-    for p in perms_materia:
-        lista_permissoes.append('materia.' + p.codename)
-    return set(lista_permissoes)
 
 
 class OrigemCrud(Crud):
