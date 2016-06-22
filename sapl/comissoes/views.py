@@ -6,7 +6,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, CrudDeleteView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Tramitacao
-from sapl.utils import permissoes_comissoes
+from sapl.utils import permissoes_comissoes, permissao_tb_aux
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
@@ -24,8 +24,10 @@ class CargoCrud(Crud):
     help_path = 'cargo_comissao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_comissoes()
         list_field_names = ['nome', 'unico']
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class PeriodoComposicaoCrud(Crud):
@@ -33,8 +35,10 @@ class PeriodoComposicaoCrud(Crud):
     help_path = 'periodo_composicao_comissao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_comissoes()
         list_field_names = ['data_inicio', 'data_fim']
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoComissaoCrud(Crud):
@@ -42,9 +46,11 @@ class TipoComissaoCrud(Crud):
     help_path = 'tipo_comissao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_comissoes()
         list_field_names = ['sigla', 'nome', 'natureza',
                             'dispositivo_regimental']
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class ParticipacaoCrud(MasterDetailCrud):

@@ -3,8 +3,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.generic.base import TemplateView
 
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDetailView, CrudUpdateView)
+from sapl.crud.base import Crud, CrudBaseMixin, CrudCreateView,\
+    CrudDetailView, CrudUpdateView
+from sapl.utils import permissao_tb_aux
 
 from .forms import CasaLegislativaForm
 from .models import CasaLegislativa
@@ -19,8 +20,13 @@ class CasaLegislativaCrud(Crud):
     help_path = ''
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = {'base.add_casalegislativa'}
         list_field_names = ['codigo', 'nome', 'sigla']
+
+        def has_permission(self):
+            if self.request.user.is_superuser:
+                return True
+            else:
+                return False
 
     class CreateView(PermissionRequiredMixin, CrudCreateView):
         permission_required = {'base.add_casa_legislativa'}
@@ -50,8 +56,5 @@ class SistemaView(PermissionRequiredMixin, TemplateView):
     template_name = 'sistema.html'
     permission_required = ''
 
-    def has_perm(self):
-        if self.request.user.is_superuser:
-            return True
-        else:
-            return False
+    def has_permission(self):
+        return permissao_tb_aux(self)

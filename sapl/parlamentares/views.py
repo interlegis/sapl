@@ -10,7 +10,7 @@ from sapl.crud.base import (Crud, CrudCreateView, CrudListView, CrudUpdateView,
                             CrudBaseMixin, CrudDeleteView)
 from sapl.crud.masterdetail import MasterDetailCrud
 
-from sapl.utils import permissoes_parlamentares
+from sapl.utils import permissoes_parlamentares, permissao_tb_aux
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
@@ -25,7 +25,8 @@ class CargoMesaCrud(Crud):
     help_path = 'cargo_mesa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class PartidoCrud(Crud):
@@ -33,7 +34,8 @@ class PartidoCrud(Crud):
     help_path = 'partidos'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class SessaoLegislativaCrud(Crud):
@@ -41,7 +43,8 @@ class SessaoLegislativaCrud(Crud):
     help_path = 'sessao_legislativa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoDependenteCrud(Crud):
@@ -49,7 +52,8 @@ class TipoDependenteCrud(Crud):
     help_path = 'nivel_instrucao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class NivelInstrucaoCrud(Crud):
@@ -57,7 +61,8 @@ class NivelInstrucaoCrud(Crud):
     help_path = 'tipo_dependente'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoAfastamentoCrud(Crud):
@@ -65,7 +70,8 @@ class TipoAfastamentoCrud(Crud):
     help_path = 'tipo_afastamento'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoMilitarCrud(Crud):
@@ -73,7 +79,8 @@ class TipoMilitarCrud(Crud):
     help_path = 'tipo_situa_militar'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class DependenteCrud(MasterDetailCrud):
@@ -117,7 +124,8 @@ class ColigacaoCrud(Crud):
         ordering = ('-legislatura__data_inicio', 'nome')
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):
@@ -143,7 +151,8 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
         ordering = '-partido__sigla'
 
     class BaseMixin(PermissionRequiredMixin, MasterDetailCrud.BaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class LegislaturaCrud(Crud):
@@ -157,7 +166,8 @@ class LegislaturaCrud(Crud):
         form_class = LegislaturaForm
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class FiliacaoCrud(MasterDetailCrud):
@@ -261,9 +271,9 @@ class MesaDiretoraView(PermissionRequiredMixin, FormView):
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):
-        mensagem = _("Não há nenhuma Sessão Legislativa cadastrada. \
-        Só é possível compor uma Mesa Diretora quando há uma Sessão \
-        Legislativa cadastrada.")
+        mensagem = _('Não há nenhuma Sessão Legislativa cadastrada. ' +
+                     'Só é possível compor uma Mesa Diretora quando ' +
+                     'há uma Sessão Legislativa cadastrada.')
         messages.add_message(request, messages.INFO, mensagem)
 
         return self.render_to_response(

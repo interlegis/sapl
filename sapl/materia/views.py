@@ -23,7 +23,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudListView,
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, get_base_url,
-                        permissoes_materia)
+                        permissoes_materia, permissao_tb_aux)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -48,7 +48,8 @@ class OrigemCrud(Crud):
     help_path = 'origem'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoMateriaCrud(Crud):
@@ -56,7 +57,8 @@ class TipoMateriaCrud(Crud):
     help_path = 'tipo_materia_legislativa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class RegimeTramitacaoCrud(Crud):
@@ -64,7 +66,8 @@ class RegimeTramitacaoCrud(Crud):
     help_path = 'regime_tramitacao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoDocumentoCrud(Crud):
@@ -72,7 +75,8 @@ class TipoDocumentoCrud(Crud):
     help_path = 'tipo_documento'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoFimRelatoriaCrud(Crud):
@@ -80,7 +84,8 @@ class TipoFimRelatoriaCrud(Crud):
     help_path = 'fim_relatoria'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoAutorCrud(Crud):
@@ -88,7 +93,8 @@ class TipoAutorCrud(Crud):
     help_path = 'tipo_autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class AutorCrud(Crud):
@@ -96,7 +102,8 @@ class AutorCrud(Crud):
     help_path = 'autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class OrgaoCrud(Crud):
@@ -104,7 +111,9 @@ class OrgaoCrud(Crud):
     help_path = 'orgao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoProposicaoCrud(Crud):
@@ -112,7 +121,8 @@ class TipoProposicaoCrud(Crud):
     help_path = 'tipo_proposicao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class StatusTramitacaoCrud(Crud):
@@ -120,7 +130,9 @@ class StatusTramitacaoCrud(Crud):
     help_path = 'status_tramitacao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_materia()
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class UnidadeTramitacaoCrud(Crud):
