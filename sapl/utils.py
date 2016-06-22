@@ -295,3 +295,10 @@ def permissoes_painel():
     for p in perms_painel:
         lista_permissoes.append('painel.' + p.codename)
     return set(lista_permissoes)
+
+
+def permissao_tb_aux(self):
+    if self.request.user.is_superuser:
+        return True
+    else:
+        return False

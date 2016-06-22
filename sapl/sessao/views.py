@@ -23,7 +23,7 @@ from sapl.materia.models import (Autoria, DocumentoAcessorio,
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.serializers import SessaoPlenariaSerializer
-from sapl.utils import permissoes_sessao, permissoes_painel
+from sapl.utils import permissoes_sessao, permissoes_painel, permissao_tb_aux
 
 from .forms import (BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
                     ListMateriaForm, MateriaOrdemDiaForm, MesaForm,
@@ -59,7 +59,9 @@ class BancadaCrud(Crud):
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         list_field_names = ['nome', 'legislatura']
-        permission_required = permissoes_sessao()
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
     class ListView(CrudListView):
         ordering = 'legislatura'
@@ -76,7 +78,8 @@ class TipoSessaoCrud(Crud):
     help_path = 'tipo_sessao_plenaria'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_sessao()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoResultadoVotacaoCrud(Crud):
@@ -84,7 +87,8 @@ class TipoResultadoVotacaoCrud(Crud):
     help_path = 'tipo_resultado_votacao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_sessao()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class TipoExpedienteCrud(Crud):
@@ -92,7 +96,8 @@ class TipoExpedienteCrud(Crud):
     help_path = 'tipo_expediente'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_sessao()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class CargoBancadaCrud(Crud):
@@ -100,7 +105,8 @@ class CargoBancadaCrud(Crud):
     help_path = ''
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        permission_required = permissoes_sessao()
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 def abrir_votacao_view(request, pk, spk):
