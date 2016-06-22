@@ -11,7 +11,7 @@ from sapl.norma.models import AssuntoNorma
 from sapl.parlamentares.models import Municipio, NivelInstrucao, Partido
 from sapl.settings import SAPL_APPS
 
-sapl_appconfs = [apps.get_app_config(n) for n in SAPL_APPS]
+sapl_appconfs = [apps.get_app_config(n.split('.')[1]) for n in SAPL_APPS]
 models = [model for app in sapl_appconfs for model in app.get_models()]
 
 excluidos = Origem, Orgao, AssuntoNorma, Partido, NivelInstrucao, Municipio,
