@@ -1,14 +1,26 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load common_tags %}
 
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
     {% if proposicao.data_envio %}
-      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
-      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição Enviada' %}</a>
+      {% if perms|get_change_perm:view %}
+        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
+      {% endif %}
+
+      {% if perms|get_delete_perm:view %}
+        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição Enviada' %}</a>
+      {% endif %}
+
     {% else %}
-      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
-      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
+      {% if perms|get_change_perm:view %}  
+        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
+      {% endif %}
+
+      {% if perms|get_delete_perm:view %}  
+        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
+      {% endif %}
     {% endif %}
   </div>
 {% endblock actions %}

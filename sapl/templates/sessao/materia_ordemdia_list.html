@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load common_tags %}
 
 {% block detail_content %}
 
@@ -74,11 +75,15 @@ Matérias da Ordem do Dia
 <form method="POST" action="{% url 'sapl.sessao:materiaordemdia_list' object.pk %}">
 	{% csrf_token %}
 	<input type="hidden" name="error_message" id="error_message" />
-	<a href="{% url 'sapl.sessao:materiaordemdia_create' object.pk %}" class="btn btn-primary">{% trans 'Adicionar Matérias' %}</a>
-	&nbsp;&nbsp;&nbsp;
+	{% if perms|get_add_perm:view %}
+		<a href="{% url 'sapl.sessao:materiaordemdia_create' object.pk %}" class="btn btn-primary">{% trans 'Adicionar Matérias' %}</a>
+		&nbsp;&nbsp;&nbsp;
+	{% endif %}
 	<input type="submit" id="materia_reorder" name="materia_reorder" value="Reordenar Matérias da Ordem do Dia" class="btn btn-primary" />
 	&nbsp;&nbsp;&nbsp;
-	<input type="submit" id="incluir_varias" name="incluir_varias" value="Incluir Várias Matérias" class="btn btn-primary" />
+	{% if perms|get_add_perm:view %}
+		<input type="submit" id="incluir_varias" name="incluir_varias" value="Incluir Várias Matérias" class="btn btn-primary" />
+	{% endif %}
 </form>
 
 {% endblock detail_content %}
