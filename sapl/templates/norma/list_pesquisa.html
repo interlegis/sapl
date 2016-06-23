@@ -1,10 +1,14 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load common_tags %}
+
 {% block actions %}{% endblock %}
 {% block detail_content %}
   <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'sapl.norma:normajuridica_create' %}" class="btn btn-default">Adicionar Norma Jurídica</a>
+    {% if perms.norma.add_normajuridica %}
+      <a href="{% url 'sapl.norma:normajuridica_create' %}" class="btn btn-default">Adicionar Norma Jurídica</a>
+    {% endif %}
   </div>
   <br /><br /><br />
   {% if object_list %}
