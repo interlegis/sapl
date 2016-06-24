@@ -1,6 +1,8 @@
 import json
 from datetime import date, datetime
+import sapl.crud.base
 
+from sapl.crud.masterdetail import MasterDetailCrud
 from braces.views import FormValidMessageMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -23,7 +25,8 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
-                    ProtocoloMateriaForm, TramitacaoAdmForm)
+                    ProtocoloMateriaForm, TramitacaoAdmForm,
+                    TramitacaoAdmEditForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
@@ -31,14 +34,31 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      TramitacaoAdministrativo)
 
 TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
-DocumentoAdministrativoCrud = Crud.build(DocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
-TramitacaoAdministrativoCrud = Crud.build(TramitacaoAdministrativo, '')
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 TipoInstituicaoCrud = Crud.build(TipoInstituicao, '')
+
+
+class DocumentoAdministrativoCrud(Crud):
+    model = DocumentoAdministrativo
+    help_path = ''
+
+    class BaseMixin(sapl.crud.base.CrudBaseMixin):
+        list_field_names = ['tipo', 'numero', 'ano', 'data',
+                            'numero_protocolo', 'assunto',
+                            'interessado', 'tramitacao', 'texto_integral']
+
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
+        permission_required = permissoes_adm()
+
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+        permission_required = permissoes_adm()
+
+    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+        permission_required = permissoes_adm()
 
 
 class StatusTramitacaoAdministrativoCrud(Crud):
@@ -172,7 +192,9 @@ class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
-class ProtocoloDocumentoView(PermissionRequiredMixin, FormValidMessageMixin, CreateView):
+class ProtocoloDocumentoView(PermissionRequiredMixin,
+                             FormValidMessageMixin,
+                             CreateView):
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
@@ -388,7 +410,8 @@ class ProposicaoDetailView(DetailView):
         return context
 
 
-class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin, FilterView):
+class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
+                                           FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
@@ -489,7 +512,8 @@ class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
             'pk': self.kwargs['pk']})
 
 
-class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin, FormView):
+class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
+                                               FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
     permission_required = permissoes_adm()
 
@@ -549,8 +573,8 @@ class DocumentoAcessorioAdministrativoView(PermissionRequiredMixin, FormView):
         doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
             documento_id=kwargs['pk'])
         if not doc_acessorio:
-            doc_ace_null = _('Nenhum documento acessório \
-                 cadastrado para este processo.')
+            doc_ace_null = _('Nenhum documento acessório' +
+                             'cadastrado para este processo.')
 
         return self.render_to_response({'pk': kwargs['pk'],
                                         'doc': doc,
@@ -577,94 +601,30 @@ class DocumentoAcessorioAdministrativoView(PermissionRequiredMixin, FormView):
         return reverse('sapl.protocoloadm:doc_ace_adm', kwargs={'pk': pk})
 
 
-class TramitacaoAdmView(PermissionRequiredMixin, FormView):
-    template_name = "protocoloadm/tramitacao.html"
-    permission_required = permissoes_adm()
+class TramitacaoAdmCrud(MasterDetailCrud):
+    model = TramitacaoAdministrativo
+    parent_field = 'documento'
+    help_path = ''
 
-    def get(self, request, *args, **kwargs):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
+                            'unidade_tramitacao_destino', 'status']
 
-        pk = kwargs['pk']
-        documento = DocumentoAdministrativo.objects.get(id=pk)
-        tramitacoes = TramitacaoAdministrativo.objects.filter(
-            documento=documento).order_by('-data_tramitacao')
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        form_class = TramitacaoAdmForm
+        permission_required = permissoes_adm()
 
-        return self.render_to_response({'documento': documento,
-                                        'tramitacoes': tramitacoes})
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        form_class = TramitacaoAdmEditForm
+        permission_required = permissoes_adm()
 
+    class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
+        permission_required = permissoes_adm()
 
-class TramitacaoAdmIncluirView(PermissionRequiredMixin, FormView):
-    template_name = "protocoloadm/tramitacao_incluir.html"
-    permission_required = permissoes_adm()
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        documento = DocumentoAdministrativo.objects.get(id=pk)
-        data = {'documento': documento}
-        form = TramitacaoAdmForm(initial=data)
-
-        return self.render_to_response({'documento': documento, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        form = TramitacaoAdmForm(request.POST or None)
-
-        if form.is_valid():
-            tramitacao = form.save(commit=False)
-            tramitacao.ultima = False
-            tramitacao.save()
-            return HttpResponseRedirect(reverse(
-                'sapl.protocoloadm:tramitacao_adm', kwargs={'pk': pk}))
-        else:
-            return self.form_invalid(form)
-
-
-class TramitacaoAdmEditView(PermissionRequiredMixin, FormView):
-
-    template_name = "protocoloadm/tramitacao_edit.html"
-    permission_required = permissoes_adm()
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
-        documento = tramitacao.documento
-        form = TramitacaoAdmForm(instance=tramitacao)
-
-        return self.render_to_response({'documento': documento, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        tramitacao = TramitacaoAdministrativo.objects.get(id=pk)
-        form = TramitacaoAdmForm(request.POST, instance=tramitacao)
-
-        if form.is_valid():
-            tramitacao = form.save(commit=False)
-            tramitacao.ultima = False
-            tramitacao.save()
-            return HttpResponseRedirect(
-                reverse('sapl.protocoloadm:tramitacao_adm',
-                        kwargs={'pk': tramitacao.documento.id}))
-        else:
-            return self.form_invalid(form)
-
-
-class TramitacaoAdmDeleteView(PermissionRequiredMixin, DetailView):
-
-    template_name = "protocoloadm/tramitacao.html"
-    permission_required = permissoes_adm()
-
-    def get(self, request, *args, **kwargs):
-        pk = kwargs['pk']
-        oid = kwargs['oid']
-
-        documento = DocumentoAdministrativo.objects.get(id=pk)
-
-        tramitacao = TramitacaoAdministrativo.objects.get(id=oid)
-        tramitacao.delete()
-        tramitacoes = TramitacaoAdministrativo.objects.filter(
-            documento=documento)
-
-        return self.render_to_response({'documento': documento,
-                                        'tramitacoes': tramitacoes})
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            return qs.filter(**kwargs).order_by('-id')
 
 
 def get_nome_autor(request):

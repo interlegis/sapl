@@ -11,7 +11,7 @@
   <br></br>
     {% if filter_url %}
       <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+        <a href="{% url 'materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
       </div>
     {% endif %}
  
@@ -35,7 +35,7 @@
             
               <tr>
                   <td>
-                      <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+                      <strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
                       <strong>Autores:</strong>
                       {% for a in m.autoria_set.all %}
                         {% if not forloop.first %}

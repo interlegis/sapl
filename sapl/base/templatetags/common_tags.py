@@ -77,6 +77,3 @@ def get_delete_perm(value, arg):
     can_delete = '.delete_' + nome_model
 
     return perm.__contains__(nome_app + can_delete)
-
-# view.__class__.model._meta.app_label -> nome do app
-# context.getcontext.get('view').__class__.model.__name__.lower() -> nome do model
