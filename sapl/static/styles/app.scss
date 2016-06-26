@@ -8,6 +8,12 @@
   float: none;
 }
 
+nav {
+  &.navbar {
+    border-radius: 0;
+  }
+}
+
 .masthead {
   padding: 10px;
   .nav {
@@ -139,7 +145,6 @@ fieldset {
     }
   }
 }
-
 .btn-primary, .btn-danger{
   font-size: 16px;
   height: 40px !important;

@@ -95,9 +95,14 @@ function textoMultiVigente(item, diff) {
     }
 
     if (elv) {
-        $('html, body').animate({
-            scrollTop: $(elv).parent().offset().top - 60
-        }, 0);
+        try {
+            $('html, body').animate({
+                scrollTop: $(elv).parent().offset().top - 60
+            }, 0);
+        }
+        catch(err) {
+        }
+
     }
 }
 
@@ -126,9 +131,13 @@ function textoVigente(item, link) {
             $(".link_alterador").addClass("displaynone");
 
     if (elv) {
-        $('html, body').animate({
-            scrollTop: $(elv).parent().offset().top - 60
-        }, 0);
+        try {
+            $('html, body').animate({
+                scrollTop: $(elv).parent().offset().top - 60
+            }, 0);
+        }
+        catch(err) {
+        }
     }
 }
 
