@@ -1,36 +1,36 @@
-
+{% load i18n %}
 CargoComissao:
-  Período de composição de Comissão:
+  {% trans 'Período de composição de Comissão' %}:
   - nome:10  unico
 
 Periodo:
-  Cargo de Comissão:
+  {% trans 'Cargo de Comissão' %}:
   - data_inicio  data_fim
 
 TipoComissao:
-  Tipo Comissão:
+  {% trans 'Tipo Comissão' %}:
   - nome:9  sigla
   - dispositivo_regimental:9  natureza
 
 Comissao:
-  Dados Básicos:
+  {% trans 'Dados Básicos' %}:
   - nome:8  sigla
   - tipo    data_criacao  unidade_deliberativa  data_extincao
-  Dados Complementares:
+  {% trans 'Dados Complementares' %}:
   - local_reuniao  agenda_reuniao  telefone_reuniao
   - endereco_secretaria  telefone_secretaria  fax_secretaria
   - secretario  email
   - finalidade
-  Temporária:
+  {% trans 'Temporária' %}:
   - apelido_temp:8  data_instalacao_temp
   - data_final_prevista_temp  data_prorrogada_temp  data_fim_comissao
 
 Composicao:
-  Composição:
+  {% trans 'Composição' %}:
   - periodo
 
 Participacao:
-  Participação:
+  {% trans 'Participação' %}:
   - parlamentar cargo titular
   - data_designacao data_desligamento
   - motivo_desligamento

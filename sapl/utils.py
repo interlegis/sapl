@@ -1,16 +1,13 @@
 from datetime import date
 from functools import wraps
-import os.path
 
-from compressor.utils import get_class
+import magic
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
-from django.core.checks import Warning, register
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-import magic
 
 
 def get_settings_auth_user_model():
