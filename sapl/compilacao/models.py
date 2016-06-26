@@ -1112,6 +1112,12 @@ class Dispositivo(BaseModel, TimestampedMixin):
             ta_id=self.ta_id).last()
         return anterior_articulacao
 
+    def get_niveis_zero(self):
+        niveis_zero = Dispositivo.objects.order_by('ordem').filter(
+            nivel=0,
+            ta_id=self.ta_id)
+        return niveis_zero
+
     def is_relative_auto_insert(self, perfil_pk=None):
         if self.dispositivo_pai is not None:
             # pp possiveis_pais

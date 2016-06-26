@@ -484,8 +484,17 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         inst = kwargs['instance'] if 'instance' in kwargs else None
 
+        editor_type = kwargs['initial']['editor_type']\
+            if'editor_type' in kwargs['initial'] else ''
+
         if inst and inst.tipo_dispositivo.formato_variacao0 in [
                 TipoDispositivo.FNC8, TipoDispositivo.FNCN]:
+            if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
+                for i in range(6):
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'dispositivo%s' % i)
+        elif editor_type == 'get_form_base':
             if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
                 DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
                 for i in range(6):
@@ -552,6 +561,46 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                          row_texto,
                          css_class="col-md-12"))
 
+        if editor_type == 'get_form_base' and inst.dispositivo_atualizador_id:
+            if inst and inst.tipo_dispositivo.dispositivo_de_articulacao:
+                if 'texto_atualizador' in\
+                        DispositivoEdicaoBasicaForm.Meta.fields:
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'texto_atualizador')
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'visibilidade')
+            else:
+                if 'texto_atualizador' not in\
+                        DispositivoEdicaoBasicaForm.Meta.fields:
+                    DispositivoEdicaoBasicaForm.Meta.fields.append(
+                        'texto_atualizador')
+                    DispositivoEdicaoBasicaForm.Meta.fields.append(
+                        'visibilidade')
+
+                self.texto_atualizador = forms.CharField(
+                    required=False,
+                    label='',
+                    widget=forms.Textarea())
+                self.visibilidade = forms.ChoiceField(
+                    label=Dispositivo._meta.get_field(
+                        'visibilidade').verbose_name,
+                    choices=utils.YES_NO_CHOICES,
+                    widget=forms.RadioSelect())
+
+                layout.append(
+                    Fieldset(Dispositivo._meta.get_field(
+                        'texto_atualizador').verbose_name,
+                        to_row([(InlineRadios('visibilidade'), 12)]),
+                        to_row([('texto_atualizador', 12)]),
+                        css_class="col-md-12"))
+        else:
+            if 'texto_atualizador' in\
+                    DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                    'texto_atualizador')
+                DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                    'visibilidade')
+
         fields = DispositivoEdicaoBasicaForm.Meta.fields
         if fields:
             self.base_fields.clear()
@@ -559,11 +608,57 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 self.base_fields.update({f: getattr(self, f)})
 
         self.helper = FormHelper()
-        self.helper.layout = SaplFormLayout(
-            *layout,
-            label_cancel=_('Ir para o Editor Sequencial'))
+
+        if not editor_type:
+            label_cancel = _('Ir para o Editor Sequencial')
+            self.helper.layout = SaplFormLayout(
+                *layout, label_cancel=label_cancel)
+
+        elif editor_type == "get_form_base":
+            getattr(self, "actions_" + editor_type)(layout, inst)
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
+
+    def actions_get_form_base(self, layout, inst):
+        label_cancel = _('Fechar')
+
+        more = [
+            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+                 label_cancel),
+        ]
+
+        btns_excluir = []
+
+        if not inst.is_relative_auto_insert():
+            btns_excluir = [
+                HTML('<a class="btn btn-danger btn-action btn-excluir" '
+                     'action="json_delete_item_dispositivo" '
+                     'title="%s"'
+                     '>%s</a>' % (_('Excluir apenas este dispositivo.'),
+                                  _('Excluir Dispositivo')))]
+
+            if inst.dispositivos_filhos_set.exists():
+                btns_excluir.append(
+                    HTML(
+                        '<a class="btn btn-danger btn-action btn-excluir" '
+                        'action="json_delete_bloco_dispositivo" '
+                        'title="%s"'
+                        '>%s</a>' % (_('Excluir este dispositivo '
+                                       'e toda sua estrutura.'),
+                                     _('Excluir Bloco de Dispositivo.'))))
+
+        if btns_excluir:
+            css_class = 'btn-group pull-right btns-excluir'
+            more.append(Div(*btns_excluir, css_class=css_class))
+
+        if not inst.tipo_dispositivo.dispositivo_de_articulacao:
+            more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+
+        buttons = FormActions(*more, css_class='form-group')
+
+        _fields = [to_row([(buttons, 12)])] + \
+            [Div(*layout, css_class="row-fluid")]
+        self.helper.layout = Layout(*_fields)
 
 
 class DispositivoSearchModalForm(Form):
@@ -624,7 +719,7 @@ class DispositivoSearchModalForm(Form):
                         placeholder=_('Digite palavras, letras, '
                                       'números ou algo'
                                       ' que estejam no texto.')),
-                    StrictButton(_('Buscar'), css_class='btn-busca')), 7))
+                    StrictButton(_('Buscar'), css_class='btn-busca btn-primary')), 7))
                 )
         )
 
@@ -1082,7 +1177,7 @@ class TextNotificacoesForm(Form):
 
     type_notificacoes = forms.ChoiceField(
         label=_('Níveis de Notificações'),
-        choices=[('default', _('Mostrar Dispositivos sem Notificações!')),
+        choices=[('default', _('Dispositivos sem Notificações!')),
                  ('success', _('Informações!')),
                  ('info', _('Boas Práticas!')),
                  ('warning', _('Alertas!')),

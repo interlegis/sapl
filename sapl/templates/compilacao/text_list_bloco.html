@@ -20,11 +20,11 @@
       <div class="{{ dpt.tipo_dispositivo.class_css }}">
         <div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
           {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
-          <a name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>
+          <a class="dpt-link" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>
           {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
           <span class="dtxt" id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido_id|default:''}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
           {% if dpt.ta_publicado_id and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-            <a class="link_alterador" href="{% url 'sapl.compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+            <a class="nota-alteracao" href="{%url 'sapl.compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
               {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
               {% nota_automatica dpt ta_pub_list %}
               {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}

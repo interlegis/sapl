@@ -5,10 +5,10 @@
   {% block head_content %}{{block.super}}
     <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
   {% endblock %}
-  
+
   {% crispy form %}
-  
-  
+
+
   <table class="table table-striped table-hover table-notificacoes">
     <thead>
       <tr>
@@ -30,6 +30,13 @@
                         id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}"
                         pks="{{dpt.dispositivo_substituido_id|default:''}}"
                         pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+
+                  {%if dpt.ta_publicado_id %}
+                    <a class="link_alterador clearfix" href="{%url 'compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+                      {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+                      {% nota_automatica dpt None %}
+                      {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}</a>
+                  {%endif%}
                 </div>
               </div>
             </div>

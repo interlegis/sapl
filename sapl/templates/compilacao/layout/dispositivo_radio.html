@@ -18,7 +18,7 @@
         </div>
         <div class="itemlabel dpt">
           {% if dpt.nivel > 1 %}
-            <a class="clearfix"  target="_blank" href="{% url 'sapl.compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% heranca request dpt 1 0 %}</a>
+            <a class="clearfix"  target="_blank" href="{% url 'sapl.compilacao:ta_text' dpt.ta.pk%}#{{dpt.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% heranca request dpt 0 0 %}</a>
           {% endif %}
           <div class="{{ dpt.tipo_dispositivo.class_css }}">
             <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{dpt.pk}}" >
@@ -29,6 +29,18 @@
                     id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}"
                     pks="{{dpt.dispositivo_substituido_id|default:''}}"
                     pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+              {% if dpt.ta_publicado_id and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+                <a class="link_alterador" href="{%url 'compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+                  {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+                  {% nota_automatica dpt ta_pub_list %}
+                  {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+                </a>
+              {% else %}
+                <div class="alert alert-info" role="alert">
+                  {% trans "Dispositivo do Texto Original." %}
+                </div>
+
+              {% endif %}
             </div>
           </div>
         </div>

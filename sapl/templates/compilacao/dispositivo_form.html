@@ -23,16 +23,37 @@
 {% endblock%}
 {% block base_content %}
   <div class="btn-group btn-group-sm" role="group">
+    <div class="cp-nav-parents btn-group btn-group-sm" role="group">
+      <a href="#" class="btn btn-default">
+        {% trans "Articulações" %}
+        <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu">
+        <li>
+          {%for parent in object.get_niveis_zero %}
+            <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
+              {{parent.dispositivo0}} - {{parent|nomenclatura}}
+            </a>
+          {%endfor %}
+        </li>
+      </ul>
+    </div>
     {%for parent in object.get_parents_asc %}
       {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
         {%include template_name%}
       {%endwith%}
     {%endfor %}
-
     {%with node=object active=True template_name='compilacao/dispositivo_form_parents.html' %}
       {%include template_name%}
     {%endwith%}
   </div>
+  <br>
+  {%if object.ta_publicado_id %}
+    <a class="text-warning" href="{%url 'compilacao:ta_text' object.ta_publicado.pk %}#{{object.dispositivo_atualizador_id}}">
+      <small>{{ object.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+      {% nota_automatica object None %}
+      {{ object.tipo_dispositivo.nota_automatica_sufixo_html|safe }}</small></a>
+  {%endif%}
   <br><br>
   {% crispy form %}
 {% endblock %}

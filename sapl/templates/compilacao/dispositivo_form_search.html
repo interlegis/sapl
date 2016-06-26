@@ -5,14 +5,14 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Fechar' %}"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="gridSystemModalLabel">{% trans "Selecionar Dispositivo(s)" %}</h4>
+        <h4 class="modal-title" id="gridSystemModalLabel">{% trans "Seleção de Dispositivo(s)" %}</h4>
       </div>
       <div class="modal-body">
         {% crispy form form.helper%}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Fechar' %}</button>
-        <button type="button" class="btn btn-primary" id="btn-modal-select">{% trans "Selecionar" %}</button>
+        <button type="button" class="btn btn-success" id="btn-modal-select">{% trans "Selecionar" %}</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
