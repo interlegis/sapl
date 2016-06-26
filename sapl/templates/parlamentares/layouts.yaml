@@ -4,29 +4,29 @@ CargoMesa:
   - descricao:10  unico
 
 Legislatura:
-  Legislatura:
+  {% trans 'Legislatura' %}:
   - data_inicio  data_fim  data_eleicao
 
 Coligacao:
-  Coligação:
+  {% trans 'Coligação' %}:
   - nome:5  legislatura:5  numero_votos
 
 Partido:
-  Partido Político:
+  {% trans 'Partido Político' %}:
   - nome:6  sigla  data_criacao  data_extincao
 
 Dependente:
-  Dependentes:
+  {% trans 'Dependentes' %}:
   - nome
   - tipo  sexo  data_nascimento
   - cpf  rg  titulo_eleitor
 
 SessaoLegislativa:
-  Sessão Legislativa:
+  {% trans 'Sessão Legislativa' %}:
   - numero:4  tipo:4  legislatura:4  data_inicio  data_fim  data_inicio_intervalo  data_fim_intervalo
 
 Parlamentar:
-  Cadastro do Parlamentar:
+  {% trans 'Cadastro do Parlamentar' %}:
   - nome_parlamentar:8  ativo
   - nome_completo
   - nivel_instrucao  sexo  data_nascimento
@@ -43,9 +43,9 @@ Parlamentar:
   - biografia
 
 ParlamentarCreate:
-  Dados do Mandato:
+  {% trans 'Dados do Mandato' %}:
     - legislatura  data_expedicao_diploma
-  Cadastro do Parlamentar:
+  {% trans 'Cadastro do Parlamentar' %}:
   - nome_parlamentar:8  ativo
   - nome_completo
   - nivel_instrucao  sexo  data_nascimento
@@ -61,34 +61,33 @@ ParlamentarCreate:
   - fotografia
   - biografia
 
-
 Filiacao:
-  'Filiações Partidárias ':
+  {% trans ''Filiações Partidárias '' %}:
   - partido  data  data_desfiliacao
 
 Mandato:
-  Mandato:
+  {% trans 'Mandato' %}:
   - legislatura  coligacao  votos_recebidos
   - data_fim_mandato  data_expedicao_diploma
   - tipo_afastamento
   - observacao
 
 TipoDependente:
-  Tipo de Dependente:
+  {% trans 'Tipo de Dependente' %}:
   - descricao
 
 NivelInstrucao:
-  Nível Instrução:
+  {% trans 'Nível Instrução' %}:
   - descricao
 
 TipoAfastamento:
-  Tipo de Afastamento:
+  {% trans 'Tipo de Afastamento' %}:
   - descricao:5  dispositivo:5  afastamento
 
 SituacaoMilitar:
-  Tipo Situação Militar:
+  {% trans 'Tipo Situação Militar' %}:
   - descricao
 
 ComposicaoColigacao:
-  'Nome do Partido':
+  {% trans ''Nome do Partido'' %}:
   - partido

@@ -1,39 +1,39 @@
-
+{% load i18n %}
 TipoDocumentoAdministrativo:
-  Tipo Documento Administrativo:
+  {% trans 'Tipo Documento Administrativo' %}:
   - sigla:4  descricao
 
 DocumentoAdministrativo:
-  Indentificação Básica:
+  {% trans 'Indentificação Básica' %}:
   - tipo  numero  ano
   - data  numero_protocolo
   - assunto
   - interessado  tramitacao
   - texto_integral
-  Outras Informações:
+  {% trans 'Outras Informações' %}:
   - dias_prazo  data_fim_prazo
   - observacao
 
 DocumentoAcessorioAdministrativo:
-  Documento Acessório:
+  {% trans 'Documento Acessório' %}:
   - tipo  nome  data
   - autor
   - arquivo
   - assunto
 
 StatusTramitacaoAdministrativo:
-  Status Tramitação Administrativo:
+  {% trans 'Status Tramitação Administrativo' %}:
   - indicador:3  sigla:2  descricao
 
 TramitacaoAdministrativo:
-  Tramitação:
+  {% trans 'Tramitação' %}:
   - data_tramitacao:4  unidade_tramitacao_local
   - status:4  unidade_tramitacao_destino
   - data_encaminhamento  data_fim_prazo
   - texto
 
 Protocolo:
-  Indentificação Documento:
+  {% trans 'Indentificação Documento' %}:
   - tipo_protocolo
   - tipo_documento  numero_paginas
   - assunto_ementa
@@ -41,12 +41,12 @@ Protocolo:
   - observacao
 
 Protocolo:
-  Indentificação da Matéria:
+  {% trans 'Indentificação da Matéria' %}:
   - tipo_materia  numero_paginas
   - assunto_ementa
   - autor
   - observacao
 
 TipoInstituicao:
-  Tipo de Instituição:
+  {% trans 'Tipo de Instituição' %}:
   - descricao

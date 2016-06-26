@@ -1,32 +1,33 @@
-- title: Abertura
+{% load i18n %}
+- title: {% trans 'Abertura' %}
   children:
-    - title: Dados Básicos
+    - title: {% trans 'Dados Básicos' %}
       url: sessaoplenaria_detail
-    - title: Mesa
+    - title: {% trans 'Mesa' %}
       url: mesa
-    - title: Presença
+    - title: {% trans 'Presença' %}
       url: presenca
-    - title: Explicações Pessoais
+    - title: {% trans 'Explicações Pessoais' %}
       url: orador_list
 
-- title: Expedientes
+- title: {% trans 'Expedientes' %}
   children:
-    - title: Expediente Diversos
+    - title: {% trans 'Expediente Diversos' %}
       url: expediente
-    - title: Matérias Expediente
+    - title: {% trans 'Matérias Expediente' %}
       url: expedientemateria_list
-    - title: Oradores do Expediente
+    - title: {% trans 'Oradores do Expediente' %}
       url: oradorexpediente_list
 
-- title: Ordem do Dia
+- title: {% trans 'Ordem do Dia' %}
   children:
-    - title: Matérias Ordem do Dia
+    - title: {% trans 'Matérias Ordem do Dia' %}
       url: materiaordemdia_list
-    - title: Presença Ordem do Dia
+    - title: {% trans 'Presença Ordem do Dia' %}
       url: presencaordemdia
 
-- title: Painel Eletrônico
+- title: {% trans 'Painel Eletrônico' %}
   url: painel
 
-- title: Resumo
+- title: {% trans 'Resumo' %}
   url: resumo

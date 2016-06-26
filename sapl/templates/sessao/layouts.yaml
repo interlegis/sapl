@@ -1,10 +1,10 @@
-
+{% load i18n %}
 TipoSessaoPlenaria:
-  Tipo de Sessão Plenária:
+  {% trans 'Tipo de Sessão Plenária' %}:
   - nome  quorum_minimo
 
 SessaoPlenaria:
-  Dados Básicos:
+  {% trans 'Dados Básicos' %}:
   - numero:1  tipo:3  legislatura  sessao_legislativa
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
@@ -12,62 +12,62 @@ SessaoPlenaria:
   - url_audio  url_video
 
 ExpedienteMateria:
-  Cadastro de Matérias do Expediente:
+  {% trans 'Cadastro de Matérias do Expediente' %}:
   - data_ordem  tip_sessao_FIXME  numero_ordem
   - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
   - tipo_votacao
   - observacao
 
 OrdemDia:
-  Cadastro de Matérias da Ordem do Dia:
+  {% trans 'Cadastro de Matérias da Ordem do Dia' %}:
   - data_ordem  tip_sessao_FIXME  numero_ordem
   - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
   - tipo_votacao
   - observacao
 
 TipoResultadoVotacao:
-  Tipo de Resultado da Votação:
+  {% trans 'Tipo de Resultado da Votação' %}:
   - nome
 
 TipoExpediente:
-  Tipo de Expediente:
+  {% trans 'Tipo de Expediente' %}:
   - nome
 
 RegistroVotacao:
-  Votação Simbólica:
+  {% trans 'Votação Simbólica' %}:
   - numero_votos_sim  numero_votos_nao  numero_abstencoes  nao_votou_FIXME
   - votacao_branco_FIXME  ind_votacao_presidente_FIXME
   - tipo_resultado_votacao
   - observacao
 
 Orador:
-  Orador das Explicações Pessoais:
+  {% trans 'Orador das Explicações Pessoais' %}:
   - numero_ordem parlamentar url_discurso
 
 OradorExpediente:
-  Orador do Expediente:
+  {% trans 'Orador do Expediente' %}:
   - numero_ordem parlamentar url_discurso
 
 ExpedienteMateria:
-  Matéria do Expediente:
+  {% trans 'Matéria do Expediente' %}:
   - data_ordem numero_ordem
   - tipo_materia numero_materia ano_materia
   - tipo_votacao
   - observacao
 
 ExpedienteMateriaDetail:
-  Matérias do Expediente:
+  {% trans 'Matérias do Expediente' %}:
   - materia
   - tipo_votacao
   - observacao
 
 Bancada:
-  Bancada:
+  {% trans 'Bancada' %}:
   - legislatura
   - nome partido
   - data_criacao data_extincao
   - descricao
 
 CargoBancada:
-  Cargo de Bancada:
+  {% trans 'Cargo de Bancada' %}:
   - nome_cargo:8 cargo_unico

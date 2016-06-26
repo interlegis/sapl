@@ -1,4 +1,5 @@
 import os
+
 from setuptools import find_packages, setup
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
@@ -33,7 +34,7 @@ install_requires = [
     'unipath==1.1',
     'python-magic==0.4.10',
     'gunicorn==19.4.5',
-#git+git://github.com/interlegis/trml2pdf.git    
+    # git+git://github.com/interlegis/trml2pdf.git
 ]
 setup(
     name='interlegis-sapl',
@@ -60,5 +61,5 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires = install_requires,
+    install_requires=install_requires,
 )

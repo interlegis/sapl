@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from django.contrib.auth import views
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic.base import TemplateView
 
 from .apps import AppConfig

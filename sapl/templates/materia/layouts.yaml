@@ -1,132 +1,133 @@
+{% load i18n %}
 Origem:
-  Origem:
+  {% trans 'Origem' %}:
   - nome:8  sigla
 
 TipoMateriaLegislativa:
-  Tipo Matéria Legislativa:
+  {% trans 'Tipo Matéria Legislativa' %}:
   - sigla:4  descricao
 
 RegimeTramitacao:
-  Tipo de Documento:
+  {% trans 'Tipo de Documento' %}:
   - descricao
 
 TipoDocumento:
-  Regime Tramitação:
+  {% trans 'Regime Tramitação' %}:
   - descricao
 
 TipoFimRelatoria:
-  Tipo Fim de Relatoria:
+  {% trans 'Tipo Fim de Relatoria' %}:
   - descricao
 
 MateriaLegislativa:
-  Identificação Básica:
+  {% trans 'Identificação Básica' %}:
   - tipo  numero  ano
   - data_apresentacao  numero_protocolo  tipo_apresentacao
   - texto_original
-  Outras Informações:
+  {% trans 'Outras Informações' %}:
   - apelido  dias_prazo  polemica
   - objeto  regime_tramitacao  em_tramitacao
   - data_fim_prazo  data_publicacao  complementar
-  Origem Externa:
+  {% trans 'Origem Externa' %}:
   - tipo_origem_externa  numero_origem_externa  ano_origem_externa
   - local_origem_externa  data_origem_externa
-  Dados Textuais:
+  {% trans 'Dados Textuais' %}:
   - ementa
   - indexacao
   - observacao
 
 Anexada:
-  Matéria Anexada:
+  {% trans 'Matéria Anexada' %}:
   - tipo numero ano
   - data_anexacao  data_desanexacao
 
 AnexadaDetail:
-  Matéria Anexada:
+  {% trans 'Matéria Anexada' %}:
   - materia_principal
   - materia_anexada
   - data_anexacao  data_desanexacao
 
 TipoAutor:
-  Tipo Autor:
+  {% trans 'Tipo Autor' %}:
   - descricao
 
 Autor:
-  Autor:
+  {% trans 'Autor' %}:
   - tipo:3  nome
   - username
 
 Autoria:
-  Autoria:
+  {% trans 'Autoria' %}:
   - autor  partido  primeiro_autor
 
 DocumentoAcessorio:
-  Documento Acessório:
+  {% trans 'Documento Acessório' %}:
   - tipo nome data
   - autor
   - ementa
   - arquivo
 
 Numeracao:
-  Numeração:
+  {% trans 'Numeração' %}:
   - tipo_materia numero_materia ano_materia data_materia
 
 Orgao:
-  Órgão:
+  {% trans 'Órgão' %}:
   - nome:4  sigla  telefone  endereco  unidade_deliberativa
 
 Relatoria:
-  Relatoria:
+  {% trans 'Relatoria' %}:
   - comissao
   - data_designacao_relator data_destituicao_relator
   - parlamentar tipo_fim_relatoria
 
 TipoProposicao:
-  Tipo Proposição:
+  {% trans 'Tipo Proposição' %}:
   - descricao
   - materia_ou_documento  tipo_documento
   - modelo
 
 ProposicaoCreate:
-  Proposição:
+  {% trans 'Proposição' %}:
   - tipo  data_envio
   - descricao
-  Materia:
+  {% trans 'Materia' %}:
   - tipo_materia numero_materia ano_materia
-  Complemento:
+  {% trans 'Complemento' %}:
   - texto_original
 
 Proposicao:
-  Proposição:
+  {% trans 'Proposição' %}:
   - tipo  data_envio
   - descricao
-  Materia:
+  {% trans 'Materia' %}:
   - materia
-  Complemento:
+  {% trans 'Complemento' %}:
   - texto_original
 
 StatusTramitacao:
-  Status Tramitação:
+  {% trans 'Status Tramitação' %}:
   - indicador:3  sigla:2  descricao
 
 UnidadeTramitacao:
-  Unidade Tramitação:
+  {% trans 'Unidade Tramitação' %}:
   - orgao
   - comissao
   - parlamentar
 
 Tramitacao:
-  Tramitação:
+  {% trans 'Tramitação' %}:
   - unidade_tramitacao_local unidade_tramitacao_destino
   - data_tramitacao data_encaminhamento data_fim_prazo
   - status  turno  urgente
   - texto
 
 DespachoInicial:
-  Despacho Inicial:
+  {% trans 'Despacho Inicial' %}:
   - comissao
 
 LegislacaoCitadaDetail:
-  Legislação Citada:
+  {% trans 'Legislação Citada' %}:
   - norma
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
