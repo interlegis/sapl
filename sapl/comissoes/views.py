@@ -95,7 +95,7 @@ class ParticipacaoCrud(MasterDetailCrud):
         def cancel_url(self):
             return pegar_url_composicao(self.kwargs['pk'])
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(PermissionRequiredMixin, MasterDetailCrud.BaseMixin):
         permission_required = permissoes_comissoes()
         list_field_names = ['composicao', 'parlamentar', 'cargo']
 
@@ -114,13 +114,13 @@ class ComposicaoCrud(MasterDetailCrud):
             context['participacoes'] = composicao.participacao_set.all()
             return self.render_to_response(context)
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_comissoes()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         permission_required = permissoes_comissoes()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_comissoes()
 
 

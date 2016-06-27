@@ -47,10 +47,16 @@
 
 	      <div class="col-md-4" align="center">
 					<br /><br />
-	        {% if cargos_vagos %} <input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" /> {% endif %}
+	        {% if cargos_vagos %}
+	        	{% if perms.parlamentares.add_cargomesa or perms.parlamentares.add_composicaomesa %} 
+	        		<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" /> 
+	        	{% endif %}
+	        {% endif %}
 	        <br />
 	        <br />
-	        <input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
+	        {% if perms.parlamentares.add_cargomesa or perms.parlamentares.add_composicaomesa %} 
+	        	<input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
+	        {% endif %}
 	      </div>
 
 	      {% if cargos_vagos %}

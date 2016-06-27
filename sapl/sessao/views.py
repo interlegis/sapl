@@ -314,7 +314,7 @@ class PresencaMixin:
 class PresencaView(PermissionRequiredMixin,
                    FormMixin,
                    PresencaMixin,
-                   SessaoCrud.DetailView):
+                   SessaoCrud.CrudDetailView):
     template_name = 'sessao/presenca.html'
     form_class = PresencaForm
     model = SessaoPlenaria
