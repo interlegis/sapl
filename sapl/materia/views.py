@@ -233,7 +233,7 @@ class RelatoriaCrud(MasterDetailCrud):
         permission_required = permissoes_materia()
         form_class = RelatoriaForm
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_materia()
 
 
