@@ -1,5 +1,8 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -264,10 +267,20 @@ class ParlamentarCrud(Crud):
             return context
 
 
-class MesaDiretoraView(PermissionRequiredMixin, FormView):
+def check_permission_mesa(request):
+    lista_permissoes = []
+    cts = ContentType.objects.filter(app_label='parlamentares')
+    cts = cts.filter(model__icontains='mesa')
+    perms = list(Permission.objects.filter(content_type__in=cts))
+    for p in perms:
+        lista_permissoes.append('parlamentares.' + p.codename)
+
+    return request.user.has_perms(set(lista_permissoes))
+
+
+class MesaDiretoraView(FormView):
     template_name = "mesa_diretora/mesa_diretora.html"
     success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
-    permission_required = permissoes_parlamentares()
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):
@@ -317,7 +330,7 @@ class MesaDiretoraView(PermissionRequiredMixin, FormView):
             })
 
     def post(self, request, *args, **kwargs):
-        if 'Incluir' in request.POST:
+        if 'Incluir' in request.POST and check_permission_mesa(request):
 
             if (not Legislatura.objects.all() or
                     not SessaoLegislativa.objects.all()):
@@ -334,7 +347,7 @@ class MesaDiretoraView(PermissionRequiredMixin, FormView):
 
             return redirect('sapl.parlamentares:mesa_diretora')
 
-        elif 'Excluir' in request.POST:
+        elif 'Excluir' in request.POST and check_permission_mesa(request):
 
             if (not Legislatura.objects.all() or
                     not SessaoLegislativa.objects.all()):

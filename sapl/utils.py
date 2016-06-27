@@ -263,8 +263,8 @@ def permissoes_parlamentares():
 
 def permissoes_protocoloadm():
     lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='protocoloadm')
-    perms_protocolo = list(Permission.objects.filter(content_type__in=cts))
+    perms_protocolo = Permission.objects.filter(
+        group__name='Operador de Protocolo')
     for p in perms_protocolo:
         lista_permissoes.append('protocoloadm.' + p.codename)
     return set(lista_permissoes)
