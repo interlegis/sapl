@@ -1,25 +1,26 @@
-- title: Início
+{% load i18n %}
+- title: {% trans 'Início' %}
   url: materialegislativa_detail
-- title: Anexada
+- title: {% trans 'Anexada' %}
   url: anexada_list
-- title: Autoria
+- title: {% trans 'Autoria' %}
   url: autoria_list
-- title: Despacho Inicial
+- title: {% trans 'Despacho Inicial' %}
   url: despachoinicial_list
-- title: Documento Acessório
+- title: {% trans 'Documento Acessório' %}
   url: documentoacessorio_list
-- title: Legislação Citada
+- title: {% trans 'Legislação Citada' %}
   url: legislacaocitada_list
-- title: Numeração
+- title: {% trans 'Numeração' %}
   url: numeracao_list
-- title: Tramitação
+- title: {% trans 'Tramitação' %}
   url: tramitacao_list
-- title: Relatoria
+- title: {% trans 'Relatoria' %}
   url: relatoria_list
 
 #  Opção adicionada para chamar o TextoArticulado da matéria.
 #   para integração foram necessárias apenas criar a url materia_ta em urls.py
 #   e a view MateriaTaView(IntegracaoTaView) em views.py
 #  Em nada mais a integração interfere em MateriaLegislativa
-- title: Texto
+- title: {% trans 'Texto' %}
   url: materia_ta

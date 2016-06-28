@@ -1,14 +1,14 @@
-
+{% load i18n %}
 AssuntoNorma:
-  Assunto Norma Jurídica:
+  {% trans 'Assunto Norma Jurídica' %}:
   - assunto  descricao
 
 TipoNormaJuridica:
-  Tipo Norma Jurídica:
+  {% trans 'Tipo Norma Jurídica' %}:
   - descricao  sigla  equivalente_lexml
 
 NormaJuridica:
-  Identificação Básica:
+  {% trans 'Identificação Básica' %}:
   - tipo  numero  ano
   - data  esfera_federacao  complemento
   - materia
@@ -19,7 +19,7 @@ NormaJuridica:
   - observacao
 
 NormaJuridicaCreate:
-  Identificação Básica:
+  {% trans 'Identificação Básica' %}:
   - tipo  numero  ano
   - data  esfera_federacao  complemento
   - tipo_materia  numero_materia  ano_materia
@@ -30,14 +30,14 @@ NormaJuridicaCreate:
   - observacao
 
 LegislacaoCitada:
-  Legislação Citada:
+  {% trans 'Legislação Citada' %}:
   - tipo  numero  ano
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
 
 LegislacaoCitadaDetail:
-  Legislação Citada:
+  {% trans 'Legislação Citada' %}:
   - norma
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo

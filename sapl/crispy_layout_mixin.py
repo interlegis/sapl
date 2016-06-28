@@ -1,10 +1,10 @@
 from math import ceil
-from os.path import dirname, join
 
 import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
+from django import template
 from django.utils import formats
 from django.utils.translation import ugettext as _
 
@@ -70,8 +70,8 @@ def get_field_display(obj, fieldname):
     elif 'FieldFile' in str(type(value)):
         if value:
             display = '<a href="{}">{}</a>'.format(
-                                                value.url,
-                                                value.name.split('/')[-1:][0])
+                value.url,
+                value.name.split('/')[-1:][0])
         else:
             display = ''
     else:
@@ -89,10 +89,8 @@ class CrispyLayoutFormMixin:
             return self.model.__name__
 
     def get_layout(self):
-        filename = join(
-            dirname(self.model._meta.app_config.models_module.__file__),
-            'layouts.yaml')
-        return read_layout_from_yaml(filename, self.layout_key)
+        yaml_layout = '%s/layouts.yaml' % self.model._meta.app_config.label
+        return read_layout_from_yaml(yaml_layout, self.layout_key)
 
     @property
     def fields(self):
@@ -146,15 +144,17 @@ class CrispyLayoutFormMixin:
              } for legend, rows in heads_and_tails(self.get_layout())]
 
 
-def read_yaml_from_file(filename):
+def read_yaml_from_file(yaml_layout):
+
     # TODO cache this at application level
-    with open(filename, 'r') as yamlfile:
-        return rtyaml.load(yamlfile)
+    t = template.loader.get_template(yaml_layout)
+    rendered = t.render()
+    return rtyaml.load(rendered)
 
 
-def read_layout_from_yaml(filename, key):
+def read_layout_from_yaml(yaml_layout, key):
     # TODO cache this at application level
-    yaml = read_yaml_from_file(filename)
+    yaml = read_yaml_from_file(yaml_layout)
     base = yaml[key]
 
     def line_to_namespans(line):

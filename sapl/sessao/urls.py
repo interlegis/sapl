@@ -1,7 +1,5 @@
 from django.conf.urls import include, url
-from django.views.static import serve
 
-from sapl import settings
 from sapl.sessao.views import (BancadaCrud, CargoBancadaCrud,
                                EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
                                ExpedienteView, ListMateriaOrdemDiaView,
@@ -40,8 +38,6 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/reordenar-expediente$', reordernar_materias_expediente,
         name="reordenar_expediente"),
 
-    url(r'^media/(?P<path>.*)$', serve,
-        {'document_root': settings.MEDIA_ROOT}),
     url(r'^rest/', include(sessao_rest)),
     url(r'^sistema/sessao-plenaria/tipo/',
         include(TipoSessaoCrud.get_urls())),

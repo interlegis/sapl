@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -37,7 +37,6 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from sapl.crud.base import Crud, CrudListView, make_pagination
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -2144,10 +2143,10 @@ class DispositivoSearchFragmentFormView(ListView):
 
             """
             ao integrar um model ao app de compilação, se este model possuir
-            
+
                 texto_articulado = GenericRelation(
                     TextoArticulado, related_query_name='texto_articulado')
-            
+
             será uma integração mais eficiente para as buscas de Dispositivos
             """
             if hasattr(model_class, 'texto_articulado'):

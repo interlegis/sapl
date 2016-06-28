@@ -1,9 +1,9 @@
-- title: Início
+{% load i18n %}
+- title: {% trans 'Início' %}
   url: parlamentar_detail
-- title: Mandatos
+- title: {% trans 'Mandatos' %}
   url: mandato_list
-- title: Filiações Partidárias
+- title: {% trans 'Filiações Partidárias' %}
   url: filiacao_list
-- title: Dependentes
+- title: {% trans 'Dependentes' %}
   url: dependente_list
-
