@@ -25,8 +25,8 @@ from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, get_base_url,
                         permissoes_materia, permissao_tb_aux)
 
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
-                    DespachoInicialForm, DocumentoAcessorioForm,
+from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
+                    AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
                     LegislacaoCitadaForm, MateriaLegislativaFilterSet,
                     NumeracaoForm, ProposicaoForm, RelatoriaForm,
                     TramitacaoForm, UnidadeTramitacaoForm,
@@ -102,8 +102,15 @@ class AutorCrud(Crud):
     help_path = 'autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        list_field_names = ['tipo', 'nome',
+                            'username', 'cargo']
+
         def has_permission(self):
             return permissao_tb_aux(self)
+
+    class CreateView(CrudCreateView):
+        form_class = AutorForm
+        layout_key = 'AutorCreate'
 
 
 class OrgaoCrud(Crud):

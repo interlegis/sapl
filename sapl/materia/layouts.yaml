@@ -53,7 +53,14 @@ TipoAutor:
 Autor:
   Autor:
   - tipo:3  nome
-  - username
+  - username:6 cargo
+
+AutorCreate:
+  Autor:
+  - tipo:3  nome
+  - username:4 senha:4 senha_confirma:4
+  - email:6 confirma_email:6
+  - cargo:4 parlamentar:4 comissao:4
 
 Autoria:
   Autoria:
