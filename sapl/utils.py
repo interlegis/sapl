@@ -2,7 +2,7 @@ from datetime import date
 from functools import wraps
 import os.path
 
-from compressor.utils import get_class
+import magic
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin

@@ -1,6 +1,8 @@
-- title: Início
+{% load i18n %}
+- title: {% trans 'Início' %}
   url: comissao_detail
-- title: Composição
+- title: {% trans 'Composição' %}
   url: composicao_list
-- title: Matérias em Tramitação
+  urls_extras: participacao_detail participacao_create participacao_edit participacao_delete
+- title: {% trans 'Matérias em Tramitação' %}
   url: materias_em_tramitacao

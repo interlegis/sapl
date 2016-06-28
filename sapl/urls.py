@@ -53,6 +53,9 @@ urlpatterns = [
 ]
 
 
+# Fix a static asset finding error on Django 1.9 + gunicorn:
+# http://stackoverflow.com/questions/35510373/
+
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
