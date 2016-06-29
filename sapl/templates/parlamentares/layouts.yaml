@@ -62,7 +62,7 @@ ParlamentarCreate:
   - biografia
 
 Filiacao:
-  {% trans ''Filiações Partidárias '' %}:
+  {% trans 'Filiações Partidárias' %}:
   - partido  data  data_desfiliacao
 
 Mandato:
@@ -89,5 +89,5 @@ SituacaoMilitar:
   - descricao
 
 ComposicaoColigacao:
-  {% trans ''Nome do Partido'' %}:
+  {% trans 'Nome do Partido' %}:
   - partido
