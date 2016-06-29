@@ -101,7 +101,8 @@ class ProposicaoForm(ModelForm):
 
     class Meta:
         model = Proposicao
-        fields = ['tipo', 'data_envio', 'descricao', 'texto_original']
+        fields = ['tipo', 'data_envio', 'descricao', 'texto_original', 'autor']
+        widgets = {'autor': forms.HiddenInput()}
 
 
 class AcompanhamentoMateriaForm(ModelForm):

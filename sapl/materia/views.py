@@ -219,6 +219,10 @@ class ProposicaoCrud(Crud):
         def layout_key(self):
             return 'ProposicaoCreate'
 
+        def get_initial(self):
+            autor_id = Autor.objects.get(user=self.request.user.id)
+            return {'autor': autor_id}
+
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ProposicaoForm
         permission_required = permissoes_autor()
