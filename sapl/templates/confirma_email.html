@@ -1,0 +1,7 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+Sua conta foi confirmada via e-mail. Clique <a href="{% url 'base:login' %}">aqui</a> para fazer seu login.
+
+{% endblock %}

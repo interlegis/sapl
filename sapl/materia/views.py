@@ -4,13 +4,18 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.models import User
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.template import Context, loader
+from django.utils.encoding import force_bytes
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, TemplateView, UpdateView
 from django_filters.views import FilterView
@@ -111,6 +116,45 @@ class AutorCrud(Crud):
     class CreateView(CrudCreateView):
         form_class = AutorForm
         layout_key = 'AutorCreate'
+
+        def get_success_url(self):
+            pk_autor = Autor.objects.get(
+                email=self.request.POST.get('email')).id
+            kwargs = {}
+            user = User.objects.get(email=self.request.POST.get('email'))
+            kwargs['token'] = default_token_generator.make_token(user)
+            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+            assunto = "SAPL - Confirmação de Conta"
+            full_url = self.request.get_raw_uri()
+            url_base = full_url[:full_url.find('sistema') - 1]
+
+            mensagem = ("Este e-mail foi utilizado para fazer cadastro no " +
+                        "SAPL com o perfil de Autor. Agora você pode " +
+                        "criar/editar/enviar Proposições.\n" +
+                        "Seu nome de usuário é: " +
+                        self.request.POST['username'] + "\n"
+                        "Caso você não tenha feito este cadastro, por favor " +
+                        "ignore esta mensagem. Caso tenha, clique " +
+                        "no link abaixo\n" + url_base +
+                        reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+            remetente = settings.EMAIL_SEND_USER
+            destinatario = [self.request.POST.get('email')]
+            send_mail(assunto, mensagem, remetente, destinatario,
+                      fail_silently=False)
+            return reverse('sapl.materia:autor_detail',
+                           kwargs={'pk': pk_autor})
+
+
+class ConfirmarEmailView(TemplateView):
+    template_name = "confirma_email.html"
+
+    def get(self, request, *args, **kwargs):
+        uid = urlsafe_base64_decode(self.kwargs['uidb64'])
+        user = User.objects.get(id=uid)
+        user.is_active = True
+        user.save()
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
 
 
 class OrgaoCrud(Crud):

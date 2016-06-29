@@ -48,7 +48,10 @@ def get_add_perm(value, arg):
     perm = value
     view = arg
 
-    nome_app = view.__class__.model._meta.app_label
+    try:
+        nome_app = view.__class__.model._meta.app_label
+    except AttributeError:
+        return None
     nome_model = view.__class__.model.__name__.lower()
     can_add = '.add_' + nome_model
 
@@ -60,7 +63,10 @@ def get_change_perm(value, arg):
     perm = value
     view = arg
 
-    nome_app = view.__class__.model._meta.app_label
+    try:
+        nome_app = view.__class__.model._meta.app_label
+    except AttributeError:
+        return None
     nome_model = view.__class__.model.__name__.lower()
     can_change = '.change_' + nome_model
 
@@ -72,7 +78,10 @@ def get_delete_perm(value, arg):
     perm = value
     view = arg
 
-    nome_app = view.__class__.model._meta.app_label
+    try:
+        nome_app = view.__class__.model._meta.app_label
+    except AttributeError:
+        return None
     nome_model = view.__class__.model.__name__.lower()
     can_delete = '.delete_' + nome_model
 

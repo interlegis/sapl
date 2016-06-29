@@ -4,7 +4,7 @@ import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -584,6 +584,10 @@ class AutorForm(ModelForm):
         return User.objects.filter(
             email=self.cleaned_data['email']).exists()
 
+    def usuario_existente(self):
+        return User.objects.filter(
+            username=self.cleaned_data['username']).exists()
+
     def clean(self):
         if ('senha' not in self.cleaned_data or
                 'senha_confirma' not in self.cleaned_data):
@@ -608,7 +612,11 @@ class AutorForm(ModelForm):
         email_existente = self.valida_email_existente()
 
         if email_existente:
-            msg = _('Esse email já foi cadastrado.')
+            msg = _('Este email já foi cadastrado.')
+            raise ValidationError(msg)
+
+        if self.usuario_existente():
+            msg = _('Este nome de usuario já foi cadastrado.')
             raise ValidationError(msg)
 
         try:
@@ -634,5 +642,8 @@ class AutorForm(ModelForm):
         autor.user = u
 
         autor.save()
+
+        grupo = Group.objects.filter(name='Autor')[0]
+        u.groups.add(grupo)
 
         return autor
