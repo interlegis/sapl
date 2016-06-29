@@ -23,12 +23,14 @@ from django_filters.views import FilterView
 from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudListView,
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDetailView, CrudListView,
                             CrudUpdateView, CrudDeleteView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, get_base_url,
-                        permissoes_materia, permissao_tb_aux)
+                        permissoes_autor, permissoes_materia,
+                        permissao_tb_aux)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
                     AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
@@ -219,14 +221,53 @@ class ProposicaoCrud(Crud):
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ProposicaoForm
-        permission_required = permissoes_materia()
+        permission_required = permissoes_autor()
 
         @property
         def layout_key(self):
             return 'ProposicaoCreate'
 
-    class ListView(CrudListView):
+        def has_permission(self):
+            perms = self.get_permission_required()
+            if self.request.user.has_perms(perms):
+                if (Proposicao.objects.filter(
+                   id=self.kwargs['pk'],
+                   autor__user_id=self.request.user.id).exists()):
+                    proposicao = Proposicao.objects.get(
+                        id=self.kwargs['pk'],
+                        autor__user_id=self.request.user.id)
+                    if not proposicao.data_recebimento:
+                        return True
+                    else:
+                        msg = _('Essa proposição já foi recebida. ' +
+                                'Não pode mais ser editada')
+                        messages.add_message(self.request, messages.ERROR, msg)
+                        return False
+            else:
+                return False
+
+    class DetailView(PermissionRequiredMixin, CrudDetailView):
+        permission_required = permissoes_autor()
+
+        @property
+        def layout_key(self):
+            return 'ProposicaoCreate'
+
+        def has_permission(self):
+            perms = self.get_permission_required()
+            if self.request.user.has_perms(perms):
+                if (Proposicao.objects.filter(
+                   id=self.kwargs['pk'],
+                   autor__user_id=self.request.user.id).exists()):
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+    class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
+        permission_required = permissoes_autor()
 
         def get_rows(self, object_list):
 
@@ -235,6 +276,11 @@ class ProposicaoCrud(Crud):
                     obj.data_envio = 'Em elaboração...'
 
             return [self._as_row(obj) for obj in object_list]
+
+        def get_queryset(self):
+            lista = Proposicao.objects.filter(
+                autor__user_id=self.request.user.id)
+            return lista
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_materia()

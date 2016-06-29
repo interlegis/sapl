@@ -302,3 +302,12 @@ def permissao_tb_aux(self):
         return True
     else:
         return False
+
+
+def permissoes_autor():
+    lista_permissoes = []
+    perms_autor = list(Permission.objects.filter(
+        group__name='Autor'))
+    for p in perms_autor:
+        lista_permissoes.append('materia.' + p.codename)
+    return set(lista_permissoes)

@@ -97,8 +97,7 @@ ProposicaoCreate:
   Proposição:
   - tipo  data_envio
   - descricao
-  Materia:
-  - tipo_materia numero_materia ano_materia
+
   Complemento:
   - texto_original
 
