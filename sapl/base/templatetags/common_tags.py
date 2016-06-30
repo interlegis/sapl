@@ -78,5 +78,11 @@ def get_delete_perm(value, arg):
 
     return perm.__contains__(nome_app + can_delete)
 
-# view.__class__.model._meta.app_label -> nome do app
-# context.getcontext.get('view').__class__.model.__name__.lower() -> nome do model
+
+@register.filter
+def ver_menu_sistema_perm(value):
+    u = value
+    if u.groups.filter(name='Operador Geral').exists() or u.is_superuser:
+        return True
+    else:
+        return False
