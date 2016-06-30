@@ -77,3 +77,12 @@ def get_delete_perm(value, arg):
     can_delete = '.delete_' + nome_model
 
     return perm.__contains__(nome_app + can_delete)
+
+
+@register.filter
+def ver_menu_sistema_perm(value):
+    u = value
+    if u.groups.filter(name='Operador Geral').exists() or u.is_superuser:
+        return True
+    else:
+        return False
