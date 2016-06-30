@@ -711,39 +711,21 @@ class MateriaLegislativaPesquisaView(FilterView):
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
 
+        context['title'] = _('Pesquisar Matéria Legislativa')
+
         paginator = context['paginator']
         page_obj = context['page_obj']
-
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
 
-        return context
-
-    def get(self, request, *args, **kwargs):
-        super(MateriaLegislativaPesquisaView, self).get(request)
-
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
-        data = self.filterset.data
-        if (data and data.get('tipo') is not None):
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
-        else:
-            url = ''
-
         self.filterset.form.fields['o'].label = _('Ordenação')
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list)
-                                        )
+        qr = self.request.GET.copy()
+        if 'page' in qr:
+            del qr['page']
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        return self.render_to_response(context)
+        return context
 
 
 class MateriaTaView(IntegracaoTaView):

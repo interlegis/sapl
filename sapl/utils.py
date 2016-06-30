@@ -2,7 +2,7 @@ from datetime import date
 from functools import wraps
 import os.path
 
-from compressor.utils import get_class
+import magic
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
@@ -298,7 +298,8 @@ def permissoes_painel():
 
 
 def permissao_tb_aux(self):
-    if self.request.user.is_superuser:
+    u = self.request.user
+    if u.groups.filter(name='Operador Geral').exists():
         return True
     else:
         return False

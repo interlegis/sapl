@@ -1,9 +1,10 @@
-- title: Início
+{% load i18n %}
+- title: {% trans 'Início' %}
   url: normajuridica_detail
 
 #  Opção adicionada para chamar o TextoArticulado da norma.
 #   para integração foram necessárias apenas criar a url norma_ta em urls.py
 #   e a view NormaTaView(IntegracaoTaView) em views.py
 #  Em nada mais a integração interfere em NormaJuridica
-- title: Texto
+- title: {% trans 'Texto' %}
   url: norma_ta
