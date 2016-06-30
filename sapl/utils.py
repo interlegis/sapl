@@ -296,7 +296,8 @@ def permissoes_painel():
 
 
 def permissao_tb_aux(self):
-    if self.request.user.is_superuser:
+    u = self.request.user
+    if u.groups.filter(name='Operador Geral').exists():
         return True
     else:
         return False
