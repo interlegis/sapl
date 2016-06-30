@@ -10,10 +10,11 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.encoding import force_bytes
 from django.utils.translation import ugettext_lazy as _
@@ -220,8 +221,15 @@ class ProposicaoCrud(Crud):
             return 'ProposicaoCreate'
 
         def get_initial(self):
-            autor_id = Autor.objects.get(user=self.request.user.id)
-            return {'autor': autor_id}
+            try:
+                autor_id = Autor.objects.get(user=self.request.user.id)
+            except MultipleObjectsReturned:
+                msg = _('Este usuário está relacionado a mais de um autor. ' +
+                        'Operação cancelada')
+                messages.add_message(self.request, messages.ERROR, msg)
+                return redirect(self.get_success_url())
+            else:
+                return {'autor': autor_id}
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ProposicaoForm
