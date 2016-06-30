@@ -1,13 +1,12 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
-
-from sapl.utils import intervalos_tem_intersecao
 
 from .models import (ComposicaoColigacao, Filiacao, Legislatura, Mandato,
                      Parlamentar)
@@ -74,59 +73,60 @@ class ParlamentarCreateForm(ParlamentarForm):
 
 
 def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
-
     # Verifica se data de desfiliacao é anterior a data de filiacao
     if data_desfiliacao and data_desfiliacao < data_filiacao:
         error_msg = _("A data de desfiliação não pode anterior \
                        à data de filiação")
         return [False, error_msg]
 
-    filiacao_atual_id = filiacao.pk
-    # recupera filiacoes em ordem crescente de data
-    todas_filiacoes = parlamentar.filiacao_set.all().order_by('data')
-    filiacoes_id = [parlamentar.pk for parlamentar in todas_filiacoes]
+    filiacoes = parlamentar.filiacao_set.order_by('data')
+    if not filiacoes.exists():
+        return [True, '']
 
-    # Novo registro inserido com filiacoes ja existentes
-    if filiacao_atual_id not in filiacoes_id and len(filiacoes_id) > 0:
-        ultima_filiacao = todas_filiacoes.last()
-        # Se ultima filiacao aberta e insercao posterior a esta filiacao
-        if (not ultima_filiacao.data_desfiliacao and
-                data_filiacao >= ultima_filiacao.data):
-            error_msg = _("O parlamentar não pode se filiar \
-                                   a novo partido sem antes se \
-                                   desfiliar do partido anterior")
-            return [False, error_msg]
+    # data ficticia de desfiliacao
+    df_desfiliacao = data_desfiliacao if data_desfiliacao else date.today()
 
-    # checa intervalos de interseccao
+    # se não puder haver filiação no mesmo dia de desfiliação, basta
+    # retirar os timedelta abaixo
+    range_livre_exigido = Q(
+        data__range=[data_filiacao + timedelta(days=1),
+                     df_desfiliacao - timedelta(days=1)]) | Q(
+        data_desfiliacao__range=[data_filiacao + timedelta(days=1),
+                                 df_desfiliacao - timedelta(days=1)])
+
+    filiacao_em_edicao_id = filiacao.pk
     error_msg = None
-    for filiacoes in todas_filiacoes:
-        # nao comparar o registro com ele mesmo
-        if filiacoes.id != filiacao_atual_id:
+    # filiação em edição não é a última e está sem data de desfiliação
+    if not data_desfiliacao and filiacao_em_edicao_id and\
+            filiacao_em_edicao_id != filiacoes.last().pk:
+        error_msg = _("Data de desfiliação do parlamentar não pode ser\
+                    ausente, se existirem datas de filiação posteriores.")
 
-            # Se a atualizacao eh para remover a data de desfiliacao
-            if not data_desfiliacao:
-                # so permite na ultima data (ou a unica)
-                if filiacao_atual_id != filiacoes_id[-1]:
-                    error_msg = _("Data de desfiliação do parlamentar não \
-                                   pode ser ausente, se existirem datas de \
-                                   filiação posteriores")
-                    return [False, error_msg]
-            else:
-                data_inicio = filiacoes.data
-                data_fim = filiacoes.data_desfiliacao
+    # a filiação que está sendo inclusa não tem data de desfiliação mas
+    #  já existe outra sem data de desfiliação
+    elif not data_desfiliacao and not filiacao_em_edicao_id and\
+            not filiacoes.last().data_desfiliacao:
+        error_msg = _("O parlamentar não pode se filiar a novo partido sem\
+                        antes se desfiliar do partido anterior.")
 
-                # Se filiacao ainda em aberto, preenche uma desfiliacao
-                # ficticia para fins de checagem de interseccao
-                if not data_fim:
-                    data_fim = date.today()
+    if not error_msg:
+        # se a filiação é uma edição, a exclui das possibilidades
+        if filiacao_em_edicao_id:
+            filiacoes = filiacoes.exclude(pk=filiacao_em_edicao_id)
 
-                # finalmente verifica intersecao
-                if intervalos_tem_intersecao(data_inicio, data_fim,
-                                             data_filiacao, data_desfiliacao):
-                    error_msg = _("A data de filiação e \
-                                   desfiliação não podem estar no intervalo \
-                                   de outro período de filiação")
-                    break
+        # testa a intercessão de intervalo com outra filiação
+        if filiacoes.filter(range_livre_exigido).exists():
+            error_msg = _("A data de filiação e desfiliação não podem estar\
+                            no intervalo de outro período de filiação.")
+
+    if not error_msg:
+        # passou pelo teste de intervalo mas a data de filiação é maior que
+        # a ultima que está em aberto
+        if filiacoes.filter(data_desfiliacao__isnull=True,
+                            data__lte=data_filiacao).exists():
+            error_msg = _("Não pode haver um registro de filiação com data de \
+                    filiação igual ou superior a data de filiação em aberto.")
+
     if error_msg:
         return [False, error_msg]
 
