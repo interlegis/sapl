@@ -1,6 +1,9 @@
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.views.generic.base import TemplateView
 
-from sapl.crud.base import Crud, CrudBaseMixin, CrudCreateView, CrudUpdateView
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDetailView, CrudUpdateView)
 
 from .forms import CasaLegislativaForm
 from .models import CasaLegislativa
@@ -22,6 +25,14 @@ class CasaLegislativaCrud(Crud):
 
     class UpdateView(CrudUpdateView):
         form_class = CasaLegislativaForm
+
+    class DetailView(CrudDetailView):
+        form_class = CasaLegislativaForm
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(
+                reverse('sapl.base:casalegislativa_update',
+                        kwargs={'pk': self.kwargs['pk']}))
 
 
 class HelpView(TemplateView):
