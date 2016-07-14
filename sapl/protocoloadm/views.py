@@ -1,8 +1,6 @@
 import json
 from datetime import date, datetime
-import sapl.crud.base
 
-from sapl.crud.masterdetail import MasterDetailCrud
 from braces.views import FormValidMessageMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,18 +13,21 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudListView, make_pagination,
-                            CrudCreateView, CrudUpdateView, CrudDeleteView)
+import sapl.crud.base
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDeleteView, CrudListView, CrudUpdateView,
+                            make_pagination)
+from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa
-from sapl.utils import (create_barcode, get_client_ip, permissoes_protocoloadm,
-                        permissoes_adm)
+from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
+                        permissoes_protocoloadm)
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
-                    ProtocoloMateriaForm, TramitacaoAdmForm,
-                    TramitacaoAdmEditForm)
+                    ProtocoloMateriaForm, TramitacaoAdmEditForm,
+                    TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,

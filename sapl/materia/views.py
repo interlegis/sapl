@@ -7,16 +7,16 @@ from crispy_forms.layout import HTML, Button
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
 from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, TemplateView, UpdateView
 from django_filters.views import FilterView
@@ -25,13 +25,12 @@ from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDetailView, CrudListView,
-                            CrudUpdateView, CrudDeleteView, make_pagination)
+                            CrudDeleteView, CrudDetailView, CrudListView,
+                            CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, get_base_url,
-                        permissoes_autor, permissoes_materia,
-                        permissao_tb_aux)
+                        permissao_tb_aux, permissoes_autor, permissoes_materia)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
                     AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,

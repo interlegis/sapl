@@ -22,10 +22,8 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-                                     TipoInstituicaoCrud,
-                                     TramitacaoAdmCrud,
-                                     get_nome_autor,
-                                     pesquisa_autores)
+                                     TipoInstituicaoCrud, TramitacaoAdmCrud,
+                                     get_nome_autor, pesquisa_autores)
 
 from .apps import AppConfig
 

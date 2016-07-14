@@ -7,8 +7,7 @@ from django import forms
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
