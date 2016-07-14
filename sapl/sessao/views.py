@@ -23,7 +23,7 @@ from sapl.materia.models import (Autoria, DocumentoAcessorio,
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.serializers import SessaoPlenariaSerializer
-from sapl.utils import permissoes_sessao, permissoes_painel, permissao_tb_aux
+from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
 
 from .forms import (BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
                     ListMateriaForm, MateriaOrdemDiaForm, MesaForm,

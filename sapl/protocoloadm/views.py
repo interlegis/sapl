@@ -13,11 +13,12 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudListView, make_pagination,
-                            CrudCreateView, CrudUpdateView, CrudDeleteView)
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDeleteView, CrudListView, CrudUpdateView,
+                            make_pagination)
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa
-from sapl.utils import (create_barcode, get_client_ip, permissoes_protocoloadm,
-                        permissoes_adm)
+from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
+                        permissoes_protocoloadm)
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,

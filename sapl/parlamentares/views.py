@@ -9,11 +9,10 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
-from sapl.crud.base import (Crud, CrudCreateView, CrudListView, CrudUpdateView,
-                            CrudBaseMixin, CrudDeleteView)
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDeleteView, CrudListView, CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
-
-from sapl.utils import permissoes_parlamentares, permissao_tb_aux
+from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
