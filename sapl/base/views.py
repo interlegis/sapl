@@ -3,8 +3,8 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.generic.base import TemplateView
 
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudUpdateView,
-                            CrudDetailView)
+from sapl.crud.base import Crud, CrudBaseMixin, CrudCreateView,\
+    CrudDetailView, CrudUpdateView
 from sapl.utils import permissao_tb_aux
 
 from .forms import CasaLegislativaForm
@@ -45,7 +45,7 @@ class CasaLegislativaCrud(Crud):
                         kwargs={'pk': self.kwargs['pk']}))
 
 
-class HelpView(TemplateView):
+class HelpView(PermissionRequiredMixin, TemplateView):
     # XXX treat non existing template as a 404!!!!
 
     def get_template_names(self):
