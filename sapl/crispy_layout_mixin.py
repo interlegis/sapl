@@ -145,7 +145,6 @@ class CrispyLayoutFormMixin:
 
 
 def read_yaml_from_file(yaml_layout):
-
     # TODO cache this at application level
     t = template.loader.get_template(yaml_layout)
     rendered = t.render()

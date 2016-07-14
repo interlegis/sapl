@@ -46,7 +46,11 @@ class CasaLegislativa(models.Model):
 
     class Meta:
         verbose_name = _('Casa Legislativa')
-        verbose_name_plural = _('Casas Legislativas')
+        verbose_name_plural = _('Casa Legislativa')
+
+    def __str__(self):
+        return _('Casa Legislativa de %(municipio)s') % {
+            'municipio': self.municipio}
 
 
 class ProblemaMigracao(models.Model):
