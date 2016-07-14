@@ -1,12 +1,12 @@
-from django.core.urlresolvers import reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.urlresolvers import reverse
 from django.views.generic import ListView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudUpdateView, CrudDeleteView)
+                            CrudDeleteView, CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Tramitacao
-from sapl.utils import permissoes_comissoes, permissao_tb_aux
+from sapl.utils import permissao_tb_aux, permissoes_comissoes
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)

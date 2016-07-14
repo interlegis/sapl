@@ -18,12 +18,13 @@ from django_filters.views import FilterView
 from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudListView,
-                            CrudUpdateView, CrudDeleteView, make_pagination)
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDeleteView, CrudListView, CrudUpdateView,
+                            make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, get_base_url,
-                        permissoes_materia, permissao_tb_aux)
+                        permissao_tb_aux, permissoes_materia)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
