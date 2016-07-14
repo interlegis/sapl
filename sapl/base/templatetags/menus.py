@@ -41,7 +41,7 @@ def subnav(context, path=None):
         if path:
             yaml_path = path
         elif 'subnav_template_name' in context:
-            yaml_path  = context['subnav_template_name']
+            yaml_path = context['subnav_template_name']
         else:
             yaml_path = '%s/%s' % (app_template, 'subnav.yaml')
 
