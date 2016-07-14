@@ -1,4 +1,3 @@
-import os.path
 from datetime import date
 from functools import wraps
 
@@ -8,7 +7,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.checks import Warning, register
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput

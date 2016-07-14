@@ -173,7 +173,9 @@ class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
-class ProtocoloDocumentoView(PermissionRequiredMixin, FormValidMessageMixin, CreateView):
+class ProtocoloDocumentoView(PermissionRequiredMixin,
+                             FormValidMessageMixin,
+                             CreateView):
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
@@ -389,7 +391,8 @@ class ProposicaoDetailView(DetailView):
         return context
 
 
-class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin, FilterView):
+class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
+                                           FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
@@ -490,7 +493,8 @@ class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
             'pk': self.kwargs['pk']})
 
 
-class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin, FormView):
+class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
+                                               FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
     permission_required = permissoes_adm()
 
@@ -550,8 +554,8 @@ class DocumentoAcessorioAdministrativoView(PermissionRequiredMixin, FormView):
         doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
             documento_id=kwargs['pk'])
         if not doc_acessorio:
-            doc_ace_null = _('Nenhum documento acessório \
-                 cadastrado para este processo.')
+            doc_ace_null = _('Nenhum documento acessório' +
+                             'cadastrado para este processo.')
 
         return self.render_to_response({'pk': kwargs['pk'],
                                         'doc': doc,

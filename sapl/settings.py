@@ -38,6 +38,7 @@ LOGIN_URL = '/login/?next='
 # SAPL business apps in dependency order
 SAPL_APPS = (
     'sapl.base',
+    'sapl.crud',
     'sapl.parlamentares',
     'sapl.comissoes',
     'sapl.materia',
