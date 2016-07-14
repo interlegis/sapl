@@ -7,21 +7,19 @@ from .settings import SAPL_APPS
 
 pytestmark = pytest.mark.django_db
 
-sapl_appconfs = [apps.get_app_config(n) for n in SAPL_APPS]
+sapl_appconfs = [apps.get_app_config(n[5:]) for n in SAPL_APPS]
 
 
-def test_charfiled_textfield():
+def test_charfield_textfield():
     for app in sapl_appconfs:
         for model in app.get_models():
             fields = model._meta.local_fields
             for field in fields:
                 if isinstance(field, (CharField, TextField)):
-                    msg = 'Model = %s || Field = %s - %s - %s' % (
-                           model.__name__,
-                           field.attname,
-                           type(field).__name__,
-                           field.null)
-                    assert not field.null, msg
+                    assert not field.null, 'This %s is null: %s.%s' % (
+                        type(field).__name__,
+                        model.__name__,
+                        field.attname)
 
 
 def test_str_sanity():
