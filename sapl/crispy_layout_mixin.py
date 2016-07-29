@@ -147,7 +147,9 @@ class CrispyLayoutFormMixin:
 def read_yaml_from_file(yaml_layout):
     # TODO cache this at application level
     t = template.loader.get_template(yaml_layout)
-    rendered = t.render()
+    # aqui é importante converter para str pois, dependendo do ambiente,
+    # o rtyaml pode usar yaml.CSafeLoader, que exige str ou stream
+    rendered = str(t.render())
     return rtyaml.load(rendered)
 
 
