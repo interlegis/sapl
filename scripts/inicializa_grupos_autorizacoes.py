@@ -2,53 +2,81 @@ from django.apps import apps
 from django.contrib.auth.models import Group, Permission, User
 from django.contrib.contenttypes.models import ContentType
 
-from sapl.settings import SAPL_APPS
-
-
-def cria_grupo_e_usuario_padrao(nome_grupo, nome_usuario, permissoes):
-
-('Operador de Sessão', )
-
 
 def cria_grupos_permissoes():
 
     nomes_apps = ['base', 'parlamentares', 'comissoes',
                   'materia', 'norma', 'sessao', 'painel']
+
     permissoes = {app: list(Permission.objects.filter(
         content_type__in=ContentType.objects.filter(app_label=app)))
         for app in nomes_apps}
 
     # permissoes específicas para protocolo e documento administrativo
     cts = ContentType.objects.filter(app_label='protocoloadm')
+
+    # documento administrativo
     permissoes['documento_administrativo'] = list(
         Permission.objects.filter(content_type__in=cts))
+    nome_grupo = 'Operador Administrativo'
+    grupo = Group.objects.get_or_create(name=nome_grupo)[0]
+    for p in permissoes['documento_administrativo']:
+            grupo.permissions.add(p)
 
+    nome_usuario = 'operador_administrativo'
+    usuario = User.objects.get_or_create(username=nome_usuario)[0]
+    usuario.set_password('interlegis')
+    usuario.save()
+    grupo.user_set.add(usuario)
+
+    # prolocolo administrativo
     cts = cts.exclude(model__icontains='tramitacao').exclude(
         model__icontains='documentoadministrativo')
     permissoes['protocoloadm'] = list(
         Permission.objects.filter(content_type__in=cts))
-    nomes_apps.append('protocoloadm')
+    nome_grupo = 'Operador de Protocolo Administrativo'
+    grupo = Group.objects.get_or_create(name=nome_grupo)[0]
+    for p in permissoes['protocoloadm']:
+            grupo.permissions.add(p)
+
+    nome_usuario = 'operador_protocoloadm'
+    usuario = User.objects.get_or_create(username=nome_usuario)[0]
+    usuario.set_password('interlegis')
+    usuario.save()
+    grupo.user_set.add(usuario)
+
+    # permissoes do base
+    cts = ContentType.objects.filter(app_label='base')
+    permissoes['base'] = list(
+        Permission.objects.filter(content_type__in=cts))
 
     for nome_app in nomes_apps:
 
-        if nome_app in {'base', 'parlamentares'}:
-            # pula apps que não têm grupo específico
-            continue
+        if nome_app not in {'base', 'parlamentares'}:
+            # Elimina casos especificos
 
-        nome_grupo = 'Operador de %s' % apps.get_app_config(
-            nome_app).verbose_name
-        grupo = Group.objects.get_or_create(name=nome_grupo)[0]
+            # Cria Grupo
+            nome_grupo = 'Operador de %s' % apps.get_app_config(
+                nome_app).verbose_name
+            grupo = Group.objects.get_or_create(name=nome_grupo)[0]
 
-        # configura permissoes do operador
-        for p in permissoes[nome_app]:
-            grupo.permissions.add(p)
+            # Elimina o acesso a proposicoes pelo Operador de Matérias
+            if nome_app == 'materia':
+                cts = ContentType.objects.filter(
+                    app_label='materia').exclude(model__icontains='proposicao')
+                permissoes['materia'] = list(
+                    Permission.objects.filter(content_type__in=cts))
 
-        nome_usuario = 'operador_%s' % nome_app
+            # Configura as permissoes
+            for p in permissoes[nome_app]:
+                grupo.permissions.add(p)
 
-        usuario = User.objects.get_or_create(username=nome_usuario)[0]
-        usuario.set_password('interlegis')
-        usuario.save()
-        grupo.user_set.add(usuario)
+            # Cria o Usuario
+            nome_usuario = 'operador_%s' % nome_app
+            usuario = User.objects.get_or_create(username=nome_usuario)[0]
+            usuario.set_password('interlegis')
+            usuario.save()
+            grupo.user_set.add(usuario)
 
     # Operador Geral
     grupo_geral = Group.objects.get_or_create(name='Operador Geral')[0]
@@ -57,16 +85,20 @@ def cria_grupos_permissoes():
             grupo_geral.permissions.add(p)
 
     # Autor
-    # .....
-    perms_autor = Permission.objects.get(name='Can add Proposição')
-    # ....
-    # Configura Permissoes Autor
-    op_autor.permissions.add(perms_autor)
+    perms_autor = []
+    perms_autor.append(Permission.objects.get(name='Can add Proposição'))
+    perms_autor.append(Permission.objects.get(name='Can change Proposição'))
+    perms_autor.append(Permission.objects.get(name='Can delete Proposição'))
 
-    # Configura Permissoes Operador de Administracao
-    # .....
-    for p in perms_docadm:
-        op_adm.permissions.add(p)
+    # Configura Permissoes Autor
+    grupo = Group.objects.get_or_create(name='Autor')[0]
+    for p in perms_autor:
+        grupo.permissions.add(p)
+    nome_usuario = 'operador_autor'
+    usuario = User.objects.get_or_create(username=nome_usuario)[0]
+    usuario.set_password('interlegis')
+    usuario.save()
+    grupo.user_set.add(usuario)
 
 if __name__ == '__main__':
     cria_grupos_permissoes()
