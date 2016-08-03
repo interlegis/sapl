@@ -1153,7 +1153,7 @@ class VotacaoNominalEditView(FormMixin, SessaoCrud.CrudDetailView):
             ordem = OrdemDia.objects.get(
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
-            ordem.resultado = None
+            ordem.resultado = ''
             ordem.votacao_aberta = False
             ordem.save()
 
@@ -1175,7 +1175,7 @@ class VotacaoNominalEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:materiaordemdia_list',
+        return reverse('sapl.sessao:ordemdia_list',
                        kwargs={'pk': pk})
 
 
