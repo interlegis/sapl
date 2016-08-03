@@ -868,7 +868,6 @@ class VotacaoView(FormMixin, SessaoCrud.CrudDetailView):
     form_class = VotacaoForm
 
     def get(self, request, *args, **kwargs):
-        import ipdb; ipdb.set_trace()
         context = self.get_context_data(object=self.object)
         url = request.get_full_path()
 
@@ -1183,17 +1182,15 @@ class VotacaoNominalExpedienteView(FormMixin, SessaoCrud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
         expediente_id = kwargs['mid']
-
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
         materia = {'materia': expediente.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(expediente.observacao))}
-        context.update({'materia': materia})
+        context = {'materia': materia, 'object': self.get_object(),
+                   'parlamentares': self.get_parlamentares(),
+                   'tipos': self.get_tipos_votacao()}
 
         return self.render_to_response(context)
 
@@ -1308,9 +1305,7 @@ class VotacaoNominalExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
     template_name = 'sessao/votacao/nominal_edit.html'
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
+        context = {}
         materia_id = kwargs['oid']
         expediente_id = kwargs['mid']
 
@@ -1336,7 +1331,8 @@ class VotacaoNominalExpedienteEditView(FormMixin, SessaoCrud.CrudDetailView):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
-        context.update({'votacao': votacao_existente})
+        context.update({'votacao': votacao_existente,
+                        'tipos': self.get_tipos_votacao()})
 
         return self.render_to_response(context)
 
