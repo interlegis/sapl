@@ -37,7 +37,7 @@
     <div class="row">
       <div class="col-md-12">
         Resultado da Votação:
-        {% for tipo in view.get_tipos_votacao %}
+        {% for tipo in tipos %}
 	        {% if votacao.tipo_resultado == tipo.id %}
 	        	<b>{{ tipo.nome }}</b>
 	        {% endif %}

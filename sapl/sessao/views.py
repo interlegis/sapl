@@ -868,7 +868,7 @@ class VotacaoView(FormMixin, SessaoCrud.CrudDetailView):
     form_class = VotacaoForm
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        import ipdb; ipdb.set_trace()
         context = self.get_context_data(object=self.object)
         url = request.get_full_path()
 
@@ -981,17 +981,15 @@ class VotacaoNominalView(FormMixin, SessaoCrud.CrudDetailView):
     template_name = 'sessao/votacao/nominal.html'
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
         ordem_id = kwargs['mid']
-
         ordem = OrdemDia.objects.get(id=ordem_id)
 
         materia = {'materia': ordem.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(ordem.observacao))}
-        context.update({'materia': materia})
+        context = {'materia': materia, 'object': self.get_object(),
+                   'parlamentares': self.get_parlamentares(),
+                   'tipos': self.get_tipos_votacao()}
 
         return self.render_to_response(context)
 
@@ -1100,7 +1098,7 @@ class VotacaoNominalView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:materiaordemdia_list',
+        return reverse('sapl.sessao:ordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -1108,8 +1106,7 @@ class VotacaoNominalEditView(FormMixin, SessaoCrud.CrudDetailView):
     template_name = 'sessao/votacao/nominal_edit.html'
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
+        context = {}
 
         materia_id = kwargs['oid']
         ordem_id = kwargs['mid']
@@ -1136,7 +1133,8 @@ class VotacaoNominalEditView(FormMixin, SessaoCrud.CrudDetailView):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
-        context.update({'votacao': votacao_existente})
+        context.update({'votacao': votacao_existente,
+                        'tipos': self.get_tipos_votacao()})
 
         return self.render_to_response(context)
 

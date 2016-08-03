@@ -16,7 +16,7 @@
 		<fieldset class="form-group">
 			<legend>Votos</legend>
       <div class="row">
-        {% for parlamentar in view.get_parlamentares %}
+        {% for parlamentar in parlamentares %}
         <div class="col-md-6">{{parlamentar.nome_parlamentar}}</div>
         <div class="col-md-6">
           <select id="voto_parlamentar" name="voto_parlamentar" class="form-control">
@@ -34,7 +34,7 @@
       <div class="col-md-12">
         Resultado da Votação
         <select id="resultado_votacao" name="resultado_votacao" class="form-control">
-          {% for tipo in view.get_tipos_votacao %}
+          {% for tipo in tipos %}
           <option value="{{tipo.id}}">{{tipo.nome}}</option>
           {% endfor %}
         </select>
