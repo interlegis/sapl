@@ -28,11 +28,10 @@ from sapl.sessao.serializers import SessaoPlenariaSerializer
 
 from .forms import (AdicionarVariasMateriasFilterSet,
                     BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
-                    ListMateriaForm, MateriaOrdemDiaForm,
-                    MesaForm, OrdemDiaForm, PresencaForm,
+                    ListMateriaForm, MateriaOrdemDiaForm, MesaForm,
+                    OrdemDiaForm, PresencaForm,
                     SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
-
 from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
                      ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
