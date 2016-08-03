@@ -11,20 +11,6 @@ SessaoPlenaria:
   - upload_pauta  upload_ata
   - url_audio  url_video
 
-ExpedienteMateria:
-  {% trans 'Cadastro de Matérias do Expediente' %}:
-  - data_ordem  tip_sessao_FIXME  numero_ordem
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
-  - tipo_votacao
-  - observacao
-
-OrdemDia:
-  {% trans 'Cadastro de Matérias da Ordem do Dia' %}:
-  - data_ordem  tip_sessao_FIXME  numero_ordem
-  - tip_id_basica_FIXME  num_ident_basica_FIXME  ano_ident_basica_FIXME
-  - tipo_votacao
-  - observacao
-
 TipoResultadoVotacao:
   {% trans 'Tipo de Resultado da Votação' %}:
   - nome
@@ -55,8 +41,21 @@ ExpedienteMateria:
   - tipo_votacao
   - observacao
 
+OrdemDia:
+  {% trans 'Matéria da Ordem do Dia' %}:
+  - data_ordem numero_ordem
+  - tipo_materia numero_materia ano_materia
+  - tipo_votacao
+  - observacao
+
 ExpedienteMateriaDetail:
   {% trans 'Matérias do Expediente' %}:
+  - materia
+  - tipo_votacao
+  - observacao
+
+OrdemDiaDetail:
+  {% trans 'Matérias da Ordem do Dia' %}:
   - materia
   - tipo_votacao
   - observacao
