@@ -12,8 +12,8 @@
 			<br />
 			Ementa: {{materia.ementa|safe}}
 		</div>
-		<br />
 
+		<br />
 		<fieldset>
 			<legend>Votos</legend>
       <div class="row">
@@ -24,6 +24,7 @@
       </div>
 		</fieldset>
 
+		<br />
     <div class="row">
       <div class="col-md-12">
         Anular Votação
@@ -34,21 +35,23 @@
       </div>
     </div>
 
+		<br />
     <div class="row">
       <div class="col-md-12">
-        Resultado da Votação:
+        <b>Resultado da Votação: </b>
         {% for tipo in tipos %}
 	        {% if votacao.tipo_resultado == tipo.id %}
-	        	<b>{{ tipo.nome }}</b>
+	        	{{ tipo.nome }}
 	        {% endif %}
         {% endfor %}
       </div>
     </div>
 
+		<br />
     <div class="row">
       <div class="col-md-12">
         Observações
-        <textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control">{{votacao.observacao|safe}}</textarea>
+        <textarea id="observacao" name="observacao" style="width:100%;" rows="7" class="form-control">{{votacao.observacao|safe}}</textarea>
       </div>
     </div>
 
