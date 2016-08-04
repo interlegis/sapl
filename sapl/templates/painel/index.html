@@ -15,9 +15,12 @@
 
     <style type="text/css">
       @media screen {
-          body {
-            background: #2B2B2A;
-          }
+        body {
+          background: #2B2B2A;
+        }
+        ul, li {
+          list-style-type: none;
+        }
       }
     </style>
   </head>
@@ -41,35 +44,32 @@
     <font color="white"><p align="center">-----------------------------------------------</p></font>
 
     <h3><font color="#459170"><p align="center">Cronômetros</p></font></h3>
-    <table style="width:82%">
+    <table style="width:100%">
       <tr>
-        <th style="text-align:center"><font color="white">Discurso: </font></th>
-        <th style="text-align:center"><font color="white"><span id="cronometro_discurso"></span></font></th>
+        <th style="text-align:center"><font color="white">Discurso: <span id="cronometro_discurso"></span></font></th>
       </tr>
       <tr>
-        <th style="text-align:center"><font color="white">Aparte: </font></th>
-        <th style="text-align:center"><font color="white"><span id="cronometro_aparte"></span></font></th>
+        <th style="text-align:center"><font color="white">Aparte: <span id="cronometro_aparte"></span></font></th>
       </tr>
       <tr>
-        <th style="text-align:center"><font color="white">Questão de Ordem: </font></th>
-        <th style="text-align:center"><font color="white"><span id="cronometro_ordem"></span></font></th>
+        <th style="text-align:center"><font color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></th>
       </tr>
     </table>
 
     <h3><font color="white"><p align="center">-----------------------------------------------</p></font></h3>
 
     <h3><font color="#459170"><p align="center">Parlamentares e Votos</p></font></h3>
-    <table style="width:100%">
+    <table style="width:60%" align="center">
       <tr>
-        <th style="text-align:center"><font color="white"><span id="parlamentares"></span></font></th>
-        <th style="text-align:center"><font color="white"><span id="votacao"></span></font></th>
+        <th style="text-align:left"><font color="white" align="left"><span id="parlamentares"></span></font></th>
+        <th style="text-align:left"><font color="white"><span id="votacao"></span></font></th>
       </tr>
     </table>
 
     <h3><font color="white"><p align="center">-----------------------------------------------</p></font></h3>
 
     <h3><font color="#459170"><p align="center">Matéria em Votação</p></font></h3>
-    <table style="width:100%">
+    <table style="width:100%; border:1px;">
       <tr><th style="text-align:center"><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
       <tr><th style="text-align:center"><font color="white"><span id="observacao_materia"></span></font></th></tr>
       <tr><th style="text-align:center"><font color="#45919D"><span id="resultado_votacao"></span></font></th></tr>
