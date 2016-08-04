@@ -107,7 +107,7 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/matexp/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalExpedienteEditView.as_view(),
         name='votacaonominalexpedit'),
-    url(r'^(?P<pk>\d+)/matexp/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^(?P<pk>\d+)/matexp/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteView.as_view(), name='votacaosimbolicaexp'),
     url(r'^(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosimbolicaexpedit'),

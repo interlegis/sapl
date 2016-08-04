@@ -802,22 +802,21 @@ class VotacaoEditView(FormMixin, SessaoCrud.CrudDetailView):
         ordem_id = kwargs['mid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.get(
+            RegistroVotacao.objects.filter(
                 materia_id=materia_id,
-                ordem_id=ordem_id).delete()
+                ordem_id=ordem_id).last().delete()
 
             ordem = OrdemDia.objects.get(
                 sessao_plenaria_id=self.object.id,
                 materia_id=materia_id)
             ordem.votacao_aberta = False
-            ordem.resultado = None
+            ordem.resultado = ''
             ordem.save()
 
         return self.form_valid(form)
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
+        context = {}
 
         url = request.get_full_path()
 
@@ -836,15 +835,16 @@ class VotacaoEditView(FormMixin, SessaoCrud.CrudDetailView):
         materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
         context.update({'materia': materia})
 
-        votacao = RegistroVotacao.objects.get(
+        votacao = RegistroVotacao.objects.filter(
             materia_id=materia_id,
-            ordem_id=ordem_id)
+            ordem_id=ordem_id).last()
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
         context.update({'votacao_titulo': titulo,
-                        'votacao': votacao_existente})
+                        'votacao': votacao_existente,
+                        'tipos': self.get_tipos_votacao()})
 
         return self.render_to_response(context)
 
@@ -854,7 +854,7 @@ class VotacaoEditView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:materiaordemdia_list',
+        return reverse('sapl.sessao:ordemdia_list',
                        kwargs={'pk': pk})
 
 
@@ -868,6 +868,7 @@ class VotacaoView(FormMixin, SessaoCrud.CrudDetailView):
     form_class = VotacaoForm
 
     def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
         context = self.get_context_data(object=self.object)
         url = request.get_full_path()
 
@@ -972,7 +973,7 @@ class VotacaoView(FormMixin, SessaoCrud.CrudDetailView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:materiaordemdia_list',
+        return reverse('sapl.sessao:ordemdia_list',
                        kwargs={'pk': pk})
 
 
