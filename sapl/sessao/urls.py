@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
-from sapl.sessao.views import (BancadaCrud, CargoBancadaCrud,
+from sapl.sessao.views import (AdicionarVariasMaterias,
+                               BancadaCrud, CargoBancadaCrud,
                                EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
                                ExpedienteView, ListMateriaOrdemDiaView,
                                MateriaOrdemDiaView, MesaView, OradorCrud,
@@ -49,6 +50,8 @@ urlpatterns = [
         include(BancadaCrud.get_urls())),
     url(r'^sistema/cargo-bancada/',
         include(CargoBancadaCrud.get_urls())),
+    url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias/',
+        AdicionarVariasMaterias.as_view(), name='adicionar_varias_materias'),
 
     # PAUTA SESSÃO
     url(r'^pauta-sessao$',
