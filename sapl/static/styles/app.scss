@@ -147,6 +147,23 @@ fieldset {
 }
 
 /* INDEX */
+#conteudo {
+    position: relative;
+    padding: 2em 1.5em 1.5em 1.5em;
+    overflow: hidden;
+    font-size: 100%;
+    text-align: left;
+    min-height: 350px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+#conteudo a:hover {
+    color: #444;
+    -webkit-transition: 0.3s ease-in;
+    -moz-transition: 0.3s ease-in;
+    -o-transition: 0.3s ease-in
+}
+
 #homeIndex {
     text-align: center;
 }
