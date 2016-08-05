@@ -6,17 +6,25 @@
 {% block sections_nav %}
 {% endblock %}
 
+
+
+
+
 {% block detail_content %}
-    {% if filter_url %}
-      <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-      </div>
+    {% block buttons %}
 
-      <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
-      </div>
+      {% if filter_url %}
+            <div class="actions btn-group pull-right" role="group">
+              <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+            </div>
 
-    {% endif %}
+            <div class="actions btn-group pull-right" role="group">
+              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
+            </div>
+
+      {% endif %}
+
+    {% endblock %}
 
   {% if not filter_url %}
     {% crispy filter.form %}

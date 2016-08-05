@@ -78,7 +78,7 @@ Matérias da Ordem do Dia
 	&nbsp;&nbsp;&nbsp;
 	<input type="submit" id="materia_reorder" name="materia_reorder" value="Reordenar Matérias da Ordem do Dia" class="btn btn-primary" />
 	&nbsp;&nbsp;&nbsp;
-	<input type="submit" id="incluir_varias" name="incluir_varias" value="Incluir Várias Matérias" class="btn btn-primary" />
+	<a href="{% url 'sapl.sessao:adicionar_varias_materias_ordem_dia' object.pk %}" value="Incluir Várias Matérias" class="btn btn-primary">{% trans 'Adicionar Várias Matérias' %}</a>
 </form>
 
 {% endblock detail_content %}

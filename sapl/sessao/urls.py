@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
+                               AdicionarVariasMateriasOrdemDia,
                                BancadaCrud, CargoBancadaCrud,
                                EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
                                ExpedienteView, ListMateriaOrdemDiaView,
@@ -53,6 +54,9 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-expediente/',
         AdicionarVariasMateriasExpediente.as_view(),
         name='adicionar_varias_materias_expediente'),
+    url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-ordem-dia/',
+        AdicionarVariasMateriasOrdemDia.as_view(),
+        name='adicionar_varias_materias_ordem_dia'),
 
     # PAUTA SESSÃO
     url(r'^pauta-sessao$',

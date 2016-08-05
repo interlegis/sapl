@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.http.response import HttpResponseRedirect
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, ListView, TemplateView
@@ -1971,15 +1972,14 @@ def filtra_tramitacao_ordem_dia():
             'materia_id', flat=True)
 
 
-def retira_materias_ja_adicionadas(id_sessao):
-    lista = ExpedienteMateria.objects.filter(
+def retira_materias_ja_adicionadas(id_sessao, model):
+    lista = model.objects.filter(
         sessao_plenaria_id=id_sessao)
     lista_id_materias = [l.materia_id for l in lista]
     return lista_id_materias
 
 
 class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
-    model = MateriaLegislativa
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_expediente.html'
 
@@ -1994,7 +1994,7 @@ class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
         lista_ordem_dia = filtra_tramitacao_ordem_dia()
 
         lista_materias_adicionadas = retira_materias_ja_adicionadas(
-            self.kwargs['pk'])
+            self.kwargs['pk'], ExpedienteMateria)
 
         qs = qs.filter(id__in=lista_ordem_dia).exclude(
             id__in=lista_materias_adicionadas).distinct()
@@ -2024,7 +2024,16 @@ class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
         marcadas = request.POST.getlist('materia_id')
 
         for m in marcadas:
-            if request.POST['tipo_votacao_%s' % m]:
+            try:
+                tipo_votacao = request.POST['tipo_votacao_%s' % m]
+            except MultiValueDictKeyError:
+                msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
+                        'o tipo de votação de %s' %
+                        MateriaLegislativa.objects.get(id=m))
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
+
+            if tipo_votacao:
                 lista_materias_expediente = ExpedienteMateria.objects.filter(
                     sessao_plenaria_id=self.kwargs[
                         'pk'])
@@ -2042,5 +2051,65 @@ class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
                 expediente.data_ordem = datetime.now()
                 expediente.tipo_votacao = request.POST['tipo_votacao_%s' % m]
                 expediente.save()
+
+        return self.get(request, self.kwargs)
+
+
+class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
+    filterset_class = AdicionarVariasMateriasFilterSet
+    template_name = 'sessao/adicionar_varias_materias_ordem.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(AdicionarVariasMateriasExpediente,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset()
+
+        lista_ordem_dia = filtra_tramitacao_ordem_dia()
+
+        lista_materias_adicionadas = retira_materias_ja_adicionadas(
+            self.kwargs['pk'], OrdemDia)
+
+        qs = qs.filter(id__in=lista_ordem_dia).exclude(
+            id__in=lista_materias_adicionadas).distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        for m in marcadas:
+            try:
+                tipo_votacao = request.POST['tipo_votacao_%s' % m]
+            except MultiValueDictKeyError:
+                msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
+                        'o tipo de votação de %s' %
+                        MateriaLegislativa.objects.get(id=m))
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
+
+            if tipo_votacao:
+                lista_materias_ordem_dia = OrdemDia.objects.filter(
+                    sessao_plenaria_id=self.kwargs[
+                        'pk'])
+
+                materia = MateriaLegislativa.objects.get(id=m)
+
+                ordem_dia = OrdemDia()
+                ordem_dia.sessao_plenaria_id = self.kwargs['pk']
+                ordem_dia.materia_id = materia.id
+                if lista_materias_ordem_dia:
+                    posicao = lista_materias_ordem_dia.last().numero_ordem + 1
+                    ordem_dia.numero_ordem = posicao
+                else:
+                    ordem_dia.numero_ordem = 1
+                ordem_dia.data_ordem = datetime.now()
+                ordem_dia.tipo_votacao = tipo_votacao
+                ordem_dia.save()
 
         return self.get(request, self.kwargs)
