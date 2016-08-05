@@ -321,14 +321,3 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
-
-
-class AdicionaMultiplasMaterias(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
-
-    class Meta:
-        verbose_name = _('Tabela de Adicionar Várias Matérias')
-        verbose_name_plural = _('Tabela de Adicionar Várias Matérias')
-
-    def __str__(self):
-        return self.materia

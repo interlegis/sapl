@@ -17,7 +17,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDetailView, CrudListView, CrudUpdateView,
                             make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
-from sapl.materia.views import MateriaLegislativaFilterSet
+from sapl.materia.forms import pega_ultima_tramitacao
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
@@ -25,7 +25,8 @@ from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.serializers import SessaoPlenariaSerializer
 
-from .forms import (BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
+from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
+                    ExpedienteForm, ExpedienteMateriaForm,
                     ListMateriaForm, MateriaOrdemDiaForm, MesaForm,
                     PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
                     VotacaoForm, VotacaoNominalForm)
@@ -1962,21 +1963,41 @@ class PesquisarSessaoPlenariaView(FilterView):
         return self.render_to_response(context)
 
 
-class AdicionarVariasMaterias(MateriaLegislativaPesquisaView):
+def filtra_tramitacao_ordem_dia():
+        lista = pega_ultima_tramitacao()
+        return Tramitacao.objects.filter(
+            id__in=lista,
+            status__descricao='Ordem do Dia').distinct().values_list(
+            'materia_id', flat=True)
+
+
+def retira_materias_ja_adicionadas(id_sessao):
+    lista = ExpedienteMateria.objects.filter(
+        sessao_plenaria_id=id_sessao)
+    lista_id_materias = [l.materia_id for l in lista]
+    return lista_id_materias
+
+
+class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
     model = MateriaLegislativa
-    filterset_class = MateriaLegislativaFilterSet
-    paginate_by = 10
-    template_name = 'sessao/adicionar_varias_materias.html'
+    filterset_class = AdicionarVariasMateriasFilterSet
+    template_name = 'sessao/adicionar_varias_materias_expediente.html'
 
     def get_filterset_kwargs(self, filterset_class):
-        super(AdicionarVariasMaterias,
+        super(AdicionarVariasMateriasExpediente,
               self).get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
         qs = self.get_queryset()
 
-        qs = qs.distinct()
+        lista_ordem_dia = filtra_tramitacao_ordem_dia()
+
+        lista_materias_adicionadas = retira_materias_ja_adicionadas(
+            self.kwargs['pk'])
+
+        qs = qs.filter(id__in=lista_ordem_dia).exclude(
+            id__in=lista_materias_adicionadas).distinct()
 
         kwargs.update({
             'queryset': qs,
@@ -1985,60 +2006,41 @@ class AdicionarVariasMaterias(MateriaLegislativaPesquisaView):
 
     def get_context_data(self, **kwargs):
         # import ipdb; ipdb.set_trace()
-        import ipdb; ipdb.set_trace()
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Matéria Legislativa')
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
         self.filterset.form.fields['o'].label = _('Ordenação')
 
         qr = self.request.GET.copy()
-        if 'page' in qr:
-            del qr['page']
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['pk_sessao'] = self.kwargs['pk']
 
         return context
 
     def post(self, request, *args, **kwargs):
-        import ipdb; ipdb.set_trace()
+        marcadas = request.POST.getlist('materia_id')
 
-        sessao = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+        for m in marcadas:
+            if request.POST['tipo_votacao_%s' % m]:
+                lista_materias_expediente = ExpedienteMateria.objects.filter(
+                    sessao_plenaria_id=self.kwargs[
+                        'pk'])
 
-        context = self.get_context_data()
+                materia = MateriaLegislativa.objects.get(id=m)
 
-        materia_id = request.POST['materia_id']
-        materia = MateriaLegislativa.objects.get(id=materia_id)
+                expediente = ExpedienteMateria()
+                expediente.sessao_plenaria_id = self.kwargs['pk']
+                expediente.materia_id = materia.id
+                if lista_materias_expediente:
+                    posicao = lista_materias_expediente.last().numero_ordem + 1
+                    expediente.numero_ordem = posicao
+                else:
+                    expediente.numero_ordem = 1
+                expediente.data_ordem = datetime.now()
+                expediente.tipo_votacao = request.POST['tipo_votacao_%s' % m]
+                expediente.save()
 
-        try:
-            materia = MateriaLegislativa.objects.get(
-                numero=request.POST['numero_materia'],
-                tipo_id=request.POST['tipo_materia'],
-                ano=request.POST['ano_materia'])
-        except ObjectDoesNotExist:
-            form._errors["error_message"] = ErrorList([u""])
-            context.update({'form': form})
-            return self.render_to_response(context)
-
-            # TODO: barrar matérias não existentes
-            # TODO: barrar criação de ordemdia para materias já incluídas
-
-            expediente = ExpedienteMateria()
-            expediente.sessao_plenaria_id = self.kwargs['pk']
-            expediente.materia_id = materia.id
-            expediente.numero_ordem = request.POST['numero_ordem']
-            expediente.data_ordem = datetime.now()
-            expediente.observacao = sub('&nbsp;', ' ',
-                                      strip_tags(request.POST['observacao']))
-            ordemdia.tipo_votacao = request.POST['tipo_votacao']
-            ordemdia.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        return self.get(request, self.kwargs)
