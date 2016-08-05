@@ -3,6 +3,12 @@ from django.contrib.auth.models import Group, Permission, User
 from django.contrib.contenttypes.models import ContentType
 
 
+def cria_ou_reseta_grupo(nome):
+    grupo = Group.objects.get_or_create(name=nome)[0]
+    grupo.permissions.all().delete()
+    return grupo
+
+
 def cria_grupos_permissoes():
 
     nomes_apps = ['base', 'parlamentares', 'comissoes',
@@ -19,9 +25,9 @@ def cria_grupos_permissoes():
     permissoes['documento_administrativo'] = list(
         Permission.objects.filter(content_type__in=cts))
     nome_grupo = 'Operador Administrativo'
-    grupo = Group.objects.get_or_create(name=nome_grupo)[0]
+    grupo = cria_ou_reseta_grupo(nome_grupo)
     for p in permissoes['documento_administrativo']:
-            grupo.permissions.add(p)
+        grupo.permissions.add(p)
 
     nome_usuario = 'operador_administrativo'
     usuario = User.objects.get_or_create(username=nome_usuario)[0]
@@ -35,9 +41,9 @@ def cria_grupos_permissoes():
     permissoes['protocoloadm'] = list(
         Permission.objects.filter(content_type__in=cts))
     nome_grupo = 'Operador de Protocolo Administrativo'
-    grupo = Group.objects.get_or_create(name=nome_grupo)[0]
+    grupo = cria_ou_reseta_grupo(nome_grupo)
     for p in permissoes['protocoloadm']:
-            grupo.permissions.add(p)
+        grupo.permissions.add(p)
 
     nome_usuario = 'operador_protocoloadm'
     usuario = User.objects.get_or_create(username=nome_usuario)[0]
@@ -58,7 +64,7 @@ def cria_grupos_permissoes():
             # Cria Grupo
             nome_grupo = 'Operador de %s' % apps.get_app_config(
                 nome_app).verbose_name
-            grupo = Group.objects.get_or_create(name=nome_grupo)[0]
+            grupo = cria_ou_reseta_grupo(nome_grupo)
 
             # Elimina o acesso a proposicoes pelo Operador de Matérias
             if nome_app == 'materia':
@@ -79,7 +85,7 @@ def cria_grupos_permissoes():
             grupo.user_set.add(usuario)
 
     # Operador Geral
-    grupo_geral = Group.objects.get_or_create(name='Operador Geral')[0]
+    grupo_geral = cria_ou_reseta_grupo('Operador Geral')
     for lista in permissoes.values():
         for p in lista:
             grupo_geral.permissions.add(p)
@@ -91,7 +97,7 @@ def cria_grupos_permissoes():
     perms_autor.append(Permission.objects.get(name='Can delete Proposição'))
 
     # Configura Permissoes Autor
-    grupo = Group.objects.get_or_create(name='Autor')[0]
+    grupo = cria_ou_reseta_grupo('Autor')
     for p in perms_autor:
         grupo.permissions.add(p)
     nome_usuario = 'operador_autor'
