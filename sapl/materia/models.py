@@ -447,10 +447,10 @@ class Proposicao(models.Model):
     data_envio = models.DateTimeField(
         null=True, blank=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Incorporação'))
+        blank=True, null=True, verbose_name=_('Data de Recebimento'))
     descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
-    data_devolucao = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de devolução'))
+    data_incorporação = models.DateTimeField(
+        blank=True, null=True, verbose_name=_('Data de Incorporação'))
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
@@ -461,7 +461,7 @@ class Proposicao(models.Model):
     status = models.CharField(blank=True,
                               max_length=1,
                               choices=(('E', 'Enviada'),
-                                       ('D', 'Devolvida'),
+                                       ('R', 'Recebida'),
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     # mutually exclusive (depend on tipo.materia_ou_documento)
@@ -470,8 +470,6 @@ class Proposicao(models.Model):
     documento = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True, verbose_name=_('Documento'))
     texto_original = models.FileField(
-        blank=True,
-        null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])
