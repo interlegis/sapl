@@ -34,7 +34,7 @@
   	$(function () {
   		disable_fields();
   		$("#id_tipo").change(function() {
-  			if ($("#id_tipo").val() == 9) { // parecer
+  			if ($('#id_tipo option:selected').text() == 'Emenda') { // parecer
   				enable_fields();
   			}else {
   				disable_fields();
