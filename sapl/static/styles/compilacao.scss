@@ -623,9 +623,9 @@ a:link:after, a:visited:after {
       background-color: #fafafa;
       border-radius: 3px;
       z-index: 2;
-      & > .dpt-text {
+      & > .dpt-text1 {
         opacity: 1;
-        border: 1px solid #e0e0e0 !important;
+        border: 0px solid #e0e0e0 !important;
         margin: 1em;
         padding: 0.3em;
         position: relative;
@@ -635,24 +635,24 @@ a:link:after, a:visited:after {
         &:before {
           border-width: 1rem;
           border-style: solid;
-          border-color: #e0e0e0 #e0e0e0 transparent transparent;
+          border-color: transparent transparent #e0e0e0 #e0e0e0 ;
           content: "";
           display: block;
           height: 0px;
           width: 0px;
           position: absolute;
-          top: 0rem;
-          right: 0rem;
+          bottom: 0rem;
+          left: 0rem;
         }
       }
       & > .dpt-form {
-        margin-bottom: 1em;
+        margin-bottom: 0em;
       }
       & > .dpt-actions, & > .dpt-actions-bottom {
         display: table;
         background-color: #e5e5e5;
         padding: 1em;
-        margin-bottom: 1em;
+        margin-bottom: 0em;
         width: 100%;
         & > .btn-action {
           display: table-cell;

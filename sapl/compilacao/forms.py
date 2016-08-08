@@ -656,8 +656,8 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [to_row([(buttons, 12)])] + \
-            [Div(*layout, css_class="row-fluid")]
+        _fields = [Div(*layout, css_class="row-fluid")] + \
+            [to_row([(buttons, 12)])]
         self.helper.layout = Layout(*_fields)
 
 

@@ -44,13 +44,15 @@ function DispositivoEdit() {
             instance.scrollTo(_this);
             _this.off('get_form_base')
 
-            var btn_fechar = _this.find('.btns-excluir');
-            _this.find('.dpt-actions-bottom').last().append(btn_fechar);
+            var btn_fechar = _this.find('.btn-fechar');
             btn_fechar.on('click', function() {
                 instance.clearEditSelected();
             });
 
-            btn_fechar.on('click', function() {
+            var btns_excluir = _this.find('.btns-excluir');
+            _this.find('.dpt-actions-bottom').last().append(btns_excluir);
+
+            btns_excluir.find('.btn-excluir').on('click', function() {
                 var action = this.getAttribute('action');
                 var pk = $(this).closest('.dpt-selected').attr('pk');
                 if (pk !== undefined) {
