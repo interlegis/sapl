@@ -1,0 +1,70 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block detail_content %}
+  <style>
+    table {
+      width: 100%;
+    }
+    th, td {
+      padding: 5px;
+    }
+  </style>
+
+  <div align="center">
+    <input type="submit" value="Imprimir" onclick="window.print();" class="btn btn-success"/>
+  </div>
+
+  <br />
+
+  <table>
+    <tr>
+      <td>
+        <img height="100" width="100"
+             src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+             alt="Logotipo"
+             class="img-responsive visible-lg-inline-block vcenter">
+        <div>
+      </td>
+      <td>
+        {% if nome %}
+          <b>{{ nome }} {% trans 'de' %} {{ municipio }} - {{ uf }}</b>
+        {% else %}
+          <b>{% trans 'Sem Nome Cadastrado' %}</b>
+        {% endif %}
+        <br />
+        {% trans 'Sistema de Apoio ao Processo Legislativo' %}
+      </td>
+    </tr>
+    <tr> <td colspan="2" align="center"><b>RECIBO DE ENVIO DE PROPOSIÇÃO</b></td> </tr>
+  </table>
+
+  <br /><br />
+
+  <table frame="box">
+    <tr>
+      <td>Código do Documento: <b>{{hash}}</b></td>
+      <td>Tipo de Proposição: <b>{{proposicao.tipo.descricao}}</b></td>
+    </tr>
+    <tr>
+      <td>Autor: <b>{{proposicao.autor}}</b></td>
+      <td>Data de Envio: <b>{{proposicao.data_envio|date:"d/m/Y H:i:s"}}</b></td>
+    </tr>
+    <tr>
+      <td>Descrição: <b>{{proposicao.descricao}}</b></td>
+    </tr>
+  </table>
+
+  <br /><br />
+
+  <table>
+    <tr>
+      <td align="center">
+        Declaro que o conteúdo do texto impresso em anexo é idêntico ao conteúdo enviado eletronicamente por meio do sistema SAPL para esta proposição.
+      </td>
+    </tr>
+    <tr> <td align="center"><br /><br /><br /><b>________________________________________________________________</b></td> </tr>
+    <tr> <td align="center">{{proposicao.autor}}</td> </tr>
+  </table>
+{% endblock detail_content %}

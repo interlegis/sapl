@@ -5,9 +5,11 @@
   <form action="" method="post">{% csrf_token %}
     <div class="panel panel-danger">
       <div class="panel-heading  text-center">
-        {% blocktrans %}
-          Confirma exclusão de "{{ object }}"?
-        {% endblocktrans %}
+        {% block msg %}
+          {% blocktrans %}
+            Confirma exclusão de "{{ object }}"?
+          {% endblocktrans %}
+        {% endblock msg %}
       </div>
       <div class="panel-body text-center">
         <a href="{{ view.cancel_url }}" class="btn btn-inverse">{% trans 'Cancelar'  %}</a>

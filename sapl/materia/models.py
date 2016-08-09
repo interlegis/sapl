@@ -443,14 +443,16 @@ class TipoProposicao(models.Model):
 class Proposicao(models.Model):
     autor = models.ForeignKey(Autor, null=True, blank=True)
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
+
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        null=True, blank=True, verbose_name=_('Data de Envio'))
+        blank=True, null=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Recebimento'))
-    descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
     data_incorporação = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Incorporação'))
+
+    descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,

@@ -1,3 +1,4 @@
+import hashlib
 from datetime import date
 from functools import wraps
 
@@ -218,3 +219,10 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     maior_inicio = max(a_inicio, b_inicio)
     menor_fim = min(a_fim, b_fim)
     return maior_inicio <= menor_fim
+
+
+def gerar_hash_arquivo(arquivo, pk, hasher=hashlib.md5(), blocksize=65536):
+    with open(arquivo, 'rb') as arq:
+        for chunk in iter(lambda: arq.read(blocksize), b''):
+            hasher.update(chunk)
+    return 'P' + hasher.hexdigest() + '/' + pk

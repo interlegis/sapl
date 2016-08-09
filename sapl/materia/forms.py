@@ -81,7 +81,7 @@ class ProposicaoForm(ModelForm):
     def clean(self):
         cleaned_data = self.cleaned_data
         if 'tipo' in cleaned_data:
-            if cleaned_data['tipo'].descricao == 'Parecer':
+            if cleaned_data['tipo'].descricao == 'Emenda':
                 try:
                     materia = MateriaLegislativa.objects.get(
                         tipo_id=cleaned_data['tipo_materia'],

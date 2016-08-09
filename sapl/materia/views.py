@@ -21,7 +21,8 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudListView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
-from sapl.utils import autor_label, autor_modal, get_base_url
+from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
+                        get_base_url)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
@@ -68,7 +69,8 @@ class ProposicaoCrud(Crud):
     help_path = ''
 
     class BaseMixin(CrudBaseMixin):
-        list_field_names = ['data_envio', 'descricao', 'tipo']
+        list_field_names = ['data_envio', 'descricao',
+                            'tipo', 'data_recebimento']
 
     class CreateView(CrudCreateView):
         form_class = ProposicaoForm
@@ -85,13 +87,15 @@ class ProposicaoCrud(Crud):
             return 'ProposicaoCreate'
 
     class ListView(CrudListView):
-        ordering = ['-data_envio', 'descricao']
+        ordering = ['-data_envio', '-descricao']
 
         def get_rows(self, object_list):
 
             for obj in object_list:
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
+                if obj.data_recebimento is None:
+                    obj.data_recebimento = 'Não recebida'
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -110,6 +114,21 @@ class ProposicaoCrud(Crud):
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao_detail',
                             kwargs={'pk': proposicao.pk}))
+
+
+class ReciboProposicaoView(TemplateView):
+
+    template_name = "materia/recibo_proposicao.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ReciboProposicaoView, self).get_context_data(
+            **kwargs)
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+        context.update({'proposicao': proposicao,
+                        'hash': gerar_hash_arquivo(
+                                    proposicao.texto_original.path,
+                                    self.kwargs['pk'])})
+        return context
 
 
 class RelatoriaCrud(MasterDetailCrud):

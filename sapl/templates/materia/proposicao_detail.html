@@ -4,7 +4,6 @@
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
     {% if proposicao.data_envio %}
-      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
       <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição Enviada' %}</a>
     {% else %}
       <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
@@ -12,3 +11,8 @@
     {% endif %}
   </div>
 {% endblock actions %}
+{% block extra_msg %}
+  {% if proposicao.data_envio and not propos.data_recebimento %}
+    <b><p align="center"><a href="" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">[Imprimir Recibo]</a></p></b>
+  {% endif %}
+{% endblock extra_msg %}
