@@ -5,7 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 
 def cria_ou_reseta_grupo(nome):
     grupo = Group.objects.get_or_create(name=nome)[0]
-    grupo.permissions.all().delete()
+    for p in list(grupo.permissions.all()):
+        grupo.permissions.remove(p)
     return grupo
 
 
@@ -69,7 +70,7 @@ def cria_grupos_permissoes():
             # Elimina o acesso a proposicoes pelo Operador de Matérias
             if nome_app == 'materia':
                 cts = ContentType.objects.filter(
-                    app_label='materia').exclude(model__icontains='proposicao')
+                    app_label='materia').exclude(model='proposicao')
                 permissoes['materia'] = list(
                     Permission.objects.filter(content_type__in=cts))
 

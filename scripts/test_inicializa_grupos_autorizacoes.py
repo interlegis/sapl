@@ -8,7 +8,7 @@ from inicializa_grupos_autorizacoes import cria_grupos_permissoes
 pytestmark = pytest.mark.django_db
 
 apps_com_permissao_padrao = [
-    'comissoes', 'materia', 'norma', 'sessao', 'painel']
+    'comissoes', 'norma', 'sessao', 'painel']
 
 
 @pytest.mark.parametrize('app_label', apps_com_permissao_padrao)
