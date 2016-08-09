@@ -54,6 +54,25 @@ TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 
 
+def criar_materia_proposicao(proposicao):
+    tipo_materia = TipoMateriaLegislativa.objects.get(
+        descricao=proposicao.tipo.descricao)
+    numero = MateriaLegislativa.objects.filter(
+        ano=datetime.now().year).order_by('numero').last().numero + 1
+    regime = RegimeTramitacao.objects.get(descricao='Normal')
+
+    return MateriaLegislativa.objects.create(
+        tipo=tipo_materia,
+        ano=datetime.now().year,
+        numero=numero,
+        data_apresentacao=datetime.now(),
+        regime_tramitacao=regime,
+        em_tramitacao=True,
+        ementa=proposicao.descricao,
+        texto_original=proposicao.texto_original
+    )
+
+
 class UnidadeTramitacaoCrud(Crud):
     model = UnidadeTramitacao
     help_path = 'unidade_tramitacao'
@@ -76,7 +95,6 @@ class ReceberProposicao(CreateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        flag = 0
         form = ReceberProposicaoForm(request.POST)
 
         if form.is_valid():
@@ -86,14 +104,13 @@ class ReceberProposicao(CreateView):
                                             str(proposicao.pk))
                 if hasher == form.cleaned_data['cod_hash']:
                     proposicao.data_recebimento = datetime.now()
+                    materia = criar_materia_proposicao(proposicao)
+                    proposicao.materia = materia
                     proposicao.save()
-                    flag = 1
-
-            if flag == 0:
-                msg = 'Proposição não encontrada!'
-                return self.render_to_response({'form': form, 'msg': msg})
-
-            msg = 'Proposição recebida!'
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:materialegislativa_update',
+                                kwargs={'pk': materia.pk}))
+            msg = 'Proposição não encontrada!'
             return self.render_to_response({'form': form, 'msg': msg})
         else:
             return self.render_to_response({'form': form})
