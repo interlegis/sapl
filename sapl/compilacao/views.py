@@ -22,18 +22,20 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
-from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
-                                   DispositivoEdicaoAlteracaoForm,
-                                   DispositivoEdicaoBasicaForm,
-                                   DispositivoEdicaoVigenciaForm,
-                                   DispositivoSearchModalForm, NotaForm,
-                                   PublicacaoForm, TaForm, TextNotificacoesForm,
-                                   TipoTaForm, VideForm)
-from sapl.compilacao.models import (Dispositivo, Nota,
-                                    PerfilEstruturalTextoArticulado, Publicacao,
-                                    TextoArticulado, TipoDispositivo, TipoNota,
-                                    TipoPublicacao, TipoTextoArticulado, TipoVide,
-                                    VeiculoPublicacao, Vide)
+from sapl.compilacao.forms import (
+    DispositivoDefinidorVigenciaForm,
+    DispositivoEdicaoAlteracaoForm,
+    DispositivoEdicaoBasicaForm,
+    DispositivoEdicaoVigenciaForm,
+    DispositivoSearchModalForm, NotaForm,
+    PublicacaoForm, TaForm, TextNotificacoesForm,
+    TipoTaForm, VideForm)
+from sapl.compilacao.models import (
+    Dispositivo, Nota,
+    PerfilEstruturalTextoArticulado, Publicacao,
+    TextoArticulado, TipoDispositivo, TipoNota,
+    TipoPublicacao, TipoTextoArticulado, TipoVide,
+    VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED,\
     DISPOSITIVO_SELECT_RELATED_EDIT
 from sapl.crud.base import Crud, CrudListView, make_pagination
@@ -1038,10 +1040,10 @@ class TextEditView(TemplateView):
 
 class ActionsCommonsMixin:
 
-    def set_message(self, data, type, message):
+    def set_message(self, data, _type, message):
         data['message'] = {
-            'type': "success",
-            'value': str(_('Dispositivo alterado com sucesso.'))}
+            'type': _type,
+            'value': str(message)}
         return
 
     def get_json_for_refresh(self, dp, dpauto=None):
@@ -2082,8 +2084,10 @@ class DispositivoDinamicEditView(
         d = Dispositivo.objects.get(
             pk=self.kwargs['dispositivo_id'])
 
-        texto = request.POST['texto']
-        texto_atualizador = request.POST['texto_atualizador']
+        texto = request.POST['texto'].strip()
+        texto_atualizador = request.POST['texto_atualizador'].strip()
+        texto_atualizador = texto_atualizador \
+            if texto != texto_atualizador else ''
         visibilidade = request.POST['visibilidade']
 
         # if d.texto != '':
@@ -2128,8 +2132,8 @@ class DispositivoDinamicEditView(
             data = {'pk': d.pk
                     if not d_texto or not d.texto else 0, 'pai': [d.pk, ]}
 
-        self.set_message(data, 'success', str(
-            _('Dispositivo alterado com sucesso.')))
+        self.set_message(data, 'success',
+                         _('Dispositivo alterado com sucesso.'))
 
         return JsonResponse(data, safe=False)
 

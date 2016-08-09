@@ -489,24 +489,26 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         if inst and inst.tipo_dispositivo.formato_variacao0 in [
                 TipoDispositivo.FNC8, TipoDispositivo.FNCN]:
+            # remove edição do rótulo se o tipo de disp. for não numerável
             if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
                 DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
                 for i in range(6):
                     DispositivoEdicaoBasicaForm.Meta.fields.remove(
                         'dispositivo%s' % i)
         elif editor_type == 'get_form_base':
+            # remove edição do rótulo se a req do form vier do editor dinamico
             if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
                 DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
                 for i in range(6):
                     DispositivoEdicaoBasicaForm.Meta.fields.remove(
                         'dispositivo%s' % i)
         else:
+            # adiciona campos de rótulo no formulário
             if 'rotulo' not in DispositivoEdicaoBasicaForm.Meta.fields:
                 DispositivoEdicaoBasicaForm.Meta.fields.append('rotulo')
                 for i in range(6):
                     DispositivoEdicaoBasicaForm.Meta.fields.append(
                         'dispositivo%s' % i)
-            # adiciona campos de rótulo no formulário
             self.dispositivo0 = forms.IntegerField(
                 min_value=0,
                 label=Dispositivo._meta.get_field('dispositivo0').verbose_name,
@@ -580,7 +582,12 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 self.texto_atualizador = forms.CharField(
                     required=False,
                     label='',
-                    widget=forms.Textarea())
+                    widget=forms.Textarea(),
+                    help_text=_('Não havendo diferenças gráficas entre o '
+                                'conteúdo que deve estar no Texto Original e '
+                                'no Texto Alterador, não há necessidade '
+                                'de duplicar a informação. A validação dos '
+                                'negará a igualdade.'))
                 self.visibilidade = forms.ChoiceField(
                     label=Dispositivo._meta.get_field(
                         'visibilidade').verbose_name,
