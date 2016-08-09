@@ -12,6 +12,7 @@ from django.http.response import HttpResponseRedirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, TemplateView, UpdateView
+from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 
 from sapl.base.models import CasaLegislativa
@@ -27,8 +28,8 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
                     DespachoInicialForm, DocumentoAcessorioForm,
                     LegislacaoCitadaForm, MateriaLegislativaFilterSet,
-                    NumeracaoForm, ProposicaoForm, RelatoriaForm,
-                    TramitacaoForm, UnidadeTramitacaoForm,
+                    NumeracaoForm, ProposicaoForm, ReceberProposicaoForm,
+                    RelatoriaForm, TramitacaoForm, UnidadeTramitacaoForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
@@ -62,6 +63,43 @@ class UnidadeTramitacaoCrud(Crud):
 
     class UpdateView(CrudUpdateView):
         form_class = UnidadeTramitacaoForm
+
+
+class ReceberProposicao(CreateView):
+    template_name = "materia/receber_proposicao.html"
+    form_class = ReceberProposicaoForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ReceberProposicao, self).get_context_data(
+            **kwargs)
+        context.update({'form': self.get_form()})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        flag = 0
+        form = ReceberProposicaoForm(request.POST)
+
+        if form.is_valid():
+            proposicoes = Proposicao.objects.filter(data_envio__isnull=False)
+            for proposicao in proposicoes:
+                hasher = gerar_hash_arquivo(proposicao.texto_original.path,
+                                            str(proposicao.pk))
+                if hasher == form.cleaned_data['cod_hash']:
+                    proposicao.data_recebimento = datetime.now()
+                    proposicao.save()
+                    flag = 1
+
+            if flag == 0:
+                msg = 'Proposição não encontrada!'
+                return self.render_to_response({'form': form, 'msg': msg})
+
+            msg = 'Proposição recebida!'
+            return self.render_to_response({'form': form, 'msg': msg})
+        else:
+            return self.render_to_response({'form': form})
+
+    def get_success_url(self):
+        return reverse('sapl.materia:receber-proposicao')
 
 
 class ProposicaoCrud(Crud):
@@ -98,6 +136,9 @@ class ProposicaoCrud(Crud):
                     obj.data_envio = obj.data_envio.strftime("%d/%m/%Y %H:%M")
                 if obj.data_recebimento is None:
                     obj.data_recebimento = 'Não recebida'
+                else:
+                    obj.data_recebimento = obj.data_recebimento.strftime(
+                                            "%d/%m/%Y %H:%M")
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -119,7 +160,6 @@ class ProposicaoCrud(Crud):
 
 
 class ReciboProposicaoView(TemplateView):
-
     template_name = "materia/recibo_proposicao.html"
 
     def get_context_data(self, **kwargs):

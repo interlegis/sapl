@@ -31,6 +31,25 @@ def em_tramitacao():
             (False, 'Não')]
 
 
+class ReceberProposicaoForm(ModelForm):
+    cod_hash = forms.CharField(label='Código do Documento', required=True)
+
+    class Meta:
+        model = Proposicao
+        exclude = ['texto_original', 'descricao', 'tipo']
+
+    def __init__(self, *args, **kwargs):
+        row1 = to_row([('cod_hash', 12)])
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Incorporar Proposição'), row1,
+                form_actions(save_label='Buscar Proposição')
+            )
+        )
+        super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
+
+
 class UnidadeTramitacaoForm(ModelForm):
 
     class Meta:
