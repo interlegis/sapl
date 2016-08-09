@@ -221,8 +221,12 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     return maior_inicio <= menor_fim
 
 
-def gerar_hash_arquivo(arquivo, pk, hasher=hashlib.md5(), blocksize=65536):
-    with open(arquivo, 'rb') as arq:
-        for chunk in iter(lambda: arq.read(blocksize), b''):
-            hasher.update(chunk)
-    return 'P' + hasher.hexdigest() + '/' + pk
+def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
+    md5 = hashlib.md5()
+    file = open(arquivo, 'rb')
+    while True:
+        data = file.read(block_size)
+        if not data:
+            break
+        md5.update(data)
+    return 'P' + md5.hexdigest() + '/' + pk
