@@ -1,4 +1,6 @@
 {% extends "crud/form.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{{msg}}
+{% block extra_msg %}
+  <p align="center"><font size="4"><b>{{msg}}</b></font></p>
+{% endblock %}
