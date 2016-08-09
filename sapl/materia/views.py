@@ -94,6 +94,8 @@ class ProposicaoCrud(Crud):
             for obj in object_list:
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
+                else:
+                    obj.data_envio = obj.data_envio.strftime("%d/%m/%Y %H:%M")
                 if obj.data_recebimento is None:
                     obj.data_recebimento = 'Não recebida'
 
