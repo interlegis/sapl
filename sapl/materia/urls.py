@@ -3,9 +3,9 @@ from django.conf.urls import include, url
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
-                                AutorCrud, AutoriaCrud, DespachoInicialCrud,
-                                DocumentoAcessorioCrud, LegislacaoCitadaCrud,
-                                MateriaLegislativaCrud,
+                                AutorCrud, AutoriaCrud, ConfirmarProposicao,
+                                DespachoInicialCrud, DocumentoAcessorioCrud,
+                                LegislacaoCitadaCrud, MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
                                 ProposicaoCrud, ProposicaoDevolvida,
@@ -44,6 +44,8 @@ urlpatterns = [
         name='proposicao-recebida'),
     url(r'^proposicao/devolvida/', ProposicaoDevolvida.as_view(),
         name='proposicao-devolvida'),
+    url(r'^proposicao/confirmar/(?P<pk>\d+)', ConfirmarProposicao.as_view(),
+        name='proposicao-confirmar'),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',

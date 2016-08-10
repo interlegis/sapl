@@ -26,11 +26,11 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
                         get_base_url)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
-                    DespachoInicialForm, DocumentoAcessorioForm,
-                    LegislacaoCitadaForm, MateriaLegislativaFilterSet,
-                    NumeracaoForm, ProposicaoForm, ReceberProposicaoForm,
-                    RelatoriaForm, TramitacaoForm, UnidadeTramitacaoForm,
-                    filtra_tramitacao_destino,
+                    ConfirmarProposicaoForm, DespachoInicialForm,
+                    DocumentoAcessorioForm, LegislacaoCitadaForm,
+                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
+                    ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
+                    UnidadeTramitacaoForm, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -111,7 +111,7 @@ class ProposicaoDevolvida(ListView):
     def get_queryset(self):
         return Proposicao.objects.filter(
             data_envio__isnull=False,
-            data_recebimento__isnull=False,
+            data_recebimento__isnull=True,
             data_devolucao__isnull=False)
 
     def get_context_data(self, **kwargs):
@@ -173,8 +173,7 @@ class ReceberProposicao(CreateView):
     form_class = ReceberProposicaoForm
 
     def get_context_data(self, **kwargs):
-        context = super(ReceberProposicao, self).get_context_data(
-            **kwargs)
+        context = super(ReceberProposicao, self).get_context_data(**kwargs)
         context.update({'form': self.get_form()})
         return context
 
@@ -188,21 +187,9 @@ class ReceberProposicao(CreateView):
                 hasher = gerar_hash_arquivo(proposicao.texto_original.path,
                                             str(proposicao.pk))
                 if hasher == form.cleaned_data['cod_hash']:
-                    proposicao.data_recebimento = datetime.now()
-                    if proposicao.tipo.descricao == 'Parecer':
-                        documento = criar_doc_proposicao(proposicao)
-                        proposicao.documento_gerado = documento
-                        proposicao.save()
-                        return HttpResponseRedirect(
-                            reverse('sapl.materia:documentoacessorio_update',
-                                    kwargs={'pk': documento.pk}))
-                    else:
-                        materia = criar_materia_proposicao(proposicao)
-                        proposicao.materia_gerada = materia
-                        proposicao.save()
-                        return HttpResponseRedirect(
-                            reverse('sapl.materia:materialegislativa_update',
-                                    kwargs={'pk': materia.pk}))
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:proposicao-confirmar',
+                                kwargs={'pk': proposicao.pk}))
 
             msg = 'Proposição não encontrada!'
             return self.render_to_response({'form': form, 'msg': msg})
@@ -211,6 +198,44 @@ class ReceberProposicao(CreateView):
 
     def get_success_url(self):
         return reverse('sapl.materia:receber-proposicao')
+
+
+class ConfirmarProposicao(CreateView):
+    template_name = "materia/confirmar_proposicao.html"
+    form_class = ConfirmarProposicaoForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ConfirmarProposicao, self).get_context_data(**kwargs)
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+        context.update({'form': self.get_form(), 'proposicao': proposicao})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ConfirmarProposicaoForm(request.POST)
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+
+        if form.is_valid():
+            if 'incorporar' in request.POST:
+                proposicao.data_recebimento = datetime.now()
+                if proposicao.tipo.descricao == 'Parecer':
+                    documento = criar_doc_proposicao(proposicao)
+                    proposicao.documento_gerado = documento
+                    proposicao.save()
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:documentoacessorio_update',
+                                kwargs={'pk': documento.pk}))
+                else:
+                    materia = criar_materia_proposicao(proposicao)
+                    proposicao.materia_gerada = materia
+                    proposicao.save()
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:materialegislativa_update',
+                                kwargs={'pk': materia.pk}))
+            else:
+                proposicao.data_devolucao = datetime.now()
+                proposicao.save()
+                return HttpResponseRedirect(
+                    reverse('sapl.materia:proposicao-devolvida'))
 
 
 class ProposicaoCrud(Crud):

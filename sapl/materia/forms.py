@@ -31,6 +31,12 @@ def em_tramitacao():
             (False, 'Não')]
 
 
+class ConfirmarProposicaoForm(ModelForm):
+    class Meta:
+        model = Proposicao
+        exclude = ['texto_original', 'descricao', 'tipo']
+
+
 class ReceberProposicaoForm(ModelForm):
     cod_hash = forms.CharField(label='Código do Documento', required=True)
 
