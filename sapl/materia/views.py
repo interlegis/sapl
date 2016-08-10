@@ -73,6 +73,24 @@ def criar_materia_proposicao(proposicao):
     )
 
 
+def criar_doc_proposicao(proposicao):
+    tipo_doc = TipoDocumento.objects.get(
+        descricao=proposicao.tipo.descricao)
+    if proposicao.autor is None:
+        autor = 'Desconhecido'
+    else:
+        autor = proposicao.autor
+
+    return DocumentoAcessorio.objects.create(
+        materia=proposicao.materia,
+        tipo=tipo_doc,
+        arquivo=proposicao.texto_original,
+        nome=proposicao.descricao,
+        data=proposicao.data_envio,
+        autor=autor
+    )
+
+
 class UnidadeTramitacaoCrud(Crud):
     model = UnidadeTramitacao
     help_path = 'unidade_tramitacao'
@@ -99,17 +117,27 @@ class ReceberProposicao(CreateView):
 
         if form.is_valid():
             proposicoes = Proposicao.objects.filter(data_envio__isnull=False)
+
             for proposicao in proposicoes:
                 hasher = gerar_hash_arquivo(proposicao.texto_original.path,
                                             str(proposicao.pk))
                 if hasher == form.cleaned_data['cod_hash']:
                     proposicao.data_recebimento = datetime.now()
-                    materia = criar_materia_proposicao(proposicao)
-                    proposicao.materia = materia
-                    proposicao.save()
-                    return HttpResponseRedirect(
-                        reverse('sapl.materia:materialegislativa_update',
-                                kwargs={'pk': materia.pk}))
+                    if proposicao.tipo.descricao == 'Parecer':
+                        documento = criar_doc_proposicao(proposicao)
+                        proposicao.documento_gerado = documento
+                        proposicao.save()
+                        return HttpResponseRedirect(
+                            reverse('sapl.materia:documentoacessorio_update',
+                                    kwargs={'pk': documento.pk}))
+                    else:
+                        materia = criar_materia_proposicao(proposicao)
+                        proposicao.materia_gerada = materia
+                        proposicao.save()
+                        return HttpResponseRedirect(
+                            reverse('sapl.materia:materialegislativa_update',
+                                    kwargs={'pk': materia.pk}))
+
             msg = 'Proposição não encontrada!'
             return self.render_to_response({'form': form, 'msg': msg})
         else:
@@ -136,6 +164,12 @@ class ProposicaoCrud(Crud):
 
     class UpdateView(CrudUpdateView):
         form_class = ProposicaoForm
+
+        def get_initial(self):
+            self.initial['tipo_materia'] = self.object.materia.tipo.id
+            self.initial['numero_materia'] = self.object.materia.numero
+            self.initial['ano_materia'] = self.object.materia.ano
+            return self.initial
 
         @property
         def layout_key(self):

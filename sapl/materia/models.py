@@ -468,9 +468,17 @@ class Proposicao(models.Model):
                               verbose_name=_('Status Proposição'))
     # mutually exclusive (depend on tipo.materia_ou_documento)
     materia = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
-    documento = models.ForeignKey(
-        DocumentoAcessorio, blank=True, null=True, verbose_name=_('Documento'))
+        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'),
+        related_name=_('materia_vinculada'))
+
+    # Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
+    # de uma já existente
+    materia_gerada = models.ForeignKey(
+        MateriaLegislativa, blank=True, null=True,
+        related_name=_('materia_gerada'))
+    documento_gerado = models.ForeignKey(
+        DocumentoAcessorio, blank=True, null=True)
+
     texto_original = models.FileField(
         upload_to=texto_upload_path,
         verbose_name=_('Texto Original'),

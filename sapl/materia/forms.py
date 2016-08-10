@@ -100,20 +100,33 @@ class ProposicaoForm(ModelForm):
     def clean(self):
         cleaned_data = self.cleaned_data
         if 'tipo' in cleaned_data:
-            if cleaned_data['tipo'].descricao == 'Emenda':
-                try:
-                    materia = MateriaLegislativa.objects.get(
-                        tipo_id=cleaned_data['tipo_materia'],
-                        ano=cleaned_data['ano_materia'],
-                        numero=cleaned_data['numero_materia'])
-                except ObjectDoesNotExist:
-                    msg = _('Matéria adicionada não existe!')
-                    raise ValidationError(msg)
+            if cleaned_data['tipo'].descricao == 'Parecer':
+                if self.instance.materia:
+                    cleaned_data['materia'] = self.instance.materia
+                    cleaned_data['autor'] = (
+                        self.instance.materia.autoria_set.first().autor)
                 else:
-                    cleaned_data['materia'] = materia
-                    cleaned_data['autor'] = materia.autoria_set.first().autor
+                    try:
+                        materia = MateriaLegislativa.objects.get(
+                            tipo_id=cleaned_data['tipo_materia'],
+                            ano=cleaned_data['ano_materia'],
+                            numero=cleaned_data['numero_materia'])
+                    except ObjectDoesNotExist:
+                        msg = _('Matéria adicionada não existe!')
+                        raise ValidationError(msg)
+                    else:
+                        cleaned_data['materia'] = materia
+                        cleaned_data['autor'] = materia.autoria_set.first(
+                            ).autor
 
         return cleaned_data
+
+    def save(self, commit=False):
+        proposicao = super(ProposicaoForm, self).save(commit)
+        if 'materia' in self.cleaned_data:
+            proposicao.materia = self.cleaned_data['materia']
+        proposicao.save()
+        return proposicao
 
     class Meta:
         model = Proposicao
