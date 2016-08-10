@@ -102,6 +102,28 @@ class UnidadeTramitacaoCrud(Crud):
         form_class = UnidadeTramitacaoForm
 
 
+class ProposicaoDevolvida(ListView):
+    template_name = 'materia/prop_devolvidas_list.html'
+    model = Proposicao
+    ordering = ['data_envio']
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(
+            data_envio__isnull=False,
+            data_recebimento__isnull=False,
+            data_devolucao__isnull=False)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoDevolvida, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição devolvida.'
+        return context
+
+
 class ProposicaoPendente(ListView):
     template_name = 'materia/prop_pendentes_list.html'
     model = Proposicao
@@ -110,7 +132,9 @@ class ProposicaoPendente(ListView):
 
     def get_queryset(self):
         return Proposicao.objects.filter(
-            data_envio__isnull=False, data_recebimento__isnull=True)
+            data_envio__isnull=False,
+            data_recebimento__isnull=True,
+            data_devolucao_isnull=True)
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoPendente, self).get_context_data(**kwargs)
@@ -130,7 +154,9 @@ class ProposicaoRecebida(ListView):
 
     def get_queryset(self):
         return Proposicao.objects.filter(
-            data_envio__isnull=False, data_recebimento__isnull=False)
+            data_envio__isnull=False,
+            data_recebimento__isnull=False,
+            data_devolucao_isnull=True)
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoRecebida, self).get_context_data(**kwargs)

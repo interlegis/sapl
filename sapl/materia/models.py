@@ -449,6 +449,8 @@ class Proposicao(models.Model):
         blank=True, null=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Recebimento'))
+    data_devolucao = models.DateTimeField(
+        blank=True, null=True, verbose_name=_('Data de Devolução'))
 
     descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
     justificativa_devolucao = models.CharField(
