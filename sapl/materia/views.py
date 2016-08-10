@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, TemplateView, UpdateView
+from django.views.generic import CreateView, TemplateView, UpdateView, ListView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 
@@ -100,6 +100,26 @@ class UnidadeTramitacaoCrud(Crud):
 
     class UpdateView(CrudUpdateView):
         form_class = UnidadeTramitacaoForm
+
+
+class ProposicaoPendente(ListView):
+    template_name = 'materia/prop_pendentes_list.html'
+    model = Proposicao
+    ordering = ['data_envio', 'autor', 'tipo', 'descricao']
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(
+            data_envio__isnull=False, data_recebimento__isnull=True)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoPendente, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
+        return context
 
 
 class ReceberProposicao(CreateView):

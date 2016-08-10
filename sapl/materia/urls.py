@@ -8,13 +8,14 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
-                                ProposicaoCrud, ProposicaoTaView,
-                                ReceberProposicao, ReciboProposicaoView,
-                                RegimeTramitacaoCrud, RelatoriaCrud,
-                                StatusTramitacaoCrud, TipoAutorCrud,
-                                TipoDocumentoCrud, TipoFimRelatoriaCrud,
-                                TipoMateriaCrud, TipoProposicaoCrud,
-                                TramitacaoCrud, UnidadeTramitacaoCrud)
+                                ProposicaoCrud, ProposicaoPendente,
+                                ProposicaoTaView, ReceberProposicao,
+                                ReciboProposicaoView, RegimeTramitacaoCrud,
+                                RelatoriaCrud, StatusTramitacaoCrud,
+                                TipoAutorCrud, TipoDocumentoCrud,
+                                TipoFimRelatoriaCrud, TipoMateriaCrud,
+                                TipoProposicaoCrud, TramitacaoCrud,
+                                UnidadeTramitacaoCrud)
 
 from .apps import AppConfig
 
@@ -36,6 +37,8 @@ urlpatterns = [
         name='recibo-proposicao'),
     url(r'^proposicao/receber/', ReceberProposicao.as_view(),
         name='receber-proposicao'),
+    url(r'^proposicao/pendente/', ProposicaoPendente.as_view(),
+        name='proposicao-pendente'),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
