@@ -231,11 +231,16 @@ class ProposicaoCrud(Crud):
     class UpdateView(CrudUpdateView):
         form_class = ProposicaoForm
 
-        def get_initial(self):
-            self.initial['tipo_materia'] = self.object.materia.tipo.id
-            self.initial['numero_materia'] = self.object.materia.numero
-            self.initial['ano_materia'] = self.object.materia.ano
-            return self.initial
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+            if self.object.materia:
+                context['form'].fields['tipo_materia'].initial = (
+                    self.object.materia.tipo.id)
+                context['form'].fields['numero_materia'].initial = (
+                    self.object.materia.numero)
+                context['form'].fields['ano_materia'].initial = (
+                    self.object.materia.ano)
+            return context
 
         @property
         def layout_key(self):
