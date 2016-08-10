@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, TemplateView, UpdateView, ListView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 
@@ -119,6 +119,26 @@ class ProposicaoPendente(ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
+        return context
+
+
+class ProposicaoRecebida(ListView):
+    template_name = 'materia/prop_recebidas_list.html'
+    model = Proposicao
+    ordering = ['data_envio']
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(
+            data_envio__isnull=False, data_recebimento__isnull=False)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoRecebida, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição recebida.'
         return context
 
 

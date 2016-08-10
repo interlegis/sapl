@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block base_content %}
+  {% if not object_list %}
+    <p>{{ NO_ENTRIES_MSG }}</p>
+  {% else %}
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Data do Recebimento</th>
+          <th>Tipo</th>
+          <th>Descrição</th>
+          <th>Autor</th>
+          <th>Vínculo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prop in object_list %}
+          <tr>
+            <td><a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_recebimento|date:"d/m/Y H:i:s" }}</a></td>
+            <td>{{ prop.tipo.descricao }}</td>
+            <td>{{ prop.descricao }}</td>
+            <td>{{ prop.autor }}</td>
+            <td>
+              {% if prop.materia_gerada %}
+                <a href="{% url 'sapl.materia:materialegislativa_detail' prop.materia_gerada.pk %}">{{ prop.materia_gerada.tipo.sigla }} {{ prop.materia_gerada.numero }}/{{ prop.materia_gerada.ano }}</a>
+              {% elif prop.documento_gerado %}
+                <a href="{% url 'sapl.materia:documentoacessorio_detail' prop.documento_gerado.pk %}">{{ prop.documento_gerado.materia.tipo.sigla }} {{ prop.documento_gerado.materia.numero }}/{{ prop.documento_gerado.materia.ano }}</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  {% include 'paginacao.html'%}
+{% endblock %}

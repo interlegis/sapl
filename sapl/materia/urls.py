@@ -15,7 +15,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoAutorCrud, TipoDocumentoCrud,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
-                                UnidadeTramitacaoCrud)
+                                UnidadeTramitacaoCrud, ProposicaoRecebida)
 
 from .apps import AppConfig
 
@@ -39,6 +39,8 @@ urlpatterns = [
         name='receber-proposicao'),
     url(r'^proposicao/pendente/', ProposicaoPendente.as_view(),
         name='proposicao-pendente'),
+    url(r'^proposicao/recebida/', ProposicaoRecebida.as_view(),
+        name='proposicao-recebida'),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
