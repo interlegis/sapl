@@ -134,7 +134,7 @@ class ProposicaoPendente(ListView):
         return Proposicao.objects.filter(
             data_envio__isnull=False,
             data_recebimento__isnull=True,
-            data_devolucao_isnull=True)
+            data_devolucao__isnull=True)
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoPendente, self).get_context_data(**kwargs)
@@ -156,7 +156,7 @@ class ProposicaoRecebida(ListView):
         return Proposicao.objects.filter(
             data_envio__isnull=False,
             data_recebimento__isnull=False,
-            data_devolucao_isnull=True)
+            data_devolucao__isnull=True)
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoRecebida, self).get_context_data(**kwargs)
