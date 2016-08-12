@@ -587,7 +587,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                                 'conteúdo que deve estar no Texto Original e '
                                 'no Texto Alterador, não há necessidade '
                                 'de duplicar a informação. A validação dos '
-                                'negará a igualdade.'))
+                                'dados negará a igualdade.'))
                 self.visibilidade = forms.ChoiceField(
                     label=Dispositivo._meta.get_field(
                         'visibilidade').verbose_name,

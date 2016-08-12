@@ -14,6 +14,7 @@ function DispositivoEdit() {
     DispositivoEdit = function() {
         return instance;
     };
+
     instance.clearEditSelected = function() {
         $('.dpt-selected .dpt-form').html('');
         $('.dpt-actions, .dpt-actions-bottom').html('');
@@ -41,6 +42,7 @@ function DispositivoEdit() {
         dpt.on('get_form_base', function () {
             var _this = $(this);
             _this.addClass('dpt-selected');
+            var pk = _this.attr('pk');
             instance.scrollTo(_this);
             _this.off('get_form_base')
 
@@ -54,23 +56,34 @@ function DispositivoEdit() {
 
             btns_excluir.find('.btn-excluir').on('click', function() {
                 var action = this.getAttribute('action');
-                var pk = $(this).closest('.dpt-selected').attr('pk');
+
                 if (pk !== undefined) {
                     var url = pk+'/refresh?action='+action;
                     instance.waitShow();
                     $.get(url).done(function(data) {
                         instance.clearEditSelected();
+                        instance.waitHide();
                         if (data.pk != null) {
-                            if (!instance.modalMessage(data.message.value, 'alert-'+data.message.value, function() {
-                                    instance.waitHide();
+                            if (instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
+                                    //instance.waitHide();
                                 }))
                             instance.refreshScreenFocusPk(data);
                         }
                     });
                 }
             });
+            instance.loadActionsProvaveisInserts(pk)
+
         });
         instance.loadForm(dpt, 'get_form_base');
+    }
+
+    instance.loadActionsProvaveisInserts = function(pk) {
+        var url = pk+'/refresh?action=json_provaveis_inserts';
+        instance.waitShow();
+        $.get(url).done(function(data) {
+            console.log(data);
+        });
     }
 
     instance.loadForm = function(dpt, trigger) {
@@ -193,22 +206,26 @@ function DispositivoEdit() {
         if (event != null)
             event.preventDefault();
     }
-    instance.refreshContent = function(pk, trigger_edit_pk) {
+    instance.refreshContent = function(pais, trigger_edit_pk) {
+        if (pais.length == 0) {
+            instance.waitHide();
+            return;
+        }
+        var pk = pais.shift();
         var url = pk+'/refresh';
         $.get(url).done(function(data) {
             var dpt = $('#id'+pk).closest('.dpt');
             dpt = $('#'+dpt.replaceWith(data).attr('id'));
             instance.onClicks(dpt);
 
-            if (trigger_edit_pk != null && trigger_edit_pk != 0) {
+            if (trigger_edit_pk > 0)
                 instance.triggerBtnDptEdit(trigger_edit_pk)
-            }
-            else {
-                instance.waitHide();
-            }
+
+            instance.refreshContent(pais);
         });
     }
     instance.refreshScreenFocusPk = function (data) {
+        instance.waitShow();
         if (data.pai[0] == -1) {
             instance.waitShow()
             href = location.href.split('#')[0]
@@ -216,11 +233,13 @@ function DispositivoEdit() {
             location.reload(true)
             }
         else {
-            instance.refreshContent(data.pai[0], data.pk);
-            setTimeout(function() {
+            instance.refreshContent(data.pai, data.pk);
+
+            /*setTimeout(function() {
                 for (var pai = 1; pai < data.pai.length; pai++)
                     instance.refreshContent(data.pai[pai]);
-            }, 1000);
+                instance.waitHide();
+            }, 1000);*/
         }
     }
 

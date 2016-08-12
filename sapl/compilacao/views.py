@@ -1140,6 +1140,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
     def json_delete_bloco_dispositivo(self, context, bloco=True):
         base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+        ta_base = base.ta
 
         base_anterior = Dispositivo.objects.order_by('-ordem').filter(
             ta_id=base.ta_id,
@@ -1150,26 +1151,30 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         if base_anterior:
             data = self.get_json_for_refresh(base_anterior)
         else:
-            base_anterior = Dispositivo.objects.order_by('ordem').filter(
-                ta_id=base.ta_id,
-                ordem__lt=base.ordem
-            ).first()
-            if base_anterior:
-                data = self.get_json_for_refresh(base_anterior)
-            else:
-                data['pk'] = ''
+            base_anterior = base.get_nivel_zero_anterior()
+            data = self.get_json_for_refresh(base_anterior)
 
-        ta_base = base.ta
+        bases_atualizacao = Dispositivo.objects.order_by('ordem').filter(
+            ta_id=base.ta_id,
+            ordem__gt=base.ordem,
+            nivel__lt=base.nivel)
 
-        # TODO: a linha abaixo causa atualização da tela inteira...
-        # retirar a linha abaixo e identificar atualizações pontuais
-        data['pai'] = [-1, ]
+        data['pai'] = [base.get_raiz().pk]
+
+        """nivel = sys.maxsize
+        for b in bases_atualizacao:
+            if b.nivel < nivel:
+                data['pai'].append(b.pk)
+                nivel = b.nivel"""
 
         try:
             with transaction.atomic():
                 message = str(self.remover_dispositivo(base, bloco))
                 if message:
-                    self.set_message(data, 'success', message)
+                    self.set_message(data, 'warning', message)
+                else:
+                    self.set_message(data, 'success', _(
+                        'Exclusão efetuada com sucesso!'))
                 ta_base.ordenar_dispositivos()
         except Exception as e:
             data['pk'] = self.kwargs['dispositivo_id']
@@ -1459,18 +1464,15 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
 class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
-    def select_provaveis_inserts(self, request=None):
+    def json_provaveis_inserts(self, context=None):
+        request = self.request
         try:
             if request and 'perfil_estrutural' not in request.session:
                 self.set_perfil_in_session(request)
 
             perfil_pk = request.session['perfil_estrutural']
 
-            # Não salvar d_base
-            if self.pk_edit == 0:
-                base = Dispositivo.objects.get(pk=self.pk_view)
-            else:
-                base = Dispositivo.objects.get(pk=self.pk_edit)
+            base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
 
             prox_possivel = Dispositivo.objects.filter(
                 ordem__gt=base.ordem,
