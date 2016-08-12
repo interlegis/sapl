@@ -10,6 +10,14 @@ def cria_ou_reseta_grupo(nome):
     return grupo
 
 
+def cria_usuario(nome, grupo):
+    nome_usuario = nome
+    usuario = User.objects.get_or_create(username=nome_usuario)[0]
+    usuario.set_password('interlegis')
+    usuario.save()
+    grupo.user_set.add(usuario)
+
+
 def cria_grupos_permissoes():
 
     nomes_apps = ['base', 'parlamentares', 'comissoes',
@@ -31,10 +39,7 @@ def cria_grupos_permissoes():
         grupo.permissions.add(p)
 
     nome_usuario = 'operador_administrativo'
-    usuario = User.objects.get_or_create(username=nome_usuario)[0]
-    usuario.set_password('interlegis')
-    usuario.save()
-    grupo.user_set.add(usuario)
+    cria_usuario(nome_usuario, grupo)
 
     # prolocolo administrativo
     cts = cts.exclude(model__icontains='tramitacao').exclude(
@@ -47,10 +52,7 @@ def cria_grupos_permissoes():
         grupo.permissions.add(p)
 
     nome_usuario = 'operador_protocoloadm'
-    usuario = User.objects.get_or_create(username=nome_usuario)[0]
-    usuario.set_password('interlegis')
-    usuario.save()
-    grupo.user_set.add(usuario)
+    cria_usuario(nome_usuario, grupo)
 
     # permissoes do base
     cts = ContentType.objects.filter(app_label='base')
@@ -91,6 +93,9 @@ def cria_grupos_permissoes():
         for p in lista:
             grupo_geral.permissions.add(p)
 
+    nome_usuario = 'operador_geral'
+    cria_usuario(nome_usuario, grupo_geral)
+
     # Autor
     perms_autor = []
     perms_autor.append(Permission.objects.get(name='Can add Proposição'))
@@ -101,11 +106,9 @@ def cria_grupos_permissoes():
     grupo = cria_ou_reseta_grupo('Autor')
     for p in perms_autor:
         grupo.permissions.add(p)
+
     nome_usuario = 'operador_autor'
-    usuario = User.objects.get_or_create(username=nome_usuario)[0]
-    usuario.set_password('interlegis')
-    usuario.save()
-    grupo.user_set.add(usuario)
+    cria_usuario(nome_usuario, grupo_geral)
 
 if __name__ == '__main__':
     cria_grupos_permissoes()

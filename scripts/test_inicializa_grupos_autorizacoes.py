@@ -45,15 +45,3 @@ def test_permissoes_extras_sao_apagadas(app_label):
     cria_grupos_permissoes()
 
     assert not grupo.permissions.filter(id=permissao_errada.id).exists()
-
-
-# Operador de Comissões
-# Operador de Matéria
-# Operador de Norma Jurídica
-# Operador de Sessão Plenária
-
-# Operador de Protocolo Administrativo
-# Operador de Documento Administrativo
-
-
-# Operador Geral
