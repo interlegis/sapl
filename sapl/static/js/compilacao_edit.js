@@ -38,6 +38,8 @@ function DispositivoEdit() {
             return;
         }
         instance.clearEditSelected();
+        instance.loadActionsEdit(dpt);
+
 
         dpt.on('get_form_base', function () {
             var _this = $(this);
@@ -72,26 +74,26 @@ function DispositivoEdit() {
                     });
                 }
             });
-            instance.loadActionsProvaveisInserts(pk)
-
         });
         instance.loadForm(dpt, 'get_form_base');
     }
 
-    instance.loadActionsProvaveisInserts = function(pk) {
-        var url = pk+'/refresh?action=json_provaveis_inserts';
-        instance.waitShow();
+    instance.loadActionsEdit = function(dpt) {
+        var pk = dpt.attr('pk');
+        var url = pk+'/refresh?action=get_actions';
+
         $.get(url).done(function(data) {
-            console.log(data);
+            dpt.find('.dpt-actions').first().html(data);
         });
     }
 
     instance.loadForm = function(dpt, trigger) {
+        var pk = dpt.attr('pk');
         if (editortype == "construct")
             return;
+
         var dpt_form = dpt.children().filter('.dpt-form');
         if (dpt_form.length == 1) {
-            var pk = dpt.attr('pk');
             var url = pk+'/refresh?action='+trigger;
             $.get(url).done(function(data) {
                 dpt_form.html(data);

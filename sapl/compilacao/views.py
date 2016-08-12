@@ -15,6 +15,7 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -1464,7 +1465,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
 class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
-    def json_provaveis_inserts(self, context=None):
+    def allowed_inserts(self):
         request = self.request
         try:
             if request and 'perfil_estrutural' not in request.session:
@@ -1484,15 +1485,15 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             else:
                 prox_possivel = None
 
-            result = [{'tipo_insert': _('Inserir Depois'),
+            result = [{'tipo_insert': force_text(_('Inserir Depois')),
                        'icone': '&#8631;&nbsp;',
                        'action': 'add_next',
                        'itens': []},
-                      {'tipo_insert': _('Inserir Dentro'),
+                      {'tipo_insert': force_text(_('Inserir Dentro')),
                        'icone': '&#8690;&nbsp;',
                        'action': 'add_in',
                        'itens': []},
-                      {'tipo_insert': _('Inserir Antes'),
+                      {'tipo_insert': force_text(_('Inserir Antes')),
                        'icone': '&#8630;&nbsp;',
                        'action': 'add_prior',
                        'itens': []}
@@ -1528,7 +1529,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         'class_css': dp.tipo_dispositivo.class_css,
                         'tipo_pk': dp.tipo_dispositivo.pk,
                         'variacao': 0,
-                        'provavel': '%s (%s)' % (
+                        'provavel': '%s <small>(%s)</small>' % (
                             dp.rotulo_padrao(local_insert=1),
                             dp.tipo_dispositivo.nome,),
                         'dispositivo_base': base.pk})
@@ -1556,7 +1557,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     r.append({'class_css': dp.tipo_dispositivo.class_css,
                               'tipo_pk': dp.tipo_dispositivo.pk,
                               'variacao': flag_variacao,
-                              'provavel': '%s (%s)' % (
+                              'provavel': '%s <small>(%s)</small>' % (
                                   dp.rotulo_padrao(local_insert),
                                   dp.tipo_dispositivo.nome,),
                               'dispositivo_base': base.pk})
@@ -1655,7 +1656,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     r = [{'class_css': td.class_css,
                           'tipo_pk': td.pk,
                           'variacao': 0,
-                          'provavel': '%s (%s)' % (
+                          'provavel': '%s <small>(%s)</small>' % (
                               base.rotulo_padrao(1, paradentro),
                               td.nome,),
                           'dispositivo_base': base.pk}]
@@ -1684,10 +1685,12 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             #        tipb.dispositivo_de_alteracao:
             #    result.pop()
 
+            return result
+
         except Exception as e:
             print(e)
 
-        return result
+        return {}
 
     def set_dvt(self, context):
         # Dispositivo de Vigência do Texto Original e de Dpts Alterados
@@ -2075,6 +2078,17 @@ class DispositivoDinamicEditView(
             self.form_class = DispositivoEdicaoBasicaForm
             context = self.get_context_data()
             return self.render_to_response(context)
+        elif action.startswith('get_actions'):
+            self.form_class = None
+            self.template_name = 'compilacao/ajax_actions_dinamic_edit.html'
+            self.object = Dispositivo.objects.get(
+                pk=self.kwargs['dispositivo_id'])
+
+            context = {}
+            context['object'] = self.object
+            context['allowed_inserts'] = self.allowed_inserts()
+            return self.render_to_response(context)
+
         elif action.startswith('json_'):
             context = self.get_context_data()
             return self.render_to_json_response(context)

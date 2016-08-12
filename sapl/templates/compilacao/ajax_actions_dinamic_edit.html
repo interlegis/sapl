@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<div class="btn-group" role="group">
+  {% if object.dispositivo_subsequente == None %}
+    {% for inserts in allowed_inserts %}
+      {% if inserts.itens %}
+
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            {{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span>
+          </button>
+
+          <ul class="dropdown-menu">
+            <div class="arrow top"></div>
+            {% for item in inserts.itens %}
+              <li><a class="btn-inserts btn-action" action="{{inserts.action}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel|safe}}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {%endif%}
+</div>

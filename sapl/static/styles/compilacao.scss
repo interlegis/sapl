@@ -702,6 +702,23 @@ a:link:after, a:visited:after {
     & > .dpt-actions-fixed {
       display: none;
     }
+
+    .dropdown-menu {
+      right: auto !important;
+      left: 0;
+      padding: 2px 0;
+      & > .top.arrow {
+        right: 88%;
+        left: auto;
+      }
+      li {
+        a {
+          padding-top: 2px;
+          padding-bottom: 2px;
+
+        }
+      }
+    }
   }
 
 }
