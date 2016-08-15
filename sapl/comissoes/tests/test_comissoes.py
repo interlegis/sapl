@@ -44,14 +44,14 @@ def make_filiacao():
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_parlamentar_errors(client):
+def test_incluir_parlamentar_errors(admin_client):
     comissao = make_comissao()
     composicao = make_composicao(comissao)
 
-    response = client.post(reverse('sapl.comissoes:participacao_create',
-                                   kwargs={'pk': composicao.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.comissoes:participacao_create',
+                                         kwargs={'pk': composicao.pk}),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['parlamentar'] ==
             ['Este campo é obrigatório.'])
@@ -62,18 +62,18 @@ def test_incluir_parlamentar_errors(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_comissao_submit(client):
+def test_incluir_comissao_submit(admin_client):
     tipo = mommy.make(TipoComissao,
                       sigla='T',
                       nome='Teste')
 
-    response = client.post(reverse('sapl.comissoes:comissao_create'),
-                           {'tipo': tipo.pk,
-                            'nome': 'Comissão Teste',
-                            'sigla': 'CT',
-                            'data_criacao': '2016-03-22',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.comissoes:comissao_create'),
+                                 {'tipo': tipo.pk,
+                                  'nome': 'Comissão Teste',
+                                  'sigla': 'CT',
+                                  'data_criacao': '2016-03-22',
+                                  'salvar': 'salvar'},
+                                 follow=True)
     assert response.status_code == 200
 
     comissao = Comissao.objects.first()
@@ -82,11 +82,11 @@ def test_incluir_comissao_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_comissao_errors(client):
+def test_incluir_comissao_errors(admin_client):
 
-    response = client.post(reverse('sapl.comissoes:comissao_create'),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.comissoes:comissao_create'),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])

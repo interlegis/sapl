@@ -6,22 +6,22 @@ from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_norma_submit(client):
+def test_incluir_norma_submit(admin_client):
     # Cria um tipo de norma
     tipo = mommy.make(TipoNormaJuridica,
                       sigla='T',
                       descricao='Teste')
 
     # Testa POST
-    response = client.post(reverse('sapl.norma:normajuridica_create'),
-                           {'tipo': tipo.pk,
-                            'numero': '1',
-                            'ano': '2016',
-                            'data': '2016-03-22',
-                            'esfera_federacao': 'E',
-                            'ementa': 'Teste_Ementa',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.norma:normajuridica_create'),
+                                 {'tipo': tipo.pk,
+                                  'numero': '1',
+                                  'ano': '2016',
+                                  'data': '2016-03-22',
+                                  'esfera_federacao': 'E',
+                                  'ementa': 'Teste_Ementa',
+                                  'salvar': 'salvar'},
+                                 follow=True)
     assert response.status_code == 200
 
     norma = NormaJuridica.objects.first()
@@ -31,11 +31,11 @@ def test_incluir_norma_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_norma_errors(client):
+def test_incluir_norma_errors(admin_client):
 
-    response = client.post(reverse('sapl.norma:normajuridica_create'),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.norma:normajuridica_create'),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
