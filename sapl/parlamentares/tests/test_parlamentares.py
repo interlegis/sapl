@@ -8,20 +8,20 @@ from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
 
 
 @pytest.mark.django_db(transaction=False)
-def test_cadastro_parlamentar(client):
+def test_cadastro_parlamentar(admin_client):
     legislatura = mommy.make(Legislatura)
 
     url = reverse('sapl.parlamentares:parlamentar_create')
-    response = client.get(url)
+    response = admin_client.get(url)
     assert response.status_code == 200
 
-    response = client.post(url, {'nome_completo': 'Teresa Barbosa',
-                                 'nome_parlamentar': 'Terezinha',
-                                 'sexo': 'F',
-                                 'ativo': 'True',
-                                 'legislatura': legislatura.id,
-                                 'data_expedicao_diploma': '2001-01-01'},
-                           follow=True)
+    response = admin_client.post(url, {'nome_completo': 'Teresa Barbosa',
+                                       'nome_parlamentar': 'Terezinha',
+                                       'sexo': 'F',
+                                       'ativo': 'True',
+                                       'legislatura': legislatura.id,
+                                       'data_expedicao_diploma': '2001-01-01'},
+                                 follow=True)
 
     [parlamentar] = Parlamentar.objects.all()
     assert parlamentar.nome_parlamentar == 'Terezinha'
@@ -36,9 +36,9 @@ def test_cadastro_parlamentar(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_parlamentar_errors(client):
+def test_incluir_parlamentar_errors(admin_client):
     url = reverse('sapl.parlamentares:parlamentar_create')
-    response = client.post(url)
+    response = admin_client.post(url)
     erros_esperados = {campo: ['Este campo é obrigatório.']
                        for campo in ['legislatura',
                                      'data_expedicao_diploma',
@@ -50,34 +50,34 @@ def test_incluir_parlamentar_errors(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_filiacao_submit(client):
+def test_filiacao_submit(admin_client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Partido, pk=32)
 
-    client.post(reverse('sapl.parlamentares:filiacao_create',
-                        kwargs={'pk': 14}),
-                {'partido': 32,
-                 'data': '2016-03-22',
-                 'salvar': 'salvar'},
-                follow=True)
+    admin_client.post(reverse('sapl.parlamentares:filiacao_create',
+                              kwargs={'pk': 14}),
+                      {'partido': 32,
+                       'data': '2016-03-22',
+                       'salvar': 'salvar'},
+                      follow=True)
 
     filiacao = Filiacao.objects.first()
     assert 32 == filiacao.partido.pk
 
 
 @pytest.mark.django_db(transaction=False)
-def test_dependente_submit(client):
+def test_dependente_submit(admin_client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Partido, pk=32)
     mommy.make(TipoDependente, pk=3)
 
-    client.post(reverse('sapl.parlamentares:dependente_create',
-                        kwargs={'pk': 14}),
-                {'nome': 'Eduardo',
-                 'tipo': 3,
-                 'sexo': 'M',
-                 'salvar': 'salvar'},
-                follow=True)
+    admin_client.post(reverse('sapl.parlamentares:dependente_create',
+                              kwargs={'pk': 14}),
+                      {'nome': 'Eduardo',
+                       'tipo': 3,
+                       'sexo': 'M',
+                       'salvar': 'salvar'},
+                      follow=True)
 
     dependente = Dependente.objects.first()
     assert 3 == dependente.tipo.pk
@@ -85,12 +85,13 @@ def test_dependente_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_dependente(client):
+def test_form_errors_dependente(admin_client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('sapl.parlamentares:dependente_create',
-                                   kwargs={'pk': 14}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(
+        reverse('sapl.parlamentares:dependente_create',
+                kwargs={'pk': 14}),
+        {'salvar': 'salvar'},
+        follow=True)
 
     assert (response.context_data['form'].errors['nome'] ==
             ['Este campo é obrigatório.'])
@@ -101,14 +102,14 @@ def test_form_errors_dependente(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_filiacao(client):
+def test_form_errors_filiacao(admin_client):
     mommy.make(Parlamentar, pk=14)
 
-    response = client.post(reverse('sapl.parlamentares:filiacao_create',
-                                   kwargs={'pk': 14}),
-                           {'partido': '',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.parlamentares:filiacao_create',
+                                         kwargs={'pk': 14}),
+                                 {'partido': '',
+                                  'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['partido'] ==
             ['Este campo é obrigatório.'])
@@ -117,31 +118,31 @@ def test_form_errors_filiacao(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_mandato_submit(client):
+def test_mandato_submit(admin_client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Legislatura, pk=5)
 
-    client.post(reverse('sapl.parlamentares:mandato_create',
-                        kwargs={'pk': 14}),
-                {'legislatura': 5,
-                 'data_fim_mandato': '2016-01-01',
-                 'data_expedicao_diploma': '2016-03-22',
-                 'observacao': 'Observação do mandato',
-                 'salvar': 'salvar'},
-                follow=True)
+    admin_client.post(reverse('sapl.parlamentares:mandato_create',
+                              kwargs={'pk': 14}),
+                      {'legislatura': 5,
+                       'data_fim_mandato': '2016-01-01',
+                       'data_expedicao_diploma': '2016-03-22',
+                       'observacao': 'Observação do mandato',
+                       'salvar': 'salvar'},
+                      follow=True)
 
     mandato = Mandato.objects.first()
     assert 'Observação do mandato' == mandato.observacao
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_mandato(client):
+def test_form_errors_mandato(admin_client):
     mommy.make(Parlamentar, pk=14)
-    response = client.post(reverse('sapl.parlamentares:mandato_create',
-                                   kwargs={'pk': 14}),
-                           {'legislatura': '',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.parlamentares:mandato_create',
+                                         kwargs={'pk': 14}),
+                                 {'legislatura': '',
+                                  'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['legislatura'] ==
             ['Este campo é obrigatório.'])

@@ -39,11 +39,6 @@ def isinst(value, class_str):
 
 
 @register.filter
-def to_class_name(value):
-    return value.__class__.__name__.lower()
-
-
-@register.filter
 def get_add_perm(value, arg):
     perm = value
     view = arg

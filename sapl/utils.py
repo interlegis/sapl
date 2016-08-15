@@ -261,7 +261,7 @@ def permissoes_parlamentares():
 def permissoes_protocoloadm():
     lista_permissoes = []
     perms_protocolo = Permission.objects.filter(
-        group__name='Operador de Protocolo')
+        group__name='Operador de Protocolo Administrativo')
     for p in perms_protocolo:
         lista_permissoes.append('protocoloadm.' + p.codename)
     return set(lista_permissoes)
@@ -270,7 +270,7 @@ def permissoes_protocoloadm():
 def permissoes_adm():
     lista_permissoes = []
     perms_adm = Permission.objects.filter(
-        group__name='Operador de Administração')
+        group__name='Operador Administrativo')
     for p in perms_adm:
         lista_permissoes.append('protocoloadm.' + p.codename)
     return set(lista_permissoes)
@@ -279,7 +279,7 @@ def permissoes_adm():
 def permissoes_sessao():
     lista_permissoes = []
     perms_sessao = list(Permission.objects.filter(
-        group__name='Operador de Sessão'))
+        group__name='Operador de Sessão Plenária'))
     for p in perms_sessao:
         lista_permissoes.append('sessao.' + p.codename)
     return set(lista_permissoes)
@@ -288,7 +288,7 @@ def permissoes_sessao():
 def permissoes_painel():
     lista_permissoes = []
     perms_painel = list(Permission.objects.filter(
-        group__name='Operador de Painel'))
+        group__name='Operador de Painel Eletrônico'))
     for p in perms_painel:
         lista_permissoes.append('painel.' + p.codename)
     return set(lista_permissoes)

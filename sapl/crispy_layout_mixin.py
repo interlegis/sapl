@@ -50,8 +50,9 @@ class SaplFormLayout(Layout):
 
 def get_field_display(obj, fieldname):
     field = obj._meta.get_field(fieldname)
-    verbose_name = str(field.verbose_name)
-    if field.choices:
+    verbose_name = str(field.verbose_name)\
+        if hasattr(field, 'verbose_name') else ''
+    if hasattr(field, 'choices') and field.choices:
         value = getattr(obj, 'get_%s_display' % fieldname)()
     else:
         value = getattr(obj, fieldname)
@@ -74,6 +75,14 @@ def get_field_display(obj, fieldname):
                 value.name.split('/')[-1:][0])
         else:
             display = ''
+    elif 'ManyRelatedManager' in str(type(value))\
+            or 'RelatedManager' in str(type(value)):
+        display = '<ul>'
+        for v in value.all():
+            display += '<li>%s</li>' % str(v)
+        display += '</ul>'
+        if not verbose_name:
+            verbose_name = str(field.related_model._meta.verbose_name_plural)
     else:
         display = str(value)
     return verbose_name, display
@@ -147,7 +156,9 @@ class CrispyLayoutFormMixin:
 def read_yaml_from_file(yaml_layout):
     # TODO cache this at application level
     t = template.loader.get_template(yaml_layout)
-    rendered = t.render()
+    # aqui é importante converter para str pois, dependendo do ambiente,
+    # o rtyaml pode usar yaml.CSafeLoader, que exige str ou stream
+    rendered = str(t.render())
     return rtyaml.load(rendered)
 
 
