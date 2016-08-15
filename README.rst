@@ -1,6 +1,5 @@
-.. image:: https://badge.waffle.io/interlegis/sapl.png?label=ready&title=Ready
- :target: https://waffle.io/interlegis/sapl
- :alt: 'Stories in Ready'
+.. image:: https://travis-ci.org/interlegis/sapl.svg?branch=master
+ :target: https://travis-ci.org/interlegis/sapl
 
 ***********************************************
 SAPL - Sistema de Apoio ao Processo Legislativo
@@ -246,18 +245,18 @@ Boas Práticas
 
 * Em caso de Implementação de modelo que envolva a classe ``django.contrib.auth.models.User``, não a use diretamente, use para isso a função ``get_settings_auth_user_model()`` de ``sapl.utils``. Exemplo:
 
-  - no lugar de ``owner = models.ForeignKey(User, ... )``  
-  - use ``owner = models.ForeignKey(get_settings_auth_user_model(), ... )``  
+  - no lugar de ``owner = models.ForeignKey(User, ... )``
+  - use ``owner = models.ForeignKey(get_settings_auth_user_model(), ... )``
 
   - Não use em qualquer modelagem futura, ``ForeignKey`` com ``User`` ou mesmo ``settings.AUTH_USER_MODEL`` sem o import correto que não é o do projeto e sim o que está em ``sapl.utils``, ou seja (``from django.conf import settings``)
 
-    - em https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#referencing-the-user-model é explicado por que ser dessa forma!  
+    - em https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#referencing-the-user-model é explicado por que ser dessa forma!
 
   - Já em qualquer uso em implementação de execução, ao fazer uma query, por exemplo:
 
     - não use ``django.contrib.auth.models.User`` para utilizar as caracteristicas do model, para isso, use esta função: django.contrib.auth.get_user_model()
 
-  - Seguir esses passos simplificará qualquer customização futura que venha a ser feita na autenticação do usuários ao evitar correções de inúmeros import's e ainda, desta forma, torna a funcionalidade de autenticação reimplementável por qualquer outro projeto que venha usar partes ou o todo do SAPL.     
+  - Seguir esses passos simplificará qualquer customização futura que venha a ser feita na autenticação do usuários ao evitar correções de inúmeros import's e ainda, desta forma, torna a funcionalidade de autenticação reimplementável por qualquer outro projeto que venha usar partes ou o todo do SAPL.
 
 Atenção:
 
