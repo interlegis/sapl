@@ -80,7 +80,7 @@ def make_materia_principal():
 
 
 @pytest.mark.django_db(transaction=False)
-def test_materia_anexada_submit(client):
+def test_materia_anexada_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria a matéria que será anexada
@@ -99,14 +99,14 @@ def test_materia_anexada_submit(client):
     materia_anexada = MateriaLegislativa.objects.get(numero=32, ano=2004)
 
     # Testa POST
-    response = client.post(reverse('sapl.materia:anexada_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'tipo': materia_anexada.tipo.pk,
-                            'numero': materia_anexada.numero,
-                            'ano': materia_anexada.ano,
-                            'data_anexacao': '2016-03-18',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:anexada_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'tipo': materia_anexada.tipo.pk,
+                                  'numero': materia_anexada.numero,
+                                  'ano': materia_anexada.ano,
+                                  'data_anexacao': '2016-03-18',
+                                  'salvar': 'salvar'},
+                                 follow=True)
     assert response.status_code == 200
 
     # Verifica se a matéria foi anexada corretamente
@@ -116,7 +116,7 @@ def test_materia_anexada_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_autoria_submit(client):
+def test_autoria_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria um tipo de Autor
@@ -126,14 +126,14 @@ def test_autoria_submit(client):
     autor = mommy.make(Autor, tipo=tipo_autor, nome='Autor Teste')
 
     # Testa POST
-    response = client.post(reverse('sapl.materia:autoria_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'autor': autor.pk,
-                            'primeiro_autor': True,
-                            'materia_id': materia_principal.pk,
-                            'partido': '',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:autoria_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'autor': autor.pk,
+                                  'primeiro_autor': True,
+                                  'materia_id': materia_principal.pk,
+                                  'partido': '',
+                                  'salvar': 'salvar'},
+                                 follow=True)
     assert response.status_code == 200
 
     # Verifica se o autor foi realmente criado
@@ -144,7 +144,7 @@ def test_autoria_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_despacho_inicial_submit(client):
+def test_despacho_inicial_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria uma comissão
@@ -156,11 +156,11 @@ def test_despacho_inicial_submit(client):
                           data_criacao='2016-03-18')
 
     # Testa POST
-    response = client.post(reverse('sapl.materia:despachoinicial_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'comissao': comissao.pk,
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:despachoinicial_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'comissao': comissao.pk,
+                                  'salvar': 'salvar'},
+                                 follow=True)
     assert response.status_code == 200
 
     # Verifica se o despacho foi criado
@@ -170,19 +170,19 @@ def test_despacho_inicial_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_numeracao_submit(client):
+def test_numeracao_submit(admin_client):
     materia_principal = make_materia_principal()
     materia = make_materia_principal()
 
     # Testa POST
-    response = client.post(reverse('sapl.materia:numeracao_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'tipo_materia': materia.tipo.pk,
-                            'numero_materia': materia.numero,
-                            'ano_materia': materia.ano,
-                            'data_materia': '2016-03-21',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:numeracao_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'tipo_materia': materia.tipo.pk,
+                                  'numero_materia': materia.numero,
+                                  'ano_materia': materia.ano,
+                                  'data_materia': '2016-03-21',
+                                  'salvar': 'salvar'},
+                                 follow=True)
 
     assert response.status_code == 200
 
@@ -193,7 +193,7 @@ def test_numeracao_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_documento_acessorio_submit(client):
+def test_documento_acessorio_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria um tipo de Autor
@@ -207,15 +207,16 @@ def test_documento_acessorio_submit(client):
                       descricao='Teste')
 
     # Testa POST
-    response = client.post(reverse('sapl.materia:documentoacessorio_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'tipo': tipo.pk,
-                            'nome': 'teste_nome',
-                            'data_materia': '2016-03-21',
-                            'autor': autor,
-                            'ementa': 'teste_ementa',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse(
+        'sapl.materia:documentoacessorio_create',
+        kwargs={'pk': materia_principal.pk}),
+        {'tipo': tipo.pk,
+         'nome': 'teste_nome',
+         'data_materia': '2016-03-21',
+         'autor': autor,
+         'ementa': 'teste_ementa',
+         'salvar': 'salvar'},
+        follow=True)
 
     assert response.status_code == 200
 
@@ -227,19 +228,20 @@ def test_documento_acessorio_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_legislacao_citada_submit(client):
+def test_legislacao_citada_submit(admin_client):
     materia_principal = make_materia_principal()
     norma = make_norma()
 
     # Testa POST
-    response = client.post(reverse('sapl.materia:legislacaocitada_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'tipo': norma.tipo.pk,
-                            'numero': norma.numero,
-                            'ano': norma.ano,
-                            'disposicao': 'disposicao',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(
+        reverse('sapl.materia:legislacaocitada_create',
+                kwargs={'pk': materia_principal.pk}),
+        {'tipo': norma.tipo.pk,
+         'numero': norma.numero,
+         'ano': norma.ano,
+         'disposicao': 'disposicao',
+         'salvar': 'salvar'},
+        follow=True)
 
     assert response.status_code == 200
 
@@ -249,7 +251,7 @@ def test_legislacao_citada_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_tramitacao_submit(client):
+def test_tramitacao_submit(admin_client):
     materia_principal = make_materia_principal()
     # Cria status para tramitação
     status_tramitacao = mommy.make(StatusTramitacao,
@@ -257,7 +259,7 @@ def test_tramitacao_submit(client):
                                    sigla='ST',
                                    descricao='Status_Teste')
     # Testa POST
-    response = client.post(
+    response = admin_client.post(
         reverse('sapl.materia:tramitacao_create',
                 kwargs={'pk': materia_principal.pk}),
         {'unidade_tramitacao_local': make_unidade_tramitacao(
@@ -283,12 +285,12 @@ def test_tramitacao_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_anexada(client):
+def test_form_errors_anexada(admin_client):
     materia_principal = make_materia_principal()
-    response = client.post(reverse('sapl.materia:anexada_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:anexada_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
@@ -301,42 +303,43 @@ def test_form_errors_anexada(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_autoria(client):
+def test_form_errors_autoria(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:autoria_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'materia_id': materia_principal.pk,
-                            'partido': '',
-                            'autor': '',
-                            'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:autoria_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'materia_id': materia_principal.pk,
+                                  'partido': '',
+                                  'autor': '',
+                                  'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['autor'] ==
             ['Este campo é obrigatório.'])
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_despacho_inicial(client):
+def test_form_errors_despacho_inicial(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:despachoinicial_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:despachoinicial_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['comissao'] ==
             ['Este campo é obrigatório.'])
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_documento_acessorio(client):
+def test_form_errors_documento_acessorio(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:documentoacessorio_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(
+        reverse('sapl.materia:documentoacessorio_create',
+                kwargs={'pk': materia_principal.pk}),
+        {'salvar': 'salvar'},
+        follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
@@ -345,13 +348,14 @@ def test_form_errors_documento_acessorio(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_legislacao_citada(client):
+def test_form_errors_legislacao_citada(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:legislacaocitada_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(
+        reverse('sapl.materia:legislacaocitada_create',
+                kwargs={'pk': materia_principal.pk}),
+        {'salvar': 'salvar'},
+        follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
@@ -362,13 +366,13 @@ def test_form_errors_legislacao_citada(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_numeracao(client):
+def test_form_errors_numeracao(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:numeracao_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:numeracao_create',
+                                         kwargs={'pk': materia_principal.pk}),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
 
     assert (response.context_data['form'].errors['tipo_materia'] ==
             ['Este campo é obrigatório.'])
@@ -381,13 +385,14 @@ def test_form_errors_numeracao(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_tramitacao(client):
+def test_form_errors_tramitacao(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:tramitacao_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(
+        reverse('sapl.materia:tramitacao_create',
+                kwargs={'pk': materia_principal.pk}),
+        {'salvar': 'salvar'},
+        follow=True)
 
     assert (response.context_data['form'].errors['data_tramitacao'] ==
             ['Este campo é obrigatório.'])
@@ -402,13 +407,14 @@ def test_form_errors_tramitacao(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_relatoria(client):
+def test_form_errors_relatoria(admin_client):
     materia_principal = make_materia_principal()
 
-    response = client.post(reverse('sapl.materia:relatoria_create',
-                                   kwargs={'pk': materia_principal.pk}),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(
+        reverse('sapl.materia:relatoria_create',
+                kwargs={'pk': materia_principal.pk}),
+        {'salvar': 'salvar'},
+        follow=True)
 
     assert (response.context_data['form'].errors['data_designacao_relator'] ==
             ['Este campo é obrigatório.'])
@@ -417,12 +423,12 @@ def test_form_errors_relatoria(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_proposicao_submit(client):
-    response = client.post(reverse('sapl.materia:proposicao_create'),
-                           {'tipo': mommy.make(TipoProposicao, pk=3).pk,
-                            'descricao': 'Teste proposição',
-                            'salvar': 'salvar'},
-                           follow=True)
+def test_proposicao_submit(admin_client):
+    response = admin_client.post(reverse('sapl.materia:proposicao_create'),
+                                 {'tipo': mommy.make(TipoProposicao, pk=3).pk,
+                                  'descricao': 'Teste proposição',
+                                  'salvar': 'salvar'},
+                                 follow=True)
 
     assert response.status_code == 200
 
@@ -432,11 +438,11 @@ def test_proposicao_submit(client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_form_errors_proposicao(client):
+def test_form_errors_proposicao(admin_client):
 
-    response = client.post(reverse('sapl.materia:proposicao_create'),
-                           {'salvar': 'salvar'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.materia:proposicao_create'),
+                                 {'salvar': 'salvar'},
+                                 follow=True)
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['descricao'] ==

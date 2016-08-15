@@ -8,22 +8,22 @@ from sapl.protocoloadm.models import Protocolo
 
 
 @pytest.mark.django_db(transaction=False)
-def test_anular_protocolo_acessivel(client):
-    response = client.get(reverse('sapl.protocoloadm:anular_protocolo'))
+def test_anular_protocolo_acessivel(admin_client):
+    response = admin_client.get(reverse('sapl.protocoloadm:anular_protocolo'))
     assert response.status_code == 200
 
 
 @pytest.mark.django_db(transaction=False)
-def test_anular_protocolo_submit(client):
+def test_anular_protocolo_submit(admin_client):
     mommy.make(Protocolo, numero='76', ano='2016', anulado=False)
 
     # TODO: setar usuario e IP
-    response = client.post(reverse('sapl.protocoloadm:anular_protocolo'),
-                           {'numero': '76',
-                            'ano': '2016',
-                            'justificativa_anulacao': 'TESTE',
-                            'salvar': 'Anular'},
-                           follow=True)
+    response = admin_client.post(reverse('sapl.protocoloadm:anular_protocolo'),
+                                 {'numero': '76',
+                                  'ano': '2016',
+                                  'justificativa_anulacao': 'TESTE',
+                                  'salvar': 'Anular'},
+                                 follow=True)
 
     assert response.status_code == 200
 
