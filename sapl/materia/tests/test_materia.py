@@ -5,10 +5,10 @@ from model_mommy import mommy
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
-                                 Numeracao, Proposicao, RegimeTramitacao,
-                                 StatusTramitacao, TipoAutor, TipoDocumento,
-                                 TipoMateriaLegislativa, TipoProposicao,
-                                 Tramitacao, UnidadeTramitacao)
+                                 Numeracao, RegimeTramitacao, StatusTramitacao,
+                                 TipoAutor, TipoDocumento,
+                                 TipoMateriaLegislativa, Tramitacao,
+                                 UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 
@@ -413,31 +413,4 @@ def test_form_errors_relatoria(client):
     assert (response.context_data['form'].errors['data_designacao_relator'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['parlamentar'] ==
-            ['Este campo é obrigatório.'])
-
-
-@pytest.mark.django_db(transaction=False)
-def test_proposicao_submit(client):
-    response = client.post(reverse('sapl.materia:proposicao_create'),
-                           {'tipo': mommy.make(TipoProposicao, pk=3).pk,
-                            'descricao': 'Teste proposição',
-                            'salvar': 'salvar'},
-                           follow=True)
-
-    assert response.status_code == 200
-
-    proposicao = Proposicao.objects.first()
-    assert proposicao.descricao == 'Teste proposição'
-    assert proposicao.tipo.pk == 3
-
-
-@pytest.mark.django_db(transaction=False)
-def test_form_errors_proposicao(client):
-
-    response = client.post(reverse('sapl.materia:proposicao_create'),
-                           {'salvar': 'salvar'},
-                           follow=True)
-    assert (response.context_data['form'].errors['tipo'] ==
-            ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['descricao'] ==
             ['Este campo é obrigatório.'])
