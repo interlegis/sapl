@@ -100,6 +100,12 @@ class DependenteCrud(MasterDetailCrud):
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
+    class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
+        permission_required = permissoes_parlamentares()
+
+    class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+        permission_required = permissoes_parlamentares()
+
 
 class MandatoCrud(MasterDetailCrud):
     model = Mandato

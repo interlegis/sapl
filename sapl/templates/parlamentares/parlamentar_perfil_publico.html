@@ -12,7 +12,8 @@
   {% block detail_content %}
   <p class="legend"></p>
 
-  <div class="row-fluid">   
+  <div class="row-fluid">
+    {% if parlamentar.fotografia %}   
       <div class="col-sm-3">
         <div id="div_fotografia" class="form-group">
           <div class="controls">
@@ -20,6 +21,7 @@
           </div>
         </div>
       </div>
+    {% endif %}
       
       <div class="col-sm-8">
         <div id="div_nome" class="form-group">
@@ -65,19 +67,6 @@
 
       
   </div>
-
-<!-- 
-
-    <h2 class="legend">{{ fieldset.legend }}</h2>
-    <div class="row-fluid">
-      <div class="col-md-3-offset-3">
-        <img src="{{ object.fotografia.path }}">
-      </div>
-
-      <div class="col-md-12">
-        <p>SADASDADS</p>
-      </div>
-    <div> -->
 
   {% endblock detail_content %}
 
