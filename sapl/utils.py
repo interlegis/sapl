@@ -203,7 +203,6 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
         mime = magic.from_buffer(value.read(), mime=True)
-        mime = mime.decode()
         if mime not in lista:
             raise ValidationError(_('Tipo de arquivo não suportado'))
     # o nome é importante para as migrations

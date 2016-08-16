@@ -1,6 +1,8 @@
 from compressor.utils import get_class
 from django import template
 
+from sapl.parlamentares.models import Filiacao
+
 register = template.Library()
 
 
@@ -81,3 +83,13 @@ def ver_menu_sistema_perm(value):
         return True
     else:
         return False
+
+
+@register.filter
+def ultima_filiacao(value):
+    parlamentar = value
+
+    ultima_filiacao = Filiacao.objects.filter(
+        parlamentar=parlamentar).order_by('-data').first()
+
+    return ultima_filiacao.partido

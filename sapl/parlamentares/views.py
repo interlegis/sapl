@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -9,7 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudListView, CrudUpdateView)
+                            CrudDeleteView, CrudDetailView,
+                            CrudListView, CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
@@ -191,9 +193,30 @@ class FiliacaoCrud(MasterDetailCrud):
         ordering = '-data'
 
 
+def get_parlamentar_permissions():
+        lista_permissoes = []
+        cts = ContentType.objects.filter(app_label='parlamentares')
+        perms_parlamentares = list(Permission.objects.filter(
+            content_type__in=cts))
+        for p in perms_parlamentares:
+            lista_permissoes.append('parlamentares.' + p.codename)
+        return set(lista_permissoes)
+
+
 class ParlamentarCrud(Crud):
     model = Parlamentar
     help_path = ''
+
+    class DetailView(CrudDetailView):
+        def get_template_names(self):
+            usuario = self.request.user
+            lista_permissoes = get_parlamentar_permissions()
+
+            if usuario.has_perms(lista_permissoes):
+                return ['crud/detail.html']
+
+            else:
+                return ['parlamentares/parlamentar_perfil_publico.html']
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ParlamentarForm
