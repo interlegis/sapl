@@ -126,8 +126,8 @@ TipoProposicao:
   descricao: des_tipo_proposicao
   materia_ou_documento: ind_mat_ou_doc
   modelo: nom_modelo
-  tipo_documento: 
-  tipo_materia: 
+  tipo_documento:
+  tipo_materia:
 
 Proposicao:
   autor: cod_autor
