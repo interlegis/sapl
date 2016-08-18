@@ -347,3 +347,24 @@ p {
     margin: 0.5em 0;
 }
 /* FIM INDEX */
+
+/* TEMPLATE AJUDA */
+.manual li {
+    display: list-item;
+    line-height: 1.5em;
+    padding-right: 0;
+}
+.manual li a {
+    background-color: transparent;
+    border: none;
+    border-radius: none;
+    padding: 0;
+}
+
+.manual, .manual ul {
+    padding-left: 1.5em;
+    list-style-type: none;
+    margin-top: 0;
+    font-size: 100%;
+}
+/* FIM TEMPLATE AJUDA */
