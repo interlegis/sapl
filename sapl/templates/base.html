@@ -114,7 +114,7 @@
                   </ul>
               </li>
               {% if not user.is_authenticated %}
-                <li><a href="{% url 'sapl.base:login' %}">Login</a></li>
+                <li><a href="{% url 'sapl.base:login' %}"><img src="{% static 'img/user.png' %}"></a></li>
               {% else %}
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
