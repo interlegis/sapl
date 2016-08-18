@@ -9,11 +9,6 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      DocumentoAcessorioAdministrativoView,
                                      DocumentoAdministrativoCrud,
                                      PesquisarDocumentoAdministrativoView,
-                                     ProposicaoDetailView,
-                                     ProposicaoReceberView, ProposicaoView,
-                                     ProposicoesIncorporadasView,
-                                     ProposicoesNaoIncorporadasView,
-                                     ProposicoesNaoRecebidasView,
                                      ProtocoloDocumentoCrud,
                                      ProtocoloDocumentoView, ProtocoloListView,
                                      ProtocoloMateriaCrud,
@@ -27,8 +22,7 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      TramitacaoAdmEditView,
                                      TramitacaoAdmIncluirView,
                                      TramitacaoAdministrativoCrud,
-                                     TramitacaoAdmView, get_nome_autor,
-                                     pesquisa_autores)
+                                     TramitacaoAdmView)
 
 from .apps import AppConfig
 
@@ -86,26 +80,4 @@ urlpatterns = [
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar_documento$',
         CriarDocumentoProtocolo.as_view(), name='criar_documento'),
-
-
-    # TODO: move to Proposicoes app
-    url(r'^proposicao$',
-        ProposicaoView.as_view(), name='proposicao'),
-    url(r'^proposicao/proposicao-receber',
-        ProposicaoReceberView.as_view(), name='proposicao_receber'),
-    url(r'^proposicao/proposicao-naorecebidas',
-        ProposicoesNaoRecebidasView.as_view(),
-        name='proposicao_naorecebidas'),
-    url(r'^proposicao/proposicao-naoincorporadas',
-        ProposicoesNaoIncorporadasView.as_view(),
-        name='proposicao_naoincorporadas'),
-    url(r'^proposicao/proposicao-incorporadas',
-        ProposicoesIncorporadasView.as_view(),
-        name='proposicao_incorporadas'),
-    url(r'^proposicao/(?P<pk>\d+)/proposicao',
-        ProposicaoDetailView.as_view(), name='proposicao_view'),
-    url(r'^proposicao/pesquisar_autor',
-        pesquisa_autores, name='pesquisar_autor'),
-    url(r'^proposicao/get_nome_autor',
-        get_nome_autor, name='get_nome_autor')
 ]
