@@ -4,8 +4,10 @@ import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
+from django.contrib.auth.models import Group, User
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
@@ -98,7 +100,8 @@ class ProposicaoForm(ModelForm):
 
     class Meta:
         model = Proposicao
-        fields = ['tipo', 'data_envio', 'descricao', 'texto_original']
+        fields = ['tipo', 'data_envio', 'descricao', 'texto_original', 'autor']
+        widgets = {'autor': forms.HiddenInput()}
 
 
 class AcompanhamentoMateriaForm(ModelForm):
@@ -542,3 +545,105 @@ class AutoriaForm(ModelForm):
             raise ValidationError(msg)
 
         return self.cleaned_data
+
+
+class AutorForm(ModelForm):
+    senha = forms.CharField(
+        max_length=20,
+        label=_('Senha'),
+        required=True,
+        widget=forms.PasswordInput())
+
+    senha_confirma = forms.CharField(
+        max_length=20,
+        label=_('Confirmar Senha'),
+        required=True,
+        widget=forms.PasswordInput())
+
+    confirma_email = forms.EmailField(
+        required=True,
+        label=_('Confirmar Email'))
+
+    class Meta:
+        model = Autor
+        fields = ['username',
+                  'senha',
+                  'email',
+                  'nome',
+                  'tipo',
+                  'cargo',
+                  'parlamentar',
+                  'comissao']
+
+    def valida_igualdade(self, texto1, texto2, msg):
+        if texto1 != texto2:
+            raise ValidationError(msg)
+        return True
+
+    def valida_email_existente(self):
+        return User.objects.filter(
+            email=self.cleaned_data['email']).exists()
+
+    def usuario_existente(self):
+        return User.objects.filter(
+            username=self.cleaned_data['username']).exists()
+
+    def clean(self):
+        if ('senha' not in self.cleaned_data or
+                'senha_confirma' not in self.cleaned_data):
+            raise ValidationError(_('Favor informar as senhas'))
+
+        msg = _('As senhas não conferem.')
+        self.valida_igualdade(
+            self.cleaned_data['senha'],
+            self.cleaned_data['senha_confirma'],
+            msg)
+
+        if ('email' not in self.cleaned_data or
+                'confirma_email' not in self.cleaned_data):
+            raise ValidationError(_('Favor informar endereços de email'))
+
+        msg = _('Os emails não conferem.')
+        self.valida_igualdade(
+            self.cleaned_data['email'],
+            self.cleaned_data['confirma_email'],
+            msg)
+
+        email_existente = self.valida_email_existente()
+
+        if email_existente:
+            msg = _('Este email já foi cadastrado.')
+            raise ValidationError(msg)
+
+        if self.usuario_existente():
+            msg = _('Este nome de usuario já foi cadastrado.')
+            raise ValidationError(msg)
+
+        try:
+            validate_password(self.cleaned_data['senha'])
+        except ValidationError as error:
+            raise ValidationError(error)
+
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=False):
+
+        autor = super(AutorForm, self).save(commit)
+
+        u = User.objects.get_or_create(
+            username=autor.username,
+            email=autor.email)
+        u = u[0]
+        u.set_password(self.cleaned_data['senha'])
+        u.is_active = False
+        u.save()
+
+        autor.user = u
+
+        autor.save()
+
+        grupo = Group.objects.filter(name='Autor')[0]
+        u.groups.add(grupo)
+
+        return autor

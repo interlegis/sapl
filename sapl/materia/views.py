@@ -4,13 +4,19 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.template import Context, loader
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, TemplateView, UpdateView
 from django_filters.views import FilterView
@@ -19,15 +25,15 @@ from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudListView, CrudUpdateView,
-                            make_pagination)
+                            CrudDeleteView, CrudDetailView, CrudListView,
+                            CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, get_base_url,
-                        permissao_tb_aux, permissoes_materia)
+                        permissao_tb_aux, permissoes_autor, permissoes_materia)
 
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
-                    DespachoInicialForm, DocumentoAcessorioForm,
+from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
+                    AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
                     LegislacaoCitadaForm, MateriaLegislativaFilterSet,
                     NumeracaoForm, ProposicaoForm, RelatoriaForm,
                     TramitacaoForm, UnidadeTramitacaoForm,
@@ -103,8 +109,54 @@ class AutorCrud(Crud):
     help_path = 'autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        list_field_names = ['tipo', 'nome',
+                            'username', 'cargo']
+
         def has_permission(self):
             return permissao_tb_aux(self)
+
+    class CreateView(CrudCreateView):
+        form_class = AutorForm
+        layout_key = 'AutorCreate'
+
+        def get_success_url(self):
+            pk_autor = Autor.objects.get(
+                email=self.request.POST.get('email')).id
+            kwargs = {}
+            user = User.objects.get(email=self.request.POST.get('email'))
+            kwargs['token'] = default_token_generator.make_token(user)
+            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+            assunto = "SAPL - Confirmação de Conta"
+            full_url = self.request.get_raw_uri()
+            url_base = full_url[:full_url.find('sistema') - 1]
+
+            mensagem = ("Este e-mail foi utilizado para fazer cadastro no " +
+                        "SAPL com o perfil de Autor. Agora você pode " +
+                        "criar/editar/enviar Proposições.\n" +
+                        "Seu nome de usuário é: " +
+                        self.request.POST['username'] + "\n"
+                        "Caso você não tenha feito este cadastro, por favor " +
+                        "ignore esta mensagem. Caso tenha, clique " +
+                        "no link abaixo\n" + url_base +
+                        reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+            remetente = settings.EMAIL_SEND_USER
+            destinatario = [self.request.POST.get('email')]
+            send_mail(assunto, mensagem, remetente, destinatario,
+                      fail_silently=False)
+            return reverse('sapl.materia:autor_detail',
+                           kwargs={'pk': pk_autor})
+
+
+class ConfirmarEmailView(TemplateView):
+    template_name = "confirma_email.html"
+
+    def get(self, request, *args, **kwargs):
+        uid = urlsafe_base64_decode(self.kwargs['uidb64'])
+        user = User.objects.get(id=uid)
+        user.is_active = True
+        user.save()
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
 
 
 class OrgaoCrud(Crud):
@@ -167,16 +219,66 @@ class ProposicaoCrud(Crud):
         def layout_key(self):
             return 'ProposicaoCreate'
 
+        def get_initial(self):
+            try:
+                autor_id = Autor.objects.get(user=self.request.user.id)
+            except MultipleObjectsReturned:
+                msg = _('Este usuário está relacionado a mais de um autor. ' +
+                        'Operação cancelada')
+                messages.add_message(self.request, messages.ERROR, msg)
+                return redirect(self.get_success_url())
+            else:
+                return {'autor': autor_id}
+
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ProposicaoForm
-        permission_required = permissoes_materia()
+        permission_required = permissoes_autor()
 
         @property
         def layout_key(self):
             return 'ProposicaoCreate'
 
-    class ListView(CrudListView):
+        def has_permission(self):
+            perms = self.get_permission_required()
+            if self.request.user.has_perms(perms):
+                if (Proposicao.objects.filter(
+                   id=self.kwargs['pk'],
+                   autor__user_id=self.request.user.id).exists()):
+                    proposicao = Proposicao.objects.get(
+                        id=self.kwargs['pk'],
+                        autor__user_id=self.request.user.id)
+                    if not proposicao.data_recebimento:
+                        return True
+                    else:
+                        msg = _('Essa proposição já foi recebida. ' +
+                                'Não pode mais ser editada')
+                        messages.add_message(self.request, messages.ERROR, msg)
+                        return False
+            else:
+                return False
+
+    class DetailView(PermissionRequiredMixin, CrudDetailView):
+        permission_required = permissoes_autor()
+
+        @property
+        def layout_key(self):
+            return 'ProposicaoCreate'
+
+        def has_permission(self):
+            perms = self.get_permission_required()
+            if self.request.user.has_perms(perms):
+                if (Proposicao.objects.filter(
+                   id=self.kwargs['pk'],
+                   autor__user_id=self.request.user.id).exists()):
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+    class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
+        permission_required = permissoes_autor()
 
         def get_rows(self, object_list):
 
@@ -185,6 +287,11 @@ class ProposicaoCrud(Crud):
                     obj.data_envio = 'Em elaboração...'
 
             return [self._as_row(obj) for obj in object_list]
+
+        def get_queryset(self):
+            lista = Proposicao.objects.filter(
+                autor__user_id=self.request.user.id)
+            return lista
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_materia()

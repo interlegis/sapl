@@ -22,13 +22,8 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-                                     TipoInstituicaoCrud,
-                                     TramitacaoAdmDeleteView,
-                                     TramitacaoAdmEditView,
-                                     TramitacaoAdmIncluirView,
-                                     TramitacaoAdministrativoCrud,
-                                     TramitacaoAdmView, get_nome_autor,
-                                     pesquisa_autores)
+                                     TipoInstituicaoCrud, TramitacaoAdmCrud,
+                                     get_nome_autor, pesquisa_autores)
 
 from .apps import AppConfig
 
@@ -36,7 +31,8 @@ app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/',
-        include(DocumentoAdministrativoCrud.get_urls())),
+        include(DocumentoAdministrativoCrud.get_urls() +
+                TramitacaoAdmCrud.get_urls())),
     url(r'^protocoloadm/tipo-documento-adm/',
         include(TipoDocumentoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/doc-acessorio/',
@@ -45,8 +41,6 @@ urlpatterns = [
         include(StatusTramitacaoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/tipo-instituicao/',
         include(TipoInstituicaoCrud.get_urls())),
-    url(r'^protocoloadm/tramitacao-adm/',
-        include(TramitacaoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/protocolo-doc/',
         include(ProtocoloDocumentoCrud.get_urls())),
     url(r'^protocoloadm/protocolo-mat/',
@@ -73,14 +67,6 @@ urlpatterns = [
         DocumentoAcessorioAdministrativoEditView.as_view(),
         name='doc_ace_adm_edit'),
 
-    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao$',
-        TramitacaoAdmView.as_view(), name='tramitacao_adm'),
-    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_incluir',
-        TramitacaoAdmIncluirView.as_view(), name='tramitacao_incluir'),
-    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_edit',
-        TramitacaoAdmEditView.as_view(), name='tramitacao_edit'),
-    url(r'^protocoloadm/(?P<pk>\d+)/tramitacao_delete/(?P<oid>\d+)',
-        TramitacaoAdmDeleteView.as_view(), name='tramitacao_delete'),
 
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
