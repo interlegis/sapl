@@ -1,0 +1,96 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %}{% endblock %}
+
+{% block sections_nav %}
+{% endblock %}
+
+
+
+
+
+{% block detail_content %}
+    {% block buttons %}
+
+      {% if filter_url %}
+            <div class="actions btn-group pull-right" role="group">
+              <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+            </div>
+
+            <div class="actions btn-group pull-right" role="group">
+              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
+            </div>
+
+      {% endif %}
+
+    {% endblock %}
+
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  <p></p>
+  {% if filter_url %}
+  <table class="table table-striped table-bordered">
+        <thead class="thead-default">
+            <tr>
+              <td><h3>{% trans "Matérias" %}</h3></td>
+              <td><h3>{% trans "Tipo de Votação" %}</h3></td>
+            </tr>
+        </thead>
+        {% if paginator.count %}
+          {% if paginator.count > 1 %}
+              <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+            {% elif paginator.count == 1 %}
+              <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
+            {% endif %}
+
+        <form method="POST" enctype="application/x-www-form-urlencoded">
+          {% csrf_token %}
+
+          {% for m in page_obj %}
+              <tr>
+                  <td>
+                      <input type="checkbox" name="materia_id" value="{{m.id}}" {% if check %} checked {% endif %}/>
+                      <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+                      <strong>Autores:</strong>
+                      {% for a in m.autoria_set.all %}
+                        {% if not forloop.first %}
+                          , &nbsp;&nbsp; {{a.autor|default_if_none:"Não Informado"}}
+                        {% else %}
+                          &nbsp;{{a.autor|default_if_none:"Não Informado"}}
+                        {% endif %}
+                      {% endfor %}
+                      </br>
+                      <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
+                      <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não Informada"}}</br>
+                      <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
+                      <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
+                      <p></p>
+                      <td class="col-md-3">
+                          <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="1"> <label for="sexo">Simbólica</label>
+                          </br>
+                          <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="2"> <label for="sexo">Nominal</label>
+                          </br>
+                          <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="3"> <label for="sexo">Secreta</label>
+                      </td>
+                  </td>
+              </tr>         
+          {% endfor %}
+        
+        {% else  %}
+            <tr>
+                <td>
+                    <h3>Nenhuma matéria encontrada com essas especificações</h3>
+                 </tr>
+        {% endif %}
+
+    </table>
+
+      <input type="submit" value="Adicionar matérias selecionadas" class="btn btn-primary"S>
+    </form>
+
+{% endif %}
+
+{% endblock detail_content %}
