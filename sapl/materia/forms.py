@@ -31,6 +31,31 @@ def em_tramitacao():
             (False, 'Não')]
 
 
+class ConfirmarProposicaoForm(ModelForm):
+    class Meta:
+        model = Proposicao
+        exclude = ['texto_original', 'descricao', 'tipo']
+
+
+class ReceberProposicaoForm(ModelForm):
+    cod_hash = forms.CharField(label='Código do Documento', required=True)
+
+    class Meta:
+        model = Proposicao
+        exclude = ['texto_original', 'descricao', 'tipo']
+
+    def __init__(self, *args, **kwargs):
+        row1 = to_row([('cod_hash', 12)])
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Incorporar Proposição'), row1,
+                form_actions(save_label='Buscar Proposição')
+            )
+        )
+        super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
+
+
 class UnidadeTramitacaoForm(ModelForm):
 
     class Meta:
@@ -82,19 +107,32 @@ class ProposicaoForm(ModelForm):
         cleaned_data = self.cleaned_data
         if 'tipo' in cleaned_data:
             if cleaned_data['tipo'].descricao == 'Parecer':
-                try:
-                    materia = MateriaLegislativa.objects.get(
-                        tipo_id=cleaned_data['tipo_materia'],
-                        ano=cleaned_data['ano_materia'],
-                        numero=cleaned_data['numero_materia'])
-                except ObjectDoesNotExist:
-                    msg = _('Matéria adicionada não existe!')
-                    raise ValidationError(msg)
+                if self.instance.materia:
+                    cleaned_data['materia'] = self.instance.materia
+                    cleaned_data['autor'] = (
+                        self.instance.materia.autoria_set.first().autor)
                 else:
-                    cleaned_data['materia'] = materia
-                    cleaned_data['autor'] = materia.autoria_set.first().autor
+                    try:
+                        materia = MateriaLegislativa.objects.get(
+                            tipo_id=cleaned_data['tipo_materia'],
+                            ano=cleaned_data['ano_materia'],
+                            numero=cleaned_data['numero_materia'])
+                    except ObjectDoesNotExist:
+                        msg = _('Matéria adicionada não existe!')
+                        raise ValidationError(msg)
+                    else:
+                        cleaned_data['materia'] = materia
+                        cleaned_data['autor'] = materia.autoria_set.first(
+                            ).autor
 
         return cleaned_data
+
+    def save(self, commit=False):
+        proposicao = super(ProposicaoForm, self).save(commit)
+        if 'materia' in self.cleaned_data:
+            proposicao.materia = self.cleaned_data['materia']
+        proposicao.save()
+        return proposicao
 
     class Meta:
         model = Proposicao

@@ -11,7 +11,7 @@
     </div>
     {% endblock actions %}
   </div>
-
+  {% block extra_msg %}{% endblock extra_msg %}
   {% block detail_content %}
     {% for fieldset in view.layout_display %}
     <h2 class="legend">{{ fieldset.legend }}</h2>

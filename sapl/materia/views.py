@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect
 from django.template import Context, loader
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, TemplateView, UpdateView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django_filters.views import FilterView
 
 from sapl.base.models import CasaLegislativa
@@ -21,14 +21,15 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView, CrudListView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
-from sapl.utils import autor_label, autor_modal, get_base_url
+from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
+                        get_base_url)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
-                    DespachoInicialForm, DocumentoAcessorioForm,
-                    LegislacaoCitadaForm, MateriaLegislativaFilterSet,
-                    NumeracaoForm, ProposicaoForm, RelatoriaForm,
-                    TramitacaoForm, UnidadeTramitacaoForm,
-                    filtra_tramitacao_destino,
+                    ConfirmarProposicaoForm, DespachoInicialForm,
+                    DocumentoAcessorioForm, LegislacaoCitadaForm,
+                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
+                    ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
+                    UnidadeTramitacaoForm, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -52,6 +53,43 @@ TipoProposicaoCrud = Crud.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = Crud.build(StatusTramitacao, 'status_tramitacao')
 
 
+def criar_materia_proposicao(proposicao):
+    tipo_materia = TipoMateriaLegislativa.objects.get(
+        descricao=proposicao.tipo.descricao)
+    numero = MateriaLegislativa.objects.filter(
+        ano=datetime.now().year).order_by('numero').last().numero + 1
+    regime = RegimeTramitacao.objects.get(descricao='Normal')
+
+    return MateriaLegislativa.objects.create(
+        tipo=tipo_materia,
+        ano=datetime.now().year,
+        numero=numero,
+        data_apresentacao=datetime.now(),
+        regime_tramitacao=regime,
+        em_tramitacao=True,
+        ementa=proposicao.descricao,
+        texto_original=proposicao.texto_original
+    )
+
+
+def criar_doc_proposicao(proposicao):
+    tipo_doc = TipoDocumento.objects.get(
+        descricao=proposicao.tipo.descricao)
+    if proposicao.autor is None:
+        autor = 'Desconhecido'
+    else:
+        autor = proposicao.autor
+
+    return DocumentoAcessorio.objects.create(
+        materia=proposicao.materia,
+        tipo=tipo_doc,
+        arquivo=proposicao.texto_original,
+        nome=proposicao.descricao,
+        data=proposicao.data_envio,
+        autor=autor
+    )
+
+
 class UnidadeTramitacaoCrud(Crud):
     model = UnidadeTramitacao
     help_path = 'unidade_tramitacao'
@@ -63,12 +101,149 @@ class UnidadeTramitacaoCrud(Crud):
         form_class = UnidadeTramitacaoForm
 
 
+class ProposicaoDevolvida(ListView):
+    template_name = 'materia/prop_devolvidas_list.html'
+    model = Proposicao
+    ordering = ['data_envio']
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(
+            data_envio__isnull=False,
+            data_recebimento__isnull=True,
+            data_devolucao__isnull=False)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoDevolvida, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição devolvida.'
+        return context
+
+
+class ProposicaoPendente(ListView):
+    template_name = 'materia/prop_pendentes_list.html'
+    model = Proposicao
+    ordering = ['data_envio', 'autor', 'tipo', 'descricao']
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(
+            data_envio__isnull=False,
+            data_recebimento__isnull=True,
+            data_devolucao__isnull=True)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoPendente, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
+        return context
+
+
+class ProposicaoRecebida(ListView):
+    template_name = 'materia/prop_recebidas_list.html'
+    model = Proposicao
+    ordering = ['data_envio']
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Proposicao.objects.filter(
+            data_envio__isnull=False,
+            data_recebimento__isnull=False,
+            data_devolucao__isnull=True)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProposicaoRecebida, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição recebida.'
+        return context
+
+
+class ReceberProposicao(CreateView):
+    template_name = "materia/receber_proposicao.html"
+    form_class = ReceberProposicaoForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ReceberProposicao, self).get_context_data(**kwargs)
+        context.update({'form': self.get_form()})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ReceberProposicaoForm(request.POST)
+
+        if form.is_valid():
+            proposicoes = Proposicao.objects.filter(data_envio__isnull=False)
+
+            for proposicao in proposicoes:
+                hasher = gerar_hash_arquivo(proposicao.texto_original.path,
+                                            str(proposicao.pk))
+                if hasher == form.cleaned_data['cod_hash']:
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:proposicao-confirmar',
+                                kwargs={'pk': proposicao.pk}))
+
+            msg = 'Proposição não encontrada!'
+            return self.render_to_response({'form': form, 'msg': msg})
+        else:
+            return self.render_to_response({'form': form})
+
+    def get_success_url(self):
+        return reverse('sapl.materia:receber-proposicao')
+
+
+class ConfirmarProposicao(CreateView):
+    template_name = "materia/confirmar_proposicao.html"
+    form_class = ConfirmarProposicaoForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ConfirmarProposicao, self).get_context_data(**kwargs)
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+        context.update({'form': self.get_form(), 'proposicao': proposicao})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ConfirmarProposicaoForm(request.POST)
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+
+        if form.is_valid():
+            if 'incorporar' in request.POST:
+                proposicao.data_recebimento = datetime.now()
+                if proposicao.tipo.descricao == 'Parecer':
+                    documento = criar_doc_proposicao(proposicao)
+                    proposicao.documento_gerado = documento
+                    proposicao.save()
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:documentoacessorio_update',
+                                kwargs={'pk': documento.pk}))
+                else:
+                    materia = criar_materia_proposicao(proposicao)
+                    proposicao.materia_gerada = materia
+                    proposicao.save()
+                    return HttpResponseRedirect(
+                        reverse('sapl.materia:materialegislativa_update',
+                                kwargs={'pk': materia.pk}))
+            else:
+                proposicao.data_devolucao = datetime.now()
+                proposicao.save()
+                return HttpResponseRedirect(
+                    reverse('sapl.materia:proposicao-devolvida'))
+
+
 class ProposicaoCrud(Crud):
     model = Proposicao
     help_path = ''
 
     class BaseMixin(CrudBaseMixin):
-        list_field_names = ['data_envio', 'descricao', 'tipo']
+        list_field_names = ['data_envio', 'descricao',
+                            'tipo', 'data_recebimento']
 
     class CreateView(CrudCreateView):
         form_class = ProposicaoForm
@@ -80,18 +255,36 @@ class ProposicaoCrud(Crud):
     class UpdateView(CrudUpdateView):
         form_class = ProposicaoForm
 
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+            if self.object.materia:
+                context['form'].fields['tipo_materia'].initial = (
+                    self.object.materia.tipo.id)
+                context['form'].fields['numero_materia'].initial = (
+                    self.object.materia.numero)
+                context['form'].fields['ano_materia'].initial = (
+                    self.object.materia.ano)
+            return context
+
         @property
         def layout_key(self):
             return 'ProposicaoCreate'
 
     class ListView(CrudListView):
-        ordering = ['-data_envio', 'descricao']
+        ordering = ['-data_envio', '-descricao']
 
         def get_rows(self, object_list):
 
             for obj in object_list:
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
+                else:
+                    obj.data_envio = obj.data_envio.strftime("%d/%m/%Y %H:%M")
+                if obj.data_recebimento is None:
+                    obj.data_recebimento = 'Não recebida'
+                else:
+                    obj.data_recebimento = obj.data_recebimento.strftime(
+                                            "%d/%m/%Y %H:%M")
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -110,6 +303,20 @@ class ProposicaoCrud(Crud):
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao_detail',
                             kwargs={'pk': proposicao.pk}))
+
+
+class ReciboProposicaoView(TemplateView):
+    template_name = "materia/recibo_proposicao.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ReciboProposicaoView, self).get_context_data(
+            **kwargs)
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+        context.update({'proposicao': proposicao,
+                        'hash': gerar_hash_arquivo(
+                                    proposicao.texto_original.path,
+                                    self.kwargs['pk'])})
+        return context
 
 
 class RelatoriaCrud(MasterDetailCrud):

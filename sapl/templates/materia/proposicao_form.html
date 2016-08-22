@@ -7,18 +7,12 @@
     $(document).ready(function(){
       if($("#id_data_envio").val() != ''){
         $("#submit-id-excluir").val('Retornar proposição enviada');
-        $("#submit-id-salvar").val('Salvar proposição');
       }else{
         $("#submit-id-excluir").val('Excluir proposição');
-        $("#submit-id-salvar").val('Enviar proposição');
       }
     });
 
  		function disable_fields() {
- 			$("#id_tipo_materia").val("");
- 			$("#id_numero_materia").val("");
- 			$("#id_ano_materia").val("");
-
 			$("#id_tipo_materia").attr("disabled", "disabled");
 			$("#id_numero_materia").attr("disabled", "disabled");
 			$("#id_ano_materia").attr("disabled", "disabled");
@@ -34,7 +28,7 @@
   	$(function () {
   		disable_fields();
   		$("#id_tipo").change(function() {
-  			if ($("#id_tipo").val() == 9) { // parecer
+  			if ($('#id_tipo option:selected').text() == 'Parecer') { // parecer
   				enable_fields();
   			}else {
   				disable_fields();

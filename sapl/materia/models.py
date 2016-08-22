@@ -443,14 +443,16 @@ class TipoProposicao(models.Model):
 class Proposicao(models.Model):
     autor = models.ForeignKey(Autor, null=True, blank=True)
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
+
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        null=True, blank=True, verbose_name=_('Data de Envio'))
+        blank=True, null=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Incorporação'))
-    descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
+        blank=True, null=True, verbose_name=_('Data de Recebimento'))
     data_devolucao = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de devolução'))
+        blank=True, null=True, verbose_name=_('Data de Devolução'))
+
+    descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
@@ -461,17 +463,23 @@ class Proposicao(models.Model):
     status = models.CharField(blank=True,
                               max_length=1,
                               choices=(('E', 'Enviada'),
-                                       ('D', 'Devolvida'),
+                                       ('R', 'Recebida'),
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     # mutually exclusive (depend on tipo.materia_ou_documento)
     materia = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
-    documento = models.ForeignKey(
-        DocumentoAcessorio, blank=True, null=True, verbose_name=_('Documento'))
+        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'),
+        related_name=_('materia_vinculada'))
+
+    # Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
+    # de uma já existente
+    materia_gerada = models.ForeignKey(
+        MateriaLegislativa, blank=True, null=True,
+        related_name=_('materia_gerada'))
+    documento_gerado = models.ForeignKey(
+        DocumentoAcessorio, blank=True, null=True)
+
     texto_original = models.FileField(
-        blank=True,
-        null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])

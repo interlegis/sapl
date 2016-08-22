@@ -3,17 +3,20 @@ from django.conf.urls import include, url
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
-                                AutorCrud, AutoriaCrud, DespachoInicialCrud,
-                                DocumentoAcessorioCrud, LegislacaoCitadaCrud,
-                                MateriaLegislativaCrud,
+                                AutorCrud, AutoriaCrud, ConfirmarProposicao,
+                                DespachoInicialCrud, DocumentoAcessorioCrud,
+                                LegislacaoCitadaCrud, MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
-                                ProposicaoCrud, ProposicaoTaView,
-                                RegimeTramitacaoCrud, RelatoriaCrud,
-                                StatusTramitacaoCrud, TipoAutorCrud,
-                                TipoDocumentoCrud, TipoFimRelatoriaCrud,
-                                TipoMateriaCrud, TipoProposicaoCrud,
-                                TramitacaoCrud, UnidadeTramitacaoCrud)
+                                ProposicaoCrud, ProposicaoDevolvida,
+                                ProposicaoPendente, ProposicaoRecebida,
+                                ProposicaoTaView, ReceberProposicao,
+                                ReciboProposicaoView, RegimeTramitacaoCrud,
+                                RelatoriaCrud, StatusTramitacaoCrud,
+                                TipoAutorCrud, TipoDocumentoCrud,
+                                TipoFimRelatoriaCrud, TipoMateriaCrud,
+                                TipoProposicaoCrud, TramitacaoCrud,
+                                UnidadeTramitacaoCrud)
 
 from .apps import AppConfig
 
@@ -31,6 +34,18 @@ urlpatterns = [
                               DocumentoAcessorioCrud.get_urls())),
 
     url(r'^proposicao/', include(ProposicaoCrud.get_urls())),
+    url(r'^proposicao/recibo/(?P<pk>\d+)', ReciboProposicaoView.as_view(),
+        name='recibo-proposicao'),
+    url(r'^proposicao/receber/', ReceberProposicao.as_view(),
+        name='receber-proposicao'),
+    url(r'^proposicao/pendente/', ProposicaoPendente.as_view(),
+        name='proposicao-pendente'),
+    url(r'^proposicao/recebida/', ProposicaoRecebida.as_view(),
+        name='proposicao-recebida'),
+    url(r'^proposicao/devolvida/', ProposicaoDevolvida.as_view(),
+        name='proposicao-devolvida'),
+    url(r'^proposicao/confirmar/(?P<pk>\d+)', ConfirmarProposicao.as_view(),
+        name='proposicao-confirmar'),
 
     # Integração com Compilação
     url(r'^materia/(?P<pk>[0-9]+)/ta$',

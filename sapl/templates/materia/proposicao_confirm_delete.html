@@ -1,0 +1,10 @@
+{% extends "crud/confirm_delete.html" %}
+{% load i18n %}
+
+{% block msg %}
+  {% if proposicao.data_envio %}
+    Confirma o retorno de "{{ object }}"?
+  {% else %}
+    Confirma exclusão de "{{ object }}"?
+  {% endif %}
+{% endblock msg %}
