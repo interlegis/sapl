@@ -141,7 +141,9 @@ def get_presentes(pk, response, materia):
         'numero_votos_nao': 0,
         'numero_abstencoes': 0,
         'total_votos': 0,
-        'tipo_resultado': tipo_votacao})
+        'tipo_resultado': tipo_votacao,
+        'observacao_materia': materia.observacao,
+        'materia_legislativa_texto': str(materia.materia)})
 
     return response
 
@@ -220,7 +222,9 @@ def get_presentes_expediente(pk, response, materia):
         'numero_votos_nao': 0,
         'numero_abstencoes': 0,
         'total_votos': 0,
-        'tipo_resultado': tipo_votacao})
+        'tipo_resultado': tipo_votacao,
+        'observacao_materia': materia.observacao,
+        'materia_legislativa_texto': str(materia.materia)})
 
     return response
 
@@ -255,7 +259,7 @@ def get_votos(response, materia):
         'numero_abstencoes': registro.numero_abstencoes,
         'total_votos': total,
         'tipo_votacao': tipo_votacao,
-        'tipo_resultado': registro.tipo_resultado_votacao.nome
+        'tipo_resultado': registro.tipo_resultado_votacao.nome,
     })
     return response
 
