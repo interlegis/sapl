@@ -14,7 +14,7 @@ TipoComissao:
 
 Comissao:
   {% trans 'Dados Básicos' %}:
-  - nome:8  sigla
+  - nome:7  sigla ativa
   - tipo    data_criacao  unidade_deliberativa  data_extincao
   {% trans 'Dados Complementares' %}:
   - local_reuniao  agenda_reuniao  telefone_reuniao
