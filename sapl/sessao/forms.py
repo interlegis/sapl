@@ -13,7 +13,7 @@ from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
 
-from .models import Bancada, ExpedienteMateria, SessaoPlenaria
+from .models import Bancada, ExpedienteMateria, SessaoPlenaria, OrdemDia
 
 
 def pega_anos():
@@ -95,6 +95,39 @@ class ExpedienteMateriaForm(ModelForm):
         return expediente
 
 
+class OrdemDiaForm(ExpedienteMateriaForm):
+
+    class Meta:
+        model = OrdemDia
+        fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
+                  'numero_materia', 'ano_materia', 'tipo_votacao']
+
+    def clean_data_ordem(self):
+        return datetime.now()
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        try:
+            materia = MateriaLegislativa.objects.get(
+                numero=self.cleaned_data['numero_materia'],
+                ano=self.cleaned_data['ano_materia'],
+                tipo=self.cleaned_data['tipo_materia'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser inclusa não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['materia'] = materia
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        ordem = super(OrdemDiaForm, self).save(commit)
+        ordem.materia = self.cleaned_data['materia']
+        ordem.save()
+        return ordem
+
+
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)
@@ -106,19 +139,6 @@ class VotacaoNominalForm(forms.Form):
 
 class ListMateriaForm(forms.Form):
     error_message = forms.CharField(required=False, label='votacao_aberta')
-
-
-class MateriaOrdemDiaForm(forms.Form):
-    data_sessao = forms.CharField(required=True, label=_('Data da Sessão'))
-    numero_ordem = forms.IntegerField(required=True, label=_('Número Ordem'))
-    tipo_votacao = forms.IntegerField(required=True, label=_('Tipo Votação'))
-    tipo_sessao = forms.IntegerField(required=True, label=_('Tipo da Sessão'))
-    ano_materia = forms.IntegerField(required=True, label=_('Ano Matéria'))
-    numero_materia = forms.IntegerField(required=True,
-                                        label=_('Número Matéria'))
-    tipo_materia = forms.IntegerField(required=True, label=_('Tipo Matéria'))
-    observacao = forms.CharField(required=False, label=_('Ementa'))
-    error_message = forms.CharField(required=False, label=_('Matéria'))
 
 
 class MesaForm(forms.Form):

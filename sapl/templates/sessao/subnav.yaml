@@ -22,7 +22,7 @@
 - title: {% trans 'Ordem do Dia' %}
   children:
     - title: {% trans 'Matérias Ordem do Dia' %}
-      url: materiaordemdia_list
+      url: ordemdia_list
     - title: {% trans 'Presença Ordem do Dia' %}
       url: presencaordemdia
 
