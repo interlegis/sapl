@@ -92,4 +92,7 @@ def ultima_filiacao(value):
     ultima_filiacao = Filiacao.objects.filter(
         parlamentar=parlamentar).order_by('-data').first()
 
-    return ultima_filiacao.partido
+    if ultima_filiacao:
+        return ultima_filiacao.partido
+    else:
+        return None
