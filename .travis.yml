@@ -3,7 +3,6 @@ language: python
 python:
   - 3.4.3
 
-
 services:
   - postgresql
 
@@ -17,6 +16,7 @@ before_script:
   - psql -c "CREATE DATABASE sapl OWNER sapl;" -U postgres
 
 script:
+  - ./manage.py shell < scripts/inicializa_grupos_autorizacoes.py
   - ./manage.py migrate
   - ./manage.py bower install
   - py.test
