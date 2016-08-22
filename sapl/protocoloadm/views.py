@@ -13,31 +13,20 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-<<<<<<< HEAD
 import sapl.crud.base
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudListView, CrudUpdateView,
                             make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
-from sapl.materia.models import Proposicao, TipoMateriaLegislativa
+from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
                         permissoes_protocoloadm)
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, ProposicaoSimpleForm,
+                    DocumentoAdministrativoForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
                     ProtocoloMateriaForm, TramitacaoAdmEditForm,
-=======
-from sapl.crud.base import Crud, CrudBaseMixin, CrudListView, make_pagination
-from sapl.materia.models import TipoMateriaLegislativa
-from sapl.utils import create_barcode, get_client_ip
-
-from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
-                    DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, ProtocoloDocumentForm,
-                    ProtocoloFilterSet, ProtocoloMateriaForm,
->>>>>>> master
                     TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -360,74 +349,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
-<<<<<<< HEAD
-# TODO: move to Proposicao app
-class ProposicaoReceberView(TemplateView):
-    template_name = "protocoloadm/proposicao_receber.html"
-
-
-class ProposicoesNaoRecebidasView(ListView):
-    template_name = "protocoloadm/proposicao_naorecebidas.html"
-    model = Proposicao
-    paginate_by = 10
-
-    def get_queryset(self):
-        return Proposicao.objects.filter(data_envio__isnull=False, status='E')
-
-
-class ProposicoesNaoIncorporadasView(ListView):
-    template_name = "protocoloadm/proposicao_naoincorporadas.html"
-    model = Proposicao
-    paginate_by = 10
-
-    def get_queryset(self):
-        return Proposicao.objects.filter(data_envio__isnull=False,
-                                         data_devolucao__isnull=False,
-                                         status='D')
-
-
-class ProposicoesIncorporadasView(ListView):
-    template_name = "protocoloadm/proposicao_incorporadas.html"
-    model = Proposicao
-    paginate_by = 10
-
-    def get_queryset(self):
-        return Proposicao.objects.filter(data_envio__isnull=False,
-                                         data_recebimento__isnull=False,
-                                         status='I')
-
-
-class ProposicaoView(TemplateView):
-    template_name = "protocoloadm/proposicoes.html"
-
-
-class ProposicaoDetailView(DetailView):
-    template_name = "protocoloadm/proposicao_view.html"
-    model = Proposicao
-
-    def get(self, request, *args, **kwargs):
-        proposicao = Proposicao.objects.get(id=kwargs['pk'])
-        data = {  # 'ano': proposicao.ano, # TODO: FIX
-            'tipo': proposicao.tipo.descricao,  # TODO: FIX
-            'materia': proposicao.materia,
-            'numero_proposicao': proposicao.numero_proposicao,
-            'data_envio': proposicao.data_envio,
-            'data_recebimento': proposicao.data_recebimento,
-            'descricao': proposicao.descricao}
-        form = ProposicaoSimpleForm(initial=data)
-        return self.render_to_response({'form': form})
-
-    def get_context_data(self, **kwargs):
-        context = super(ProposicaoView, self).get_context_data(**kwargs)
-        context['form'] = ProposicaoSimpleForm
-        return context
-
-
 class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
                                            FilterView):
-=======
-class PesquisarDocumentoAdministrativoView(FilterView):
->>>>>>> master
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10

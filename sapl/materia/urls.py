@@ -3,13 +3,10 @@ from django.conf.urls import include, url
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
-<<<<<<< HEAD
                                 AutorCrud, AutoriaCrud, ConfirmarEmailView,
-=======
-                                AutorCrud, AutoriaCrud, ConfirmarProposicao,
->>>>>>> master
-                                DespachoInicialCrud, DocumentoAcessorioCrud,
-                                LegislacaoCitadaCrud, MateriaLegislativaCrud,
+                                ConfirmarProposicao, DespachoInicialCrud,
+                                DocumentoAcessorioCrud, LegislacaoCitadaCrud,
+                                MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
                                 ProposicaoCrud, ProposicaoDevolvida,

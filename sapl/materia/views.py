@@ -29,27 +29,16 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
-<<<<<<< HEAD
-from sapl.utils import (autor_label, autor_modal, get_base_url,
-                        permissao_tb_aux, permissoes_autor, permissoes_materia)
+from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
+                        get_base_url, permissao_tb_aux, permissoes_autor,
+                        permissoes_materia)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
-                    AutoriaForm, DespachoInicialForm, DocumentoAcessorioForm,
-                    LegislacaoCitadaForm, MateriaLegislativaFilterSet,
-                    NumeracaoForm, ProposicaoForm, RelatoriaForm,
-                    TramitacaoForm, UnidadeTramitacaoForm,
-                    filtra_tramitacao_destino,
-=======
-from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
-                        get_base_url)
-
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutoriaForm,
-                    ConfirmarProposicaoForm, DespachoInicialForm,
+                    AutoriaForm, ConfirmarProposicaoForm, DespachoInicialForm,
                     DocumentoAcessorioForm, LegislacaoCitadaForm,
                     MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
                     ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
                     UnidadeTramitacaoForm, filtra_tramitacao_destino,
->>>>>>> master
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -461,7 +450,6 @@ class ProposicaoCrud(Crud):
         def layout_key(self):
             return 'ProposicaoCreate'
 
-<<<<<<< HEAD
         def has_permission(self):
             perms = self.get_permission_required()
             if self.request.user.has_perms(perms):
@@ -477,10 +465,6 @@ class ProposicaoCrud(Crud):
     class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
         permission_required = permissoes_autor()
-=======
-    class ListView(CrudListView):
-        ordering = ['-data_envio', '-descricao']
->>>>>>> master
 
         def get_rows(self, object_list):
 

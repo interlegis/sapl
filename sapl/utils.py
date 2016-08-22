@@ -222,7 +222,6 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     return maior_inicio <= menor_fim
 
 
-<<<<<<< HEAD
 def permissoes_materia():
     lista_permissoes = []
     cts = ContentType.objects.filter(app_label='materia')

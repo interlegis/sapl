@@ -91,7 +91,6 @@ class BancadaCrud(Crud):
         form_class = BancadaForm
 
 
-<<<<<<< HEAD
 class TipoSessaoCrud(Crud):
     model = TipoSessaoPlenaria
     help_path = 'tipo_sessao_plenaria'
@@ -535,7 +534,6 @@ class PresencaOrdemDiaView(PermissionRequiredMixin,
         return reverse('sapl.sessao:presencaordemdia', kwargs={'pk': pk})
 
 
-<<<<<<< HEAD
 class ListMateriaOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
     template_name = 'sessao/materia_ordemdia_list.html'
     form_class = ListMateriaForm
@@ -637,187 +635,6 @@ class ListMateriaOrdemDiaView(FormMixin, SessaoCrud.CrudDetailView):
                 ordem.votacao_aberta = True
                 ordem.save()
         return self.get(self, request, args, kwargs)
-
-
-class MateriaOrdemDiaView(PermissionRequiredMixin,
-                          FormMixin,
-                          SessaoCrud.CrudDetailView):
-    template_name = 'sessao/materia_ordemdia.html'
-    form_class = MateriaOrdemDiaForm
-    permission_required = permissoes_sessao()
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        now = datetime.now()
-
-        tipo_materia = TipoMateriaLegislativa.objects.all()
-        data_sessao = now
-        tipo_sessao = TipoSessaoPlenaria.objects.all()
-        tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
-        ano_materia = now.year
-
-        context.update({'data_sessao': data_sessao,
-                        'tipo_sessao': tipo_sessao,
-                        'tipo_materia': tipo_materia,
-                        'tipo_votacao': tipo_votacao,
-                        'ano_materia': ano_materia,
-                        'error_message': '', })
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        form = MateriaOrdemDiaForm(request.POST)
-
-        if form.is_valid():
-            try:
-                materia = MateriaLegislativa.objects.get(
-                    numero=request.POST['numero_materia'],
-                    tipo_id=request.POST['tipo_materia'],
-                    ano=request.POST['ano_materia'])
-            except ObjectDoesNotExist:
-                form._errors["error_message"] = ErrorList([u""])
-                context.update({'form': form})
-                return self.render_to_response(context)
-
-            # TODO: barrar matérias não existentes
-            # TODO: barrar criação de ordemdia para materias já incluídas
-
-            ordemdia = OrdemDia()
-            ordemdia.sessao_plenaria_id = self.object.id
-            ordemdia.materia_id = materia.id
-            ordemdia.numero_ordem = request.POST['numero_ordem']
-            ordemdia.data_ordem = datetime.now()
-            ordemdia.observacao = sub('&nbsp;', ' ',
-                                      strip_tags(request.POST['observacao']))
-            ordemdia.tipo_votacao = request.POST['tipo_votacao']
-            ordemdia.save()
-
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sapl.sessao:materiaordemdia_list',
-                       kwargs={'pk': pk})
-
-
-class EditMateriaOrdemDiaView(PermissionRequiredMixin,
-                              FormMixin,
-                              SessaoCrud.CrudDetailView):
-    template_name = 'sessao/materia_ordemdia_edit.html'
-    form_class = MateriaOrdemDiaForm
-    permission_required = permissoes_sessao()
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        pk = kwargs['pk']
-        oid = kwargs['oid']
-        ordem = OrdemDia.objects.get(sessao_plenaria_id=pk, materia_id=oid)
-
-        materia = MateriaLegislativa.objects.get(
-            id=ordem.materia_id)
-
-        data_ordem = ordem.data_ordem
-        tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
-        tipo_sessao = TipoSessaoPlenaria.objects.all()
-        tipo_materia = TipoMateriaLegislativa.objects.all()
-
-        context.update({'data_sessao': data_ordem,
-                        'tipo_sessao': tipo_sessao,
-                        'tipo_sessao_selected': self.object.tipo,
-                        'tipo_materia': tipo_materia,
-                        'tipo_materia_selected': materia.tipo,
-                        'tipo_votacao': tipo_votacao,
-                        'tipo_votacao_selected': ordem.tipo_votacao,
-                        'ano_materia': materia.ano,
-                        'numero_ordem': ordem.numero_ordem,
-                        'numero_materia': materia.numero,
-                        'ordem_id': oid,
-                        'oid': '',
-                        'observacao': sub(
-                            '&nbsp;', ' ', strip_tags(ordem.observacao)),
-                        'error_message': '', })
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        form = MateriaOrdemDiaForm(request.POST)
-
-        pk = kwargs['pk']
-        oid = kwargs['oid']
-        ordemdia = OrdemDia.objects.get(sessao_plenaria_id=pk, materia_id=oid)
-
-        if 'update-ordemdia' in request.POST:
-            if form.is_valid():
-                try:
-                    materia = MateriaLegislativa.objects.get(
-                        numero=request.POST['numero_materia'],
-                        tipo_id=request.POST['tipo_materia'],
-                        ano=request.POST['ano_materia'])
-                except ObjectDoesNotExist:
-                    context.update(
-                        {'error_message': _("Matéria inexistente!")})
-                    return self.form_invalid(form)
-
-                ordemdia.materia_id = materia.id
-                ordemdia.numero_ordem = request.POST['numero_ordem']
-                ordemdia.tipo_votacao = request.POST['tipo_votacao']
-                obs = strip_tags(request.POST['observacao'])
-                ordemdia.observacao = sub('&nbsp;', '  ', obs)
-                ordemdia.save()
-                return self.form_valid(form)
-            else:
-                context = self.get_context_data(object=self.object)
-
-                pk = kwargs['pk']
-                oid = kwargs['oid']
-                ordem = OrdemDia.objects.get(
-                    sessao_plenaria_id=pk,
-                    materia_id=oid)
-
-                materia = MateriaLegislativa.objects.get(
-                    id=ordem.materia_id)
-
-                data_ordem = ordem.data_ordem
-                tipo_votacao = ExpedienteMateria.TIPO_VOTACAO_CHOICES
-                tipo_sessao = TipoSessaoPlenaria.objects.all()
-                tipo_materia = TipoMateriaLegislativa.objects.all()
-
-                context.update({'data_sessao': data_ordem,
-                                'tipo_sessao': tipo_sessao,
-                                'tipo_sessao_selected': self.object.tipo,
-                                'tipo_materia': tipo_materia,
-                                'tipo_materia_selected': materia.tipo,
-                                'tipo_votacao': tipo_votacao,
-                                'tipo_votacao_selected': ordem.tipo_votacao,
-                                'ano_materia': materia.ano,
-                                'numero_ordem': ordem.numero_ordem,
-                                'numero_materia': materia.numero,
-                                'ordem_id': oid,
-                                'oid': '',
-                                'observacao': sub(
-                                    '&nbsp;', ' ',
-                                    strip_tags(ordem.observacao)),
-                                'error_message': '', })
-                context.update({'form': form})
-                return self.render_to_response(context)
-        elif 'delete-ordemdia' in request.POST:
-            ordemdia.delete()
-            return self.form_valid(form)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sapl.sessao:materiaordemdia_list',
-                       kwargs={'pk': pk})
 
 
 class MesaView(PermissionRequiredMixin, FormMixin, SessaoCrud.CrudDetailView):

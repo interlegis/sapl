@@ -17,17 +17,7 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-<<<<<<< HEAD
-                                     TipoInstituicaoCrud, TramitacaoAdmCrud,
-                                     get_nome_autor, pesquisa_autores)
-=======
-                                     TipoInstituicaoCrud,
-                                     TramitacaoAdmDeleteView,
-                                     TramitacaoAdmEditView,
-                                     TramitacaoAdmIncluirView,
-                                     TramitacaoAdministrativoCrud,
-                                     TramitacaoAdmView)
->>>>>>> master
+                                     TipoInstituicaoCrud)
 
 from .apps import AppConfig
 
@@ -35,8 +25,7 @@ app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^protocoloadm/docadm/',
-        include(DocumentoAdministrativoCrud.get_urls() +
-                TramitacaoAdmCrud.get_urls())),
+        include(DocumentoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/tipo-documento-adm/',
         include(TipoDocumentoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/doc-acessorio/',
