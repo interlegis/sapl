@@ -19,5 +19,5 @@ before_script:
 script:
   - ./manage.py migrate
   - ./manage.py bower install
-  - py.test --create-db
+  - py.test
   # - ./test_and_check_qa.sh
