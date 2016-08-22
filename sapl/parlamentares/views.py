@@ -271,6 +271,9 @@ class ParlamentarCrud(Crud):
                     partido = _('Sem Partido')
 
                 parlamentar = [
+                    ("<img src=" + m.parlamentar.fotografia.url + " \
+                     height='42' width='42' />" if m.parlamentar.fotografia
+                     else '', ''),
                     (m.parlamentar.nome_parlamentar, m.parlamentar.id),
                     (partido, None),
                     ('Sim' if m.parlamentar.ativo else 'Não', None)
@@ -279,7 +282,7 @@ class ParlamentarCrud(Crud):
             return parlamentares
 
         def get_headers(self):
-            return ['Parlamentar', 'Partido', 'Ativo?']
+            return ['', 'Parlamentar', 'Partido', 'Ativo?']
 
         def get_context_data(self, **kwargs):
             context = super(ParlamentarCrud.ListView, self
