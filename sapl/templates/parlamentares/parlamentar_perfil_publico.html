@@ -13,7 +13,7 @@
   <p class="legend"></p>
 
   <div class="row-fluid">
-    {% if parlamentar.fotografia %}   
+    {% if parlamentar.fotografia %}
       <div class="col-sm-3">
         <div id="div_fotografia" class="form-group">
           <div class="controls">
@@ -22,7 +22,7 @@
         </div>
       </div>
     {% endif %}
-      
+
       <div class="col-sm-8">
         <div id="div_nome" class="form-group">
           <p><b>Nome Completo: </b> &nbsp {{object.nome_completo}}</p>
@@ -31,7 +31,7 @@
       
       <div class="col-sm-8">
         <div id="div_data_nascimento" class="form-group">
-          <p><b>Partido: </b> &nbsp {{object|ultima_filiacao|default_if_none:"Não informado"}}</p>
+          <p><b>Partido: </b> &nbsp {{object.filiacao_set.first.partido|default_if_none:"Não informado"}}</p>
         </div>
       </div>
 
@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      
+
   </div>
 
   {% endblock detail_content %}
