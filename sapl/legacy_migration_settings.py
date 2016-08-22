@@ -3,7 +3,7 @@
 from .settings import *  # flake8: noqa
 
 INSTALLED_APPS += (
-    'legacy',  # legacy reversed model definitions
+    'sapl.legacy',  # legacy reversed model definitions
 )
 
 DATABASES['legacy'] = {

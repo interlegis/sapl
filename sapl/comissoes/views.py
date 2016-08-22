@@ -138,7 +138,7 @@ class ComissaoCrud(Crud):
         permission_required = permissoes_comissoes()
 
     class BaseMixin(CrudBaseMixin):
-        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao']
+        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
 
 
 class MateriasTramitacaoListView(ListView):

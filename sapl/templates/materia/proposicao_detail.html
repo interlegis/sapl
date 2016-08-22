@@ -4,6 +4,7 @@
 
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
+<<<<<<< HEAD
     {% if proposicao.data_envio %}
       {% if perms|get_change_perm:view %}
         <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
@@ -14,13 +15,18 @@
       {% endif %}
 
     {% else %}
-      {% if perms|get_change_perm:view %}  
+      {% if perms|get_change_perm:view %}
         <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
       {% endif %}
 
-      {% if perms|get_delete_perm:view %}  
+      {% if perms|get_delete_perm:view %}
         <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
       {% endif %}
     {% endif %}
   </div>
 {% endblock actions %}
+{% block extra_msg %}
+  {% if proposicao.data_envio and not proposicao.data_recebimento %}
+    <b><p align="center"><a href="" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">[Imprimir Recibo]</a></p></b>
+  {% endif %}
+{% endblock extra_msg %}

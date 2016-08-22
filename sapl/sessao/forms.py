@@ -2,17 +2,18 @@ from datetime import datetime
 
 import django_filters
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Fieldset, Layout
+from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.utils import RANGE_DIAS_MES, RANGE_MESES
+from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
 
-from .models import Bancada, ExpedienteMateria, SessaoPlenaria
+from .models import Bancada, ExpedienteMateria, SessaoPlenaria, OrdemDia
 
 
 def pega_anos():
@@ -94,6 +95,39 @@ class ExpedienteMateriaForm(ModelForm):
         return expediente
 
 
+class OrdemDiaForm(ExpedienteMateriaForm):
+
+    class Meta:
+        model = OrdemDia
+        fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
+                  'numero_materia', 'ano_materia', 'tipo_votacao']
+
+    def clean_data_ordem(self):
+        return datetime.now()
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        try:
+            materia = MateriaLegislativa.objects.get(
+                numero=self.cleaned_data['numero_materia'],
+                ano=self.cleaned_data['ano_materia'],
+                tipo=self.cleaned_data['tipo_materia'])
+        except ObjectDoesNotExist:
+            msg = _('A matéria a ser inclusa não existe no cadastro'
+                    ' de matérias legislativas.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['materia'] = materia
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        ordem = super(OrdemDiaForm, self).save(commit)
+        ordem.materia = self.cleaned_data['materia']
+        ordem.save()
+        return ordem
+
+
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)
@@ -105,19 +139,6 @@ class VotacaoNominalForm(forms.Form):
 
 class ListMateriaForm(forms.Form):
     error_message = forms.CharField(required=False, label='votacao_aberta')
-
-
-class MateriaOrdemDiaForm(forms.Form):
-    data_sessao = forms.CharField(required=True, label=_('Data da Sessão'))
-    numero_ordem = forms.IntegerField(required=True, label=_('Número Ordem'))
-    tipo_votacao = forms.IntegerField(required=True, label=_('Tipo Votação'))
-    tipo_sessao = forms.IntegerField(required=True, label=_('Tipo da Sessão'))
-    ano_materia = forms.IntegerField(required=True, label=_('Ano Matéria'))
-    numero_materia = forms.IntegerField(required=True,
-                                        label=_('Número Matéria'))
-    tipo_materia = forms.IntegerField(required=True, label=_('Tipo Matéria'))
-    observacao = forms.CharField(required=False, label=_('Ementa'))
-    error_message = forms.CharField(required=False, label=_('Matéria'))
 
 
 class MesaForm(forms.Form):
@@ -169,5 +190,78 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Sessao Plenária'),
                      row1,
+                     form_actions(save_label='Pesquisar'))
+        )
+
+
+class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['numero',
+                  'numero_protocolo',
+                  'ano',
+                  'tipo',
+                  'data_apresentacao',
+                  'data_publicacao',
+                  'autoria__autor__tipo',
+                  'autoria__partido',
+                  'relatoria__parlamentar_id',
+                  'local_origem_externa',
+                  'em_tramitacao',
+                  ]
+
+        order_by = (
+            ('', 'Selecione'),
+            ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
+            ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
+            ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
+            ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
+        self.filters['autoria__partido'].label = 'Partido do Autor'
+        self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
+
+        row1 = to_row(
+            [('tipo', 12)])
+        row2 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('numero_protocolo', 4)])
+        row3 = to_row(
+            [('data_apresentacao', 6),
+             ('data_publicacao', 6)])
+        row4 = to_row(
+            [('autoria__autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
+        row5 = to_row(
+            [('autoria__autor__tipo', 6),
+             ('autoria__partido', 6)])
+        row6 = to_row(
+            [('relatoria__parlamentar_id', 6),
+             ('local_origem_externa', 6)])
+        row7 = to_row(
+            [('em_tramitacao', 6),
+             ('o', 6)])
+        row8 = to_row(
+            [('ementa', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matéria'),
+                     row1, row2, row3,
+                     HTML(autor_label),
+                     HTML(autor_modal),
+                     row4, row5, row6, row7, row8,
                      form_actions(save_label='Pesquisar'))
         )

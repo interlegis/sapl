@@ -12,7 +12,8 @@ def user():
 
 def test_login_aparece_na_barra_para_usuario_nao_logado(client):
     response = client.get('/')
-    assert '<a href="/login/">Login</a>' in str(response.content)
+    assert '<a href="/login/"><img src="/static/img/user.png"></a>' in str(
+        response.content)
 
 
 def test_username_do_usuario_logado_aparece_na_barra(client, user):

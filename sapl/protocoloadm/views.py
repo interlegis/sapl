@@ -13,6 +13,7 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+<<<<<<< HEAD
 import sapl.crud.base
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudListView, CrudUpdateView,
@@ -27,6 +28,16 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoForm, ProposicaoSimpleForm,
                     ProtocoloDocumentForm, ProtocoloFilterSet,
                     ProtocoloMateriaForm, TramitacaoAdmEditForm,
+=======
+from sapl.crud.base import Crud, CrudBaseMixin, CrudListView, make_pagination
+from sapl.materia.models import TipoMateriaLegislativa
+from sapl.utils import create_barcode, get_client_ip
+
+from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
+                    DocumentoAdministrativoFilterSet,
+                    DocumentoAdministrativoForm, ProtocoloDocumentForm,
+                    ProtocoloFilterSet, ProtocoloMateriaForm,
+>>>>>>> master
                     TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
@@ -349,6 +360,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
+<<<<<<< HEAD
 # TODO: move to Proposicao app
 class ProposicaoReceberView(TemplateView):
     template_name = "protocoloadm/proposicao_receber.html"
@@ -413,6 +425,9 @@ class ProposicaoDetailView(DetailView):
 
 class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
                                            FilterView):
+=======
+class PesquisarDocumentoAdministrativoView(FilterView):
+>>>>>>> master
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10

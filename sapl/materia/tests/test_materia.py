@@ -7,10 +7,10 @@ from model_mommy import mommy
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
-                                 Numeracao, Proposicao, RegimeTramitacao,
-                                 StatusTramitacao, TipoAutor, TipoDocumento,
-                                 TipoMateriaLegislativa, TipoProposicao,
-                                 Tramitacao, UnidadeTramitacao)
+                                 Numeracao, RegimeTramitacao, StatusTramitacao,
+                                 TipoAutor, TipoDocumento,
+                                 TipoMateriaLegislativa, Tramitacao,
+                                 UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 
@@ -429,6 +429,7 @@ def test_form_errors_relatoria(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['parlamentar'] ==
             ['Este campo é obrigatório.'])
+<<<<<<< HEAD
 
 
 @pytest.mark.django_db(transaction=False)
@@ -478,3 +479,5 @@ def test_form_errors_proposicao(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['descricao'] ==
             ['Este campo é obrigatório.'])
+=======
+>>>>>>> master

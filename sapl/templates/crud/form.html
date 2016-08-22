@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n crispy_forms_tags %}
-
 {% block base_content %}
+  {% block extra_msg %}{% endblock %}
   {% crispy form %}
 {% endblock %}

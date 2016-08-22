@@ -7,7 +7,7 @@
 <div align=right><a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' object.id %}">> PDF</a></li></div>
 <fieldset>
 	<legend>Identificação Básica</legend>
-	<table class="table table-striped table-bordered">
+	<table class="table">
 		<thead class="thead-default">
 			<tr>
     		{% for b in basica %}
@@ -20,12 +20,14 @@
 
 <fieldset>
 	<legend>Expedientes</legend>
-	<table class="table table-striped table-bordered">
+	<table class="table">
 		<thead class="thead-default">
     	{% for e in expedientes %}
 				<tr>
-			    <td><b>{{e.tipo}}:</b></td>
-			    <td>{{e.conteudo|safe}}</td>
+			    <td>
+						<b>{{e.tipo}}: </b> <br />
+						<p style="text-indent: 50px;">{{e.conteudo}}</p>
+					</td>
 				</tr>
 		  {% endfor %}
 		</thead>
@@ -34,7 +36,7 @@
 
 <fieldset>
 	<legend>Matérias do Expediente</legend>
-	<table class="table table-striped table-bordered">
+	<table class="table table-striped">
 		<thead class="thead-default">
 			<tr>
 	      <th>Matéria</th>
@@ -58,7 +60,7 @@
 
 <fieldset>
 	<legend>Oradores do Expediente</legend>
-	<table class="table table-striped table-bordered">
+	<table class="table table-striped">
 		<thead class="thead-default">
 			<tr>
 	      <th>Parlamentar</th>
@@ -76,7 +78,7 @@
 
 <fieldset>
 	<legend>Matérias da Ordem do Dia</legend>
-	<table class="table table-striped table-bordered">
+	<table class="table table-striped">
 		<thead class="thead-default">
 			<tr>
 				<th>Matéria</th>

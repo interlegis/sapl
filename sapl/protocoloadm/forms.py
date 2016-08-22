@@ -441,35 +441,6 @@ class ProtocoloMateriaForm(ModelForm):
             *args, **kwargs)
 
 
-class ProposicaoSimpleForm(forms.Form):
-
-    tipo = forms.CharField(label='Tipo',
-                           widget=forms.TextInput(
-                               attrs={'readonly': 'readonly'}))
-    materia = forms.CharField(label='Matéria',
-                              widget=forms.TextInput(
-                                  attrs={'readonly': 'readonly'}))
-    data_envio = forms.DateField(label=_('Data Envio'),
-                                 widget=forms.DateInput(
-                                     format='%d/%m/%Y',
-                                     attrs={'readonly': 'readonly'}))
-    data_recebimento = forms.DateField(label=_('Data Recebimento'),
-                                       widget=forms.DateInput(
-                                           format='%d/%m/%Y',
-                                           attrs={'readonly': 'readonly'}))
-
-    descricao = forms.CharField(label='Descrição',
-                                widget=forms.TextInput(
-                                    attrs={'readonly': 'readonly'}))
-
-    numero_proposicao = forms.CharField(label='Número',
-                                        widget=forms.TextInput(
-                                            attrs={'readonly': 'readonly'}))
-    # ano = forms.CharField(label='Ano',
-    #                             widget = forms.TextInput(
-    #                               attrs={'readonly':'readonly'}))
-
-
 class DocumentoAcessorioAdministrativoForm(ModelForm):
 
     class Meta:

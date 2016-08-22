@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -248,17 +248,21 @@ class ParlamentarCrud(Crud):
             legislaturas = Legislatura.objects.all().order_by(
                 '-data_inicio', '-data_fim')
 
-            try:
-                legislatura_id = int(self.request.GET['periodo'])
-            except MultiValueDictKeyError:
-                legislatura_id = legislaturas.first().id
-
-            return legislatura_id
+            if legislaturas:
+                try:
+                    legislatura_id = int(self.request.GET['periodo'])
+                except MultiValueDictKeyError:
+                    legislatura_id = legislaturas.first().id
+                return legislatura_id
+            else:
+                return 0
 
         def get_queryset(self):
-            mandatos = Mandato.objects.filter(
-                legislatura_id=self.take_legislatura_id())
-            return mandatos
+            if self.take_legislatura_id() != 0:
+                mandatos = Mandato.objects.filter(
+                    legislatura_id=self.take_legislatura_id())
+                return mandatos
+            return []
 
         def get_rows(self, object_list):
             parlamentares = []

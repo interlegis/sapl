@@ -1,9 +1,10 @@
 from django.conf.urls import include, url
 
-from sapl.sessao.views import (BancadaCrud, CargoBancadaCrud,
-                               EditMateriaOrdemDiaView, ExpedienteMateriaCrud,
-                               ExpedienteView, ListMateriaOrdemDiaView,
-                               MateriaOrdemDiaView, MesaView, OradorCrud,
+from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
+                               AdicionarVariasMateriasOrdemDia,
+                               BancadaCrud, CargoBancadaCrud,
+                               ExpedienteMateriaCrud, ExpedienteView,
+                               MateriaOrdemDiaCrud, MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
                                PautaExpedienteDetail, PautaOrdemDetail,
                                PautaSessaoDetailView, PautaSessaoListView,
@@ -17,8 +18,10 @@ from sapl.sessao.views import (BancadaCrud, CargoBancadaCrud,
                                VotacaoNominalExpedienteEditView,
                                VotacaoNominalExpedienteView,
                                VotacaoNominalView, VotacaoView,
-                               abrir_votacao_view,
-                               reordernar_materias_expediente)
+                               abrir_votacao_expediente_view,
+                               abrir_votacao_ordem_view,
+                               reordernar_materias_expediente,
+                               reordernar_materias_ordem)
 
 from .apps import AppConfig
 
@@ -31,13 +34,19 @@ sessao_rest = [
 urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
                              OradorExpedienteCrud.get_urls() +
-                             ExpedienteMateriaCrud.get_urls())),
+                             ExpedienteMateriaCrud.get_urls() +
+                             MateriaOrdemDiaCrud.get_urls())),
 
-    url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao$', abrir_votacao_view,
+    url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao-expediente$',
+        abrir_votacao_expediente_view,
+        name="abrir_votacao_exp"),
+    url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao-ordem$',
+        abrir_votacao_ordem_view,
         name="abrir_votacao"),
     url(r'^(?P<pk>\d+)/reordenar-expediente$', reordernar_materias_expediente,
         name="reordenar_expediente"),
-
+    url(r'^(?P<pk>\d+)/reordenar-ordem$', reordernar_materias_ordem,
+        name="reordenar_ordem"),
     url(r'^rest/', include(sessao_rest)),
     url(r'^sistema/sessao-plenaria/tipo/',
         include(TipoSessaoCrud.get_urls())),
@@ -49,6 +58,12 @@ urlpatterns = [
         include(BancadaCrud.get_urls())),
     url(r'^sistema/cargo-bancada/',
         include(CargoBancadaCrud.get_urls())),
+    url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-expediente/',
+        AdicionarVariasMateriasExpediente.as_view(),
+        name='adicionar_varias_materias_expediente'),
+    url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-ordem-dia/',
+        AdicionarVariasMateriasOrdemDia.as_view(),
+        name='adicionar_varias_materias_ordem_dia'),
 
     # PAUTA SESSÃO
     url(r'^pauta-sessao$',
@@ -71,14 +86,6 @@ urlpatterns = [
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
     url(r'^(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/list$',
-        ListMateriaOrdemDiaView.as_view(), name='materiaordemdia_list'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/list$',
-        ListMateriaOrdemDiaView.as_view(), name='materiaordemdia_reorder'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/edit/(?P<oid>\d+)$',
-        EditMateriaOrdemDiaView.as_view(), name='materiaordemdia_edit'),
-    url(r'^(?P<pk>\d+)/materiaordemdia/create$',
-        MateriaOrdemDiaView.as_view(), name='materiaordemdia_create'),
     url(r'^(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
     url(r'^sessao/pesquisar-sessao$',
@@ -100,7 +107,7 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/matexp/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalExpedienteEditView.as_view(),
         name='votacaonominalexpedit'),
-    url(r'^(?P<pk>\d+)/matexp/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^(?P<pk>\d+)/matexp/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteView.as_view(), name='votacaosimbolicaexp'),
     url(r'^(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosimbolicaexpedit'),

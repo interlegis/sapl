@@ -1,3 +1,4 @@
+import hashlib
 from datetime import date
 from functools import wraps
 
@@ -221,6 +222,7 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     return maior_inicio <= menor_fim
 
 
+<<<<<<< HEAD
 def permissoes_materia():
     lista_permissoes = []
     cts = ContentType.objects.filter(app_label='materia')
@@ -308,3 +310,14 @@ def permissoes_autor():
     for p in perms_autor:
         lista_permissoes.append('materia.' + p.codename)
     return set(lista_permissoes)
+
+
+def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
+    md5 = hashlib.md5()
+    arq = open(arquivo, 'rb')
+    while True:
+        data = arq.read(block_size)
+        if not data:
+            break
+        md5.update(data)
+    return 'P' + md5.hexdigest() + '/' + pk
