@@ -28,7 +28,7 @@ from sapl.sessao.serializers import SessaoPlenariaSerializer
 
 from .forms import (AdicionarVariasMateriasFilterSet,
                     BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
-                    ListMateriaForm, MateriaOrdemDiaForm, MesaForm,
+                    ListMateriaForm, MesaForm,
                     OrdemDiaForm, PresencaForm,
                     SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
