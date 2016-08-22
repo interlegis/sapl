@@ -1,7 +1,9 @@
 import pytest
-from django.core.urlresolvers import reverse
-from model_mommy import mommy
 
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+
+from model_mommy import mommy
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
@@ -118,12 +120,15 @@ def test_materia_anexada_submit(admin_client):
 @pytest.mark.django_db(transaction=False)
 def test_autoria_submit(admin_client):
     materia_principal = make_materia_principal()
-
     # Cria um tipo de Autor
     tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
 
     # Cria um Autor
-    autor = mommy.make(Autor, tipo=tipo_autor, nome='Autor Teste')
+    autor = mommy.make(
+        Autor,
+        tipo=tipo_autor,
+        nome='Autor Teste',
+        grupo_usuario_id=8)
 
     # Testa POST
     response = admin_client.post(reverse('sapl.materia:autoria_create',
@@ -200,7 +205,11 @@ def test_documento_acessorio_submit(admin_client):
     tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
 
     # Cria um Autor
-    autor = mommy.make(Autor, tipo=tipo_autor, nome='Autor Teste')
+    autor = mommy.make(
+        Autor,
+        tipo=tipo_autor,
+        nome='Autor Teste',
+        grupo_usuario_id=8)
 
     # Cria um tipo de documento
     tipo = mommy.make(TipoDocumento,
@@ -424,10 +433,22 @@ def test_form_errors_relatoria(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_proposicao_submit(admin_client):
+    tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+    user = User.objects.filter(is_active=True)[0]
+
+    autor = mommy.make(
+        Autor,
+        user=user,
+        tipo=tipo_autor,
+        nome='Autor Teste',
+        grupo_usuario_id=8)
+
     response = admin_client.post(reverse('sapl.materia:proposicao_create'),
                                  {'tipo': mommy.make(TipoProposicao, pk=3).pk,
                                   'descricao': 'Teste proposição',
-                                  'salvar': 'salvar'},
+                                  'autor': autor,
+                                  'salvar': 'salvar',
+                                  },
                                  follow=True)
 
     assert response.status_code == 200
@@ -439,9 +460,19 @@ def test_proposicao_submit(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_proposicao(admin_client):
+    tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+    user = User.objects.filter(is_active=True)[0]
+
+    autor = mommy.make(
+        Autor,
+        user=user,
+        tipo=tipo_autor,
+        nome='Autor Teste',
+        grupo_usuario_id=8)
 
     response = admin_client.post(reverse('sapl.materia:proposicao_create'),
-                                 {'salvar': 'salvar'},
+                                 {'autor': autor,
+                                 'salvar': 'salvar'},
                                  follow=True)
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
