@@ -459,6 +459,8 @@ def test_proposicao_submit(admin_client):
     assert response.status_code == 200
 
     proposicao = Proposicao.objects.first()
+
+    assert proposicao is not None
     assert proposicao.descricao == 'Teste proposição'
     assert proposicao.tipo.pk == 3
 
