@@ -129,8 +129,7 @@ def test_autoria_submit(admin_client):
     autor = mommy.make(
         Autor,
         tipo=tipo_autor,
-        nome='Autor Teste',
-        grupo_usuario_id=8)
+        nome='Autor Teste')
 
     # Testa POST
     response = admin_client.post(reverse('sapl.materia:autoria_create',
@@ -210,8 +209,7 @@ def test_documento_acessorio_submit(admin_client):
     autor = mommy.make(
         Autor,
         tipo=tipo_autor,
-        nome='Autor Teste',
-        grupo_usuario_id=8)
+        nome='Autor Teste')
 
     # Cria um tipo de documento
     tipo = mommy.make(TipoDocumento,
@@ -442,8 +440,7 @@ def test_proposicao_submit(admin_client):
         Autor,
         user=user,
         tipo=tipo_autor,
-        nome='Autor Teste',
-        grupo_usuario_id=8)
+        nome='Autor Teste')
 
     file_content = 'file_content'
     texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
@@ -476,8 +473,7 @@ def test_form_errors_proposicao(admin_client):
         Autor,
         user=user,
         tipo=tipo_autor,
-        nome='Autor Teste',
-        grupo_usuario_id=8)
+        nome='Autor Teste')
 
     file_content = 'file_content'
     texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
