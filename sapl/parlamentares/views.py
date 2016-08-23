@@ -1,13 +1,19 @@
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
-from sapl.crud.base import Crud, CrudCreateView, CrudListView, CrudUpdateView
+from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
+                            CrudDeleteView, CrudDetailView,
+                            CrudListView, CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
+from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
@@ -16,15 +22,89 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
-CargoMesaCrud = Crud.build(CargoMesa, 'cargo_mesa')
-PartidoCrud = Crud.build(Partido, 'partidos')
-SessaoLegislativaCrud = Crud.build(SessaoLegislativa, 'sessao_legislativa')
-TipoDependenteCrud = Crud.build(TipoDependente, 'tipo_dependente')
-NivelInstrucaoCrud = Crud.build(NivelInstrucao, 'nivel_instrucao')
-TipoAfastamentoCrud = Crud.build(TipoAfastamento, 'tipo_afastamento')
-TipoMilitarCrud = Crud.build(SituacaoMilitar, 'tipo_situa_militar')
 
-DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', '')
+class CargoMesaCrud(Crud):
+    model = CargoMesa
+    help_path = 'cargo_mesa'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class PartidoCrud(Crud):
+    model = Partido
+    help_path = 'partidos'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class SessaoLegislativaCrud(Crud):
+    model = SessaoLegislativa
+    help_path = 'sessao_legislativa'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class TipoDependenteCrud(Crud):
+    model = TipoDependente
+    help_path = 'nivel_instrucao'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class NivelInstrucaoCrud(Crud):
+    model = NivelInstrucao
+    help_path = 'tipo_dependente'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class TipoAfastamentoCrud(Crud):
+    model = TipoAfastamento
+    help_path = 'tipo_afastamento'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class TipoMilitarCrud(Crud):
+    model = SituacaoMilitar
+    help_path = 'tipo_situa_militar'
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+
+class DependenteCrud(MasterDetailCrud):
+    model = Dependente
+    parent_field = 'parlamentar'
+    help_path = ''
+
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        permission_required = permissoes_parlamentares()
+
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_parlamentares()
+
+    class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
+        permission_required = permissoes_parlamentares()
+
+    class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+        permission_required = permissoes_parlamentares()
 
 
 class MandatoCrud(MasterDetailCrud):
@@ -35,6 +115,15 @@ class MandatoCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__data_inicio')
 
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        permission_required = permissoes_parlamentares()
+
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_parlamentares()
+
 
 class ColigacaoCrud(Crud):
     model = Coligacao
@@ -42,6 +131,10 @@ class ColigacaoCrud(Crud):
 
     class ListView(CrudListView):
         ordering = ('-legislatura__data_inicio', 'nome')
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):
@@ -66,6 +159,10 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = '-partido__sigla'
 
+    class BaseMixin(PermissionRequiredMixin, MasterDetailCrud.BaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
 
 class LegislaturaCrud(Crud):
     model = Legislatura
@@ -77,35 +174,71 @@ class LegislaturaCrud(Crud):
     class UpdateView(CrudUpdateView):
         form_class = LegislaturaForm
 
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
     parent_field = 'parlamentar'
     help_path = ''
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         form_class = FiliacaoForm
+        permission_required = permissoes_parlamentares()
 
-    class UpdateView(MasterDetailCrud.UpdateView):
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         form_class = FiliacaoForm
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_parlamentares()
 
     class ListView(MasterDetailCrud.ListView):
         ordering = '-data'
+
+
+def get_parlamentar_permissions():
+        lista_permissoes = []
+        cts = ContentType.objects.filter(app_label='parlamentares')
+        perms_parlamentares = list(Permission.objects.filter(
+            content_type__in=cts))
+        for p in perms_parlamentares:
+            lista_permissoes.append('parlamentares.' + p.codename)
+        return set(lista_permissoes)
 
 
 class ParlamentarCrud(Crud):
     model = Parlamentar
     help_path = ''
 
-    class UpdateView(CrudUpdateView):
-        form_class = ParlamentarForm
+    class DetailView(CrudDetailView):
+        def get_template_names(self):
+            usuario = self.request.user
+            lista_permissoes = get_parlamentar_permissions()
 
-    class CreateView(CrudCreateView):
+            if usuario.has_perms(lista_permissoes):
+                return ['crud/detail.html']
+
+            else:
+                return ['parlamentares/parlamentar_perfil_publico.html']
+
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+        form_class = ParlamentarForm
+        permission_required = permissoes_parlamentares()
+
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
         form_class = ParlamentarCreateForm
+        permission_required = permissoes_parlamentares()
 
         @property
         def layout_key(self):
             return 'ParlamentarCreate'
+
+    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+        form_class = ParlamentarCreateForm
+        permission_required = permissoes_parlamentares()
 
     class ListView(CrudListView):
         template_name = "parlamentares/parlamentares_list.html"
@@ -142,6 +275,9 @@ class ParlamentarCrud(Crud):
                     partido = _('Sem Partido')
 
                 parlamentar = [
+                    ("<img src=" + m.parlamentar.fotografia.url + " \
+                     height='42' width='42' />" if m.parlamentar.fotografia
+                     else '', ''),
                     (m.parlamentar.nome_parlamentar, m.parlamentar.id),
                     (partido, None),
                     ('Sim' if m.parlamentar.ativo else 'Não', None)
@@ -150,7 +286,7 @@ class ParlamentarCrud(Crud):
             return parlamentares
 
         def get_headers(self):
-            return ['Parlamentar', 'Partido', 'Ativo?']
+            return ['', 'Parlamentar', 'Partido', 'Ativo?']
 
         def get_context_data(self, **kwargs):
             context = super(ParlamentarCrud.ListView, self
@@ -165,15 +301,26 @@ class ParlamentarCrud(Crud):
             return context
 
 
+def check_permission_mesa(request):
+    lista_permissoes = []
+    cts = ContentType.objects.filter(app_label='parlamentares')
+    cts = cts.filter(model__icontains='mesa')
+    perms = list(Permission.objects.filter(content_type__in=cts))
+    for p in perms:
+        lista_permissoes.append('parlamentares.' + p.codename)
+
+    return request.user.has_perms(set(lista_permissoes))
+
+
 class MesaDiretoraView(FormView):
     template_name = "mesa_diretora/mesa_diretora.html"
     success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
 
-    # Essa função avisa quando se pode compor uma Mesa Legislativa)
+    # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):
-        mensagem = _("Não há nenhuma Sessão Legislativa cadastrada. \
-        Só é possível compor uma Mesa Diretora quando há uma Sessão \
-        Legislativa cadastrada.")
+        mensagem = _('Não há nenhuma Sessão Legislativa cadastrada. ' +
+                     'Só é possível compor uma Mesa Diretora quando ' +
+                     'há uma Sessão Legislativa cadastrada.')
         messages.add_message(request, messages.INFO, mensagem)
 
         return self.render_to_response(
@@ -217,7 +364,7 @@ class MesaDiretoraView(FormView):
             })
 
     def post(self, request, *args, **kwargs):
-        if 'Incluir' in request.POST:
+        if 'Incluir' in request.POST and check_permission_mesa(request):
 
             if (not Legislatura.objects.all() or
                     not SessaoLegislativa.objects.all()):
@@ -234,7 +381,7 @@ class MesaDiretoraView(FormView):
 
             return redirect('sapl.parlamentares:mesa_diretora')
 
-        elif 'Excluir' in request.POST:
+        elif 'Excluir' in request.POST and check_permission_mesa(request):
 
             if (not Legislatura.objects.all() or
                     not SessaoLegislativa.objects.all()):

@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load common_tags %}
 
 {% block base_content %}
 
-<div class="actions btn-group pull-right" role="group">
-  <a href="{{ view.create_url }}" class="btn btn-default">
-    {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
-  </a>
-  {% block more_buttons %}{% endblock more_buttons %}
-</div>
+  <div class="actions btn-group pull-right" role="group">
+  {% if perms|get_add_perm:view %}
+    <a href="{{ view.create_url }}" class="btn btn-default">
+      {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+    </a>
+  {% endif %}
+    {% block more_buttons %}{% endblock more_buttons %}
+  </div>
 
 <br/><br/>
 {% block extra_content %} {% endblock %}

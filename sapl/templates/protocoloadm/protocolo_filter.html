@@ -10,7 +10,7 @@
   <br></br>
   {% if filter_url %}
       <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+        <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
       </div>
   {% endif %}
  
@@ -37,12 +37,12 @@
             <tr>
               <td>
                 <strong>Protocolo:
-                <a href="{% url 'sapl.protocoloadm:protocolo_mostrar' p.numero p.ano %}">
+                <a href="{% url 'protocoloadm:protocolo_mostrar' p.numero p.ano %}">
                   {{ p.numero|stringformat:'06d' }}/{{ p.ano }}
                 </a></strong>
                 &nbsp;&nbsp;<strong>-</strong>&nbsp;&nbsp;
 
-                <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}">
+                <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}">
                   <img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual">
                 </a></br>
 

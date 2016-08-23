@@ -3,9 +3,10 @@ from django.conf.urls import include, url
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
-                                AutorCrud, AutoriaCrud, ConfirmarProposicao,
-                                DespachoInicialCrud, DocumentoAcessorioCrud,
-                                LegislacaoCitadaCrud, MateriaLegislativaCrud,
+                                AutorCrud, AutoriaCrud, ConfirmarEmailView,
+                                ConfirmarProposicao, DespachoInicialCrud,
+                                DocumentoAcessorioCrud, LegislacaoCitadaCrud,
+                                MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
                                 ProposicaoCrud, ProposicaoDevolvida,
@@ -32,6 +33,9 @@ urlpatterns = [
                               TramitacaoCrud.get_urls() +
                               RelatoriaCrud.get_urls() +
                               DocumentoAcessorioCrud.get_urls())),
+
+    url(r'^confirmar/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',
+        ConfirmarEmailView.as_view(), name='confirmar_email'),
 
     url(r'^proposicao/', include(ProposicaoCrud.get_urls())),
     url(r'^proposicao/recibo/(?P<pk>\d+)', ReciboProposicaoView.as_view(),

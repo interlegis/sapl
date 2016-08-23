@@ -1,4 +1,5 @@
 {% load i18n staticfiles sass_tags menus %}
+{% load common_tags %}
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
@@ -45,24 +46,35 @@
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Institucional <span class="caret"></span></a>
                   <ul class="dropdown-menu">
+                  {% if user.is_authenticated %}
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.parlamentares:mesa_diretora' %}">Mesa Diretora</a></li>
+                  {% endif %}
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.comissoes:comissao_list' %}">Comissões</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li> -->
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.parlamentares:parlamentar_list' %}">Parlamentares</a></li>
                   </ul>
                 </li>
-
+              {% if perms.protocoloadm %}
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Protocolo <span class="caret"></span></a>
                   <ul class="dropdown-menu">
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:protocolo' %}">Pesquisar Protocolo</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}">Pesquisar Documento Administrativo</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:receber-proposicao' %}">Receber Proposições</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="/materia">Protocolo Legislativo</a></li> -->
                     {# <li class="nav__sub-item"><a class="nav__sub-link" href="">Protocolo Geral</a></li> #}
                     {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:proposicao' %}">Proposições</a></li> #}
                   </ul>
-                </li>
+              </li>
+
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documentos Administrativos <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}">Pesquisar Documento Administrativo</a></li>
+                </ul>
+            </li>
+
+              <li class="dropdown">
+              {% endif %}
 
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Atividade Legislativa <span class="caret"></span></a>
@@ -86,7 +98,7 @@
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Índice de Assuntos</a></li> -->
                   </ul>
                 </li>
-
+              {% if user|ver_menu_sistema_perm %}
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Sistema <span class="caret"></span></a>
                   <ul class="dropdown-menu">
@@ -101,6 +113,7 @@
                     <li class="nav__sub-item"><a class="nav__sub-link" href="#">Troca de Senha</a></li> -->
                   </ul>
                 </li>
+              {% endif %}
 
             </ul>
             <ul class="nav navbar-nav navbar-right" id="autenticacao">

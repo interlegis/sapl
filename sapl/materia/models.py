@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group, User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -6,6 +7,14 @@ from sapl.comissoes.models import Comissao
 from sapl.parlamentares.models import Parlamentar, Partido
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt, xstr)
+
+
+def grupo_autor():
+    try:
+        grupo = Group.objects.get(name='Autor')
+    except Group.DoesNotExist:
+        return None
+    return grupo.id
 
 
 class TipoMateriaLegislativa(models.Model):
@@ -199,6 +208,7 @@ class TipoAutor(models.Model):
 
 
 class Autor(models.Model):
+    user = models.ForeignKey(User)
     partido = models.ForeignKey(Partido, blank=True, null=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
@@ -206,18 +216,23 @@ class Autor(models.Model):
     nome = models.CharField(
         max_length=50, blank=True, verbose_name=_('Autor'))
     cargo = models.CharField(max_length=50, blank=True)
-    username = models.CharField(max_length=50, blank=True)
+    username = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name=_('Nome de Usuário'))
+    email = models.EmailField(
+        verbose_name=_('Email'))
 
     class Meta:
         verbose_name = _('Autor')
         verbose_name_plural = _('Autores')
 
     def __str__(self):
-        if str(self.tipo) == 'Parlamentar':
+        if str(self.tipo) == 'Parlamentar' and self.parlamentar:
             return self.parlamentar.nome_parlamentar
-        elif str(self.tipo) == 'Comissao':
+        elif str(self.tipo) == 'Comissao' and self.comissao:
             return str(self.comissao)
-        elif str(self.tipo) == 'Partido':
+        elif str(self.tipo) == 'Partido' and self.partido:
             return str(self.partido)
         else:
             if str(self.cargo):

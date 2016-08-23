@@ -54,7 +54,14 @@ TipoAutor:
 Autor:
   {% trans 'Autor' %}:
   - tipo:3  nome
-  - username
+  - username:6 cargo
+
+AutorCreate:
+  Autor:
+  - tipo:3  nome
+  - username:4 senha:4 senha_confirma:4
+  - email:6 confirma_email:6
+  - cargo:4 parlamentar:4 comissao:4
 
 Autoria:
   {% trans 'Autoria' %}:
@@ -91,8 +98,7 @@ ProposicaoCreate:
   {% trans 'Proposição' %}:
   - tipo  data_envio
   - descricao
-  {% trans 'Materia' %}:
-  - tipo_materia numero_materia ano_materia
+
   {% trans 'Complemento' %}:
   - texto_original
 

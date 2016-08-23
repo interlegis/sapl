@@ -1,16 +1,18 @@
+from datetime import datetime
+
 import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import RangeWidgetOverride
-from sapl.materia.models import Autor
+from sapl.materia.models import Autor, UnidadeTramitacao
 from sapl.utils import RANGE_ANOS, autor_label, autor_modal
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
@@ -494,7 +496,6 @@ class TramitacaoAdmForm(ModelForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
-                  'documento',
                   ]
 
         widgets = {
@@ -503,22 +504,78 @@ class TramitacaoAdmForm(ModelForm):
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
         }
 
-    def __init__(self, *args, **kwargs):
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Incluir Tramitação'),
-                     'data_tramitacao',
-                     'unidade_tramitacao_local',
-                     'status',
-                     'unidade_tramitacao_destino',
-                     'data_encaminhamento',
-                     'data_fim_prazo',
-                     'texto'),
-            Field('documento', type="hidden"),
-            form_actions()
-        )
-        super(TramitacaoAdmForm, self).__init__(
-            *args, **kwargs)
+    def clean(self):
+        data_enc_form = self.cleaned_data['data_encaminhamento']
+        data_prazo_form = self.cleaned_data['data_fim_prazo']
+        data_tram_form = self.cleaned_data['data_tramitacao']
+
+        if self.errors:
+            return self.errors
+
+        ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
+            documento_id=self.instance.documento_id).exclude(
+            id=self.instance.id).last()
+
+        if not self.instance.data_tramitacao:
+
+            if ultima_tramitacao:
+                destino = ultima_tramitacao.unidade_tramitacao_destino
+                if (destino != self.cleaned_data['unidade_tramitacao_local']):
+                    msg = _('A origem da nova tramitação deve ser igual ao '
+                            'destino  da última adicionada!')
+                    raise ValidationError(msg)
+
+            if self.cleaned_data['data_tramitacao'] > datetime.now().date():
+                msg = _(
+                    'A data de tramitação deve ser ' +
+                    'menor ou igual a data de hoje!')
+                raise ValidationError(msg)
+
+            if (ultima_tramitacao and
+               data_tram_form < ultima_tramitacao.data_tramitacao):
+                msg = _('A data da nova tramitação deve ser ' +
+                        'maior que a data da última tramitação!')
+                raise ValidationError(msg)
+
+        if data_enc_form < data_tram_form or data_prazo_form < data_tram_form:
+            msg = _('A data fim de prazo e encaminhamento devem ser ' +
+                    'maiores que a data de tramitação!')
+            raise ValidationError(msg)
+
+        return self.cleaned_data
+
+
+class TramitacaoAdmEditForm(TramitacaoAdmForm):
+
+    unidade_tramitacao_local = forms.ModelChoiceField(
+        queryset=UnidadeTramitacao.objects.all(),
+        widget=forms.HiddenInput())
+
+    data_tramitacao = forms.DateField(widget=forms.HiddenInput())
+
+    class Meta:
+        model = TramitacaoAdministrativo
+        fields = ['data_tramitacao',
+                  'unidade_tramitacao_local',
+                  'status',
+                  'unidade_tramitacao_destino',
+                  'data_encaminhamento',
+                  'data_fim_prazo',
+                  'texto',
+                  ]
+
+        widgets = {
+            'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
+            'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
+        }
+
+    def clean(self):
+        local = self.instance.unidade_tramitacao_local
+        data_tram = self.instance.data_tramitacao
+
+        self.cleaned_data['data_tramitacao'] = data_tram
+        self.cleaned_data['unidade_tramitacao_local'] = local
+        return super(TramitacaoAdmEditForm, self).clean()
 
 
 class DocumentoAdministrativoForm(ModelForm):

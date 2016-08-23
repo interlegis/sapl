@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block base_content %}
+
+  <div class="clearfix">
+    {% block actions %}
+    {% endblock actions %}
+  </div>
+
+  {% block detail_content %}
+  <p class="legend"></p>
+
+  <div class="row-fluid">
+    {% if parlamentar.fotografia %}
+      <div class="col-sm-3">
+        <div id="div_fotografia" class="form-group">
+          <div class="controls">
+            <img class="img-responsive" src="{{ object.fotografia.url }}">
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+      <div class="col-sm-8">
+        <div id="div_nome" class="form-group">
+          <p><b>Nome Completo: </b> &nbsp {{object.nome_completo}}</p>
+        </div>
+      </div>
+      
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
+          <p><b>Partido: </b> &nbsp {{object.filiacao_set.first.partido|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
+          <p><b>Data de Nascimento: </b> &nbsp {{object.data_nascimento|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
+          <p><b>Telefone: </b> &nbsp {{object.telefone|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
+          <p><b>E-mail: </b> &nbsp {{object.email|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
+          <p><b>Número do Gabinete: </b> &nbsp {{object.numero_gab_parlamentar|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
+          <p><b>Fax: </b> &nbsp {{object.numero_gab_parlamentar|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+
+  </div>
+
+  {% endblock detail_content %}
+
+{% endblock base_content %}

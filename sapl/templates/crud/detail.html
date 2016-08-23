@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load common_tags %}
 
 {% block base_content %}
 
   <div class="clearfix">
     {% block actions %}
     <div class="actions btn-group pull-right" role="group">
-      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
-      <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+      {% if perms|get_change_perm:view %}
+        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+      {% endif %}
+
+      {% if perms|get_delete_perm:view %}
+        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+      {% endif %}
     </div>
     {% endblock actions %}
   </div>
