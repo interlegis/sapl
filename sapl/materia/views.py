@@ -18,7 +18,8 @@ from django.template import Context, loader
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import (CreateView, DetailView, ListView,
+                                  TemplateView, UpdateView)
 from django_filters.views import FilterView
 
 from sapl.base.models import CasaLegislativa
@@ -396,7 +397,7 @@ class ProposicaoCrud(Crud):
 
         def get_initial(self):
             try:
-                autor_id = Autor.objects.get(user=self.request.user.id)
+                autor_id = Autor.objects.get(user=self.request.user.id).id
             except MultipleObjectsReturned:
                 msg = _('Este usuário está relacionado a mais de um autor. ' +
                         'Operação cancelada')
@@ -436,7 +437,7 @@ class ProposicaoCrud(Crud):
         permission_required = permissoes_autor()
 
         def get_context_data(self, **kwargs):
-            context = super(UpdateView, self).get_context_data(**kwargs)
+            context = super(DetailView, self).get_context_data(**kwargs)
             if self.object.materia:
                 context['form'].fields['tipo_materia'].initial = (
                     self.object.materia.tipo.id)

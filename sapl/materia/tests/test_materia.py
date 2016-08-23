@@ -1,14 +1,16 @@
 import pytest
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 
 from model_mommy import mommy
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
-                                 Numeracao, RegimeTramitacao, StatusTramitacao,
-                                 TipoAutor, TipoDocumento,
+                                 Numeracao, Proposicao,
+                                 RegimeTramitacao, StatusTramitacao,
+                                 TipoAutor, TipoProposicao, TipoDocumento,
                                  TipoMateriaLegislativa, Tramitacao,
                                  UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
@@ -429,7 +431,6 @@ def test_form_errors_relatoria(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['parlamentar'] ==
             ['Este campo é obrigatório.'])
-<<<<<<< HEAD
 
 
 @pytest.mark.django_db(transaction=False)
@@ -444,10 +445,16 @@ def test_proposicao_submit(admin_client):
         nome='Autor Teste',
         grupo_usuario_id=8)
 
+    file_content = 'file_content'
+    texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
+
     response = admin_client.post(reverse('sapl.materia:proposicao_create'),
                                  {'tipo': mommy.make(TipoProposicao, pk=3).pk,
                                   'descricao': 'Teste proposição',
-                                  'autor': autor,
+                                  'justificativa_devolucao': '  ',
+                                  'status': 'E',
+                                  'autor': autor.pk,
+                                  'texto_original': texto,
                                   'salvar': 'salvar',
                                   },
                                  follow=True)
@@ -462,6 +469,7 @@ def test_proposicao_submit(admin_client):
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_proposicao(admin_client):
     tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+
     user = User.objects.filter(is_active=True)[0]
 
     autor = mommy.make(
@@ -471,13 +479,17 @@ def test_form_errors_proposicao(admin_client):
         nome='Autor Teste',
         grupo_usuario_id=8)
 
+    file_content = 'file_content'
+    texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
+
     response = admin_client.post(reverse('sapl.materia:proposicao_create'),
-                                 {'autor': autor,
+                                 {'autor': autor.pk,
+                                  'justificativa_devolucao': '  ',
+                                  'texto_original': texto,
                                  'salvar': 'salvar'},
                                  follow=True)
+
     assert (response.context_data['form'].errors['tipo'] ==
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['descricao'] ==
             ['Este campo é obrigatório.'])
-=======
->>>>>>> master
