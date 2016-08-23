@@ -222,7 +222,6 @@ class Autor(models.Model):
         verbose_name=_('Nome de Usuário'))
     email = models.EmailField(
         verbose_name=_('Email'))
-    grupo_usuario = models.ForeignKey(Group, default=grupo_autor)
 
     class Meta:
         verbose_name = _('Autor')
