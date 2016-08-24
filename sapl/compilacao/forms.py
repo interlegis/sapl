@@ -640,8 +640,10 @@ class DispositivoEdicaoBasicaForm(ModelForm):
             btns_excluir = [
                 HTML('<a class="btn btn-danger btn-action btn-excluir" '
                      'action="json_delete_item_dispositivo" '
-                     'title="%s"'
+                     'title="%s" '
+                     'pk="%s" '
                      '>%s</a>' % (_('Excluir apenas este dispositivo.'),
+                                  inst.pk,
                                   _('Excluir Dispositivo')))]
 
             if inst.dispositivos_filhos_set.exists():
@@ -649,9 +651,11 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                     HTML(
                         '<a class="btn btn-danger btn-action btn-excluir" '
                         'action="json_delete_bloco_dispositivo" '
-                        'title="%s"'
+                        'title="%s" '
+                        'pk="%s" '
                         '>%s</a>' % (_('Excluir este dispositivo '
                                        'e toda sua estrutura.'),
+                                     inst.pk,
                                      _('Excluir Bloco de Dispositivo.'))))
 
         if btns_excluir:

@@ -1487,15 +1487,15 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             result = [{'tipo_insert': force_text(_('Inserir Depois')),
                        'icone': '&#8631;&nbsp;',
-                       'action': 'add_next',
+                       'action': 'json_add_next',
                        'itens': []},
                       {'tipo_insert': force_text(_('Inserir Dentro')),
                        'icone': '&#8690;&nbsp;',
-                       'action': 'add_in',
+                       'action': 'json_add_in',
                        'itens': []},
                       {'tipo_insert': force_text(_('Inserir Antes')),
                        'icone': '&#8630;&nbsp;',
-                       'action': 'add_prior',
+                       'action': 'json_add_prior',
                        'itens': []}
                       ]
 
@@ -1694,7 +1694,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
     def set_dvt(self, context):
         # Dispositivo de Vigência do Texto Original e de Dpts Alterados
-        dvt = Dispositivo.objects.get(pk=context['dispositivo_id'])
+        dvt = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
 
         if dvt.is_relative_auto_insert():
             dvt = dvt.dispositivo_pai
@@ -1730,17 +1730,17 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             return {'message': str(_('Ocorreu um erro na atualização do '
                                      'Dispositivo de Vigência'))}
 
-    def add_prior(self, context):
+    def json_add_prior(self, context):
         return {}
 
-    def add_in(self, context):
-        return self.add_next(context, local_add='add_in')
+    def json_add_in(self, context):
+        return self.json_add_next(context, local_add='json_add_in')
 
-    def add_next(self, context, local_add='add_next'):
+    def json_add_next(self, context, local_add='json_add_next'):
         try:
 
             dp_auto_insert = None
-            base = Dispositivo.objects.get(pk=context['dispositivo_id'])
+            base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
             pub_last = Publicacao.objects.order_by(
                 'data', 'hora').filter(ta=base.ta).last()
@@ -1979,15 +1979,16 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     not dp.tipo_dispositivo.dispositivo_de_articulacao:
                 dp.dispositivo_pai.ordenar_bloco_alteracao()
 
+            if dp_auto_insert is None:
+                data = self.get_json_for_refresh(dp)
+            else:
+                data = self.get_json_for_refresh(dp=dp, dpauto=dp_auto_insert)
+
+            # data['action'] = 'get_form_base'
+            return data
+
         except Exception as e:
             print(e)
-
-        if dp_auto_insert is None:
-            data = self.get_json_for_refresh(dp)
-        else:
-            data = self.get_json_for_refresh(dp=dp, dpauto=dp_auto_insert)
-
-        return data
 
 
 class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
@@ -1997,6 +1998,16 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
     def render_to_json_response(self, context, **response_kwargs):
 
         action = getattr(self, context['action'])
+
+        if 'tipo_pk' in self.request.GET:
+            context['tipo_pk'] = self.request.GET['tipo_pk']
+
+        if 'variacao' in self.request.GET:
+            context['variacao'] = self.request.GET['variacao']
+
+        if 'perfil_estrutural' in self.request.session:
+            context['perfil_pk'] = self.request.session['perfil_estrutural']
+
         data = action(context)
 
         if 'message' in context and 'message' not in data:

@@ -924,12 +924,12 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     def criar_espaco(self, espaco_a_criar, local):
 
-        if local == 'add_next':
+        if local == 'json_add_next':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel,
                 ta_id=self.ta_id)[:1]
-        elif local == 'add_in':
+        elif local == 'json_add_in':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel + 1,

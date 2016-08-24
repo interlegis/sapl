@@ -15,6 +15,34 @@ function DispositivoEdit() {
         return instance;
     };
 
+    instance.bindActionClick = function(event) {
+        var pk = this.getAttribute('pk');
+
+        var form_data = {
+            'action'    : this.getAttribute('action'),
+            'tipo_pk'   : this.getAttribute('tipo_pk'),
+            'variacao'  : this.getAttribute('variacao'),
+        };
+
+        if (pk !== undefined) {
+            var url = pk+'/refresh';
+            instance.waitShow();
+
+            $.get(url, form_data).done(function(data) {
+                instance.clearEditSelected();
+                instance.waitHide();
+                if (data.pk != null) {
+                    if (data.message === undefined)
+                        instance.refreshScreenFocusPk(data);
+                    else if (instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
+                                //instance.waitHide();
+                        }))
+                        instance.refreshScreenFocusPk(data);
+                }
+            });
+        }
+    }
+
     instance.clearEditSelected = function() {
         $('.dpt-selected .dpt-form').html('');
         $('.dpt-actions, .dpt-actions-bottom').html('');
@@ -44,7 +72,6 @@ function DispositivoEdit() {
         dpt.on('get_form_base', function () {
             var _this = $(this);
             _this.addClass('dpt-selected');
-            var pk = _this.attr('pk');
             instance.scrollTo(_this);
             _this.off('get_form_base')
 
@@ -56,24 +83,7 @@ function DispositivoEdit() {
             var btns_excluir = _this.find('.btns-excluir');
             _this.find('.dpt-actions-bottom').last().append(btns_excluir);
 
-            btns_excluir.find('.btn-excluir').on('click', function() {
-                var action = this.getAttribute('action');
-
-                if (pk !== undefined) {
-                    var url = pk+'/refresh?action='+action;
-                    instance.waitShow();
-                    $.get(url).done(function(data) {
-                        instance.clearEditSelected();
-                        instance.waitHide();
-                        if (data.pk != null) {
-                            if (instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
-                                    //instance.waitHide();
-                                }))
-                            instance.refreshScreenFocusPk(data);
-                        }
-                    });
-                }
-            });
+            btns_excluir.find('.btn-excluir').on('click', instance.bindActionClick);
         });
         instance.loadForm(dpt, 'get_form_base');
     }
@@ -81,9 +91,9 @@ function DispositivoEdit() {
     instance.loadActionsEdit = function(dpt) {
         var pk = dpt.attr('pk');
         var url = pk+'/refresh?action=get_actions';
-
         $.get(url).done(function(data) {
             dpt.find('.dpt-actions').first().html(data);
+            dpt.find('.btn-inserts').on('click', instance.bindActionClick);
         });
     }
 
@@ -215,6 +225,7 @@ function DispositivoEdit() {
         }
         var pk = pais.shift();
         var url = pk+'/refresh';
+
         $.get(url).done(function(data) {
             var dpt = $('#id'+pk).closest('.dpt');
             dpt = $('#'+dpt.replaceWith(data).attr('id'));
