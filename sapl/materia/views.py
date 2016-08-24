@@ -397,7 +397,7 @@ class ProposicaoCrud(Crud):
 
         def get_initial(self):
             try:
-                autor_id = Autor.objects.get(user=self.request.user.id).id
+                autor_id = Autor.objects.get(id=self.request.user.id).id
             except MultipleObjectsReturned:
                 msg = _('Este usuário está relacionado a mais de um autor. ' +
                         'Operação cancelada')
