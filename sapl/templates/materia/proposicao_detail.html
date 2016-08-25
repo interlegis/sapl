@@ -5,20 +5,20 @@
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
     {% if proposicao.data_envio %}
-      {% if perms|get_change_perm:view %}
+      {% if perms|get_change_perm:view and not object.data_recebimento %}
         <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
       {% endif %}
 
-      {% if perms|get_delete_perm:view %}
+      {% if perms|get_delete_perm:view and not object.data_recebimento %}
         <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição Enviada' %}</a>
       {% endif %}
 
     {% else %}
-      {% if perms|get_change_perm:view %}
+      {% if perms|get_change_perm:view and not object.data_recebimento %}
         <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
       {% endif %}
 
-      {% if perms|get_delete_perm:view %}
+      {% if perms|get_delete_perm:view and not object.data_recebimento %}
         <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
       {% endif %}
     {% endif %}
