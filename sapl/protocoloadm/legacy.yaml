@@ -59,6 +59,5 @@ TramitacaoAdministrativo:
   documento: cod_documento
   status: cod_status
   texto: txt_tramitacao
-  ultima: ind_ult_tramitacao
   unidade_tramitacao_destino: cod_unid_tram_dest
   unidade_tramitacao_local: cod_unid_tram_local

@@ -597,6 +597,11 @@ class AutorForm(ModelForm):
         required=True,
         label=_('Confirmar Email'))
 
+    username = forms.CharField(
+        required=True,
+        max_length=50
+    )
+
     class Meta:
         model = Autor
         fields = ['username',

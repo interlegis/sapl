@@ -25,6 +25,7 @@ Comissao:
   telefone_secretaria: num_tel_secretaria
   tipo: tip_comissao
   unidade_deliberativa: ind_unid_deliberativa
+  ativa:
 
 Periodo (PeriodoCompComissao):
   data_fim: dat_fim_periodo

@@ -63,6 +63,7 @@ Autor:
   partido: cod_partido
   tipo: tip_autor
   username: col_username
+  user:
 
 Autoria:
   autor: cod_autor
