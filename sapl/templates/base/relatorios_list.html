@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block base_content %}
+<fieldset>
+  <legend>Relatórios Administrativos</legend>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Descrição</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><a href="">Matérias em tramitação</a></td>
+          <td>Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados.</td>
+        </tr>
+        <tr>
+          <td><a href="">Proposituras por Tipo, Autor e Ano</a></td>
+          <td>Número de matérias legislativas, agrupadas por Tipo e Autor e Ano selecionado.</td>
+        </tr>
+        <tr>
+          <td><a href="">Proposituras por Autor</a></td>
+          <td>Resumo de Proposituras de um determinado ano, agrupadas por Autor.</td>
+        </tr>
+        <tr>
+          <td><a href="">Presença nas sessões</a></td>
+          <td>Presença dos parlamentares nas sessões plenárias.</td>
+        </tr>
+        <tr>
+          <td><a href="">Atas</a></td>
+          <td>Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados.</td>
+        </tr>
+        <tr>
+          <td><a href="">Histórico de tramitações</a></td>
+          <td>Histórico de tramitações por período e local informados.</td>
+        </tr>
+    </tbody>
+  </table>
+</fieldset
+{% endblock base_content %}
