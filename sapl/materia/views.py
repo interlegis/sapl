@@ -490,7 +490,7 @@ class ProposicaoCrud(Crud):
             return lista
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
-        permission_required = permissoes_materia()
+        permission_required = {'materia.delete_proposicao'}
 
         def delete(self, request, *args, **kwargs):
             proposicao = Proposicao.objects.get(id=self.kwargs['pk'])
