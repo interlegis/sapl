@@ -537,10 +537,17 @@ class TramitacaoAdmForm(ModelForm):
                         'maior que a data da última tramitação!')
                 raise ValidationError(msg)
 
-        if data_enc_form < data_tram_form or data_prazo_form < data_tram_form:
-            msg = _('A data fim de prazo e encaminhamento devem ser ' +
-                    'maiores que a data de tramitação!')
-            raise ValidationError(msg)
+        if data_enc_form:
+            if data_enc_form < data_tram_form:
+                msg = _('A data de encaminhamento deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
+
+        if data_prazo_form:
+            if data_prazo_form < data_tram_form:
+                msg = _('A data fim de prazo deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
 
         return self.cleaned_data
 

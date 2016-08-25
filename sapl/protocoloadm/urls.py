@@ -17,7 +17,8 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-                                     TipoInstituicaoCrud)
+                                     TipoInstituicaoCrud,
+                                     TramitacaoAdmCrud)
 
 from .apps import AppConfig
 
@@ -30,6 +31,8 @@ urlpatterns = [
         include(TipoDocumentoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/doc-acessorio/',
         include(DocumentoAcessorioAdministrativoCrud.get_urls())),
+    url(r'^protocoloadm/tramitacao-doc-adm/',
+        include(TramitacaoAdmCrud.get_urls())),
     url(r'^protocoloadm/status-tramitacao-adm/',
         include(StatusTramitacaoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/tipo-instituicao/',
