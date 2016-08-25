@@ -111,8 +111,6 @@ class ProposicaoForm(ModelForm):
             if cleaned_data['tipo'].descricao == 'Parecer':
                 if self.instance.materia:
                     cleaned_data['materia'] = self.instance.materia
-                    cleaned_data['autor'] = (
-                        self.instance.materia.autoria_set.first().autor)
                 else:
                     try:
                         materia = MateriaLegislativa.objects.get(
@@ -124,9 +122,6 @@ class ProposicaoForm(ModelForm):
                         raise ValidationError(msg)
                     else:
                         cleaned_data['materia'] = materia
-                        cleaned_data['autor'] = materia.autoria_set.first(
-                            ).autor
-
         return cleaned_data
 
     def save(self, commit=False):

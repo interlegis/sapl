@@ -98,7 +98,8 @@ ProposicaoCreate:
   {% trans 'Proposição' %}:
   - tipo  data_envio
   - descricao
-
+  {% trans 'Materia' %}:
+  - tipo_materia numero_materia ano_materia
   {% trans 'Complemento' %}:
   - texto_original
 

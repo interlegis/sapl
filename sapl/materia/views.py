@@ -404,10 +404,13 @@ class ProposicaoCrud(Crud):
                 messages.add_message(self.request, messages.ERROR, msg)
                 return redirect(self.get_success_url())
             except ObjectDoesNotExist:
+                # FIXME: Pensar em uma melhor forma
+                tipo = TipoAutor.objects.get(name='Externo')
+
                 autor_id = Autor.objects.create(
                     user=self.request.user,
                     nome=str(self.request.user),
-                    tipo_id=4).id
+                    tipo=tipo).id
                 return {'autor': autor_id}
             else:
                 return {'autor': autor_id}
@@ -415,6 +418,14 @@ class ProposicaoCrud(Crud):
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ProposicaoForm
         permission_required = permissoes_autor()
+
+        def get_initial(self):
+            initial = self.initial.copy()
+            if self.object.materia:
+                initial['tipo_materia'] = self.object.materia.tipo.id
+                initial['numero_materia'] = self.object.materia.numero
+                initial['ano_materia'] = self.object.materia.ano
+            return initial
 
         @property
         def layout_key(self):
@@ -441,21 +452,6 @@ class ProposicaoCrud(Crud):
 
     class DetailView(PermissionRequiredMixin, CrudDetailView):
         permission_required = permissoes_autor()
-
-        def get_context_data(self, **kwargs):
-            context = super(DetailView, self).get_context_data(**kwargs)
-            if self.object.materia:
-                context['form'].fields['tipo_materia'].initial = (
-                    self.object.materia.tipo.id)
-                context['form'].fields['numero_materia'].initial = (
-                    self.object.materia.numero)
-                context['form'].fields['ano_materia'].initial = (
-                    self.object.materia.ano)
-            return context
-
-        @property
-        def layout_key(self):
-            return 'ProposicaoCreate'
 
         def has_permission(self):
             perms = self.get_permission_required()
