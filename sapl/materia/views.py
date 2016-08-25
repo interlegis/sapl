@@ -397,12 +397,18 @@ class ProposicaoCrud(Crud):
 
         def get_initial(self):
             try:
-                autor_id = Autor.objects.get(id=self.request.user.id).id
+                autor_id = Autor.objects.get(user=self.request.user).id
             except MultipleObjectsReturned:
                 msg = _('Este usuário está relacionado a mais de um autor. ' +
                         'Operação cancelada')
                 messages.add_message(self.request, messages.ERROR, msg)
                 return redirect(self.get_success_url())
+            except ObjectDoesNotExist:
+                autor_id = Autor.objects.create(
+                    user=self.request.user,
+                    nome=str(self.request.user),
+                    tipo_id=4).id
+                return {'autor': autor_id}
             else:
                 return {'autor': autor_id}
 

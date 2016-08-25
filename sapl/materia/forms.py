@@ -100,8 +100,8 @@ class ProposicaoForm(ModelForm):
             return texto_original
 
     def clean_data_envio(self):
-        data_envio = self.cleaned_data.get('data_envio')
-        if (not data_envio) and bool(self.initial):
+        data_envio = self.cleaned_data.get('data_envio') or None
+        if (not data_envio) and len(self.initial) > 1:
             data_envio = datetime.now()
         return data_envio
 
