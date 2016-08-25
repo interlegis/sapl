@@ -564,7 +564,8 @@ def get_sessao_plenaria(sessao, casa):
             materia=expediente_materia.materia).first()
         if numeracao is not None:
             dic_expediente_materia["des_numeracao"] = (
-                str(numeracao.numero) + '/' + str(numeracao.ano))
+                str(numeracao.numero_materia) + '/' + str(
+                    numeracao.ano_materia))
 
         dic_expediente_materia["des_turno"] = ' '
         tram = Tramitacao.objects.filter(
