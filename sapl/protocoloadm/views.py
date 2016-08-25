@@ -24,10 +24,9 @@ from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm,
-                    ProtocoloDocumentForm, ProtocoloFilterSet,
-                    ProtocoloMateriaForm, TramitacaoAdmEditForm,
-                    TramitacaoAdmForm)
+                    DocumentoAdministrativoForm, ProtocoloDocumentForm,
+                    ProtocoloFilterSet, ProtocoloMateriaForm,
+                    TramitacaoAdmEditForm, TramitacaoAdmForm)
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,

@@ -100,8 +100,8 @@ class ProposicaoForm(ModelForm):
             return texto_original
 
     def clean_data_envio(self):
-        data_envio = self.cleaned_data.get('data_envio')
-        if (not data_envio) and bool(self.initial):
+        data_envio = self.cleaned_data.get('data_envio') or None
+        if (not data_envio) and len(self.initial) > 1:
             data_envio = datetime.now()
         return data_envio
 
@@ -111,8 +111,6 @@ class ProposicaoForm(ModelForm):
             if cleaned_data['tipo'].descricao == 'Parecer':
                 if self.instance.materia:
                     cleaned_data['materia'] = self.instance.materia
-                    cleaned_data['autor'] = (
-                        self.instance.materia.autoria_set.first().autor)
                 else:
                     try:
                         materia = MateriaLegislativa.objects.get(
@@ -124,9 +122,6 @@ class ProposicaoForm(ModelForm):
                         raise ValidationError(msg)
                     else:
                         cleaned_data['materia'] = materia
-                        cleaned_data['autor'] = materia.autoria_set.first(
-                            ).autor
-
         return cleaned_data
 
     def save(self, commit=False):

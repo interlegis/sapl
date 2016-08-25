@@ -1,11 +1,10 @@
 from django.conf.urls import include, url
 
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
-                               AdicionarVariasMateriasOrdemDia,
-                               BancadaCrud, CargoBancadaCrud,
-                               ExpedienteMateriaCrud, ExpedienteView,
-                               MateriaOrdemDiaCrud, MesaView, OradorCrud,
-                               OradorExpedienteCrud, PainelView,
+                               AdicionarVariasMateriasOrdemDia, BancadaCrud,
+                               CargoBancadaCrud, ExpedienteMateriaCrud,
+                               ExpedienteView, MateriaOrdemDiaCrud, MesaView,
+                               OradorCrud, OradorExpedienteCrud, PainelView,
                                PautaExpedienteDetail, PautaOrdemDetail,
                                PautaSessaoDetailView, PautaSessaoListView,
                                PesquisarSessaoPlenariaView,

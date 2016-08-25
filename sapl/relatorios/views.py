@@ -16,6 +16,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, Orador,
                                 OradorExpediente, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, TipoExpediente)
+from sapl.settings import STATIC_ROOT
 from sapl.utils import UF
 
 from .templates import (pdf_capa_processo_gerar,
@@ -49,12 +50,10 @@ def get_cabecalho(casa):
 
 
 def get_imagem(casa):
-
     if casa.logotipo:
         return casa.logotipo.path
     else:
-        # TODO: recuperar de uma variavel de sistema
-        return 'static/img/brasao_transp.gif'
+        return STATIC_ROOT + '/img/brasao_transp.gif'
 
 
 def get_rodape(casa):
@@ -564,7 +563,8 @@ def get_sessao_plenaria(sessao, casa):
             materia=expediente_materia.materia).first()
         if numeracao is not None:
             dic_expediente_materia["des_numeracao"] = (
-                str(numeracao.numero) + '/' + str(numeracao.ano))
+                str(numeracao.numero_materia) + '/' + str(
+                    numeracao.ano_materia))
 
         dic_expediente_materia["des_turno"] = ' '
         tram = Tramitacao.objects.filter(

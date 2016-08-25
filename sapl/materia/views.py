@@ -18,8 +18,7 @@ from django.template import Context, loader
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DetailView, ListView,
-                                  TemplateView, UpdateView)
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django_filters.views import FilterView
 
 from sapl.base.models import CasaLegislativa
@@ -397,18 +396,35 @@ class ProposicaoCrud(Crud):
 
         def get_initial(self):
             try:
-                autor_id = Autor.objects.get(user=self.request.user.id).id
+                autor_id = Autor.objects.get(user=self.request.user).id
             except MultipleObjectsReturned:
                 msg = _('Este usuário está relacionado a mais de um autor. ' +
                         'Operação cancelada')
                 messages.add_message(self.request, messages.ERROR, msg)
                 return redirect(self.get_success_url())
+            except ObjectDoesNotExist:
+                # FIXME: Pensar em uma melhor forma
+                tipo = TipoAutor.objects.get(name='Externo')
+
+                autor_id = Autor.objects.create(
+                    user=self.request.user,
+                    nome=str(self.request.user),
+                    tipo=tipo).id
+                return {'autor': autor_id}
             else:
                 return {'autor': autor_id}
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         form_class = ProposicaoForm
         permission_required = permissoes_autor()
+
+        def get_initial(self):
+            initial = self.initial.copy()
+            if self.object.materia:
+                initial['tipo_materia'] = self.object.materia.tipo.id
+                initial['numero_materia'] = self.object.materia.numero
+                initial['ano_materia'] = self.object.materia.ano
+            return initial
 
         @property
         def layout_key(self):
@@ -435,21 +451,6 @@ class ProposicaoCrud(Crud):
 
     class DetailView(PermissionRequiredMixin, CrudDetailView):
         permission_required = permissoes_autor()
-
-        def get_context_data(self, **kwargs):
-            context = super(DetailView, self).get_context_data(**kwargs)
-            if self.object.materia:
-                context['form'].fields['tipo_materia'].initial = (
-                    self.object.materia.tipo.id)
-                context['form'].fields['numero_materia'].initial = (
-                    self.object.materia.numero)
-                context['form'].fields['ano_materia'].initial = (
-                    self.object.materia.ano)
-            return context
-
-        @property
-        def layout_key(self):
-            return 'ProposicaoCreate'
 
         def has_permission(self):
             perms = self.get_permission_required()
@@ -488,7 +489,7 @@ class ProposicaoCrud(Crud):
             return lista
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
-        permission_required = permissoes_materia()
+        permission_required = {'materia.delete_proposicao'}
 
         def delete(self, request, *args, **kwargs):
             proposicao = Proposicao.objects.get(id=self.kwargs['pk'])

@@ -235,8 +235,8 @@ def votacao(lst_votacao):
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            votacao['nom_resultado'] + '</b></para>\n' + '<para style="P3">' + \
-            votacao['votacao_observacao'] + '</para></td></tr>\n'
+            str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
+            str(votacao['votacao_observacao']) + '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp

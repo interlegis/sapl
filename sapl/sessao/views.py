@@ -10,7 +10,7 @@ from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, ListView, TemplateView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 from rest_framework import generics
@@ -20,18 +20,16 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.forms import pega_ultima_tramitacao
-from sapl.materia.models import (Autoria, DocumentoAcessorio,
-                                 TipoMateriaLegislativa, Tramitacao)
+from sapl.materia.models import Autoria, DocumentoAcessorio, Tramitacao
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.serializers import SessaoPlenariaSerializer
 from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
 
-from .forms import (AdicionarVariasMateriasFilterSet,
-                    BancadaForm, ExpedienteForm, ExpedienteMateriaForm,
-                    ListMateriaForm, MesaForm,
-                    OrdemDiaForm, PresencaForm,
+from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
+                    ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
+                    MesaForm, OrdemDiaForm, PresencaForm,
                     SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
 from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
@@ -2059,7 +2057,6 @@ class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        # import ipdb; ipdb.set_trace()
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
 

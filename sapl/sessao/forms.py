@@ -13,7 +13,7 @@ from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
 
-from .models import Bancada, ExpedienteMateria, SessaoPlenaria, OrdemDia
+from .models import Bancada, ExpedienteMateria, OrdemDia, SessaoPlenaria
 
 
 def pega_anos():
