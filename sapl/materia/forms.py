@@ -669,10 +669,16 @@ class AutorForm(ModelForm):
 
         autor = super(AutorForm, self).save(commit)
 
-        u = User.objects.get_or_create(
-            username=autor.username,
-            email=autor.email)
-        u = u[0]
+        try:
+            u = User.objects.get(
+                username=autor.username,
+                email=autor.email)
+        except ObjectDoesNotExist:
+            msg = _('Este nome de usuario não está cadastrado. ' +
+                    'Por favor, cadastre-o no Administrador do ' +
+                    'Sistema antes de adicioná-lo como Autor')
+            raise ValidationError(msg)
+
         u.set_password(self.cleaned_data['senha'])
         u.is_active = False
         u.save()

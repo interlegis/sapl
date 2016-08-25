@@ -208,7 +208,9 @@ class TipoAutor(models.Model):
 
 
 class Autor(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User,
+                             blank=True,
+                             null=True)
     partido = models.ForeignKey(Partido, blank=True, null=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
