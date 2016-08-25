@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
 from .forms import LoginForm
-from .views import CasaLegislativaCrud, HelpView, SistemaView
+from .views import CasaLegislativaCrud, HelpView
 
 app_name = AppConfig.name
 

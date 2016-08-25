@@ -53,7 +53,6 @@ def get_imagem(casa):
     if casa.logotipo:
         return casa.logotipo.path
     else:
-        # TODO: recuperar de uma variavel de sistema
         return STATIC_ROOT + '/img/brasao_transp.gif'
 
 

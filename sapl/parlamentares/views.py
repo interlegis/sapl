@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -10,8 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudDetailView,
-                            CrudListView, CrudUpdateView)
+                            CrudDeleteView, CrudDetailView, CrudListView,
+                            CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 

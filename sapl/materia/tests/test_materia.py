@@ -1,18 +1,16 @@
 import pytest
-
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-
 from model_mommy import mommy
+
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
-                                 Numeracao, Proposicao,
-                                 RegimeTramitacao, StatusTramitacao,
-                                 TipoAutor, TipoProposicao, TipoDocumento,
-                                 TipoMateriaLegislativa, Tramitacao,
-                                 UnidadeTramitacao)
+                                 Numeracao, Proposicao, RegimeTramitacao,
+                                 StatusTramitacao, TipoAutor, TipoDocumento,
+                                 TipoMateriaLegislativa, TipoProposicao,
+                                 Tramitacao, UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 

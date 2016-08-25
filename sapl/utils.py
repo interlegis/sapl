@@ -262,7 +262,8 @@ def permissoes_parlamentares():
     lista_permissoes = []
     try:
         cts = ContentType.objects.filter(app_label='parlamentares')
-        perms_parlamentares = list(Permission.objects.filter(content_type__in=cts))
+        perms_parlamentares = list(Permission.objects.filter(
+            content_type__in=cts))
         for p in perms_parlamentares:
             lista_permissoes.append('parlamentares.' + p.codename)
     except:
