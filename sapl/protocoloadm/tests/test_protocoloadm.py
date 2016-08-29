@@ -182,7 +182,8 @@ def test_create_tramitacao(admin_client):
         {'unidade_tramitacao_local': unidade_tramitacao_destino_1.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date(2016, 8, 26)},
+         'data_tramitacao': datetime.date.today() + datetime.timedelta(
+             days=1)},
         follow=True)
 
     msg = _('A data de tramitação deve ser ' +
