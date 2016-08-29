@@ -929,11 +929,6 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['title'] = _('Pesquisar Matéria Legislativa')
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
         self.filterset.form.fields['o'].label = _('Ordenação')
 
         qr = self.request.GET.copy()

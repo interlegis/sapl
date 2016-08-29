@@ -1,12 +1,86 @@
+import django_filters
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
+from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.materia.models import MateriaLegislativa
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import ImageThumbnailFileInput
+from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput, autor_label,
+                        autor_modal)
 
 from .models import CasaLegislativa
+
+
+class RangeWidgetOverride(forms.MultiWidget):
+
+    def __init__(self, attrs=None):
+        widgets = (forms.DateInput(format='%d/%m/%Y',
+                                   attrs={'class': 'dateinput',
+                                          'placeholder': 'Inicial'}),
+                   forms.DateInput(format='%d/%m/%Y',
+                                   attrs={'class': 'dateinput',
+                                          'placeholder': 'Final'}))
+        super(RangeWidgetOverride, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value.start, value.stop]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        return ''.join(rendered_widgets)
+
+
+class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioMateriasPorAutorFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+
+        row1 = to_row(
+            [('tipo', 12)])
+        row2 = to_row(
+            [('data_apresentacao', 12)])
+        row3 = to_row(
+            [('autoria__autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar'),
+                     row1, row2,
+                     HTML(autor_label),
+                     HTML(autor_modal),
+                     row3,
+                     form_actions(save_label='Pesquisar'))
+        )
 
 
 class CasaLegislativaForm(ModelForm):
