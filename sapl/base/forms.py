@@ -11,8 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput, autor_label,
-                        autor_modal)
+from sapl.utils import ImageThumbnailFileInput, autor_label, autor_modal
 
 from .models import CasaLegislativa
 

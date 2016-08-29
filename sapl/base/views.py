@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDetailView, CrudUpdateView, make_pagination)
+                            CrudDetailView, CrudUpdateView)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import permissao_tb_aux
 
@@ -21,7 +21,6 @@ def get_casalegislativa():
 class RelatorioMateriasPorAutorView(FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAutorFilterSet
-    paginate_by = 10
     template_name = 'base/RelatorioMateriasPorAutor_filter.html'
 
     def get_filterset_kwargs(self, filterset_class):
@@ -29,8 +28,6 @@ class RelatorioMateriasPorAutorView(FilterView):
               self).get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
-        qs = self.get_queryset()
-
         return kwargs
 
     def get_context_data(self, **kwargs):
