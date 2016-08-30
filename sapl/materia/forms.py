@@ -216,20 +216,85 @@ class TramitacaoForm(ModelForm):
                   'texto']
 
     def clean(self):
+        data_enc_form = self.cleaned_data['data_encaminhamento']
+        data_prazo_form = self.cleaned_data['data_fim_prazo']
+        data_tram_form = self.cleaned_data['data_tramitacao']
+
         if self.errors:
             return self.errors
 
         ultima_tramitacao = Tramitacao.objects.filter(
-            materia_id=self.instance.materia.id).last()
+            materia_id=self.instance.materia_id).exclude(
+            id=self.instance.id).last()
 
-        if ultima_tramitacao:
-            destino = ultima_tramitacao.unidade_tramitacao_destino
-            if (destino != self.cleaned_data['unidade_tramitacao_local']):
-                msg = _('A origem da nova tramitação deve ser igual ao '
-                        'destino  da última adicionada!')
+        if not self.instance.data_tramitacao:
+
+            if ultima_tramitacao:
+                destino = ultima_tramitacao.unidade_tramitacao_destino
+                if (destino != self.cleaned_data['unidade_tramitacao_local']):
+                    msg = _('A origem da nova tramitação deve ser igual ao '
+                            'destino  da última adicionada!')
+                    raise ValidationError(msg)
+
+            if self.cleaned_data['data_tramitacao'] > datetime.now().date():
+                msg = _(
+                    'A data de tramitação deve ser ' +
+                    'menor ou igual a data de hoje!')
+                raise ValidationError(msg)
+
+            if (ultima_tramitacao and
+               data_tram_form < ultima_tramitacao.data_tramitacao):
+                msg = _('A data da nova tramitação deve ser ' +
+                        'maior que a data da última tramitação!')
+                raise ValidationError(msg)
+
+        if data_enc_form:
+            if data_enc_form < data_tram_form:
+                msg = _('A data de encaminhamento deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
+
+        if data_prazo_form:
+            if data_prazo_form < data_tram_form:
+                msg = _('A data fim de prazo deve ser ' +
+                        'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
         return self.cleaned_data
+
+
+class TramitacaoUpdateForm(TramitacaoForm):
+    unidade_tramitacao_local = forms.ModelChoiceField(
+        queryset=UnidadeTramitacao.objects.all(),
+        widget=forms.HiddenInput())
+
+    data_tramitacao = forms.DateField(widget=forms.HiddenInput())
+
+    class Meta:
+        model = Tramitacao
+        fields = ['data_tramitacao',
+                  'unidade_tramitacao_local',
+                  'status',
+                  'turno',
+                  'urgente',
+                  'unidade_tramitacao_destino',
+                  'data_encaminhamento',
+                  'data_fim_prazo',
+                  'texto',
+                  ]
+
+        widgets = {
+            'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
+            'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
+        }
+
+    def clean(self):
+        local = self.instance.unidade_tramitacao_local
+        data_tram = self.instance.data_tramitacao
+
+        self.cleaned_data['data_tramitacao'] = data_tram
+        self.cleaned_data['unidade_tramitacao_local'] = local
+        return super(TramitacaoUpdateForm, self).clean()
 
 
 class LegislacaoCitadaForm(ModelForm):

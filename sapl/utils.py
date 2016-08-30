@@ -225,8 +225,8 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
 def permissoes_materia():
     lista_permissoes = []
     try:
-        cts = ContentType.objects.filter(app_label='materia')
-        perms_materia = list(Permission.objects.filter(content_type__in=cts))
+        perms_materia = Permission.objects.filter(
+            group__name='Operador de Matéria')
         for p in perms_materia:
             lista_permissoes.append('materia.' + p.codename)
     except:
