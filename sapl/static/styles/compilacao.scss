@@ -529,12 +529,20 @@ a:link:after, a:visited:after {
       right: 0px;
       z-index: 3;
       opacity: 0;
+
+      .activate {
+        display:none;
+      }
+      .deactivate {
+        display:inline;
+      }
     }
     & > .dpt-actions, & > .dpt-actions-bottom {
       display: none;
     }
     & > .dpt-text {
       cursor: pointer;
+      min-height: 31px;
       &:hover {
         color: $color_buttons;
         transition: color 0.3s ease;
@@ -550,6 +558,7 @@ a:link:after, a:visited:after {
     }
 
     &:hover {
+      background-color: rgba(0, 0, 0, 0.01);
       & > .dpt-actions-fixed {
         opacity: 1;
       }
@@ -610,10 +619,11 @@ a:link:after, a:visited:after {
     }
     .dpt-selected {
       &.dpt {
-        margin: -0.2em -0.5em;
+        margin: 0em -0.5em;
       }
     }
   } /* fim dpt-alts */
+
   .dpt-selected {
     &.dpt {
       width: auto !important;
@@ -699,21 +709,34 @@ a:link:after, a:visited:after {
       .dpt {
         box-shadow: 0 0 0;
       }
-
-
     }
     & > .dpt-actions-fixed {
-      display: none;
-
+      opacity: 1;
+      margin-top: -1em;
+      margin-right: -0.5em;
+      .activate {
+        display:inline;
+      }
+      .deactivate {
+        display:none;
+      }
+      .btn-dpt-edit {
+        background-color: #02baf2;
+        color: white;
+        border: 0;
+        font-weight: bold;
+      }
     }
 
     .dropdown-menu {
-      right: auto !important;
-      left: 0;
-      padding: 2px 0;
-      & > .top.arrow {
-        right: 88%;
-        left: auto;
+      &.dropdown-menu-left {
+        right: auto !important;
+        left: 0;
+        padding: 2px 0;
+        & > .top.arrow {
+          right: 88%;
+          left: auto;
+        }
       }
       li {
         a {
@@ -723,11 +746,16 @@ a:link:after, a:visited:after {
         }
       }
     }
+    .btn-group {
+      .radius-right {
+        border-bottom-right-radius: 4px !important;
+        border-top-right-radius: 4px !important;
+      }
+
+    }
 
     &:hover {
-      .dpt-actions-fixed { 
-        margin-top: 1em;
-        margin-right: 1em;
+      .dpt-actions-fixed {
       }
     }
 

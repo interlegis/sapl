@@ -1,23 +1,42 @@
 {% load i18n %}
 
-<div class="btn-group" role="group">
+<div class="btn-group dropdown" role="group">
   {% if object.dispositivo_subsequente == None %}
     {% for inserts in allowed_inserts %}
       {% if inserts.itens %}
 
-        <div class="btn-group" role="group">
+        <div class="btn-group btn-group-inserts" role="group">
           <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             {{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span>
           </button>
 
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu dropdown-menu-left">
             <div class="arrow top"></div>
             {% for item in inserts.itens %}
-              <li><a class="btn-inserts btn-action" action="{{inserts.action}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel|safe}}</a></li>
+              <li><a class="btn-inserts btn-action " action="{{inserts.action}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel|safe}}</a></li>
             {% endfor %}
           </ul>
         </div>
       {% endif %}
     {% endfor %}
   {%endif%}
+</div>
+
+<div class="btn-toolbar pull-right" role="toolbar" >
+
+  <div class="btn-group " role="group">
+    <button type="button" class="btn btn-primary btn-sm radius-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <i class="fa fa-edit fa-lg"></i>
+    </button>
+
+    <ul class="dropdown-menu">
+      <div class="arrow top"></div>
+
+        <li><a class="btn-editor-type" editortype="construct">Construtor</a></li>
+        <li><a class="btn-editor-type" editortype="textarea">Editor Simples</a></li>
+        <li><a class="btn-editor-type" editortype="tinymce">Editor tinymce</a></li>
+        <li><a class="btn-editor-avancado" href="{% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk %}" >Editor Avançado</a></li>
+
+    </ul>
+  </div>
 </div>

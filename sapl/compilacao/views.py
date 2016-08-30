@@ -2894,13 +2894,15 @@ class TextNotificacoesView(CompMixin, ListView, FormView):
                  _('Dispositivo está substituindo um Dispositivo de outro '
                    'Texto Articulado.'))
 
-            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
                  r.dispositivo_substituido and
                  r.dispositivo_substituido.dispositivo_subsequente != r,
                  _('Dispositivo está substituindo um Dispositivo que não '
                    'possui este como seu Dispositivo Subsequente.'))
 
-            padd(r, type_notificacao, 'compilacao:dispositivo_edit_alteracao',
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
                  r.dispositivo_subsequente and
                  r.dispositivo_subsequente.dispositivo_substituido != r,
                  _('Dispositivo foi substituído por outro que não '
