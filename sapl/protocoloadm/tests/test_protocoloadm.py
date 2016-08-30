@@ -207,6 +207,7 @@ def test_create_tramitacao(admin_client):
     msg = _('A data de encaminhamento deve ser ' +
             'maior que a data de tramitação!')
 
+    # Verifica se a data da encaminhamento é menor do que a data de tramitacao
     assert msg in response.context_data[
         'form'].errors['__all__']
 
@@ -224,6 +225,7 @@ def test_create_tramitacao(admin_client):
     msg = _('A data fim de prazo deve ser ' +
             'maior que a data de tramitação!')
 
+    # Verifica se a data da do fim do prazo é menor do que a data de tramitacao
     assert msg in response.context_data[
         'form'].errors['__all__']
 
