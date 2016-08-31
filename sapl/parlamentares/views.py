@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
@@ -36,7 +36,9 @@ class ParticipacaoParlamentarCrud(MasterDetailCrud):
             for p in object_list:
                 if p.cargo.nome != 'Relator':
                     comissao = [
-                        (p.composicao.comissao.nome, p.composicao.comissao.pk),
+                        (p.composicao.comissao.nome, reverse(
+                           'sapl.comissoes:comissao_detail', kwargs={
+                               'pk': p.composicao.comissao.pk})),
                         (p.cargo.nome, None),
                         (p.composicao.periodo.data_inicio.strftime(
                          "%d/%m/%Y") + ' a ' +
