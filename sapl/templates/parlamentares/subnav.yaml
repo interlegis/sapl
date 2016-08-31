@@ -7,3 +7,5 @@
   url: filiacao_list
 - title: {% trans 'Dependentes' %}
   url: dependente_list
+- title: {% trans 'Comissões' %}
+  url: participacao_list

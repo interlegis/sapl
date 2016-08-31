@@ -8,6 +8,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
+from sapl.comissoes.models import Participacao
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
                             CrudUpdateView)
@@ -20,6 +21,39 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
+
+
+class ParticipacaoParlamentarCrud(MasterDetailCrud):
+    model = Participacao
+    parent_field = 'parlamentar'
+    help_path = ''
+
+    class ListView(MasterDetailCrud.ListView):
+        ordering = ('-composicao__periodo')
+
+        def get_rows(self, object_list):
+            comissoes = []
+            for p in object_list:
+                if p.cargo.nome != 'Relator':
+                    comissao = [
+                        (p.composicao.comissao.nome, p.composicao.comissao.pk),
+                        (p.cargo.nome, None),
+                        (p.composicao.periodo, None)
+                    ]
+                    comissoes.append(comissao)
+            return comissoes
+
+        def get_headers(self):
+            return ['Comissão', 'Cargo', 'Período']
+
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        permission_required = permissoes_parlamentares()
+
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_parlamentares()
 
 
 class CargoMesaCrud(Crud):
