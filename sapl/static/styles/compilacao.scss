@@ -389,7 +389,6 @@ a:link:after, a:visited:after {
           }
         }
       }
-
     }
 
     .dptt {
@@ -442,7 +441,6 @@ a:link:after, a:visited:after {
           }
         }
       }
-
       .dne-nota {
         position: relative;
         transform: scaleX(1);
@@ -526,7 +524,8 @@ a:link:after, a:visited:after {
     display: block;
     & > .dpt-actions-fixed {
       position: absolute;
-      right: 0px;
+      right: -0.25em;
+      top: 0px;
       z-index: 3;
       opacity: 0;
 
@@ -536,15 +535,20 @@ a:link:after, a:visited:after {
       .deactivate {
         display:inline;
       }
+      .btn-dpt-edit.btn-default {
+        color: #333;
+      }
     }
     & > .dpt-actions, & > .dpt-actions-bottom {
       display: none;
     }
     & > .dpt-text {
       cursor: pointer;
-      min-height: 31px;
+      min-height: 30px;
       &:hover {
+        background-color: rgba(0, 0, 0, 0.01);
         color: $color_buttons;
+        border: 1px solid #eee;
         transition: color 0.3s ease;
       }
       &.artigo {
@@ -558,9 +562,11 @@ a:link:after, a:visited:after {
     }
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.01);
       & > .dpt-actions-fixed {
-        opacity: 1;
+        opacity: 0.8;
+        &:hover {
+          opacity: 1;
+        }
       }
     }
 
@@ -609,7 +615,6 @@ a:link:after, a:visited:after {
         padding: 0.3em 1em;
         margin-top: 0;
         margin-bottom: 0;
-
         a {
           &.link-rotulo {
             text-decoration: underline;
@@ -632,27 +637,11 @@ a:link:after, a:visited:after {
       padding: 0;
       background-color: #fafafa;
       border-radius: 3px;
-      z-index: 2;
-      & > .dpt-text1 {
-        opacity: 1;
-        border: 0px solid #e0e0e0 !important;
-        margin: 1em;
-        padding: 0.3em;
-        position: relative;
-        background-color: white;
-        min-height: 2em;
-
-        &:before {
-          border-width: 1rem;
-          border-style: solid;
-          border-color: transparent transparent #e0e0e0 #e0e0e0 ;
-          content: "";
-          display: block;
-          height: 0px;
-          width: 0px;
-          position: absolute;
-          bottom: 0rem;
-          left: 0rem;
+      z-index: 4;
+      & > .dpt-text {
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.0);
+          border: 0px solid #eee;
         }
       }
       & > .dpt-form {
@@ -712,8 +701,8 @@ a:link:after, a:visited:after {
     }
     & > .dpt-actions-fixed {
       opacity: 1;
-      margin-top: -1em;
-      margin-right: -0.5em;
+      top: -12px;
+      right: 0.5em;
       .activate {
         display:inline;
       }
@@ -721,10 +710,11 @@ a:link:after, a:visited:after {
         display:none;
       }
       .btn-dpt-edit {
-        background-color: #02baf2;
-        color: white;
-        border: 0;
-        font-weight: bold;
+        padding-top: 2px;
+        padding-bottom: 1px;
+        &.btn-default {
+          background-color: #fad46b;
+        }
       }
     }
 
@@ -753,14 +743,12 @@ a:link:after, a:visited:after {
       }
 
     }
-
     &:hover {
-      .dpt-actions-fixed {
+      & > .dpt-actions-fixed {
+        opacity: 1;
       }
     }
-
   }
-
 }
 
 .cp.cpe1 {

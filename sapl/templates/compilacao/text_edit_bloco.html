@@ -3,9 +3,12 @@
 {% load common_tags %}
 
 {% dispositivotree dispositivos_list %}
-    <div class="dpt" id="id{{node.dpt.id}}" pk="{{node.dpt.pk}}" ordem="{{node.dpt.ordem}}" name="{{node.dpt.pk}}" title="{{node.dpt.pk}} - {{node.dpt.ordem}}">
-      <div class="dpt-actions-fixed btn-group">
-        <a class="btn-action btn-dpt-edit btn btn-default btn-sm" pk="{{node.dpt.pk}}"><span class="deactivate">{% trans 'Editar'%}</span><span class="activate">{% trans 'Em Edição'%}</span> {{ node.td.nome }} {{ node.dpt.rotulo }}</a>
+    <div class="dpt" id="id{{node.dpt.id}}" pk="{{node.dpt.pk}}" ordem="{{node.dpt.ordem}}" name="{{node.dpt.pk}}" title="{{node.dpt.pk}} - {{node.dpt.ordem}}" formtype="get_form_base">
+      <div class="dpt-actions-fixed">
+          <a class="btn-action btn-dpt-edit btn btn-default btn-sm" pk="{{node.dpt.pk}}" title=""><span class="deactivate">{% trans 'Editar'%}</span><span class="activate">{% trans 'Em Edição'%}</span> {{ node.td.nome }} {{ node.dpt.rotulo }}</a>
+        <div class="btn-group">
+          <a class="btn-action btn-dpt-edit btn btn-info btn-sm activate" pk="{{node.dpt.pk}}" action="editor-close" title="{% trans 'Fechar Edição' %}"><span class="deactivate"></span><span class="activate"><i class="fa fa-times" aria-hidden="true"></i></span></a>
+        </div>
         {% if not node.dpt.rotulo and not node.dpt.texto and node.td.dispositivo_de_articulacao%}
         {% endif %}
       </div>

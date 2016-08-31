@@ -31,6 +31,7 @@ function DispositivoEdit() {
         var form_data = {
             'action'    : this.getAttribute('action'),
             'tipo_pk'   : this.getAttribute('tipo_pk'),
+            'perfil_pk' : this.getAttribute('perfil_pk'),
             'variacao'  : this.getAttribute('variacao'),
         };
 
@@ -72,29 +73,40 @@ function DispositivoEdit() {
 
         var dpt = $(this).closest('.dpt');
         if (dpt.hasClass('dpt-selected')) {
-            instance.clearEditSelected();
+            if (this.getAttribute('action') == 'editor-close')
+                instance.clearEditSelected();
             return;
         }
         instance.clearEditSelected();
         instance.loadActionsEdit(dpt);
 
-        dpt.on('get_form_base', function () {
-            var _this = $(this);
-            _this.addClass('dpt-selected');
-            instance.scrollTo(_this);
-            _this.off('get_form_base')
+        var formtype = dpt.attr('formtype');
 
-            var btn_fechar = _this.find('.btn-fechar');
-            btn_fechar.on('click', function() {
-                instance.clearEditSelected();
-            });
 
-            var btns_excluir = _this.find('.btns-excluir');
-            _this.find('.dpt-actions-bottom').last().append(btns_excluir);
+        dpt.on(formtype, instance[formtype]);
 
-            btns_excluir.find('.btn-excluir').on('click', instance.bindActionsClick);
+        instance.loadForm(dpt, formtype);
+    }
+
+    instance.get_form_base = function () {
+        var _this = $(this);
+        _this.addClass('dpt-selected');
+
+        var dpt_form = _this.children().filter('.dpt-form');
+        dpt_form.find('form').submit(instance.onSubmitEditFormBase);
+
+        instance.scrollTo(_this);
+        _this.off('get_form_base')
+
+        var btn_fechar = _this.find('.btn-fechar');
+        btn_fechar.on('click', function() {
+            instance.clearEditSelected();
         });
-        instance.loadForm(dpt, 'get_form_base');
+
+        var btns_excluir = _this.find('.btns-excluir');
+        _this.find('.dpt-actions-bottom').last().append(btns_excluir);
+
+        btns_excluir.find('.btn-excluir').on('click', instance.bindActionsClick);
     }
 
     instance.loadActionsEdit = function(dpt) {
@@ -103,6 +115,7 @@ function DispositivoEdit() {
         $.get(url).done(function(data) {
             dpt.find('.dpt-actions').first().html(data);
             dpt.find('.btn-inserts').on('click', instance.bindActionsClick);
+            dpt.find('.btn-perfis').on('click', instance.bindActionsClick);
             dpt.find('.btn-editor-type').on('click', instance.bindActionsEditorType);
 
             if (editortype == 'construct')
@@ -112,14 +125,12 @@ function DispositivoEdit() {
     }
     instance.loadForm = function(dpt, trigger) {
         var pk = dpt.attr('pk');
-
         var dpt_form = dpt.children().filter('.dpt-form');
         if (dpt_form.length == 1) {
             var url = pk+'/refresh?action='+trigger;
             $.get(url).done(function(data) {
                 if (editortype != "construct") {
                     dpt_form.html(data);
-                    dpt_form.find('form').submit(instance.onSubmitEditFormBase);
                     if (editortype == 'tinymce' ) {
                         initTinymce();
                     }

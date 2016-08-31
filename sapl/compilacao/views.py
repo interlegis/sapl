@@ -1198,8 +1198,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                 # print(p.id, p)
                 p.dispositivo_subsequente = n
                 if n:
-                    p.fim_vigencia = n.ini_vigencia - timedelta(days=1)
-                    p.fim_eficacia = n.ini_eficacia - timedelta(days=1)
+                    p.fim_vigencia = n.inicio_vigencia - timedelta(days=1)
+                    p.fim_eficacia = n.inicio_eficacia - timedelta(days=1)
                 else:
                     p.fim_vigencia = None
                     p.fim_eficacia = None
@@ -2021,25 +2021,16 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
     def json_get_perfis(self, context):
 
-        try:
-            if 'perfil_pk' in self.request.GET:
-                self.set_perfil_in_session(
-                    self.request, self.request.GET['perfil_pk'])
-            elif 'perfil_estrutural' not in self.request.session:
-                self.set_perfil_in_session(request=self.request)
+        if 'perfil_pk' in self.request.GET:
+            self.set_perfil_in_session(
+                self.request, self.request.GET['perfil_pk'])
+        elif 'perfil_estrutural' not in self.request.session:
+            self.set_perfil_in_session(request=self.request)
 
-            self.object_list = self.get_queryset()
+        data = {'pk': self.kwargs['dispositivo_id'],
+                'pai': [self.kwargs['dispositivo_id'], ]}
 
-            self.perfil_estrutural_list = self.get_queryset_perfil_estrutural()
-
-            context = self.get_context_data(
-                object_list=self.object_list,
-                perfil_estrutural_list=self.perfil_estrutural_list
-            )
-        except Exception as e:
-            print(e)
-
-        return self.render_to_response(context)
+        return data
 
     def set_perfil_in_session(self, request=None, perfil_id=0):
         if not request:
@@ -2098,6 +2089,16 @@ class DispositivoDinamicEditView(
             context = {}
             context['object'] = self.object
             context['allowed_inserts'] = self.allowed_inserts()
+
+            if 'perfil_pk' in request.GET:
+                self.set_perfil_in_session(
+                    request, request.GET['perfil_pk'])
+            elif 'perfil_estrutural' not in request.session:
+                self.set_perfil_in_session(request=request)
+
+            context['perfil_estrutural_list'
+                    ] = PerfilEstruturalTextoArticulado.objects.all()
+
             return self.render_to_response(context)
 
         elif action.startswith('json_'):
