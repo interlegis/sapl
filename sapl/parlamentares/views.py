@@ -14,7 +14,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
                             CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
-from sapl.materia.models import Proposicao
+from sapl.materia.models import Proposicao, Relatoria
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
@@ -23,6 +23,24 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
+
+
+class RelatoriaParlamentarCrud(MasterDetailCrud):
+    model = Relatoria
+    parent_field = 'parlamentar'
+    help_path = ''
+
+    class ListView(MasterDetailCrud.ListView):
+        permission_required = permissoes_parlamentares()
+
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        permission_required = permissoes_parlamentares()
+
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_parlamentares()
 
 
 class ProposicaoParlamentarCrud(MasterDetailCrud):

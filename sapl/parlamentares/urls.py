@@ -7,6 +7,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       NivelInstrucaoCrud, ParlamentarCrud,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
+                                      RelatoriaParlamentarCrud,
                                       SessaoLegislativaCrud,
                                       TipoAfastamentoCrud, TipoDependenteCrud,
                                       TipoMilitarCrud)
@@ -20,7 +21,8 @@ urlpatterns = [
         ParlamentarCrud.get_urls() + DependenteCrud.get_urls() +
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
-        ProposicaoParlamentarCrud.get_urls()
+        ProposicaoParlamentarCrud.get_urls() +
+        RelatoriaParlamentarCrud.get_urls()
     )),
     url(r'^coligacao/',
         include(ColigacaoCrud.get_urls() +

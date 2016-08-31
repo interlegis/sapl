@@ -11,3 +11,5 @@
   url: participacao_list
 - title: {% trans 'Proposições' %}
   url: proposicao_list
+- title: {% trans 'Relatorias' %}
+  url: relatoria_list
