@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -13,6 +14,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
                             CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
+from sapl.materia.models import Proposicao
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
@@ -21,6 +23,37 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
+
+
+class ProposicaoParlamentarCrud(MasterDetailCrud):
+    model = Proposicao
+    parent_field = 'autor__parlamentar'
+    help_path = ''
+
+    class BaseMixin(CrudBaseMixin):
+        list_field_names = ['tipo', 'descricao']
+
+    class ListView(MasterDetailCrud.ListView):
+        permission_required = permissoes_parlamentares()
+
+        def get_queryset(self):
+            try:
+                proposicoes = Proposicao.objects.filter(
+                    autor__parlamentar_id=self.kwargs['pk'],
+                    data_envio__isnull=False)
+            except ObjectDoesNotExist:
+                return []
+            else:
+                return proposicoes
+
+    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+        permission_required = permissoes_parlamentares()
+
+    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+        permission_required = permissoes_parlamentares()
+
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_parlamentares()
 
 
 class ParticipacaoParlamentarCrud(MasterDetailCrud):
