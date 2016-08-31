@@ -38,7 +38,10 @@ class ParticipacaoParlamentarCrud(MasterDetailCrud):
                     comissao = [
                         (p.composicao.comissao.nome, p.composicao.comissao.pk),
                         (p.cargo.nome, None),
-                        (p.composicao.periodo, None)
+                        (p.composicao.periodo.data_inicio.strftime(
+                         "%d/%m/%Y") + ' a ' +
+                         p.composicao.periodo.data_fim.strftime("%d/%m/%Y"),
+                         None)
                     ]
                     comissoes.append(comissao)
             return comissoes
