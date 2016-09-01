@@ -10,12 +10,46 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import permissao_tb_aux
 
-from .forms import CasaLegislativaForm, RelatorioMateriasPorAutorFilterSet
+from .forms import (CasaLegislativaForm,
+                    RelatorioMateriasPorAnoAutorTipoFilterSet,
+                    RelatorioMateriasPorAutorFilterSet)
 from .models import CasaLegislativa
 
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class RelatorioMateriasPorAnoAutorTipoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
+    template_name = 'base/RelatorioMateriasPorAnoAutorTipo_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioMateriasPorAnoAutorTipoView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioMateriasPorAnoAutorTipoView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Matérias por Ano, Autor e Tipo')
+
+        qtdes = {}
+        for tipo in TipoMateriaLegislativa.objects.all():
+            qs = kwargs['object_list']
+            qtde = len(qs.filter(tipo_id=tipo.id))
+            if qtde > 0:
+                qtdes[tipo] = qtde
+        context['qtdes'] = qtdes
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        return context
 
 
 class RelatorioMateriasPorAutorView(FilterView):

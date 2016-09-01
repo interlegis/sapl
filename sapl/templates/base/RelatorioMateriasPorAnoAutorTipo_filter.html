@@ -1,0 +1,60 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'sapl.base:materia_por_ano_autor_tipo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+
+    <table class="table table-bordered table-hover">
+      <thead class="thead-default" >
+        <tr class="active"><th colspan="2" class="text-center">QUADRO GERAL</th></tr>
+        <tr class="active">
+          <th>Tipo Matéria</th>
+          <th>Quantidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in qtdes.items %}
+          <tr>
+            <td>{{key.sigla}} - {{key}}</td>
+            <td>{{value}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <table class="table table-bordered table-hover">
+      <thead class="thead-default" >
+        <tr class="active">
+          <th>Matéria</th>
+          <th>Ementa</th>
+          <th>Autor(es)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for materia in object_list %}
+          <tr>
+            <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}">
+              {{materia.tipo.descricao}} - {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
+            </a></td>
+            <td>{{materia.ementa}}</td>
+            <td>
+              {% for autor in materia.autoria_set.all %}
+                {{autor.autor}}<br />
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+{% endblock base_content %}

@@ -11,7 +11,8 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import ImageThumbnailFileInput, autor_label, autor_modal
+from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput, autor_label,
+                        autor_modal)
 
 from .models import CasaLegislativa
 
@@ -34,6 +35,32 @@ class RangeWidgetOverride(forms.MultiWidget):
 
     def format_output(self, rendered_widgets):
         return ''.join(rendered_widgets)
+
+
+class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
+
+    ano = django_filters.ChoiceFilter(required=True,
+                                      label=u'Ano da Matéria',
+                                      choices=RANGE_ANOS)
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['ano']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioMateriasPorAnoAutorTipoFilterSet, self).__init__(
+            *args, **kwargs)
+
+        row1 = to_row(
+            [('ano', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar'),
+                     row1,
+                     form_actions(save_label='Pesquisar'))
+        )
 
 
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
