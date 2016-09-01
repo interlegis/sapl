@@ -32,9 +32,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
         context['title'] = _('Matérias por Ano, Autor e Tipo')
 
+        qs = context['object_list']
+        qs = qs.filter(em_tramitacao=True)
+        context['object_list'] = qs
+
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = kwargs['object_list']
+            qs = context['object_list']
             qtde = len(qs.filter(tipo_id=tipo.id))
             if qtde > 0:
                 qtdes[tipo] = qtde

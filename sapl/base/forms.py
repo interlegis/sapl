@@ -48,7 +48,6 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_local',
                   'tramitacao__status']
 
-
     def __init__(self, *args, **kwargs):
         super(RelatorioMateriasTramitacaoilterSet, self).__init__(
               *args, **kwargs)
