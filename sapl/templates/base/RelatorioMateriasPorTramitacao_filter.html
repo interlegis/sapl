@@ -35,22 +35,18 @@
       <thead class="thead-default" >
         <tr class="active">
           <th>Matéria</th>
-          <th>Ementa</th>
-          <th>Autor(es)</th>
+          <th>Local Atual</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
         {% for materia in object_list %}
           <tr>
             <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}">
-              {{materia.tipo.descricao}} - {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
+              {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
             </a></td>
-            <td>{{materia.ementa}}</td>
-            <td>
-              {% for autor in materia.autoria_set.all %}
-                {{autor.autor}}<br />
-              {% endfor %}
-            </td>
+            <td>{{materia.tramitacao_set.last.unidade_tramitacao_local}}</td>
+            <td>{{materia.tramitacao_set.last.status}}</td>
           </tr>
         {% endfor %}
       </tbody>
