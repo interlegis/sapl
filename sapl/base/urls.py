@@ -6,7 +6,8 @@ from .apps import AppConfig
 from .forms import LoginForm
 from .views import (CasaLegislativaCrud, HelpView,
                     RelatorioMateriasPorAnoAutorTipoView,
-                    RelatorioMateriasPorAutorView)
+                    RelatorioMateriasPorAutorView,
+                    RelatorioMateriasTramitacaoView)
 
 app_name = AppConfig.name
 
@@ -31,4 +32,7 @@ urlpatterns = [
     url(r'^relatorio/materia-por-ano-autor-tipo$',
         RelatorioMateriasPorAnoAutorTipoView.as_view(),
         name='materia_por_ano_autor_tipo'),
+    url(r'^relatorio/materia-por-tramitacao$',
+        RelatorioMateriasTramitacaoView.as_view(),
+        name='materia_por_tramitacao'),
 ]

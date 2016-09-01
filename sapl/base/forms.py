@@ -37,6 +37,38 @@ class RangeWidgetOverride(forms.MultiWidget):
         return ''.join(rendered_widgets)
 
 
+class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
+
+    ano = django_filters.ChoiceFilter(required=True,
+                                      label=u'Ano da Matéria',
+                                      choices=RANGE_ANOS)
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_local',
+                  'tramitacao__status']
+
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioMateriasTramitacaoilterSet, self).__init__(
+              *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+
+        row1 = to_row([('ano', 12)])
+        row2 = to_row([('tipo', 12)])
+        row3 = to_row([('tramitacao__unidade_tramitacao_local', 12)])
+        row4 = to_row([('tramitacao__status', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matéria em Tramitação'),
+                     row1, row2, row3, row4,
+                     form_actions(save_label='Pesquisar'))
+        )
+
+
 class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
