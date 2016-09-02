@@ -37,6 +37,41 @@ class RangeWidgetOverride(forms.MultiWidget):
         return ''.join(rendered_widgets)
 
 
+class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
+                  'tramitacao__status', 'tramitacao__data_tramitacao']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioHistoricoTramitacaoFilterSet, self).__init__(
+                *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+
+        row1 = to_row([('tramitacao__data_tramitacao', 12)])
+        row2 = to_row(
+            [('tipo', 4),
+             ('tramitacao__unidade_tramitacao_local', 4),
+             ('tramitacao__status', 4)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Histórico de Tramita'),
+                     row1, row2,
+                     form_actions(save_label='Pesquisar'))
+        )
+
+
 class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,

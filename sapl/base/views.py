@@ -10,7 +10,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import permissao_tb_aux
 
-from .forms import (CasaLegislativaForm,
+from .forms import (CasaLegislativaForm, RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet)
@@ -19,6 +19,20 @@ from .models import CasaLegislativa
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class RelatorioHistoricoTramitacaoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioHistoricoTramitacaoFilterSet
+    template_name = 'base/RelatorioHistoricoTramitacao_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioHistoricoTramitacaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Histórico de Tramitações')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
 
 
 class RelatorioMateriasTramitacaoView(FilterView):

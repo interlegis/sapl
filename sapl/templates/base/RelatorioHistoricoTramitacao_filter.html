@@ -1,0 +1,34 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'sapl.base:historico_tramitacoes' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <table class="table table-bordered table-hover">
+      <thead class="thead-default" >
+        <tr class="active">
+          <th>Matéria</th>
+          <th>Ementa</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for materia in object_list %}
+          <tr>
+            <td><a href="{% url 'sapl.materia:tramitacao_list' materia.pk %}">
+              {{materia.tipo.descricao}} - {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
+            </a></td>
+            <td>{{materia.ementa}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock base_content %}
