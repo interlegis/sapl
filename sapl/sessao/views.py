@@ -420,10 +420,24 @@ class SessaoCrud(Crud):
 
 class PresencaMixin:
 
-    def get_parlamentares(self):
+    def get_presencas(self):
         self.object = self.get_object()
 
         presencas = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=self.object.id
+        )
+        presentes = [p.parlamentar for p in presencas]
+
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
+
+    def get_presencas_ordem(self):
+        self.object = self.get_object()
+
+        presencas = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id
         )
         presentes = [p.parlamentar for p in presencas]
