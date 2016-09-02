@@ -55,7 +55,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         super(RelatorioPresencaSessaoFilterSet, self).__init__(
                 *args, **kwargs)
 
-        self.filters['data_inicio'].label = 'Período'
+        self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
         row1 = to_row([('data_inicio', 12)])
 
