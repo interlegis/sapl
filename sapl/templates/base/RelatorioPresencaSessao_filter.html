@@ -8,31 +8,37 @@
   {% endif %}
 
   {% if filter_url %}
+    <style type="text/css">
+      .presenca_table td, th{
+        text-align: center;
+      }
+    </style>
+
     <div class="actions btn-group pull-right" role="group">
       <a href="{% url 'sapl.base:presenca_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />
-    <table class="table table-bordered table-hover">
+    <table class="table table-bordered table-hover presenca_table">
       <thead class="thead-default" align="center">
         <tr class="active">
-          <th rowspan="2" align="left">Nome Parlamentar / Partido</th>
-          <th colspan="2" align="center">Sessão</th>
-          <th colspan="2" align="center">Ordem do Dia</th>
+          <th rowspan="2">Nome Parlamentar / Partido</th>
+          <th colspan="2">Sessão</th>
+          <th colspan="2">Ordem do Dia</th>
         </tr>
         <tr class="active">
-          <th align="center">(Qtd)</th>
-          <th align="center">( % )</th>
-          <th align="center">(Qtd)</th>
-          <th align="center">( % )</th>
+          <th>(Qtd)</th>
+          <th>( % )</th>
+          <th>(Qtd)</th>
+          <th>( % )</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td align="left">Nome Teste / Partido Teste</td>
-          <td align="center">15</td>
-          <td align="center">11%</td>
-          <td align="center">1</td>
-          <td align="center">16%</td>
+          <td>Nome Teste | Partido Teste</td>
+          <td>15</td>
+          <td>11%</td>
+          <td>1</td>
+          <td>16%</td>
         </tr>
       </tbody>
     </table>
