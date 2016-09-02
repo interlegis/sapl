@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa
+from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput, autor_label,
                         autor_modal)
@@ -35,6 +36,35 @@ class RangeWidgetOverride(forms.MultiWidget):
 
     def format_output(self, rendered_widgets):
         return ''.join(rendered_widgets)
+
+
+class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = ['data_inicio']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioPresencaSessaoFilterSet, self).__init__(
+                *args, **kwargs)
+
+        self.filters['data_inicio'].label = 'Período'
+
+        row1 = to_row([('data_inicio', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
+                     row1, form_actions(save_label='Pesquisar'))
+        )
 
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):

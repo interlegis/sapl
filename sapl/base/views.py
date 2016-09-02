@@ -9,16 +9,32 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDetailView, CrudUpdateView)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import permissao_tb_aux
+from sapl.sessao.models import SessaoPlenaria
 
 from .forms import (CasaLegislativaForm, RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
-                    RelatorioMateriasTramitacaoilterSet)
+                    RelatorioMateriasTramitacaoilterSet,
+                    RelatorioPresencaSessaoFilterSet)
 from .models import CasaLegislativa
 
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class RelatorioPresencaSessaoView(FilterView):
+    model = SessaoPlenaria
+    filterset_class = RelatorioPresencaSessaoFilterSet
+    template_name = 'base/RelatorioPresencaSessao_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioPresencaSessaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Presença dos parlamentares nas sessões')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
 
 
 class RelatorioHistoricoTramitacaoView(FilterView):

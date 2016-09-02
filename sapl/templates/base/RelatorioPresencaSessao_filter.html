@@ -1,0 +1,40 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'sapl.base:presenca_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <table class="table table-bordered table-hover">
+      <thead class="thead-default" align="center">
+        <tr class="active">
+          <th rowspan="2" align="left">Nome Parlamentar / Partido</th>
+          <th colspan="2" align="center">Sessão</th>
+          <th colspan="2" align="center">Ordem do Dia</th>
+        </tr>
+        <tr class="active">
+          <th align="center">(Qtd)</th>
+          <th align="center">( % )</th>
+          <th align="center">(Qtd)</th>
+          <th align="center">( % )</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td align="left">Nome Teste / Partido Teste</td>
+          <td align="center">15</td>
+          <td align="center">11%</td>
+          <td align="center">1</td>
+          <td align="center">16%</td>
+        </tr>
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock base_content %}
