@@ -45,7 +45,7 @@ class RelatorioPresencaSessaoView(FilterView):
             parlamentares = []
             total_sessao = 0
             total_ordem = 0
-            for p in Parlamentar.objects.all():
+            for p in Parlamentar.objects.filter(ativo=True):
                 parlamentar = {}
                 qtde_sessao = 0
                 qtde_ordem = 0
@@ -62,10 +62,12 @@ class RelatorioPresencaSessaoView(FilterView):
                         qtde_ordem += 1
                         total_ordem += 1
 
-                if qtde_sessao > 1 or qtde_ordem > 1:
+                if qtde_sessao >= 1 or qtde_ordem >= 1:
                     parlamentar = {
                         'nome': p.nome_parlamentar,
-                        'partido': p.filiacao_set.first().partido.sigla,
+                        'partido': (
+                            p.filiacao_set.first().partido.sigla
+                            if p.filiacao_set.first() else 'Sem Partido'),
                         'qtde_sessao': qtde_sessao,
                         'qtde_ordem': qtde_ordem
                         }
