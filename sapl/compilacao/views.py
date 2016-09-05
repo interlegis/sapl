@@ -30,7 +30,7 @@ from sapl.compilacao.forms import (
     DispositivoEdicaoVigenciaForm,
     DispositivoSearchModalForm, NotaForm,
     PublicacaoForm, TaForm, TextNotificacoesForm,
-    TipoTaForm, VideForm)
+    TipoTaForm, VideForm, DispositivoRegistroAlteracaoForm)
 from sapl.compilacao.models import (
     Dispositivo, Nota,
     PerfilEstruturalTextoArticulado, Publicacao,
@@ -1162,11 +1162,9 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
         data['pai'] = [base.get_raiz().pk]
 
-        """nivel = sys.maxsize
-        for b in bases_atualizacao:
-            if b.nivel < nivel:
-                data['pai'].append(b.pk)
-                nivel = b.nivel"""
+        if ta_base.id != int(self.kwargs['ta_id']):
+            data['pai'] = [base.dispositivo_atualizador.pk]
+            data['pk'] = base.dispositivo_atualizador.pk
 
         try:
             with transaction.atomic():
@@ -2052,12 +2050,103 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 return perfis[0].pk
         return None
 
+    def registra_alteracao(self, bloco_alteracao, dispositivo_a_alterar):
+        """
+        Caracteristicas:
+        1 - Se é um dispositivo simples e sem subsequente
+            - filhos devem ser transferidos
+
+        2 - Se é um dispositivo simples com subsequente
+            - não deveria ter filhos locais
+            - substituidos e subsequentes devem ser religados
+
+        3 - Se é um dispositivo articulado e sem subsequente
+            - filhos automáticos não podem ser transferidos
+            - filhos locais devem ser transferidos
+
+        4 - Se é um dispositivo articulado com subsequente
+            - filhos automáticos não devem ser transferidos
+            - não deveria ter filhos locais
+        """
+
+        perfil_pk = self.request.session['perfil_estrutural']
+
+        """Se o usuário selecionar um dispositivo de auto inserção,
+        como um caput, por exemplo, a alteração é
+        migrada para o pai imediato"""
+        if dispositivo_a_alterar.is_relative_auto_insert(perfil_pk=perfil_pk):
+            dispositivo_a_alterar = dispositivo_a_alterar.dispositivo_pai
+
+        if dispositivo_a_alterar.tipo_dispositivo.dispositivo_de_articulacao:
+            pass
+
+        else:
+            ndp = Dispositivo.new_instance_based_on(
+                dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
+
+            ndp.rotulo = dispositivo_a_alterar.rotulo
+            ndp.texto = dispositivo_a_alterar.texto
+            ndp.publicacao = bloco_alteracao.publicacao
+
+            ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
+            if ndp.dispositivo_vigencia:
+                ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+                ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
+            else:
+                ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
+                ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
+
+            try:
+                with transaction.atomic():
+                    ordem = dispositivo_a_alterar.criar_espaco(
+                        espaco_a_criar=1, local='json_add_in')
+
+                    ndp.ordem = ordem
+                    ndp.dispositivo_atualizador = bloco_alteracao
+                    ndp.ta_publicado = bloco_alteracao.ta
+
+                    p = dispositivo_a_alterar
+                    n = dispositivo_a_alterar.dispositivo_subsequente
+
+                    ndp.dispositivo_substituido = p
+                    ndp.dispositivo_subsequente = n
+
+                    if n:
+                        ndp.fim_eficacia = n.inicio_eficacia - \
+                            timedelta(days=1)
+                        ndp.fim_vigencia = n.inicio_vigencia - \
+                            timedelta(days=1)
+                    ndp.save()
+
+                    p.dispositivo_subsequente = ndp
+                    p.fim_eficacia = ndp.inicio_eficacia - timedelta(days=1)
+                    p.fim_vigencia = ndp.inicio_vigencia - timedelta(days=1)
+                    p.save()
+
+                    if n:
+                        n.dispositivo_substituido = ndp
+                        n.save()
+
+                filhos_diretos = dispositivo_a_alterar.dispositivos_filhos_set
+                for d in filhos_diretos.all():
+                    d.dispositivo_pai = ndp
+                    d.save()
+
+            except Exception as e:
+                print(e)
+
+            data = {'pk': ndp.pk,
+                    'pai': [bloco_alteracao.pk, ]}
+
+            return data
+
 
 class DispositivoDinamicEditView(
         CompMixin, ActionsEditMixin, TextEditView, UpdateView):
     template_name = 'compilacao/text_edit_bloco.html'
     model = Dispositivo
     form_class = DispositivoEdicaoBasicaForm
+    contador = -1
 
     def get_initial(self):
         initial = UpdateView.get_initial(self)
@@ -2066,21 +2155,38 @@ class DispositivoDinamicEditView(
 
         if 'action' in self.request.GET:
             initial.update({'editor_type': self.request.GET['action']})
+
+        initial.update({'dispositivo_search_form': reverse_lazy(
+            'sapl.compilacao:dispositivo_search_form')})
         return initial
 
+    def get_form(self, form_class=None):
+
+        if self.action and self.action.startswith('get_form_'):
+            if form_class is None:
+                form_class = self.get_form_class()
+            return form_class(**self.get_form_kwargs())
+        else:
+            return None
+
     def get(self, request, *args, **kwargs):
+
         if 'action' not in request.GET:
+            self.action = None
             self.template_name = 'compilacao/text_edit_bloco.html'
             return TextEditView.get(self, request, *args, **kwargs)
 
         self.template_name = 'compilacao/ajax_form.html'
-        action = request.GET['action']
+        self.action = request.GET['action']
 
-        if action.startswith('get_form_'):
-            self.form_class = DispositivoEdicaoBasicaForm
+        if self.action.startswith('get_form_'):
+            if self.action.endswith('_base'):
+                self.form_class = DispositivoEdicaoBasicaForm
+            elif self.action.endswith('_alteracao'):
+                self.form_class = DispositivoRegistroAlteracaoForm
             context = self.get_context_data()
             return self.render_to_response(context)
-        elif action.startswith('get_actions'):
+        elif self.action.startswith('get_actions'):
             self.form_class = None
             self.template_name = 'compilacao/ajax_actions_dinamic_edit.html'
             self.object = Dispositivo.objects.get(
@@ -2101,7 +2207,7 @@ class DispositivoDinamicEditView(
 
             return self.render_to_response(context)
 
-        elif action.startswith('json_'):
+        elif self.action.startswith('json_'):
             context = self.get_context_data()
             return self.render_to_json_response(context)
 
@@ -2112,56 +2218,68 @@ class DispositivoDinamicEditView(
         d = Dispositivo.objects.get(
             pk=self.kwargs['dispositivo_id'])
 
-        texto = request.POST['texto'].strip()
-        texto_atualizador = request.POST['texto_atualizador'].strip()
-        texto_atualizador = texto_atualizador \
-            if texto != texto_atualizador else ''
-        visibilidade = request.POST['visibilidade']
+        formtype = request.POST['formtype']
+        if formtype == 'get_form_alteracao':
 
-        # if d.texto != '':
-        #    d.texto = texto
-        #    d.save()
-        #    return self.get(request, *args, **kwargs)
-        d_texto = d.texto
-        d.texto = texto.strip()
-        d.texto_atualizador = texto_atualizador.strip()
-        d.visibilidade = not visibilidade or visibilidade == 'True'
-        d.save()
+            dispositivo_a_alterar = Dispositivo.objects.get(
+                pk=request.POST['dispositivo_alterado'])
 
-        if texto != '' and d.ta_id == int(self.kwargs['ta_id']):
-            dnext = Dispositivo.objects.filter(
-                ta_id=d.ta_id,
-                ordem__gt=d.ordem,
-                texto='',
-                tipo_dispositivo__dispositivo_de_articulacao=False)[:1]
+            data = self.registra_alteracao(d, dispositivo_a_alterar)
 
-            if not dnext.exists():
-                dnext = []
-                dnext.append(d)
-                pais = [d.dispositivo_pai_id, ]
-            else:
+            self.set_message(
+                data, 'success',
+                _('Dispositivo de Alteração adicionado com sucesso.'))
+        elif formtype == 'get_form_base':
+            texto = request.POST['texto'].strip()
+            texto_atualizador = request.POST['texto_atualizador'].strip()
+            texto_atualizador = texto_atualizador \
+                if texto != texto_atualizador else ''
+            visibilidade = request.POST['visibilidade']
 
-                if dnext[0].nivel > d.nivel:
-                    pais = [d.pk, ]
+            # if d.texto != '':
+            #    d.texto = texto
+            #    d.save()
+            #    return self.get(request, *args, **kwargs)
+            d_texto = d.texto
+            d.texto = texto.strip()
+            d.texto_atualizador = texto_atualizador.strip()
+            d.visibilidade = not visibilidade or visibilidade == 'True'
+            d.save()
+
+            if texto != '' and d.ta_id == int(self.kwargs['ta_id']):
+                dnext = Dispositivo.objects.filter(
+                    ta_id=d.ta_id,
+                    ordem__gt=d.ordem,
+                    texto='',
+                    tipo_dispositivo__dispositivo_de_articulacao=False)[:1]
+
+                if not dnext.exists():
+                    dnext = []
+                    dnext.append(d)
+                    pais = [d.dispositivo_pai_id, ]
                 else:
-                    if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
-                        pais = [dnext[0].dispositivo_pai_id, ]
+
+                    if dnext[0].nivel > d.nivel:
+                        pais = [d.pk, ]
                     else:
-                        pais = [
-                            dnext[0].dispositivo_pai_id,
-                            d.dispositivo_pai_id]
+                        if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
+                            pais = [dnext[0].dispositivo_pai_id, ]
+                        else:
+                            pais = [
+                                dnext[0].dispositivo_pai_id,
+                                d.dispositivo_pai_id]
 
-            data = {'pk': dnext[0].pk
-                    if not d_texto else 0, 'pai': pais}
-        elif d.ta_id != int(self.kwargs['ta_id']):
-            data = {'pk': 0,
-                    'pai': [d.dispositivo_atualizador_id, ]}
-        else:
-            data = {'pk': d.pk
-                    if not d_texto or not d.texto else 0, 'pai': [d.pk, ]}
+                data = {'pk': dnext[0].pk
+                        if not d_texto else 0, 'pai': pais}
+            elif d.ta_id != int(self.kwargs['ta_id']):
+                data = {'pk': 0,
+                        'pai': [d.dispositivo_atualizador_id, ]}
+            else:
+                data = {'pk': d.pk
+                        if not d_texto or not d.texto else 0, 'pai': [d.pk, ]}
 
-        self.set_message(data, 'success',
-                         _('Dispositivo alterado com sucesso.'))
+            self.set_message(data, 'success',
+                             _('Dispositivo alterado com sucesso.'))
 
         return JsonResponse(data, safe=False)
 

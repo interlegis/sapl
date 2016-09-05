@@ -537,6 +537,10 @@ a:link:after, a:visited:after {
       }
       .btn-dpt-edit.btn-default {
         color: #333;
+        &:hover {
+          color: #fff;
+          background-color: #02baf2;
+        }
       }
     }
     & > .dpt-actions, & > .dpt-actions-bottom {
@@ -545,6 +549,7 @@ a:link:after, a:visited:after {
     & > .dpt-text {
       cursor: pointer;
       min-height: 30px;
+      border: 1px solid transparent;
       &:hover {
         background-color: rgba(0, 0, 0, 0.01);
         color: $color_buttons;
@@ -639,9 +644,10 @@ a:link:after, a:visited:after {
       border-radius: 3px;
       z-index: 4;
       & > .dpt-text {
+        border: 1px solid transparent;
         &:hover {
+          border: 1px solid transparent;
           background-color: rgba(0, 0, 0, 0.0);
-          border: 0px solid #eee;
         }
       }
       & > .dpt-form {
@@ -671,17 +677,18 @@ a:link:after, a:visited:after {
     }
     .dpt-block {
       border-top: 1px solid #e5e5e5 !important;
-      opacity: 0.3;
+      opacity: 0.6;
+      transition: opacity 0.4s ease;
       &:hover {
         opacity: 1;
       }
     }
     .dpt {
       &:only-child {
-        border-bottom: 1px solid #e5e5e5 !important;
+        /*border-bottom: 1px solid #e5e5e5 !important;*/
       }
       &:not(:last-child) {
-        border-bottom: 1px solid #e5e5e5 !important;
+        /*border-bottom: 1px solid #e5e5e5 !important;*/
       }
     }
     .dpt-text {
@@ -1388,8 +1395,10 @@ a:link:after, a:visited:after {
   clear:both;
 }
 
-.mce-panel {
-  /*border: 0px solid #ccc !important;*/
+.mce-tinymce.mce-container  {
+  border: 1px solid #ccc !important;
+
+    margin-right: 2px;
 }
 .mce-btn button:hover {
   background-color: rgba(0,0,0,0.1) !important;

@@ -35,23 +35,24 @@ function DispositivoEdit() {
             'variacao'  : this.getAttribute('variacao'),
         };
 
-        if (pk !== undefined) {
-            var url = pk+'/refresh';
-            instance.waitShow();
+        var url = pk+'/refresh';
+        instance.waitShow();
 
-            $.get(url, form_data).done(function(data) {
-                instance.clearEditSelected();
-                instance.waitHide();
-                if (data.pk != null) {
-                    if (data.message === undefined)
-                        instance.refreshScreenFocusPk(data);
-                    else if (instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
-                                //instance.waitHide();
-                        }))
-                        instance.refreshScreenFocusPk(data);
+        $.get(url, form_data).done(function(data) {
+            instance.clearEditSelected();
+            instance.waitHide();
+            if (data.pk != null) {
+                if (data.message !== undefined) {
+                    if (data.message.type == 'danger')
+                        instance.modalMessage(data.message.value, 'alert-'+data.message.type, null);
+                    else {
+                        instance.message(data)
+                    }
                 }
-            });
-        }
+                instance.refreshScreenFocusPk(data);
+            }
+        }).fail(instance.waitHide)
+            .always(instance.waitHide);
     }
 
     instance.clearEditSelected = function() {
@@ -81,10 +82,7 @@ function DispositivoEdit() {
         instance.loadActionsEdit(dpt);
 
         var formtype = dpt.attr('formtype');
-
-
         dpt.on(formtype, instance[formtype]);
-
         instance.loadForm(dpt, formtype);
     }
 
@@ -104,9 +102,31 @@ function DispositivoEdit() {
         });
 
         var btns_excluir = _this.find('.btns-excluir');
-        _this.find('.dpt-actions-bottom').last().append(btns_excluir);
+        _this.find('.dpt-actions-bottom').first().append(btns_excluir);
 
         btns_excluir.find('.btn-excluir').on('click', instance.bindActionsClick);
+    }
+
+    instance.get_form_alteracao = function () {
+        var _this = $(this);
+        _this.off('get_form_alteracao');
+        $('.dpt-actions, .dpt-actions-bottom').html('');
+
+        var dpt_form = _this.children().filter('.dpt-form').children().first();
+        var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
+        DispostivoSearch({
+          'url_form': url_search,
+          'text_button': 'Selecionar'
+        });
+
+        instance.scrollTo(_this);
+        dpt_form.submit(instance.onSubmitFormRegistraAlteracao);
+
+        var btn_fechar = _this.find('.btn-fechar');
+        btn_fechar.on('click', function() {
+            instance.clearEditSelected();
+            instance.triggerBtnDptEdit(_this.attr('pk'));
+        });
     }
 
     instance.loadActionsEdit = function(dpt) {
@@ -116,13 +136,19 @@ function DispositivoEdit() {
             dpt.find('.dpt-actions').first().html(data);
             dpt.find('.btn-inserts').on('click', instance.bindActionsClick);
             dpt.find('.btn-perfis').on('click', instance.bindActionsClick);
+            dpt.find('.btn-compila').on('click', instance.loadFormsCompilacao);
             dpt.find('.btn-editor-type').on('click', instance.bindActionsEditorType);
 
             if (editortype == 'construct')
                 dpt.find('.btn-group-inserts').first().addClass('open');
 
+            dpt.find('.btn-group-inserts button').mouseenter(function(event) {
+                dpt.find('.btn-group-inserts').removeClass('open');
+                $(this.parentElement).addClass('open')
+            });
         });
     }
+
     instance.loadForm = function(dpt, trigger) {
         var pk = dpt.attr('pk');
         var dpt_form = dpt.children().filter('.dpt-form');
@@ -140,6 +166,13 @@ function DispositivoEdit() {
                 instance.waitHide();
             });
         }
+    }
+
+    instance.loadFormsCompilacao = function(event) {
+        var dpt = $(this).closest('.dpt');
+        var formtype = this.getAttribute('action');
+        dpt.on(formtype, instance[formtype]);
+        instance.loadForm(dpt, formtype);
     }
 
     instance.modalMessage = function(message, alert, closeFunction) {
@@ -184,6 +217,38 @@ function DispositivoEdit() {
             objects = $(container).find('.btn-dpt-edit');
         objects.on('click', instance.editDispositivo);
     }
+
+    instance.onSubmitFormRegistraAlteracao = function(event) {
+        var _this = this;
+
+        var form_data = {
+            'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
+            'dispositivo_alterado' : this['dispositivo_alterado'].value,
+            'formtype': 'get_form_alteracao',
+        };
+        var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
+
+        instance.waitShow();
+
+        $.post(url, form_data)
+        .done(function(data) {
+            instance.clearEditSelected();
+
+            if (data.pk != null) {
+                instance.refreshScreenFocusPk(data);
+                instance.message(data);
+            }
+            else {
+                alert('Erro na resposta!');
+            }
+
+        }).always(function() {
+            instance.waitHide();
+        });
+        if (event != null)
+            event.preventDefault();
+
+    }
     instance.onSubmitEditFormBase = function(event) {
 
         var _this = this;
@@ -210,7 +275,8 @@ function DispositivoEdit() {
             'csrfmiddlewaretoken' : this['csrfmiddlewaretoken'].value,
             'texto'               : texto,
             'texto_atualizador'   : texto_atualizador,
-            'visibilidade'        : visibilidade
+            'visibilidade'        : visibilidade,
+            'formtype': 'get_form_base',
         };
 
         var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';

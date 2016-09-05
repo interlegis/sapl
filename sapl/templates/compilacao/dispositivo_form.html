@@ -14,7 +14,6 @@
     <li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>
     <li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>
     <li {% if request.get_full_path == edit_alteracao_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>
-    <li><a href="#" class="btn-danger">{% trans 'Alterador' %}</a></li>
   </ul>
 {% endblock sections_nav %}{% trans '' %}
 

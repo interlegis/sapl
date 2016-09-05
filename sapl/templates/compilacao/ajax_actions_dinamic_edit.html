@@ -4,13 +4,13 @@
 
   {% if object.tipo_dispositivo.dispositivo_de_articulacao and object.tipo_dispositivo.dispositivo_de_alteracao %}
     <div class="btn-group " role="group">
-      <button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button type="button" class="btn btn-default btn-sm btn-compila" pk="{{object.pk}}" action="get_form_revogacao" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Registrar Revogação
       </button>
-      <button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button type="button" class="btn btn-default btn-sm btn-compila" pk="{{object.pk}}" action="get_form_alteracao" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Registrar Alteração
       </button>
-      <button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <button type="button" class="btn btn-default btn-sm btn-compila" pk="{{object.pk}}" action="get_form_inclusao" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         Registrar Inclusão
       </button>
 

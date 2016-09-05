@@ -1207,3 +1207,55 @@ class TextNotificacoesForm(Form):
         self.helper.layout = Layout(field_type_notificacoes)
 
         super(TextNotificacoesForm, self).__init__(*args, **kwargs)
+
+
+class DispositivoRegistroAlteracaoForm(Form):
+
+    dispositivo_alterado = forms.ModelChoiceField(
+        label=_('Dispositivo a ser alterado'),
+        required=False,
+        queryset=Dispositivo.objects.all())
+
+    dispositivo_search_form = forms.CharField(widget=forms.HiddenInput(),
+                                              required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        layout = []
+        kwargs.pop('instance')
+        kwargs['initial'].pop('editor_type')
+
+        row_dispositivo = Field(
+            'dispositivo_alterado',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_alterado',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+
+        layout.append(Fieldset(_('Registro de Alteração - Seleção do Dispositivo a ser alterado'),
+                               row_dispositivo,
+                               css_class="col-md-12"))
+        layout.append(Field('dispositivo_search_form'))
+
+        more = [
+            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+                 _('Cancelar')),
+        ]
+        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+
+        buttons = FormActions(*more, css_class='form-group')
+
+        _fields = [Div(*layout, css_class="row-fluid")] + \
+            [to_row([(buttons, 12)])]
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(*_fields)
+
+        super(DispositivoRegistroAlteracaoForm, self).__init__(*args, **kwargs)
+
+        self.fields['dispositivo_alterado'].choices = []
+
+    def save(self):
+        super(DispositivoRegistroAlteracaoForm, self).save()
+
+        data = self.cleaned_data

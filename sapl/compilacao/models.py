@@ -930,6 +930,8 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 nivel__lte=self.nivel,
                 ta_id=self.ta_id)[:1]
         elif local == 'json_add_in':
+            # FIXME: o exclude não deve estar limitado a uma class_css caput e
+            # sim a qualquer filho de inserção automática
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel + 1,
@@ -951,7 +953,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 ordem=F('ordem') + (
                     Dispositivo.INTERVALO_ORDEM * espaco_a_criar - 1))
         else:
-            # inserção no fim da ta
+            # inserção no fim do ta
             ordem_max = Dispositivo.objects.order_by(
                 'ordem').filter(
                 ta_id=self.ta_id).aggregate(
@@ -1167,7 +1169,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         else:
             dp.inicio_eficacia = dispositivo_base.inicio_eficacia
             dp.inicio_vigencia = dispositivo_base.inicio_vigencia
-            dp.fim_eficacia = dispositivo_base.inicio_eficacia
+            dp.fim_eficacia = dispositivo_base.fim_eficacia
             dp.fim_vigencia = dispositivo_base.fim_vigencia
 
         dp.ordem = dispositivo_base.ordem

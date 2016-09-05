@@ -72,6 +72,7 @@
     {% else %}
       <li class="{% if values.inicio_vigencia.year == key %}active{% endif %}"><a data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{ key }}</a>
         <ul class="dropdown-menu">
+          <div class="arrow top"></div>
           {% for dispositivo in values %}
             <li>
             {% if not forloop.parentloop.first %}
