@@ -30,6 +30,17 @@ class RelatorioPresencaSessaoView(FilterView):
     filterset_class = RelatorioPresencaSessaoFilterSet
     template_name = 'base/RelatorioPresencaSessao_filter.html'
 
+    def calcular_porcentagem_presenca(self,
+                                      parlamentares,
+                                      total_sessao,
+                                      total_ordem):
+        for p in parlamentares:
+            p.update({
+                'porc_sessao': round(p['qtde_sessao'] * 100 / total_sessao, 1),
+                'porc_ordem': round(p['qtde_ordem'] * 100 / total_ordem, 1)
+                })
+        return parlamentares
+
     def get_context_data(self, **kwargs):
         context = super(RelatorioPresencaSessaoView,
                         self).get_context_data(**kwargs)
@@ -72,6 +83,9 @@ class RelatorioPresencaSessaoView(FilterView):
                         'qtde_ordem': qtde_ordem
                         }
                     parlamentares.append(parlamentar)
+            self.calcular_porcentagem_presenca(parlamentares,
+                                               total_sessao,
+                                               total_ordem)
             context['total_ordem'] = total_ordem
             context['total_sessao'] = total_sessao
             context['parlamentares'] = parlamentares
