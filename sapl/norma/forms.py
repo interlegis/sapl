@@ -5,6 +5,7 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
@@ -20,6 +21,16 @@ def get_esferas():
             ('M', 'Municipal')]
 
 
+YES_NO_CHOICES = [('', '---------'),
+                  (True, _('Sim')),
+                  (False, _('Não'))]
+
+ORDENACAO_CHOICES = [('', '---------'),
+                     ('tipo,ano,numero', _('Tipo/Ano/Número')),
+                     ('data,tipo,ano,numero', _('Data/Tipo/Ano/Número'))]
+
+
+# TODO termos, pesquisa textual, assunto(M2M)
 class NormaJuridicaPesquisaForm(ModelForm):
 
     periodo_inicial = forms.DateField(label=u'Período Inicial',
@@ -58,6 +69,18 @@ class NormaJuridicaPesquisaForm(ModelForm):
         empty_label='Selecione'
     )
 
+    em_vigencia = forms.ChoiceField(
+        label='Em vigência?',
+        choices=YES_NO_CHOICES,
+        required=False)
+
+    ordenacao = forms.ChoiceField(
+        label='Ordenação',
+        choices=ORDENACAO_CHOICES,
+        required=False)
+
+    numero = forms.IntegerField(required=False)
+
     class Meta:
         model = NormaJuridica
         fields = ['tipo',
@@ -82,10 +105,14 @@ class NormaJuridicaPesquisaForm(ModelForm):
         row4 = to_row(
             [('publicacao_inicial', 6), ('publicacao_final', 6)])
 
+        row5 = to_row(
+            [('em_vigencia', 6),
+             ('ordenacao', 6)])
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset('Pesquisa Norma Juridica',
-                     row1, row2, row3, row4),
+                     row1, row2, row3, row4, row5),
             form_actions(save_label='Pesquisar')
         )
         super(NormaJuridicaPesquisaForm, self).__init__(*args, **kwargs)

@@ -89,6 +89,10 @@ class NormaPesquisaView(FormView):
         if form.data['publicacao_inicial'] and form.data['publicacao_final']:
             kwargs['publicacao_inicial'] = form.data['publicacao_inicial']
             kwargs['publicacao_final'] = form.data['publicacao_final']
+        if form.data['ordenacao']:
+            kwargs['ordenacao'] = form.data['ordenacao']
+        if form.data['em_vigencia']:
+            kwargs['em_vigencia'] = form.data['em_vigencia']
 
         request.session['kwargs'] = kwargs
         return redirect('sapl.norma:list_pesquisa_norma')
@@ -101,7 +105,18 @@ class PesquisaNormaListView(ListView):
 
     def get_queryset(self):
         kwargs = self.request.session['kwargs']
-        normas = NormaJuridica.objects.all().order_by('-ano', '-numero')
+
+        if 'ordenacao' in kwargs:
+            ordenacao = kwargs.pop('ordenacao').split(',')
+            for o in ordenacao:
+                normas = NormaJuridica.objects.all().order_by(o)
+        else:
+            normas = NormaJuridica.objects.all()
+
+        if 'em_vigencia' in kwargs:
+            del kwargs['em_vigencia']
+            normas = normas.filter(
+                data_vigencia__lte=datetime.now().date())
 
         if 'periodo_inicial' and 'publicacao_inicial' in kwargs:
             periodo_inicial = datetime.strptime(
