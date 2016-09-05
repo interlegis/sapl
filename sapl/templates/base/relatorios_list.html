@@ -13,16 +13,16 @@
     </thead>
     <tbody>
         <tr>
-          <td><a href="">Matérias em tramitação</a></td>
-          <td>Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados.</td>
+          <td><a href="{% url 'sapl.base:materia_por_tramitacao' %}">Matérias em tramitação</a></td>
+          <td> Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados. </td>
         </tr>
         <tr>
-          <td><a href="">Proposituras por Tipo, Autor e Ano</a></td>
-          <td>Número de matérias legislativas, agrupadas por Tipo e Autor e Ano selecionado.</td>
+          <td><a href="{% url 'sapl.base:materia_por_autor' %}">Matérias por Autor</a></td>
+          <td> Listagem e totalização de matérias por autor, com filtros para tipo e período. </td>
         </tr>
         <tr>
-          <td><a href="">Proposituras por Autor</a></td>
-          <td>Resumo de Proposituras de um determinado ano, agrupadas por Autor.</td>
+          <td><a href="{% url 'sapl.base:materia_por_ano_autor_tipo' %}">Matérias por Ano, Autor e Tipo</a></td>
+          <td> Totalização anual de matérias agrupadas por autor e tipo. </td>
         </tr>
         <tr>
           <td><a href="">Presença nas sessões</a></td>
@@ -30,11 +30,11 @@
         </tr>
         <tr>
           <td><a href="">Atas</a></td>
-          <td>Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados.</td>
+          <td> Atas de Sessão Plenária. </td>
         </tr>
         <tr>
-          <td><a href="">Histórico de tramitações</a></td>
-          <td>Histórico de tramitações por período e local informados.</td>
+          <td><a href="{% url 'sapl.base:historico_tramitacoes' %}">Histórico de tramitações</a></td>
+          <td> Histórico de tramitações por período e local informados. </td>
         </tr>
     </tbody>
   </table>

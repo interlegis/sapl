@@ -1,18 +1,131 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
+from django_filters.views import FilterView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDetailView, CrudUpdateView)
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import permissao_tb_aux
 
-from .forms import CasaLegislativaForm
+from .forms import (CasaLegislativaForm, RelatorioHistoricoTramitacaoFilterSet,
+                    RelatorioMateriasPorAnoAutorTipoFilterSet,
+                    RelatorioMateriasPorAutorFilterSet,
+                    RelatorioMateriasTramitacaoilterSet)
 from .models import CasaLegislativa
 
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class RelatorioHistoricoTramitacaoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioHistoricoTramitacaoFilterSet
+    template_name = 'base/RelatorioHistoricoTramitacao_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioHistoricoTramitacaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Histórico de Tramitações')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
+
+
+class RelatorioMateriasTramitacaoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioMateriasTramitacaoilterSet
+    template_name = 'base/RelatorioMateriasPorTramitacao_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioMateriasTramitacaoView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Matérias por Ano, Autor e Tipo')
+
+        qs = context['object_list']
+        qs = qs.filter(em_tramitacao=True)
+        context['object_list'] = qs
+
+        qtdes = {}
+        for tipo in TipoMateriaLegislativa.objects.all():
+            qs = context['object_list']
+            qtde = len(qs.filter(tipo_id=tipo.id))
+            if qtde > 0:
+                qtdes[tipo] = qtde
+        context['qtdes'] = qtdes
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        return context
+
+
+class RelatorioMateriasPorAnoAutorTipoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
+    template_name = 'base/RelatorioMateriasPorAnoAutorTipo_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioMateriasPorAnoAutorTipoView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioMateriasPorAnoAutorTipoView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Matérias por Ano, Autor e Tipo')
+
+        qtdes = {}
+        for tipo in TipoMateriaLegislativa.objects.all():
+            qs = kwargs['object_list']
+            qtde = len(qs.filter(tipo_id=tipo.id))
+            if qtde > 0:
+                qtdes[tipo] = qtde
+        context['qtdes'] = qtdes
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        return context
+
+
+class RelatorioMateriasPorAutorView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioMateriasPorAutorFilterSet
+    template_name = 'base/RelatorioMateriasPorAutor_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioMateriasPorAutorView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioMateriasPorAutorView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Matérias por Autor')
+
+        qtdes = {}
+        for tipo in TipoMateriaLegislativa.objects.all():
+            qs = kwargs['object_list']
+            qtde = len(qs.filter(tipo_id=tipo.id))
+            if qtde > 0:
+                qtdes[tipo] = qtde
+        context['qtdes'] = qtdes
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        return context
 
 
 class CasaLegislativaCrud(Crud):
