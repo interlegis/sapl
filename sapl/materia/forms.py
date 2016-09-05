@@ -216,9 +216,13 @@ class TramitacaoForm(ModelForm):
                   'texto']
 
     def clean(self):
-        data_enc_form = self.cleaned_data['data_encaminhamento']
-        data_prazo_form = self.cleaned_data['data_fim_prazo']
-        data_tram_form = self.cleaned_data['data_tramitacao']
+
+        if 'data_encaminhamento' in self.data:
+            data_enc_form = self.cleaned_data['data_encaminhamento']
+        if 'data_fim_prazo' in self.data:
+            data_prazo_form = self.cleaned_data['data_fim_prazo']
+        if 'data_tramitacao' in self.data:
+            data_tram_form = self.cleaned_data['data_tramitacao']
 
         if self.errors:
             return self.errors
