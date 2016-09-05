@@ -8,8 +8,10 @@ from django_filters.views import FilterView
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDetailView, CrudUpdateView)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.parlamentares.models import Parlamentar
+from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
+                                SessaoPlenariaPresenca)
 from sapl.utils import permissao_tb_aux
-from sapl.sessao.models import SessaoPlenaria
 
 from .forms import (CasaLegislativaForm, RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
@@ -32,6 +34,46 @@ class RelatorioPresencaSessaoView(FilterView):
         context = super(RelatorioPresencaSessaoView,
                         self).get_context_data(**kwargs)
         context['title'] = _('Presença dos parlamentares nas sessões')
+        # ===================================================================
+        # FIXME: Pensar em melhor forma de verificar se formulário está sendo
+        # submetido.
+        if 'salvar' in self.request.GET:
+            if 'data_inicio_0' and 'data_inicio_1' in self.request.GET:
+                context['periodo'] = (
+                    self.request.GET['data_inicio_0'] +
+                    ' - ' + self.request.GET['data_inicio_1'])
+            parlamentares = []
+            total_sessao = 0
+            total_ordem = 0
+            for p in Parlamentar.objects.all():
+                parlamentar = {}
+                qtde_sessao = 0
+                qtde_ordem = 0
+
+                for s in context['object_list']:
+                    if SessaoPlenariaPresenca.objects.filter(
+                            sessao_plenaria_id=s.id,
+                            parlamentar_id=p.id).exists():
+                        qtde_sessao += 1
+                        total_sessao += 1
+                    if PresencaOrdemDia.objects.filter(
+                            sessao_plenaria_id=s.id,
+                            parlamentar_id=p.id).exists():
+                        qtde_ordem += 1
+                        total_ordem += 1
+
+                if qtde_sessao > 1 or qtde_ordem > 1:
+                    parlamentar = {
+                        'nome': p.nome_parlamentar,
+                        'partido': p.filiacao_set.first().partido.sigla,
+                        'qtde_sessao': qtde_sessao,
+                        'qtde_ordem': qtde_ordem
+                        }
+                    parlamentares.append(parlamentar)
+            context['total_ordem'] = total_ordem
+            context['total_sessao'] = total_sessao
+            context['parlamentares'] = parlamentares
+        # ===================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context

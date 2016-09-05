@@ -18,10 +18,12 @@
       <a href="{% url 'sapl.base:presenca_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />
+    <b>PERÍODO: {{periodo}}</b><br />
+    <b>TOTAIS NO PERÍODO - SESSÕES: {{total_sessao}} - ORDENS DO DIA: {{total_ordem}}</b>
     <table class="table table-bordered table-hover presenca_table">
       <thead class="thead-default" align="center">
         <tr class="active">
-          <th rowspan="2">Nome Parlamentar / Partido</th>
+          <th rowspan="2">Nome Parlamentar | Partido</th>
           <th colspan="2">Sessão</th>
           <th colspan="2">Ordem do Dia</th>
         </tr>
@@ -33,13 +35,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>Nome Teste | Partido Teste</td>
-          <td>15</td>
-          <td>11%</td>
-          <td>1</td>
-          <td>16%</td>
-        </tr>
+        {% for p in parlamentares %}
+          <tr>
+            <td><b>{{p.nome}}</b> | {{p.partido}}</td>
+            <td>{{p.qtde_sessao}}</td>
+            <td>--</td>
+            <td>{{p.qtde_ordem}}</td>
+            <td>--</td>
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
   {% endif %}
