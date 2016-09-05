@@ -35,7 +35,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for p in parlamentares %}
+        {% for pid, p in parlamentares.items %}
           <tr>
             <td><b>{{p.nome}}</b> | {{p.partido}}</td>
             <td>{{p.qtde_sessao}}</td>

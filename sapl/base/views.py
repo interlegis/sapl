@@ -1,3 +1,5 @@
+from itertools import chain
+
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -34,10 +36,11 @@ class RelatorioPresencaSessaoView(FilterView):
                                       parlamentares,
                                       total_sessao,
                                       total_ordem):
-        for p in parlamentares:
-            p.update({
-                'porc_sessao': round(p['qtde_sessao'] * 100 / total_sessao, 1),
-                'porc_ordem': round(p['qtde_ordem'] * 100 / total_ordem, 1)
+        for p in parlamentares.items():
+            p[1].update({
+                'porc_sessao': round(
+                    p[1]['qtde_sessao'] * 100 / total_sessao, 1),
+                'porc_ordem': round(p[1]['qtde_ordem'] * 100 / total_ordem, 1)
                 })
         return parlamentares
 
@@ -45,51 +48,50 @@ class RelatorioPresencaSessaoView(FilterView):
         context = super(RelatorioPresencaSessaoView,
                         self).get_context_data(**kwargs)
         context['title'] = _('Presença dos parlamentares nas sessões')
-        # ===================================================================
+        # =====================================================================
         # FIXME: Pensar em melhor forma de verificar se formulário está sendo
         # submetido.
         if 'salvar' in self.request.GET:
-            if 'data_inicio_0' and 'data_inicio_1' in self.request.GET:
-                context['periodo'] = (
-                    self.request.GET['data_inicio_0'] +
-                    ' - ' + self.request.GET['data_inicio_1'])
-            parlamentares = []
+            qs1 = SessaoPlenariaPresenca.objects.filter(
+                parlamentar__ativo=True,
+                sessao_plenaria_id__in=context['object_list'])
+            qs2 = PresencaOrdemDia.objects.filter(
+                parlamentar__ativo=True,
+                sessao_plenaria_id__in=context['object_list'])
+            q = list(chain(list(qs1)+list(qs2)))
+
+            parlamentares = {}
             total_sessao = 0
             total_ordem = 0
-            for p in Parlamentar.objects.filter(ativo=True):
-                parlamentar = {}
-                qtde_sessao = 0
-                qtde_ordem = 0
-
-                for s in context['object_list']:
-                    if SessaoPlenariaPresenca.objects.filter(
-                            sessao_plenaria_id=s.id,
-                            parlamentar_id=p.id).exists():
-                        qtde_sessao += 1
-                        total_sessao += 1
-                    if PresencaOrdemDia.objects.filter(
-                            sessao_plenaria_id=s.id,
-                            parlamentar_id=p.id).exists():
-                        qtde_ordem += 1
-                        total_ordem += 1
-
-                if qtde_sessao >= 1 or qtde_ordem >= 1:
-                    parlamentar = {
-                        'nome': p.nome_parlamentar,
+            for i in q:
+                pid = i.parlamentar.id
+                if not pid in parlamentares:
+                    parlamentares[pid] = {
+                        'nome': i.parlamentar.nome_parlamentar,
                         'partido': (
-                            p.filiacao_set.first().partido.sigla
-                            if p.filiacao_set.first() else 'Sem Partido'),
-                        'qtde_sessao': qtde_sessao,
-                        'qtde_ordem': qtde_ordem
-                        }
-                    parlamentares.append(parlamentar)
+                            i.parlamentar.filiacao_set.first().partido.sigla
+                            if i.parlamentar.filiacao_set.first()
+                            else 'Sem Partido'),
+                        'qtde_ordem': 0,
+                        'qtde_sessao': 0}
+                if isinstance(i, SessaoPlenariaPresenca):
+                    parlamentares[pid]['qtde_sessao'] += 1
+                    total_sessao += 1
+                elif isinstance(i, PresencaOrdemDia):
+                    parlamentares[pid]['qtde_ordem'] += 1
+                    total_ordem += 1
+
             self.calcular_porcentagem_presenca(parlamentares,
                                                total_sessao,
                                                total_ordem)
+            sorted(parlamentares.items(), key=lambda x: x[1]['nome'])
+
             context['total_ordem'] = total_ordem
             context['total_sessao'] = total_sessao
             context['parlamentares'] = parlamentares
-        # ===================================================================
+            context['periodo'] = (self.request.GET['data_inicio_0'] +
+                                  ' - ' + self.request.GET['data_inicio_1'])
+        # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
