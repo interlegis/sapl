@@ -11,7 +11,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDetailView, CrudUpdateView)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
-from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
+from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import permissao_tb_aux
 
@@ -61,8 +61,17 @@ class RelatorioPresencaSessaoView(FilterView):
             q = list(chain(list(qs1)+list(qs2)))
 
             parlamentares = {}
-            total_sessao = 0
-            total_ordem = 0
+
+            total_sessao = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id__in=context['object_list'])
+            total_sessao = len(total_sessao.order_by().values_list(
+                'sessao_plenaria_id', flat=True).distinct())
+
+            total_ordem = PresencaOrdemDia.objects.filter(
+                sessao_plenaria_id__in=context['object_list'])
+            total_ordem = len(total_ordem.order_by().values_list(
+                'sessao_plenaria_id', flat=True).distinct())
+
             for i in q:
                 pid = i.parlamentar.id
                 if not pid in parlamentares:
@@ -76,10 +85,8 @@ class RelatorioPresencaSessaoView(FilterView):
                         'qtde_sessao': 0}
                 if isinstance(i, SessaoPlenariaPresenca):
                     parlamentares[pid]['qtde_sessao'] += 1
-                    total_sessao += 1
                 elif isinstance(i, PresencaOrdemDia):
                     parlamentares[pid]['qtde_ordem'] += 1
-                    total_ordem += 1
 
             self.calcular_porcentagem_presenca(parlamentares,
                                                total_sessao,
