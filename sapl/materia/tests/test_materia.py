@@ -276,6 +276,8 @@ def test_tramitacao_submit(admin_client):
          'urgente': True,
          'status': status_tramitacao.pk,
          'data_tramitacao': '2016-03-21',
+         'data_fim_prazo': '2016-03-22',
+         'data_encaminhamento': '2016-03-22',
          'texto': 'Texto_Teste',
          'salvar': 'salvar'},
         follow=True)
