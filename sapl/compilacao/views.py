@@ -2599,7 +2599,10 @@ class DispositivoSearchFragmentFormView(ListView):
                 q = q & Q(**{
                     'ta__texto_articulado__' + column_field: tipo_model.pk
                 })
-                result = result.filter(q)[:n]
+                if n:
+                    result = result.filter(q)[:n]
+                else:
+                    result = result.filter(q)
 
             for d in result:
                 if not d.ta.content_object or\

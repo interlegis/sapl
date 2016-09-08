@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.compilacao.models import Dispositivo
 
+
 register = template.Library()
 
 
@@ -214,7 +215,9 @@ def heranca(request, d, ignore_ultimo=0, ignore_primeiro=0):
         ta_dpts_parents = {}
 
     ta_id = str(d.ta_id)
-    if ta_id not in ta_dpts_parents:
+    d_pk = str(d.pk)
+    if ta_id not in ta_dpts_parents or d_pk not in ta_dpts_parents[ta_id]:
+        print('recarregando estrutura temporaria de heranças')
         dpts_parents = {}
         ta_dpts_parents[ta_id] = dpts_parents
         update_dispositivos_parents(dpts_parents, ta_id)
@@ -231,7 +234,6 @@ def heranca(request, d, ignore_ultimo=0, ignore_primeiro=0):
         request.session['herancas_fila'] = herancas_fila
         request.session['herancas'] = ta_dpts_parents
 
-    d_pk = str(d.pk)
     h = ta_dpts_parents[ta_id][d_pk]['h']
 
     if h:
