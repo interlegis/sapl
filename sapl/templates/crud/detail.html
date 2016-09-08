@@ -28,7 +28,11 @@
         <div id="div_id_{{ column.id }}" class="form-group">
           <p class="control-label">{{ column.verbose_name }}</p>
           <div class="controls">
-            <p class="form-control-static">{{ column.text|safe }}</p>
+            {% if column.text %}
+              <p class="form-control-static">{{ column.text|safe }}</p>
+            {% else %}
+              <p class="form-control-static">Não informado</p>
+            {% endif %}
           </div>
         </div>
       </div>
