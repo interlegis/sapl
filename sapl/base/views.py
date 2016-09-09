@@ -67,7 +67,7 @@ class RelatorioPresencaSessaoView(FilterView):
                        'sessaoplenariapresenca__sessao_plenaria__data_inicio',
                        distinct=True),
                     ordemdia_count=Count(
-                        'presencaordemdia__sessao_plenaria__data_inicio',
+                        'presencaordemdia__sessao_plenaria',
                         distinct=True),
                     sessao_porc=Count(0),
                     ordemdia_porc=Count(0))
