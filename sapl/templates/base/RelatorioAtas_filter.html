@@ -1,0 +1,38 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags staticfiles %}
+
+{% block base_content %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'sapl.base:atas' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br />
+    {% if object_list|length > 0 %}
+      <table class="table table-striped table-hover">
+    	  <thead>
+    	    <tr>
+    				<th>Sessão</th>
+    				<th>Ata</th>
+    	    </tr>
+    	  </thead>
+    	  <tbody>
+    			{% for sessao in object_list %}
+    				<tr>
+    					<td>{{sessao}}</td>
+    					<td><a href="{{ sessao.upload_ata.url }}">
+    						<img src="{% static 'img/file.png' %}">
+    					</a></td>
+    				</tr>
+    			{% endfor %}
+    	  </tbody>
+    	</table>
+    {% else %}
+      <font size="5"><p align="center">Nenhum sessão com ata foi encontrada!</p></font>
+    {% endif %}
+  {% endif %}
+{% endblock base_content %}

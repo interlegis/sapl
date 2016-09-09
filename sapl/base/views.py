@@ -16,7 +16,8 @@ from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import permissao_tb_aux
 
-from .forms import (CasaLegislativaForm, RelatorioHistoricoTramitacaoFilterSet,
+from .forms import (CasaLegislativaForm, RelatorioAtasFilterSet,
+                    RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
@@ -26,6 +27,26 @@ from .models import CasaLegislativa
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class RelatorioAtasView(FilterView):
+    model = SessaoPlenaria
+    filterset_class = RelatorioAtasFilterSet
+    template_name = 'base/RelatorioAtas_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioAtasView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Atas das Sessões Plenárias')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        context['object_list'] = context['object_list'].exclude(upload_ata='')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
 
 
 class RelatorioPresencaSessaoView(FilterView):

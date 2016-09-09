@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
 from .forms import LoginForm
-from .views import (CasaLegislativaCrud, HelpView,
+from .views import (CasaLegislativaCrud, HelpView, RelatorioAtasView,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
@@ -43,5 +43,8 @@ urlpatterns = [
     url(r'^relatorio/presenca$',
         RelatorioPresencaSessaoView.as_view(),
         name='presenca_sessao'),
+    url(r'^relatorio/atas$',
+        RelatorioAtasView.as_view(),
+        name='atas'),
 
 ]

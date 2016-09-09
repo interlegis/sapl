@@ -38,6 +38,36 @@ class RangeWidgetOverride(forms.MultiWidget):
         return ''.join(rendered_widgets)
 
 
+class RelatorioAtasFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = ['data_inicio']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioAtasFilterSet, self).__init__(
+                *args, **kwargs)
+
+        self.filters['data_inicio'].label = 'Período (Inicial - Final)'
+        self.form.fields['data_inicio'].required = True
+
+        row1 = to_row([('data_inicio', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Atas das Sessões Plenárias'),
+                     row1, form_actions(save_label='Pesquisar'))
+        )
+
+
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
     filter_overrides = {models.DateField: {
