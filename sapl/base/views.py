@@ -46,6 +46,11 @@ class RelatorioPresencaSessaoView(FilterView):
         context = super(RelatorioPresencaSessaoView,
                         self).get_context_data(**kwargs)
         context['title'] = _('Presença dos parlamentares nas sessões')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
         # =====================================================================
         if 'salvar' in self.request.GET:
             where = context['object_list'].query.where
@@ -71,15 +76,17 @@ class RelatorioPresencaSessaoView(FilterView):
                 'sessao_plenaria').filter(**param0).distinct(
                 'sessao_plenaria').count()
 
-            self.calcular_porcentagem_presenca(pls,
-                                               context['object_list'].count(),
-                                               total_ordemdia)
+            self.calcular_porcentagem_presenca(
+                pls,
+                context['object_list'].count(),
+                total_ordemdia)
 
             context['total_ordemdia'] = total_ordemdia
             context['total_sessao'] = context['object_list'].count()
             context['parlamentares'] = pls
-            context['periodo'] = (self.request.GET['data_inicio_0'] +
-                                  ' - ' + self.request.GET['data_inicio_1'])
+            context['periodo'] = (
+                self.request.GET['data_inicio_0'] +
+                ' - ' + self.request.GET['data_inicio_1'])
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
