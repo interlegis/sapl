@@ -136,17 +136,12 @@ class CasaLegislativaCrud(Crud):
         list_field_names = ['codigo', 'nome', 'sigla']
 
         def has_permission(self):
-            if self.request.user.is_superuser:
-                return True
-            else:
-                return False
+            return permissao_tb_aux(self)
 
     class CreateView(PermissionRequiredMixin, CrudCreateView):
-        permission_required = {'base.add_casa_legislativa'}
         form_class = CasaLegislativaForm
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        permission_required = {'base.change_casalegislativa'}
         form_class = CasaLegislativaForm
 
     class DetailView(CrudDetailView):
