@@ -4,6 +4,7 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
+from django.db.models import Q
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -31,7 +32,7 @@ from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
                         get_base_url, permissao_tb_aux, permissoes_autor,
-                        permissoes_materia)
+                        permissoes_materia, permissoes_protocoloadm)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
                     AutoriaForm, ConfirmarProposicaoForm, DespachoInicialForm,
@@ -243,11 +244,12 @@ class UnidadeTramitacaoCrud(Crud):
         permission_required = permissoes_materia()
 
 
-class ProposicaoDevolvida(ListView):
+class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_devolvidas_list.html'
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
+    permission_required = permissoes_protocoloadm()
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -265,11 +267,12 @@ class ProposicaoDevolvida(ListView):
         return context
 
 
-class ProposicaoPendente(ListView):
+class ProposicaoPendente(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_pendentes_list.html'
     model = Proposicao
     ordering = ['data_envio', 'autor', 'tipo', 'descricao']
     paginate_by = 10
+    permission_required = permissoes_protocoloadm()
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -287,11 +290,12 @@ class ProposicaoPendente(ListView):
         return context
 
 
-class ProposicaoRecebida(ListView):
+class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_recebidas_list.html'
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
+    permission_required = permissoes_protocoloadm()
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -309,9 +313,10 @@ class ProposicaoRecebida(ListView):
         return context
 
 
-class ReceberProposicao(CreateView):
+class ReceberProposicao(PermissionRequiredMixin, CreateView):
     template_name = "materia/receber_proposicao.html"
     form_class = ReceberProposicaoForm
+    permission_required = permissoes_protocoloadm()
 
     def get_context_data(self, **kwargs):
         context = super(ReceberProposicao, self).get_context_data(**kwargs)
@@ -341,9 +346,10 @@ class ReceberProposicao(CreateView):
         return reverse('sapl.materia:receber-proposicao')
 
 
-class ConfirmarProposicao(CreateView):
+class ConfirmarProposicao(PermissionRequiredMixin, CreateView):
     template_name = "materia/confirmar_proposicao.html"
     form_class = ConfirmarProposicaoForm
+    permission_required = permissoes_protocoloadm()
 
     def get_context_data(self, **kwargs):
         context = super(ConfirmarProposicao, self).get_context_data(**kwargs)
@@ -440,7 +446,8 @@ class ProposicaoCrud(Crud):
                     proposicao = Proposicao.objects.get(
                         id=self.kwargs['pk'],
                         autor__user_id=self.request.user.id)
-                    if not proposicao.data_recebimento:
+                    if (not proposicao.data_recebimento or
+                       proposicao.data_devolucao):
                         return True
                     else:
                         msg = _('Essa proposição já foi recebida. ' +
@@ -480,28 +487,55 @@ class ProposicaoCrud(Crud):
                     obj.data_recebimento = 'Não recebida'
                 else:
                     obj.data_recebimento = obj.data_recebimento.strftime(
-                                            "%d/%m/%Y %H:%M")
+                        "%d/%m/%Y %H:%M")
 
             return [self._as_row(obj) for obj in object_list]
 
         def get_queryset(self):
+            # Só tem acesso as Proposicoes criadas por ele que ainda nao foram
+            # recebidas ou foram devolvidas
             lista = Proposicao.objects.filter(
                 autor__user_id=self.request.user.id)
+            lista = lista.filter(
+                Q(data_recebimento__isnull=True) |
+                Q(data_devolucao__isnull=False))
+
             return lista
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = {'materia.delete_proposicao'}
 
+        def has_permission(self):
+            perms = self.get_permission_required()
+            if self.request.user.has_perms(perms):
+                if (Proposicao.objects.filter(
+                   id=self.kwargs['pk'],
+                   autor__user_id=self.request.user.id).exists()):
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
         def delete(self, request, *args, **kwargs):
             proposicao = Proposicao.objects.get(id=self.kwargs['pk'])
 
-            if not proposicao.data_envio:
+            if not proposicao.data_envio or proposicao.data_devolucao:
                 proposicao.delete()
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao_list'))
-            else:
+
+            elif not proposicao.data_recebimento:
                 proposicao.data_envio = None
                 proposicao.save()
+                return HttpResponseRedirect(
+                    reverse('sapl.materia:proposicao_detail',
+                            kwargs={'pk': proposicao.pk}))
+
+            else:
+                msg = _('Essa proposição já foi recebida. ' +
+                        'Não pode mais ser excluída/recuperada')
+                messages.add_message(self.request, messages.ERROR, msg)
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao_detail',
                             kwargs={'pk': proposicao.pk}))
