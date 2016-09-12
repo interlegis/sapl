@@ -42,13 +42,12 @@
           </div>
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
+              <li><a href="/" role="button" aria-haspopup="true" aria-expanded="false">Inicio<span class="caret"></span></a></li>
 
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Institucional <span class="caret"></span></a>
                   <ul class="dropdown-menu">
-                  {% if user.is_authenticated %}
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.parlamentares:mesa_diretora' %}">Mesa Diretora</a></li>
-                  {% endif %}
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.comissoes:comissao_list' %}">Comissões</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li> -->
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.parlamentares:parlamentar_list' %}">Parlamentares</a></li>
