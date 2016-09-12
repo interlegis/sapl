@@ -332,6 +332,7 @@ class ParlamentarCrud(Crud):
     class ListView(CrudListView):
         template_name = "parlamentares/parlamentares_list.html"
         paginate_by = None
+        ordering = '-nome_parlamentar'
 
         def take_legislatura_id(self):
             legislaturas = Legislatura.objects.all().order_by(
@@ -351,7 +352,8 @@ class ParlamentarCrud(Crud):
         def get_queryset(self):
             if self.take_legislatura_id() != 0:
                 mandatos = Mandato.objects.filter(
-                    legislatura_id=self.take_legislatura_id())
+                    legislatura_id=self.take_legislatura_id()).order_by(
+                        'parlamentar__nome_parlamentar')
                 return mandatos
             return []
 
