@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.views.generic import ListView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudUpdateView)
+                            CrudDeleteView, CrudListView, CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Tramitacao
 from sapl.utils import permissao_tb_aux, permissoes_comissoes
@@ -136,6 +136,10 @@ class ComissaoCrud(Crud):
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_comissoes()
+
+    class ListView(PermissionRequiredMixin, CrudListView):
+        permission_required = permissoes_comissoes()
+        ordering = ['-ativa', 'sigla']
 
     class BaseMixin(CrudBaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
