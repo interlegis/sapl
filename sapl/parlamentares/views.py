@@ -341,7 +341,9 @@ class ParlamentarCrud(Crud):
                 try:
                     legislatura_id = int(self.request.GET['periodo'])
                 except MultiValueDictKeyError:
-                    legislatura_id = legislaturas.first().id
+                    for l in Legislatura.objects.all():
+                        if l.atual():
+                            return l.id
                 return legislatura_id
             else:
                 return 0
