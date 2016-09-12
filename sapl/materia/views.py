@@ -38,7 +38,8 @@ from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
                     DocumentoAcessorioForm, LegislacaoCitadaForm,
                     MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
                     ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
-                    UnidadeTramitacaoForm, filtra_tramitacao_destino,
+                    TramitacaoUpdateForm, UnidadeTramitacaoForm,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -573,13 +574,18 @@ class TramitacaoCrud(MasterDetailCrud):
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = TramitacaoForm
+        form_class = TramitacaoUpdateForm
         permission_required = permissoes_materia()
 
         def post(self, request, *args, **kwargs):
-            materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+            materia = MateriaLegislativa.objects.get(
+                tramitacao__id=kwargs['pk'])
             do_envia_email_tramitacao(request, materia)
             return super(UpdateView, self).post(request, *args, **kwargs)
+
+        @property
+        def layout_key(self):
+            return 'TramitacaoUpdate'
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -598,7 +604,7 @@ class TramitacaoCrud(MasterDetailCrud):
                           kwargs={'pk': tramitacao.materia.id})
 
             if tramitacao.pk != materia.tramitacao_set.last().pk:
-                msg = _('Somente a útlima tramitação pode ser deletada!')
+                msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
