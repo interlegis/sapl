@@ -1041,10 +1041,12 @@ class TextEditView(TemplateView):
 
 class ActionsCommonsMixin:
 
-    def set_message(self, data, _type, message):
+    def set_message(self, data, _type, message, time=None):
         data['message'] = {
             'type': _type,
             'value': str(message)}
+        if time:
+            data['message']['time'] = time
         return
 
     def get_json_for_refresh(self, dp, dpauto=None):
@@ -1203,7 +1205,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     p.fim_eficacia = None
 
                 for d in base.dispositivos_filhos_set.all():
-                    if d.is_relative_auto_insert():
+                    if d.auto_inserido:
                         self.remover_dispositivo(d, bloco)
                     elif not bloco:
                         p.dispositivos_filhos_set.add(d)
@@ -1226,7 +1228,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     transferir para o caput imediatamente acima visto se
                     tratar de uma exclusão de item?"""
                     d_nivel_old = d.nivel
-                    if d.is_relative_auto_insert():
+                    if d.auto_inserido:
                         d.delete()
                         continue
 
@@ -1506,7 +1508,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                 if dp.nivel >= nivel:
                     continue
 
-                if dp.is_relative_auto_insert(perfil_pk):
+                if dp.auto_inserido:
                     continue
 
                 if prox_possivel and \
@@ -1605,7 +1607,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
                     if paradentro and not td.permitido_inserir_in(
                         tipb,
-                        include_relative_autos=False,
+                        include_relative_autos=True,
                             perfil_pk=perfil_pk):
                         continue
 
@@ -1617,7 +1619,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         for possivelpai in parents:
                             if td.permitido_inserir_in(
                                 possivelpai.tipo_dispositivo,
-                                include_relative_autos=False,
+                                include_relative_autos=True,
                                     perfil_pk=perfil_pk):
                                 flag_insercao = True
                                 break
@@ -1625,7 +1627,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         if not flag_insercao:
                             continue
 
-                        if possivelpai.is_relative_auto_insert(perfil_pk):
+                        if possivelpai.auto_inserido:
                             continue
 
                         if prox_possivel:
@@ -1694,7 +1696,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
         # Dispositivo de Vigência do Texto Original e de Dpts Alterados
         dvt = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
 
-        if dvt.is_relative_auto_insert():
+        if dvt.auto_inserido:
             dvt = dvt.dispositivo_pai
 
         try:
@@ -1823,15 +1825,17 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                 if pp.exists() and pp[0].quantidade_permitida >= 0:
                     qtd_existente = Dispositivo.objects.filter(
                         ta_id=dp.ta_id,
-                        tipo_dispositivo_id=dp.tipo_dispositivo_id).count()
+                        tipo_dispositivo_id=dp.tipo_dispositivo_id,
+                        dispositivo_pai=dp.dispositivo_pai).count()
 
                     if qtd_existente >= pp[0].quantidade_permitida:
-                        return {'pk': base.pk,
-                                'pai': [base.dispositivo_pai.pk, ],
-                                'message': str(_('Limite de inserções de '
-                                                 'dispositivos deste tipo '
-                                                 'foi excedido.'))
-                                }
+                        data = {'pk': base.pk,
+                                'pai': [base.dispositivo_pai.pk, ]}
+                        self.set_message(data, 'warning',
+                                         _('Limite de inserções de '
+                                           'dispositivos deste tipo '
+                                           'foi excedido.'), time=6000)
+                        return data
 
             ordem = base.criar_espaco(
                 espaco_a_criar=1 + count_auto_insert, local=local_add)
@@ -1860,6 +1864,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     dp.ordem = dp.ordem + Dispositivo.INTERVALO_ORDEM
 
                     dp.publicacao = pub_last
+                    dp.auto_inserido = True
                     dp.save()
                     dp_auto_insert = dp
                 dp = Dispositivo.objects.get(pk=dp_pk)
@@ -2071,74 +2076,69 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         perfil_pk = self.request.session['perfil_estrutural']
 
-        """Se o usuário selecionar um dispositivo de auto inserção,
-        como um caput, por exemplo, a alteração é
-        migrada para o pai imediato"""
-        if dispositivo_a_alterar.is_relative_auto_insert(perfil_pk=perfil_pk):
-            dispositivo_a_alterar = dispositivo_a_alterar.dispositivo_pai
+        data = {}
+        ndp = Dispositivo.new_instance_based_on(
+            dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
 
-        if dispositivo_a_alterar.tipo_dispositivo.dispositivo_de_articulacao:
-            pass
+        ndp.rotulo = dispositivo_a_alterar.rotulo
+        ndp.texto = dispositivo_a_alterar.texto
+        ndp.publicacao = bloco_alteracao.publicacao
 
+        ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
+        if ndp.dispositivo_vigencia:
+            ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+            ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
         else:
-            ndp = Dispositivo.new_instance_based_on(
-                dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
+            ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
+            ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
 
-            ndp.rotulo = dispositivo_a_alterar.rotulo
-            ndp.texto = dispositivo_a_alterar.texto
-            ndp.publicacao = bloco_alteracao.publicacao
+        try:
+            with transaction.atomic():
+                ordem = dispositivo_a_alterar.criar_espaco(
+                    espaco_a_criar=1, local='json_add_in')
 
-            ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
-            if ndp.dispositivo_vigencia:
-                ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
-                ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
-            else:
-                ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
-                ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
+                ndp.ordem = ordem
+                ndp.dispositivo_atualizador = bloco_alteracao
+                ndp.ta_publicado = bloco_alteracao.ta
 
-            try:
-                with transaction.atomic():
-                    ordem = dispositivo_a_alterar.criar_espaco(
-                        espaco_a_criar=1, local='json_add_in')
+                p = dispositivo_a_alterar
+                n = dispositivo_a_alterar.dispositivo_subsequente
 
-                    ndp.ordem = ordem
-                    ndp.dispositivo_atualizador = bloco_alteracao
-                    ndp.ta_publicado = bloco_alteracao.ta
+                ndp.dispositivo_substituido = p
+                ndp.dispositivo_subsequente = n
 
-                    p = dispositivo_a_alterar
-                    n = dispositivo_a_alterar.dispositivo_subsequente
+                if n:
+                    ndp.fim_eficacia = n.inicio_eficacia - \
+                        timedelta(days=1)
+                    ndp.fim_vigencia = n.inicio_vigencia - \
+                        timedelta(days=1)
+                ndp.save()
 
-                    ndp.dispositivo_substituido = p
-                    ndp.dispositivo_subsequente = n
+                p.dispositivo_subsequente = ndp
+                p.fim_eficacia = ndp.inicio_eficacia - timedelta(days=1)
+                p.fim_vigencia = ndp.inicio_vigencia - timedelta(days=1)
+                p.save()
 
-                    if n:
-                        ndp.fim_eficacia = n.inicio_eficacia - \
-                            timedelta(days=1)
-                        ndp.fim_vigencia = n.inicio_vigencia - \
-                            timedelta(days=1)
-                    ndp.save()
+                if n:
+                    n.dispositivo_substituido = ndp
+                    n.save()
 
-                    p.dispositivo_subsequente = ndp
-                    p.fim_eficacia = ndp.inicio_eficacia - timedelta(days=1)
-                    p.fim_vigencia = ndp.inicio_vigencia - timedelta(days=1)
-                    p.save()
+            filhos_diretos = dispositivo_a_alterar.dispositivos_filhos_set
+            for d in filhos_diretos.all():
+                d.dispositivo_pai = ndp
+                d.save()
 
-                    if n:
-                        n.dispositivo_substituido = ndp
-                        n.save()
+            self.set_message(
+                data, 'success',
+                _('Dispositivo de Alteração adicionado com sucesso.'))
 
-                filhos_diretos = dispositivo_a_alterar.dispositivos_filhos_set
-                for d in filhos_diretos.all():
-                    d.dispositivo_pai = ndp
-                    d.save()
+        except Exception as e:
+            print(e)
 
-            except Exception as e:
-                print(e)
+        data.update({'pk': ndp.pk,
+                     'pai': [bloco_alteracao.pk, ]})
 
-            data = {'pk': ndp.pk,
-                    'pai': [bloco_alteracao.pk, ]}
-
-            return data
+        return data
 
 
 class DispositivoDinamicEditView(
@@ -2226,9 +2226,6 @@ class DispositivoDinamicEditView(
 
             data = self.registra_alteracao(d, dispositivo_a_alterar)
 
-            self.set_message(
-                data, 'success',
-                _('Dispositivo de Alteração adicionado com sucesso.'))
         elif formtype == 'get_form_base':
             texto = request.POST['texto'].strip()
             texto_atualizador = request.POST['texto_atualizador'].strip()

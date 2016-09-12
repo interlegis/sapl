@@ -4,6 +4,7 @@
 
 {% dispositivotree dispositivos_list %}
     <div class="dpt" id="id{{node.dpt.id}}" pk="{{node.dpt.pk}}" ordem="{{node.dpt.ordem}}" name="{{node.dpt.pk}}" title="{{node.dpt.pk}} - {{node.dpt.ordem}}" formtype="get_form_base">
+      <div class="dpt-actions"></div>
       <div class="dpt-actions-fixed">
         <a class="btn-action btn-dpt-edit btn btn-default btn-sm" pk="{{node.dpt.pk}}" title=""><span class="deactivate">{% trans 'Editar'%}</span><span class="activate">{% trans 'Em Edição'%}:</span> {{ node.td.nome }} {{ node.dpt.rotulo }}</a>
         <div class="btn-group">
@@ -12,8 +13,7 @@
         {% if not node.dpt.rotulo and not node.dpt.texto and node.td.dispositivo_de_articulacao%}
         {% endif %}
       </div>
-      <div class="dpt-actions"></div>
-      <div class="dpt-text {{node.td.class_css}} {%if node.dpt.fim_vigencia %}desativado{%endif%} {%if node.dpt.rotulo or node.dpt.texto or not node.td.dispositivo_de_articulacao %}btn-dpt-edit{%endif%}" title="{% trans 'Editar' %} {{node.td.nome}}">
+      <div class="dpt-text {{node.td.class_css}} {%if node.dpt.fim_vigencia %}desativado{%endif%} {%if not node.filhos and node.td.dispositivo_de_articulacao %}hover-fixed{%endif%}">
 
           {{ node.td.rotulo_prefixo_html|safe }}
           {% if node.da and node in node.da.alts %}

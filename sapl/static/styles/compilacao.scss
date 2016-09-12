@@ -166,7 +166,7 @@ a:link:after, a:visited:after {
 .cp {
   .desativado {
 
-    .dtxt, .dtxt * {
+    .dtxt, .dtxt *, .dpt-link, .dpt-link * {
       text-decoration: line-through;
       color: #999 !important;
 
@@ -524,8 +524,8 @@ a:link:after, a:visited:after {
     display: block;
     & > .dpt-actions-fixed {
       position: absolute;
-      right: -0.25em;
-      top: 0px;
+      right: -0.5em;
+      top: -0.5em;
       z-index: 3;
       opacity: 0;
 
@@ -547,10 +547,10 @@ a:link:after, a:visited:after {
       display: none;
     }
     & > .dpt-text {
-      cursor: pointer;
+      cursor: text;
       min-height: 30px;
       border: 1px solid transparent;
-      &:hover {
+      &:hover, &.hover-fixed {
         background-color: rgba(0, 0, 0, 0.01);
         color: $color_buttons;
         border: 1px solid #eee;
@@ -568,9 +568,14 @@ a:link:after, a:visited:after {
 
     &:hover {
       & > .dpt-actions-fixed {
-        opacity: 0.8;
+        opacity: 1;
         &:hover {
-          opacity: 1;
+          & ~ .dpt-text {
+            background-color: rgba(0, 0, 0, 0.01);
+            color: $color_buttons;
+            border: 1px solid #eee;
+            transition: color 0.3s ease;
+          }
         }
       }
     }

@@ -24,7 +24,7 @@
       {% endif %}
   {% endifchanged %}
 
-  {% if dpt.tipo_dispositivo.dispositivo_de_alteracao or dpt.dispositivo_pai.nivel > 0 and dpt.is_relative_auto_insert and dpt.dispositivo_pai not in object_list %}
+  {% if dpt.tipo_dispositivo.dispositivo_de_alteracao or dpt.dispositivo_pai.nivel > 0 and dpt.auto_inserido and dpt.dispositivo_pai not in object_list %}
     <li>
       <div class="iteminput">
           <input type="{{request.GET.data_type_selection}}" name="{{request.GET.data_field}}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}"/>

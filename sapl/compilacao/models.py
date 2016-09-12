@@ -578,7 +578,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Declarado Inconstitucional'))
-    # Relevant attribute only in altering norms
+    auto_inserido = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Auto Inserido'))
     visibilidade = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
@@ -1120,7 +1123,8 @@ class Dispositivo(BaseModel, TimestampedMixin):
             ta_id=self.ta_id)
         return niveis_zero
 
-    def is_relative_auto_insert(self, perfil_pk=None):
+    # metodo obsoleto, foi acrescentado o campo auto_inserido no modelo
+    def is_relative_auto_insert__obsoleto(self, perfil_pk=None):
         if self.dispositivo_pai is not None:
             # pp possiveis_pais
 

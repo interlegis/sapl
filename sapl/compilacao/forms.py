@@ -636,27 +636,26 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         btns_excluir = []
 
-        if not inst.is_relative_auto_insert():
-            btns_excluir = [
-                HTML('<a class="btn btn-danger btn-action btn-excluir" '
-                     'action="json_delete_item_dispositivo" '
-                     'title="%s" '
-                     'pk="%s" '
-                     '>%s</a>' % (_('Excluir apenas este dispositivo.'),
-                                  inst.pk,
-                                  _('Excluir Dispositivo')))]
+        btns_excluir = [
+            HTML('<a class="btn btn-danger btn-action btn-excluir" '
+                 'action="json_delete_item_dispositivo" '
+                 'title="%s" '
+                 'pk="%s" '
+                 '>%s</a>' % (_('Excluir apenas este dispositivo.'),
+                              inst.pk,
+                              _('Excluir Dispositivo')))]
 
-            if inst.dispositivos_filhos_set.exists():
-                btns_excluir.append(
-                    HTML(
-                        '<a class="btn btn-danger btn-action btn-excluir" '
-                        'action="json_delete_bloco_dispositivo" '
-                        'title="%s" '
-                        'pk="%s" '
-                        '>%s</a>' % (_('Excluir este dispositivo '
-                                       'e toda sua estrutura.'),
-                                     inst.pk,
-                                     _('Excluir Bloco de Dispositivo.'))))
+        if inst.dispositivos_filhos_set.exists():
+            btns_excluir.append(
+                HTML(
+                    '<a class="btn btn-danger btn-action btn-excluir" '
+                    'action="json_delete_bloco_dispositivo" '
+                    'title="%s" '
+                    'pk="%s" '
+                    '>%s</a>' % (_('Excluir este dispositivo '
+                                   'e toda sua estrutura.'),
+                                 inst.pk,
+                                 _('Excluir Bloco de Dispositivo.'))))
 
         if btns_excluir:
             css_class = 'btn-group pull-right btns-excluir'
@@ -856,7 +855,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
     def clean_dispositivo_vigencia(self):
         dv = self.cleaned_data['dispositivo_vigencia']
 
-        if dv and dv.is_relative_auto_insert():
+        if dv and dv.auto_inserido:
             dv = dv.dispositivo_pai
 
         return dv
@@ -871,7 +870,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         if extensao:
             dv = data['dispositivo_vigencia']
 
-            if dv and dv.is_relative_auto_insert():
+            if dv and dv.auto_inserido:
                 dv = dv.dispositivo_pai
 
             dv_pk = dv.pk if dv else None

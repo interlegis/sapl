@@ -127,11 +127,6 @@ def select_provaveis_inserts(view, request):
 
 
 @register.filter
-def is_relative_auto_insert(dpt, request):
-    return dpt.is_relative_auto_insert(request.session['perfil_estrutural'])
-
-
-@register.filter
 def isinst(value, class_str):
     classe = value.__class__.__name__
     return classe == class_str

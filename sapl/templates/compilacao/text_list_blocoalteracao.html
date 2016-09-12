@@ -3,11 +3,19 @@
 {% for ch in dpt.pk|get_bloco_atualizador %}
   {% spaceless %}
     {% if ch.visibilidade %}
-      <div class="dpt" id="d{{ch.id}}" nivel="{{ch.nivel}}">
-        <div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}">
-          {{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>{{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+        <div class="dpt" id="d{{ch.id}}" nivel="{{ch.nivel}}">
+          <div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}">
+      {% if ch.auto_inserido %}
+        {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
+        <a name="{{ch.dispositivo_pai.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.dispositivo_pai.ta.pk %}#{{ch.dispositivo_pai.pk}}">{{ ch.dispositivo_pai.rotulo }}</a>
+        {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
+      {% endif %}
+          {{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}
+          <a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>
+          {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
+          {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+          </div>
         </div>
-      </div>
     {%endif%}
   {% endspaceless %}
 {% endfor %}
