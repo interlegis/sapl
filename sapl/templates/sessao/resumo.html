@@ -43,15 +43,18 @@
 
 	<fieldset>
 		<legend>Expedientes</legend>
-    <div class="row">
-      {% for e in expedientes %}
-      <div class="col-md-12">
-        <b>{{e.tipo}}:</b>
-        <br />
-        {{e.conteudo|safe}}
-      </div>
-      {% endfor %}
-    </div>
+		<table class="table">
+			<thead class="thead-default">
+				{% for e in expedientes %}
+					<tr>
+						<td>
+							<b>{{e.tipo}}: </b> <br />
+							<p style="text-indent: 50px;">{{e.conteudo}}</p>
+						</td>
+					</tr>
+				{% endfor %}
+			</thead>
+		</table>
 	</fieldset>
 
 	<fieldset>
