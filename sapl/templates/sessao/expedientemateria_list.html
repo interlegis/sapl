@@ -1,12 +1,17 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
+{% load common_tags %}
 
 
 {% block more_buttons %}
-<a href="{% url 'sapl.sessao:reordenar_expediente' root_pk %}" class="btn btn-default">
-  {% blocktrans with verbose_name=view.verbose_name %} Reordenar Matérias {% endblocktrans %}
-</a>
-<a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' root_pk %}" class="btn btn-default">
-  {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
-</a>
+
+{% if perms|get_add_perm:view %}
+    <a href="{% url 'sapl.sessao:reordenar_expediente' root_pk %}" class="btn btn-default">
+      {% blocktrans with verbose_name=view.verbose_name %} Reordenar Matérias {% endblocktrans %}
+    </a>
+    <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' root_pk %}" class="btn btn-default">
+      {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
+    </a>
+{% endif %}
+
 {% endblock more_buttons %}

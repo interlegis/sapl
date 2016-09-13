@@ -2045,9 +2045,11 @@ def retira_materias_ja_adicionadas(id_sessao, model):
     return lista_id_materias
 
 
-class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
+class AdicionarVariasMateriasExpediente(PermissionRequiredMixin,
+                                        MateriaLegislativaPesquisaView):
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_expediente.html'
+    permission_required = permissoes_sessao()
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasMateriasExpediente,
@@ -2123,6 +2125,7 @@ class AdicionarVariasMateriasExpediente(MateriaLegislativaPesquisaView):
 class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_ordem.html'
+    permission_required = permissoes_sessao()
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasMateriasExpediente,
