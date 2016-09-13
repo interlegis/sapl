@@ -137,8 +137,7 @@ class ComissaoCrud(Crud):
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_comissoes()
 
-    class ListView(PermissionRequiredMixin, CrudListView):
-        permission_required = permissoes_comissoes()
+    class ListView(CrudListView):
         ordering = ['-ativa', 'sigla']
 
     class BaseMixin(CrudBaseMixin):
