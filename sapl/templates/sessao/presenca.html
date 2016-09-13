@@ -35,9 +35,11 @@
     </br>
 
     {% for parlamentar, check in view.get_presencas %}
+        {% if check %}
             <div class="row">
-              <div class="col-md-6"><label for="parlamentar">{{ forloop.counter }} - {{ parlamentar }}</label></div>
+              <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar }}</label></div>
             </div>
+        {% endif %}
     {% endfor %}
 
 {% endif %}

@@ -2,7 +2,6 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
@@ -42,10 +41,6 @@ from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
 
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
-
-
-def check_permission(user):
-    return user.has_perms(permissoes_sessao())
 
 
 def reordernar_materias_expediente(request, pk):
@@ -461,10 +456,12 @@ class PresencaView(FormMixin,
     form_class = PresencaForm
     model = SessaoPlenaria
 
-    @user_passes_test(check_permission)
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
+
+        if not self.request.user.has_perms(permissoes_sessao()):
+            return self.form_invalid(form)
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
@@ -503,13 +500,11 @@ class PainelView(PermissionRequiredMixin, TemplateView):
     permission_required = permissoes_painel()
 
 
-class PresencaOrdemDiaView(PermissionRequiredMixin,
-                           FormMixin,
+class PresencaOrdemDiaView(FormMixin,
                            PresencaMixin,
                            SessaoCrud.CrudDetailView):
     template_name = 'sessao/presenca_ordemdia.html'
     form_class = PresencaForm
-    permission_required = permissoes_sessao()
 
     def post(self, request, *args, **kwargs):
 
@@ -517,6 +512,9 @@ class PresencaOrdemDiaView(PermissionRequiredMixin,
         form = self.get_form()
 
         pk = kwargs['pk']
+
+        if not self.request.user.has_perms(permissoes_sessao()):
+            return self.form_invalid(form)
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
