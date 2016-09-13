@@ -5,8 +5,6 @@ from sapl.utils import register_all_models_in_admin
 
 register_all_models_in_admin(__name__)
 
-DEBUG = False
-
 if not DEBUG:
 
     admin.site.unregister(Proposicao)
