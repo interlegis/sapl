@@ -5,12 +5,13 @@
 {% block buttons %}
 
       {% if filter_url %}
+
             <div class="actions btn-group pull-right" role="group">
               <a href="{% url 'sapl.sessao:adicionar_varias_materias_ordem_dia' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
             </div>
 
             <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:materiaordemdia_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias da Ordem do Dia' %}</a>
+              <a href="{% url 'sapl.sessao:ordemdia_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias da Ordem do Dia' %}</a>
             </div>
 
       {% endif %}

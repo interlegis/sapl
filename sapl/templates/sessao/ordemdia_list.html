@@ -1,0 +1,12 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+
+
+{% block more_buttons %}
+<a href="{% url 'sapl.sessao:reordenar_ordem' root_pk %}" class="btn btn-default">
+  {% blocktrans with verbose_name=view.verbose_name %} Reordenar Matérias {% endblocktrans %}
+</a>
+<a href="{% url 'sapl.sessao:adicionar_varias_materias_ordem_dia' root_pk %}" class="btn btn-default">
+  {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
+</a>
+{% endblock more_buttons %}
