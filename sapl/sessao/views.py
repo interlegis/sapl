@@ -2,6 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
@@ -41,6 +42,10 @@ from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
 
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+
+
+def check_permission(user):
+    return user.has_perms(permissoes_sessao())
 
 
 def reordernar_materias_expediente(request, pk):
@@ -449,15 +454,14 @@ class PresencaMixin:
                 yield (parlamentar, False)
 
 
-class PresencaView(PermissionRequiredMixin,
-                   FormMixin,
+class PresencaView(FormMixin,
                    PresencaMixin,
                    SessaoCrud.CrudDetailView):
     template_name = 'sessao/presenca.html'
     form_class = PresencaForm
     model = SessaoPlenaria
-    permission_required = permissoes_sessao()
 
+    @user_passes_test(check_permission)
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()

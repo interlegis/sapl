@@ -1,7 +1,10 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load common_tags %}
 
 {% block detail_content %}
+
+{% if perms|get_add_perm:view %}
 	<form method="POST">
 	  {% csrf_token %}
 
@@ -24,6 +27,22 @@
 		<br />
 		<input type="submit" value="Salvar" class="btn btn-primary" />
 	</form>
+
+{% else %}
+    <div class="row">
+      <div class="col-md-6"><h2>Parlamentares presentes</div>
+    </div>
+    </br>
+
+    {% for parlamentar, check in view.get_presencas %}
+            <div class="row">
+              <div class="col-md-6"><label for="parlamentar">{{ forloop.counter }} - {{ parlamentar }}</label></div>
+            </div>
+    {% endfor %}
+
+{% endif %}
+
+
 {% endblock detail_content %}
 
 {% block extra_js %}
