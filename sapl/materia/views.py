@@ -439,38 +439,35 @@ class ProposicaoCrud(Crud):
 
         def has_permission(self):
             perms = self.get_permission_required()
-            if self.request.user.has_perms(perms):
-                if (Proposicao.objects.filter(
-                   id=self.kwargs['pk'],
-                   autor__user_id=self.request.user.id).exists()):
-                    proposicao = Proposicao.objects.get(
-                        id=self.kwargs['pk'],
-                        autor__user_id=self.request.user.id)
-                    if (not proposicao.data_recebimento or
-                       proposicao.data_devolucao):
-                        return True
-                    else:
-                        msg = _('Essa proposição já foi recebida. ' +
-                                'Não pode mais ser editada')
-                        messages.add_message(self.request, messages.ERROR, msg)
-                        return False
-            else:
+            if not self.request.user.has_perms(perms):
                 return False
+
+            if (Proposicao.objects.filter(
+               id=self.kwargs['pk'],
+               autor__user_id=self.request.user.id).exists()):
+                proposicao = Proposicao.objects.get(
+                    id=self.kwargs['pk'],
+                    autor__user_id=self.request.user.id)
+                if (not proposicao.data_recebimento or
+                   proposicao.data_devolucao):
+                    return True
+                else:
+                    msg = _('Essa proposição já foi recebida. ' +
+                            'Não pode mais ser editada')
+                    messages.add_message(self.request, messages.ERROR, msg)
+                    return False
 
     class DetailView(PermissionRequiredMixin, CrudDetailView):
         permission_required = permissoes_autor()
 
         def has_permission(self):
             perms = self.get_permission_required()
-            if self.request.user.has_perms(perms):
-                if (Proposicao.objects.filter(
-                   id=self.kwargs['pk'],
-                   autor__user_id=self.request.user.id).exists()):
-                    return True
-                else:
-                    return False
-            else:
+            if not self.request.user.has_perms(perms):
                 return False
+
+            return (Proposicao.objects.filter(
+                id=self.kwargs['pk'],
+                autor__user_id=self.request.user.id).exists())
 
     class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
@@ -507,15 +504,12 @@ class ProposicaoCrud(Crud):
 
         def has_permission(self):
             perms = self.get_permission_required()
-            if self.request.user.has_perms(perms):
-                if (Proposicao.objects.filter(
-                   id=self.kwargs['pk'],
-                   autor__user_id=self.request.user.id).exists()):
-                    return True
-                else:
-                    return False
-            else:
+            if not self.request.user.has_perms(perms):
                 return False
+
+            return (Proposicao.objects.filter(
+                id=self.kwargs['pk'],
+                autor__user_id=self.request.user.id).exists())
 
         def delete(self, request, *args, **kwargs):
             proposicao = Proposicao.objects.get(id=self.kwargs['pk'])
