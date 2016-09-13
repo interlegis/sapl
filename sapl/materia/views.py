@@ -543,6 +543,19 @@ class ProposicaoCrud(Crud):
 
 class ReciboProposicaoView(TemplateView):
     template_name = "materia/recibo_proposicao.html"
+    permission_required = permissoes_autor()
+
+    def has_permission(self):
+            perms = self.get_permission_required()
+            if self.request.user.has_perms(perms):
+                if (Proposicao.objects.filter(
+                   id=self.kwargs['pk'],
+                   autor__user_id=self.request.user.id).exists()):
+                    return True
+                else:
+                    return False
+            else:
+                return False
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(
@@ -550,8 +563,8 @@ class ReciboProposicaoView(TemplateView):
         proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
         context.update({'proposicao': proposicao,
                         'hash': gerar_hash_arquivo(
-                                    proposicao.texto_original.path,
-                                    self.kwargs['pk'])})
+                            proposicao.texto_original.path,
+                            self.kwargs['pk'])})
         return context
 
 
