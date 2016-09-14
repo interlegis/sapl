@@ -1264,8 +1264,12 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             return context
 
         qr = self.request.GET.copy()
+        context['tipos_docs'] = TipoDocumento.objects.all()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, self.kwargs)
 
     # def post(self, request, *args, **kwargs):
     #     marcadas = request.POST.getlist('materia_id')

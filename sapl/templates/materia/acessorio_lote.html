@@ -18,27 +18,72 @@
     {% else %}
       <tr><td><h3 style="text-align: right;">Nenhuma matéria encontrada.</h3></td></tr>
     {% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <fieldset>
+        <legend>Documento Acessório</legend>
+        <div class="row">
+  	      <div class="col-md-4">
+  	        <label>Tipo*</label>
+  	        <select name="legislatura" class="form-control" required="True">
+  	          {% for t in tipos_docs %} <option>{{t}}</option> {% endfor %}
+  	        </select>
+  	      </div>
 
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Matérias</th>
-        </tr>
-      </thead>
+          <div class="col-md-4">
+            <label>Nome*</label>
+            <input type="text" name="nome" class="form-control" required="True">
+          </div>
 
-      <tbody>
-        <form method="POST">
-          {% csrf_token %}
-          {% for materia in object_list %}
-            <tr>
-              <td>
-                <input type="checkbox" name="materia_id" value="{{materia.id}}" {% if check %} checked {% endif %}/>
-                {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}} - {{materia.tipo.descricao}}
-              </td>
-            </tr>
-          {% endfor %}
-        </form>
-      </tbody>
-    </table>
+          <div class="col-md-4">
+            <label>Data*</label>
+            <input type="text" name="data "class="form-control dateinput" required="True">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <label>Autor*</label>
+            <input type="text" name="autor" class="form-control" required="True">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <label>Ementa</label>
+            <textarea name="ementa" class="textarea form-control" cols="40" rows="10"></textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <label>Texto Integral*</label>
+            <input type="file" name="autor" required="True">
+          </div>
+        </div>
+      </fieldset>
+
+      <br /><br /><br />
+
+      <fieldset>
+        <legend>Matérias para inclusão do Documento Acessório</legend>
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr><th>Matéria</th></tr>
+          </thead>
+          <tbody>
+              {% for materia in object_list %}
+                <tr>
+                  <td>
+                    <input type="checkbox" name="materia_id" value="{{materia.id}}" {% if check %} checked {% endif %}/>
+                    {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}} - {{materia.tipo.descricao}}
+                  </td>
+                </tr>
+              {% endfor %}
+          </tbody>
+        </table>
+      </fieldset>
+      <input type="submit" value="Salvar" class="btn btn-primary"S>
+    </form>
   {% endif %}
 {% endblock detail_content %}
