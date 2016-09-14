@@ -1289,4 +1289,4 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             )
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(reverse('sapl.materia:acessorio_lote'))
+        return self.get(request, self.kwargs)
