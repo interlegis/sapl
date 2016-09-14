@@ -4,7 +4,6 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
-from django.db.models import Q
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -13,6 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -34,8 +34,9 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
                         get_base_url, permissao_tb_aux, permissoes_autor,
                         permissoes_materia, permissoes_protocoloadm)
 
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
-                    AutoriaForm, ConfirmarProposicaoForm, DespachoInicialForm,
+from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    AnexadaForm, AutorForm, AutoriaForm,
+                    ConfirmarProposicaoForm, DespachoInicialForm,
                     DocumentoAcessorioForm, LegislacaoCitadaForm,
                     MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
                     ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
@@ -1246,3 +1247,51 @@ def do_envia_email_tramitacao(request, materia):
 
     enviar_emails(sender, recipients, messages)
     return None
+
+
+class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AcessorioEmLoteFilterSet
+    template_name = 'materia/acessorio_lote.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(DocumentoAcessorioEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Documentos Acessórios em Lote')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
+
+    # def post(self, request, *args, **kwargs):
+    #     marcadas = request.POST.getlist('materia_id')
+    #
+    #     for m in marcadas:
+    #         try:
+    #             tipo_votacao = request.POST['tipo_votacao_%s' % m]
+    #         except MultiValueDictKeyError:
+    #             msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
+    #                     'o tipo de votação de %s' %
+    #                     MateriaLegislativa.objects.get(id=m))
+    #             messages.add_message(request, messages.ERROR, msg)
+    #             return self.get(request, self.kwargs)
+    #
+    #         if tipo_votacao:
+    #             lista_materias_expediente = ExpedienteMateria.objects.filter(
+    #                 sessao_plenaria_id=self.kwargs[
+    #                     'pk'])
+    #
+    #             materia = MateriaLegislativa.objects.get(id=m)
+    #
+    #             expediente = ExpedienteMateria()
+    #             expediente.sessao_plenaria_id = self.kwargs['pk']
+    #             expediente.materia_id = materia.id
+    #             if lista_materias_expediente:
+    #                 posicao = lista_materias_expediente.last().numero_ordem + 1
+    #                 expediente.numero_ordem = posicao
+    #             else:
+    #                 expediente.numero_ordem = 1
+    #             expediente.data_ordem = datetime.now()
+    #             expediente.tipo_votacao = request.POST['tipo_votacao_%s' % m]
+    #             expediente.save()
+    #
+    #     return self.get(request, self.kwargs)

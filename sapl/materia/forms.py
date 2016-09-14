@@ -755,3 +755,34 @@ class AutorForm(ModelForm):
         u.groups.add(grupo)
 
         return autor
+
+
+class AcessorioEmLoteFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(AcessorioEmLoteFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+        self.form.fields['tipo'].required = True
+        self.form.fields['data_apresentacao'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data_apresentacao', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Documentos Acessórios em Lote'),
+                     row1, row2, form_actions(save_label='Pesquisar')))
