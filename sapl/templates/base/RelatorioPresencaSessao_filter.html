@@ -1,0 +1,50 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    <style type="text/css">
+      .presenca_table td, th{
+        text-align: center;
+      }
+    </style>
+
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'sapl.base:presenca_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <b>PERÍODO: {{periodo}}</b><br />
+    <b>TOTAIS NO PERÍODO - SESSÕES: {{total_sessao}} - ORDENS DO DIA: {{total_ordemdia}}</b>
+    <table class="table table-bordered table-hover presenca_table">
+      <thead class="thead-default" align="center">
+        <tr class="active">
+          <th rowspan="2">Nome Parlamentar / Partido</th>
+          <th colspan="2">Sessão</th>
+          <th colspan="2">Ordem do Dia</th>
+        </tr>
+        <tr class="active">
+          <th>(Qtd)</th>
+          <th>( % )</th>
+          <th>(Qtd)</th>
+          <th>( % )</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in parlamentares %}
+          <tr>
+            <td><b>{{p}}</b> / {{p.filiacao_set.first.partido.sigla|default:"Sem Partido"}}</td>
+            <td>{{p.sessao_count}}</td>
+            <td>{{p.sessao_porc}}</td>
+            <td>{{p.ordemdia_count}}</td>
+            <td>{{p.ordemdia_porc}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock base_content %}
