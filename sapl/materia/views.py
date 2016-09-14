@@ -541,15 +541,12 @@ class ReciboProposicaoView(TemplateView):
 
     def has_permission(self):
             perms = self.get_permission_required()
-            if self.request.user.has_perms(perms):
-                if (Proposicao.objects.filter(
-                   id=self.kwargs['pk'],
-                   autor__user_id=self.request.user.id).exists()):
-                    return True
-                else:
-                    return False
-            else:
+            if not self.request.user.has_perms(perms):
                 return False
+
+            return (Proposicao.objects.filter(
+                id=self.kwargs['pk'],
+                autor__user_id=self.request.user.id).exists())
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(
