@@ -209,21 +209,28 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
-
-                        btn_registrar = '''
-                            <a href="%s"
-                               class="btn btn-primary"
-                               role="button">Registrar Votação</a>''' % (url)
-                        obj.resultado = btn_registrar
+                        if self.request.user.has_perms(permissoes_sessao()):
+                            btn_registrar = '''
+                                <a href="%s"
+                                   class="btn btn-primary"
+                                   role="button">Registrar Votação</a>''' % (
+                                url)
+                            obj.resultado = btn_registrar
+                        else:
+                            obj.resultado = '''Não há resultado'''
                     else:
                         url = reverse('sapl.sessao:abrir_votacao', kwargs={
                             'pk': obj.pk, 'spk': obj.sessao_plenaria_id})
-                        btn_abrir = '''
-                            Matéria não votada<br />
-                            <a href="%s"
-                               class="btn btn-primary"
-                               role="button">Abrir Votação</a>''' % (url)
-                        obj.resultado = btn_abrir
+
+                        if self.request.user.has_perms(permissoes_sessao()):
+                            btn_abrir = '''
+                                Matéria não votada<br />
+                                <a href="%s"
+                                   class="btn btn-primary"
+                                   role="button">Abrir Votação</a>''' % (url)
+                            obj.resultado = btn_abrir
+                        else:
+                            obj.resultado = '''Não há resultado'''
                 else:
                     url = ''
                     if obj.tipo_votacao == 1:
