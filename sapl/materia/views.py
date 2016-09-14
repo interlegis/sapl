@@ -1252,12 +1252,17 @@ def do_envia_email_tramitacao(request, materia):
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/acessorio_lote.html'
+    permission_required = permissoes_materia()
 
     def get_context_data(self, **kwargs):
         context = super(DocumentoAcessorioEmLoteView,
                         self).get_context_data(**kwargs)
 
         context['title'] = _('Documentos Acessórios em Lote')
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
