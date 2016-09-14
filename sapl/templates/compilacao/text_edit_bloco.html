@@ -99,7 +99,7 @@
       {% endif %}
 <<<<<<< d5a8cdb5d563a8353942e0dc3c3b2484bd636ea6:templates/compilacao/text_edit_bloco.html
       {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-        <a class="link_alterador" href="{% url 'compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+        <a class="nota-alteracao" href="{% url 'compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
           {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
           {% nota_automatica dpt  ta_pub_list %}
           {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
@@ -113,7 +113,7 @@
             <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}} - {{dpt.ordem}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
           {% endif %}
           {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-            <a class="link_alterador" href="{% url 'sapl.compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+            <a class="nota-alteracao" href="{% url 'sapl.compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
               {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
               {% nota_automatica dpt  ta_pub_list %}
               {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}

@@ -32,7 +32,7 @@
                         pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
 
                   {%if dpt.ta_publicado_id %}
-                    <a class="link_alterador clearfix" href="{%url 'compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+                    <a class="nota-alteracao clearfix" href="{%url 'compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
                       {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
                       {% nota_automatica dpt None %}
                       {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}</a>

@@ -1125,6 +1125,19 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                                     'Dispositivo sem haver um '
                                     'Dispositivo Alterador.'))
 
+        """if dst.inicio_vigencia > self.instance.inicio_vigencia:
+            raise ValidationError(_('Não é permitido substituir um '
+                                    'Dispositivo que sua data de início '
+                                    'de vigência é superior a do dispositivo '
+                                    'em edição.'))
+            
+        if dsq.inicio_vigencia <= self.instance.fim_vigencia:
+            raise ValidationError(_('Não é permitido possuir um Dispositivo '
+                                    'Subsequente que sua data de início '
+                                    'de vigência seja inferior a data de fim '
+                                    'de vigência do dispositivo em edição.'))
+        """
+
     def save(self):
         data = self.cleaned_data
 
@@ -1135,17 +1148,23 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
         ndsq = data['dispositivo_subsequente']
         nda = data['dispositivo_atualizador']
 
+        # Se o dispositivo substituído foi trocado na edição
         if ndst != od.dispositivo_substituido:
+            # Se existia uma substituído, limpar seu subsequente e suas datas
+            # de fim de vigencia e eficacia
             if od.dispositivo_substituido:
                 odst = od.dispositivo_substituido
-
                 odst.dispositivo_subsequente = None
                 odst.fim_vigencia = None
                 odst.fim_eficacia = None
                 odst.save()
 
+            # se foi selecionado um dispositivo para ser substituído
+            # self.instance é seu subsequente
             if ndst:
+                # e se esse novo substituido possuia um outro sequente
                 if ndst.dispositivo_subsequente:
+                    # o substituido desse subsequente não é mais ndst
                     ndst.dispositivo_subsequente.dispositivo_substituido = None
                     ndst.dispositivo_subsequente.save()
 

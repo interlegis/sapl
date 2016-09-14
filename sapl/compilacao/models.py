@@ -1149,6 +1149,16 @@ class Dispositivo(BaseModel, TimestampedMixin):
             dp = dp.dispositivo_pai
         return dp
 
+    def history(self):
+        primeiro = self
+        while primeiro.dispositivo_substituido:
+            primeiro = primeiro.dispositivo_substituido
+
+        yield primeiro
+        while primeiro.dispositivo_subsequente:
+            primeiro = primeiro.dispositivo_subsequente
+            yield primeiro
+
     @staticmethod
     def new_instance_based_on(dispositivo_base, tipo_base):
         dp = Dispositivo()

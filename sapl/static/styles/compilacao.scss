@@ -396,7 +396,7 @@ a:link:after, a:visited:after {
       & > a {
         color: #444444;
         &.nota-alteracao {
-          color: #2980B9;
+          color: #02baf2;
           font-size: 0.75em;
           &:hover {
             text-decoration: underline;
@@ -518,6 +518,10 @@ a:link:after, a:visited:after {
     color: #999 !important;
     table, table td {
       border: 1px dotted #ccc;
+    }
+
+    a.nota-alteracao * {
+      color: #02baf2 !important;
     }
   }
   .dpt {

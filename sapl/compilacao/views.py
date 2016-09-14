@@ -2077,6 +2077,26 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         perfil_pk = self.request.session['perfil_estrutural']
 
         data = {}
+        data.update({'pk': bloco_alteracao.pk,
+                     'pai': [bloco_alteracao.pk, ]})
+
+        history = list(dispositivo_a_alterar.history())
+        history.reverse()
+
+        for d in history:
+            if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
+                dispositivo_a_alterar = d
+                break
+
+        if (dispositivo_a_alterar.inicio_vigencia >
+                bloco_alteracao.inicio_vigencia):
+            self.set_message(
+                data, 'danger',
+                _('Não é possível alterar um Dispositivo com início de '
+                  'Vigência posterior a data de Vigência do Dispositivo '
+                  'Alterador!'), time=10000)
+            return data
+
         ndp = Dispositivo.new_instance_based_on(
             dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
 
@@ -2093,35 +2113,37 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
 
         try:
-            with transaction.atomic():
-                ordem = dispositivo_a_alterar.criar_espaco(
-                    espaco_a_criar=1, local='json_add_in')
+            ordem = dispositivo_a_alterar.criar_espaco(
+                espaco_a_criar=1, local='json_add_in')
 
-                ndp.ordem = ordem
-                ndp.dispositivo_atualizador = bloco_alteracao
-                ndp.ta_publicado = bloco_alteracao.ta
+            ndp.ordem = ordem
+            ndp.dispositivo_atualizador = bloco_alteracao
+            ndp.ta_publicado = bloco_alteracao.ta
 
-                p = dispositivo_a_alterar
-                n = dispositivo_a_alterar.dispositivo_subsequente
+            p = dispositivo_a_alterar
+            n = dispositivo_a_alterar.dispositivo_subsequente
 
-                ndp.dispositivo_substituido = p
-                ndp.dispositivo_subsequente = n
+            ndp.dispositivo_substituido = p
+            ndp.dispositivo_subsequente = n
 
-                if n:
-                    ndp.fim_eficacia = n.inicio_eficacia - \
-                        timedelta(days=1)
-                    ndp.fim_vigencia = n.inicio_vigencia - \
-                        timedelta(days=1)
-                ndp.save()
+            if n:
+                ndp.fim_eficacia = n.inicio_eficacia - \
+                    timedelta(days=1)
+                ndp.fim_vigencia = n.inicio_vigencia - \
+                    timedelta(days=1)
+            ndp.save()
 
-                p.dispositivo_subsequente = ndp
-                p.fim_eficacia = ndp.inicio_eficacia - timedelta(days=1)
-                p.fim_vigencia = ndp.inicio_vigencia - timedelta(days=1)
-                p.save()
+            p.dispositivo_subsequente = ndp
+            p.fim_eficacia = ndp.inicio_eficacia - timedelta(days=1)
+            p.fim_vigencia = ndp.inicio_vigencia - timedelta(days=1)
+            p.save()
 
-                if n:
-                    n.dispositivo_substituido = ndp
-                    n.save()
+            if n:
+                # a ordem desse objeto foi alterada pela função criar_espaco
+                # deve ser recarregado para atualização
+                n.refresh_from_db()
+                n.dispositivo_substituido = ndp
+                n.save()
 
             filhos_diretos = dispositivo_a_alterar.dispositivos_filhos_set
             for d in filhos_diretos.all():
@@ -3020,7 +3042,8 @@ class TextNotificacoesView(CompMixin, ListView, FormView):
                  _('Dispositivo está substituindo um Dispositivo que não '
                    'possui este como seu Dispositivo Subsequente.'))
 
-            padd(r, type_notificacao,
+            padd(r,
+                 type_notificacao,
                  'sapl.compilacao:dispositivo_edit_alteracao',
                  r.dispositivo_subsequente and
                  r.dispositivo_subsequente.dispositivo_substituido != r,
