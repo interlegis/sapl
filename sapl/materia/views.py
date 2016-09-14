@@ -1269,38 +1269,24 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return context
 
     def post(self, request, *args, **kwargs):
-        return self.get(request, self.kwargs)
+        marcadas = request.POST.getlist('materia_id')
 
-    # def post(self, request, *args, **kwargs):
-    #     marcadas = request.POST.getlist('materia_id')
-    #
-    #     for m in marcadas:
-    #         try:
-    #             tipo_votacao = request.POST['tipo_votacao_%s' % m]
-    #         except MultiValueDictKeyError:
-    #             msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
-    #                     'o tipo de votação de %s' %
-    #                     MateriaLegislativa.objects.get(id=m))
-    #             messages.add_message(request, messages.ERROR, msg)
-    #             return self.get(request, self.kwargs)
-    #
-    #         if tipo_votacao:
-    #             lista_materias_expediente = ExpedienteMateria.objects.filter(
-    #                 sessao_plenaria_id=self.kwargs[
-    #                     'pk'])
-    #
-    #             materia = MateriaLegislativa.objects.get(id=m)
-    #
-    #             expediente = ExpedienteMateria()
-    #             expediente.sessao_plenaria_id = self.kwargs['pk']
-    #             expediente.materia_id = materia.id
-    #             if lista_materias_expediente:
-    #                 posicao = lista_materias_expediente.last().numero_ordem + 1
-    #                 expediente.numero_ordem = posicao
-    #             else:
-    #                 expediente.numero_ordem = 1
-    #             expediente.data_ordem = datetime.now()
-    #             expediente.tipo_votacao = request.POST['tipo_votacao_%s' % m]
-    #             expediente.save()
-    #
-    #     return self.get(request, self.kwargs)
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
+        for materia_id in marcadas:
+            DocumentoAcessorio.objects.create(
+                materia_id=materia_id,
+                tipo=tipo,
+                arquivo=request.POST['arquivo'],
+                nome=request.POST['nome'],
+                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
+                autor=request.POST['autor'],
+                ementa=request.POST['ementa']
+            )
+        msg = _('Documento(s) criado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(reverse('sapl.materia:acessorio_lote'))

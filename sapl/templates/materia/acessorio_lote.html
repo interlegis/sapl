@@ -25,7 +25,7 @@
         <div class="row">
   	      <div class="col-md-4">
   	        <label>Tipo*</label>
-  	        <select name="legislatura" class="form-control" required="True">
+  	        <select name="tipo" class="form-control" required="True">
   	          {% for t in tipos_docs %} <option>{{t}}</option> {% endfor %}
   	        </select>
   	      </div>
@@ -37,7 +37,7 @@
 
           <div class="col-md-4">
             <label>Data*</label>
-            <input type="text" name="data "class="form-control dateinput" required="True">
+            <input type="text" name="data" class="form-control dateinput" required="True">
           </div>
         </div>
 
@@ -58,7 +58,7 @@
         <div class="row">
           <div class="col-md-12">
             <label>Texto Integral*</label>
-            <input type="file" name="autor" required="True">
+            <input type="file" name="arquivo" required="True">
           </div>
         </div>
       </fieldset>
