@@ -922,16 +922,17 @@ class ResumoView(SessaoCrud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class ExpedienteView(PermissionRequiredMixin,
-                     FormMixin,
+class ExpedienteView(FormMixin,
                      SessaoCrud.CrudDetailView):
     template_name = 'sessao/expediente.html'
     form_class = ExpedienteForm
-    permission_required = permissoes_sessao()
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = ExpedienteForm(request.POST)
+
+        if not self.request.user.has_perms(permissoes_sessao()):
+            return self.form_invalid(form)
 
         if form.is_valid():
             list_tipo = request.POST.getlist('tipo')

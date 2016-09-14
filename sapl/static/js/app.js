@@ -1,4 +1,4 @@
-function initTinymce(elements) {
+function initTinymce(elements, readonly=false) {
     removeTinymce();
     var config_tinymce = {
         force_br_newlines : false,
@@ -11,6 +11,11 @@ function initTinymce(elements) {
         border_css: "/static/styles/style_tinymce.css",
         content_css: "/static/styles/style_tinymce.css",
     }
+
+    if (readonly) {
+       config_tinymce.readonly = 1
+    }
+
     if (elements != null) {
         config_tinymce['elements'] = elements;
         config_tinymce['mode'] = "exact";
