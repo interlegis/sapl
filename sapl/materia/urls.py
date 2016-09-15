@@ -18,7 +18,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 StatusTramitacaoCrud, TipoAutorCrud,
                                 TipoDocumentoCrud, TipoFimRelatoriaCrud,
                                 TipoMateriaCrud, TipoProposicaoCrud,
-                                TramitacaoCrud, UnidadeTramitacaoCrud)
+                                TramitacaoCrud, TramitacaoEmLoteView,
+                                UnidadeTramitacaoCrud)
 
 from .apps import AppConfig
 
@@ -93,4 +94,6 @@ urlpatterns = [
     url(r'^primeira-tramitacao-em-lote',
         PrimeiraTramitacaoEmLoteView.as_view(),
         name='primeira_tramitacao_em_lote'),
+    url(r'^tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
+        name='tramitacao_em_lote'),
 ]
