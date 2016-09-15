@@ -3,9 +3,6 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-<fieldset>
-	<legend>Resumo</legend>
-
 	<fieldset>
 		<legend>Identificação Básica</legend>
     <div class="row">
@@ -14,6 +11,7 @@
       {% endfor %}
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Conteúdo Multimídia</legend>
@@ -22,6 +20,7 @@
       <div class="col-md-6">{{multimidia_video}}</div>
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Mesa Diretora</legend>
@@ -31,6 +30,7 @@
       {% endfor %}
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Lista de Presença na Sessão</legend>
@@ -40,6 +40,7 @@
       {% endfor %}
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Expedientes</legend>
@@ -49,13 +50,14 @@
 					<tr>
 						<td>
 							<b>{{e.tipo}}: </b> <br />
-							<p style="text-indent: 50px;">{{e.conteudo}}</p>
+							<textarea name="ementa" class="textarea form-control" cols="40" rows="10" readonly="readonly">{{e.conteudo}}</textarea>
 						</td>
 					</tr>
 				{% endfor %}
 			</thead>
 		</table>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Matérias do Expediente</legend>
@@ -76,6 +78,7 @@
       {% endfor %}
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Oradores do Expediente</legend>
@@ -90,6 +93,7 @@
       {% endfor %}
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Lista de Presença na Ordem do Dia</legend>
@@ -99,6 +103,7 @@
       {% endfor %}
     </div>
 	</fieldset>
+	<br /><br /><br />
 
 	<fieldset>
 		<legend>Matérias da Ordem do Dia</legend>
@@ -119,6 +124,4 @@
       {% endfor %}
     </div>
 	</fieldset>
-
-</fieldset>
 {% endblock detail_content %}
