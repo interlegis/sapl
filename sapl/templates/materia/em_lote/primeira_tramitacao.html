@@ -1,0 +1,113 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+{% block actions %}{% endblock %}
+{% block sections_nav %}{% endblock %}
+{% block detail_content %}
+
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    {% if object_list.count > 0 %}
+      {% if object_list.count == 1 %}
+        <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
+      {% else %}
+        <h3 style="text-align: right;">{% blocktrans with object_list.count as total_materias %}Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+      {% endif %}
+    {% else %}
+      <tr><td><h3 style="text-align: right;">Nenhuma matéria encontrada.</h3></td></tr>
+    {% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <fieldset>
+        <legend>Detalhes da tramitação</legend>
+
+        <div class="row">
+          <div class="col-md-4">
+            <label>Data da Tramitação*</label>
+            <input type="text" name="data_tramitacao" class="form-control dateinput" required="True">
+          </div>
+
+          <div class="col-md-4">
+            <label>Data Encaminhamento</label>
+            <input type="text" name="data_encaminhamento" class="form-control dateinput">
+          </div>
+
+          <div class="col-md-4">
+            <label>Data Fim do Prazo</label>
+            <input type="text" name="data_fim_prazo" class="form-control dateinput">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <label>Unidade Local*</label>
+            <select name="unidade_tramitacao_local" class="form-control" required="True">
+              {% for u in unidade_tramitacao %} <option>{{u}}</option> {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label>Unidade Destino*</label>
+            <select name="unidade_tramitacao_destino" class="form-control" required="True">
+              {% for u in unidade_tramitacao %} <option>{{u}}</option> {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <label>Status*</label>
+            <select name="status" class="form-control" required="True">
+              {% for s in status_tramitacao %} <option>{{s}}</option> {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label>Urgente?*</label>
+            <select name="urgente" class="form-control" required="True">
+              {% for u in urgente_tramitacao %} <option>{{u}}</option> {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label>Turno</label>
+            <select name="turno" class="form-control">
+              {% for t in turnos_tramitacao %} <option>{{t}}</option> {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <label>Texto de Ação*</label>
+            <textarea name="ementa" class="textarea form-control" cols="40" rows="10" required="True"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <br /><br /><br />
+
+      <fieldset>
+        <legend>Selecione as matérias para primeira tramitação</legend>
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr><th>Matéria</th></tr>
+          </thead>
+          <tbody>
+              {% for materia in object_list %}
+                <tr>
+                  <td>
+                    <input type="checkbox" name="materia_id" value="{{materia.id}}" {% if check %} checked {% endif %}/>
+                    {{materia.tipo.sigla}} {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
+                  </td>
+                </tr>
+              {% endfor %}
+          </tbody>
+        </table>
+      </fieldset>
+      <input type="submit" value="Salvar" class="btn btn-primary"S>
+    </form>
+  {% endif %}
+{% endblock detail_content %}

@@ -30,15 +30,17 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
-from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
-                        get_base_url, permissao_tb_aux, permissoes_autor,
-                        permissoes_materia, permissoes_protocoloadm)
+from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
+                        autor_modal, gerar_hash_arquivo, get_base_url,
+                        permissao_tb_aux, permissoes_autor, permissoes_materia,
+                        permissoes_protocoloadm)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaForm, AutorForm, AutoriaForm,
                     ConfirmarProposicaoForm, DespachoInicialForm,
                     DocumentoAcessorioForm, LegislacaoCitadaForm,
-                    MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
+                    MateriaLegislativaFilterSet, NumeracaoForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoForm,
                     ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
                     TramitacaoUpdateForm, UnidadeTramitacaoForm,
                     filtra_tramitacao_destino,
@@ -1251,7 +1253,7 @@ def do_envia_email_tramitacao(request, materia):
 
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
-    template_name = 'materia/acessorio_lote.html'
+    template_name = 'materia/em_lote/acessorio.html'
     permission_required = permissoes_materia()
 
     def get_context_data(self, **kwargs):
@@ -1265,6 +1267,53 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         context['tipos_docs'] = TipoDocumento.objects.all()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
+
+        for materia_id in marcadas:
+            DocumentoAcessorio.objects.create(
+                materia_id=materia_id,
+                tipo=tipo,
+                arquivo=request.POST['arquivo'],
+                nome=request.POST['nome'],
+                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
+                autor=Autor.objects.get(id=request.POST['autor']),
+                ementa=request.POST['ementa']
+            )
+        msg = _('Documento(s) criado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(request, self.kwargs)
+
+
+class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = PrimeiraTramitacaoEmLoteFilterSet
+    template_name = 'materia/em_lote/primeira_tramitacao.html'
+    permission_required = permissoes_materia()
+
+    def get_context_data(self, **kwargs):
+        context = super(PrimeiraTramitacaoEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Primeira Tramitação em Lote')
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['unidade_tramitacao'] = UnidadeTramitacao.objects.all()
+        context['status_tramitacao'] = StatusTramitacao.objects.all()
+        context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
+        context['urgente_tramitacao'] = YES_NO_CHOICES
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
 
