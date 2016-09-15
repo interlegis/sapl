@@ -1329,20 +1329,31 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
+        if request.POST['data_encaminhamento']:
+            data_encaminhamento = datetime.strptime(
+                request.POST['data_encaminhamento'], "%d/%m/%Y")
+        else:
+            data_encaminhamento = None
+
+        if request.POST['data_fim_prazo']:
+            data_fim_prazo = datetime.strptime(
+                request.POST['data_fim_prazo'], "%d/%m/%Y")
+        else:
+            data_fim_prazo = None
+
         for materia_id in marcadas:
             Tramitacao.objects.create(
                 materia_id=materia_id,
                 data_tramitacao=datetime.strptime(
                     request.POST['data_tramitacao'], "%d/%m/%Y"),
-                data_encaminhamento=datetime.strptime(
-                    request.POST['data_encaminhamento'], "%d/%m/%Y") or None,
-                data_fim_prazo=datetime.strptime(
-                    request.POST['data_fim_prazo'], "%d/%m/%Y") or None,
+                data_encaminhamento=data_encaminhamento,
+                data_fim_prazo=data_fim_prazo,
                 unidade_tramitacao_local_id=request.POST[
                     'unidade_tramitacao_local'],
                 unidade_tramitacao_destino_id=request.POST[
                     'unidade_tramitacao_destino'],
                 urgente=request.POST['urgente'],
+                status_id=request.POST['status'],
                 turno=request.POST['turno'],
                 texto=request.POST['texto']
             )
