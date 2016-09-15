@@ -4,7 +4,8 @@ from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
 from .forms import LoginForm
-from .views import (CasaLegislativaCrud, HelpView, RelatorioAtasView,
+from .views import (AppConfigCrud,
+                    CasaLegislativaCrud, HelpView, RelatorioAtasView,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
@@ -22,7 +23,8 @@ urlpatterns = [
     url(r'^ajuda/(?P<topic>\w+)$', HelpView.as_view(), name='help_topic'),
     url(r'^ajuda/', TemplateView.as_view(template_name='ajuda/index.html'),
         name='help_base'),
-    url(r'^casa_legislativa/', include(CasaLegislativaCrud.get_urls())),
+    url(r'^casa-legislativa/', include(CasaLegislativaCrud.get_urls())),
+    url(r'^app-config/', include(AppConfigCrud.get_urls())),
 
     url(r'^login/$', views.login, {
         'template_name': 'base/login.html', 'authentication_form': LoginForm},
