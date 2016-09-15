@@ -2070,6 +2070,11 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         4 - Se é um dispositivo articulado com subsequente
             - não deveria ter filhos locais
+
+        5 - Alterações em dispositivo articulado só são relevantes para
+            alteração de rótulo. O editor dinâmico não possibilita essa
+            mudança, porém, após registro de alteração, a mudança de rótulo
+            pode ser feita no editor avançado.
         """
 
         data = {}
@@ -2079,6 +2084,12 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         history = dispositivo_a_alterar.history()
 
         for d in history:
+            """FIXME: A comparação "<" deverá ser mudada para
+                "<=" caso um seja necessário permitir duas alterações
+                com mesmo inicio_vigencia no mesmo dispositivo. Neste Caso,
+                a sequencia correta ficará a cargo dos reposicionamentos entre
+                dispositivos de mesmo nível,
+            """
             if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
                 dispositivo_a_alterar = d
                 break

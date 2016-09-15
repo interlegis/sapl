@@ -636,16 +636,20 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         btns_excluir = []
 
-        btns_excluir = [
-            HTML('<a class="btn btn-danger btn-action btn-excluir" '
-                 'action="json_delete_item_dispositivo" '
-                 'title="%s" '
-                 'pk="%s" '
-                 '>%s</a>' % (_('Excluir apenas este dispositivo.'),
-                              inst.pk,
-                              _('Excluir Dispositivo')))]
+        if not inst.tipo_dispositivo.dispositivo_de_alteracao and \
+                not inst.tipo_dispositivo.dispositivo_de_articulacao:
+            btns_excluir = [
+                HTML('<a class="btn btn-danger btn-action btn-excluir" '
+                     'action="json_delete_item_dispositivo" '
+                     'title="%s" '
+                     'pk="%s" '
+                     '>%s</a>' % (_('Excluir apenas este dispositivo.'),
+                                  inst.pk,
+                                  _('Excluir Dispositivo')))]
 
-        if inst.dispositivos_filhos_set.exists():
+        if inst.dispositivos_filhos_set.exists() or (
+                inst.tipo_dispositivo.dispositivo_de_alteracao and
+                inst.tipo_dispositivo.dispositivo_de_articulacao):
             btns_excluir.append(
                 HTML(
                     '<a class="btn btn-danger btn-action btn-excluir" '
@@ -1250,7 +1254,8 @@ class DispositivoRegistroAlteracaoForm(Form):
             data_type_selection='radio',
             template="compilacao/layout/dispositivo_radio.html")
 
-        layout.append(Fieldset(_('Registro de Alteração - Seleção do Dispositivo a ser alterado'),
+        layout.append(Fieldset(_('Registro de Alteração - '
+                                 'Seleção do Dispositivo a ser alterado'),
                                row_dispositivo,
                                css_class="col-md-12"))
         layout.append(Field('dispositivo_search_form'))

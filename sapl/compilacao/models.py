@@ -650,6 +650,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
              'dispositivo5',
              'tipo_dispositivo',
              'dispositivo_pai',
+             'dispositivo_atualizador',
              'ta_publicado',
              'publicacao',),
         )

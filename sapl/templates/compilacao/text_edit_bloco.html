@@ -7,9 +7,11 @@
       <div class="dpt-actions"></div>
       <div class="dpt-actions-fixed">
         <a class="btn-action btn-dpt-edit btn btn-default btn-sm" pk="{{node.dpt.pk}}" title=""><span class="deactivate">{% trans 'Editar'%}</span><span class="activate">{% trans 'Em Edição'%}:</span> {{ node.td.nome }} {{ node.dpt.rotulo }}</a>
-        <a class="btn-action btn-dpt-edit btn btn-warning btn-sm activate" pk="{{node.dpt.pk}}" action="editor-help" data-toggle="modal" data-target="#modal-help"><span class="deactivate"></span><span class="activate"><i class="fa fa-question" aria-hidden="true"></i></span></a>
         <div class="btn-group">
-        <a class="btn-action btn-dpt-edit btn btn-info btn-sm activate" pk="{{node.dpt.pk}}" action="editor-close" title="{% trans 'Fechar Edição' %}"><span class="deactivate"></span><span class="activate"><i class="fa fa-times" aria-hidden="true"></i></span></a>
+          <a class="btn-action btn-dpt-edit btn btn-warning btn-sm activate" pk="{{node.dpt.pk}}" action="editor-help" data-toggle="modal" data-target="#modal-help"><span class="deactivate"></span><span class="activate"><i class="fa fa-question" aria-hidden="true"></i></span></a>
+        </div>
+        <div class="btn-group">
+          <a class="btn-action btn-dpt-edit btn btn-info btn-sm activate" pk="{{node.dpt.pk}}" action="editor-close" title="{% trans 'Fechar Edição' %}"><span class="deactivate"></span><span class="activate"><i class="fa fa-times" aria-hidden="true"></i></span></a>
         </div>
         {% if not node.dpt.rotulo and not node.dpt.texto and node.td.dispositivo_de_articulacao%}
         {% endif %}
