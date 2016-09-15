@@ -2220,18 +2220,22 @@ class DispositivoDinamicEditView(
             self.object = Dispositivo.objects.get(
                 pk=self.kwargs['dispositivo_id'])
 
+            ta_id = self.kwargs['ta_id']
+
             context = {}
             context['object'] = self.object
-            context['allowed_inserts'] = self.allowed_inserts()
 
-            if 'perfil_pk' in request.GET:
-                self.set_perfil_in_session(
-                    request, request.GET['perfil_pk'])
-            elif 'perfil_estrutural' not in request.session:
-                self.set_perfil_in_session(request=request)
+            if ta_id == str(self.object.ta_id):
+                context['allowed_inserts'] = self.allowed_inserts()
 
-            context['perfil_estrutural_list'
-                    ] = PerfilEstruturalTextoArticulado.objects.all()
+                if 'perfil_pk' in request.GET:
+                    self.set_perfil_in_session(
+                        request, request.GET['perfil_pk'])
+                elif 'perfil_estrutural' not in request.session:
+                    self.set_perfil_in_session(request=request)
+
+                context['perfil_estrutural_list'
+                        ] = PerfilEstruturalTextoArticulado.objects.all()
 
             return self.render_to_response(context)
 
