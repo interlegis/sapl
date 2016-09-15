@@ -21,7 +21,7 @@
     <form method="POST">
       {% csrf_token %}
       <fieldset>
-        <legend>Detalhes da tramitação</legend>
+        <legend>1. Detalhes da tramitação:</legend>
 
         <div class="row">
           <div class="col-md-4">
@@ -44,14 +44,16 @@
           <div class="col-md-6">
             <label>Unidade Local*</label>
             <select name="unidade_tramitacao_local" class="form-control" required="True">
-              {% for u in unidade_tramitacao %} <option>{{u}}</option> {% endfor %}
+              <option>----------</option>
+              {% for u in unidade_tramitacao %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
           </div>
 
           <div class="col-md-6">
             <label>Unidade Destino*</label>
             <select name="unidade_tramitacao_destino" class="form-control" required="True">
-              {% for u in unidade_tramitacao %} <option>{{u}}</option> {% endfor %}
+              <option>----------</option>
+              {% for u in unidade_tramitacao %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
           </div>
         </div>
@@ -60,21 +62,24 @@
           <div class="col-md-4">
             <label>Status*</label>
             <select name="status" class="form-control" required="True">
-              {% for s in status_tramitacao %} <option>{{s}}</option> {% endfor %}
+              <option>----------</option>
+              {% for s in status_tramitacao %} <option value="{{s.id}}">{{s}}</option> {% endfor %}
             </select>
           </div>
 
           <div class="col-md-4">
             <label>Urgente?*</label>
             <select name="urgente" class="form-control" required="True">
-              {% for u in urgente_tramitacao %} <option>{{u}}</option> {% endfor %}
+              <option>----------</option>
+              {% for u in urgente_tramitacao %} <option value="{{u|first}}">{{u|last}}</option> {% endfor %}
             </select>
           </div>
 
           <div class="col-md-4">
             <label>Turno</label>
             <select name="turno" class="form-control">
-              {% for t in turnos_tramitacao %} <option>{{t}}</option> {% endfor %}
+              <option>----------</option>
+              {% for t in turnos_tramitacao %} <option value="{{t|first}}">{{t|last}}</option> {% endfor %}
             </select>
           </div>
         </div>
@@ -90,7 +95,7 @@
       <br /><br /><br />
 
       <fieldset>
-        <legend>Selecione as matérias para primeira tramitação</legend>
+        <legend>2. Selecione as matérias para primeira tramitação:</legend>
         <table class="table table-striped table-hover">
           <thead>
             <tr><th>Matéria</th></tr>
