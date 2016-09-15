@@ -22,7 +22,7 @@
 
   {% crispy filter.form %}
   <p></p>
-  <table class="table table-striped table-bordered">
+  <table class="table table-striped table-hover">
         <thead class="thead-default">
             <tr><td><h3>Resultados</h3></td></tr>
         </thead>
@@ -33,12 +33,15 @@
               <h3>Foi encontrada {{numero_res}} sessão.</h3></br>
             {% endif %}
 
-          {% for s in page_obj %}
-            
+          {% for s in page_obj %}            
               <tr>
                   <td>
-                      <strong><a href="{% url 'sapl.sessao:sessaoplenaria_detail' s.id %}">{{s.numero}}ª Sessão {{s.tipo.nome}} da {{s.sessao_legislativa.numero}}ª Sessão Legislativa da {{s.legislatura.id}}ª Legislatura</strong></a></br>
-                      <p></p>
+                      <strong><a href="{% url 'sapl.sessao:sessaoplenaria_detail' s.id %}">{{s}}</strong></a></br>
+                      <strong>Abertura:</strong> {{s.data_inicio}}</br>
+                      <strong>Legislatura:</strong> {{s.legislatura}}</br>
+                      <strong>Sessão Legislativa:</strong> {{s.sessao_legislativa}}</br>
+                      <strong>Tipo:</strong> {{s.tipo}}</br>
+                  </>
               </tr>
           {% endfor %}
         {% else  %}
