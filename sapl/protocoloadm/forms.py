@@ -299,13 +299,6 @@ class AnularProcoloAdmForm(ModelForm):
 
 class ProtocoloDocumentForm(ModelForm):
 
-    NUMERACAO_CHOICES = [('1', _('Sequencial por Ano')),
-                         ('2', _('Sequencial Único'))]
-
-    numeracao = forms.ChoiceField(required=True,
-                                  choices=NUMERACAO_CHOICES,
-                                  label='')
-
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
                                        choices=TIPOS_PROTOCOLO,)
@@ -329,8 +322,7 @@ class ProtocoloDocumentForm(ModelForm):
 
     class Meta:
         model = Protocolo
-        fields = ['numeracao',
-                  'tipo_protocolo',
+        fields = ['tipo_protocolo',
                   'tipo_documento',
                   'num_paginas',
                   'assunto',
@@ -341,28 +333,25 @@ class ProtocoloDocumentForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [(InlineRadios('numeracao'), 12)])
-        row2 = to_row(
             [(InlineRadios('tipo_protocolo'), 12)])
-        row3 = to_row(
+        row2 = to_row(
             [('tipo_documento', 6),
              ('num_paginas', 6)])
-        row4 = to_row(
+        row3 = to_row(
             [('assunto', 12)])
-        row5 = to_row(
+        row4 = to_row(
             [('interessado', 12)])
-        row6 = to_row(
+        row5 = to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset(_('Protocolo - Opção de Numeração'), row1),
             Fieldset(_('Identificação de Documento'),
+                     row1,
                      row2,
                      row3,
                      row4,
                      row5,
-                     row6,
                      HTML("&nbsp;"),
                      form_actions(save_label=_('Protocolar Documento'))
                      )
@@ -372,13 +361,6 @@ class ProtocoloDocumentForm(ModelForm):
 
 
 class ProtocoloMateriaForm(ModelForm):
-
-    NUMERACAO_CHOICES = [('1', 'Sequencial por Ano'),
-                         ('2', 'Sequencial Único')]
-
-    numeracao = forms.ChoiceField(required=True,
-                                  choices=NUMERACAO_CHOICES,
-                                  label='')
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label='Tipo de Protocolo',
@@ -398,8 +380,7 @@ class ProtocoloMateriaForm(ModelForm):
 
     class Meta:
         model = Protocolo
-        fields = ['numeracao',
-                  'tipo_protocolo',
+        fields = ['tipo_protocolo',
                   'tipo_materia',
                   'numero_paginas',
                   'autor',
@@ -408,10 +389,9 @@ class ProtocoloMateriaForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [(InlineRadios('numeracao'), 12)])
+            [(InlineRadios('tipo_protocolo'), 12)])
         row2 = to_row(
             [('tipo_materia', 4),
-             (InlineRadios('tipo_protocolo'), 4),
              ('numero_paginas', 4)])
         row3 = to_row(
             [('autor', 0),
@@ -426,8 +406,8 @@ class ProtocoloMateriaForm(ModelForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Fieldset(_('Protocolo - Opção de Numeração'), row1),
             Fieldset(_('Identificação da Matéria'),
+                     row1,
                      row2,
                      HTML(autor_label),
                      HTML(autor_modal),
