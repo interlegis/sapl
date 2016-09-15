@@ -1,7 +1,17 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block actions %}{% endblock %}
+
+{% block actions %}
+  <div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-default">
+        {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
+    </a>
+  {% if filter_url %}
+      <a href="{% url 'sapl.sessao:pesquisar_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+  {% endif %}
+  </div>
+{% endblock %}
 
 {% block sections_nav %} {% endblock %}
 
@@ -11,7 +21,6 @@
  
 
   {% crispy filter.form %}
-  {% if filter_url %}      
   <p></p>
   <table class="table table-striped table-bordered">
         <thead class="thead-default">
@@ -19,9 +28,9 @@
         </thead>
         {% if page_obj|length %}
           {% if numero_res > 1 %}
-              <h3>Pesquisa concluída com sucesso! Foram encontradas {{numero_res}} sessões.</h3>
+              <h3>Foram encontradas {{numero_res}} sessões.</h3></br>
             {% elif numero_res == 1 %}
-              <h3>Pesquisa concluída com sucesso! Foi encontrada {{numero_res}} sessão.</h3>
+              <h3>Foi encontrada {{numero_res}} sessão.</h3></br>
             {% endif %}
 
           {% for s in page_obj %}
@@ -42,6 +51,5 @@
     </table>
 
 {% include "paginacao.html" %}
-{% endif %}
 
 {% endblock detail_content %}

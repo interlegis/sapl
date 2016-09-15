@@ -1,29 +1,50 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load common_tags %}
 
 {% block detail_content %}
 
-<form method="post">
-	{% csrf_token %}
+{% if perms|get_add_perm:view %}
+	<form method="post">
+		{% csrf_token %}
+
+		{% for e in expedientes %}
+			<fieldset class="form-group">
+				<legend>{{e.tipo}}</legend>
+				<input type="hidden" name="tipo" id="tipo" value="{{e.tipo.id}}" class="form-control"/>
+				<textarea rows="5" cols="50" name="conteudo" id="conteudo" class="form-control">{{e.conteudo}}</textarea>
+				<br />
+			</fieldset>
+		{% endfor %}
+
+		<br />
+		<input type="submit" value="Salvar" class="btn btn-primary"/>
+	</form>
+
+{% else %}
 
 	{% for e in expedientes %}
-		<fieldset class="form-group">
-			<legend>{{e.tipo}}</legend>
-			<input type="hidden" name="tipo" id="tipo" value="{{e.tipo.id}}" class="form-control"/>
-			<textarea rows="5" cols="50" name="conteudo" id="conteudo" class="form-control">{{e.conteudo}}</textarea>
-			<br />
-		</fieldset>
+			<fieldset class="form-group">
+				<legend>{{e.tipo}}</legend>
+				<textarea rows="5" cols="50" name="conteudo" id="conteudo" class="form-control">{{e.conteudo}}</textarea>
+				<br />
+			</fieldset>
 	{% endfor %}
 
-	<br />
-	<input type="submit" value="Salvar" class="btn btn-primary"/>
-</form>
+{% endif %}
 
 {% endblock detail_content %}
 <!-- Texto RICO --> 
 {% block extra_js %}
-	<script language="JavaScript">
-		initTinymce(null);
-	</script>
+	{% if perms|get_add_perm:view %}
+		<script language="JavaScript">
+			initTinymce(null);
+		</script>
+	<!-- Se nao tiver permissao, o texto rico fica readonly -->
+	{% else %}
+		<script language="JavaScript">
+			initTinymce(null, true);
+		</script>
+	{% endif %}
 {% endblock %}

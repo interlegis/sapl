@@ -18,11 +18,16 @@ class Legislatura(models.Model):
         verbose_name = _('Legislatura')
         verbose_name_plural = _('Legislaturas')
 
+    def atual(self):
+        current_year = datetime.now().year
+        if(self.data_inicio.year <= current_year and
+           self.data_fim.year >= current_year):
+            return True
+        else:
+            return False
+
     def __str__(self):
-        # XXX Usar id mesmo? Ou criar campo para nº legislatura?
-        current_date = datetime.now().year
-        if(self.data_inicio.year <= current_date and
-           self.data_fim.year >= current_date):
+        if self.atual():
             current = ' (%s)' % _('Atual')
         else:
             current = ''

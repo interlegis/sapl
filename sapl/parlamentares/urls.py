@@ -24,7 +24,7 @@ urlpatterns = [
         ProposicaoParlamentarCrud.get_urls() +
         RelatoriaParlamentarCrud.get_urls()
     )),
-    url(r'^coligacao/',
+    url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
                 ComposicaoColigacaoCrud.get_urls())),
 

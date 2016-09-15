@@ -4,6 +4,7 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
+from django.db.models import Q
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -31,14 +32,15 @@ from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
                         get_base_url, permissao_tb_aux, permissoes_autor,
-                        permissoes_materia)
+                        permissoes_materia, permissoes_protocoloadm)
 
 from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
                     AutoriaForm, ConfirmarProposicaoForm, DespachoInicialForm,
                     DocumentoAcessorioForm, LegislacaoCitadaForm,
                     MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
                     ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
-                    UnidadeTramitacaoForm, filtra_tramitacao_destino,
+                    TramitacaoUpdateForm, UnidadeTramitacaoForm,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
@@ -242,11 +244,12 @@ class UnidadeTramitacaoCrud(Crud):
         permission_required = permissoes_materia()
 
 
-class ProposicaoDevolvida(ListView):
+class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_devolvidas_list.html'
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
+    permission_required = permissoes_protocoloadm()
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -264,11 +267,12 @@ class ProposicaoDevolvida(ListView):
         return context
 
 
-class ProposicaoPendente(ListView):
+class ProposicaoPendente(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_pendentes_list.html'
     model = Proposicao
     ordering = ['data_envio', 'autor', 'tipo', 'descricao']
     paginate_by = 10
+    permission_required = permissoes_protocoloadm()
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -286,11 +290,12 @@ class ProposicaoPendente(ListView):
         return context
 
 
-class ProposicaoRecebida(ListView):
+class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_recebidas_list.html'
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
+    permission_required = permissoes_protocoloadm()
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -308,9 +313,10 @@ class ProposicaoRecebida(ListView):
         return context
 
 
-class ReceberProposicao(CreateView):
+class ReceberProposicao(PermissionRequiredMixin, CreateView):
     template_name = "materia/receber_proposicao.html"
     form_class = ReceberProposicaoForm
+    permission_required = permissoes_protocoloadm()
 
     def get_context_data(self, **kwargs):
         context = super(ReceberProposicao, self).get_context_data(**kwargs)
@@ -340,9 +346,10 @@ class ReceberProposicao(CreateView):
         return reverse('sapl.materia:receber-proposicao')
 
 
-class ConfirmarProposicao(CreateView):
+class ConfirmarProposicao(PermissionRequiredMixin, CreateView):
     template_name = "materia/confirmar_proposicao.html"
     form_class = ConfirmarProposicaoForm
+    permission_required = permissoes_protocoloadm()
 
     def get_context_data(self, **kwargs):
         context = super(ConfirmarProposicao, self).get_context_data(**kwargs)
@@ -432,37 +439,35 @@ class ProposicaoCrud(Crud):
 
         def has_permission(self):
             perms = self.get_permission_required()
-            if self.request.user.has_perms(perms):
-                if (Proposicao.objects.filter(
-                   id=self.kwargs['pk'],
-                   autor__user_id=self.request.user.id).exists()):
-                    proposicao = Proposicao.objects.get(
-                        id=self.kwargs['pk'],
-                        autor__user_id=self.request.user.id)
-                    if not proposicao.data_recebimento:
-                        return True
-                    else:
-                        msg = _('Essa proposição já foi recebida. ' +
-                                'Não pode mais ser editada')
-                        messages.add_message(self.request, messages.ERROR, msg)
-                        return False
-            else:
+            if not self.request.user.has_perms(perms):
                 return False
+
+            if (Proposicao.objects.filter(
+               id=self.kwargs['pk'],
+               autor__user_id=self.request.user.id).exists()):
+                proposicao = Proposicao.objects.get(
+                    id=self.kwargs['pk'],
+                    autor__user_id=self.request.user.id)
+                if (not proposicao.data_recebimento or
+                   proposicao.data_devolucao):
+                    return True
+                else:
+                    msg = _('Essa proposição já foi recebida. ' +
+                            'Não pode mais ser editada')
+                    messages.add_message(self.request, messages.ERROR, msg)
+                    return False
 
     class DetailView(PermissionRequiredMixin, CrudDetailView):
         permission_required = permissoes_autor()
 
         def has_permission(self):
             perms = self.get_permission_required()
-            if self.request.user.has_perms(perms):
-                if (Proposicao.objects.filter(
-                   id=self.kwargs['pk'],
-                   autor__user_id=self.request.user.id).exists()):
-                    return True
-                else:
-                    return False
-            else:
+            if not self.request.user.has_perms(perms):
                 return False
+
+            return (Proposicao.objects.filter(
+                id=self.kwargs['pk'],
+                autor__user_id=self.request.user.id).exists())
 
     class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
@@ -479,28 +484,52 @@ class ProposicaoCrud(Crud):
                     obj.data_recebimento = 'Não recebida'
                 else:
                     obj.data_recebimento = obj.data_recebimento.strftime(
-                                            "%d/%m/%Y %H:%M")
+                        "%d/%m/%Y %H:%M")
 
             return [self._as_row(obj) for obj in object_list]
 
         def get_queryset(self):
+            # Só tem acesso as Proposicoes criadas por ele que ainda nao foram
+            # recebidas ou foram devolvidas
             lista = Proposicao.objects.filter(
                 autor__user_id=self.request.user.id)
+            lista = lista.filter(
+                Q(data_recebimento__isnull=True) |
+                Q(data_devolucao__isnull=False))
+
             return lista
 
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = {'materia.delete_proposicao'}
 
+        def has_permission(self):
+            perms = self.get_permission_required()
+            if not self.request.user.has_perms(perms):
+                return False
+
+            return (Proposicao.objects.filter(
+                id=self.kwargs['pk'],
+                autor__user_id=self.request.user.id).exists())
+
         def delete(self, request, *args, **kwargs):
             proposicao = Proposicao.objects.get(id=self.kwargs['pk'])
 
-            if not proposicao.data_envio:
+            if not proposicao.data_envio or proposicao.data_devolucao:
                 proposicao.delete()
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao_list'))
-            else:
+
+            elif not proposicao.data_recebimento:
                 proposicao.data_envio = None
                 proposicao.save()
+                return HttpResponseRedirect(
+                    reverse('sapl.materia:proposicao_detail',
+                            kwargs={'pk': proposicao.pk}))
+
+            else:
+                msg = _('Essa proposição já foi recebida. ' +
+                        'Não pode mais ser excluída/recuperada')
+                messages.add_message(self.request, messages.ERROR, msg)
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao_detail',
                             kwargs={'pk': proposicao.pk}))
@@ -508,6 +537,16 @@ class ProposicaoCrud(Crud):
 
 class ReciboProposicaoView(TemplateView):
     template_name = "materia/recibo_proposicao.html"
+    permission_required = permissoes_autor()
+
+    def has_permission(self):
+            perms = self.get_permission_required()
+            if not self.request.user.has_perms(perms):
+                return False
+
+            return (Proposicao.objects.filter(
+                id=self.kwargs['pk'],
+                autor__user_id=self.request.user.id).exists())
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(
@@ -515,8 +554,8 @@ class ReciboProposicaoView(TemplateView):
         proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
         context.update({'proposicao': proposicao,
                         'hash': gerar_hash_arquivo(
-                                    proposicao.texto_original.path,
-                                    self.kwargs['pk'])})
+                            proposicao.texto_original.path,
+                            self.kwargs['pk'])})
         return context
 
 
@@ -573,13 +612,18 @@ class TramitacaoCrud(MasterDetailCrud):
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = TramitacaoForm
+        form_class = TramitacaoUpdateForm
         permission_required = permissoes_materia()
 
         def post(self, request, *args, **kwargs):
-            materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
+            materia = MateriaLegislativa.objects.get(
+                tramitacao__id=kwargs['pk'])
             do_envia_email_tramitacao(request, materia)
             return super(UpdateView, self).post(request, *args, **kwargs)
+
+        @property
+        def layout_key(self):
+            return 'TramitacaoUpdate'
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -598,7 +642,7 @@ class TramitacaoCrud(MasterDetailCrud):
                           kwargs={'pk': tramitacao.materia.id})
 
             if tramitacao.pk != materia.tramitacao_set.last().pk:
-                msg = _('Somente a útlima tramitação pode ser deletada!')
+                msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:

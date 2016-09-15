@@ -259,7 +259,7 @@ def permissoes_sessao():
 
 
 def permissoes_painel():
-    return permissoes('Operador de Painel Eletrônico', 'sessao')
+    return permissoes('Operador de Painel Eletrônico', 'painel')
 
 
 def permissoes_autor():
