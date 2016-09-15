@@ -1309,23 +1309,25 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         if not self.filterset.form.is_valid():
             return context
 
+        context['title'] = _('Primeira Tramitação em Lote')
+
         qr = self.request.GET.copy()
+        context['unidade_destino'] = UnidadeTramitacao.objects.all()
+        context['status_tramitacao'] = StatusTramitacao.objects.all()
+        context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
+        context['urgente_tramitacao'] = YES_NO_CHOICES
+        context['unidade_local'] = UnidadeTramitacao.objects.all()
+
         # Pega somente matéria que não possuem tramitação
-        if (type(self.__dict__[
-                'filterset']).__name__ == 'PrimeiraTramitacaoEmLoteFilterSet'):
+        if (type(self.__dict__['filterset']).__name__ ==
+                'PrimeiraTramitacaoEmLoteFilterSet'):
             context['object_list'] = context['object_list'].filter(
                 tramitacao__isnull=True)
-            context['unidade_local'] = UnidadeTramitacao.objects.all()
-            context['title'] = _('Primeira Tramitação em Lote')
         else:
             context['title'] = _('Tramitação em Lote')
             context['unidade_local'] = [UnidadeTramitacao.objects.get(
                 id=qr['tramitacao__unidade_tramitacao_local'])]
 
-        context['unidade_destino'] = UnidadeTramitacao.objects.all()
-        context['status_tramitacao'] = StatusTramitacao.objects.all()
-        context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
-        context['urgente_tramitacao'] = YES_NO_CHOICES
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
 

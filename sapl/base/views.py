@@ -1,5 +1,3 @@
-from itertools import chain
-
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
@@ -12,8 +10,7 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDetailView, CrudUpdateView)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
-from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca)
+from sapl.sessao.models import OrdemDia, SessaoPlenaria
 from sapl.utils import permissao_tb_aux
 
 from .forms import (CasaLegislativaForm, RelatorioAtasFilterSet,
