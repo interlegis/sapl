@@ -2066,22 +2066,17 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             - substituidos e subsequentes devem ser religados
 
         3 - Se é um dispositivo articulado e sem subsequente
-            - filhos automáticos não podem ser transferidos
             - filhos locais devem ser transferidos
 
         4 - Se é um dispositivo articulado com subsequente
-            - filhos automáticos não devem ser transferidos
             - não deveria ter filhos locais
         """
-
-        perfil_pk = self.request.session['perfil_estrutural']
 
         data = {}
         data.update({'pk': bloco_alteracao.pk,
                      'pai': [bloco_alteracao.pk, ]})
 
-        history = list(dispositivo_a_alterar.history())
-        history.reverse()
+        history = dispositivo_a_alterar.history()
 
         for d in history:
             if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:

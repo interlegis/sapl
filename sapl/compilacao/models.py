@@ -1150,14 +1150,14 @@ class Dispositivo(BaseModel, TimestampedMixin):
         return dp
 
     def history(self):
-        primeiro = self
-        while primeiro.dispositivo_substituido:
-            primeiro = primeiro.dispositivo_substituido
+        ultimo = self
+        while ultimo.dispositivo_subsequente:
+            ultimo = ultimo.dispositivo_subsequente
 
-        yield primeiro
-        while primeiro.dispositivo_subsequente:
-            primeiro = primeiro.dispositivo_subsequente
-            yield primeiro
+        yield ultimo
+        while ultimo.dispositivo_substituido:
+            ultimo = ultimo.dispositivo_substituido
+            yield ultimo
 
     @staticmethod
     def new_instance_based_on(dispositivo_base, tipo_base):

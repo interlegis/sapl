@@ -56,7 +56,7 @@ function DispositivoEdit() {
     }
 
     instance.clearEditSelected = function() {
-        $('.dpt-selected .dpt-form').html('');
+        $('.dpt-selected > .dpt-form').html('');
         $('.dpt-actions, .dpt-actions-bottom').html('');
         tinymce.remove();
         $('.dpt-selected').removeClass('dpt-selected');
@@ -84,6 +84,12 @@ function DispositivoEdit() {
         var formtype = dpt.attr('formtype');
         dpt.on(formtype, instance[formtype]);
         instance.loadForm(dpt, formtype);
+    }
+
+    instance.gc = function() {
+        setTimeout(function() {
+            $('.dpt:not(.dpt-selected) > .dpt-form').html('');
+        },500);
     }
 
     instance.get_form_base = function () {
@@ -146,6 +152,8 @@ function DispositivoEdit() {
                 dpt.find('.btn-group-inserts').removeClass('open');
                 $(this.parentElement).addClass('open')
             });
+
+            instance.gc();
         });
     }
 
