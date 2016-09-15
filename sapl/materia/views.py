@@ -1309,6 +1309,10 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         if not self.filterset.form.is_valid():
             return context
 
+        # Pega somente matéria que não possuem tramitação
+        context['object_list'] = context['object_list'].filter(
+            tramitacao__isnull=True)
+
         qr = self.request.GET.copy()
         context['unidade_tramitacao'] = UnidadeTramitacao.objects.all()
         context['status_tramitacao'] = StatusTramitacao.objects.all()
@@ -1325,18 +1329,23 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
-
         for materia_id in marcadas:
-            DocumentoAcessorio.objects.create(
+            Tramitacao.objects.create(
                 materia_id=materia_id,
-                tipo=tipo,
-                arquivo=request.POST['arquivo'],
-                nome=request.POST['nome'],
-                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
-                autor=Autor.objects.get(id=request.POST['autor']),
-                ementa=request.POST['ementa']
+                data_tramitacao=datetime.strptime(
+                    request.POST['data_tramitacao'], "%d/%m/%Y"),
+                data_encaminhamento=datetime.strptime(
+                    request.POST['data_encaminhamento'], "%d/%m/%Y") or None,
+                data_fim_prazo=datetime.strptime(
+                    request.POST['data_fim_prazo'], "%d/%m/%Y") or None,
+                unidade_tramitacao_local_id=request.POST[
+                    'unidade_tramitacao_local'],
+                unidade_tramitacao_destino_id=request.POST[
+                    'unidade_tramitacao_destino'],
+                urgente=request.POST['urgente'],
+                turno=request.POST['turno'],
+                texto=request.POST['texto']
             )
-        msg = _('Documento(s) criado(s).')
+        msg = _('Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)

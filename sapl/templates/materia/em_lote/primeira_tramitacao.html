@@ -1,7 +1,12 @@
 {% extends "crud/detail.html" %}
 {% load i18n crispy_forms_tags %}
 {% block actions %}{% endblock %}
-{% block sections_nav %}{% endblock %}
+{% block sections_nav %}
+  <ul class="nav nav-pills navbar-right">
+    <li class="active"><a href="{% url 'sapl.materia:primeira_tramitacao_em_lote' %}">Primeira Tramitação</a></li>
+    <li class=""><a href="">Tramitação em Lote</a></li>
+  </ul>
+{% endblock sections_nav %}
 {% block detail_content %}
 
   {% if not filter_url %}
@@ -9,11 +14,11 @@
   {% endif %}
 
   {% if filter_url %}
-    {% if object_list.count > 0 %}
-      {% if object_list.count == 1 %}
+    {% if object_list|length > 0 %}
+      {% if object_list|length == 1 %}
         <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
       {% else %}
-        <h3 style="text-align: right;">{% blocktrans with object_list.count as total_materias %}Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+        <h3 style="text-align: right;">Foram encontradas {{object_list|length}} matérias.</h3>
       {% endif %}
     {% else %}
       <tr><td><h3 style="text-align: right;">Nenhuma matéria encontrada.</h3></td></tr>
@@ -87,7 +92,7 @@
         <div class="row">
           <div class="col-md-12">
             <label>Texto de Ação*</label>
-            <textarea name="ementa" class="textarea form-control" cols="40" rows="10" required="True"></textarea>
+            <textarea name="texto" class="textarea form-control" cols="40" rows="10" required="True"></textarea>
           </div>
         </div>
       </fieldset>
