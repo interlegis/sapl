@@ -108,7 +108,7 @@ def cria_grupos_permissoes():
         grupo.permissions.add(p)
 
     nome_usuario = 'operador_autor'
-    cria_usuario(nome_usuario, grupo_geral)
+    cria_usuario(nome_usuario, grupo)
 
 if __name__ == '__main__':
     cria_grupos_permissoes()
