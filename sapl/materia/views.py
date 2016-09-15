@@ -1298,7 +1298,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
-    template_name = 'materia/em_lote/primeira_tramitacao.html'
+    template_name = 'materia/em_lote/tramitacao.html'
     permission_required = permissoes_materia()
 
     def get_context_data(self, **kwargs):
@@ -1311,11 +1311,14 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             return context
 
         # Pega somente matéria que não possuem tramitação
-        context['object_list'] = context['object_list'].filter(
-            tramitacao__isnull=True)
+        if (type(self.__dict__[
+                'filterset']).__name__ == 'PrimeiraTramitacaoEmLoteFilterSet'):
+            context['object_list'] = context['object_list'].filter(
+                tramitacao__isnull=True)
 
         qr = self.request.GET.copy()
-        context['unidade_tramitacao'] = UnidadeTramitacao.objects.all()
+        context['unidade_destino'] = UnidadeTramitacao.objects.all()
+        context['unidade_local'] = UnidadeTramitacao.objects.all()
         context['status_tramitacao'] = StatusTramitacao.objects.all()
         context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
         context['urgente_tramitacao'] = YES_NO_CHOICES
@@ -1363,10 +1366,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         return self.get(request, self.kwargs)
 
 
-class TramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
+class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
-    template_name = 'materia/em_lote/tramitacao.html'
-    permission_required = permissoes_materia()
 
     def get_context_data(self, **kwargs):
         context = super(TramitacaoEmLoteView, self).get_context_data(**kwargs)
@@ -1377,52 +1378,11 @@ class TramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             return context
 
         qr = self.request.GET.copy()
-        context['unidade_tramitacao'] = UnidadeTramitacao.objects.all()
+        context['unidade_destino'] = UnidadeTramitacao.objects.all()
         context['status_tramitacao'] = StatusTramitacao.objects.all()
         context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
         context['urgente_tramitacao'] = YES_NO_CHOICES
-        context['unidade_local'] = UnidadeTramitacao.objects.get(
-            id=qr['tramitacao__unidade_tramitacao_local'])
+        context['unidade_local'] = [UnidadeTramitacao.objects.get(
+            id=qr['tramitacao__unidade_tramitacao_local'])]
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
-
-    def post(self, request, *args, **kwargs):
-        marcadas = request.POST.getlist('materia_id')
-
-        if len(marcadas) == 0:
-            msg = _('Nenhuma máteria foi selecionada.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
-        if request.POST['data_encaminhamento']:
-            data_encaminhamento = datetime.strptime(
-                request.POST['data_encaminhamento'], "%d/%m/%Y")
-        else:
-            data_encaminhamento = None
-
-        if request.POST['data_fim_prazo']:
-            data_fim_prazo = datetime.strptime(
-                request.POST['data_fim_prazo'], "%d/%m/%Y")
-        else:
-            data_fim_prazo = None
-
-        import ipdb; ipdb.set_trace()
-        for materia_id in marcadas:
-            Tramitacao.objects.create(
-                materia_id=materia_id,
-                data_tramitacao=datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y"),
-                data_encaminhamento=data_encaminhamento,
-                data_fim_prazo=data_fim_prazo,
-                unidade_tramitacao_local_id=request.POST[
-                    'unidade_tramitacao_local'],
-                unidade_tramitacao_destino_id=request.POST[
-                    'unidade_tramitacao_destino'],
-                urgente=request.POST['urgente'],
-                status_id=request.POST['status'],
-                turno=request.POST['turno'],
-                texto=request.POST['texto']
-            )
-        msg = _('Tramitação completa.')
-        messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(request, self.kwargs)

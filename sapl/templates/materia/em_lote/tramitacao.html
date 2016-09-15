@@ -1,12 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n crispy_forms_tags %}
 {% block actions %}{% endblock %}
-{% block sections_nav %}
-  <ul class="nav nav-pills navbar-right">
-    <li class=""><a href="{% url 'sapl.materia:primeira_tramitacao_em_lote' %}">Primeira Tramitação</a></li>
-    <li class="active"><a href="{% url 'sapl.materia:tramitacao_em_lote' %}">Tramitação em Lote</a></li>
-  </ul>
-{% endblock sections_nav %}
+{% block sections_nav %} {% include 'materia/em_lote/subnav.html'%} {% endblock sections_nav %}
 {% block detail_content %}
 
   {% if not filter_url %}
@@ -49,15 +44,14 @@
           <div class="col-md-6">
             <label>Unidade Local*</label>
             <select name="unidade_tramitacao_local" class="form-control" required="True">
-              <option value="{{unidade_local.id}}">{{unidade_local}}</option>
+              {% for u in unidade_local %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
           </div>
 
           <div class="col-md-6">
             <label>Unidade Destino*</label>
             <select name="unidade_tramitacao_destino" class="form-control" required="True">
-              <option>----------</option>
-              {% for u in unidade_tramitacao %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
+              {% for u in unidade_destino %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
           </div>
         </div>
