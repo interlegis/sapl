@@ -232,27 +232,31 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                         else:
                             obj.resultado = '''Não há resultado'''
                 else:
-                    url = ''
-                    if obj.tipo_votacao == 1:
-                        url = reverse('sapl.sessao:votacaosimbolicaedit',
-                                      kwargs={
-                                          'pk': obj.sessao_plenaria_id,
-                                          'oid': obj.materia_id,
-                                          'mid': obj.pk})
-                    elif obj.tipo_votacao == 2:
-                        url = reverse('sapl.sessao:votacaonominaledit',
-                                      kwargs={
-                                          'pk': obj.sessao_plenaria_id,
-                                          'oid': obj.materia_id,
-                                          'mid': obj.pk})
-                    elif obj.tipo_votacao == 3:
-                        url = reverse('sapl.sessao:votacaosecretaedit',
-                                      kwargs={
-                                          'pk': obj.sessao_plenaria_id,
-                                          'oid': obj.materia_id,
-                                          'mid': obj.pk})
-                    obj.resultado = '<a href="%s">%s</a>' % (url,
-                                                             obj.resultado)
+                    if self.request.user.has_perms(permissoes_sessao()):
+                        url = ''
+                        if obj.tipo_votacao == 1:
+                            url = reverse('sapl.sessao:votacaosimbolicaedit',
+                                          kwargs={
+                                              'pk': obj.sessao_plenaria_id,
+                                              'oid': obj.materia_id,
+                                              'mid': obj.pk})
+                        elif obj.tipo_votacao == 2:
+                            url = reverse('sapl.sessao:votacaonominaledit',
+                                          kwargs={
+                                              'pk': obj.sessao_plenaria_id,
+                                              'oid': obj.materia_id,
+                                              'mid': obj.pk})
+                        elif obj.tipo_votacao == 3:
+                            url = reverse('sapl.sessao:votacaosecretaedit',
+                                          kwargs={
+                                              'pk': obj.sessao_plenaria_id,
+                                              'oid': obj.materia_id,
+                                              'mid': obj.pk})
+                        obj.resultado = '<a href="%s">%s</a>' % (url,
+                                                                 obj.resultado)
+                    else:
+                        obj.resultado = '%s' % (obj.resultado)
+
             return [self._as_row(obj) for obj in object_list]
 
 
