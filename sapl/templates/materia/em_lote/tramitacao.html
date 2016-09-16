@@ -43,6 +43,7 @@
         <div class="row">
           <div class="col-md-6">
             <label>Unidade Local*</label>
+            {% if unidade_local|length > 1 %}<option></option>{% endif %}
             <select name="unidade_tramitacao_local" class="form-control" required="True">
               {% for u in unidade_local %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
@@ -50,6 +51,7 @@
 
           <div class="col-md-6">
             <label>Unidade Destino*</label>
+            <option></option>
             <select name="unidade_tramitacao_destino" class="form-control" required="True">
               {% for u in unidade_destino %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
@@ -60,7 +62,7 @@
           <div class="col-md-4">
             <label>Status*</label>
             <select name="status" class="form-control" required="True">
-              <option>----------</option>
+              <option></option>
               {% for s in status_tramitacao %} <option value="{{s.id}}">{{s}}</option> {% endfor %}
             </select>
           </div>
@@ -68,7 +70,7 @@
           <div class="col-md-4">
             <label>Urgente?*</label>
             <select name="urgente" class="form-control" required="True">
-              <option>----------</option>
+              <option></option>
               {% for u in urgente_tramitacao %} <option value="{{u|first}}">{{u|last}}</option> {% endfor %}
             </select>
           </div>
@@ -76,7 +78,7 @@
           <div class="col-md-4">
             <label>Turno</label>
             <select name="turno" class="form-control">
-              <option>----------</option>
+              <option></option>
               {% for t in turnos_tramitacao %} <option value="{{t|first}}">{{t|last}}</option> {% endfor %}
             </select>
           </div>
@@ -84,7 +86,7 @@
 
         <div class="row">
           <div class="col-md-12">
-            <label>Texto de Ação*</label>
+            <label>Texto da Ação*</label>
             <textarea name="texto" class="textarea form-control" cols="40" rows="10" required="True"></textarea>
           </div>
         </div>
