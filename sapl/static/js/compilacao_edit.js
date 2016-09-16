@@ -40,19 +40,22 @@ function DispositivoEdit() {
 
         $.get(url, form_data).done(function(data) {
             instance.clearEditSelected();
-            instance.waitHide();
             if (data.pk != null) {
                 if (data.message !== undefined) {
-                    if (data.message.type == 'danger')
-                        instance.modalMessage(data.message.value, 'alert-'+data.message.type, null);
+                    if (data.message.modal) {
+                        instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
+                            instance.waitShow();
+                            instance.refreshScreenFocusPk(data);
+                        });
+                        return;
+                    }
                     else {
                         instance.message(data)
                     }
                 }
                 instance.refreshScreenFocusPk(data);
             }
-        }).fail(instance.waitHide)
-            .always(instance.waitHide);
+        }).fail(instance.waitHide).always(instance.waitHide);
     }
 
     instance.clearEditSelected = function() {

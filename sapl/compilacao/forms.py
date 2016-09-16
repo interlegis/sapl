@@ -636,8 +636,8 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         btns_excluir = []
 
-        if not inst.tipo_dispositivo.dispositivo_de_alteracao and \
-                not inst.tipo_dispositivo.dispositivo_de_articulacao:
+        if not (inst.tipo_dispositivo.dispositivo_de_alteracao and
+                inst.tipo_dispositivo.dispositivo_de_articulacao):
             btns_excluir = [
                 HTML('<a class="btn btn-danger btn-excluir" '
                      'action="json_delete_item_dispositivo" '
@@ -647,7 +647,8 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                                   inst.pk,
                                   _('Excluir Dispositivo')))]
 
-        if inst.dispositivos_filhos_set.exists() or (
+        if inst.dispositivos_filhos_set.filter(
+            auto_inserido=False).exists() or (
                 inst.tipo_dispositivo.dispositivo_de_alteracao and
                 inst.tipo_dispositivo.dispositivo_de_articulacao):
             btns_excluir.append(
@@ -661,7 +662,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                                  inst.pk,
                                  _('Excluir Bloco de Dispositivo.'))))
 
-        if btns_excluir:
+        if btns_excluir and (not inst.auto_inserido or inst.ta_publicado):
             css_class = 'btn-group pull-right btns-excluir'
             more.append(Div(*btns_excluir, css_class=css_class))
 

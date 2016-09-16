@@ -1041,12 +1041,13 @@ class TextEditView(TemplateView):
 
 class ActionsCommonsMixin:
 
-    def set_message(self, data, _type, message, time=None):
+    def set_message(self, data, _type, message, time=None, modal=False):
         data['message'] = {
             'type': _type,
             'value': str(message)}
         if time:
             data['message']['time'] = time
+        data['message']['modal'] = modal
         return
 
     def get_json_for_refresh(self, dp, dpauto=None):
@@ -1172,14 +1173,14 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
             with transaction.atomic():
                 message = str(self.remover_dispositivo(base, bloco))
                 if message:
-                    self.set_message(data, 'warning', message)
+                    self.set_message(data, 'warning', message, modal=True)
                 else:
                     self.set_message(data, 'success', _(
-                        'Exclusão efetuada com sucesso!'))
+                        'Exclusão efetuada com sucesso!'), modal=True)
                 ta_base.ordenar_dispositivos()
         except Exception as e:
             data['pk'] = self.kwargs['dispositivo_id']
-            self.set_message(data, 'danger', str(e))
+            self.set_message(data, 'danger', str(e), modal=True)
 
         return data
 
@@ -1765,23 +1766,6 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                 else:
                     raise Exception('Não existe perfil padrão!')
 
-            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
-                filho_de_insercao_automatica=True,
-                perfil_id=context['perfil_pk'])
-
-            count_auto_insert = 0
-            for tipoauto in tipos_dp_auto_insert:
-                qtdp = tipoauto.quantidade_permitida
-                if qtdp >= 0:
-                    qtdp -= Dispositivo.objects.filter(
-                        ta_id=base.ta_id,
-                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
-                    ).count()
-                    if qtdp > 0:
-                        count_auto_insert += 1
-                else:
-                    count_auto_insert += 1
-
             dp_irmao = None
             dp_pai = None
             for dp in parents:
@@ -1847,7 +1831,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         return data
 
             ordem = base.criar_espaco(
-                espaco_a_criar=1 + count_auto_insert, local=local_add)
+                espaco_a_criar=1, local=local_add)
 
             dp.rotulo = dp.rotulo_padrao()
             dp.ordem = ordem
@@ -1856,9 +1840,32 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             dp.publicacao = pub_last
             dp.save()
 
+            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
+                filho_de_insercao_automatica=True,
+                perfil_id=context['perfil_pk'])
+
+            count_auto_insert = 0
+            for tipoauto in tipos_dp_auto_insert:
+                qtdp = tipoauto.quantidade_permitida
+                if qtdp >= 0:
+                    qtdp -= Dispositivo.objects.filter(
+                        ta_id=dp.ta_id,
+                        dispositivo_pai_id=dp.id,
+                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
+                    ).count()
+                    if qtdp > 0:
+                        count_auto_insert += 1
+                else:
+                    count_auto_insert += 1
+
             # Inserção automática
             if count_auto_insert:
+
+                ordem = dp.criar_espaco(
+                    espaco_a_criar=count_auto_insert, local=local_add)
+
                 dp_pk = dp.pk
+                dp.ordem = ordem
                 dp.nivel += 1
                 for tipoauto in tipos_dp_auto_insert:
                     dp.dispositivo_pai_id = dp_pk
@@ -1870,12 +1877,13 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
                     dp.rotulo = dp.rotulo_padrao()
                     dp.texto = ''
-                    dp.ordem = dp.ordem + Dispositivo.INTERVALO_ORDEM
 
                     dp.publicacao = pub_last
                     dp.auto_inserido = True
                     dp.save()
                     dp_auto_insert = dp
+
+                    ordem += Dispositivo.INTERVALO_ORDEM
                 dp = Dispositivo.objects.get(pk=dp_pk)
 
             ''' Reenquadrar todos os dispositivos que possuem pai

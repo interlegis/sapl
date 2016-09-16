@@ -1171,6 +1171,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         dp.nivel = dispositivo_base.nivel
         dp.texto = ''
         dp.visibilidade = True
+        dp.auto_inserido = dispositivo_base.auto_inserido
         dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
         dp.publicacao = dispositivo_base.publicacao
