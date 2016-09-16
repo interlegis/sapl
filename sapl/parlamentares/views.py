@@ -34,8 +34,10 @@ class FrenteList(ListView):
         return Frente.objects.filter(parlamentares__in=[self.kwargs['pk']])
 
     def get_context_data(self, **kwargs):
-        return {'root_pk': self.kwargs['pk'],
-                'object_list': self.get_queryset()}
+        context = super(FrenteList, self).get_context_data(**kwargs)
+        context['root_pk'] = self.kwargs['pk']
+        context['object_list'] = self.get_queryset()
+        return context
 
 
 class FrenteCrud(Crud):

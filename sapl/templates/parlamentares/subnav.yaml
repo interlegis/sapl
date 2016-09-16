@@ -14,4 +14,4 @@
 - title: {% trans 'Relatorias' %}
   url: relatoria_list
 - title: {% trans 'Frentes' %}
-  url: 
+  url: frent_list
