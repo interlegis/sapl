@@ -2,10 +2,10 @@ from django.conf.urls import include, url
 
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
-                                      FiliacaoCrud, FrenteCrud,
-                                      FrenteParlamentarCrud, LegislaturaCrud,
-                                      MandatoCrud, MesaDiretoraView,
-                                      NivelInstrucaoCrud, ParlamentarCrud,
+                                      FiliacaoCrud, FrenteCrud, FrenteList,
+                                      LegislaturaCrud, MandatoCrud,
+                                      MesaDiretoraView, NivelInstrucaoCrud,
+                                      ParlamentarCrud,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
                                       RelatoriaParlamentarCrud,
@@ -23,8 +23,11 @@ urlpatterns = [
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
-        RelatoriaParlamentarCrud.get_urls() + FrenteParlamentarCrud.get_urls()
+        RelatoriaParlamentarCrud.get_urls()
     )),
+
+    url(r'^parlamentar/(?P<pk>\d+)/frente$',
+        FrenteList.as_view(), name="frent_list"),
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +

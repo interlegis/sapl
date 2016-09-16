@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView
 
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
@@ -25,10 +25,17 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
 
-class FrenteParlamentarCrud(MasterDetailCrud):
+class FrenteList(ListView):
     model = Frente
-    parent_field = 'parlamentares'
-    help_path = ''
+    paginate_by = 10
+    template_name = 'parlamentares/frentes.html'
+
+    def get_queryset(self):
+        return Frente.objects.filter(parlamentares__in=[self.kwargs['pk']])
+
+    def get_context_data(self, **kwargs):
+        return {'root_pk': self.kwargs['pk'],
+                'object_list': self.get_queryset()}
 
 
 class FrenteCrud(Crud):
@@ -36,15 +43,15 @@ class FrenteCrud(Crud):
     help_path = ''
 
     class BaseMixin(CrudBaseMixin):
-        permission_required = permissoes_parlamentares()
         list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
     class CreateView(PermissionRequiredMixin, CrudCreateView):
-        permission_required = permissoes_parlamentares()
         form_class = FrenteForm
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        permission_required = permissoes_parlamentares()
         form_class = FrenteForm
 
 

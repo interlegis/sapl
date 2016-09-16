@@ -1,0 +1,21 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+	{% if object_list|length == 0 %}
+	  <p>Nenhuma frente encontrada.</p>
+	{% else %}
+	  <table class="table table-striped table-hover">
+	    <thead>
+	      <tr><th>Frentes</th></tr>
+	    </thead>
+	    <tbody>
+				{% for frente in object_list %}
+					<tr><td><a href="{% url 'sapl.parlamentares:frente_detail' frente.pk %}">{{ frente.nome }}</a></td></tr>
+				{% endfor %}
+	  	</tbody>
+	  </table>
+	{% endif %}
+	{% include "paginacao.html" %}
+{% endblock %}
