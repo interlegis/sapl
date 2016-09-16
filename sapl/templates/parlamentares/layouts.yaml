@@ -91,3 +91,10 @@ SituacaoMilitar:
 ComposicaoColigacao:
   {% trans 'Nome do Partido' %}:
   - partido
+
+Frente:
+  {% trans 'Frente' %}:
+  - nome
+  - data_criacao data_extincao
+  - parlamentares
+  - descricao

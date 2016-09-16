@@ -20,9 +20,30 @@ from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
                     ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
-                     Dependente, Filiacao, Legislatura, Mandato,
+                     Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
+
+
+class FrenteCrud(Crud):
+    model = Frente
+    help_path = ''
+
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
+        permission_required = permissoes_parlamentares()
+
+        # def get_initial(self):
+        #     return {'parlamentares': Parlamentar.objects.filter(ativo=True)}
+
+    # class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    #     permission_required = permissoes_parlamentares()
+    #
+    #     def get_initial(self):
+    #         initial = self.initial.copy()
+    #         if self.object.materia:
+    #             initial['parlamentares'] = Parlamentar.object.filter(
+    #                 ativo=True)
+    #         return initial
 
 
 class RelatoriaParlamentarCrud(MasterDetailCrud):
