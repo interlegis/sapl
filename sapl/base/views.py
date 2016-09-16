@@ -80,15 +80,20 @@ class RelatorioPresencaSessaoView(FilterView):
             param2 = {'sessaoplenariapresenca__%s' % sufixo: _range}
 
             pls = Parlamentar.objects.filter(
-                Q(**param1) & Q(**param2)).annotate(
-                    sessao_count=Count(
-                       'sessaoplenariapresenca__sessao_plenaria__data_inicio',
-                       distinct=True),
-                    ordemdia_count=Count(
-                        'presencaordemdia__sessao_plenaria',
-                        distinct=True),
-                    sessao_porc=Count(0),
-                    ordemdia_porc=Count(0))
+                (Q(**param1) | Q(presencaordemdia__isnull=True)) &
+                (Q(**param2) | Q(sessaoplenariapresenca__isnull=True))
+            ).annotate(
+                sessao_count=Count(
+                    'sessaoplenariapresenca__sessao_plenaria',
+                    distinct=True),
+                ordemdia_count=Count(
+                    'presencaordemdia__sessao_plenaria',
+                    distinct=True),
+                sessao_porc=Count(0),
+                ordemdia_porc=Count(0)
+            ).exclude(
+                sessao_count=0,
+                ordemdia_count=0)
 
             total_ordemdia = OrdemDia.objects.order_by(
                 'sessao_plenaria').filter(**param0).distinct(
