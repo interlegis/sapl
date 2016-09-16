@@ -4,7 +4,6 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
-from django.db.models import Q
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -13,6 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -34,8 +34,9 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo,
                         get_base_url, permissao_tb_aux, permissoes_autor,
                         permissoes_materia, permissoes_protocoloadm)
 
-from .forms import (AcompanhamentoMateriaForm, AnexadaForm, AutorForm,
-                    AutoriaForm, ConfirmarProposicaoForm, DespachoInicialForm,
+from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    AnexadaForm, AutorForm, AutoriaForm,
+                    ConfirmarProposicaoForm, DespachoInicialForm,
                     DocumentoAcessorioForm, LegislacaoCitadaForm,
                     MateriaLegislativaFilterSet, NumeracaoForm, ProposicaoForm,
                     ReceberProposicaoForm, RelatoriaForm, TramitacaoForm,
@@ -1246,3 +1247,47 @@ def do_envia_email_tramitacao(request, materia):
 
     enviar_emails(sender, recipients, messages)
     return None
+
+
+class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AcessorioEmLoteFilterSet
+    template_name = 'materia/acessorio_lote.html'
+    permission_required = permissoes_materia()
+
+    def get_context_data(self, **kwargs):
+        context = super(DocumentoAcessorioEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Documentos Acessórios em Lote')
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['tipos_docs'] = TipoDocumento.objects.all()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
+
+        for materia_id in marcadas:
+            DocumentoAcessorio.objects.create(
+                materia_id=materia_id,
+                tipo=tipo,
+                arquivo=request.POST['arquivo'],
+                nome=request.POST['nome'],
+                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
+                autor=Autor.objects.get(id=request.POST['autor']),
+                ementa=request.POST['ementa']
+            )
+        msg = _('Documento(s) criado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(request, self.kwargs)
