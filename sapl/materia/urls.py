@@ -10,14 +10,15 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 LegislacaoCitadaCrud, MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
-                                ProposicaoCrud, ProposicaoDevolvida,
-                                ProposicaoPendente, ProposicaoRecebida,
-                                ProposicaoTaView, ReceberProposicao,
-                                ReciboProposicaoView, RegimeTramitacaoCrud,
-                                RelatoriaCrud, StatusTramitacaoCrud,
-                                TipoAutorCrud, TipoDocumentoCrud,
-                                TipoFimRelatoriaCrud, TipoMateriaCrud,
-                                TipoProposicaoCrud, TramitacaoCrud,
+                                PrimeiraTramitacaoEmLoteView, ProposicaoCrud,
+                                ProposicaoDevolvida, ProposicaoPendente,
+                                ProposicaoRecebida, ProposicaoTaView,
+                                ReceberProposicao, ReciboProposicaoView,
+                                RegimeTramitacaoCrud, RelatoriaCrud,
+                                StatusTramitacaoCrud, TipoAutorCrud,
+                                TipoDocumentoCrud, TipoFimRelatoriaCrud,
+                                TipoMateriaCrud, TipoProposicaoCrud,
+                                TramitacaoCrud, TramitacaoEmLoteView,
                                 UnidadeTramitacaoCrud)
 
 from .apps import AppConfig
@@ -90,4 +91,9 @@ urlpatterns = [
 
     url(r'^acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
+    url(r'^primeira-tramitacao-em-lote',
+        PrimeiraTramitacaoEmLoteView.as_view(),
+        name='primeira_tramitacao_em_lote'),
+    url(r'^tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
+        name='tramitacao_em_lote'),
 ]
