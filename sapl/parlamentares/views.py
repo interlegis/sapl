@@ -25,6 +25,12 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
 
+class FrenteParlamentarCrud(MasterDetailCrud):
+    model = Frente
+    parent_field = 'parlamentares'
+    help_path = ''
+
+
 class FrenteCrud(Crud):
     model = Frente
     help_path = ''

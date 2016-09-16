@@ -183,6 +183,8 @@ class FrenteForm(ModelForm):
             super(FrenteForm, self).__init__(*args, **kwargs)
             self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
                 ativo=True).order_by('nome_completo')
+            self.fields['parlamentares'].label = _('Parlamentares \
+                (Mantenha CTRL pressionado para selecionar vários)')
 
     class Meta:
         model = Frente

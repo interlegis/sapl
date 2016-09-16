@@ -3,9 +3,9 @@ from django.conf.urls import include, url
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud,
-                                      LegislaturaCrud, MandatoCrud,
-                                      MesaDiretoraView, NivelInstrucaoCrud,
-                                      ParlamentarCrud,
+                                      FrenteParlamentarCrud, LegislaturaCrud,
+                                      MandatoCrud, MesaDiretoraView,
+                                      NivelInstrucaoCrud, ParlamentarCrud,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
                                       RelatoriaParlamentarCrud,
@@ -23,7 +23,7 @@ urlpatterns = [
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
-        RelatoriaParlamentarCrud.get_urls()
+        RelatoriaParlamentarCrud.get_urls() + FrenteParlamentarCrud.get_urls()
     )),
 
     url(r'^sistema/coligacao/',
