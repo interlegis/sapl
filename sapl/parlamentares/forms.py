@@ -8,8 +8,8 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 
-from .models import (ComposicaoColigacao, Filiacao, Legislatura, Mandato,
-                     Parlamentar)
+from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
+                     Mandato, Parlamentar)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -175,3 +175,15 @@ class ComposicaoColigacaoForm(ModelForm):
             if self.errors:
                 return self.errors
             return self.cleaned_data
+
+
+class FrenteForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+            super(FrenteForm, self).__init__(*args, **kwargs)
+            self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
+                ativo=True).order_by('nome_completo')
+
+    class Meta:
+        model = Frente
+        fields = '__all__'

@@ -17,8 +17,8 @@ from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
-from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
-                    ParlamentarCreateForm, ParlamentarForm)
+from .forms import (ComposicaoColigacaoForm, FiliacaoForm, FrenteForm,
+                    LegislaturaForm, ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -29,21 +29,17 @@ class FrenteCrud(Crud):
     model = Frente
     help_path = ''
 
+    class BaseMixin(CrudBaseMixin):
+        permission_required = permissoes_parlamentares()
+        list_field_names = ['nome', 'data_criacao', 'parlamentares']
+
     class CreateView(PermissionRequiredMixin, CrudCreateView):
         permission_required = permissoes_parlamentares()
+        form_class = FrenteForm
 
-        # def get_initial(self):
-        #     return {'parlamentares': Parlamentar.objects.filter(ativo=True)}
-
-    # class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-    #     permission_required = permissoes_parlamentares()
-    #
-    #     def get_initial(self):
-    #         initial = self.initial.copy()
-    #         if self.object.materia:
-    #             initial['parlamentares'] = Parlamentar.object.filter(
-    #                 ativo=True)
-    #         return initial
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+        permission_required = permissoes_parlamentares()
+        form_class = FrenteForm
 
 
 class RelatoriaParlamentarCrud(MasterDetailCrud):
