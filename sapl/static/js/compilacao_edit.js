@@ -140,8 +140,8 @@ function DispositivoEdit() {
         var url = pk+'/refresh?action=get_actions';
         $.get(url).done(function(data) {
             dpt.find('.dpt-actions').first().html(data);
-            dpt.find('.btn-inserts').on('click', instance.bindActionsClick);
-            dpt.find('.btn-perfis').on('click', instance.bindActionsClick);
+            dpt.find('.btn-action').on('click', instance.bindActionsClick);
+            //dpt.find('.btn-perfis').on('click', instance.bindActionsClick);
             dpt.find('.btn-compila').on('click', instance.loadFormsCompilacao);
             dpt.find('.btn-editor-type').on('click', instance.bindActionsEditorType);
 

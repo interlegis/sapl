@@ -1692,7 +1692,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
         return {}
 
-    def set_dvt(self, context):
+    def json_set_dvt(self, context):
         # Dispositivo de Vigência do Texto Original e de Dpts Alterados
         dvt = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
 
@@ -1724,11 +1724,20 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
                     d.save()
 
-            return {'message': str(_('Dispositivo de Vigência atualizado '
-                                     'com sucesso!!!'))}
+            data = {'pk': dvt.pk,
+                    'pai': [dvt.pk, ]}
+            self.set_message(data, 'success', _('Dispositivo de Vigência atualizado '
+                                                'com sucesso!!!'))
+
+            return data
         except:
-            return {'message': str(_('Ocorreu um erro na atualização do '
-                                     'Dispositivo de Vigência'))}
+            data = {}
+            self.set_message(data,
+                             'success',
+                             _('Ocorreu um erro na atualização do '
+                               'Dispositivo de Vigência'))
+
+            return data
 
     def json_add_prior(self, context):
         return {}
