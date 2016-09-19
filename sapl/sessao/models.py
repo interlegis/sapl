@@ -329,8 +329,8 @@ class Bloco(models.Model):
     '''
     nome = models.CharField(
         max_length=80, verbose_name=_('Nome do Bloco'))
-    bancadas = models.ManyToManyField(
-        Bancada, blank=True, verbose_name=_('Bancadas'))
+    partidos = models.ManyToManyField(
+        Partido, blank=True, verbose_name=_('Bancadas'))
     data_criacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Criação'))
     data_extincao = models.DateField(

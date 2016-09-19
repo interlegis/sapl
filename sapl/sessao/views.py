@@ -74,7 +74,7 @@ class BlocoCrud(Crud):
     help_path = ''
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        list_field_names = ['nome', 'data_criacao', 'bancadas']
+        list_field_names = ['nome', 'data_criacao', 'partidos']
 
         def has_permission(self):
             return permissao_tb_aux(self)

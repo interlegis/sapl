@@ -75,5 +75,5 @@ Bloco:
   {% trans 'Bloco' %}:
   - nome
   - data_criacao data_extincao
-  - bancadas
+  - partidos
   - descricao
