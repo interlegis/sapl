@@ -31,18 +31,27 @@
         <address>
           <small>
             <strong>
-              <span class="org">{{ nome }}</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
+              {% if tipo == 'A' %}
+                <span class="org">Assembleia Legislativa</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
+              {% else %}
+                <span class="org">Câmara Municipal</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
+              {% endif %}
             </strong>
             <br>
             <span class="street-address">{{ endereco }}</span>
             <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
             <br>
-            <a href="{{endereco_web}}" class="url">{% trans 'Site da Câmara' %}</a> |
+            <a href="{{endereco_web}}" class="url">
+              {% if tipo == 'A' %}
+                {% trans 'Site da Assembleia' %}
+              {% else %}
+                {% trans 'Site da Câmara' %}
+              {% endif %}</a> |
             <a href="{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
           </small>
         </address>
         {% else %}
-           Casa Legislativa não configurada.
+           Casa/Assembleia Legislativa não configurada.
            <br>
            <a href="/casa_legislativa">Favor configurar clicando aqui</a>
         {% endif %}
