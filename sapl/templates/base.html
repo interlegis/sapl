@@ -164,6 +164,7 @@
               alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
+                {% if tipo == 'C' %} Casa Municipal {% else %} Assembleia Legislativa {% endif %}
                 {% if nome %}
                   {{ nome }} {% trans 'de' %} {{ municipio }} - {{ uf }}
                 {% else %}
