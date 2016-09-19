@@ -4,9 +4,11 @@
 
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
+    {% if user.is_authenticated %}
     <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}
     </a>
+    {% endif %}
   {% if filter_url %}
       <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
   {% endif %}
