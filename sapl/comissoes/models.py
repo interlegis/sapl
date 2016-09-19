@@ -74,6 +74,7 @@ class Comissao(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Unidade Deliberativa'))
     ativa = models.BooleanField(
+        default=False,
         choices=YES_NO_CHOICES,
         default=True,
         verbose_name=_('Comissão Ativa?'))

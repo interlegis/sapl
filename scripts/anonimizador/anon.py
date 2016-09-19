@@ -23,9 +23,9 @@ models = [m for m in models
           m not in excluidos and
           m._meta.app_label not in ['compilacao', 'base']]
 
-nomes = [n.strip() for n in open('nomes.txt').readlines()]
+nomes = [n.strip() for n in open('scripts/anonimizador/nomes.txt').readlines()]
 
-conteudo = open('paragrafos.txt').read()
+conteudo = open('scripts/anonimizador/paragrafos.txt').read()
 pars_list = [p.replace('"', '') for p in re.split('\n\n+', conteudo.strip())]
 pars = defaultdict(list)
 for p in pars_list:
