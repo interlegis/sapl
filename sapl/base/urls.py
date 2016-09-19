@@ -4,9 +4,8 @@ from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
 from .forms import LoginForm
-from .views import (AppConfigCrud,
-                    CasaLegislativaCrud, HelpView, RelatorioAtasView,
-                    RelatorioHistoricoTramitacaoView,
+from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
+                    RelatorioAtasView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,

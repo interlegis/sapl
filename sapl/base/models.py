@@ -5,7 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import UF, YES_NO_CHOICES
 
-
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
 

@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -23,30 +23,28 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
-from sapl.compilacao.forms import (
-    DispositivoDefinidorVigenciaForm,
-    DispositivoEdicaoAlteracaoForm,
-    DispositivoEdicaoBasicaForm,
-    DispositivoEdicaoVigenciaForm,
-    DispositivoSearchModalForm, NotaForm,
-    PublicacaoForm, TaForm, TextNotificacoesForm,
-    TipoTaForm, VideForm, DispositivoRegistroAlteracaoForm)
-from sapl.compilacao.models import (
-    Dispositivo, Nota,
-    PerfilEstruturalTextoArticulado, Publicacao,
-    TextoArticulado, TipoDispositivo, TipoNota,
-    TipoPublicacao, TipoTextoArticulado, TipoVide,
-    VeiculoPublicacao, Vide)
-from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED,\
-    DISPOSITIVO_SELECT_RELATED_EDIT
+from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
+                                   DispositivoEdicaoAlteracaoForm,
+                                   DispositivoEdicaoBasicaForm,
+                                   DispositivoEdicaoVigenciaForm,
+                                   DispositivoRegistroAlteracaoForm,
+                                   DispositivoSearchModalForm, NotaForm,
+                                   PublicacaoForm, TaForm,
+                                   TextNotificacoesForm, TipoTaForm, VideForm)
+from sapl.compilacao.models import (Dispositivo, Nota,
+                                    PerfilEstruturalTextoArticulado,
+                                    Publicacao, TextoArticulado,
+                                    TipoDispositivo, TipoNota, TipoPublicacao,
+                                    TipoTextoArticulado, TipoVide,
+                                    VeiculoPublicacao, Vide)
+from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
+                                   DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import Crud, CrudListView, make_pagination
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-#^class(.)+\((.)*^(CompMix)(.)*
 
 
 class IntegracaoTaView(TemplateView):
@@ -1134,7 +1132,7 @@ class ActionDragAndMoveDispositivoAlteradoMixin(ActionsCommonsMixin):
         dpt.save()
         bloco.ordenar_bloco_alteracao()
 
-        data = {}
+        return {}
 
 
 class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
@@ -1157,11 +1155,6 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         else:
             base_anterior = base.get_nivel_zero_anterior()
             data = self.get_json_for_refresh(base_anterior)
-
-        bases_atualizacao = Dispositivo.objects.order_by('ordem').filter(
-            ta_id=base.ta_id,
-            ordem__gt=base.ordem,
-            nivel__lt=base.nivel)
 
         data['pai'] = [base.get_raiz().pk]
 
@@ -1727,8 +1720,9 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             data = {'pk': dvt.pk,
                     'pai': [dvt.pk, ]}
-            self.set_message(data, 'success', _('Dispositivo de Vigência atualizado '
-                                                'com sucesso!!!'))
+            self.set_message(data, 'success',
+                             _('Dispositivo de Vigência atualizado '
+                               'com sucesso!!!'))
 
             return data
         except:
@@ -2195,8 +2189,6 @@ class DispositivoDinamicEditView(
 
     def get_initial(self):
         initial = UpdateView.get_initial(self)
-
-        #perfil_pk = self.set_perfil_in_session(self.request)
 
         if 'action' in self.request.GET:
             initial.update({'editor_type': self.request.GET['action']})
@@ -2854,7 +2846,7 @@ class DispositivoEdicaoAlteracaoView(CompMixin, FormMessagesMixin, UpdateView):
             try:
                 with transaction.atomic():
                     return self.form_valid(form)
-            except Exception as e:
+            except:
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)

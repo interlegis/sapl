@@ -1351,7 +1351,6 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         else:
             data_fim_prazo = None
 
-        import ipdb; ipdb.set_trace()
         for materia_id in marcadas:
             Tramitacao.objects.create(
                 materia_id=materia_id,

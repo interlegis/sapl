@@ -7,7 +7,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.compilacao.models import Dispositivo
 
-
 register = template.Library()
 
 

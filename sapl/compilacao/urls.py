@@ -109,7 +109,6 @@ urlpatterns_compilacao = [
     url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)/delete$',
         views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
 
-
 ]
 
 urlpatterns = [
@@ -125,6 +124,3 @@ urlpatterns = [
         include(VeiculoPublicacaoCrud.get_urls())),
 
 ]
-
-"""url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/actions',
-    views.ActionsEditView.as_view(), name='dispositivo_actions'),"""

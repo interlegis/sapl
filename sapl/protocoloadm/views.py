@@ -14,9 +14,8 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.base.models import AppConfig
-
 import sapl.crud.base
+from sapl.base.models import AppConfig
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudListView, CrudUpdateView,
                             make_pagination)

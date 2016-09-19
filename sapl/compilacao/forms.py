@@ -734,7 +734,9 @@ class DispositivoSearchModalForm(Form):
                         placeholder=_('Digite palavras, letras, '
                                       'números ou algo'
                                       ' que estejam no texto.')),
-                    StrictButton(_('Buscar'), css_class='btn-busca btn-primary')), 7))
+                    StrictButton(
+                        _('Buscar'),
+                        css_class='btn-busca btn-primary')), 7))
                 )
         )
 
@@ -1135,7 +1137,7 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                                     'Dispositivo que sua data de início '
                                     'de vigência é superior a do dispositivo '
                                     'em edição.'))
-            
+
         if dsq.inicio_vigencia <= self.instance.fim_vigencia:
             raise ValidationError(_('Não é permitido possuir um Dispositivo '
                                     'Subsequente que sua data de início '
@@ -1278,8 +1280,3 @@ class DispositivoRegistroAlteracaoForm(Form):
         super(DispositivoRegistroAlteracaoForm, self).__init__(*args, **kwargs)
 
         self.fields['dispositivo_alterado'].choices = []
-
-    def save(self):
-        super(DispositivoRegistroAlteracaoForm, self).save()
-
-        data = self.cleaned_data
