@@ -80,16 +80,16 @@ class AppConfig(models.Model):
     documentos_administrativos = models.CharField(
         max_length=1,
         verbose_name=_('Ostensivo/Restritivo'),
-        choices=TIPO_DOCUMENTO_ADMINISTRATIVO)
+        choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
 
     sequencia_numeracao = models.CharField(
         max_length=1,
         verbose_name=_('Sequência de numeração'),
-        choices=SEQUENCIA_NUMERACAO)
+        choices=SEQUENCIA_NUMERACAO, default='A')
 
     painel_aberto = models.BooleanField(
         verbose_name=_('Painel aberto para usuário anônimo'),
-        choices=YES_NO_CHOICES)
+        choices=YES_NO_CHOICES, default=False)
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
