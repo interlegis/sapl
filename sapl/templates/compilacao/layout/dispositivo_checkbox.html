@@ -34,7 +34,7 @@
             {{ choice.1.tipo_dispositivo.rotulo_sufixo_html|safe }}
             <span class="dtxt" id="d{% if not choice.1.dispositivo_subsequente_id and choice.1.dispositivo_substituido_id %}a{% endif %}{{choice.1.pk}}" pks="{{choice.1.dispositivo_substituido_id|default:''}}" pk="{{choice.1.pk}}">{{ choice.1.tipo_dispositivo.texto_prefixo_html|safe }}{%if choice.1.texto %}{{ choice.1.texto|safe }}{%else%}{%if not choice.1.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
             {% if choice.1.ta_publicado_id and not choice.1.tipo_dispositivo.dispositivo_de_articulacao %}
-              <a class="link_alterador" target="_blank" href="{% url 'sapl.compilacao:ta_text' choice.1.ta_publicado.pk %}#{{choice.1.dispositivo_atualizador_id}}">
+              <a class="nota-alteracao" target="_blank" href="{% url 'sapl.compilacao:ta_text' choice.1.ta_publicado.pk %}#{{choice.1.dispositivo_atualizador_id}}">
                 {{ choice.1.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
                 {% nota_automatica choice.1 ta_pub_list %}
                 {{ choice.1.tipo_dispositivo.nota_automatica_sufixo_html|safe }}

@@ -5,17 +5,16 @@
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
 {% block sections_nav %}
-<ul class="nav nav-pills navbar-right">
-  {% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
-  {% url 'sapl.compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
-  {% url 'sapl.compilacao:dispositivo_edit_alteracao' object.ta_id object.pk as edit_alteracao_url %}
-  {% url 'sapl.compilacao:dispositivo_edit_definidor_vigencia' object.ta_id object.pk as edit_definidor_vigencia_url %}
-  <li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>
-  <li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>
-  <li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>
-  <li {% if request.get_full_path == edit_alteracao_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>
-  <li><a href="#" class="btn-danger">{% trans 'Alterador' %}</a></li>
-</ul>
+  <ul class="nav nav-pills navbar-right">
+    {% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
+    {% url 'sapl.compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
+    {% url 'sapl.compilacao:dispositivo_edit_alteracao' object.ta_id object.pk as edit_alteracao_url %}
+    {% url 'sapl.compilacao:dispositivo_edit_definidor_vigencia' object.ta_id object.pk as edit_definidor_vigencia_url %}
+    <li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>
+    <li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>
+    <li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>
+    <li {% if request.get_full_path == edit_alteracao_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>
+  </ul>
 {% endblock sections_nav %}{% trans '' %}
 
 {% block title %}
@@ -23,16 +22,37 @@
 {% endblock%}
 {% block base_content %}
   <div class="btn-group btn-group-sm" role="group">
+    <div class="cp-nav-parents btn-group btn-group-sm" role="group">
+      <a href="#" class="btn btn-default">
+        {% trans "Articulações" %}
+        <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu">
+        <li>
+          {%for parent in object.get_niveis_zero %}
+            <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
+              {{parent.dispositivo0}} - {{parent|nomenclatura}}
+            </a>
+          {%endfor %}
+        </li>
+      </ul>
+    </div>
     {%for parent in object.get_parents_asc %}
       {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
         {%include template_name%}
       {%endwith%}
     {%endfor %}
-
     {%with node=object active=True template_name='compilacao/dispositivo_form_parents.html' %}
       {%include template_name%}
     {%endwith%}
   </div>
+  <br>
+  {%if object.ta_publicado_id %}
+    <a class="text-warning" href="{%url 'compilacao:ta_text' object.ta_publicado.pk %}#{{object.dispositivo_atualizador_id}}">
+      <small>{{ object.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+      {% nota_automatica object None %}
+      {{ object.tipo_dispositivo.nota_automatica_sufixo_html|safe }}</small></a>
+  {%endif%}
   <br><br>
   {% crispy form %}
 {% endblock %}

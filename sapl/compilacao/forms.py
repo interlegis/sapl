@@ -484,20 +484,31 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         inst = kwargs['instance'] if 'instance' in kwargs else None
 
+        editor_type = kwargs['initial']['editor_type']\
+            if'editor_type' in kwargs['initial'] else ''
+
         if inst and inst.tipo_dispositivo.formato_variacao0 in [
                 TipoDispositivo.FNC8, TipoDispositivo.FNCN]:
+            # remove edição do rótulo se o tipo de disp. for não numerável
+            if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
+                for i in range(6):
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'dispositivo%s' % i)
+        elif editor_type == 'get_form_base':
+            # remove edição do rótulo se a req do form vier do editor dinamico
             if 'rotulo' in DispositivoEdicaoBasicaForm.Meta.fields:
                 DispositivoEdicaoBasicaForm.Meta.fields.remove('rotulo')
                 for i in range(6):
                     DispositivoEdicaoBasicaForm.Meta.fields.remove(
                         'dispositivo%s' % i)
         else:
+            # adiciona campos de rótulo no formulário
             if 'rotulo' not in DispositivoEdicaoBasicaForm.Meta.fields:
                 DispositivoEdicaoBasicaForm.Meta.fields.append('rotulo')
                 for i in range(6):
                     DispositivoEdicaoBasicaForm.Meta.fields.append(
                         'dispositivo%s' % i)
-            # adiciona campos de rótulo no formulário
             self.dispositivo0 = forms.IntegerField(
                 min_value=0,
                 label=Dispositivo._meta.get_field('dispositivo0').verbose_name,
@@ -552,6 +563,51 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                          row_texto,
                          css_class="col-md-12"))
 
+        if editor_type == 'get_form_base' and inst.dispositivo_atualizador_id:
+            if inst and inst.tipo_dispositivo.dispositivo_de_articulacao:
+                if 'texto_atualizador' in\
+                        DispositivoEdicaoBasicaForm.Meta.fields:
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'texto_atualizador')
+                    DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                        'visibilidade')
+            else:
+                if 'texto_atualizador' not in\
+                        DispositivoEdicaoBasicaForm.Meta.fields:
+                    DispositivoEdicaoBasicaForm.Meta.fields.append(
+                        'texto_atualizador')
+                    DispositivoEdicaoBasicaForm.Meta.fields.append(
+                        'visibilidade')
+
+                self.texto_atualizador = forms.CharField(
+                    required=False,
+                    label='',
+                    widget=forms.Textarea(),
+                    help_text=_('Não havendo diferenças gráficas entre o '
+                                'conteúdo que deve estar no Texto Original e '
+                                'no Texto Alterador, não há necessidade '
+                                'de duplicar a informação. A validação dos '
+                                'dados negará a igualdade.'))
+                self.visibilidade = forms.ChoiceField(
+                    label=Dispositivo._meta.get_field(
+                        'visibilidade').verbose_name,
+                    choices=utils.YES_NO_CHOICES,
+                    widget=forms.RadioSelect())
+
+                layout.append(
+                    Fieldset(Dispositivo._meta.get_field(
+                        'texto_atualizador').verbose_name,
+                        to_row([(InlineRadios('visibilidade'), 12)]),
+                        to_row([('texto_atualizador', 12)]),
+                        css_class="col-md-12"))
+        else:
+            if 'texto_atualizador' in\
+                    DispositivoEdicaoBasicaForm.Meta.fields:
+                DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                    'texto_atualizador')
+                DispositivoEdicaoBasicaForm.Meta.fields.remove(
+                    'visibilidade')
+
         fields = DispositivoEdicaoBasicaForm.Meta.fields
         if fields:
             self.base_fields.clear()
@@ -559,11 +615,65 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 self.base_fields.update({f: getattr(self, f)})
 
         self.helper = FormHelper()
-        self.helper.layout = SaplFormLayout(
-            *layout,
-            label_cancel=_('Ir para o Editor Sequencial'))
+
+        if not editor_type:
+            label_cancel = _('Ir para o Editor Sequencial')
+            self.helper.layout = SaplFormLayout(
+                *layout, label_cancel=label_cancel)
+
+        elif editor_type == "get_form_base":
+            getattr(self, "actions_" + editor_type)(layout, inst)
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
+
+    def actions_get_form_base(self, layout, inst):
+        label_cancel = _('Fechar')
+
+        more = [
+            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+                 label_cancel),
+        ]
+
+        btns_excluir = []
+
+        if not (inst.tipo_dispositivo.dispositivo_de_alteracao and
+                inst.tipo_dispositivo.dispositivo_de_articulacao):
+            btns_excluir = [
+                HTML('<a class="btn btn-danger btn-excluir" '
+                     'action="json_delete_item_dispositivo" '
+                     'title="%s" '
+                     'pk="%s" '
+                     '>%s</a>' % (_('Excluir apenas este dispositivo.'),
+                                  inst.pk,
+                                  _('Excluir Dispositivo')))]
+
+        if inst.dispositivos_filhos_set.filter(
+            auto_inserido=False).exists() or (
+                inst.tipo_dispositivo.dispositivo_de_alteracao and
+                inst.tipo_dispositivo.dispositivo_de_articulacao):
+            btns_excluir.append(
+                HTML(
+                    '<a class="btn btn-danger btn-excluir" '
+                    'action="json_delete_bloco_dispositivo" '
+                    'title="%s" '
+                    'pk="%s" '
+                    '>%s</a>' % (_('Excluir este dispositivo '
+                                   'e toda sua estrutura.'),
+                                 inst.pk,
+                                 _('Excluir Bloco de Dispositivo.'))))
+
+        if btns_excluir and (not inst.auto_inserido or inst.ta_publicado):
+            css_class = 'btn-group pull-right btns-excluir'
+            more.append(Div(*btns_excluir, css_class=css_class))
+
+        if not inst.tipo_dispositivo.dispositivo_de_articulacao:
+            more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+
+        buttons = FormActions(*more, css_class='form-group')
+
+        _fields = [Div(*layout, css_class="row-fluid")] + \
+            [to_row([(buttons, 12)])]
+        self.helper.layout = Layout(*_fields)
 
 
 class DispositivoSearchModalForm(Form):
@@ -624,7 +734,7 @@ class DispositivoSearchModalForm(Form):
                         placeholder=_('Digite palavras, letras, '
                                       'números ou algo'
                                       ' que estejam no texto.')),
-                    StrictButton(_('Buscar'), css_class='btn-busca')), 7))
+                    StrictButton(_('Buscar'), css_class='btn-busca btn-primary')), 7))
                 )
         )
 
@@ -750,7 +860,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
     def clean_dispositivo_vigencia(self):
         dv = self.cleaned_data['dispositivo_vigencia']
 
-        if dv and dv.is_relative_auto_insert():
+        if dv and dv.auto_inserido:
             dv = dv.dispositivo_pai
 
         return dv
@@ -765,7 +875,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         if extensao:
             dv = data['dispositivo_vigencia']
 
-            if dv and dv.is_relative_auto_insert():
+            if dv and dv.auto_inserido:
                 dv = dv.dispositivo_pai
 
             dv_pk = dv.pk if dv else None
@@ -1020,6 +1130,19 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                                     'Dispositivo sem haver um '
                                     'Dispositivo Alterador.'))
 
+        """if dst.inicio_vigencia > self.instance.inicio_vigencia:
+            raise ValidationError(_('Não é permitido substituir um '
+                                    'Dispositivo que sua data de início '
+                                    'de vigência é superior a do dispositivo '
+                                    'em edição.'))
+            
+        if dsq.inicio_vigencia <= self.instance.fim_vigencia:
+            raise ValidationError(_('Não é permitido possuir um Dispositivo '
+                                    'Subsequente que sua data de início '
+                                    'de vigência seja inferior a data de fim '
+                                    'de vigência do dispositivo em edição.'))
+        """
+
     def save(self):
         data = self.cleaned_data
 
@@ -1030,17 +1153,23 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
         ndsq = data['dispositivo_subsequente']
         nda = data['dispositivo_atualizador']
 
+        # Se o dispositivo substituído foi trocado na edição
         if ndst != od.dispositivo_substituido:
+            # Se existia uma substituído, limpar seu subsequente e suas datas
+            # de fim de vigencia e eficacia
             if od.dispositivo_substituido:
                 odst = od.dispositivo_substituido
-
                 odst.dispositivo_subsequente = None
                 odst.fim_vigencia = None
                 odst.fim_eficacia = None
                 odst.save()
 
+            # se foi selecionado um dispositivo para ser substituído
+            # self.instance é seu subsequente
             if ndst:
+                # e se esse novo substituido possuia um outro sequente
                 if ndst.dispositivo_subsequente:
+                    # o substituido desse subsequente não é mais ndst
                     ndst.dispositivo_subsequente.dispositivo_substituido = None
                     ndst.dispositivo_subsequente.save()
 
@@ -1082,7 +1211,7 @@ class TextNotificacoesForm(Form):
 
     type_notificacoes = forms.ChoiceField(
         label=_('Níveis de Notificações'),
-        choices=[('default', _('Mostrar Dispositivos sem Notificações!')),
+        choices=[('default', _('Dispositivos sem Notificações!')),
                  ('success', _('Informações!')),
                  ('info', _('Boas Práticas!')),
                  ('warning', _('Alertas!')),
@@ -1101,3 +1230,56 @@ class TextNotificacoesForm(Form):
         self.helper.layout = Layout(field_type_notificacoes)
 
         super(TextNotificacoesForm, self).__init__(*args, **kwargs)
+
+
+class DispositivoRegistroAlteracaoForm(Form):
+
+    dispositivo_alterado = forms.ModelChoiceField(
+        label=_('Dispositivo a ser alterado'),
+        required=False,
+        queryset=Dispositivo.objects.all())
+
+    dispositivo_search_form = forms.CharField(widget=forms.HiddenInput(),
+                                              required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        layout = []
+        kwargs.pop('instance')
+        kwargs['initial'].pop('editor_type')
+
+        row_dispositivo = Field(
+            'dispositivo_alterado',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_alterado',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+
+        layout.append(Fieldset(_('Registro de Alteração - '
+                                 'Seleção do Dispositivo a ser alterado'),
+                               row_dispositivo,
+                               css_class="col-md-12"))
+        layout.append(Field('dispositivo_search_form'))
+
+        more = [
+            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+                 _('Cancelar')),
+        ]
+        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+
+        buttons = FormActions(*more, css_class='form-group')
+
+        _fields = [Div(*layout, css_class="row-fluid")] + \
+            [to_row([(buttons, 12)])]
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(*_fields)
+
+        super(DispositivoRegistroAlteracaoForm, self).__init__(*args, **kwargs)
+
+        self.fields['dispositivo_alterado'].choices = []
+
+    def save(self):
+        super(DispositivoRegistroAlteracaoForm, self).save()
+
+        data = self.cleaned_data

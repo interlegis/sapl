@@ -1,0 +1,71 @@
+{% load i18n %}
+
+<div class="btn-toolbar pull-right" role="toolbar" >
+
+  {% if object.tipo_dispositivo.dispositivo_de_articulacao and object.tipo_dispositivo.dispositivo_de_alteracao %}
+    <div class="btn-group " role="group">
+      <button type="button" class="btn btn-default btn-sm btn-compila" pk="{{object.pk}}" action="get_form_revogacao" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Registrar Revogação
+      </button>
+      <button type="button" class="btn btn-default btn-sm btn-compila" pk="{{object.pk}}" action="get_form_alteracao" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Registrar Alteração
+      </button>
+      <button type="button" class="btn btn-default btn-sm btn-compila" pk="{{object.pk}}" action="get_form_inclusao" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        Registrar Inclusão
+      </button>
+
+    </div>
+  {%endif%}
+  <div class="btn-group " role="group">
+    <button type="button" class="btn btn-default btn-sm radius-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      <i class="fa fa-edit fa-lg"></i>
+    </button>
+    <ul class="dropdown-menu">
+      <div class="arrow top"></div>
+      <li><a class="btn-editor-type" editortype="construct">Construtor</a></li>
+      <li><a class="btn-editor-type" editortype="textarea">Editor Simples</a></li>
+      <li><a class="btn-editor-type" editortype="tinymce">Editor Tinymce</a></li>
+      <li><a class="btn-editor-avancado" href="{% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk %}" >Editor Avançado</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="btn-toolbar" role="toolbar" >
+
+  <div class="btn-group dropdown" role="group">
+    {% if object.dispositivo_subsequente == None %}
+      {% for inserts in allowed_inserts %}
+        {% if inserts.itens %}
+          <div class="btn-group btn-group-inserts" role="group">
+            <button type="button" class="btn btn-success btn-sm {% if forloop.last %}radius-right{%endif%}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              {{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-left">
+              <div class="arrow top"></div>
+              {% for item in inserts.itens %}
+                <li><a class="btn-inserts btn-action " action="{{inserts.action}}" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}">{{item.provavel|safe}}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+  <div class="btn-group " role="group">
+    {% if object.dispositivo_subsequente == None %}
+      {% for perfil in perfil_estrutural_list%}
+        <button type="button" class="btn-action btn-perfis btn btn-xs {%if request.session.perfil_estrutural == perfil.pk%}btn-primary{%else%}btn-default{%endif%}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"  pk="{{object.pk}}" perfil_pk="{{perfil.pk}}" action="json_get_perfis" title="{{perfil.nome}}">
+          {{perfil.sigla}}
+        </button>
+      {% endfor %}
+    {%endif%}
+  </div>
+  {% if not object.ta_publicado%}
+    <div class="btn-group " role="group">
+      <button type="button" class="btn-action btn btn-xs radius-right {% if object.pk == object.dispositivo_vigencia_id %}btn-primary{%else%}btn-default{%endif%}"  pk="{{object.pk}}"  action="json_set_dvt" title="{% if object.pk == object.dispositivo_vigencia_id %}{% trans 'Dispositivo de Vigência Atual'%}{%else%}{% trans 'Tornar este o Dispositivo de Vigência de todo o Texto Articulado.'%}{%endif%}">
+        DVt
+      </button>
+    </div>
+  {%endif%}
+</div>

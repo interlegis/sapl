@@ -7,7 +7,54 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.compilacao.models import Dispositivo
 
+
 register = template.Library()
+
+
+class DispositivoTreeNode(template.Node):
+
+    def __init__(self, template_nodes, dispositivo_list_var):
+        self.template_nodes = template_nodes
+        self.dispositivo_list_var = dispositivo_list_var
+
+    def _render_node(self, context, node):
+        bits_alts = []
+        bits_filhos = []
+        context.push()
+        for child in node['alts']:
+            bits_alts.append(self._render_node(context, child))
+        for child in node['filhos']:
+            bits_filhos.append(self._render_node(context, child))
+        context['node'] = node
+        context['alts'] = mark_safe(''.join(bits_alts))
+        context['filhos'] = mark_safe(''.join(bits_filhos))
+        rendered = self.template_nodes.render(context)
+        context.pop()
+        return rendered
+
+    def render(self, context):
+        dispositivo_list_var = self.dispositivo_list_var.resolve(context)
+        bits = [self._render_node(context, node)
+                for node in dispositivo_list_var]
+        return ''.join(bits)
+
+
+@register.tag
+def dispositivotree(parser, token):
+
+    bits = token.contents.split()
+    if len(bits) != 2:
+        raise template.TemplateSyntaxError(
+            _('%s tag requires a queryset') % bits[0])
+
+    dispositivo_list_var = template.Variable(bits[1])
+
+    template_nodes = parser.parse(('enddispositivotree',))
+    parser.delete_first_token()
+
+    return DispositivoTreeNode(template_nodes, dispositivo_list_var)
+
+# --------------------------------------------------------------
 
 
 @register.filter
@@ -34,7 +81,7 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 @register.simple_tag
 def nota_automatica(dispositivo, ta_pub_list):
 
-    if dispositivo.ta_publicado is not None:
+    if dispositivo.ta_publicado:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
         ta_publicado = ta_pub_list[dispositivo.ta_publicado_id] if\
@@ -77,11 +124,6 @@ def get_sign_vigencia(value):
 @register.filter
 def select_provaveis_inserts(view, request):
     return view.select_provaveis_inserts(request)
-
-
-@register.filter
-def is_relative_auto_insert(dpt, request):
-    return dpt.is_relative_auto_insert(request.session['perfil_estrutural'])
 
 
 @register.filter
@@ -168,7 +210,9 @@ def heranca(request, d, ignore_ultimo=0, ignore_primeiro=0):
         ta_dpts_parents = {}
 
     ta_id = str(d.ta_id)
-    if ta_id not in ta_dpts_parents:
+    d_pk = str(d.pk)
+    if ta_id not in ta_dpts_parents or d_pk not in ta_dpts_parents[ta_id]:
+        print('recarregando estrutura temporaria de heranças')
         dpts_parents = {}
         ta_dpts_parents[ta_id] = dpts_parents
         update_dispositivos_parents(dpts_parents, ta_id)
@@ -185,7 +229,6 @@ def heranca(request, d, ignore_ultimo=0, ignore_primeiro=0):
         request.session['herancas_fila'] = herancas_fila
         request.session['herancas'] = ta_dpts_parents
 
-    d_pk = str(d.pk)
     h = ta_dpts_parents[ta_id][d_pk]['h']
 
     if h:

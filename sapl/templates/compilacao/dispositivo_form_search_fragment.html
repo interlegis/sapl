@@ -24,7 +24,7 @@
       {% endif %}
   {% endifchanged %}
 
-  {% if dpt.tipo_dispositivo.dispositivo_de_alteracao or dpt.dispositivo_pai.nivel > 0 and dpt.is_relative_auto_insert and dpt.dispositivo_pai not in object_list %}
+  {% if dpt.tipo_dispositivo.dispositivo_de_alteracao or dpt.dispositivo_pai.nivel > 0 and dpt.auto_inserido and dpt.dispositivo_pai not in object_list %}
     <li>
       <div class="iteminput">
           <input type="{{request.GET.data_type_selection}}" name="{{request.GET.data_field}}" id="dpt{{dpt.pk}}" value="{{dpt.pk}}"/>
@@ -40,7 +40,7 @@
             {{ dpt.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
             <span class="dtxt" id="d{% if not dpt.dispositivo_pai.dispositivo_subsequente_id and dpt.dispositivo_pai.dispositivo_substituido_id %}a{% endif %}{{dpt.dispositivo_pai.pk}}" pks="{{dpt.dispositivo_pai.dispositivo_substituido_id|default:''}}" pk="{{dpt.dispositivo_pai.pk}}">{{ dpt.dispositivo_pai.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.dispositivo_pai.texto %}{{ dpt.dispositivo_pai.texto|safe }}{%else%}{%if not dpt.dispositivo_pai.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
             {% if dpt.dispositivo_pai.ta_publicado_id %}
-              <a class="link_alterador" href="{% url 'sapl.compilacao:ta_text' dpt.dispositivo_pai.ta_publicado.pk %}#{{dpt.dispositivo_pai.dispositivo_atualizador_id}}">
+              <a class="nota-alteracao" href="{% url 'sapl.compilacao:ta_text' dpt.dispositivo_pai.ta_publicado.pk %}#{{dpt.dispositivo_pai.dispositivo_atualizador_id}}">
                 {{ dpt.dispositivo_pai.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
                 {% nota_automatica dpt.dispositivo_pai ta_pub_list %}
                 {{ dpt.dispositivo_pai.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
@@ -72,7 +72,7 @@
                 pks="{{dpt.dispositivo_substituido_id|default:''}}"
                 pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
           {% if dpt.ta_publicado_id %}
-            <a class="link_alterador" href="{% url 'sapl.compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
+            <a class="nota-alteracao" href="{% url 'sapl.compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
               {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
               {% nota_automatica dpt ta_pub_list %}
               {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
@@ -108,7 +108,7 @@
                 {{ df.tipo_dispositivo.rotulo_sufixo_html|safe }}
                 <span class="dtxt" id="d{% if not df.dispositivo_subsequente_id and df.dispositivo_substituido_id %}a{% endif %}{{df.pk}}" pks="{{df.dispositivo_substituido_id|default:''}}" pk="{{df.pk}}">{{ df.tipo_dispositivo.texto_prefixo_html|safe }}{%if df.texto %}{{ df.texto|safe }}{%else%}{%if not df.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
                 {% if df.ta_publicado_id %}
-                  <a class="link_alterador" href="{% url 'sapl.compilacao:ta_text' df.ta_publicado.pk %}#{{df.dispositivo_atualizador_id}}">
+                  <a class="nota-alteracao" href="{% url 'sapl.compilacao:ta_text' df.ta_publicado.pk %}#{{df.dispositivo_atualizador_id}}">
                     {{ df.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
                     {% nota_automatica df ta_pub_list %}
                     {{ df.tipo_dispositivo.nota_automatica_sufixo_html|safe }}

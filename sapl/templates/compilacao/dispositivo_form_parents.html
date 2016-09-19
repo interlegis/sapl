@@ -4,28 +4,25 @@
   <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
     {{node|nomenclatura}}
   </a>
-{% else %}
 
+{% else %}
   <div class="cp-nav-parents btn-group btn-group-sm" role="group">
     <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
-      {{node|nomenclatura}}
+      {% if not node.rotulo and node.nivel == 0 %}{{node.dispositivo0}} - {% endif %}{{node|nomenclatura}}
       <span class="caret"></span>
     </a>
-
     <ul class="dropdown-menu">
       <li>
         {%for parent in node.dispositivos_filhos_set.all %}
           <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
-            {{parent|nomenclatura}} {% if parent.dispositivo_subsequente_id %}({% trans "Alterado" %}){% endif %}
+            {{parent|nomenclatura}} {% if parent.ta_publicado_id %}<small class="text-warning">
+              {{ parent.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+              {% nota_automatica parent None %}
+              {{ parent.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+            </small>{% endif %}
           </a>
-
         {%endfor %}
-
-
-
       </li>
     </ul>
-
   </div>
-
 {% endif %}

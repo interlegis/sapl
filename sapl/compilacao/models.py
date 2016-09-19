@@ -578,7 +578,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Declarado Inconstitucional'))
-    # Relevant attribute only in altering norms
+    auto_inserido = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Auto Inserido'))
     visibilidade = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
@@ -647,6 +650,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
              'dispositivo5',
              'tipo_dispositivo',
              'dispositivo_pai',
+             'dispositivo_atualizador',
              'ta_publicado',
              'publicacao',),
         )
@@ -924,12 +928,14 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     def criar_espaco(self, espaco_a_criar, local):
 
-        if local == 'add_next':
+        if local == 'json_add_next':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel,
                 ta_id=self.ta_id)[:1]
-        elif local == 'add_in':
+        elif local == 'json_add_in':
+            # FIXME: o exclude não deve estar limitado a uma class_css caput e
+            # sim a qualquer filho de inserção automática
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel + 1,
@@ -951,7 +957,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 ordem=F('ordem') + (
                     Dispositivo.INTERVALO_ORDEM * espaco_a_criar - 1))
         else:
-            # inserção no fim da ta
+            # inserção no fim do ta
             ordem_max = Dispositivo.objects.order_by(
                 'ordem').filter(
                 ta_id=self.ta_id).aggregate(
@@ -1112,7 +1118,14 @@ class Dispositivo(BaseModel, TimestampedMixin):
             ta_id=self.ta_id).last()
         return anterior_articulacao
 
-    def is_relative_auto_insert(self, perfil_pk=None):
+    def get_niveis_zero(self):
+        niveis_zero = Dispositivo.objects.order_by('ordem').filter(
+            nivel=0,
+            ta_id=self.ta_id)
+        return niveis_zero
+
+    # metodo obsoleto, foi acrescentado o campo auto_inserido no modelo
+    def is_relative_auto_insert__obsoleto(self, perfil_pk=None):
         if self.dispositivo_pai is not None:
             # pp possiveis_pais
 
@@ -1137,6 +1150,16 @@ class Dispositivo(BaseModel, TimestampedMixin):
             dp = dp.dispositivo_pai
         return dp
 
+    def history(self):
+        ultimo = self
+        while ultimo.dispositivo_subsequente:
+            ultimo = ultimo.dispositivo_subsequente
+
+        yield ultimo
+        while ultimo.dispositivo_substituido:
+            ultimo = ultimo.dispositivo_substituido
+            yield ultimo
+
     @staticmethod
     def new_instance_based_on(dispositivo_base, tipo_base):
         dp = Dispositivo()
@@ -1148,6 +1171,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         dp.nivel = dispositivo_base.nivel
         dp.texto = ''
         dp.visibilidade = True
+        dp.auto_inserido = dispositivo_base.auto_inserido
         dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
         dp.publicacao = dispositivo_base.publicacao
@@ -1161,7 +1185,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         else:
             dp.inicio_eficacia = dispositivo_base.inicio_eficacia
             dp.inicio_vigencia = dispositivo_base.inicio_vigencia
-            dp.fim_eficacia = dispositivo_base.inicio_eficacia
+            dp.fim_eficacia = dispositivo_base.fim_eficacia
             dp.fim_vigencia = dispositivo_base.fim_vigencia
 
         dp.ordem = dispositivo_base.ordem

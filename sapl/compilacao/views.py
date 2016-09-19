@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -15,6 +15,7 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -22,26 +23,30 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
-from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
-                                   DispositivoEdicaoAlteracaoForm,
-                                   DispositivoEdicaoBasicaForm,
-                                   DispositivoEdicaoVigenciaForm,
-                                   DispositivoSearchModalForm, NotaForm,
-                                   PublicacaoForm, TaForm,
-                                   TextNotificacoesForm, TipoTaForm, VideForm)
-from sapl.compilacao.models import (Dispositivo, Nota,
-                                    PerfilEstruturalTextoArticulado,
-                                    Publicacao, TextoArticulado,
-                                    TipoDispositivo, TipoNota, TipoPublicacao,
-                                    TipoTextoArticulado, TipoVide,
-                                    VeiculoPublicacao, Vide)
-from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
+from sapl.compilacao.forms import (
+    DispositivoDefinidorVigenciaForm,
+    DispositivoEdicaoAlteracaoForm,
+    DispositivoEdicaoBasicaForm,
+    DispositivoEdicaoVigenciaForm,
+    DispositivoSearchModalForm, NotaForm,
+    PublicacaoForm, TaForm, TextNotificacoesForm,
+    TipoTaForm, VideForm, DispositivoRegistroAlteracaoForm)
+from sapl.compilacao.models import (
+    Dispositivo, Nota,
+    PerfilEstruturalTextoArticulado, Publicacao,
+    TextoArticulado, TipoDispositivo, TipoNota,
+    TipoPublicacao, TipoTextoArticulado, TipoVide,
+    VeiculoPublicacao, Vide)
+from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED,\
+    DISPOSITIVO_SELECT_RELATED_EDIT
 from sapl.crud.base import Crud, CrudListView, make_pagination
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
+#^class(.)+\((.)*^(CompMix)(.)*
 
 
 class IntegracaoTaView(TemplateView):
@@ -133,15 +138,21 @@ def choice_models_in_extenal_views():
 
 class CompMixin:
 
-    @property
-    def title(self):
-        try:
-            return self.get_object()
-        except:
-            return self.object
+    def get_context_data(self, **kwargs):
+        context = super(CompMixin, self).get_context_data(**kwargs)
+
+        if hasattr(self, 'model') and not hasattr(self, 'object'):
+            context.update(
+                {'title': self.model._meta.verbose_name_plural
+                 if isinstance(self, ListView)
+                    else self.model._meta.verbose_name})
+
+        if isinstance(self, ListView):
+            context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
+        return context
 
 
-class TipoTaListView(ListView):
+class TipoTaListView(CompMixin, ListView):
     model = TipoTextoArticulado
     paginate_by = 10
     verbose_name = model._meta.verbose_name
@@ -155,7 +166,7 @@ class TipoTaListView(ListView):
         return reverse_lazy('sapl.compilacao:tipo_ta_create')
 
 
-class TipoTaCreateView(FormMessagesMixin, CreateView):
+class TipoTaCreateView(CompMixin, FormMessagesMixin, CreateView):
     model = TipoTextoArticulado
     form_class = TipoTaForm
     template_name = "crud/form.html"
@@ -220,7 +231,7 @@ class TipoTaDeleteView(CompMixin, DeleteView):
         return reverse_lazy('sapl.compilacao:tipo_ta_list')
 
 
-class TaListView(ListView):
+class TaListView(CompMixin, ListView):
     model = TextoArticulado
     paginate_by = 10
     verbose_name = model._meta.verbose_name
@@ -242,7 +253,7 @@ class TaListView(ListView):
         return context
 
 
-class TaDetailView(DetailView):
+class TaDetailView(CompMixin, DetailView):
     model = TextoArticulado
 
     @property
@@ -257,7 +268,7 @@ class TaDetailView(DetailView):
             return self.get_object()
 
 
-class TaCreateView(FormMessagesMixin, CreateView):
+class TaCreateView(CompMixin, FormMessagesMixin, CreateView):
     model = TextoArticulado
     form_class = TaForm
     template_name = "crud/form.html"
@@ -309,7 +320,7 @@ class TaDeleteView(CompMixin, DeleteView):
         return reverse_lazy('sapl.compilacao:ta_list')
 
 
-class DispositivoSuccessUrlMixin:
+class DispositivoSuccessUrlMixin(CompMixin):
 
     def get_success_url(self):
         return reverse_lazy(
@@ -469,7 +480,7 @@ class VideDeleteView(VideMixin, TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class PublicacaoListView(ListView):
+class PublicacaoListView(CompMixin, ListView):
     model = Publicacao
     verbose_name = model._meta.verbose_name
 
@@ -500,7 +511,7 @@ class PublicacaoListView(ListView):
         return context
 
 
-class PublicacaoCreateView(FormMessagesMixin, CreateView):
+class PublicacaoCreateView(CompMixin, FormMessagesMixin, CreateView):
     model = Publicacao
     form_class = PublicacaoForm
     template_name = "crud/form.html"
@@ -568,7 +579,7 @@ class PublicacaoDeleteView(CompMixin, DeleteView):
                             kwargs={'ta_id': self.kwargs['ta_id']})
 
 
-class TextView(ListView, CompMixin):
+class TextView(CompMixin, ListView):
     template_name = 'compilacao/text_list.html'
 
     flag_alteradora = -1
@@ -810,53 +821,189 @@ class DispositivoView(TextView):
         return itens
 
 
-class TextEditView(ListView, CompMixin):
+class TextEditView(TemplateView):
     template_name = 'compilacao/text_edit.html'
 
-    flag_alteradora = -1
-
-    flag_nivel_ini = 0
-    flag_nivel_old = -1
-
-    pk_edit = 0
-    pk_view = 0
-
-    def get(self, request, *args, **kwargs):
-
-        return ListView.get(self, request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
+        dispositivo_id = int(self.kwargs['dispositivo_id']) \
+            if 'dispositivo_id' in self.kwargs else 0
+
+        if dispositivo_id:
+            self.object = Dispositivo.objects.get(pk=dispositivo_id)
+
         context = super(TextEditView, self).get_context_data(**kwargs)
 
-        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
-        self.object = ta
+        if not dispositivo_id:
+            ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+            self.object = ta
 
         context['object'] = self.object
+        context['dispositivos_list'] = self.dispositivos_list()
 
-        tas_pub = [d.ta_publicado for d in self.object_list if d.ta_publicado]
-        tas_pub = set(tas_pub)
-        ta_pub_list = {}
-        for ta in tas_pub:
-            ta_pub_list[ta.pk] = str(ta)
-        context['ta_pub_list'] = ta_pub_list
+        if 'action' in self.request.GET:
+            context['action'] = self.request.GET['action']
 
         return context
 
-    def get_queryset(self):
-        self.pk_edit = 0
-        self.pk_view = 0
+    def dispositivos_list(self):
+        self.runBase()
 
-        self.flag_alteradora = -1
-        self.flag_nivel_ini = 0
-        self.flag_nivel_old = -1
+        tds = {td.pk: td for td in TipoDispositivo.objects.all()}
 
-        result = Dispositivo.objects.filter(
-            ta_id=self.kwargs['ta_id']
-        ).select_related(*DISPOSITIVO_SELECT_RELATED)
+        dispositivo_id = int(self.kwargs['dispositivo_id']) \
+            if 'dispositivo_id' in self.kwargs else 0
+        ta_id = int(self.kwargs['ta_id']) \
+            if 'ta_id' in self.kwargs else 0
+
+        q = Q(ta_id=ta_id)
+
+        dispositivos_de_alteracao = []
+        dispositivos = []
+        if dispositivo_id:
+            bloco = Dispositivo.objects.get(pk=dispositivo_id)
+
+            if (tds[bloco.tipo_dispositivo_id].dispositivo_de_alteracao and
+                    not tds[bloco.tipo_dispositivo_id
+                            ].dispositivo_de_articulacao) or (
+                    bloco.ta_id != ta_id and bloco.ta_publicado_id == ta_id):
+                dispositivos = [bloco, ]
+            else:
+                proximo_bloco = Dispositivo.objects.filter(
+                    ordem__gt=bloco.ordem,
+                    nivel__lte=bloco.nivel,
+                    ta_id=ta_id)[:1]
+
+                if not proximo_bloco.exists():
+                    q = q & Q(ordem__gte=bloco.ordem)
+                else:
+                    q = q & Q(ordem__gte=bloco.ordem) & \
+                        Q(ordem__lt=proximo_bloco[0].ordem)
+
+                dispositivos_de_alteracao = Dispositivo.objects.filter(
+                    ta_id=ta_id,
+                    tipo_dispositivo__dispositivo_de_alteracao=True,
+                    tipo_dispositivo__dispositivo_de_articulacao=False
+                ).select_related(*DISPOSITIVO_SELECT_RELATED_EDIT)
+
+        if not dispositivos:
+            dispositivos = Dispositivo.objects.filter(
+                q).select_related(*DISPOSITIVO_SELECT_RELATED_EDIT)
+
+        dispositivos_alterados = Dispositivo.objects.filter(
+            ta_publicado_id=ta_id)
+
+        dispositivos_alteradores = Dispositivo.objects.filter(
+            dispositivos_alterados_set__ta_id=ta_id)
+
+        dpts = list(dispositivos) + \
+            list(dispositivos_de_alteracao) + \
+            list(dispositivos_alterados) + \
+            list(dispositivos_alteradores)
+
+        tas_pub = [d.ta_publicado for d in dispositivos if d.ta_publicado]
+        tas_pub = set(tas_pub)
+        lista_ta_publicado = {}
+        for ta in tas_pub:
+            lista_ta_publicado[ta.pk] = str(ta)
+
+        dpts = {d.pk: {
+                'dpt': d,
+                'filhos': [],
+                'alts': [],
+                'pai': None,
+                'st': None,                        # dispositivo substituido
+                'sq': None,                        # dispositivo subsequente
+                'da': None,                        # dispositivo atualizador
+                'td': tds[d.tipo_dispositivo_id],  # tipo do dispositivo
+                'na': self.nota_alteracao(d, lista_ta_publicado)\
+                if d.ta_id == ta_id else None
+                } for d in dpts}
+
+        apagar = []
+        for d in dispositivos:
+            try:
+                if d.dispositivo_substituido_id:
+                    dpts[d.pk]['st'] = dpts[d.dispositivo_substituido_id]
+            except:
+                pass
+            try:
+                if d.dispositivo_subsequente_id:
+                    dpts[d.pk]['sq'] = dpts[d.dispositivo_subsequente_id]
+            except:
+                pass
+            try:
+                if d.dispositivo_atualizador_id:
+                    dpts[d.pk]['da'] = dpts[d.dispositivo_atualizador_id]
+            except:
+                pass
+            try:
+                if d.dispositivo_pai_id:
+                    """ Pode não ser possível vincular a estrutura do pai
+                    devido a busca de bloco não envolver o pai do bloco,
+                    por isso os try's except's"""
+                    dpts[d.pk]['pai'] = dpts[d.dispositivo_pai_id]
+
+                    if tds[d.tipo_dispositivo_id].\
+                            dispositivo_de_alteracao and not\
+                            tds[d.tipo_dispositivo_id].\
+                            dispositivo_de_articulacao:
+                        apagar.append(d.pk)
+                    else:
+                        dpts[d.dispositivo_pai_id]['filhos'].append(dpts[d.pk])
+                        apagar.append(d.pk)
+            except:
+                pass
+            try:
+                if tds[d.tipo_dispositivo_id].dispositivo_de_alteracao and\
+                        tds[d.tipo_dispositivo_id].dispositivo_de_articulacao:
+
+                    alts = Dispositivo.objects.values_list(
+                        'pk', flat=True).order_by(
+                        'ordem_bloco_atualizador').filter(
+                        Q(dispositivo_pai_id=d.pk) |
+                        Q(dispositivo_atualizador_id=d.pk))
+
+                    for dAlt in alts:
+                        dpts[d.pk]['alts'].append(dpts[dAlt])
+                        dpts[dAlt]['da'] = dpts[d.pk]
+            except:
+                pass
+
+        for pk in apagar:
+            del dpts[pk]
+
+        r = []
+        for dd in dispositivos:
+            if dd.pk in dpts:
+                r.append(dpts[dd.pk])
+        return r
+
+    def nota_alteracao(self, dispositivo, lista_ta_publicado):
+        if dispositivo.ta_publicado_id:
+            d = dispositivo.dispositivo_atualizador.dispositivo_pai
+
+            ta_publicado = lista_ta_publicado[dispositivo.ta_publicado_id] if\
+                lista_ta_publicado else dispositivo.ta_publicado
+
+            if dispositivo.texto == \
+                    Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
+                return _('Revogado pelo %s - %s.') % (
+                    d, ta_publicado)
+            elif not dispositivo.dispositivo_substituido_id:
+                return _('Inclusão feita pelo %s - %s.') % (
+                    d, ta_publicado)
+            else:
+                return _('Alteração feita pelo %s - %s.') % (
+                    d, ta_publicado)
+
+        return ''
+
+    def runBase(self):
+        result = Dispositivo.objects.filter(ta_id=self.kwargs['ta_id'])
 
         if not result.exists():
 
-            ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+            ta = self.object
 
             td = TipoDispositivo.objects.filter(class_css='articulacao')[0]
             a = Dispositivo()
@@ -891,425 +1038,113 @@ class TextEditView(ListView, CompMixin):
             a.set_numero_completo([2, 0, 0, 0, 0, 0, ])
             a.save()
 
-            result = Dispositivo.objects.filter(
-                ta_id=self.kwargs['ta_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
-        return result
+class ActionsCommonsMixin:
 
-    def set_perfil_in_session(self, request=None, perfil_id=0):
-        if not request:
-            return None
+    def set_message(self, data, _type, message, time=None, modal=False):
+        data['message'] = {
+            'type': _type,
+            'value': str(message)}
+        if time:
+            data['message']['time'] = time
+        data['message']['modal'] = modal
+        return
 
-        if perfil_id:
-            perfil = PerfilEstruturalTextoArticulado.objects.get(
-                pk=perfil_id)
-            request.session['perfil_estrutural'] = perfil.pk
-        else:
-            perfis = PerfilEstruturalTextoArticulado.objects.filter(
-                padrao=True)[:1]
+    def get_json_for_refresh(self, dp, dpauto=None):
 
-            if not perfis.exists():
-                request.session.pop('perfil_estrutural')
+        if dp.tipo_dispositivo.contagem_continua:
+            pais = []
+            if dp.dispositivo_pai is None:
+                data = {'pk': dp.pk, 'pai': [-1, ]}
             else:
-                request.session['perfil_estrutural'] = perfis[0].pk
+                pkfilho = dp.pk
+                dp = dp.dispositivo_pai
 
+                proxima_articulacao = dp.get_proximo_nivel_zero()
 
-class DispositivoSimpleEditView(TextEditView):
-    template_name = 'compilacao/text_edit_bloco.html'
-
-    def post(self, request, *args, **kwargs):
-
-        d = Dispositivo.objects.get(
-            pk=self.kwargs['dispositivo_id'])
-
-        texto = request.POST['texto']
-
-        if d.texto != '':
-            d.texto = texto
-            d.save()
-            return self.get(request, *args, **kwargs)
-        d.texto = texto.strip()
-        d.save()
-
-        if texto != '':
-            dnext = Dispositivo.objects.filter(
-                ta_id=d.ta_id,
-                ordem__gt=d.ordem,
-                texto='',
-                tipo_dispositivo__dispositivo_de_articulacao=False)[:1]
-
-            if not dnext.exists():
-                dnext = []
-                dnext.append(d)
-                pais = [d.dispositivo_pai_id, ]
-            else:
-
-                if dnext[0].nivel > d.nivel:
-                    pais = [d.pk, ]
+                if proxima_articulacao is not None:
+                    parents = Dispositivo.objects.filter(
+                        ta_id=dp.ta_id,
+                        ordem__gte=dp.ordem,
+                        ordem__lt=proxima_articulacao.ordem,
+                        nivel__lte=dp.nivel)
                 else:
-                    if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
-                        pais = [dnext[0].dispositivo_pai_id, ]
-                    else:
-                        pais = [
-                            dnext[0].dispositivo_pai_id,
-                            d.dispositivo_pai_id]
-            data = {'pk': dnext[0].pk, 'pai': pais}
-        else:
-            data = {'pk': d.pk, 'pai': [d.pk, ]}
+                    parents = Dispositivo.objects.filter(
+                        ta_id=dp.ta_id,
+                        ordem__gte=dp.ordem,
+                        nivel__lte=dp.nivel)
 
-        return JsonResponse(data, safe=False)
-
-    def get_queryset_perfil_estrutural(self):
-        perfis = PerfilEstruturalTextoArticulado.objects.all()
-        return perfis
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            if 'perfil_pk' in request.GET:
-                self.set_perfil_in_session(
-                    request, request.GET['perfil_pk'])
-            elif 'perfil_estrutural' not in request.session:
-                self.set_perfil_in_session(request=request)
-
-            self.object_list = self.get_queryset()
-
-            self.perfil_estrutural_list = self.get_queryset_perfil_estrutural()
-
-            context = self.get_context_data(
-                object_list=self.object_list,
-                perfil_estrutural_list=self.perfil_estrutural_list
-            )
-        except Exception as e:
-            print(e)
-
-        return self.render_to_response(context)
-
-    def get_queryset(self):
-        self.flag_alteradora = -1
-        self.flag_nivel_ini = 0
-        self.flag_nivel_old = -1
-
-        try:
-            self.pk_edit = int(self.request.GET['edit'])
-        except:
-            self.pk_edit = 0
-        self.pk_view = int(self.kwargs['dispositivo_id'])
-
-        try:
-            if self.pk_edit == self.pk_view:
-                bloco = Dispositivo.objects.get(
-                    pk=self.kwargs['dispositivo_id'])
-            else:
-                bloco = Dispositivo.objects.get(
-                    pk=self.kwargs['dispositivo_id'])
-        except Dispositivo.DoesNotExist:
-            return []
-
-        self.flag_nivel_old = bloco.nivel - 1
-        self.flag_nivel_ini = bloco.nivel
-
-        if self.pk_edit == self.pk_view:
-            return [bloco, ]
-
-        proximo_bloco = Dispositivo.objects.filter(
-            ordem__gt=bloco.ordem,
-            nivel__lte=bloco.nivel,
-            ta_id=self.kwargs['ta_id'])[:1]
-
-        if proximo_bloco.count() == 0:
-            itens = Dispositivo.objects.filter(
-                ordem__gte=bloco.ordem,
-                ta_id=self.kwargs['ta_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
-        else:
-            itens = Dispositivo.objects.filter(
-                ordem__gte=bloco.ordem,
-                ordem__lt=proximo_bloco[0].ordem,
-                ta_id=self.kwargs['ta_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
-        return itens
-
-    def select_provaveis_inserts(self, request=None):
-        try:
-            if request and 'perfil_estrutural' not in request.session:
-                self.set_perfil_in_session(request)
-
-            perfil_pk = request.session['perfil_estrutural']
-
-            # Não salvar d_base
-            if self.pk_edit == 0:
-                base = Dispositivo.objects.get(pk=self.pk_view)
-            else:
-                base = Dispositivo.objects.get(pk=self.pk_edit)
-
-            prox_possivel = Dispositivo.objects.filter(
-                ordem__gt=base.ordem,
-                nivel__lte=base.nivel,
-                ta_id=base.ta_id)[:1]
-
-            if prox_possivel.exists():
-                prox_possivel = prox_possivel[0]
-            else:
-                prox_possivel = None
-
-            result = [{'tipo_insert': _('Inserir Depois'),
-                       'icone': '&#8631;&nbsp;',
-                       'action': 'add_next',
-                       'itens': []},
-                      {'tipo_insert': _('Inserir Dentro'),
-                       'icone': '&#8690;&nbsp;',
-                       'action': 'add_in',
-                       'itens': []},
-                      {'tipo_insert': _('Inserir Antes'),
-                       'icone': '&#8630;&nbsp;',
-                       'action': 'add_prior',
-                       'itens': []}
-                      ]
-
-            # Possíveis inserções sequenciais já existentes
-            parents = base.get_parents()
-            parents.insert(0, base)
-            nivel = sys.maxsize
-            for dp in parents:
-
-                if dp.nivel >= nivel:
-                    continue
-
-                if dp.is_relative_auto_insert(perfil_pk):
-                    continue
-
-                if prox_possivel and \
-                    dp.tipo_dispositivo != base.tipo_dispositivo and\
-                    dp.nivel < prox_possivel.nivel and\
-                    not prox_possivel.tipo_dispositivo.permitido_inserir_in(
-                        dp.tipo_dispositivo,
-                        perfil_pk=perfil_pk):
-
-                    if dp.tipo_dispositivo != prox_possivel.tipo_dispositivo:
+                nivel = sys.maxsize
+                for p in parents:
+                    if p.nivel > nivel:
                         continue
+                    pais.append(p.pk)
+                    nivel = p.nivel
+                data = {
+                    'pk': pkfilho if not dpauto else dpauto.pk, 'pai': pais}
+        else:
+            data = {'pk': dp.pk if not dpauto else dpauto.pk, 'pai': [
+                dp.dispositivo_pai.pk, ]}
 
-                nivel = dp.nivel
-
-                # um do mesmo para inserção antes
-                if dp == base:
-                    result[2]['itens'].append({
-                        'class_css': dp.tipo_dispositivo.class_css,
-                        'tipo_pk': dp.tipo_dispositivo.pk,
-                        'variacao': 0,
-                        'provavel': '%s (%s)' % (
-                            dp.rotulo_padrao(local_insert=1),
-                            dp.tipo_dispositivo.nome,),
-                        'dispositivo_base': base.pk})
-
-                if dp.dispositivo_pai:
-                    flag_pv = dp.tipo_dispositivo.permitido_variacao(
-                        dp.dispositivo_pai.tipo_dispositivo,
-                        perfil_pk=perfil_pk)
-                else:
-                    flag_pv = False
-
-                r = []
-                flag_direcao = 1
-                flag_variacao = 0
-                while True:
-                    if dp.dispositivo0 == 0:
-                        local_insert = 1
-                    else:
-                        local_insert = 0
-
-                    rt = dp.transform_in_next(flag_direcao)
-                    if not rt[0]:
-                        break
-                    flag_variacao += rt[1]
-                    r.append({'class_css': dp.tipo_dispositivo.class_css,
-                              'tipo_pk': dp.tipo_dispositivo.pk,
-                              'variacao': flag_variacao,
-                              'provavel': '%s (%s)' % (
-                                  dp.rotulo_padrao(local_insert),
-                                  dp.tipo_dispositivo.nome,),
-                              'dispositivo_base': base.pk})
-
-                    flag_direcao = -1
-
-                r.reverse()
-
-                if not flag_pv:
-                    r = [r[0], ]
-
-                if len(r) > 0 and dp.tipo_dispositivo.formato_variacao0 == \
-                        TipoDispositivo.FNCN:
-                    r = [r[0], ]
-
-                if dp.tipo_dispositivo == base.tipo_dispositivo:
-                    result[0]['itens'] += r
-                else:
-                    result[0]['itens'] += r
-                    result[2]['itens'] += r
-
-                if nivel == 0:
-                    break
-
-            # tipo do dispositivo base
-            tipb = base.tipo_dispositivo
-
-            for paradentro in [1, 0]:
-                if paradentro:
-                    # Outros Tipos de Dispositivos PARA DENTRO
-                    otds = TipoDispositivo.objects.order_by(
-                        '-contagem_continua', 'id').all()
-                else:
-                    # Outros Tipos de Dispositivos PARA FORA
-                    classes_ja_inseridas = []
-                    for c in result[0]['itens']:
-                        if c['class_css'] not in classes_ja_inseridas:
-                            classes_ja_inseridas.append(c['class_css'])
-                    for c in result[1]['itens']:
-                        if c['class_css'] not in classes_ja_inseridas:
-                            classes_ja_inseridas.append(c['class_css'])
-                    otds = TipoDispositivo.objects.order_by(
-                        '-contagem_continua', 'id').all().exclude(
-                            class_css__in=classes_ja_inseridas)
-
-                for td in otds:
-
-                    if paradentro and not td.permitido_inserir_in(
-                        tipb,
-                        include_relative_autos=False,
-                            perfil_pk=perfil_pk):
-                        continue
-
-                    base.tipo_dispositivo = td
-
-                    if not paradentro:
-
-                        flag_insercao = False
-                        for possivelpai in parents:
-                            if td.permitido_inserir_in(
-                                possivelpai.tipo_dispositivo,
-                                include_relative_autos=False,
-                                    perfil_pk=perfil_pk):
-                                flag_insercao = True
-                                break
-
-                        if not flag_insercao:
-                            continue
-
-                        if possivelpai.is_relative_auto_insert(perfil_pk):
-                            continue
-
-                        if prox_possivel:
-                            if prox_possivel.nivel == base.nivel:
-                                if prox_possivel.tipo_dispositivo != td and\
-                                    not prox_possivel.tipo_dispositivo.\
-                                        permitido_inserir_in(
-                                            td, perfil_pk=perfil_pk):
-                                    continue
-                            else:
-                                if possivelpai.tipo_dispositivo != \
-                                        prox_possivel.tipo_dispositivo and\
-                                        not prox_possivel.tipo_dispositivo.\
-                                        permitido_inserir_in(
-                                            possivelpai.tipo_dispositivo,
-                                            perfil_pk=perfil_pk) and \
-                                        possivelpai.nivel < \
-                                        prox_possivel.nivel:
-                                    continue
-                        base.dispositivo_pai = possivelpai
-                        Dispositivo.set_numero_for_add_in(
-                            possivelpai, base, td)
-                    else:
-                        Dispositivo.set_numero_for_add_in(base, base, td)
-
-                    r = [{'class_css': td.class_css,
-                          'tipo_pk': td.pk,
-                          'variacao': 0,
-                          'provavel': '%s (%s)' % (
-                              base.rotulo_padrao(1, paradentro),
-                              td.nome,),
-                          'dispositivo_base': base.pk}]
-
-                    if paradentro == 1:
-                        """if (tipb.class_css == 'caput' and
-                                td.class_css == 'paragrafo'):
-                            result[0]['itens'].insert(0, r[0])
-                        else:"""
-                        result[1]['itens'] += r
-                    else:
-                        result[2]['itens'] += r
-                        result[0]['itens'] += r
-
-            # if len(result[0]['itens']) < len(result[1]['itens']):
-            #    r = result[0]
-            #    result.remove(result[0])
-            #    result.insert(1, r)
-
-            # remover temporariamente a opção inserir antes
-            # confirmar necessidade
-            if len(result) > 2:
-                result.pop()
-
-            # if tipb.dispositivo_de_articulacao and\
-            #        tipb.dispositivo_de_alteracao:
-            #    result.pop()
-
-        except Exception as e:
-            print(e)
-
-        return result
+        return data
 
 
-class ActionsEditMixin:
+class ActionDragAndMoveDispositivoAlteradoMixin(ActionsCommonsMixin):
 
-    def render_to_json_response(self, context, **response_kwargs):
+    def json_drag_move_dpt_alterado(self, context):
 
-        action = getattr(self, context['action'])
-        return JsonResponse(action(context), safe=False)
+        bloco = Dispositivo.objects.get(pk=self.request.GET['bloco_pk'])
+        dpt = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
 
-    def set_dvt(self, context):
-        # Dispositivo de Vigência do Texto Original e de Dpts Alterados
-        dvt = Dispositivo.objects.get(pk=context['dispositivo_id'])
+        if dpt.tipo_dispositivo.dispositivo_de_alteracao:
+            dpt.dispositivo_pai = bloco
+        else:
+            dpt.dispositivo_atualizador = bloco
 
-        if dvt.is_relative_auto_insert():
-            dvt = dvt.dispositivo_pai
+        filhos = Dispositivo.objects.order_by(
+            'ordem_bloco_atualizador').filter(
+            Q(dispositivo_pai_id=bloco.pk) |
+            Q(dispositivo_atualizador_id=bloco.pk))
 
-        try:
-            Dispositivo.objects.filter(
-                (Q(ta=dvt.ta) & Q(ta_publicado__isnull=True)) |
-                Q(ta_publicado=dvt.ta)
-            ).update(
-                dispositivo_vigencia=dvt,
-                inicio_vigencia=dvt.inicio_vigencia,
-                inicio_eficacia=dvt.inicio_eficacia)
+        if not filhos.exists():
+            dpt.ordem_bloco_atualizador = Dispositivo.INTERVALO_ORDEM
+        else:
+            index = int(self.request.GET['index'])
+            fpks = filhos.values_list(
+                'pk', flat=True).order_by('ordem_bloco_atualizador')
 
-            dps = Dispositivo.objects.filter(dispositivo_vigencia_id=dvt.pk,
-                                             ta_publicado_id=dvt.ta_id)
-            with transaction.atomic():
-                for d in dps:
-                    if d.dispositivo_substituido:
-                        ds = d.dispositivo_substituido
-                        ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
-                        ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
-                        d.save()
+            index_dpt = 0
+            try:
+                index_dpt = list(fpks).index(dpt.pk)
+            except:
+                pass
 
-                    if d.dispositivo_subsequente:
-                        ds = d.dispositivo_subsequente
-                        d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
-                        d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
-                    d.save()
+            filho_index = filhos[
+                index if index_dpt >= index
+                else index + 1] if (
+                index if index_dpt >= index
+                else index + 1) < filhos.count() else filhos.last()
+            if filhos.last() == filho_index:
+                dpt.ordem_bloco_atualizador = \
+                    filho_index.ordem_bloco_atualizador + 1
+            else:
+                dpt.ordem_bloco_atualizador = \
+                    filho_index.ordem_bloco_atualizador - 1
 
-            return {'message': str(_('Dispositivo de Vigência atualizado '
-                                     'com sucesso!!!'))}
-        except:
-            return {'message': str(_('Ocorreu um erro na atualização do '
-                                     'Dispositivo de Vigência'))}
+        dpt.save()
+        bloco.ordenar_bloco_alteracao()
 
-    def delete_item_dispositivo(self, context):
-        return self.delete_bloco_dispositivo(context, bloco=False)
+        data = {}
 
-    def delete_bloco_dispositivo(self, context, bloco=True):
-        base = Dispositivo.objects.get(pk=context['dispositivo_id'])
+
+class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
+
+    def json_delete_item_dispositivo(self, context):
+        return self.json_delete_bloco_dispositivo(context, bloco=False)
+
+    def json_delete_bloco_dispositivo(self, context, bloco=True):
+        base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+        ta_base = base.ta
 
         base_anterior = Dispositivo.objects.order_by('-ordem').filter(
             ta_id=base.ta_id,
@@ -1320,30 +1155,32 @@ class ActionsEditMixin:
         if base_anterior:
             data = self.get_json_for_refresh(base_anterior)
         else:
-            base_anterior = Dispositivo.objects.order_by('ordem').filter(
-                ta_id=base.ta_id,
-                ordem__lt=base.ordem
-            ).first()
-            if base_anterior:
-                data = self.get_json_for_refresh(base_anterior)
-            else:
-                data['pk'] = ''
+            base_anterior = base.get_nivel_zero_anterior()
+            data = self.get_json_for_refresh(base_anterior)
 
-        ta_base = base.ta
+        bases_atualizacao = Dispositivo.objects.order_by('ordem').filter(
+            ta_id=base.ta_id,
+            ordem__gt=base.ordem,
+            nivel__lt=base.nivel)
 
-        # TODO: a linha abaixo causa atualização da tela inteira...
-        # retirar a linha abaixo e identificar atualizações pontuais
-        data['pai'] = [-1, ]
+        data['pai'] = [base.get_raiz().pk]
+
+        if ta_base.id != int(self.kwargs['ta_id']):
+            data['pai'] = [base.dispositivo_atualizador.pk]
+            data['pk'] = base.dispositivo_atualizador.pk
 
         try:
             with transaction.atomic():
-                data['message'] = str(self.remover_dispositivo(base, bloco))
+                message = str(self.remover_dispositivo(base, bloco))
+                if message:
+                    self.set_message(data, 'warning', message, modal=True)
+                else:
+                    self.set_message(data, 'success', _(
+                        'Exclusão efetuada com sucesso!'), modal=True)
                 ta_base.ordenar_dispositivos()
         except Exception as e:
-            print(e)
-            data['pk'] = context['dispositivo_id']
-            data['message'] = str(_('Ocorreu um erro ao '
-                                    'excluir esse Dispositivo'))
+            data['pk'] = self.kwargs['dispositivo_id']
+            self.set_message(data, 'danger', str(e), modal=True)
 
         return data
 
@@ -1362,14 +1199,14 @@ class ActionsEditMixin:
                 # print(p.id, p)
                 p.dispositivo_subsequente = n
                 if n:
-                    p.fim_vigencia = n.ini_vigencia - timedelta(days=1)
-                    p.fim_eficacia = n.ini_eficacia - timedelta(days=1)
+                    p.fim_vigencia = n.inicio_vigencia - timedelta(days=1)
+                    p.fim_eficacia = n.inicio_eficacia - timedelta(days=1)
                 else:
                     p.fim_vigencia = None
                     p.fim_eficacia = None
 
                 for d in base.dispositivos_filhos_set.all():
-                    if d.is_relative_auto_insert():
+                    if d.auto_inserido:
                         self.remover_dispositivo(d, bloco)
                     elif not bloco:
                         p.dispositivos_filhos_set.add(d)
@@ -1392,7 +1229,7 @@ class ActionsEditMixin:
                     transferir para o caput imediatamente acima visto se
                     tratar de uma exclusão de item?"""
                     d_nivel_old = d.nivel
-                    if d.is_relative_auto_insert():
+                    if d.auto_inserido:
                         d.delete()
                         continue
 
@@ -1407,8 +1244,9 @@ class ActionsEditMixin:
                         dispositivo_pai=base).first()
 
                     if not anterior:
-                        return _('Não é possível excluir este Dispositivo sem'
-                                 ' excluir toda a sua estrutura!!!')
+                        raise Exception(
+                            _('Não é possível excluir este Dispositivo sem'
+                              ' excluir toda a sua estrutura!!!'))
 
                     if anterior.tipo_dispositivo == d.tipo_dispositivo:
                         d.dispositivo_pai = anterior.dispositivo_pai
@@ -1425,9 +1263,10 @@ class ActionsEditMixin:
 
                         for candidato in parents:
                             if candidato == base:
-                                return _('Não é possível excluir este '
-                                         'Dispositivo sem '
-                                         'excluir toda a sua estrutura!!!')
+                                raise Exception(
+                                    _('Não é possível excluir este '
+                                      'Dispositivo sem '
+                                      'excluir toda a sua estrutura!!!'))
                             if (candidato.tipo_dispositivo ==
                                     d.tipo_dispositivo):
                                 d.dispositivo_pai = candidato.dispositivo_pai
@@ -1458,6 +1297,12 @@ class ActionsEditMixin:
                                 d.nivel = candidato.nivel + 1
                                 d.rotulo = d.rotulo_padrao()
                                 break
+                        else:
+
+                            raise Exception(
+                                _('Não é possível excluir este '
+                                  'Dispositivo sem '
+                                  'excluir toda a sua estrutura!!!'))
 
                         if not parents:
                             d.dispositivo_pai = anterior
@@ -1618,17 +1463,294 @@ class ActionsEditMixin:
 
         return ''
 
-    def add_prior(self, context):
+
+class ActionDispositivoCreateMixin(ActionsCommonsMixin):
+
+    def allowed_inserts(self):
+        request = self.request
+        try:
+            if request and 'perfil_estrutural' not in request.session:
+                self.set_perfil_in_session(request)
+
+            perfil_pk = request.session['perfil_estrutural']
+
+            base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+
+            prox_possivel = Dispositivo.objects.filter(
+                ordem__gt=base.ordem,
+                nivel__lte=base.nivel,
+                ta_id=base.ta_id)[:1]
+
+            if prox_possivel.exists():
+                prox_possivel = prox_possivel[0]
+            else:
+                prox_possivel = None
+
+            result = [{'tipo_insert': force_text(_('Inserir Depois')),
+                       'icone': '&#8631;&nbsp;',
+                       'action': 'json_add_next',
+                       'itens': []},
+                      {'tipo_insert': force_text(_('Inserir Dentro')),
+                       'icone': '&#8690;&nbsp;',
+                       'action': 'json_add_in',
+                       'itens': []},
+                      {'tipo_insert': force_text(_('Inserir Antes')),
+                       'icone': '&#8630;&nbsp;',
+                       'action': 'json_add_prior',
+                       'itens': []}
+                      ]
+
+            # Possíveis inserções sequenciais já existentes
+            parents = base.get_parents()
+            parents.insert(0, base)
+            nivel = sys.maxsize
+            for dp in parents:
+
+                if dp.nivel >= nivel:
+                    continue
+
+                if dp.auto_inserido:
+                    continue
+
+                if prox_possivel and \
+                    dp.tipo_dispositivo != base.tipo_dispositivo and\
+                    dp.nivel < prox_possivel.nivel and\
+                    not prox_possivel.tipo_dispositivo.permitido_inserir_in(
+                        dp.tipo_dispositivo,
+                        perfil_pk=perfil_pk):
+
+                    if dp.tipo_dispositivo != prox_possivel.tipo_dispositivo:
+                        continue
+
+                nivel = dp.nivel
+
+                # um do mesmo para inserção antes
+                if dp == base:
+                    result[2]['itens'].append({
+                        'class_css': dp.tipo_dispositivo.class_css,
+                        'tipo_pk': dp.tipo_dispositivo.pk,
+                        'variacao': 0,
+                        'provavel': '%s <small>(%s)</small>' % (
+                            dp.rotulo_padrao(local_insert=1),
+                            dp.tipo_dispositivo.nome,),
+                        'dispositivo_base': base.pk})
+
+                if dp.dispositivo_pai:
+                    flag_pv = dp.tipo_dispositivo.permitido_variacao(
+                        dp.dispositivo_pai.tipo_dispositivo,
+                        perfil_pk=perfil_pk)
+                else:
+                    flag_pv = False
+
+                r = []
+                flag_direcao = 1
+                flag_variacao = 0
+                while True:
+                    if dp.dispositivo0 == 0:
+                        local_insert = 1
+                    else:
+                        local_insert = 0
+
+                    rt = dp.transform_in_next(flag_direcao)
+                    if not rt[0]:
+                        break
+                    flag_variacao += rt[1]
+                    r.append({'class_css': dp.tipo_dispositivo.class_css,
+                              'tipo_pk': dp.tipo_dispositivo.pk,
+                              'variacao': flag_variacao,
+                              'provavel': '%s <small>(%s)</small>' % (
+                                  dp.rotulo_padrao(local_insert),
+                                  dp.tipo_dispositivo.nome,),
+                              'dispositivo_base': base.pk})
+
+                    flag_direcao = -1
+
+                r.reverse()
+
+                if not flag_pv:
+                    r = [r[0], ]
+
+                if len(r) > 0 and dp.tipo_dispositivo.formato_variacao0 == \
+                        TipoDispositivo.FNCN:
+                    r = [r[0], ]
+
+                if dp.tipo_dispositivo == base.tipo_dispositivo:
+                    result[0]['itens'] += r
+                else:
+                    result[0]['itens'] += r
+                    result[2]['itens'] += r
+
+                if nivel == 0:
+                    break
+
+            # tipo do dispositivo base
+            tipb = base.tipo_dispositivo
+
+            for paradentro in [1, 0]:
+                if paradentro:
+                    # Outros Tipos de Dispositivos PARA DENTRO
+                    otds = TipoDispositivo.objects.order_by(
+                        '-contagem_continua', 'id').all()
+                else:
+                    # Outros Tipos de Dispositivos PARA FORA
+                    classes_ja_inseridas = []
+                    for c in result[0]['itens']:
+                        if c['class_css'] not in classes_ja_inseridas:
+                            classes_ja_inseridas.append(c['class_css'])
+                    for c in result[1]['itens']:
+                        if c['class_css'] not in classes_ja_inseridas:
+                            classes_ja_inseridas.append(c['class_css'])
+                    otds = TipoDispositivo.objects.order_by(
+                        '-contagem_continua', 'id').all().exclude(
+                            class_css__in=classes_ja_inseridas)
+
+                for td in otds:
+
+                    if paradentro and not td.permitido_inserir_in(
+                        tipb,
+                        include_relative_autos=True,
+                            perfil_pk=perfil_pk):
+                        continue
+
+                    base.tipo_dispositivo = td
+
+                    if not paradentro:
+
+                        flag_insercao = False
+                        for possivelpai in parents:
+                            if td.permitido_inserir_in(
+                                possivelpai.tipo_dispositivo,
+                                include_relative_autos=True,
+                                    perfil_pk=perfil_pk):
+                                flag_insercao = True
+                                break
+
+                        if not flag_insercao:
+                            continue
+
+                        if possivelpai.auto_inserido:
+                            continue
+
+                        if prox_possivel:
+                            if prox_possivel.nivel == base.nivel:
+                                if prox_possivel.tipo_dispositivo != td and\
+                                    not prox_possivel.tipo_dispositivo.\
+                                        permitido_inserir_in(
+                                            td, perfil_pk=perfil_pk):
+                                    continue
+                            else:
+                                if possivelpai.tipo_dispositivo != \
+                                        prox_possivel.tipo_dispositivo and\
+                                        not prox_possivel.tipo_dispositivo.\
+                                        permitido_inserir_in(
+                                            possivelpai.tipo_dispositivo,
+                                            perfil_pk=perfil_pk) and \
+                                        possivelpai.nivel < \
+                                        prox_possivel.nivel:
+                                    continue
+                        base.dispositivo_pai = possivelpai
+                        Dispositivo.set_numero_for_add_in(
+                            possivelpai, base, td)
+                    else:
+                        Dispositivo.set_numero_for_add_in(base, base, td)
+
+                    r = [{'class_css': td.class_css,
+                          'tipo_pk': td.pk,
+                          'variacao': 0,
+                          'provavel': '%s <small>(%s)</small>' % (
+                              base.rotulo_padrao(1, paradentro),
+                              td.nome,),
+                          'dispositivo_base': base.pk}]
+
+                    if paradentro == 1:
+                        """if (tipb.class_css == 'caput' and
+                                td.class_css == 'paragrafo'):
+                            result[0]['itens'].insert(0, r[0])
+                        else:"""
+                        result[1]['itens'] += r
+                    else:
+                        result[2]['itens'] += r
+                        result[0]['itens'] += r
+
+            # if len(result[0]['itens']) < len(result[1]['itens']):
+            #    r = result[0]
+            #    result.remove(result[0])
+            #    result.insert(1, r)
+
+            # remover temporariamente a opção inserir antes
+            # confirmar necessidade
+            if len(result) > 2:
+                result.pop()
+
+            # if tipb.dispositivo_de_articulacao and\
+            #        tipb.dispositivo_de_alteracao:
+            #    result.pop()
+
+            return result
+
+        except Exception as e:
+            print(e)
+
         return {}
 
-    def add_in(self, context):
-        return self.add_next(context, local_add='add_in')
+    def json_set_dvt(self, context):
+        # Dispositivo de Vigência do Texto Original e de Dpts Alterados
+        dvt = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
 
-    def add_next(self, context, local_add='add_next'):
+        if dvt.auto_inserido:
+            dvt = dvt.dispositivo_pai
+
+        try:
+            Dispositivo.objects.filter(
+                (Q(ta=dvt.ta) & Q(ta_publicado__isnull=True)) |
+                Q(ta_publicado=dvt.ta)
+            ).update(
+                dispositivo_vigencia=dvt,
+                inicio_vigencia=dvt.inicio_vigencia,
+                inicio_eficacia=dvt.inicio_eficacia)
+
+            dps = Dispositivo.objects.filter(dispositivo_vigencia_id=dvt.pk,
+                                             ta_publicado_id=dvt.ta_id)
+            with transaction.atomic():
+                for d in dps:
+                    if d.dispositivo_substituido:
+                        ds = d.dispositivo_substituido
+                        ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
+                        ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
+                        d.save()
+
+                    if d.dispositivo_subsequente:
+                        ds = d.dispositivo_subsequente
+                        d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
+                        d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
+                    d.save()
+
+            data = {'pk': dvt.pk,
+                    'pai': [dvt.pk, ]}
+            self.set_message(data, 'success', _('Dispositivo de Vigência atualizado '
+                                                'com sucesso!!!'))
+
+            return data
+        except:
+            data = {}
+            self.set_message(data,
+                             'success',
+                             _('Ocorreu um erro na atualização do '
+                               'Dispositivo de Vigência'))
+
+            return data
+
+    def json_add_prior(self, context):
+        return {}
+
+    def json_add_in(self, context):
+        return self.json_add_next(context, local_add='json_add_in')
+
+    def json_add_next(self, context, local_add='json_add_next'):
         try:
 
             dp_auto_insert = None
-            base = Dispositivo.objects.get(pk=context['dispositivo_id'])
+            base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
             pub_last = Publicacao.objects.order_by(
                 'data', 'hora').filter(ta=base.ta).last()
@@ -1643,23 +1765,6 @@ class ActionsEditMixin:
                     context['perfil_pk'] = perfil_padrao.pk
                 else:
                     raise Exception('Não existe perfil padrão!')
-
-            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
-                filho_de_insercao_automatica=True,
-                perfil_id=context['perfil_pk'])
-
-            count_auto_insert = 0
-            for tipoauto in tipos_dp_auto_insert:
-                qtdp = tipoauto.quantidade_permitida
-                if qtdp >= 0:
-                    qtdp -= Dispositivo.objects.filter(
-                        ta_id=base.ta_id,
-                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
-                    ).count()
-                    if qtdp > 0:
-                        count_auto_insert += 1
-                else:
-                    count_auto_insert += 1
 
             dp_irmao = None
             dp_pai = None
@@ -1713,18 +1818,20 @@ class ActionsEditMixin:
                 if pp.exists() and pp[0].quantidade_permitida >= 0:
                     qtd_existente = Dispositivo.objects.filter(
                         ta_id=dp.ta_id,
-                        tipo_dispositivo_id=dp.tipo_dispositivo_id).count()
+                        tipo_dispositivo_id=dp.tipo_dispositivo_id,
+                        dispositivo_pai=dp.dispositivo_pai).count()
 
                     if qtd_existente >= pp[0].quantidade_permitida:
-                        return {'pk': base.pk,
-                                'pai': [base.dispositivo_pai.pk, ],
-                                'message': str(_('Limite de inserções de '
-                                                 'dispositivos deste tipo '
-                                                 'foi excedido.'))
-                                }
+                        data = {'pk': base.pk,
+                                'pai': [base.dispositivo_pai.pk, ]}
+                        self.set_message(data, 'warning',
+                                         _('Limite de inserções de '
+                                           'dispositivos deste tipo '
+                                           'foi excedido.'), time=6000)
+                        return data
 
             ordem = base.criar_espaco(
-                espaco_a_criar=1 + count_auto_insert, local=local_add)
+                espaco_a_criar=1, local=local_add)
 
             dp.rotulo = dp.rotulo_padrao()
             dp.ordem = ordem
@@ -1733,9 +1840,32 @@ class ActionsEditMixin:
             dp.publicacao = pub_last
             dp.save()
 
+            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
+                filho_de_insercao_automatica=True,
+                perfil_id=context['perfil_pk'])
+
+            count_auto_insert = 0
+            for tipoauto in tipos_dp_auto_insert:
+                qtdp = tipoauto.quantidade_permitida
+                if qtdp >= 0:
+                    qtdp -= Dispositivo.objects.filter(
+                        ta_id=dp.ta_id,
+                        dispositivo_pai_id=dp.id,
+                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
+                    ).count()
+                    if qtdp > 0:
+                        count_auto_insert += 1
+                else:
+                    count_auto_insert += 1
+
             # Inserção automática
             if count_auto_insert:
+
+                ordem = dp.criar_espaco(
+                    espaco_a_criar=count_auto_insert, local=local_add)
+
                 dp_pk = dp.pk
+                dp.ordem = ordem
                 dp.nivel += 1
                 for tipoauto in tipos_dp_auto_insert:
                     dp.dispositivo_pai_id = dp_pk
@@ -1747,11 +1877,13 @@ class ActionsEditMixin:
                         dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
                     dp.rotulo = dp.rotulo_padrao()
                     dp.texto = ''
-                    dp.ordem = dp.ordem + Dispositivo.INTERVALO_ORDEM
 
                     dp.publicacao = pub_last
+                    dp.auto_inserido = True
                     dp.save()
                     dp_auto_insert = dp
+
+                    ordem += Dispositivo.INTERVALO_ORDEM
                 dp = Dispositivo.objects.get(pk=dp_pk)
 
             ''' Reenquadrar todos os dispositivos que possuem pai
@@ -1867,15 +1999,418 @@ class ActionsEditMixin:
                     not dp.tipo_dispositivo.dispositivo_de_articulacao:
                 dp.dispositivo_pai.ordenar_bloco_alteracao()
 
+            if dp_auto_insert is None:
+                data = self.get_json_for_refresh(dp)
+            else:
+                data = self.get_json_for_refresh(dp=dp, dpauto=dp_auto_insert)
+
+            # data['action'] = 'get_form_base'
+            return data
+
         except Exception as e:
             print(e)
 
-        if dp_auto_insert is None:
-            data = self.get_json_for_refresh(dp)
-        else:
-            data = self.get_json_for_refresh(dp=dp, dpauto=dp_auto_insert)
+
+class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
+                       ActionDeleteDispositivoMixin,
+                       ActionDispositivoCreateMixin):
+
+    def render_to_json_response(self, context, **response_kwargs):
+
+        action = getattr(self, context['action'])
+
+        if 'tipo_pk' in self.request.GET:
+            context['tipo_pk'] = self.request.GET['tipo_pk']
+
+        if 'variacao' in self.request.GET:
+            context['variacao'] = self.request.GET['variacao']
+
+        if 'perfil_estrutural' in self.request.session:
+            context['perfil_pk'] = self.request.session['perfil_estrutural']
+
+        data = action(context)
+
+        if 'message' in context and 'message' not in data:
+            data['message'] = context['message']
+
+        return JsonResponse(data, safe=False)
+
+    def get_queryset_perfil_estrutural(self):
+        perfis = PerfilEstruturalTextoArticulado.objects.all()
+        return perfis
+
+    def json_get_perfis(self, context):
+
+        if 'perfil_pk' in self.request.GET:
+            self.set_perfil_in_session(
+                self.request, self.request.GET['perfil_pk'])
+        elif 'perfil_estrutural' not in self.request.session:
+            self.set_perfil_in_session(request=self.request)
+
+        data = {'pk': self.kwargs['dispositivo_id'],
+                'pai': [self.kwargs['dispositivo_id'], ]}
 
         return data
+
+    def set_perfil_in_session(self, request=None, perfil_id=0):
+        if not request:
+            return None
+
+        if perfil_id:
+            perfil = PerfilEstruturalTextoArticulado.objects.get(
+                pk=perfil_id)
+            request.session['perfil_estrutural'] = perfil.pk
+            return perfil.pk
+        else:
+            perfis = PerfilEstruturalTextoArticulado.objects.filter(
+                padrao=True)[:1]
+
+            if not perfis.exists():
+                request.session.pop('perfil_estrutural')
+            else:
+                request.session['perfil_estrutural'] = perfis[0].pk
+                return perfis[0].pk
+        return None
+
+    def registra_alteracao(self, bloco_alteracao, dispositivo_a_alterar):
+        """
+        Caracteristicas:
+        1 - Se é um dispositivo simples e sem subsequente
+            - filhos devem ser transferidos
+
+        2 - Se é um dispositivo simples com subsequente
+            - não deveria ter filhos locais
+            - substituidos e subsequentes devem ser religados
+
+        3 - Se é um dispositivo articulado e sem subsequente
+            - filhos locais devem ser transferidos
+
+        4 - Se é um dispositivo articulado com subsequente
+            - não deveria ter filhos locais
+
+        5 - Alterações em dispositivo articulado só são relevantes para
+            alteração de rótulo. O editor dinâmico não possibilita essa
+            mudança, porém, após registro de alteração, a mudança de rótulo
+            pode ser feita no editor avançado.
+        """
+
+        data = {}
+        data.update({'pk': bloco_alteracao.pk,
+                     'pai': [bloco_alteracao.pk, ]})
+
+        history = dispositivo_a_alterar.history()
+
+        for d in history:
+            """FIXME: A comparação "<" deverá ser mudada para
+                "<=" caso um seja necessário permitir duas alterações
+                com mesmo inicio_vigencia no mesmo dispositivo. Neste Caso,
+                a sequencia correta ficará a cargo dos reposicionamentos entre
+                dispositivos de mesmo nível,
+            """
+            if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
+                dispositivo_a_alterar = d
+                break
+
+        if (dispositivo_a_alterar.inicio_vigencia >
+                bloco_alteracao.inicio_vigencia):
+            self.set_message(
+                data, 'danger',
+                _('Não é possível alterar um Dispositivo com início de '
+                  'Vigência posterior a data de Vigência do Dispositivo '
+                  'Alterador!'), time=10000)
+            return data
+
+        ndp = Dispositivo.new_instance_based_on(
+            dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
+
+        ndp.rotulo = dispositivo_a_alterar.rotulo
+        ndp.texto = dispositivo_a_alterar.texto
+        ndp.publicacao = bloco_alteracao.publicacao
+
+        ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
+        if ndp.dispositivo_vigencia:
+            ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+            ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
+        else:
+            ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
+            ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
+
+        try:
+            ordem = dispositivo_a_alterar.criar_espaco(
+                espaco_a_criar=1, local='json_add_in')
+
+            ndp.ordem = ordem
+            ndp.dispositivo_atualizador = bloco_alteracao
+            ndp.ta_publicado = bloco_alteracao.ta
+
+            p = dispositivo_a_alterar
+            n = dispositivo_a_alterar.dispositivo_subsequente
+
+            ndp.dispositivo_substituido = p
+            ndp.dispositivo_subsequente = n
+
+            if n:
+                ndp.fim_eficacia = n.inicio_eficacia - \
+                    timedelta(days=1)
+                ndp.fim_vigencia = n.inicio_vigencia - \
+                    timedelta(days=1)
+            ndp.save()
+
+            p.dispositivo_subsequente = ndp
+            p.fim_eficacia = ndp.inicio_eficacia - timedelta(days=1)
+            p.fim_vigencia = ndp.inicio_vigencia - timedelta(days=1)
+            p.save()
+
+            if n:
+                # a ordem desse objeto foi alterada pela função criar_espaco
+                # deve ser recarregado para atualização
+                n.refresh_from_db()
+                n.dispositivo_substituido = ndp
+                n.save()
+
+            filhos_diretos = dispositivo_a_alterar.dispositivos_filhos_set
+            for d in filhos_diretos.all():
+                d.dispositivo_pai = ndp
+                d.save()
+
+            self.set_message(
+                data, 'success',
+                _('Dispositivo de Alteração adicionado com sucesso.'))
+
+        except Exception as e:
+            print(e)
+
+        data.update({'pk': ndp.pk,
+                     'pai': [bloco_alteracao.pk, ]})
+
+        return data
+
+
+class DispositivoDinamicEditView(
+        CompMixin, ActionsEditMixin, TextEditView, UpdateView):
+    template_name = 'compilacao/text_edit_bloco.html'
+    model = Dispositivo
+    form_class = DispositivoEdicaoBasicaForm
+    contador = -1
+
+    def get_initial(self):
+        initial = UpdateView.get_initial(self)
+
+        #perfil_pk = self.set_perfil_in_session(self.request)
+
+        if 'action' in self.request.GET:
+            initial.update({'editor_type': self.request.GET['action']})
+
+        initial.update({'dispositivo_search_form': reverse_lazy(
+            'sapl.compilacao:dispositivo_search_form')})
+        return initial
+
+    def get_form(self, form_class=None):
+
+        if self.action and self.action.startswith('get_form_'):
+            if form_class is None:
+                form_class = self.get_form_class()
+            return form_class(**self.get_form_kwargs())
+        else:
+            return None
+
+    def get(self, request, *args, **kwargs):
+
+        if 'action' not in request.GET:
+            self.action = None
+            self.template_name = 'compilacao/text_edit_bloco.html'
+            return TextEditView.get(self, request, *args, **kwargs)
+
+        self.template_name = 'compilacao/ajax_form.html'
+        self.action = request.GET['action']
+
+        if self.action.startswith('get_form_'):
+            if self.action.endswith('_base'):
+                self.form_class = DispositivoEdicaoBasicaForm
+            elif self.action.endswith('_alteracao'):
+                self.form_class = DispositivoRegistroAlteracaoForm
+            context = self.get_context_data()
+            return self.render_to_response(context)
+        elif self.action.startswith('get_actions'):
+            self.form_class = None
+            self.template_name = 'compilacao/ajax_actions_dinamic_edit.html'
+            self.object = Dispositivo.objects.get(
+                pk=self.kwargs['dispositivo_id'])
+
+            ta_id = self.kwargs['ta_id']
+
+            context = {}
+            context['object'] = self.object
+
+            if ta_id == str(self.object.ta_id):
+                context['allowed_inserts'] = self.allowed_inserts()
+
+                if 'perfil_pk' in request.GET:
+                    self.set_perfil_in_session(
+                        request, request.GET['perfil_pk'])
+                elif 'perfil_estrutural' not in request.session:
+                    self.set_perfil_in_session(request=request)
+
+                context['perfil_estrutural_list'
+                        ] = PerfilEstruturalTextoArticulado.objects.all()
+
+            return self.render_to_response(context)
+
+        elif self.action.startswith('json_'):
+            context = self.get_context_data()
+            return self.render_to_json_response(context)
+
+        return JsonResponse({}, safe=False)
+
+    def post(self, request, *args, **kwargs):
+
+        d = Dispositivo.objects.get(
+            pk=self.kwargs['dispositivo_id'])
+
+        formtype = request.POST['formtype']
+        if formtype == 'get_form_alteracao':
+
+            dispositivo_a_alterar = Dispositivo.objects.get(
+                pk=request.POST['dispositivo_alterado'])
+
+            data = self.registra_alteracao(d, dispositivo_a_alterar)
+
+        elif formtype == 'get_form_base':
+            texto = request.POST['texto'].strip()
+            texto_atualizador = request.POST['texto_atualizador'].strip()
+            texto_atualizador = texto_atualizador \
+                if texto != texto_atualizador else ''
+            visibilidade = request.POST['visibilidade']
+
+            # if d.texto != '':
+            #    d.texto = texto
+            #    d.save()
+            #    return self.get(request, *args, **kwargs)
+            d_texto = d.texto
+            d.texto = texto.strip()
+            d.texto_atualizador = texto_atualizador.strip()
+            d.visibilidade = not visibilidade or visibilidade == 'True'
+            d.save()
+
+            if texto != '' and d.ta_id == int(self.kwargs['ta_id']):
+                dnext = Dispositivo.objects.filter(
+                    ta_id=d.ta_id,
+                    ordem__gt=d.ordem,
+                    texto='',
+                    tipo_dispositivo__dispositivo_de_articulacao=False)[:1]
+
+                if not dnext.exists():
+                    dnext = []
+                    dnext.append(d)
+                    pais = [d.dispositivo_pai_id, ]
+                else:
+
+                    if dnext[0].nivel > d.nivel:
+                        pais = [d.pk, ]
+                    else:
+                        if dnext[0].dispositivo_pai_id == d.dispositivo_pai_id:
+                            pais = [dnext[0].dispositivo_pai_id, ]
+                        else:
+                            pais = [
+                                dnext[0].dispositivo_pai_id,
+                                d.dispositivo_pai_id]
+
+                data = {'pk': dnext[0].pk
+                        if not d_texto else 0, 'pai': pais}
+            elif d.ta_id != int(self.kwargs['ta_id']):
+                data = {'pk': 0,
+                        'pai': [d.dispositivo_atualizador_id, ]}
+            else:
+                data = {'pk': d.pk
+                        if not d_texto or not d.texto else 0, 'pai': [d.pk, ]}
+
+            self.set_message(data, 'success',
+                             _('Dispositivo alterado com sucesso.'))
+
+        return JsonResponse(data, safe=False)
+
+
+class DispositivoSimpleEditView__Old:
+    template_name = 'compilacao/text_edit_bloco.html'
+
+    def get_queryset_perfil_estrutural(self):
+        perfis = PerfilEstruturalTextoArticulado.objects.all()
+        return perfis
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            if 'perfil_pk' in request.GET:
+                self.set_perfil_in_session(
+                    request, request.GET['perfil_pk'])
+            elif 'perfil_estrutural' not in request.session:
+                self.set_perfil_in_session(request=request)
+
+            self.object_list = self.get_queryset()
+
+            self.perfil_estrutural_list = self.get_queryset_perfil_estrutural()
+
+            context = self.get_context_data(
+                object_list=self.object_list,
+                perfil_estrutural_list=self.perfil_estrutural_list
+            )
+        except Exception as e:
+            print(e)
+
+        return self.render_to_response(context)
+
+    def get_queryset(self):
+        self.flag_alteradora = -1
+        self.flag_nivel_ini = 0
+        self.flag_nivel_old = -1
+
+        try:
+            self.pk_edit = int(self.request.GET['edit'])
+        except:
+            self.pk_edit = 0
+        self.pk_view = int(self.kwargs['dispositivo_id'])
+
+        try:
+            if self.pk_edit == self.pk_view:
+                bloco = Dispositivo.objects.get(
+                    pk=self.kwargs['dispositivo_id'])
+            else:
+                bloco = Dispositivo.objects.get(
+                    pk=self.kwargs['dispositivo_id'])
+        except Dispositivo.DoesNotExist:
+            return []
+
+        self.flag_nivel_old = bloco.nivel - 1
+        self.flag_nivel_ini = bloco.nivel
+
+        if self.pk_edit == self.pk_view:
+            return [bloco, ]
+
+        proximo_bloco = Dispositivo.objects.filter(
+            ordem__gt=bloco.ordem,
+            nivel__lte=bloco.nivel,
+            ta_id=self.kwargs['ta_id'])[:1]
+
+        if proximo_bloco.count() == 0:
+            itens = Dispositivo.objects.filter(
+                ordem__gte=bloco.ordem,
+                ta_id=self.kwargs['ta_id']
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+        else:
+            itens = Dispositivo.objects.filter(
+                ordem__gte=bloco.ordem,
+                ordem__lt=proximo_bloco[0].ordem,
+                ta_id=self.kwargs['ta_id']
+            ).select_related(*DISPOSITIVO_SELECT_RELATED)
+        return itens
+
+
+class ActionsEditMixin_old:
+
+    def render_to_json_response(self, context, **response_kwargs):
+
+        action = getattr(self, context['action'])
+        return JsonResponse(action(context), safe=False)
 
     def get_json_for_refresh(self, dp, dpauto=None):
 
@@ -1915,51 +2450,8 @@ class ActionsEditMixin:
 
         return data
 
-    def move_dpt_alterado(self, context):
 
-        bloco = Dispositivo.objects.get(pk=context['bloco_pk'])
-        dpt = Dispositivo.objects.get(pk=context['dispositivo_id'])
-
-        if dpt.tipo_dispositivo.dispositivo_de_alteracao:
-            dpt.dispositivo_pai = bloco
-        else:
-            dpt.dispositivo_atualizador = bloco
-
-        filhos = Dispositivo.objects.order_by(
-            'ordem_bloco_atualizador').filter(
-            Q(dispositivo_pai_id=bloco.pk) |
-            Q(dispositivo_atualizador_id=bloco.pk))
-
-        if not filhos.exists():
-            dpt.ordem_bloco_atualizador = Dispositivo.INTERVALO_ORDEM
-        else:
-            index = int(context['index'])
-            fpks = filhos.values_list(
-                'pk', flat=True).order_by('ordem_bloco_atualizador')
-
-            index_dpt = 0
-            try:
-                index_dpt = list(fpks).index(dpt.pk)
-            except:
-                pass
-
-            filho_index = filhos[
-                index if index_dpt >= index
-                else index + 1] if (
-                index if index_dpt >= index
-                else index + 1) < filhos.count() else filhos.last()
-            if filhos.last() == filho_index:
-                dpt.ordem_bloco_atualizador = \
-                    filho_index.ordem_bloco_atualizador + 1
-            else:
-                dpt.ordem_bloco_atualizador = \
-                    filho_index.ordem_bloco_atualizador - 1
-
-        dpt.save()
-        bloco.ordenar_bloco_alteracao()
-
-
-class ActionsEditView(ActionsEditMixin, TemplateView):
+class ActionsEditView_Old(ActionsEditMixin, TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
         context['action'] = self.request.GET['action']
@@ -1977,7 +2469,7 @@ class ActionsEditView(ActionsEditMixin, TemplateView):
             del self.request.session['herancas']
             del self.request.session['herancas_fila']
 
-        if context['action'] == 'move_dpt_alterado':
+        if context['action'] == 'drag_move_dpt_alterado':
             context['index'] = self.request.GET['index']
             context['bloco_pk'] = self.request.GET['bloco_pk']
 
@@ -2153,7 +2645,10 @@ class DispositivoSearchFragmentFormView(ListView):
                 q = q & Q(**{
                     'ta__texto_articulado__' + column_field: tipo_model.pk
                 })
-                result = result.filter(q)[:n]
+                if n:
+                    result = result.filter(q)[:n]
+                else:
+                    result = result.filter(q)
 
             for d in result:
                 if not d.ta.content_object or\
@@ -2177,7 +2672,7 @@ class DispositivoSearchModalView(FormView):
     form_class = DispositivoSearchModalForm
 
 
-class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
+class DispositivoEdicaoBasicaView(CompMixin, FormMessagesMixin, UpdateView):
     model = Dispositivo
     template_name = 'compilacao/dispositivo_form_edicao_basica.html'
     form_class = DispositivoEdicaoBasicaForm
@@ -2249,7 +2744,7 @@ class DispositivoEdicaoBasicaView(FormMessagesMixin, UpdateView):
         return UpdateView.get(self, request, *args, **kwargs)
 
 
-class DispositivoEdicaoVigenciaView(FormMessagesMixin, UpdateView):
+class DispositivoEdicaoVigenciaView(CompMixin, FormMessagesMixin, UpdateView):
     model = Dispositivo
     template_name = 'compilacao/dispositivo_form_vigencia.html'
     form_class = DispositivoEdicaoVigenciaForm
@@ -2272,7 +2767,7 @@ class DispositivoEdicaoVigenciaView(FormMessagesMixin, UpdateView):
             kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
 
 
-class DispositivoDefinidorVigenciaView(FormMessagesMixin, FormView):
+class DispositivoDefinidorVigenciaView(CompMixin, FormMessagesMixin, FormView):
     model = Dispositivo
     template_name = 'compilacao/dispositivo_form_definidor_vigencia.html'
     form_class = DispositivoDefinidorVigenciaForm
@@ -2329,7 +2824,7 @@ class DispositivoDefinidorVigenciaView(FormMessagesMixin, FormView):
             return self.form_invalid(form)
 
 
-class DispositivoEdicaoAlteracaoView(FormMessagesMixin, UpdateView):
+class DispositivoEdicaoAlteracaoView(CompMixin, FormMessagesMixin, UpdateView):
     model = Dispositivo
     template_name = 'compilacao/dispositivo_form_alteracao.html'
     form_class = DispositivoEdicaoAlteracaoForm
@@ -2359,13 +2854,13 @@ class DispositivoEdicaoAlteracaoView(FormMessagesMixin, UpdateView):
             try:
                 with transaction.atomic():
                     return self.form_valid(form)
-            except:
+            except Exception as e:
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
 
 
-class TextNotificacoesView(ListView, CompMixin, FormView):
+class TextNotificacoesView(CompMixin, ListView, FormView):
     template_name = 'compilacao/text_notificacoes.html'
     form_class = TextNotificacoesForm
 
@@ -2566,6 +3061,21 @@ class TextNotificacoesView(ListView, CompMixin, FormView):
                  r.dispositivo_substituido.ta != r.ta,
                  _('Dispositivo está substituindo um Dispositivo de outro '
                    'Texto Articulado.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido and
+                 r.dispositivo_substituido.dispositivo_subsequente != r,
+                 _('Dispositivo está substituindo um Dispositivo que não '
+                   'possui este como seu Dispositivo Subsequente.'))
+
+            padd(r,
+                 type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_subsequente and
+                 r.dispositivo_subsequente.dispositivo_substituido != r,
+                 _('Dispositivo foi substituído por outro que não '
+                   'possui este como seu Dispositivo Substituído.'))
 
         rr = []
         for r in result:

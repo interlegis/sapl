@@ -1,317 +1,448 @@
+function DispositivoEdit() {
+    // Função única - Singleton pattern - operador new sempre devolve o mesmo objeto
+    var instance;
 
-var editortype = "textarea";
-var onSubmitEditForm = function(event) {
+    var editortype = "textarea";
 
-    var texto = '';
-    var editorTiny = tinymce.get('editdi_texto');
-
-    if (editorTiny != null)
-        texto = editorTiny.getContent();
-    else
-        texto = $('#editdi_texto').val();
-
-    var formData = {
-        'csrfmiddlewaretoken' : $('input[name=csrfmiddlewaretoken]').val(),
-        'texto'               : texto
+    if (!(this instanceof DispositivoEdit)) {
+        if (!instance) {
+            instance = new DispositivoEdit();
+        }
+        return instance;
+    }
+    instance = this;
+    DispositivoEdit = function() {
+        return instance;
     };
 
-    var url = $('.csform form').attr( "action_ajax" );
-    $("#message_block").css("display", "block");
+    instance.bindActionsEditorType = function(event) {
+        editortype = this.getAttribute('editortype');
+        SetCookie("editortype", editortype, 30);
+        var dpt = $(this).closest('.dpt');
 
-    $.post(url, formData)
-    .done(function(data) {
+        var pk = dpt.attr('pk');
+        instance.clearEditSelected();
+        instance.triggerBtnDptEdit(pk);
+    }
 
-        if (typeof data == "string") {
-            $('.dpt-selected').html(data);
-            clearEditSelected();
-            reloadFunctionClicks();
+    instance.bindActionsClick = function(event) {
+        var pk = this.getAttribute('pk');
+
+        var form_data = {
+            'action'    : this.getAttribute('action'),
+            'tipo_pk'   : this.getAttribute('tipo_pk'),
+            'perfil_pk' : this.getAttribute('perfil_pk'),
+            'variacao'  : this.getAttribute('variacao'),
+        };
+
+        var url = pk+'/refresh';
+        instance.waitShow();
+
+        $.get(url, form_data).done(function(data) {
+            instance.clearEditSelected();
+            if (data.pk != null) {
+                if (data.message !== undefined) {
+                    if (data.message.modal) {
+                        instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
+                            instance.waitShow();
+                            instance.refreshScreenFocusPk(data);
+                        });
+                        return;
+                    }
+                    else {
+                        instance.message(data)
+                    }
+                }
+                instance.refreshScreenFocusPk(data);
+            }
+        }).fail(instance.waitHide).always(instance.waitHide);
+    }
+
+    instance.clearEditSelected = function() {
+        $('.dpt-selected > .dpt-form').html('');
+        $('.dpt-actions, .dpt-actions-bottom').html('');
+        tinymce.remove();
+        $('.dpt-selected').removeClass('dpt-selected');
+    }
+
+    instance.editDispositivo = function(event) {
+        var obj_click = (event.target.classList.contains('dpt-link')
+                            ? event.target
+                            : (event.target.parentElement.classList.contains('dpt-link')
+                                ? event.target.parentElement
+                                : null));
+
+        if (obj_click && obj_click.getAttribute('href') && obj_click.getAttribute('href').length > 0)
+            return;
+
+        var dpt = $(this).closest('.dpt');
+        if (dpt.hasClass('dpt-selected')) {
+            if (this.getAttribute('action') == 'editor-close')
+                instance.clearEditSelected();
             return;
         }
+        instance.clearEditSelected();
+        instance.loadActionsEdit(dpt);
 
-        clearEditSelected();
-
-        if (data.pk != null)
-            refreshScreenFocusPk(data);
-        else {
-            alert('Erro na inserção!');
-            flag_refresh_all = false;
-        }
-
-    }).always(function() {
-        $("#message_block").css("display", "none");
-    });
-    if (event != null)
-        event.preventDefault();
-}
-
-
-var clickEditDispositivo = function(event) {
-    var _pk = event.currentTarget.getAttribute('pk');
-    if ($('#dpt'+_pk).hasClass("dpt-selected")) {
-        clearEditSelected();
-        return;
-    }
-    clearEditSelected();
-    clickUpdateDispositivo(event);
-}
-
-var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, flag_actions_vibible, flag_refresh_all) {
-
-    var pk_refresh = __pk_refresh;
-    var pk_edit = __pk_edit;
-    var _action = __action;
-    var _variacao = '';
-    var _tipo_pk = '';
-    var _perfil_pk = '';
-
-    if (event != null) {
-        pk_refresh = event.currentTarget.getAttribute('pk');
-        _action = $(this).attr('action');
-        _variacao = $(this).attr('variacao');
-        _tipo_pk = $(this).attr('tipo_pk');
-        _perfil_pk = $(this).attr('perfil_pk');
+        var formtype = dpt.attr('formtype');
+        dpt.on(formtype, instance[formtype]);
+        instance.loadForm(dpt, formtype);
     }
 
-    if (pk_edit == null)
-        pk_edit = pk_refresh;
-
-    var url = '';
-    if (_action == '')
-        return;
-    else if ( _action == null) {
-        url = pk_refresh+'/refresh?edit='+pk_edit;
-    }
-    else if (_action.startsWith('refresh')) {
-        var str = _action.split(':');
-        if (str.length > 1) {
-            if(_action.endsWith('perfil')) {
-                url = '&perfil_pk='+_perfil_pk;
-                $("#message_block").css("display", "block");
-            }
-            else {
-                editortype = str[1];
-                SetCookie("editortype", editortype, 30)
-            }
-        }
-        url = pk_refresh+'/refresh?edit='+pk_edit+url;
-    }
-    else if (_action.startsWith('add_')) {
-
-        url = pk_refresh+'/actions?action='+_action;
-        url += '&tipo_pk='+_tipo_pk;
-        url += '&variacao='+_variacao;
-
-        $("#message_block").css("display", "block");
-
-    }
-    else if (_action.startsWith('set_')) {
-
-        url = pk_refresh+'/actions?action='+_action;
-        $("#message_block").css("display", "block");
-
-    }
-    else if (_action.startsWith('delete_')) {
-        var r = confirm("Confirma Exclusão deste dispositivo?");
-        if (!r) {
-            return
-        }
-        url = pk_refresh+'/actions?action='+_action;
-        $("#message_block").css("display", "block");
-    }
-
-    $.get(url).done(function( data ) {
-        if ( _action == null || _action.startsWith('refresh')) {
-
-            if (flag_refresh_all) {
-                if (flag_actions_vibible)
-                    clearEditSelected();
-
-                $( '#dpt' + pk_refresh ).html( data);
-            }
-            else {
-                //console.log(pk_refresh + ' - '+pk_edit)
-                if (flag_actions_vibible == null || flag_actions_vibible)
-                    clearEditSelected();
-
-                //$( '#dpt' + pk_refresh+' > .bloco' ).addClass('displaynone' );
-                $( '#dpt' + pk_refresh ).prepend( data );
-            }
-
-            reloadFunctionClicks();
-
-            var _editortype = editortype;
-            if ( $('.edt-'+_editortype).length == 0) {
-                _editortype = 'construct';
-            }
-
-            if ( _editortype == 'tinymce' ) {
-                initTinymce();
-            }
-            else if (_editortype == 'textarea') {
-                $('.csform form').submit(onSubmitEditForm);
-            }
-            else if (_editortype == 'construct') {
-                $('.csform .btn-salvar').parent().addClass("displaynone");
-                $('.csform .btn-salvar, .csform .fields').addClass("displaynone");
-                $('#dpt'+pk_refresh).css('min-height', $('.actions_right').height()*2);
-                $('.actions_inserts').removeClass('menu_flutuante');
-            }
-            else if (_editortype == 'detail') { //TODO: código obsoleto - confirmar retirada desta condição
-                $('.csform .btn-salvar').parent().removeClass("displaynone");
-                $('.csform .btn-salvar,  .csform .fields').removeClass("displaynone");
-                $('#dpt'+pk_refresh).css('min-height', $('.actions_right').height()*2);
-                $('.actions_inserts').addClass('menu_flutuante');
-            }
-
-            $(".edt-"+_editortype).addClass('selected');
-
-            if (flag_actions_vibible == null || flag_actions_vibible) {
-                $('#dpt'+pk_edit).addClass('dpt-selected');
-                try {
-                    $('html, body').animate({
-                        scrollTop: $('#dpt' + pk_edit ).offset().top - window.innerHeight / 9
-                    }, 100);
-                }
-                catch(err) {
-                }
-            }
-        }
-
-        else if (_action == 'add_next' || _action == 'add_in') {
-            clearEditSelected();
-            if (data.pk != null) {
-                refreshScreenFocusPk(data);
-            }
-            else {
-                alert('Erro na inserção!');
-            }
-        }
-        else if (_action.startsWith('delete_')) {
-            $("#message_block").css("display", "block");
-            clearEditSelected();
-            if (data.pk != null) {
-                if (!modalMessage(data.message, 'alert-danger', function() {
-                        //refreshScreenFocusPk(data);
-                    }))
-                    refreshScreenFocusPk(data);
-            }
-            else {
-                alert('Erro exclusão de Dispositivo!');
-            }
-        }
-        else {
-            clearEditSelected();
-            reloadFunctionClicks();
-            modalMessage(data.message, 'alert-success', null);
-        }
-
-    }).always(function() {
-        $("#message_block").css("display", "none");
-    });
-}
-
-function modalMessage(message, alert, closeFunction) {
-    if (message != null && message != '') {
-        $('#modal-message #message').html(message);
-        $('#modal-message').modal('show');
-        $('#modal-message, #modal-message .alert button').off();
-        $('#modal-message .alert').removeClass('alert-success alert-info alert-warning alert-danger alert-danger');
-        $('#modal-message .alert').addClass(alert);
-
-        if (closeFunction != null)
-            $('#modal-message').on('hidden.bs.modal', closeFunction);
-
-        $('#modal-message .alert button').on('click', function() {
-            $('#modal-message').modal('hide');
-        });
-        return true;
-    }
-    return false;
-}
-
-function refreshScreenFocusPk(data) {
-
-    if (data.pai[0] == -1) {
-        $("#message_block").css("display", "block");
-        href = location.href.split('#')[0]
-        location.href = href+'#'+data.pk;
-        location.reload(true)
-        }
-    else {
-        clickUpdateDispositivo(null, data.pai[0], data.pk, 'refresh', true, true);
+    instance.gc = function() {
         setTimeout(function() {
-            for (var pai = 1; pai < data.pai.length; pai++)
-                clickUpdateDispositivo(null, data.pai[pai], data.pk, 'refresh', false, true);
-        }, 1000);
+            $('.dpt:not(.dpt-selected) > .dpt-form').html('');
+        },500);
     }
+
+    instance.get_form_base = function () {
+        var _this = $(this);
+        _this.addClass('dpt-selected');
+
+        var dpt_form = _this.children().filter('.dpt-form');
+        dpt_form.find('form').submit(instance.onSubmitEditFormBase);
+
+        instance.scrollTo(_this);
+        _this.off('get_form_base')
+
+        var btn_fechar = _this.find('.btn-fechar');
+        btn_fechar.on('click', function() {
+            instance.clearEditSelected();
+        });
+
+        var btns_excluir = _this.find('.btns-excluir');
+        _this.find('.dpt-actions-bottom').first().append(btns_excluir);
+
+        btns_excluir.find('.btn-excluir').on('click', instance.bindActionsClick);
+    }
+
+    instance.get_form_alteracao = function () {
+        var _this = $(this);
+        _this.off('get_form_alteracao');
+        $('.dpt-actions, .dpt-actions-bottom').html('');
+
+        var dpt_form = _this.children().filter('.dpt-form').children().first();
+        var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
+        DispostivoSearch({
+          'url_form': url_search,
+          'text_button': 'Selecionar'
+        });
+
+        instance.scrollTo(_this);
+        dpt_form.submit(instance.onSubmitFormRegistraAlteracao);
+
+        var btn_fechar = _this.find('.btn-fechar');
+        btn_fechar.on('click', function() {
+            instance.clearEditSelected();
+            instance.triggerBtnDptEdit(_this.attr('pk'));
+        });
+    }
+
+    instance.loadActionsEdit = function(dpt) {
+        var pk = dpt.attr('pk');
+        var url = pk+'/refresh?action=get_actions';
+        $.get(url).done(function(data) {
+            dpt.find('.dpt-actions').first().html(data);
+            dpt.find('.btn-action').on('click', instance.bindActionsClick);
+            //dpt.find('.btn-perfis').on('click', instance.bindActionsClick);
+            dpt.find('.btn-compila').on('click', instance.loadFormsCompilacao);
+            dpt.find('.btn-editor-type').on('click', instance.bindActionsEditorType);
+
+            if (editortype == 'construct')
+                dpt.find('.btn-group-inserts').first().addClass('open');
+
+            dpt.find('.btn-group-inserts button').mouseenter(function(event) {
+                dpt.find('.btn-group-inserts').removeClass('open');
+                $(this.parentElement).addClass('open')
+            });
+
+            instance.gc();
+        });
+    }
+
+    instance.loadForm = function(dpt, trigger) {
+        var pk = dpt.attr('pk');
+        var dpt_form = dpt.children().filter('.dpt-form');
+        if (dpt_form.length == 1) {
+            var url = pk+'/refresh?action='+trigger;
+            $.get(url).done(function(data) {
+                if (editortype != "construct") {
+                    dpt_form.html(data);
+                    if (editortype == 'tinymce' ) {
+                        initTinymce();
+                    }
+                }
+                dpt.trigger(trigger);
+            }).always(function() {
+                instance.waitHide();
+            });
+        }
+    }
+
+    instance.loadFormsCompilacao = function(event) {
+        var dpt = $(this).closest('.dpt');
+        var formtype = this.getAttribute('action');
+        dpt.on(formtype, instance[formtype]);
+        instance.loadForm(dpt, formtype);
+    }
+
+    instance.modalMessage = function(message, alert, closeFunction) {
+        if (message != null && message != '') {
+            $('#modal-message #message').html(message);
+            $('#modal-message').modal('show');
+            $('#modal-message, #modal-message .alert button').off();
+            $('#modal-message .alert').removeClass('alert-success alert-info alert-warning alert-danger alert-danger');
+            $('#modal-message .alert').addClass(alert);
+
+            if (closeFunction != null)
+                $('#modal-message').on('hidden.bs.modal', closeFunction);
+
+            $('#modal-message .alert button').on('click', function() {
+                $('#modal-message').modal('hide');
+            });
+            return true;
+        }
+        return false;
+    }
+
+    instance.message = function(data) {
+        if (!('message' in data))
+            return;
+        var cp_notify = $(".cp-notify")
+        cp_notify.removeClass('hide')
+        var msg = cp_notify.find('.message');
+        msg.text(data.message.value);
+        msg.removeClass('bg-primary bg-success bg-info bg-warning bg-danger').addClass('bg-'+data.message.type);
+        setTimeout(function() {
+            cp_notify.addClass('hide');
+        }, (data.message.time?data.message.time: 3000));
+    }
+    instance.offClicks = function() {
+        $('.btn-dpt-edit').off()
+    }
+    instance.onClicks = function(container) {
+        var objects;
+        if (container == null)
+            objects = $('.btn-dpt-edit');
+        else
+            objects = $(container).find('.btn-dpt-edit');
+        objects.on('click', instance.editDispositivo);
+    }
+
+    instance.onSubmitFormRegistraAlteracao = function(event) {
+        var _this = this;
+
+        var form_data = {
+            'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
+            'dispositivo_alterado' : this['dispositivo_alterado'].value,
+            'formtype': 'get_form_alteracao',
+        };
+        var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
+
+        instance.waitShow();
+
+        $.post(url, form_data)
+        .done(function(data) {
+            instance.clearEditSelected();
+
+            if (data.pk != null) {
+                instance.refreshScreenFocusPk(data);
+                instance.message(data);
+            }
+            else {
+                alert('Erro na resposta!');
+            }
+
+        }).always(function() {
+            instance.waitHide();
+        });
+        if (event != null)
+            event.preventDefault();
+
+    }
+    instance.onSubmitEditFormBase = function(event) {
+
+        var _this = this;
+        var texto = '';
+        var texto_atualizador = '';
+        var visibilidade = '';
+        var editor_tiny_texto = tinymce.get('id_texto');
+        var editor_tiny_texto_atualizador = tinymce.get('id_texto_atualizador');
+
+        if (editor_tiny_texto != null)
+            texto = editor_tiny_texto.getContent();
+        else
+            texto = this['id_texto'].value;
+
+        if (editor_tiny_texto_atualizador != null)
+            texto_atualizador = editor_tiny_texto_atualizador.getContent();
+        else if ('id_texto_atualizador' in this)
+            texto_atualizador = this['id_texto_atualizador'].value;
+
+        if ('visibilidade' in this)
+            visibilidade = this['visibilidade'].value;
+
+        var form_data = {
+            'csrfmiddlewaretoken' : this['csrfmiddlewaretoken'].value,
+            'texto'               : texto,
+            'texto_atualizador'   : texto_atualizador,
+            'visibilidade'        : visibilidade,
+            'formtype': 'get_form_base',
+        };
+
+        var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
+
+        instance.waitShow();
+
+        $.post(url, form_data)
+        .done(function(data) {
+            if (typeof data == "string") { /* if obsoleto */
+                var dpt = $(_this).closest('.dpt');
+                dpt = $('#'+dpt.replaceWith(data).attr('id'));
+                instance.onClicks(dpt);
+                instance.waitHide();
+                return;
+            }
+            instance.clearEditSelected();
+
+            if (data.pk != null) {
+                instance.refreshScreenFocusPk(data);
+                instance.message(data);
+            }
+            else {
+                alert('Erro na resposta!');
+            }
+
+        }).always(function() {
+            instance.waitHide();
+        });
+        if (event != null)
+            event.preventDefault();
+    }
+    instance.refreshContent = function(pais, trigger_edit_pk) {
+        if (pais.length == 0) {
+            instance.waitHide();
+            return;
+        }
+        var pk = pais.shift();
+        var url = pk+'/refresh';
+
+        $.get(url).done(function(data) {
+            var dpt = $('#id'+pk).closest('.dpt');
+            dpt = $('#'+dpt.replaceWith(data).attr('id'));
+            instance.onClicks(dpt);
+            instance.reloadFunctionsDraggables();
+
+            if (trigger_edit_pk > 0)
+                instance.triggerBtnDptEdit(trigger_edit_pk)
+
+            instance.refreshContent(pais);
+        });
+    }
+    instance.refreshScreenFocusPk = function (data) {
+        instance.waitShow();
+        if (data.pai[0] == -1) {
+            instance.waitShow()
+            href = location.href.split('#')[0]
+            location.href = href+'#'+data.pk;
+            location.reload(true)
+            }
+        else {
+            instance.refreshContent(data.pai, data.pk);
+
+            /*setTimeout(function() {
+                for (var pai = 1; pai < data.pai.length; pai++)
+                    instance.refreshContent(data.pai[pai]);
+                instance.waitHide();
+            }, 1000);*/
+        }
+    }
+
+    instance.reloadFunctionsDraggables = function() {
+        $( ".dpt-alts" ).sortable({
+          revert: true,
+          distance: 15,
+          start: function( event, ui ) {
+          }
+          ,
+          stop: function( event, ui ) {
+              var pk = ui.item.attr('pk');
+              var bloco_pk = ui.item.closest('.dpt-alts').closest('.dpt').attr('pk');
+
+              var url = pk+'/refresh?action=json_drag_move_dpt_alterado&index='+ui.item.index()+'&bloco_pk='+bloco_pk;
+              $.get(url).done(function( data ) {
+                  console.log(pk+ ' - '+ bloco_pk);
+                  //reloadFunctionsForObjectsOfCompilacao();
+              });
+          }
+        });
+
+        $( ".dpt-alts .dpt" ).draggable({
+          connectToSortable: ".dpt-alts",
+          revert: 'invalid',
+          zIndex: 1,
+          distance: 15,
+          drag: function( event, ui ) {
+              //$('.dpt-comp-selected').removeClass('dpt-comp-selected');
+              $(".dpt-alts").addClass('drag');
+          },
+          stop: function( event, ui ) {
+              $(".dpt-alts").removeClass('drag');
+          },
+        });
+
+        $(".dpt-alts").disableSelection();
+    }
+    instance.scrollTo = function(dpt) {
+        try {
+            $('html, body').animate({
+                scrollTop: dpt.offset().top - window.innerHeight / 9
+            }, 100);
+        }
+        catch(err) {
+        }
+    }
+    instance.triggerBtnDptEdit =function(pk)  {
+        var btn_dpt_edit = $('#id'+pk + ' > .dpt-text.btn-dpt-edit');
+        if (btn_dpt_edit.length == 0)
+            btn_dpt_edit = $('#id'+pk + ' > .dpt-actions-fixed > .btn-dpt-edit');
+        btn_dpt_edit.trigger( "click" );
+    }
+    instance.waitHide = function() {
+         $("#wait_message").addClass("displaynone");
+    }
+    instance.waitShow = function() {
+         $("#wait_message").removeClass("displaynone");
+    }
+
+
+    instance.init = function() {
+        editortype = ReadCookie("editortype");
+        if (editortype == null || editortype == '') {
+            editortype = "textarea"
+            SetCookie("editortype", editortype, 30)
+        }
+        //editortype = "textarea";
+        instance.offClicks();
+        instance.onClicks();
+        instance.reloadFunctionsDraggables();
+
+        href = location.href.split('#')
+        if (href.length == 2 && href[1] != '') {
+            instance.triggerBtnDptEdit(href[1])
+        }
+        $('main').click(function(event) {
+            if (event.target == this || event.target == this.firstElementChild)
+                instance.clearEditSelected();
+        });
+        instance.waitHide();
+    }
+    instance.init();
 }
 
-function clearEditSelected() {
-    $('.bloco' ).removeClass('displaynone' );
-
-    $(".container").removeClass('class_color_container');
-    tinymce.remove();
-    $('.dpt-selected').removeClass('dpt-selected');
-    $('.dpt').css('min-height', '');
-    $('.csform').remove();
-}
-
-function reloadFunctionClicks() {
-    $('.dpt .de, .btn-action, .btn-edit').off();
-
-    $('.dpt .de, .btn-edit').on('click', clickEditDispositivo);
-
-    $('.btn-action').on('click', clickUpdateDispositivo);
-
-    $('#editdi_texto').focus();
-    $( ".bloco_alteracao" ).sortable({
-      revert: true,
-      stop: function( event, ui ) {
-          var pk = ui.item.attr('pk');
-          var bloco_pk = ui.item.closest('.bloco').closest('.dpt').attr('pk');
-
-          url = pk+'/actions?action=move_dpt_alterado&index='+ui.item.index()+'&bloco_pk='+bloco_pk;
-          $.get(url).done(function( data ) {
-              console.log(pk+ ' - '+ bloco_pk);
-          });
-      }
-    });
-
-    $( ".bloco_alteracao .dpt" ).draggable({
-      connectToSortable: ".bloco_alteracao",
-      revert: 'invalid',
-      zIndex: 1,
-      drag: function( event, ui ) {
-          $( ".bloco_alteracao" ).addClass('drag');
-      },
-      stop: function( event, ui ) {
-          $( ".bloco_alteracao" ).removeClass('drag');
-      },
-    });
-
-    $( ".bloco_alteracao" ).disableSelection();
-}
 
 $(document).ready(function() {
 
-    editortype = ReadCookie("editortype")
-
-    if (editortype == null || editortype == "") {
-        editortype = "textarea"
-        SetCookie("editortype", editortype, 30)
-    }
-
-    reloadFunctionClicks();
-    $("#message_block").css("display", "none");
-
-    href = location.href.split('#')
-    if (href.length == 2 && href[1] != '') {
-        clickUpdateDispositivo(null, href[1], href[1], 'refresh', true);
-    }
-
-    $('main').click(function(event) {
-        if (event.target == this || event.target == this.firstElementChild)
-            clearEditSelected();
-    });
+    DispositivoEdit();
 
 });
