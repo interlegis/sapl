@@ -52,7 +52,7 @@ class CasaLegislativa(models.Model):
 
     # Determina se é Assembleia ou Casa
     tipo = models.CharField(
-        max_length=1, blank=True, verbose_name=_('Tipo'),
+        max_length=1, verbose_name=_('Tipo'),
         choices=CASA_CHOICES)
 
     class Meta:
