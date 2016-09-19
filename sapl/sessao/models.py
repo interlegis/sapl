@@ -321,3 +321,25 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
+
+
+class Bloco(models.Model):
+    '''
+        * blocos podem existir por mais de uma legislatura
+    '''
+    nome = models.CharField(
+        max_length=80, verbose_name=_('Nome do Bloco'))
+    bancadas = models.ManyToManyField(
+        Bancada, blank=True, verbose_name=_('Bancadas'))
+    data_criacao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Criação'))
+    data_extincao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Dissolução'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Bloco')
+        verbose_name_plural = _('Blocos')
+
+    def __str__(self):
+        return self.nome
