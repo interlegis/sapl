@@ -224,56 +224,7 @@
         </main>
 
       {% endblock content_container %}
-
-      <footer id="footer" class="footer page__row">
-        <div class="container">
-
-          <div class="row">
-            <div class="col-md-4">
-
-              <a class="footer__logo" href="#">
-                <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
-              </a>
-              <p>
-                <small>
-                  Desenvolvido pelo <a href="#">Interlegis</a> em software livre e aberto.
-                </small>
-              </p>
-            </div>
-            <div class="col-md-4">
-              <a class="footer__logo" href="#">
-                <img src="{% static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
-              </a>
-              <p>
-                <small>
-                  Conteúdo e dados sob licença <a href="#">Creative Commons</a> 4.0 <a href="#">Atribuir Fonte - Compartilhar Igual</a>
-                </small>
-              </p>
-            </div>
-            <div class="col-md-4">
-              {% if nome %}
-              <address>
-                <small>
-                  <strong>
-                    <span class="org">{{ nome }}</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
-                  </strong>
-                  <br>
-                  <span class="street-address">{{ endereco }}</span>
-                  <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
-                  <br>
-                  <a href="{{endereco_web}}" class="url">{% trans 'Site da Câmara' %}</a> |
-                  <a href="{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
-                </small>
-              </address>
-              {% else %}
-                 Casa Legislativa não configurada.
-                 <br>
-                 <a href="/casa_legislativa">Favor configurar clicando aqui</a>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </footer>
+      {% include 'rodape.html' %}
     </div>
 
     {% block foot_js %}
