@@ -15,7 +15,7 @@ from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput, autor_label,
                         autor_modal)
 
-from .models import CasaLegislativa
+from .models import AppConfig, CasaLegislativa
 
 
 class RangeWidgetOverride(forms.MultiWidget):
@@ -284,3 +284,11 @@ class LoginForm(AuthenticationForm):
         widget=forms.PasswordInput(
             attrs={
                 'class': 'form-control', 'name': 'password'}))
+
+
+class ConfiguracoesAppForm(ModelForm):
+    class Meta:
+        model = AppConfig
+        fields = ['documentos_administrativos',
+                  'sequencia_numeracao',
+                  'painel_aberto']

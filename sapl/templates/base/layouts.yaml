@@ -9,3 +9,7 @@ CasaLegislativa:
   - endereco_web
   - email
   - informacao_geral
+
+AppConfig:
+  {% trans 'Configurações da Aplicação' %}:
+  - documentos_administrativos sequencia_numeracao painel_aberto

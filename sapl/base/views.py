@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import BaseCreateView
 from django_filters.views import FilterView
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
@@ -13,13 +14,14 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
 from sapl.utils import permissao_tb_aux
 
-from .forms import (CasaLegislativaForm, RelatorioAtasFilterSet,
+from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
+                    RelatorioAtasFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
                     RelatorioPresencaSessaoFilterSet)
-from .models import CasaLegislativa
+from .models import AppConfig, CasaLegislativa
 
 
 def get_casalegislativa():
@@ -261,3 +263,33 @@ class SistemaView(PermissionRequiredMixin, TemplateView):
 
     def has_permission(self):
         return permissao_tb_aux(self)
+
+
+class AppConfigCrud(Crud):
+    model = AppConfig
+    help_path = ''
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        list_field_names = ['documentos_administrativos',
+                            'sequencia_numeracao',
+                            'painel_aberto']
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
+        form_class = ConfiguracoesAppForm
+
+        def get(self, request, *args, **kwargs):
+            app_config = AppConfig.objects.last()
+            if app_config:
+                return HttpResponseRedirect(
+                    reverse('sapl.base:appconfig_update',
+                            kwargs={'pk': app_config.pk}))
+            else:
+                self.object = None
+                return super(BaseCreateView, self).get(
+                    request, *args, **kwargs)
+
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+        form_class = ConfiguracoesAppForm

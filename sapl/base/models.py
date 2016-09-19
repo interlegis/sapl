@@ -3,7 +3,14 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.utils import UF
+from sapl.utils import UF, YES_NO_CHOICES
+
+
+TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
+                                 ('R', _('Restritivo')))
+
+SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
+                       ('U', _('Sequencial único')))
 
 
 def get_sessao_media_path(instance, subpath, filename):
@@ -68,3 +75,27 @@ class ProblemaMigracao(models.Model):
     class Meta:
         verbose_name = _('Problema na Migração')
         verbose_name_plural = _('Problemas na Migração')
+
+
+class AppConfig(models.Model):
+    documentos_administrativos = models.CharField(
+        max_length=1,
+        verbose_name=_('Ostensivo/Restritivo'),
+        choices=TIPO_DOCUMENTO_ADMINISTRATIVO)
+
+    sequencia_numeracao = models.CharField(
+        max_length=1,
+        verbose_name=_('Sequência de numeração'),
+        choices=SEQUENCIA_NUMERACAO)
+
+    painel_aberto = models.BooleanField(
+        verbose_name=_('Painel aberto para usuário anônimo'),
+        choices=YES_NO_CHOICES)
+
+    class Meta:
+        verbose_name = _('Configurações da Aplicação')
+        verbose_name_plural = _('Configurações da Aplicação')
+
+    def __str__(self):
+        return _('Configurações da Aplicação - %(id)s') % {
+            'id': self.id}
