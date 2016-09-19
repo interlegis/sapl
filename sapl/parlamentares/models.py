@@ -409,3 +409,31 @@ class ComposicaoMesa(models.Model):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
+
+
+class Frente(models.Model):
+    '''
+        * Uma frente agrupa vários parlamentares
+        * Cada parlamentar pode fazer parte de uma ou mais frentes
+        * Uma frente pode existir por mais de uma legislatura?
+    '''
+    nome = models.CharField(
+        max_length=80,
+        verbose_name=_('Nome da Frente'))
+    parlamentares = models.ManyToManyField(Parlamentar,
+                                           blank=True,
+                                           verbose_name=_('Parlamentares'))
+    data_criacao = models.DateField(verbose_name=_('Data Criação'))
+    data_extincao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Dissolução'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Frente')
+        verbose_name_plural = _('Frentes')
+
+    def get_parlamentares(self):
+        return Parlamentar.objects.filter(ativo=True)
+
+    def __str__(self):
+        return self.nome

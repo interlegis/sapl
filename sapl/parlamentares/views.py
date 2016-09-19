@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView
 
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
@@ -17,12 +17,44 @@ from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
-from .forms import (ComposicaoColigacaoForm, FiliacaoForm, LegislaturaForm,
-                    ParlamentarCreateForm, ParlamentarForm)
+from .forms import (ComposicaoColigacaoForm, FiliacaoForm, FrenteForm,
+                    LegislaturaForm, ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
-                     Dependente, Filiacao, Legislatura, Mandato,
+                     Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
+
+
+class FrenteList(ListView):
+    model = Frente
+    paginate_by = 10
+    template_name = 'parlamentares/frentes.html'
+
+    def get_queryset(self):
+        return Frente.objects.filter(parlamentares__in=[self.kwargs['pk']])
+
+    def get_context_data(self, **kwargs):
+        context = super(FrenteList, self).get_context_data(**kwargs)
+        context['root_pk'] = self.kwargs['pk']
+        context['object_list'] = self.get_queryset()
+        return context
+
+
+class FrenteCrud(Crud):
+    model = Frente
+    help_path = ''
+
+    class BaseMixin(CrudBaseMixin):
+        list_field_names = ['nome', 'data_criacao', 'parlamentares']
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
+
+    class CreateView(PermissionRequiredMixin, CrudCreateView):
+        form_class = FrenteForm
+
+    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+        form_class = FrenteForm
 
 
 class RelatoriaParlamentarCrud(MasterDetailCrud):

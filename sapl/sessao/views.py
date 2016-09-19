@@ -32,12 +32,12 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     MesaForm, OrdemDiaForm, PresencaForm,
                     SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
-from .models import (Bancada, CargoBancada, CargoMesa, ExpedienteMateria,
-                     ExpedienteSessao, IntegranteMesa, MateriaLegislativa,
-                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia,
-                     RegistroVotacao, SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoExpediente, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+                     ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
+                     MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
+                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoExpediente,
+                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
@@ -67,6 +67,17 @@ def reordernar_materias_ordem(request, pk):
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
+
+
+class BlocoCrud(Crud):
+    model = Bloco
+    help_path = ''
+
+    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+        list_field_names = ['nome', 'data_criacao', 'bancadas']
+
+        def has_permission(self):
+            return permissao_tb_aux(self)
 
 
 class BancadaCrud(Crud):

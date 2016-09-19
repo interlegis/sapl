@@ -13,3 +13,5 @@
   url: proposicao_list
 - title: {% trans 'Relatorias' %}
   url: relatoria_list
+- title: {% trans 'Frentes' %}
+  url: frent_list

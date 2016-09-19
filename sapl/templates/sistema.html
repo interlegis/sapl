@@ -7,6 +7,7 @@
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.base:casalegislativa_list' %}" class="btn btn-link">Casa Legislativa</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Parlamentares</h2>
   <div class="row">
@@ -18,12 +19,14 @@
     <div class="col-md-6"><a href="{% url 'sapl.parlamentares:partido_list' %}" class="btn btn-link">Partido</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.parlamentares:coligacao_list' %}" class="btn btn-link">Coligação</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Mesa Diretora</h2>
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.parlamentares:sessaolegislativa_list' %}" class="btn btn-link">Sessão Legislativa</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.parlamentares:cargomesa_list' %}" class="btn btn-link">Cargo da Mesa</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Comissões</h2>
   <div class="row">
@@ -31,18 +34,23 @@
     <div class="col-md-6"><a href="{% url 'sapl.comissoes:periodo_list' %}" class="btn btn-link">Período de Composição</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.comissoes:tipocomissao_list' %}" class="btn btn-link">Tipo de Comissão</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Bancadas</h2>
   <div class="row">
-    <div class="col-md-6"><a href="{% url 'sapl.sessao:bancada_list' %}" class="btn btn-link">Bancadas</a></div>
+		<div class="col-md-6"><a href="{% url 'sapl.sessao:bancada_list' %}" class="btn btn-link">Bancadas</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.sessao:cargobancada_list' %}" class="btn btn-link">Cargo de Bancada</a></div>
+		<div class="col-md-6"><a href="{% url 'sapl.parlamentares:frente_list' %}" class="btn btn-link">Frente</a></div>
+    <div class="col-md-6"><a href="{% url 'sapl.sessao:bloco_list' %}" class="btn btn-link">Bloco</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Proposições</h2>
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.materia:tipoproposicao_list' %}" class="btn btn-link">Tipo de Proposição</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:autor_list' %}" class="btn btn-link">Autor</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Matéria Legislativa</h2>
   <div class="row">
@@ -57,12 +65,14 @@
     <div class="col-md-6"><a href="{% url 'sapl.materia:statustramitacao_list' %}" class="btn btn-link">Status da Tramitação</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:orgao_list' %}" class="btn btn-link">Órgão</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Normas Jurídicas</h2>
   <div class="row">
     <div class="col-md-6"><a href="" class="btn btn-link">Tipo de Norma Jurídica</a></div>
     <div class="col-md-6"><a href="" class="btn btn-link">Assunto de Norma Jurídica</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Sessão Plenária</h2>
   <div class="row">
@@ -72,12 +82,14 @@
     <div class="col-md-6"><a href="{% url 'sapl.sessao:tipoexpediente_list' %}" class="btn btn-link">Tipo de Expediente</a></div>
     <div class="col-md-6"><a href="#" class="btn btn-link">Propriedades do Painel Eletrônico</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo LexML</h2>
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.lexml:lexmlprovedor_list' %}" class="btn btn-link">Provedor</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.lexml:lexmlpublicador_list' %}" class="btn btn-link">Publicador</a></div>
   </div>
+	<hr />
 
 	<h2>Módulo Administrativo</h2>
   <div class="row">
