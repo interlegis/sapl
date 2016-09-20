@@ -53,7 +53,7 @@
     {% endif %}
   </div>
   <div class="btn-group " role="group">
-    {% if object.dispositivo_subsequente == None %}
+    {% if not object.dispositivo_subsequente %}
       {% for perfil in perfil_estrutural_list%}
         <button type="button" class="btn-action btn-perfis btn btn-xs {%if request.session.perfil_estrutural == perfil.pk%}btn-primary{%else%}btn-default{%endif%}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"  pk="{{object.pk}}" perfil_pk="{{perfil.pk}}" action="json_get_perfis" title="{{perfil.nome}}">
           {{perfil.sigla}}
@@ -61,7 +61,7 @@
       {% endfor %}
     {%endif%}
   </div>
-  {% if not object.ta_publicado%}
+  {% if not object.ta_publicado and not object.dispositivo_subsequente %}
     <div class="btn-group " role="group">
       <button type="button" class="btn-action btn btn-xs radius-right {% if object.pk == object.dispositivo_vigencia_id %}btn-primary{%else%}btn-default{%endif%}"  pk="{{object.pk}}"  action="json_set_dvt" title="{% if object.pk == object.dispositivo_vigencia_id %}{% trans 'Dispositivo de Vigência Atual'%}{%else%}{% trans 'Tornar este o Dispositivo de Vigência de todo o Texto Articulado.'%}{%endif%}">
         DVt

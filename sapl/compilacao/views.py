@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -30,7 +30,8 @@ from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoRegistroAlteracaoForm,
                                    DispositivoSearchModalForm, NotaForm,
                                    PublicacaoForm, TaForm,
-                                   TextNotificacoesForm, TipoTaForm, VideForm)
+                                   TextNotificacoesForm, TipoTaForm, VideForm,
+                                   DispositivoRegistroRevogacaoForm)
 from sapl.compilacao.models import (Dispositivo, Nota,
                                     PerfilEstruturalTextoArticulado,
                                     Publicacao, TextoArticulado,
@@ -40,6 +41,7 @@ from sapl.compilacao.models import (Dispositivo, Nota,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import Crud, CrudListView, make_pagination
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -983,8 +985,7 @@ class TextEditView(TemplateView):
             ta_publicado = lista_ta_publicado[dispositivo.ta_publicado_id] if\
                 lista_ta_publicado else dispositivo.ta_publicado
 
-            if dispositivo.texto == \
-                    Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
+            if dispositivo.dispositivo_de_revogacao:
                 return _('Revogado pelo %s - %s.') % (
                     d, ta_publicado)
             elif not dispositivo.dispositivo_substituido_id:
@@ -1170,7 +1171,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                 else:
                     self.set_message(data, 'success', _(
                         'Exclusão efetuada com sucesso!'), modal=True)
-                ta_base.ordenar_dispositivos()
+                ta_base.reagrupar_ordem_de_dispositivos()
         except Exception as e:
             data['pk'] = self.kwargs['dispositivo_id']
             self.set_message(data, 'danger', str(e), modal=True)
@@ -2066,7 +2067,17 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 return perfis[0].pk
         return None
 
-    def registra_alteracao(self, bloco_alteracao, dispositivo_a_alterar):
+    def registra_revogacao(self, bloco_alteracao, dispositivo_a_revogar):
+        return self.registra_alteracao(
+            bloco_alteracao,
+            dispositivo_a_revogar,
+            revogacao=True
+        )
+
+    def registra_alteracao(self,
+                           bloco_alteracao,
+                           dispositivo_a_alterar,
+                           revogacao=False):
         """
         Caracteristicas:
         1 - Se é um dispositivo simples e sem subsequente
@@ -2096,10 +2107,10 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         for d in history:
             """FIXME: A comparação "<" deverá ser mudada para
-                "<=" caso um seja necessário permitir duas alterações
+                "<=" caso seja necessário permitir duas alterações
                 com mesmo inicio_vigencia no mesmo dispositivo. Neste Caso,
-                a sequencia correta ficará a cargo dos reposicionamentos entre
-                dispositivos de mesmo nível,
+                a sequencia correta ficará a cargo dos reposicionamentos e
+                (a ser implementado) entre dispositivos de mesmo nível,
             """
             if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
                 dispositivo_a_alterar = d
@@ -2118,8 +2129,12 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
 
         ndp.rotulo = dispositivo_a_alterar.rotulo
-        ndp.texto = dispositivo_a_alterar.texto
         ndp.publicacao = bloco_alteracao.publicacao
+        if not revogacao:
+            ndp.texto = dispositivo_a_alterar.texto
+        else:
+            ndp.texto = Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO
+            ndp.dispositivo_de_revogacao = True
 
         ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
         if ndp.dispositivo_vigencia:
@@ -2167,9 +2182,16 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 d.dispositivo_pai = ndp
                 d.save()
 
-            self.set_message(
-                data, 'success',
-                _('Dispositivo de Alteração adicionado com sucesso.'))
+            ndp.ta.reordenar_dispositivos()
+
+            if not revogacao:
+                self.set_message(
+                    data, 'success',
+                    _('Dispositivo de Alteração adicionado com sucesso.'))
+            else:
+                self.set_message(
+                    data, 'success',
+                    _('Dispositivo de Revogação adicionado com sucesso.'))
 
         except Exception as e:
             print(e)
@@ -2221,6 +2243,8 @@ class DispositivoDinamicEditView(
                 self.form_class = DispositivoEdicaoBasicaForm
             elif self.action.endswith('_alteracao'):
                 self.form_class = DispositivoRegistroAlteracaoForm
+            elif self.action.endswith('_revogacao'):
+                self.form_class = DispositivoRegistroRevogacaoForm
             context = self.get_context_data()
             return self.render_to_response(context)
         elif self.action.startswith('get_actions'):
@@ -2266,6 +2290,13 @@ class DispositivoDinamicEditView(
                 pk=request.POST['dispositivo_alterado'])
 
             data = self.registra_alteracao(d, dispositivo_a_alterar)
+
+        if formtype == 'get_form_revogacao':
+
+            dispositivo_a_revogar = Dispositivo.objects.get(
+                pk=request.POST['dispositivo_revogado'])
+
+            data = self.registra_revogacao(d, dispositivo_a_revogar)
 
         elif formtype == 'get_form_base':
             texto = request.POST['texto'].strip()

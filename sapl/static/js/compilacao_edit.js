@@ -138,6 +138,28 @@ function DispositivoEdit() {
         });
     }
 
+    instance.get_form_revogacao = function () {
+        var _this = $(this);
+        _this.off('get_form_revogacao');
+        $('.dpt-actions, .dpt-actions-bottom').html('');
+
+        var dpt_form = _this.children().filter('.dpt-form').children().first();
+        var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
+        DispostivoSearch({
+          'url_form': url_search,
+          'text_button': 'Selecionar'
+        });
+
+        instance.scrollTo(_this);
+        dpt_form.submit(instance.onSubmitFormRegistraRevogacao);
+
+        var btn_fechar = _this.find('.btn-fechar');
+        btn_fechar.on('click', function() {
+            instance.clearEditSelected();
+            instance.triggerBtnDptEdit(_this.attr('pk'));
+        });
+    }
+
     instance.loadActionsEdit = function(dpt) {
         var pk = dpt.attr('pk');
         var url = pk+'/refresh?action=get_actions';
@@ -258,8 +280,39 @@ function DispositivoEdit() {
         });
         if (event != null)
             event.preventDefault();
-
     }
+
+    instance.onSubmitFormRegistraRevogacao = function(event) {
+        var _this = this;
+
+        var form_data = {
+            'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
+            'dispositivo_revogado' : this['dispositivo_revogado'].value,
+            'formtype': 'get_form_revogacao',
+        };
+        var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
+
+        instance.waitShow();
+
+        $.post(url, form_data)
+        .done(function(data) {
+            instance.clearEditSelected();
+
+            if (data.pk != null) {
+                instance.refreshScreenFocusPk(data);
+                instance.message(data);
+            }
+            else {
+                alert('Erro na resposta!');
+            }
+
+        }).always(function() {
+            instance.waitHide();
+        });
+        if (event != null)
+            event.preventDefault();
+    }
+
     instance.onSubmitEditFormBase = function(event) {
 
         var _this = this;

@@ -132,7 +132,7 @@ class TextoArticulado(TimestampedMixin):
                 'numero': self.numero,
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
-    def ordenar_dispositivos(self):
+    def reagrupar_ordem_de_dispositivos(self):
 
         dpts = Dispositivo.objects.filter(ta=self)
 
@@ -149,6 +149,37 @@ class TextoArticulado(TimestampedMixin):
         for d in dpts:
             count += Dispositivo.INTERVALO_ORDEM
             Dispositivo.objects.filter(pk=d).update(ordem=count)
+
+    def reordenar_dispositivos(self):
+
+        dpts = Dispositivo.objects.filter(ta=self)
+
+        if not dpts.exists():
+            return
+
+        ordem_max = dpts.last().ordem
+        dpts.update(ordem=F('ordem') + ordem_max)
+
+        raizes = Dispositivo.objects.filter(
+            ta=self,
+            dispositivo_pai__isnull=True).values_list(
+                'pk', flat=True).order_by('ordem')
+
+        count = []
+        count.append(Dispositivo.INTERVALO_ORDEM)
+
+        def update(dpk):
+            Dispositivo.objects.filter(pk=dpk).update(ordem=count[0])
+            count[0] = count[0] + Dispositivo.INTERVALO_ORDEM
+            filhos = Dispositivo.objects.filter(
+                dispositivo_pai_id=dpk).values_list(
+                'pk', flat=True).order_by('ordem')
+
+            for dpk in filhos:
+                update(dpk)
+
+        for dpk in raizes:
+            update(dpk)
 
 
 class TipoNota(models.Model):
@@ -586,6 +617,11 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Visibilidade no Texto Articulado Publicado'))
+
+    dispositivo_de_revogacao = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Dispositivo de Revogação'))
 
     tipo_dispositivo = models.ForeignKey(
         TipoDispositivo,
