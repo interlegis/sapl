@@ -22,7 +22,8 @@ urlpatterns = [
     url(r'^ajuda/(?P<topic>\w+)$', HelpView.as_view(), name='help_topic'),
     url(r'^ajuda/', TemplateView.as_view(template_name='ajuda/index.html'),
         name='help_base'),
-    url(r'^casa-legislativa/', include(CasaLegislativaCrud.get_urls())),
+    url(r'^casa-legislativa/', include(CasaLegislativaCrud.get_urls()),
+        name="casa_legislativa"),
     url(r'^app-config/', include(AppConfigCrud.get_urls())),
 
     url(r'^login/$', views.login, {
