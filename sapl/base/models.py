@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.utils import UF, YES_NO_CHOICES
+from sapl.utils import UF, YES_NO_CHOICES, CASA_CHOICES
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -49,6 +49,11 @@ class CasaLegislativa(models.Model):
         max_length=100,
         blank=True,
         verbose_name=_('Informação Geral'))
+
+    # Determina se é Assembleia ou Casa
+    tipo = models.CharField(
+        max_length=1, verbose_name=_('Tipo'),
+        choices=CASA_CHOICES, default='C')
 
     class Meta:
         verbose_name = _('Casa Legislativa')

@@ -1,0 +1,61 @@
+{% load i18n staticfiles sass_tags menus %}
+{% load common_tags %}
+
+<footer id="footer" class="footer page__row">
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-4">
+
+        <a class="footer__logo" href="#">
+          <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
+        </a>
+        <p>
+          <small>
+            Desenvolvido pelo <a href="#">Interlegis</a> em software livre e aberto.
+          </small>
+        </p>
+      </div>
+      <div class="col-md-4">
+        <a class="footer__logo" href="#">
+          <img src="{% static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
+        </a>
+        <p>
+          <small>
+            Conteúdo e dados sob licença <a href="#">Creative Commons</a> 4.0 <a href="#">Atribuir Fonte - Compartilhar Igual</a>
+          </small>
+        </p>
+      </div>
+      <div class="col-md-4">
+        {% if nome %}
+        <address>
+          <small>
+            <strong>
+              {% if tipo == 'A' %}
+                <span class="org">Assembleia Legislativa</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
+              {% else %}
+                <span class="org">Câmara Municipal</span> de <span class="locality">{{ municipio }}</span> - <abbr class="region" title="{{ state }}">{{ uf }}</abbr>
+              {% endif %}
+            </strong>
+            <br>
+            <span class="street-address">{{ endereco }}</span>
+            <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
+            <br>
+            <a href="{{endereco_web}}" class="url">
+              {% if tipo == 'A' %}
+                {% trans 'Site da Assembleia' %}
+              {% else %}
+                {% trans 'Site da Câmara' %}
+              {% endif %}</a> |
+            <a href="{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
+          </small>
+        </address>
+        {% else %}
+           Casa/Assembleia Legislativa não configurada.
+           <br>
+           <a href="/casa_legislativa">Favor configurar clicando aqui</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</footer>

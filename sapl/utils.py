@@ -111,6 +111,11 @@ TURNO_TRAMITACAO_CHOICES = [
     ('C', _('2ª e 3ª Votação')),
 ]
 
+CASA_CHOICES = [
+    ('A', _('Assembleia Legislativa')),
+    ('C', _('Casa Legislativa')),
+]
+
 
 def listify(function):
     @wraps(function)

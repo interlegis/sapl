@@ -1,7 +1,8 @@
 {% load i18n %}
+
 CasaLegislativa:
   {% trans 'Casa Legislativa' %}:
-  - codigo:2 nome sigla
+  - codigo:1 tipo:3 nome sigla
   - endereco:8 cep
   - municipio:10 uf
   - telefone fax

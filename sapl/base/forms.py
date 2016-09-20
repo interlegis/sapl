@@ -242,6 +242,7 @@ class CasaLegislativaForm(ModelForm):
 
         model = CasaLegislativa
         fields = ['codigo',
+                  'tipo',
                   'nome',
                   'sigla',
                   'endereco',
@@ -257,6 +258,7 @@ class CasaLegislativaForm(ModelForm):
 
         widgets = {
             'uf': forms.Select(attrs={'class': 'selector'}),
+            'tipo': forms.Select(attrs={'class': 'selector'}),
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
             'fax': forms.TextInput(attrs={'class': 'telefone'}),
