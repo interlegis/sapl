@@ -173,7 +173,7 @@ Instalação e configuração das dependências do projeto
 
     ./manage.py bower install
 
-* Atualizar e/ou criar a base de dados para refletir o modelo da versão clonada::
+* Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
 
    ./manage.py migrate
 
@@ -188,6 +188,23 @@ Instalação e configuração das dependências do projeto
 * Acesse o SAPL em::
 
    http://localhost:8000/
+
+Instruções criação dos grupos de perfis de usuários e os usuários de testes
+===========================================================================
+
+* Criar super usuário do django-contrib-admin (Será solicitado alguns dados para criação)::
+
+   ./manage.py createsuperuser
+
+Os perfis semânticos do SAPL devem ser criados manualmente através da execução de um script que gera esses perfis e adiciona um usuário padrão em cada perfil. Para testar o comportamento de cada perfil é necessário executar este script:
+
+* Execute::
+
+   ./manage.py shell_plus
+
+* Será aberto um prompt do python customizado com diversas funcionalidades do django e do sapl. Execute dentro do prompt::
+
+   %run scripts/inicializa_grupos_autorizacoes.py
 
 Instruções para Tradução
 ========================
