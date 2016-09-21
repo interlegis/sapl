@@ -189,7 +189,7 @@ Instalação e configuração das dependências do projeto
 
    http://localhost:8000/
 
-Instruções criação dos grupos de perfis de usuários e os usuários de testes
+Instruções para criação dos grupos de perfis de usuários e os usuários de testes
 ===========================================================================
 
 * Criar super usuário do django-contrib-admin (Será solicitado alguns dados para criação)::
@@ -205,6 +205,18 @@ Os perfis semânticos do SAPL devem ser criados manualmente através da execuç�
 * Será aberto um prompt do python customizado com diversas funcionalidades do django e do sapl. Execute dentro do prompt::
 
    %run scripts/inicializa_grupos_autorizacoes.py
+
+* Os usuários criados, todos com senha "interlegis", serão::
+
+    operador_administrativo
+    operador_protocoloadm
+    operador_comissoes
+    operador_materia
+    operador_norma
+    operador_sessao
+    operador_painel
+    operador_geral
+    operador_autor
 
 Instruções para Tradução
 ========================
