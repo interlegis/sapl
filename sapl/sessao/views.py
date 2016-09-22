@@ -401,6 +401,10 @@ class OradorExpedienteCrud(OradorCrud):
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
 
+        def get_success_url(self):
+            return reverse('sapl.sessao:oradorexpediente_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
 
@@ -413,6 +417,10 @@ class OradorCrud(OradorCrud):
 
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:orador_list',
+                           kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
