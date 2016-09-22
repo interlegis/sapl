@@ -180,6 +180,10 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = OrdemDiaForm
 
+        def get_success_url(self):
+            return reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = OrdemDiaForm
 
@@ -348,6 +352,10 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
         permission_required = permissoes_sessao()
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         form_class = ExpedienteMateriaForm
