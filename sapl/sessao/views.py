@@ -2032,7 +2032,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         qs = self.get_queryset()
 
         qs = qs.distinct().order_by(
-            '-legislatura__id', '-data_inicio', '-numero')
+            '-legislatura__numero', '-data_inicio', '-numero')
 
         kwargs.update({
             'queryset': qs,

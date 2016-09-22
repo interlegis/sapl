@@ -129,7 +129,7 @@ class SessaoPlenaria(models.Model):
             'tipo_nome': self.tipo.nome,
             'sessao_legislativa_numero': self.sessao_legislativa.numero,
             # XXX check if it shouldn't be legislatura.numero
-            'legislatura_id': self.legislatura.id}
+            'legislatura_id': self.legislatura.numero}
 
 
 class AbstractOrdemDia(models.Model):

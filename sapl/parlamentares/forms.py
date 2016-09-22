@@ -24,6 +24,7 @@ class LegislaturaForm(ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
+        numero = cleaned_data['numero']
         data_inicio = cleaned_data['data_inicio']
         data_fim = cleaned_data['data_fim']
         data_eleicao = cleaned_data['data_eleicao']
@@ -32,6 +33,9 @@ class LegislaturaForm(ModelForm):
             raise ValidationError(_('A data início deve ser menor que a ' +
                                     'data fim, e a data eleição deve ser ' +
                                     'menor que a data início'))
+        if Legislatura.objects.filter(numero=numero).exists():
+            raise ValidationError(
+                _('Já cadastrada uma legislatura com este número'))
 
         return cleaned_data
 
