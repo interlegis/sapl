@@ -234,7 +234,7 @@ class MandatoCrud(MasterDetailCrud):
     help_path = ''
 
     class ListView(MasterDetailCrud.ListView):
-        ordering = ('-legislatura__data_inicio')
+        ordering = ('-numero')
 
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
@@ -251,7 +251,7 @@ class ColigacaoCrud(Crud):
     help_path = 'tabelas_auxiliares#coligacao'
 
     class ListView(CrudListView):
-        ordering = ('-legislatura__data_inicio', 'nome')
+        ordering = ('-numero', 'nome')
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
         def has_permission(self):
@@ -368,7 +368,7 @@ class ParlamentarCrud(Crud):
 
         def take_legislatura_id(self):
             legislaturas = Legislatura.objects.all().order_by(
-                '-data_inicio', '-data_fim')
+                '-numero')
 
             if legislaturas:
                 try:
@@ -420,7 +420,7 @@ class ParlamentarCrud(Crud):
 
             # Adiciona legislatura para filtrar parlamentares
             legislaturas = Legislatura.objects.all().order_by(
-                '-data_inicio', '-data_fim')
+                '-numero')
             context['legislaturas'] = legislaturas
             context['legislatura_id'] = self.take_legislatura_id()
             return context
@@ -450,7 +450,7 @@ class MesaDiretoraView(FormView):
 
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
-            ).order_by('-data_inicio'),
+            ).order_by('-numero'),
                 'legislatura_selecionada': Legislatura.objects.last(),
                 'cargos_vagos': CargoMesa.objects.all()})
 
@@ -477,7 +477,7 @@ class MesaDiretoraView(FormView):
 
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
-            ).order_by('-data_inicio'),
+            ).order_by('-numero'),
                 'legislatura_selecionada': Legislatura.objects.last(),
                 'sessoes': SessaoLegislativa.objects.filter(
                 legislatura=Legislatura.objects.last()),
@@ -538,7 +538,7 @@ class MesaDiretoraView(FormView):
                     parlamentares_ocupados))
             return self.render_to_response(
                 {'legislaturas': Legislatura.objects.all(
-                ).order_by('-data_inicio'),
+                ).order_by('-numero'),
                     'legislatura_selecionada': Legislatura.objects.get(
                     id=int(request.POST['legislatura'])),
                     'sessoes': SessaoLegislativa.objects.filter(

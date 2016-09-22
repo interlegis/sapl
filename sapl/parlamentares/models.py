@@ -10,6 +10,7 @@ from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
 
 
 class Legislatura(models.Model):
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
     data_inicio = models.DateField(verbose_name=_('Data Início'))
     data_fim = models.DateField(verbose_name=_('Data Fim'))
     data_eleicao = models.DateField(verbose_name=_('Data Eleição'))
@@ -33,8 +34,8 @@ class Legislatura(models.Model):
         else:
             current = ''
 
-        return _('%(id)sª (%(start)s - %(end)s)%(current)s') % {
-            'id': self.id,
+        return _('%(numero)sª (%(start)s - %(end)s)%(current)s') % {
+            'numero': self.numero,
             'start': self.data_inicio.year,
             'end': self.data_fim.year,
             'current': current}
@@ -64,8 +65,8 @@ class SessaoLegislativa(models.Model):
         verbose_name_plural = _('Sessões Legislativas')
 
     def __str__(self):
-        return _('%(id)sº (%(inicio)s - %(fim)s)') % {
-            'id': self.id,
+        return _('%(numero)sº (%(inicio)s - %(fim)s)') % {
+            'numero': self.numero,
             'inicio': self.data_inicio.year,
             'fim': self.data_fim.year}
 
