@@ -111,6 +111,11 @@ TURNO_TRAMITACAO_CHOICES = [
     ('C', _('2ª e 3ª Votação')),
 ]
 
+INDICADOR_AFASTAMENTO = [
+    ('A', _('Afastamento')),
+    ('F', _('Fim de Mandato')),
+]
+
 
 def listify(function):
     @wraps(function)
