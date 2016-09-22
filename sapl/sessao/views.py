@@ -29,9 +29,9 @@ from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
-                    MesaForm, OrdemDiaForm, PresencaForm,
-                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
+                    MesaForm, OradorExpedienteForm, OradorForm, OrdemDiaForm,
+                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
+                    VotacaoForm, VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -400,6 +400,7 @@ class OradorExpedienteCrud(OradorCrud):
 
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
+        form_class = OradorExpedienteForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
@@ -407,6 +408,7 @@ class OradorExpedienteCrud(OradorCrud):
 
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
+        form_class = OradorExpedienteForm
 
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_sessao()
@@ -417,6 +419,7 @@ class OradorCrud(OradorCrud):
 
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
+        form_class = OradorForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:orador_list',
@@ -424,6 +427,7 @@ class OradorCrud(OradorCrud):
 
     class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
+        form_class = OradorForm
 
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_sessao()
