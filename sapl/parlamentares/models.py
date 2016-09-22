@@ -4,7 +4,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.utils import (UF, YES_NO_CHOICES, intervalos_tem_intersecao,
+from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
+                        intervalos_tem_intersecao,
                         restringe_tipos_de_arquivo_img)
 
 
@@ -328,9 +329,9 @@ class Filiacao(models.Model):
 
 class TipoAfastamento(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
-    afastamento = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Indicador'))
-    fim_mandato = models.BooleanField(verbose_name=_('Indicador'))
+    indicador = models.CharField(
+        max_length=1, verbose_name=_('Indicador'), default='F',
+        choices=INDICADOR_AFASTAMENTO)
     dispositivo = models.CharField(
         max_length=50, blank=True, verbose_name=_('Dispositivo'))
 

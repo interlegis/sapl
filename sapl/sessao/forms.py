@@ -11,9 +11,11 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.parlamentares.models import Parlamentar
 from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
 
-from .models import Bancada, ExpedienteMateria, OrdemDia, SessaoPlenaria
+from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
+                     OrdemDia, SessaoPlenaria)
 
 
 def pega_anos():
@@ -265,3 +267,27 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                      row4, row5, row6, row7, row8,
                      form_actions(save_label='Pesquisar'))
         )
+
+
+class OradorForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+            super(OradorForm, self).__init__(*args, **kwargs)
+            self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+                ativo=True).order_by('nome_completo')
+
+    class Meta:
+        model = Orador
+        exclude = ['sessao_plenaria']
+
+
+class OradorExpedienteForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+            super(OradorExpedienteForm, self).__init__(*args, **kwargs)
+            self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+                ativo=True).order_by('nome_completo')
+
+    class Meta:
+        model = OradorExpediente
+        exclude = ['sessao_plenaria']

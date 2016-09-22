@@ -160,9 +160,9 @@
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
                 {% if nome %}
-                  {{ nome }} {% trans 'de' %} {{ municipio }} - {{ uf }}
+                  {{ nome }}
                 {% else %}
-                  {% trans 'Câmara Municipal'%}
+                  {% trans 'Câmara/Assembléia não configurada'%}
                 {% endif %}
                 <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
               </span>

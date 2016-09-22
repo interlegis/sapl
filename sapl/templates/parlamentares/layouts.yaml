@@ -82,7 +82,7 @@ NivelInstrucao:
 
 TipoAfastamento:
   {% trans 'Tipo de Afastamento' %}:
-  - descricao:5  dispositivo:5  afastamento
+  - descricao  dispositivo  indicador
 
 SituacaoMilitar:
   {% trans 'Tipo Situação Militar' %}:
