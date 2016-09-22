@@ -18,41 +18,36 @@
 {% block detail_content %}
   <h1><b>Pesquisar Sessão Plenária</b></h1>
   <br></br>
- 
 
   {% crispy filter.form %}
-  <p></p>
-  <table class="table table-striped table-hover">
-        <thead class="thead-default">
-            <tr><td><h3>Resultados</h3></td></tr>
-        </thead>
-        {% if page_obj|length %}
-          {% if numero_res > 1 %}
-              <h3>Foram encontradas {{numero_res}} sessões.</h3></br>
-            {% elif numero_res == 1 %}
-              <h3>Foi encontrada {{numero_res}} sessão.</h3></br>
-            {% endif %}
-
-          {% for s in page_obj %}            
-              <tr>
-                  <td>
-                      <strong><a href="{% url 'sapl.sessao:sessaoplenaria_detail' s.id %}">{{s}}</strong></a></br>
-                      <strong>Abertura:</strong> {{s.data_inicio}}</br>
-                      <strong>Legislatura:</strong> {{s.legislatura}}</br>
-                      <strong>Sessão Legislativa:</strong> {{s.sessao_legislativa}}</br>
-                      <strong>Tipo:</strong> {{s.tipo}}</br>
-                  </>
-              </tr>
-          {% endfor %}
-        {% else  %}
-            <tr>
-                <td>
-                    <h3>Nenhuma Sessão Plenária encontrada com essas especificações</h3>
-                 </tr>
+  {% if filter_url %}
+    <p></p>
+    <table class="table table-striped table-hover">
+      <thead class="thead-default">
+        <tr><td><h3>Resultados</h3></td></tr>
+      </thead>
+      {% if page_obj|length %}
+        {% if numero_res > 1 %}
+          <h3>Foram encontradas {{numero_res}} sessões.</h3></br>
+        {% elif numero_res == 1 %}
+          <h3>Foi encontrada {{numero_res}} sessão.</h3></br>
         {% endif %}
-        
+
+        {% for s in page_obj %}
+          <tr>
+            <td>
+              <strong><a href="{% url 'sapl.sessao:sessaoplenaria_detail' s.id %}">{{s}}</strong></a></br>
+              <strong>Abertura:</strong> {{s.data_inicio}}</br>
+              <strong>Legislatura:</strong> {{s.legislatura}}</br>
+              <strong>Sessão Legislativa:</strong> {{s.sessao_legislativa}}</br>
+              <strong>Tipo:</strong> {{s.tipo}}</br>
+            </td>
+          </tr>
+        {% endfor %}
+      {% else  %}
+        <tr><td><h3>Nenhuma Sessão Plenária encontrada com essas especificações</h3></tr>
+      {% endif %}
     </table>
-
-{% include "paginacao.html" %}
-
+    {% include "paginacao.html" %}
+  {% endif %}
 {% endblock detail_content %}
