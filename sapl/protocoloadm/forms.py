@@ -11,9 +11,9 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.forms import RangeWidgetOverride
 from sapl.materia.models import Autor, UnidadeTramitacao
-from sapl.utils import RANGE_ANOS, autor_label, autor_modal
+from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
+                        autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
@@ -512,7 +512,7 @@ class TramitacaoAdmForm(ModelForm):
                 raise ValidationError(msg)
 
             if (ultima_tramitacao and
-               data_tram_form < ultima_tramitacao.data_tramitacao):
+                    data_tram_form < ultima_tramitacao.data_tramitacao):
                 msg = _('A data da nova tramitação deve ser ' +
                         'maior que a data da última tramitação!')
                 raise ValidationError(msg)

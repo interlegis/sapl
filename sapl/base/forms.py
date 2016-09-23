@@ -12,30 +12,10 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput, autor_label,
-                        autor_modal)
+from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
+                        RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import AppConfig, CasaLegislativa
-
-
-class RangeWidgetOverride(forms.MultiWidget):
-
-    def __init__(self, attrs=None):
-        widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
-                                          'placeholder': 'Inicial'}),
-                   forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
-                                          'placeholder': 'Final'}))
-        super(RangeWidgetOverride, self).__init__(widgets, attrs)
-
-    def decompress(self, value):
-        if value:
-            return [value.start, value.stop]
-        return [None, None]
-
-    def format_output(self, rendered_widgets):
-        return ''.join(rendered_widgets)
 
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
@@ -53,7 +33,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(RelatorioAtasFilterSet, self).__init__(
-                *args, **kwargs)
+            *args, **kwargs)
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
         self.form.fields['data_inicio'].required = True
@@ -83,7 +63,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(RelatorioPresencaSessaoFilterSet, self).__init__(
-                *args, **kwargs)
+            *args, **kwargs)
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
         self.form.fields['data_inicio'].required = True
@@ -114,7 +94,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(RelatorioHistoricoTramitacaoFilterSet, self).__init__(
-                *args, **kwargs)
+            *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
 
@@ -146,7 +126,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(RelatorioMateriasTramitacaoilterSet, self).__init__(
-              *args, **kwargs)
+            *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
 
@@ -287,6 +267,7 @@ class LoginForm(AuthenticationForm):
 
 
 class ConfiguracoesAppForm(ModelForm):
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
