@@ -49,8 +49,10 @@
 				{% for e in expedientes %}
 					<tr>
 						<td>
-							<b>{{e.tipo}}: </b> <br />
-							<textarea name="ementa" class="textarea form-control" cols="40" rows="10" readonly="readonly">{{e.conteudo}}</textarea>
+							<b>{{e.tipo}}: </b> <br /><br />
+							<div contenteditable="false" style="border:0.5px solid #BAB4B1; border-radius: 10px; background-color: rgba(225, 225, 225, .8);">
+								<p>{{e.conteudo|safe}}</p>
+							</div>
 						</td>
 					</tr>
 				{% endfor %}

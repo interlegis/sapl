@@ -860,14 +860,10 @@ class ResumoView(SessaoCrud.CrudDetailView):
 
         expedientes = []
         for e in expediente:
-            tipo = TipoExpediente.objects.get(
-                id=e.tipo_id)
-            conteudo = sub(
-                '&nbsp;', ' ', strip_tags(e.conteudo))
-
+            tipo = TipoExpediente.objects.get(id=e.tipo_id)
+            conteudo = e.conteudo
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
-
         context.update({'expedientes': expedientes})
 
         # =====================================================================
