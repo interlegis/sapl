@@ -1,0 +1,30 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+
+<script language="Javascript">
+
+  function recuperar_materia() {
+    var tipo_materia = $("#id_tipo_materia").val()
+    var numero_materia = $("#id_numero_materia").val()
+    var ano_materia = $("#id_ano_materia").val()
+
+    if (tipo_materia && numero_materia && ano_materia) {
+      $.get("/recuperar_materia",{tipo_materia: tipo_materia,
+                                  numero_materia: numero_materia,
+                                  ano_materia: ano_materia},
+                                function(data, status) {
+                                  $("#id_observacao").val(data.ementa);
+                                });
+    }
+  }
+  var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"]
+  for (i = 0; i < fields.length; i++) {
+    $(fields[i]).change(recuperar_materia);
+  }
+</script>
+
+{% endblock %}

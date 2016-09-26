@@ -21,7 +21,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                abrir_votacao_expediente_view,
                                abrir_votacao_ordem_view,
                                reordernar_materias_expediente,
-                               reordernar_materias_ordem)
+                               reordernar_materias_ordem, recuperar_materia)
 
 from .apps import AppConfig
 
@@ -36,6 +36,9 @@ urlpatterns = [
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
                              MateriaOrdemDiaCrud.get_urls())),
+
+
+    url(r'^recuperar_materia/', recuperar_materia, name="recuperar_materia"),
 
     url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao-expediente$',
         abrir_votacao_expediente_view,
