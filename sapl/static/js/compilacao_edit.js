@@ -138,6 +138,29 @@ function DispositivoEdit() {
         });
     }
 
+    instance.get_form_inclusao = function () {
+        var _this = $(this);
+        _this.off('get_form_inclusao');
+        $('.dpt-actions, .dpt-actions-bottom').html('');
+
+        var dpt_form = _this.children().filter('.dpt-form').children().first();
+        var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
+        DispostivoSearch({
+          'url_form': url_search,
+          'text_button': 'Selecionar',
+          'post_selected': instance.update_radio_allowed_inserts
+        });
+
+        instance.scrollTo(_this);
+        dpt_form.submit(instance.onSubmitFormRegistraInclusao);
+
+        var btn_fechar = _this.find('.btn-fechar');
+        btn_fechar.on('click', function() {
+            instance.clearEditSelected();
+            instance.triggerBtnDptEdit(_this.attr('pk'));
+        });
+    }
+
     instance.get_form_revogacao = function () {
         var _this = $(this);
         _this.off('get_form_revogacao');
@@ -158,6 +181,26 @@ function DispositivoEdit() {
             instance.clearEditSelected();
             instance.triggerBtnDptEdit(_this.attr('pk'));
         });
+    }
+
+    instance.update_radio_allowed_inserts = function(event) {
+
+        dispositivo_base_para_inclusao = $("input[name='dispositivo_base_para_inclusao']")
+        if (dispositivo_base_para_inclusao.length == 0)
+            return
+        var pk = dispositivo_base_para_inclusao[0].value;
+
+        var form_data = {
+            'action'    : 'get_form_radio_allowed_inserts'
+        };
+
+        var url = pk+'/refresh';
+        instance.waitShow();
+
+        $.get(url, form_data).done(function(data) {
+            $(".allowed_inserts").html(data);
+        }).fail(instance.waitHide).always(instance.waitHide);
+
     }
 
     instance.loadActionsEdit = function(dpt) {
@@ -258,6 +301,37 @@ function DispositivoEdit() {
             'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
             'dispositivo_alterado' : this['dispositivo_alterado'].value,
             'formtype': 'get_form_alteracao',
+        };
+        var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
+
+        instance.waitShow();
+
+        $.post(url, form_data)
+        .done(function(data) {
+            instance.clearEditSelected();
+
+            if (data.pk != null) {
+                instance.refreshScreenFocusPk(data);
+                instance.message(data);
+            }
+            else {
+                alert('Erro na resposta!');
+            }
+
+        }).always(function() {
+            instance.waitHide();
+        });
+        if (event != null)
+            event.preventDefault();
+    }
+
+    instance.onSubmitFormRegistraInclusao = function(event) {
+        var _this = this;
+
+        var form_data = {
+            'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
+            'dispositivo_base_para_inclusao' : this['dispositivo_base_para_inclusao'].value,
+            'formtype': 'get_form_inclusao',
         };
         var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
 

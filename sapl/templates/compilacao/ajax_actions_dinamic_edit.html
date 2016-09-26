@@ -61,7 +61,7 @@
       {% endfor %}
     {%endif%}
   </div>
-  {% if not object.ta_publicado and not object.dispositivo_subsequente %}
+  {% if not object.ta_publicado and not object.dispositivo_subsequente and not object.tipo_dispositivo.dispositivo_de_alteracao%}
     <div class="btn-group " role="group">
       <button type="button" class="btn-action btn btn-xs radius-right {% if object.pk == object.dispositivo_vigencia_id %}btn-primary{%else%}btn-default{%endif%}"  pk="{{object.pk}}"  action="json_set_dvt" title="{% if object.pk == object.dispositivo_vigencia_id %}{% trans 'Dispositivo de Vigência Atual'%}{%else%}{% trans 'Tornar este o Dispositivo de Vigência de todo o Texto Articulado.'%}{%endif%}">
         DVt

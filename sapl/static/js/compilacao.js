@@ -220,6 +220,10 @@ function DispostivoSearch(opts) {
                         onChangeFieldSelects();
 
                         modal_ds.modal('hide');
+
+                        if ('post_selected' in opts)
+                            opts['post_selected']()
+                            
                     });
 
                     modal_ds.modal('show');

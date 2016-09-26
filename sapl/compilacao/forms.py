@@ -1328,3 +1328,85 @@ class DispositivoRegistroRevogacaoForm(Form):
         super(DispositivoRegistroRevogacaoForm, self).__init__(*args, **kwargs)
 
         self.fields['dispositivo_revogado'].choices = []
+
+
+class DispositivoRegistroInclusaoForm(Form):
+
+    dispositivo_base_para_inclusao = forms.ModelChoiceField(
+        label=_('Dispositivo Base para inclusão de novo dispositivo'),
+        required=False,
+        queryset=Dispositivo.objects.all())
+
+    dispositivo_search_form = forms.CharField(widget=forms.HiddenInput(),
+                                              required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        layout = []
+        kwargs.pop('instance')
+        kwargs['initial'].pop('editor_type')
+
+        row_dispositivo = Field(
+            'dispositivo_base_para_inclusao',
+            data_sapl_ta='DispositivoSearch',
+            data_field='dispositivo_base_para_inclusao',
+            data_type_selection='radio',
+            template="compilacao/layout/dispositivo_radio.html")
+
+        layout.append(Fieldset(_('Registro de Inclusão - '
+                                 'Seleção do Dispositivo Base para inclusão '
+                                 'de novo dispositivo.'),
+                               row_dispositivo,
+                               css_class="col-md-6"))
+        layout.append(Field('dispositivo_search_form'))
+        layout.append(Div(css_class="allowed_inserts col-md-6"))
+
+        more = [
+            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+                 _('Cancelar')),
+        ]
+        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+
+        buttons = FormActions(*more, css_class='form-group')
+
+        _fields = [Div(*layout, css_class="row-fluid")] + \
+            [to_row([(buttons, 12)])]
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(*_fields)
+
+        super(DispositivoRegistroInclusaoForm, self).__init__(*args, **kwargs)
+
+        self.fields['dispositivo_base_para_inclusao'].choices = []
+
+
+class AllowedInsertsFragmentForm(forms.Form):
+
+    json_add_next = forms.ChoiceField(
+        label=_('Inserir Depois'), choices=[],
+        required=False)
+
+    json_add_in = forms.ChoiceField(
+        label=_('Inserir Dentro'), choices=[],
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('instance')
+        allowed_inserts = kwargs['initial'].pop('allowed_inserts')
+
+        super(AllowedInsertsFragmentForm, self).__init__(
+            *args, **kwargs)
+
+        self.fields['json_add_next'].widget = forms.RadioSelect()
+        self.fields['json_add_in'].widget = forms.RadioSelect()
+
+        for opcoes in allowed_inserts:
+            self.fields[opcoes['action']].choices = [
+                ('%s,%s' % (item['tipo_pk'],
+                            item['variacao']),
+                 item['provavel'])
+                for item in opcoes['itens']]
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True

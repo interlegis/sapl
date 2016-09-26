@@ -1,6 +1,6 @@
+import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -23,15 +23,17 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
-from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
+from sapl.compilacao.forms import (AllowedInsertsFragmentForm,
+                                   DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoAlteracaoForm,
                                    DispositivoEdicaoBasicaForm,
                                    DispositivoEdicaoVigenciaForm,
                                    DispositivoRegistroAlteracaoForm,
+                                   DispositivoRegistroInclusaoForm,
+                                   DispositivoRegistroRevogacaoForm,
                                    DispositivoSearchModalForm, NotaForm,
                                    PublicacaoForm, TaForm,
-                                   TextNotificacoesForm, TipoTaForm, VideForm,
-                                   DispositivoRegistroRevogacaoForm)
+                                   TextNotificacoesForm, TipoTaForm, VideForm)
 from sapl.compilacao.models import (Dispositivo, Nota,
                                     PerfilEstruturalTextoArticulado,
                                     Publicacao, TextoArticulado,
@@ -41,7 +43,6 @@ from sapl.compilacao.models import (Dispositivo, Nota,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import Crud, CrudListView, make_pagination
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -1460,7 +1461,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
 class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
-    def allowed_inserts(self):
+    def allowed_inserts(self, _base=None):
         request = self.request
         try:
             if request and 'perfil_estrutural' not in request.session:
@@ -1468,7 +1469,8 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             perfil_pk = request.session['perfil_estrutural']
 
-            base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+            base = Dispositivo.objects.get(
+                pk=self.kwargs['dispositivo_id'] if not _base else _base)
 
             prox_possivel = Dispositivo.objects.filter(
                 ordem__gt=base.ordem,
@@ -2067,6 +2069,13 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 return perfis[0].pk
         return None
 
+    def registra_inclusao(self, bloco_alteracao, dispositivo_base_inclusao):
+        data = {}
+        data.update({'pk': bloco_alteracao.pk,
+                     'pai': [bloco_alteracao.pk, ]})
+
+        return data
+
     def registra_revogacao(self, bloco_alteracao, dispositivo_a_revogar):
         return self.registra_alteracao(
             bloco_alteracao,
@@ -2215,8 +2224,13 @@ class DispositivoDinamicEditView(
         if 'action' in self.request.GET:
             initial.update({'editor_type': self.request.GET['action']})
 
+        if self.action.startswith('get_form_'):
+            if self.action.endswith('_radio_allowed_inserts'):
+                initial.update({'allowed_inserts': self.allowed_inserts()})
+
         initial.update({'dispositivo_search_form': reverse_lazy(
             'sapl.compilacao:dispositivo_search_form')})
+
         return initial
 
     def get_form(self, form_class=None):
@@ -2245,8 +2259,13 @@ class DispositivoDinamicEditView(
                 self.form_class = DispositivoRegistroAlteracaoForm
             elif self.action.endswith('_revogacao'):
                 self.form_class = DispositivoRegistroRevogacaoForm
+            elif self.action.endswith('_inclusao'):
+                self.form_class = DispositivoRegistroInclusaoForm
+            elif self.action.endswith('_radio_allowed_inserts'):
+                self.form_class = AllowedInsertsFragmentForm
             context = self.get_context_data()
             return self.render_to_response(context)
+
         elif self.action.startswith('get_actions'):
             self.form_class = None
             self.template_name = 'compilacao/ajax_actions_dinamic_edit.html'
@@ -2297,6 +2316,13 @@ class DispositivoDinamicEditView(
                 pk=request.POST['dispositivo_revogado'])
 
             data = self.registra_revogacao(d, dispositivo_a_revogar)
+
+        if formtype == 'get_form_inclusao':
+
+            dispositivo_base_para_inclusao = Dispositivo.objects.get(
+                pk=request.POST['dispositivo_base_para_inclusao'])
+
+            data = self.registra_inclusao(d, dispositivo_base_para_inclusao)
 
         elif formtype == 'get_form_base':
             texto = request.POST['texto'].strip()
