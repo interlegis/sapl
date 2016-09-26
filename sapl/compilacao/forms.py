@@ -1357,15 +1357,15 @@ class DispositivoRegistroInclusaoForm(Form):
                                  'Seleção do Dispositivo Base para inclusão '
                                  'de novo dispositivo.'),
                                row_dispositivo,
-                               css_class="col-md-6"))
+                               css_class="col-md-12"))
         layout.append(Field('dispositivo_search_form'))
-        layout.append(Div(css_class="allowed_inserts col-md-6"))
+        layout.append(Div(css_class="allowed_inserts col-md-12"))
 
         more = [
             HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
                  _('Cancelar')),
         ]
-        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        #more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
@@ -1378,35 +1378,3 @@ class DispositivoRegistroInclusaoForm(Form):
         super(DispositivoRegistroInclusaoForm, self).__init__(*args, **kwargs)
 
         self.fields['dispositivo_base_para_inclusao'].choices = []
-
-
-class AllowedInsertsFragmentForm(forms.Form):
-
-    json_add_next = forms.ChoiceField(
-        label=_('Inserir Depois'), choices=[],
-        required=False)
-
-    json_add_in = forms.ChoiceField(
-        label=_('Inserir Dentro'), choices=[],
-        required=False)
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('instance')
-        allowed_inserts = kwargs['initial'].pop('allowed_inserts')
-
-        super(AllowedInsertsFragmentForm, self).__init__(
-            *args, **kwargs)
-
-        self.fields['json_add_next'].widget = forms.RadioSelect()
-        self.fields['json_add_in'].widget = forms.RadioSelect()
-
-        for opcoes in allowed_inserts:
-            self.fields[opcoes['action']].choices = [
-                ('%s,%s' % (item['tipo_pk'],
-                            item['variacao']),
-                 item['provavel'])
-                for item in opcoes['itens']]
-
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.disable_csrf = True

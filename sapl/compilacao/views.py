@@ -1,6 +1,6 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -23,8 +23,7 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
-from sapl.compilacao.forms import (AllowedInsertsFragmentForm,
-                                   DispositivoDefinidorVigenciaForm,
+from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoAlteracaoForm,
                                    DispositivoEdicaoBasicaForm,
                                    DispositivoEdicaoVigenciaForm,
@@ -43,6 +42,7 @@ from sapl.compilacao.models import (Dispositivo, Nota,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import Crud, CrudListView, make_pagination
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -1743,7 +1743,9 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
     def json_add_in(self, context):
         return self.json_add_next(context, local_add='json_add_in')
 
-    def json_add_next(self, context, local_add='json_add_next'):
+    def json_add_next(
+            self,
+            context, local_add='json_add_next', create_auto_inserts=True):
         try:
 
             dp_auto_insert = None
@@ -1837,23 +1839,24 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             dp.publicacao = pub_last
             dp.save()
 
-            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
-                filho_de_insercao_automatica=True,
-                perfil_id=context['perfil_pk'])
-
             count_auto_insert = 0
-            for tipoauto in tipos_dp_auto_insert:
-                qtdp = tipoauto.quantidade_permitida
-                if qtdp >= 0:
-                    qtdp -= Dispositivo.objects.filter(
-                        ta_id=dp.ta_id,
-                        dispositivo_pai_id=dp.id,
-                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
-                    ).count()
-                    if qtdp > 0:
+            if create_auto_inserts:
+                tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
+                    filho_de_insercao_automatica=True,
+                    perfil_id=context['perfil_pk'])
+
+                for tipoauto in tipos_dp_auto_insert:
+                    qtdp = tipoauto.quantidade_permitida
+                    if qtdp >= 0:
+                        qtdp -= Dispositivo.objects.filter(
+                            ta_id=dp.ta_id,
+                            dispositivo_pai_id=dp.id,
+                            tipo_dispositivo_id=tipoauto.filho_permitido.pk
+                        ).count()
+                        if qtdp > 0:
+                            count_auto_insert += 1
+                    else:
                         count_auto_insert += 1
-                else:
-                    count_auto_insert += 1
 
             # Inserção automática
             if count_auto_insert:
@@ -2006,6 +2009,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
         except Exception as e:
             print(e)
+            return {}
 
 
 class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
@@ -2021,6 +2025,9 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         if 'variacao' in self.request.GET:
             context['variacao'] = self.request.GET['variacao']
+
+        if 'pk_bloco' in self.request.GET:
+            context['pk_bloco'] = self.request.GET['pk_bloco']
 
         if 'perfil_estrutural' in self.request.session:
             context['perfil_pk'] = self.request.session['perfil_estrutural']
@@ -2069,12 +2076,41 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 return perfis[0].pk
         return None
 
-    def registra_inclusao(self, bloco_alteracao, dispositivo_base_inclusao):
-        data = {}
-        data.update({'pk': bloco_alteracao.pk,
-                     'pai': [bloco_alteracao.pk, ]})
+    def json_add_next_registra_inclusao(
+            self, context, local_add='json_add_next'):
+
+        data = self.json_add_next(context,
+                                  local_add=local_add,
+                                  create_auto_inserts=True)
+
+        if data:
+            bloco_alteracao = Dispositivo.objects.get(pk=context['pk_bloco'])
+
+            ndp = Dispositivo.objects.get(pk=data['pk'])
+
+            ndp.dispositivo_atualizador = bloco_alteracao
+            ndp.ta_publicado = bloco_alteracao.ta
+            ndp.publicacao = bloco_alteracao.publicacao
+            ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
+            if ndp.dispositivo_vigencia:
+                ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+                ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
+            else:
+                ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
+                ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
+
+            ndp.save()
+
+            bloco_alteracao.ordenar_bloco_alteracao()
+
+            data.update({'pk': ndp.pk,
+                         'pai': [bloco_alteracao.pk, ]})
 
         return data
+
+    def json_add_in_registra_inclusao(self, context):
+        return self.json_add_next_registra_inclusao(
+            context, local_add='json_add_in')
 
     def registra_revogacao(self, bloco_alteracao, dispositivo_a_revogar):
         return self.registra_alteracao(
@@ -2261,14 +2297,13 @@ class DispositivoDinamicEditView(
                 self.form_class = DispositivoRegistroRevogacaoForm
             elif self.action.endswith('_inclusao'):
                 self.form_class = DispositivoRegistroInclusaoForm
-            elif self.action.endswith('_radio_allowed_inserts'):
-                self.form_class = AllowedInsertsFragmentForm
+
             context = self.get_context_data()
             return self.render_to_response(context)
 
         elif self.action.startswith('get_actions'):
             self.form_class = None
-            self.template_name = 'compilacao/ajax_actions_dinamic_edit.html'
+
             self.object = Dispositivo.objects.get(
                 pk=self.kwargs['dispositivo_id'])
 
@@ -2277,17 +2312,26 @@ class DispositivoDinamicEditView(
             context = {}
             context['object'] = self.object
 
-            if ta_id == str(self.object.ta_id):
+            if self.action.endswith('_allowed_inserts_registro_inclusao'):
+                self.template_name = ('compilacao/'
+                                      'ajax_actions_registro_inclusao.html')
                 context['allowed_inserts'] = self.allowed_inserts()
 
-                if 'perfil_pk' in request.GET:
-                    self.set_perfil_in_session(
-                        request, request.GET['perfil_pk'])
-                elif 'perfil_estrutural' not in request.session:
-                    self.set_perfil_in_session(request=request)
+            else:
+                self.template_name = ('compilacao/'
+                                      'ajax_actions_dinamic_edit.html')
 
-                context['perfil_estrutural_list'
-                        ] = PerfilEstruturalTextoArticulado.objects.all()
+                if ta_id == str(self.object.ta_id):
+                    context['allowed_inserts'] = self.allowed_inserts()
+
+                    if 'perfil_pk' in request.GET:
+                        self.set_perfil_in_session(
+                            request, request.GET['perfil_pk'])
+                    elif 'perfil_estrutural' not in request.session:
+                        self.set_perfil_in_session(request=request)
+
+                    context['perfil_estrutural_list'
+                            ] = PerfilEstruturalTextoArticulado.objects.all()
 
             return self.render_to_response(context)
 
@@ -2310,7 +2354,7 @@ class DispositivoDinamicEditView(
 
             data = self.registra_alteracao(d, dispositivo_a_alterar)
 
-        if formtype == 'get_form_revogacao':
+        elif formtype == 'get_form_revogacao':
 
             dispositivo_a_revogar = Dispositivo.objects.get(
                 pk=request.POST['dispositivo_revogado'])

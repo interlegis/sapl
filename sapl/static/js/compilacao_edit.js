@@ -33,6 +33,7 @@ function DispositivoEdit() {
             'tipo_pk'   : this.getAttribute('tipo_pk'),
             'perfil_pk' : this.getAttribute('perfil_pk'),
             'variacao'  : this.getAttribute('variacao'),
+            'pk_bloco'  : this.getAttribute('pk_bloco'),
         };
 
         var url = pk+'/refresh';
@@ -148,7 +149,9 @@ function DispositivoEdit() {
         DispostivoSearch({
           'url_form': url_search,
           'text_button': 'Selecionar',
-          'post_selected': instance.update_radio_allowed_inserts
+          'post_selected': instance.allowed_inserts_registro_inclusao,
+          'params_post_selected': {'pk_bloco': _this.attr('pk')}
+
         });
 
         instance.scrollTo(_this);
@@ -183,15 +186,16 @@ function DispositivoEdit() {
         });
     }
 
-    instance.update_radio_allowed_inserts = function(event) {
+    instance.allowed_inserts_registro_inclusao = function(params) {
 
-        dispositivo_base_para_inclusao = $("input[name='dispositivo_base_para_inclusao']")
+        var dispositivo_base_para_inclusao = $("#id"+params.pk_bloco+" input[name='dispositivo_base_para_inclusao']")
         if (dispositivo_base_para_inclusao.length == 0)
-            return
-        var pk = dispositivo_base_para_inclusao[0].value;
+            return;
 
+        var pk = dispositivo_base_para_inclusao[0].value;
         var form_data = {
-            'action'    : 'get_form_radio_allowed_inserts'
+            'action'    : 'get_actions_allowed_inserts_registro_inclusao',
+            'pk_bloco'  : params.pk_bloco
         };
 
         var url = pk+'/refresh';
@@ -199,8 +203,8 @@ function DispositivoEdit() {
 
         $.get(url, form_data).done(function(data) {
             $(".allowed_inserts").html(data);
+            $(".allowed_inserts").find('.btn-action').on('click', instance.bindActionsClick);
         }).fail(instance.waitHide).always(instance.waitHide);
-
     }
 
     instance.loadActionsEdit = function(dpt) {
