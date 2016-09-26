@@ -675,10 +675,6 @@ class AutorForm(ModelForm):
         return get_user_model().objects.filter(
             email=self.cleaned_data['email']).exists()
 
-    def usuario_existente(self):
-        return get_user_model().objects.filter(
-            username=self.cleaned_data['username']).exists()
-
     def clean(self):
 
         if 'username' not in self.cleaned_data:
@@ -706,12 +702,12 @@ class AutorForm(ModelForm):
 
         email_existente = self.valida_email_existente()
 
+        if (Autor.objects.filter(
+           username=self.cleaned_data['username']).exists()):
+            raise ValidationError(_('Já existe um autor para este usuário'))
+
         if email_existente:
             msg = _('Este email já foi cadastrado.')
-            raise ValidationError(msg)
-
-        if self.usuario_existente():
-            msg = _('Este nome de usuario já foi cadastrado.')
             raise ValidationError(msg)
 
         try:
