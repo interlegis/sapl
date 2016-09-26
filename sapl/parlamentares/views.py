@@ -241,7 +241,7 @@ class MandatoCrud(MasterDetailCrud):
     help_path = ''
 
     class ListView(MasterDetailCrud.ListView):
-        ordering = ('-numero')
+        ordering = ('-legislatura__numero')
 
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
