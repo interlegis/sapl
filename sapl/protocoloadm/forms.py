@@ -43,7 +43,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano da Matéria',
+                                      label=u'Ano',
                                       choices=ANO_CHOICES)
 
     assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
