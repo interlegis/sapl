@@ -6,8 +6,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -54,6 +54,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
+
 AnexadaCrud = Crud.build(Anexada, '')
 
 
@@ -62,6 +63,7 @@ class OrigemCrud(Crud):
     help_path = 'origem'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -71,6 +73,7 @@ class TipoMateriaCrud(Crud):
     help_path = 'tipo_materia_legislativa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -80,6 +83,7 @@ class RegimeTramitacaoCrud(Crud):
     help_path = 'regime_tramitacao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -89,6 +93,7 @@ class TipoDocumentoCrud(Crud):
     help_path = 'tipo_documento'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -98,6 +103,7 @@ class TipoFimRelatoriaCrud(Crud):
     help_path = 'fim_relatoria'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -107,6 +113,7 @@ class TipoAutorCrud(Crud):
     help_path = 'tipo_autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -130,7 +137,8 @@ class AutorCrud(Crud):
             pk_autor = Autor.objects.get(
                 email=self.request.POST.get('email')).id
             kwargs = {}
-            user = User.objects.get(email=self.request.POST.get('email'))
+            user = get_user_model().objects.get(
+                email=self.request.POST.get('email'))
             kwargs['token'] = default_token_generator.make_token(user)
             kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
             assunto = "SAPL - Confirmação de Conta"
@@ -159,7 +167,7 @@ class ConfirmarEmailView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         uid = urlsafe_base64_decode(self.kwargs['uidb64'])
-        user = User.objects.get(id=uid)
+        user = get_user_model().objects.get(id=uid)
         user.is_active = True
         user.save()
         context = self.get_context_data(**kwargs)
@@ -181,6 +189,7 @@ class TipoProposicaoCrud(Crud):
     help_path = 'tipo_proposicao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -453,7 +462,7 @@ class ProposicaoCrud(Crud):
                     id=self.kwargs['pk'],
                     autor__user_id=self.request.user.id)
                 if (not proposicao.data_recebimento or
-                   proposicao.data_devolucao):
+                        proposicao.data_devolucao):
                     return True
                 else:
                     msg = _('Essa proposição já foi recebida. ' +
@@ -544,13 +553,13 @@ class ReciboProposicaoView(TemplateView):
     permission_required = permissoes_autor()
 
     def has_permission(self):
-            perms = self.get_permission_required()
-            if not self.request.user.has_perms(perms):
-                return False
+        perms = self.get_permission_required()
+        if not self.request.user.has_perms(perms):
+            return False
 
-            return (Proposicao.objects.filter(
-                id=self.kwargs['pk'],
-                autor__user_id=self.request.user.id).exists())
+        return (Proposicao.objects.filter(
+            id=self.kwargs['pk'],
+            autor__user_id=self.request.user.id).exists())
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(

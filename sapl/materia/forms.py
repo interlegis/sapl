@@ -1,9 +1,9 @@
 from datetime import datetime
 
-import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -11,18 +11,21 @@ from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import RANGE_ANOS, autor_label, autor_modal
+from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
+                        autor_modal)
 
 from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
                      Tramitacao, UnidadeTramitacao)
+
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -34,6 +37,7 @@ def em_tramitacao():
 
 
 class ConfirmarProposicaoForm(ModelForm):
+
     class Meta:
         model = Proposicao
         exclude = ['texto_original', 'descricao', 'tipo']
@@ -247,7 +251,7 @@ class TramitacaoForm(ModelForm):
                 raise ValidationError(msg)
 
             if (ultima_tramitacao and
-               data_tram_form < ultima_tramitacao.data_tramitacao):
+                    data_tram_form < ultima_tramitacao.data_tramitacao):
                 msg = _('A data da nova tramitação deve ser ' +
                         'maior que a data da última tramitação!')
                 raise ValidationError(msg)
@@ -443,26 +447,6 @@ class AnexadaForm(ModelForm):
     class Meta:
         model = Anexada
         fields = ['tipo', 'numero', 'ano', 'data_anexacao', 'data_desanexacao']
-
-
-class RangeWidgetOverride(forms.MultiWidget):
-
-    def __init__(self, attrs=None):
-        widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
-                                          'placeholder': 'Inicial'}),
-                   forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
-                                          'placeholder': 'Final'}))
-        super(RangeWidgetOverride, self).__init__(widgets, attrs)
-
-    def decompress(self, value):
-        if value:
-            return [value.start, value.stop]
-        return [None, None]
-
-    def format_output(self, rendered_widgets):
-        return ''.join(rendered_widgets)
 
 
 class MateriaLegislativaFilterSet(django_filters.FilterSet):
@@ -688,11 +672,11 @@ class AutorForm(ModelForm):
         return True
 
     def valida_email_existente(self):
-        return User.objects.filter(
+        return get_user_model().objects.filter(
             email=self.cleaned_data['email']).exists()
 
     def usuario_existente(self):
-        return User.objects.filter(
+        return get_user_model().objects.filter(
             username=self.cleaned_data['username']).exists()
 
     def clean(self):

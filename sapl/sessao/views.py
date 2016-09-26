@@ -856,18 +856,14 @@ class ResumoView(SessaoCrud.CrudDetailView):
         # =====================================================================
         # Expedientes
         expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
 
         expedientes = []
         for e in expediente:
-            tipo = TipoExpediente.objects.get(
-                id=e.tipo_id)
-            conteudo = sub(
-                '&nbsp;', ' ', strip_tags(e.conteudo))
-
+            tipo = TipoExpediente.objects.get(id=e.tipo_id)
+            conteudo = e.conteudo
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
-
         context.update({'expedientes': expedientes})
 
         # =====================================================================
@@ -1001,16 +997,16 @@ class ExpedienteView(FormMixin,
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
-
-        tipos = TipoExpediente.objects.all()
+        tipos = TipoExpediente.objects.all().order_by('nome')
         expedientes_sessao = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
 
         expedientes_salvos = []
         for e in expedientes_sessao:
             expedientes_salvos.append(e.tipo)
 
         tipos_null = list(set(tipos) - set(expedientes_salvos))
+        tipos_null.sort(key=lambda x: x.nome)
 
         expedientes = []
         for e, t in zip(expedientes_sessao, tipos):
