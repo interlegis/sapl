@@ -95,7 +95,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        qs = self.get_queryset()
+        qs = self.get_queryset().order_by('ano', 'numero')
 
         qs = qs.distinct()
 
