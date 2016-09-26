@@ -1,16 +1,17 @@
 from datetime import datetime
 
-import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
-from django.contrib.auth.models import Group, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -24,6 +25,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
                      Tramitacao, UnidadeTramitacao)
+
 
 ANO_CHOICES = [('', '---------')] + RANGE_ANOS
 
@@ -670,11 +672,11 @@ class AutorForm(ModelForm):
         return True
 
     def valida_email_existente(self):
-        return User.objects.filter(
+        return get_user_model().objects.filter(
             email=self.cleaned_data['email']).exists()
 
     def usuario_existente(self):
-        return User.objects.filter(
+        return get_user_model().objects.filter(
             username=self.cleaned_data['username']).exists()
 
     def clean(self):
@@ -721,7 +723,7 @@ class AutorForm(ModelForm):
         autor = super(AutorForm, self).save(commit)
 
         try:
-            u = User.objects.get(
+            u = get_user_model().objects.get(
                 username=autor.username,
                 email=autor.email)
         except ObjectDoesNotExist:

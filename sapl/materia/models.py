@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -6,7 +6,8 @@ from model_utils import Choices
 from sapl.comissoes.models import Comissao
 from sapl.parlamentares.models import Parlamentar, Partido
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        restringe_tipos_de_arquivo_txt, xstr)
+                        restringe_tipos_de_arquivo_txt, xstr,
+                        get_settings_auth_user_model)
 
 
 def grupo_autor():
@@ -208,7 +209,8 @@ class TipoAutor(models.Model):
 
 
 class Autor(models.Model):
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(
+        get_settings_auth_user_model(), blank=True, null=True)
     partido = models.ForeignKey(Partido, blank=True, null=True)
     comissao = models.ForeignKey(Comissao, blank=True, null=True)
     parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
