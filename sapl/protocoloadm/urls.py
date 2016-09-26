@@ -43,9 +43,9 @@ urlpatterns = [
         include(ProtocoloMateriaCrud.get_urls()), name='protocolomat'),
     url(r'^protocoloadm/protocolo$',
         ProtocoloPesquisaView.as_view(), name='protocolo'),
-    url(r'^protocoloadm/protocolo_list$',
+    url(r'^protocoloadm/protocolo-list$',
         ProtocoloListView.as_view(), name='protocolo_list'),
-    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/protocolo_mostrar$',
+    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/protocolo-mostrar$',
         ProtocoloMostrarView.as_view(), name='protocolo_mostrar'),
     url(r'^protocoloadm/anular-protocolo',
         AnularProtocoloAdmView.as_view(), name='anular_protocolo'),
@@ -66,12 +66,12 @@ urlpatterns = [
 
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
-    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar_documento$',
+    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar-documento$',
         CriarDocumentoProtocolo.as_view(), name='criar_documento'),
 
     # FIXME: Usado para pesquisar autor
     # Melhor forma de fazer?
     # Deve mudar de app?
-    url(r'^proposicao/pesquisar_autor',
+    url(r'^proposicao/pesquisar-autor',
         pesquisa_autores, name='pesquisar_autor'),
 ]
