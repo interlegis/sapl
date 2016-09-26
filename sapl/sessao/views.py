@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
+from django.http import HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.html import strip_tags
@@ -20,7 +21,8 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.forms import pega_ultima_tramitacao
-from sapl.materia.models import Autoria, DocumentoAcessorio, Tramitacao
+from sapl.materia.models import (Autoria, DocumentoAcessorio,
+                                 TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
@@ -273,6 +275,23 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                         obj.resultado = '%s' % (obj.resultado)
 
             return [self._as_row(obj) for obj in object_list]
+
+
+def recuperar_materia(request):
+    tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo_materia'])
+    numero = request.GET['numero_materia']
+    ano = request.GET['ano_materia']
+
+    try:
+        materia = MateriaLegislativa.objects.get(tipo=tipo,
+                                                 ano=ano,
+                                                 numero=numero)
+        response = JsonResponse({'ementa': materia.ementa,
+                                 'id': materia.id})
+    except ObjectDoesNotExist:
+        response = JsonResponse({'ementa': '', 'id': 0})
+
+    return response
 
 
 class ExpedienteMateriaCrud(MasterDetailCrud):
