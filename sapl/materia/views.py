@@ -118,20 +118,63 @@ class TipoAutorCrud(Crud):
             return permissao_tb_aux(self)
 
 
+def montar_helper_autor(self):
+    autor_row = montar_row_autor('nome')
+    self.helper = FormHelper()
+    self.helper.layout = SaplFormLayout(*self.get_layout())
+
+    # Adiciona o novo campo 'autor' e mecanismo de busca
+    self.helper.layout[0][0].append(HTML(autor_label))
+    self.helper.layout[0][0].append(HTML(autor_modal))
+    self.helper.layout[0][1] = autor_row
+
+    # Adiciona espaço entre o novo campo e os botões
+    # self.helper.layout[0][4][1].append(HTML('<br /><br />'))
+
+    # Remove botões que estão fora do form
+    self.helper.layout[1].pop()
+
+    # Adiciona novos botões dentro do form
+    self.helper.layout[0][4][0].insert(2, form_actions(more=[
+        HTML('<a href="{{ view.cancel_url }}"'
+             ' class="btn btn-inverse">Cancelar</a>')]))
+
+
 class AutorCrud(Crud):
     model = Autor
     help_path = 'autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        list_field_names = ['tipo', 'nome',
-                            'username', 'cargo']
+        list_field_names = ['tipo', 'nome']
 
         def has_permission(self):
             return permissao_tb_aux(self)
 
+    class UpdateView(CrudUpdateView):
+        form_class = AutorForm
+        layout_key = 'AutorCreate'
+
+        def __init__(self, *args, **kwargs):
+            montar_helper_autor(self)
+            super(UpdateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
+
     class CreateView(CrudCreateView):
         form_class = AutorForm
         layout_key = 'AutorCreate'
+
+        def __init__(self, *args, **kwargs):
+            montar_helper_autor(self)
+            super(CreateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
 
         def get_success_url(self):
             pk_autor = Autor.objects.get(
@@ -663,9 +706,9 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
 
 
-def montar_row_autor():
+def montar_row_autor(name):
     autor_row = to_row(
-        [('autor', 0),
+        [(name, 0),
          (Button('pesquisar',
                  'Pesquisar Autor',
                  css_class='btn btn-primary btn-sm'), 2),
@@ -677,7 +720,7 @@ def montar_row_autor():
 
 
 def montar_helper_documento_acessorio(self):
-    autor_row = montar_row_autor()
+    autor_row = montar_row_autor('autor')
     self.helper = FormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
