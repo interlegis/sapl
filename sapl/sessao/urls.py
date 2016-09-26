@@ -39,8 +39,8 @@ urlpatterns = [
                              MateriaOrdemDiaCrud.get_urls())),
 
 
-    url(r'^recuperar_materia/', recuperar_materia),
-    url(r'^recuperar_numero_sessao/', recuperar_numero_sessao),
+    url(r'^recuperar-materia/', recuperar_materia),
+    url(r'^recuperar-numero-sessao/', recuperar_numero_sessao),
 
     url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao-expediente$',
         abrir_votacao_expediente_view,

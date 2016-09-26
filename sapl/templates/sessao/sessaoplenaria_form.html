@@ -11,7 +11,7 @@
     var tipo = $("#id_tipo").val()
 
     if (tipo) {
-      $.get("/recuperar_numero_sessao",{tipo: tipo},
+      $.get("/recuperar-numero-sessao",{tipo: tipo},
                                       function(data, status) {
                                         $("#id_numero").val(data.numero);
                                         console.log(data)
