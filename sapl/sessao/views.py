@@ -452,6 +452,18 @@ class OradorCrud(OradorCrud):
         permission_required = permissoes_sessao()
 
 
+def recuperar_numero_sessao(request):
+    try:
+        numero = SessaoPlenaria.objects.filter(
+            tipo__pk=request.GET['tipo']).last().numero
+    except ObjectDoesNotExist:
+        response = JsonResponse({'numero': 1})
+    else:
+        response = JsonResponse({'numero': numero + 1})
+
+    return response
+
+
 class SessaoCrud(Crud):
     model = SessaoPlenaria
     help_path = 'sessao_plenaria'
