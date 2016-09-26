@@ -696,6 +696,10 @@ class AutorForm(ModelForm):
             username=self.cleaned_data['username']).exists()
 
     def clean(self):
+
+        if 'username' not in self.cleaned_data:
+            raise ValidationError(_('Favor informar o username'))
+
         if ('senha' not in self.cleaned_data or
                 'senha_confirma' not in self.cleaned_data):
             raise ValidationError(_('Favor informar as senhas'))
@@ -731,6 +735,16 @@ class AutorForm(ModelForm):
         except ValidationError as error:
             raise ValidationError(error)
 
+        try:
+            User.objects.get(
+                username=self.cleaned_data['username'],
+                email=self.cleaned_data['email'])
+        except ObjectDoesNotExist:
+            msg = _('Este nome de usuario não está cadastrado. ' +
+                    'Por favor, cadastre-o no Administrador do ' +
+                    'Sistema antes de adicioná-lo como Autor')
+            raise ValidationError(msg)
+
         return self.cleaned_data
 
     @transaction.atomic
@@ -738,15 +752,9 @@ class AutorForm(ModelForm):
 
         autor = super(AutorForm, self).save(commit)
 
-        try:
-            u = User.objects.get(
-                username=autor.username,
-                email=autor.email)
-        except ObjectDoesNotExist:
-            msg = _('Este nome de usuario não está cadastrado. ' +
-                    'Por favor, cadastre-o no Administrador do ' +
-                    'Sistema antes de adicioná-lo como Autor')
-            raise ValidationError(msg)
+        u = User.objects.get(
+            username=autor.username,
+            email=autor.email)
 
         u.set_password(self.cleaned_data['senha'])
         u.is_active = False
