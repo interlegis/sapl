@@ -16,7 +16,7 @@
       <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
       <li><a href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
       <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
-    {%endif %}
+    {% endif %}
   </ul>
 {% endblock %}
 
@@ -25,9 +25,11 @@
   {% block actions %}
     <div class="clearfix">
       <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
-        <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
-      </div>
+        {% if user.is_authenticated %}
+          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+          <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        {% endif %}
+	  </div>
     </div>
   {% endblock actions %}
 
