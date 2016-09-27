@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.html import strip_tags
@@ -32,8 +32,9 @@ from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, OrdemDiaForm,
-                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
-                    VotacaoForm, VotacaoNominalForm)
+                    PautaSessaoFilterSet, PresencaForm,
+                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -2101,6 +2102,11 @@ class PesquisarSessaoPlenariaView(FilterView):
                                         )
 
         return self.render_to_response(context)
+
+
+class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
+    filterset_class = PautaSessaoFilterSet
+    template_name = 'sessao/pauta_sessao_filter.html'
 
 
 def filtra_tramitacao_ordem_dia():
