@@ -118,3 +118,11 @@ def ultima_filiacao(value):
         return ultima_filiacao.partido
     else:
         return None
+
+
+@register.filter
+def get_config_not_exists(user):
+    if not AppConfig.objects.all().exists():
+        return True
+    else:
+        return False
