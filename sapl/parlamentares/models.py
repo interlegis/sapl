@@ -268,7 +268,7 @@ class Parlamentar(models.Model):
 
 
 class TipoDependente(models.Model):
-    descricao = models.CharField(max_length=50)
+    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
     class Meta:
         verbose_name = _('Tipo de Dependente')
