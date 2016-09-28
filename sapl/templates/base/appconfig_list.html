@@ -14,6 +14,7 @@
 <br/><br/>
 {% block extra_content %} {% endblock %}
 
+{% block base_content %}
 {% if not rows %}
   <p>{{ NO_ENTRIES_MSG }}</p>
 {% else %}
@@ -46,4 +47,3 @@
 {% include "paginacao.html" %}
 
 {% endblock %}
-
