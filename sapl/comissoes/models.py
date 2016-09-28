@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -96,7 +98,8 @@ class Periodo(models.Model):  # PeriodoCompComissao
         verbose_name_plural = _('Períodos de composição de Comissão')
 
     def __str__(self):
-        return '%s - %s' % (self.data_inicio, self.data_fim)
+        return '%s - %s' % (self.data_inicio.strftime("%d/%m/%Y"),
+                            self.data_fim.strftime("%d/%m/%Y"))
 
 
 class CargoComissao(models.Model):
