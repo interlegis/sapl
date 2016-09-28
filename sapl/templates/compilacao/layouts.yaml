@@ -27,7 +27,7 @@ TipoDispositivo:
   - rotulo_prefixo_texto  rotulo_sufixo_texto  rotulo_ordinal  contagem_continua
   {% trans 'Configurações para Renderização de Rótulo e Texto' %}:
   - rotulo_prefixo_html  rotulo_sufixo_html
-  - texto_prefixo_html  dispositivo_de_articulacao  texto_sufixo_html
+  - texto_prefixo_html  dispositivo_de_articulacao  dispositivo_de_alteracao texto_sufixo_html
   {% trans 'Configurações para Nota Automática' %}:
   - nota_automatica_prefixo_html  nota_automatica_sufixo_html
   {% trans 'Configurações para Variações Numéricas' %}:

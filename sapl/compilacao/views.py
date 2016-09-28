@@ -1,14 +1,16 @@
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import logging
 import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import Q
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
@@ -16,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, string_concat
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -48,11 +50,29 @@ TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = Crud.build(
+    TipoDispositivo, 'tipo_dispositivo')
+
+logger = logging.getLogger(__name__)
 
 
 class IntegracaoTaView(TemplateView):
 
-    def get(self, *args, **kwargs):
+    def ta_ativado(self, kwargs):
+        pass
+
+    def get(self, request,  *args, **kwargs):
+
+        try:
+            if not TipoDispositivo.objects.exists():
+                self.import_pattern()
+        except Exception as e:
+            logger.error(
+                string_concat(
+                    _('Ocorreu erro na importação do arquivo base dos Tipos de'
+                      'Dispositivos, entre outras informações iniciais.'),
+                    str(e)))
+
         item = get_object_or_404(self.model, pk=kwargs['pk'])
         related_object_type = ContentType.objects.get_for_model(item)
 
@@ -60,50 +80,101 @@ class IntegracaoTaView(TemplateView):
             object_id=item.pk,
             content_type=related_object_type)
 
-        if not ta.exists():
-            ta = TextoArticulado()
-            tipo_ta = TipoTextoArticulado.objects.filter(
-                content_type=related_object_type)[:1]
-            if tipo_ta.exists():
-                ta.tipo_ta = tipo_ta[0]
-            ta.content_object = item
+        tipo_ta = TipoTextoArticulado.objects.filter(
+            content_type=related_object_type)
+
+        if self.ta_ativado(kwargs):
+
+            if not ta.exists():
+                ta = TextoArticulado()
+                tipo_ta = TipoTextoArticulado.objects.filter(
+                    content_type=related_object_type)[:1]
+                if tipo_ta.exists():
+                    ta.tipo_ta = tipo_ta[0]
+                ta.content_object = item
+            else:
+                ta = ta[0]
+
+            if hasattr(item, 'ementa') and item.ementa:
+                ta.ementa = item.ementa
+            else:
+                ta.ementa = _('Integração com %s sem ementa.') % item
+
+            if hasattr(item, 'observacao') and item.observacao:
+                ta.observacao = item.observacao
+            else:
+                ta.observacao = _('Integração com %s sem observacao.') % item
+
+            if hasattr(item, 'numero') and item.numero:
+                ta.numero = item.numero
+            else:
+                ta.numero = int('%s%s%s' % (
+                    int(datetime.now().year),
+                    int(datetime.now().month),
+                    int(datetime.now().day)))
+
+            if hasattr(item, 'ano') and item.ano:
+                ta.ano = item.ano
+            else:
+                ta.ano = datetime.now().year
+
+            if hasattr(item, 'data_apresentacao'):
+                ta.data = item.data_apresentacao
+            elif hasattr(item, 'data'):
+                ta.data = item.data
+            else:
+                ta.data = datetime.now()
+
+            ta.save()
+
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
+                                            kwargs={'ta_id': ta.pk}))
         else:
-            ta = ta[0]
+            msg = messages.error if not request.user.is_anonymous(
+            ) else messages.info
 
-        if hasattr(item, 'ementa') and item.ementa:
-            ta.ementa = item.ementa
-        else:
-            ta.ementa = _('Integração com %s sem ementa.') % item
+            msg(request,
+                _('A funcionalidade de Textos Articulados está desativada.'))
 
-        if hasattr(item, 'observacao') and item.observacao:
-            ta.observacao = item.observacao
-        else:
-            ta.observacao = _('Integração com %s sem observacao.') % item
+            if not request.user.is_anonymous():
+                msg(
+                    request,
+                    _('Para ativá-la, os Tipos de Textos devem ser criados.'))
 
-        if hasattr(item, 'numero') and item.numero:
-            ta.numero = item.numero
-        else:
-            ta.numero = int('%s%s%s' % (
-                int(datetime.now().year),
-                int(datetime.now().month),
-                int(datetime.now().day)))
+                msg(request,
+                    _('Sua tela foi redirecionada para a tela de '
+                      'cadastro de Textos Articulados.'))
 
-        if hasattr(item, 'ano') and item.ano:
-            ta.ano = item.ano
-        else:
-            ta.ano = datetime.now().year
+                return redirect(to=reverse_lazy('sapl.compilacao:tipo_ta_list',
+                                                kwargs={}))
+            else:
 
-        if hasattr(item, 'data_apresentacao'):
-            ta.data = item.data_apresentacao
-        elif hasattr(item, 'data'):
-            ta.data = item.data
-        else:
-            ta.data = datetime.now()
+                return redirect(to=reverse_lazy(
+                    '%s:%s_detail' % (
+                        item._meta.app_config.name, item._meta.model_name),
+                    kwargs={'pk': item.pk}))
 
-        ta.save()
+    def import_pattern(self):
 
-        return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
-                                        kwargs={'ta_id': ta.pk}))
+        from unipath import Path
+
+        compilacao_app = Path(__file__).ancestor(1)
+        print(compilacao_app)
+        with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
+            lines = f.readlines()
+            lines = [line.rstrip('\n') for line in lines]
+
+            with connection.cursor() as cursor:
+                for line in lines:
+                    cursor.execute(line)
+
+            print(lines)
+
+    # INSERT INTO compilacao_tipotextoarticulado (id, sigla, descricao, participacao_social, content_type_id) VALUES (2, 'ML', 'Matéria Legislativa', true, 119);
+    # INSERT INTO compilacao_tipotextoarticulado (id, sigla, descricao, participacao_social, content_type_id) VALUES (5, 'PRP', 'Proposição', true, 136);
+    # INSERT INTO compilacao_tipotextoarticulado (id, sigla, descricao,
+    # participacao_social, content_type_id) VALUES (1, 'NJ', 'Norma Juridica',
+    # false, 142);
 
     class Meta:
         abstract = True
@@ -2079,12 +2150,26 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
     def json_add_next_registra_inclusao(
             self, context, local_add='json_add_next'):
 
+        base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+        bloco_alteracao = Dispositivo.objects.get(pk=context['pk_bloco'])
+
+        data = {}
+        data.update({'pk': bloco_alteracao.pk,
+                     'pai': [bloco_alteracao.pk, ]})
+
+        """if bloco_alteracao.inicio_vigencia < base.inicio_vigencia:
+            self.set_message(
+                data, 'danger',
+                _('O Dispositivo Base para inclusão possui início de vigência '
+                  'anterior ao bloco de alteração atual. Um bloco de '
+                  'alteração não pode ser retroativo!'), time=10000)
+            return data"""
+
         data = self.json_add_next(context,
                                   local_add=local_add,
                                   create_auto_inserts=True)
 
         if data:
-            bloco_alteracao = Dispositivo.objects.get(pk=context['pk_bloco'])
 
             ndp = Dispositivo.objects.get(pk=data['pk'])
 
