@@ -1,7 +1,9 @@
 from compressor.utils import get_class
 from django import template
 
+from sapl.base.models import AppConfig
 from sapl.parlamentares.models import Filiacao
+from sapl.utils import permissoes_adm
 
 register = template.Library()
 
@@ -83,6 +85,18 @@ def get_delete_perm(value, arg):
     can_delete = '.delete_' + nome_model
 
     return perm.__contains__(nome_app + can_delete)
+
+
+@register.filter
+def get_doc_adm_template_perms(user):
+    app_config = AppConfig.objects.last()
+    if app_config.documentos_administrativos == 'O':
+        return True
+    elif user.has_perms(permissoes_adm()):
+        return True
+
+    else:
+        return False
 
 
 @register.filter
