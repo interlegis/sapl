@@ -3,6 +3,7 @@ from datetime import date
 from functools import wraps
 
 import magic
+from django import forms
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
@@ -44,6 +45,28 @@ autor_modal = '''
 
 class ImageThumbnailFileInput(ClearableFileInput):
     template_name = 'floppyforms/image_thumbnail.html'
+
+
+class RangeWidgetOverride(forms.MultiWidget):
+
+    def __init__(self, attrs=None):
+        widgets = (forms.DateInput(format='%d/%m/%Y',
+                                   attrs={'class': 'dateinput',
+                                          'placeholder': 'Inicial'}),
+                   forms.DateInput(format='%d/%m/%Y',
+                                   attrs={'class': 'dateinput',
+                                          'placeholder': 'Final'}))
+        super(RangeWidgetOverride, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value.start, value.stop]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
+            % tuple(rendered_widgets)
+        return '<div class="row">%s</div>' % html
 
 
 def register_all_models_in_admin(module_name):

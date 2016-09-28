@@ -6,8 +6,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -54,6 +54,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
+
 AnexadaCrud = Crud.build(Anexada, '')
 
 
@@ -62,6 +63,7 @@ class OrigemCrud(Crud):
     help_path = 'origem'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -71,6 +73,7 @@ class TipoMateriaCrud(Crud):
     help_path = 'tipo_materia_legislativa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -80,6 +83,7 @@ class RegimeTramitacaoCrud(Crud):
     help_path = 'regime_tramitacao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -89,6 +93,7 @@ class TipoDocumentoCrud(Crud):
     help_path = 'tipo_documento'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -98,6 +103,7 @@ class TipoFimRelatoriaCrud(Crud):
     help_path = 'fim_relatoria'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -107,8 +113,31 @@ class TipoAutorCrud(Crud):
     help_path = 'tipo_autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
+
+
+def montar_helper_autor(self):
+    autor_row = montar_row_autor('nome')
+    self.helper = FormHelper()
+    self.helper.layout = SaplFormLayout(*self.get_layout())
+
+    # Adiciona o novo campo 'autor' e mecanismo de busca
+    self.helper.layout[0][0].append(HTML(autor_label))
+    self.helper.layout[0][0].append(HTML(autor_modal))
+    self.helper.layout[0][1] = autor_row
+
+    # Adiciona espaço entre o novo campo e os botões
+    # self.helper.layout[0][4][1].append(HTML('<br /><br />'))
+
+    # Remove botões que estão fora do form
+    self.helper.layout[1].pop()
+
+    # Adiciona novos botões dentro do form
+    self.helper.layout[0][4][0].insert(2, form_actions(more=[
+        HTML('<a href="{{ view.cancel_url }}"'
+             ' class="btn btn-inverse">Cancelar</a>')]))
 
 
 class AutorCrud(Crud):
@@ -116,21 +145,43 @@ class AutorCrud(Crud):
     help_path = 'autor'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        list_field_names = ['tipo', 'nome',
-                            'username', 'cargo']
+        list_field_names = ['tipo', 'nome']
 
         def has_permission(self):
             return permissao_tb_aux(self)
+
+    class UpdateView(CrudUpdateView):
+        form_class = AutorForm
+        layout_key = 'AutorCreate'
+
+        def __init__(self, *args, **kwargs):
+            montar_helper_autor(self)
+            super(UpdateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
 
     class CreateView(CrudCreateView):
         form_class = AutorForm
         layout_key = 'AutorCreate'
 
+        def __init__(self, *args, **kwargs):
+            montar_helper_autor(self)
+            super(CreateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context
+
         def get_success_url(self):
             pk_autor = Autor.objects.get(
                 email=self.request.POST.get('email')).id
             kwargs = {}
-            user = User.objects.get(email=self.request.POST.get('email'))
+            user = get_user_model().objects.get(
+                email=self.request.POST.get('email'))
             kwargs['token'] = default_token_generator.make_token(user)
             kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
             assunto = "SAPL - Confirmação de Conta"
@@ -159,7 +210,7 @@ class ConfirmarEmailView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         uid = urlsafe_base64_decode(self.kwargs['uidb64'])
-        user = User.objects.get(id=uid)
+        user = get_user_model().objects.get(id=uid)
         user.is_active = True
         user.save()
         context = self.get_context_data(**kwargs)
@@ -181,6 +232,7 @@ class TipoProposicaoCrud(Crud):
     help_path = 'tipo_proposicao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -453,7 +505,7 @@ class ProposicaoCrud(Crud):
                     id=self.kwargs['pk'],
                     autor__user_id=self.request.user.id)
                 if (not proposicao.data_recebimento or
-                   proposicao.data_devolucao):
+                        proposicao.data_devolucao):
                     return True
                 else:
                     msg = _('Essa proposição já foi recebida. ' +
@@ -472,6 +524,11 @@ class ProposicaoCrud(Crud):
             return (Proposicao.objects.filter(
                 id=self.kwargs['pk'],
                 autor__user_id=self.request.user.id).exists())
+
+        def get_context_data(self, **kwargs):
+            context = CrudDetailView.get_context_data(self, **kwargs)
+            context['subnav_template_name'] = ''
+            return context
 
     class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
@@ -544,13 +601,13 @@ class ReciboProposicaoView(TemplateView):
     permission_required = permissoes_autor()
 
     def has_permission(self):
-            perms = self.get_permission_required()
-            if not self.request.user.has_perms(perms):
-                return False
+        perms = self.get_permission_required()
+        if not self.request.user.has_perms(perms):
+            return False
 
-            return (Proposicao.objects.filter(
-                id=self.kwargs['pk'],
-                autor__user_id=self.request.user.id).exists())
+        return (Proposicao.objects.filter(
+            id=self.kwargs['pk'],
+            autor__user_id=self.request.user.id).exists())
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(
@@ -634,7 +691,7 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao')
+            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_materia()
@@ -654,9 +711,9 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
 
 
-def montar_row_autor():
+def montar_row_autor(name):
     autor_row = to_row(
-        [('autor', 0),
+        [(name, 0),
          (Button('pesquisar',
                  'Pesquisar Autor',
                  css_class='btn btn-primary btn-sm'), 2),
@@ -668,7 +725,7 @@ def montar_row_autor():
 
 
 def montar_helper_documento_acessorio(self):
-    autor_row = montar_row_autor()
+    autor_row = montar_row_autor('autor')
     self.helper = FormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
@@ -982,6 +1039,13 @@ class MateriaLegislativaPesquisaView(FilterView):
         qr = self.request.GET.copy()
         if 'page' in qr:
             del qr['page']
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         return context

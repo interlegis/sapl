@@ -64,16 +64,19 @@
                     {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:proposicao' %}">Proposições</a></li> #}
                   </ul>
               </li>
+              {% endif %}
 
+            {% if user|get_doc_adm_template_perms %}
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documentos Administrativos <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}">Pesquisar Documento Administrativo</a></li>
                 </ul>
             </li>
+            {% endif %}
 
               <li class="dropdown">
-              {% endif %}
+              
 
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Atividade Legislativa <span class="caret"></span></a>
@@ -83,7 +86,7 @@
                     {% endif %}
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:pesquisar_materia' %}">Matérias Legislativas</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.sessao:pesquisar_sessao' %}">Sessões Plenárias</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.sessao:list_pauta_sessao' %}">Pautas das Sessões</a></li>
+                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.sessao:pesquisar_pauta' %}">Pautas das Sessões</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:primeira_tramitacao_em_lote' %}">Tramitação em Lote</a></li>
                     <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:acessorio_em_lote' %}">Acessório em Lote</a></li>
                     <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Atas das Sessões</a></li>

@@ -120,8 +120,8 @@ class ParticipacaoParlamentarCrud(MasterDetailCrud):
                 if p.cargo.nome != 'Relator':
                     comissao = [
                         (p.composicao.comissao.nome, reverse(
-                           'sapl.comissoes:comissao_detail', kwargs={
-                               'pk': p.composicao.comissao.pk})),
+                            'sapl.comissoes:comissao_detail', kwargs={
+                                'pk': p.composicao.comissao.pk})),
                         (p.cargo.nome, None),
                         (p.composicao.periodo.data_inicio.strftime(
                          "%d/%m/%Y") + ' a ' +
@@ -149,6 +149,7 @@ class CargoMesaCrud(Crud):
     help_path = 'cargo_mesa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -158,6 +159,7 @@ class PartidoCrud(Crud):
     help_path = 'partidos'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -167,6 +169,7 @@ class SessaoLegislativaCrud(Crud):
     help_path = 'sessao_legislativa'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -176,6 +179,7 @@ class TipoDependenteCrud(Crud):
     help_path = 'nivel_instrucao'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -185,6 +189,7 @@ class NivelInstrucaoCrud(Crud):
     help_path = 'tipo_dependente'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -194,6 +199,7 @@ class TipoAfastamentoCrud(Crud):
     help_path = 'tipo_afastamento'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -203,6 +209,7 @@ class TipoMilitarCrud(Crud):
     help_path = 'tipo_situa_militar'
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -234,7 +241,7 @@ class MandatoCrud(MasterDetailCrud):
     help_path = ''
 
     class ListView(MasterDetailCrud.ListView):
-        ordering = ('-legislatura__data_inicio')
+        ordering = ('-legislatura__numero')
 
     class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
@@ -251,9 +258,10 @@ class ColigacaoCrud(Crud):
     help_path = 'tabelas_auxiliares#coligacao'
 
     class ListView(CrudListView):
-        ordering = ('-legislatura__data_inicio', 'nome')
+        ordering = ('-numero_votos', 'nome')
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -281,6 +289,7 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
         ordering = '-partido__sigla'
 
     class BaseMixin(PermissionRequiredMixin, MasterDetailCrud.BaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -296,6 +305,7 @@ class LegislaturaCrud(Crud):
         form_class = LegislaturaForm
 
     class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -321,13 +331,13 @@ class FiliacaoCrud(MasterDetailCrud):
 
 
 def get_parlamentar_permissions():
-        lista_permissoes = []
-        cts = ContentType.objects.filter(app_label='parlamentares')
-        perms_parlamentares = list(Permission.objects.filter(
-            content_type__in=cts))
-        for p in perms_parlamentares:
-            lista_permissoes.append('parlamentares.' + p.codename)
-        return set(lista_permissoes)
+    lista_permissoes = []
+    cts = ContentType.objects.filter(app_label='parlamentares')
+    perms_parlamentares = list(Permission.objects.filter(
+        content_type__in=cts))
+    for p in perms_parlamentares:
+        lista_permissoes.append('parlamentares.' + p.codename)
+    return set(lista_permissoes)
 
 
 class ParlamentarCrud(Crud):
@@ -335,6 +345,7 @@ class ParlamentarCrud(Crud):
     help_path = ''
 
     class DetailView(CrudDetailView):
+
         def get_template_names(self):
             usuario = self.request.user
             lista_permissoes = get_parlamentar_permissions()
@@ -368,7 +379,7 @@ class ParlamentarCrud(Crud):
 
         def take_legislatura_id(self):
             legislaturas = Legislatura.objects.all().order_by(
-                '-data_inicio', '-data_fim')
+                '-numero')
 
             if legislaturas:
                 try:
@@ -420,7 +431,7 @@ class ParlamentarCrud(Crud):
 
             # Adiciona legislatura para filtrar parlamentares
             legislaturas = Legislatura.objects.all().order_by(
-                '-data_inicio', '-data_fim')
+                '-numero')
             context['legislaturas'] = legislaturas
             context['legislatura_id'] = self.take_legislatura_id()
             return context
@@ -450,7 +461,7 @@ class MesaDiretoraView(FormView):
 
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
-            ).order_by('-data_inicio'),
+            ).order_by('-numero'),
                 'legislatura_selecionada': Legislatura.objects.last(),
                 'cargos_vagos': CargoMesa.objects.all()})
 
@@ -477,7 +488,7 @@ class MesaDiretoraView(FormView):
 
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
-            ).order_by('-data_inicio'),
+            ).order_by('-numero'),
                 'legislatura_selecionada': Legislatura.objects.last(),
                 'sessoes': SessaoLegislativa.objects.filter(
                 legislatura=Legislatura.objects.last()),
@@ -538,7 +549,7 @@ class MesaDiretoraView(FormView):
                     parlamentares_ocupados))
             return self.render_to_response(
                 {'legislaturas': Legislatura.objects.all(
-                ).order_by('-data_inicio'),
+                ).order_by('-numero'),
                     'legislatura_selecionada': Legislatura.objects.get(
                     id=int(request.POST['legislatura'])),
                     'sessoes': SessaoLegislativa.objects.filter(

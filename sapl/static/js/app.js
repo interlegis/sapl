@@ -13,7 +13,9 @@ function initTinymce(elements, readonly=false) {
     }
 
     if (readonly) {
-       config_tinymce.readonly = 1
+      config_tinymce.readonly = 1,
+      config_tinymce.menubar = false,
+      config_tinymce.toolbar = false
     }
 
     if (elements != null) {
@@ -88,7 +90,7 @@ function autorModal() {
     $("#pesquisar").click(function() {
         var query = $("#q").val()
 
-        $.get("/proposicao/pesquisar_autor?q="+ query, function(
+        $.get("/proposicao/pesquisar-autor?q="+ query, function(
           data, status){
 
           $("#div-resultado").children().remove();
@@ -140,7 +142,7 @@ function autorModal() {
       if ($(fieldname).length > 0) { // se campo existir
         if ($(fieldname).val() != "") { // e não for vazio
           var id = $(fieldname).val();
-          $.get("/proposicao/get_nome_autor?id=" + id, function(data, status){
+          $.get("/proposicao/get-nome-autor?id=" + id, function(data, status){
               $("#nome_autor").text(data.nome);
           });
         }

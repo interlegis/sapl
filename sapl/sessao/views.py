@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
+from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.html import strip_tags
@@ -20,7 +21,8 @@ from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.forms import pega_ultima_tramitacao
-from sapl.materia.models import Autoria, DocumentoAcessorio, Tramitacao
+from sapl.materia.models import (Autoria, DocumentoAcessorio,
+                                 TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
@@ -30,8 +32,9 @@ from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, OrdemDiaForm,
-                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
-                    VotacaoForm, VotacaoNominalForm)
+                    PautaSessaoFilterSet, PresencaForm,
+                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -275,6 +278,23 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             return [self._as_row(obj) for obj in object_list]
 
 
+def recuperar_materia(request):
+    tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo_materia'])
+    numero = request.GET['numero_materia']
+    ano = request.GET['ano_materia']
+
+    try:
+        materia = MateriaLegislativa.objects.get(tipo=tipo,
+                                                 ano=ano,
+                                                 numero=numero)
+        response = JsonResponse({'ementa': materia.ementa,
+                                 'id': materia.id})
+    except ObjectDoesNotExist:
+        response = JsonResponse({'ementa': '', 'id': 0})
+
+    return response
+
+
 class ExpedienteMateriaCrud(MasterDetailCrud):
     model = ExpedienteMateria
     parent_field = 'sessao_plenaria'
@@ -431,6 +451,18 @@ class OradorCrud(OradorCrud):
 
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_sessao()
+
+
+def recuperar_numero_sessao(request):
+    try:
+        numero = SessaoPlenaria.objects.filter(
+            tipo__pk=request.GET['tipo']).last().numero
+    except ObjectDoesNotExist:
+        response = JsonResponse({'numero': 1})
+    else:
+        response = JsonResponse({'numero': numero + 1})
+
+    return response
 
 
 class SessaoCrud(Crud):
@@ -856,18 +888,14 @@ class ResumoView(SessaoCrud.CrudDetailView):
         # =====================================================================
         # Expedientes
         expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
 
         expedientes = []
         for e in expediente:
-            tipo = TipoExpediente.objects.get(
-                id=e.tipo_id)
-            conteudo = sub(
-                '&nbsp;', ' ', strip_tags(e.conteudo))
-
+            tipo = TipoExpediente.objects.get(id=e.tipo_id)
+            conteudo = e.conteudo
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
-
         context.update({'expedientes': expedientes})
 
         # =====================================================================
@@ -1001,16 +1029,16 @@ class ExpedienteView(FormMixin,
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
-
-        tipos = TipoExpediente.objects.all()
+        tipos = TipoExpediente.objects.all().order_by('nome')
         expedientes_sessao = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
 
         expedientes_salvos = []
         for e in expedientes_sessao:
             expedientes_salvos.append(e.tipo)
 
         tipos_null = list(set(tipos) - set(expedientes_salvos))
+        tipos_null.sort(key=lambda x: x.nome)
 
         expedientes = []
         for e, t in zip(expedientes_sessao, tipos):
@@ -2032,7 +2060,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         qs = self.get_queryset()
 
         qs = qs.distinct().order_by(
-            '-legislatura__id', '-data_inicio', '-numero')
+            '-legislatura__numero', '-data_inicio', '-numero')
 
         kwargs.update({
             'queryset': qs,
@@ -2074,6 +2102,11 @@ class PesquisarSessaoPlenariaView(FilterView):
                                         )
 
         return self.render_to_response(context)
+
+
+class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
+    filterset_class = PautaSessaoFilterSet
+    template_name = 'sessao/pauta_sessao_filter.html'
 
 
 def filtra_tramitacao_ordem_dia():

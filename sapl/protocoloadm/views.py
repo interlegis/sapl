@@ -17,7 +17,8 @@ from django_filters.views import FilterView
 import sapl.crud.base
 from sapl.base.models import AppConfig
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudListView, CrudUpdateView,
+                            CrudDetailView, CrudDeleteView,
+                            CrudListView, CrudUpdateView,
                             make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import TipoMateriaLegislativa
@@ -62,6 +63,32 @@ class DocumentoAdministrativoCrud(Crud):
     class DeleteView(PermissionRequiredMixin, CrudDeleteView):
         permission_required = permissoes_adm()
 
+    class ListView(PermissionRequiredMixin, CrudListView):
+        permission_required = permissoes_adm()
+
+        def has_permission(self):
+            app_config = AppConfig.objects.last()
+
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
+
+    class DetailView(PermissionRequiredMixin, CrudDetailView):
+        permission_required = permissoes_adm()
+
+        def has_permission(self):
+            app_config = AppConfig.objects.last()
+
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
+
 
 class StatusTramitacaoAdministrativoCrud(Crud):
     model = StatusTramitacaoAdministrativo
@@ -95,7 +122,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        qs = self.get_queryset()
+        qs = self.get_queryset().order_by('ano', 'numero')
 
         qs = qs.distinct()
 
@@ -373,6 +400,16 @@ class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
     paginate_by = 10
     permission_required = permissoes_adm()
 
+    def has_permission(self):
+        app_config = AppConfig.objects.last()
+
+        if app_config:
+            if app_config.documentos_administrativos == 'O':
+                return True
+
+        perms = self.get_permission_required()
+        return self.request.user.has_perms(perms)
+
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
               self).get_filterset_kwargs(filterset_class)
@@ -574,13 +611,39 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmEditForm
         permission_required = permissoes_adm()
 
+    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+        permission_required = permissoes_adm()
+
     class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
         permission_required = permissoes_adm()
 
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+
+        def has_permission(self):
+            app_config = AppConfig.objects.last()
+
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
+
+    class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+        permission_required = permissoes_adm()
+
+        def has_permission(self):
+            app_config = AppConfig.objects.last()
+
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
 
 
 def get_nome_autor(request):

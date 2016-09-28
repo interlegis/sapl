@@ -8,6 +8,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                OradorExpedienteCrud, PainelView,
                                PautaExpedienteDetail, PautaOrdemDetail,
                                PautaSessaoDetailView, PautaSessaoListView,
+                               PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView, ResumoView,
                                SessaoCrud, SessaoPlenariaView,
@@ -19,7 +20,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoNominalExpedienteView,
                                VotacaoNominalView, VotacaoView,
                                abrir_votacao_expediente_view,
-                               abrir_votacao_ordem_view,
+                               abrir_votacao_ordem_view, recuperar_materia,
+                               recuperar_numero_sessao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem)
 
@@ -36,6 +38,10 @@ urlpatterns = [
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
                              MateriaOrdemDiaCrud.get_urls())),
+
+
+    url(r'^recuperar-materia/', recuperar_materia),
+    url(r'^recuperar-numero-sessao/', recuperar_numero_sessao),
 
     url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao-expediente$',
         abrir_votacao_expediente_view,
@@ -70,6 +76,8 @@ urlpatterns = [
     # PAUTA SESSÃO
     url(r'^pauta-sessao$',
         PautaSessaoListView.as_view(), name='list_pauta_sessao'),
+    url(r'^pauta-sessao/pesquisar-pauta$',
+        PesquisarPautaSessaoView.as_view(), name='pesquisar_pauta'),
     url(r'^pauta-sessao/(?P<pk>\d+)$',
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
     url(r'^pauta-sessao/(?P<pk>\d+)/expediente/$',

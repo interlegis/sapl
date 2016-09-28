@@ -1,0 +1,24 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+
+<script language="Javascript">
+
+  function recuperar_numero_sessao() {
+    var tipo = $("#id_tipo").val()
+
+    if (tipo) {
+      $.get("/recuperar-numero-sessao",{tipo: tipo},
+                                      function(data, status) {
+                                        $("#id_numero").val(data.numero);
+                                        console.log(data)
+                                      });
+    }
+  }
+  $("#id_tipo").change(recuperar_numero_sessao);
+</script>
+
+{% endblock %}

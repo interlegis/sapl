@@ -1,5 +1,6 @@
 from django.apps import apps
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -12,7 +13,7 @@ def cria_ou_reseta_grupo(nome):
 
 def cria_usuario(nome, grupo):
     nome_usuario = nome
-    usuario = User.objects.get_or_create(username=nome_usuario)[0]
+    usuario = get_user_model().objects.get_or_create(username=nome_usuario)[0]
     usuario.set_password('interlegis')
     usuario.save()
     grupo.user_set.add(usuario)
@@ -82,7 +83,8 @@ def cria_grupos_permissoes():
 
             # Cria o Usuario
             nome_usuario = 'operador_%s' % nome_app
-            usuario = User.objects.get_or_create(username=nome_usuario)[0]
+            usuario = get_user_model().objects.get_or_create(
+                username=nome_usuario)[0]
             usuario.set_password('interlegis')
             usuario.save()
             grupo.user_set.add(usuario)
@@ -109,6 +111,7 @@ def cria_grupos_permissoes():
 
     nome_usuario = 'operador_autor'
     cria_usuario(nome_usuario, grupo)
+
 
 if __name__ == '__main__':
     cria_grupos_permissoes()

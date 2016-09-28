@@ -58,10 +58,11 @@ Autor:
 
 AutorCreate:
   Autor:
-  - tipo:3  nome
+  - tipo
+  - nome
   - username:4 senha:4 senha_confirma:4
   - email:6 confirma_email:6
-  - cargo:4 parlamentar:4 comissao:4
+  - cargo
 
 Autoria:
   {% trans 'Autoria' %}:

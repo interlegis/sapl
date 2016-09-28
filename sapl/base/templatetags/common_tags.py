@@ -1,7 +1,9 @@
 from compressor.utils import get_class
 from django import template
 
+from sapl.base.models import AppConfig
 from sapl.parlamentares.models import Filiacao
+from sapl.utils import permissoes_adm
 
 register = template.Library()
 
@@ -86,6 +88,17 @@ def get_delete_perm(value, arg):
 
 
 @register.filter
+def get_doc_adm_template_perms(user):
+    app_config = AppConfig.objects.last()
+
+    if app_config:
+        if app_config.documentos_administrativos == 'O':
+            return True
+
+    return user.has_perms(permissoes_adm())
+
+
+@register.filter
 def ver_menu_sistema_perm(value):
     u = value
     if u.groups.filter(name='Operador Geral').exists() or u.is_superuser:
@@ -105,3 +118,11 @@ def ultima_filiacao(value):
         return ultima_filiacao.partido
     else:
         return None
+
+
+@register.filter
+def get_config_not_exists(user):
+    if not AppConfig.objects.all().exists():
+        return True
+    else:
+        return False

@@ -173,6 +173,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
     data_inicio__day = django_filters.ChoiceFilter(required=False,
                                                    label=u'Dia',
                                                    choices=DIA_CHOICES)
+    titulo = _('Pesquisa de Sessão Plenária')
 
     class Meta:
         model = SessaoPlenaria
@@ -190,7 +191,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Sessao Plenária'),
+            Fieldset(self.titulo,
                      row1,
                      form_actions(save_label='Pesquisar'))
         )
@@ -291,3 +292,7 @@ class OradorExpedienteForm(ModelForm):
     class Meta:
         model = OradorExpediente
         exclude = ['sessao_plenaria']
+
+
+class PautaSessaoFilterSet(SessaoPlenariaFilterSet):
+    titulo = _('Pesquisa de Pauta de Sessão')

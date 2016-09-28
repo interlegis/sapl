@@ -129,7 +129,7 @@ class SessaoPlenaria(models.Model):
             'tipo_nome': self.tipo.nome,
             'sessao_legislativa_numero': self.sessao_legislativa.numero,
             # XXX check if it shouldn't be legislatura.numero
-            'legislatura_id': self.legislatura.id}
+            'legislatura_id': self.legislatura.numero}
 
 
 class AbstractOrdemDia(models.Model):
@@ -140,12 +140,13 @@ class AbstractOrdemDia(models.Model):
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
-    materia = models.ForeignKey(MateriaLegislativa)
+    materia = models.ForeignKey(MateriaLegislativa,
+                                verbose_name=_('Matéria'))
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Ementa'))
     numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
-    resultado = models.TextField(blank=True)
+    resultado = models.TextField(blank=True, verbose_name=_('Resultado'))
     tipo_votacao = models.PositiveIntegerField(
         verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
     votacao_aberta = models.NullBooleanField(

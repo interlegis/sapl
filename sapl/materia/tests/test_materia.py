@@ -1,8 +1,8 @@
-import pytest
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
+import pytest
 
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,
@@ -434,7 +434,7 @@ def test_form_errors_relatoria(admin_client):
 @pytest.mark.django_db(transaction=False)
 def test_proposicao_submit(admin_client):
     tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
-    user = User.objects.filter(is_active=True)[0]
+    user = get_user_model().objects.filter(is_active=True)[0]
 
     autor = mommy.make(
         Autor,
@@ -469,7 +469,7 @@ def test_proposicao_submit(admin_client):
 def test_form_errors_proposicao(admin_client):
     tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
 
-    user = User.objects.filter(is_active=True)[0]
+    user = get_user_model().objects.filter(is_active=True)[0]
 
     autor = mommy.make(
         Autor,
@@ -484,7 +484,7 @@ def test_form_errors_proposicao(admin_client):
                                  {'autor': autor.pk,
                                   'justificativa_devolucao': '  ',
                                   'texto_original': texto,
-                                 'salvar': 'salvar'},
+                                  'salvar': 'salvar'},
                                  follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==

@@ -1,11 +1,14 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load common_tags %}
 
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-default">
-        {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
+    {% if perms|get_add_perm:view %}
+      <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-default">
+          {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
+    {% endif %}
     </a>
   {% if filter_url %}
       <a href="{% url 'sapl.sessao:pesquisar_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>

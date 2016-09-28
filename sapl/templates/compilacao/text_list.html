@@ -14,7 +14,9 @@
   {% block actions %}
     <div class="clearfix">
       <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+		{% if user.is_authenticated %}
+		  <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+	    {% endif %}
       </div>
     </div>
   {% endblock actions %}

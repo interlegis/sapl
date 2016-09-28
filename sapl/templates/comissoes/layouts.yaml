@@ -27,6 +27,7 @@ Comissao:
 
 Composicao:
   {% trans 'Composição' %}:
+  - comissao
   - periodo
 
 Participacao:

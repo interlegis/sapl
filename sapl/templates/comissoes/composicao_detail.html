@@ -27,5 +27,7 @@
 		{% endfor %}
 	</table>
 
-	<a href="{% url 'sapl.comissoes:participacao_create' composicao.pk %}" class="btn btn-primary">Incluir Parlamentar</a>
+    {% if user.is_authenticated %}
+	  <a href="{% url 'sapl.comissoes:participacao_create' composicao.pk %}" class="btn btn-primary">Incluir Parlamentar</a>
+    {% endif %}
 {% endblock detail_content %}
