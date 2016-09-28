@@ -1034,6 +1034,13 @@ class MateriaLegislativaPesquisaView(FilterView):
         qr = self.request.GET.copy()
         if 'page' in qr:
             del qr['page']
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         return context
