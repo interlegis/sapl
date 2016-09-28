@@ -17,9 +17,8 @@ from django_filters.views import FilterView
 import sapl.crud.base
 from sapl.base.models import AppConfig
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDetailView, CrudDeleteView,
-                            CrudListView, CrudUpdateView,
-                            make_pagination)
+                            CrudDeleteView, CrudDetailView, CrudListView,
+                            CrudUpdateView, make_pagination)
 from sapl.crud.masterdetail import MasterDetailCrud
 from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
@@ -259,6 +258,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.data = datetime.now().strftime('%Y-%m-%d')
         f.hora = datetime.now().strftime('%H:%M')
         f.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
         return redirect(self.get_success_url())
