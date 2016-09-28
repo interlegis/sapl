@@ -90,9 +90,12 @@ def get_delete_perm(value, arg):
 @register.filter
 def get_doc_adm_template_perms(user):
     app_config = AppConfig.objects.last()
-    if app_config.documentos_administrativos == 'O':
-        return True
-    elif user.has_perms(permissoes_adm()):
+
+    if app_config:
+        if app_config.documentos_administrativos == 'O':
+            return True
+
+    if user.has_perms(permissoes_adm()):
         return True
 
     else:
