@@ -620,7 +620,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
         def has_permission(self):
             app_config = AppConfig.objects.last()

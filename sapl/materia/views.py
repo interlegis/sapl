@@ -686,7 +686,7 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao')
+            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
     class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
         permission_required = permissoes_materia()
