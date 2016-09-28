@@ -525,6 +525,11 @@ class ProposicaoCrud(Crud):
                 id=self.kwargs['pk'],
                 autor__user_id=self.request.user.id).exists())
 
+        def get_context_data(self, **kwargs):
+            context = CrudDetailView.get_context_data(self, **kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
     class ListView(PermissionRequiredMixin, CrudListView):
         ordering = ['-data_envio', 'descricao']
         permission_required = permissoes_autor()
