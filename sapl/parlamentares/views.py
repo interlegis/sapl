@@ -86,6 +86,12 @@ class ProposicaoParlamentarCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         permission_required = permissoes_parlamentares()
 
+        def get_context_data(self, **kwargs):
+            context = super(ProposicaoParlamentarCrud.ListView, self
+                            ).get_context_data(**kwargs)
+            context['root_pk'] = self.kwargs['pk']
+            return context
+
         def get_queryset(self):
             try:
                 proposicoes = Proposicao.objects.filter(
