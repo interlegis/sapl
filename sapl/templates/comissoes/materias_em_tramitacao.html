@@ -9,13 +9,13 @@
 
 		<b>Há {{page_obj|length}} matéria(s) em tramitação nesta unidade.</b> <br><br>
 
-		{% for tramitacao in page_obj %}
-			<b><a href="{% url 'sapl.materia:materialegislativa_detail' tramitacao.materia.id %}">
-				{{tramitacao.materia.tipo.sigla}} {{tramitacao.materia.numero}} {{tramitacao.materia.ano}} - {{tramitacao.materia.tipo}}
+		{% for materia in page_obj %}
+			<b><a href="{% url 'sapl.materia:materialegislativa_detail' materia.id %}">
+				{{materia.tipo.sigla}} {{materia.numero}} {{materia.ano}} - {{materia.tipo}}
 			</b></a><br>
-			{{tramitacao.materia}}<br>
-			<b>Autor: </b>{{tramitacao.materia.autoria_set.first.autor.nome}}<br>
-			<b>Situação: </b>{{tramitacao.status.descricao}}<br>
+			{{materia}}<br>
+			<b>Autor: </b>{{materia.autoria_set.first.autor.nome}}<br>
+			<b>Situação: </b>{{materia.tramitacao_set.last.status.descricao}}<br>
 			<br>
 		{% endfor %}
 

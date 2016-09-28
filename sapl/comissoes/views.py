@@ -5,7 +5,7 @@ from django.views.generic import ListView
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudListView, CrudUpdateView)
 from sapl.crud.masterdetail import MasterDetailCrud
-from sapl.materia.models import Tramitacao
+from sapl.materia.models import MateriaLegislativa, Tramitacao
 from sapl.utils import permissao_tb_aux, permissoes_comissoes
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
@@ -149,10 +149,16 @@ class MateriasTramitacaoListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        pk = self.kwargs['pk']
-        tramitacoes = Tramitacao.objects.filter(
-            unidade_tramitacao_local__comissao=pk)
-        return tramitacoes
+        # FIXME: Otimizar consulta
+        lista = []
+        materias = MateriaLegislativa.objects.filter(tramitacao__isnull=False)
+        for materia in materias:
+            comissao = materia.tramitacao_set.last(
+                ).unidade_tramitacao_local.comissao
+            if comissao:
+                if comissao.pk == int(self.kwargs['pk']):
+                    lista.append(materia)
+        return lista
 
     def get_context_data(self, **kwargs):
         context = super(
