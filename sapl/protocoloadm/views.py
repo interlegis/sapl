@@ -68,24 +68,26 @@ class DocumentoAdministrativoCrud(Crud):
 
         def has_permission(self):
             app_config = AppConfig.objects.last()
-            if app_config.documentos_administrativos == 'O':
-                return True
 
-            else:
-                perms = self.get_permission_required()
-                return self.request.user.has_perms(perms)
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
 
     class DetailView(PermissionRequiredMixin, CrudDetailView):
         permission_required = permissoes_adm()
 
         def has_permission(self):
             app_config = AppConfig.objects.last()
-            if app_config.documentos_administrativos == 'O':
-                return True
 
-            else:
-                perms = self.get_permission_required()
-                return self.request.user.has_perms(perms)
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
 
 
 class StatusTramitacaoAdministrativoCrud(Crud):
@@ -400,12 +402,13 @@ class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
 
     def has_permission(self):
         app_config = AppConfig.objects.last()
-        if app_config.documentos_administrativos == 'O':
-            return True
 
-        else:
-            perms = self.get_permission_required()
-            return self.request.user.has_perms(perms)
+        if app_config:
+            if app_config.documentos_administrativos == 'O':
+                return True
+
+        perms = self.get_permission_required()
+        return self.request.user.has_perms(perms)
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
@@ -621,24 +624,26 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
         def has_permission(self):
             app_config = AppConfig.objects.last()
-            if app_config.documentos_administrativos == 'O':
-                return True
 
-            else:
-                perms = self.get_permission_required()
-                return self.request.user.has_perms(perms)
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
 
     class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
         permission_required = permissoes_adm()
 
         def has_permission(self):
             app_config = AppConfig.objects.last()
-            if app_config.documentos_administrativos == 'O':
-                return True
 
-            else:
-                perms = self.get_permission_required()
-                return self.request.user.has_perms(perms)
+            if app_config:
+                if app_config.documentos_administrativos == 'O':
+                    return True
+
+            perms = self.get_permission_required()
+            return self.request.user.has_perms(perms)
 
 
 def get_nome_autor(request):
