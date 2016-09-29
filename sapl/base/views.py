@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import PermissionRequiredMixin
+
+from braces.views import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
@@ -229,16 +230,16 @@ class CasaLegislativaCrud(Crud):
     model = CasaLegislativa
     help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
         list_field_names = ['codigo', 'nome', 'sigla']
 
         def has_permission(self):
             return permissao_tb_aux(self)
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         form_class = CasaLegislativaForm
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         form_class = CasaLegislativaForm
 
     class DetailView(CrudDetailView):
@@ -269,7 +270,7 @@ class AppConfigCrud(Crud):
     model = AppConfig
     help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
         list_field_names = ['documentos_administrativos',
                             'sequencia_numeracao',
                             'painel_aberto']
@@ -277,7 +278,7 @@ class AppConfigCrud(Crud):
         def has_permission(self):
             return permissao_tb_aux(self)
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         form_class = ConfiguracoesAppForm
 
         def get(self, request, *args, **kwargs):
@@ -291,5 +292,5 @@ class AppConfigCrud(Crud):
                 return super(BaseCreateView, self).get(
                     request, *args, **kwargs)
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         form_class = ConfiguracoesAppForm

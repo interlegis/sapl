@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,8 +11,7 @@ from django.views.generic import FormView, ListView
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView)
-from sapl.crud.masterdetail import MasterDetailCrud
+                            CrudUpdateView, MasterDetailCrud)
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
@@ -50,10 +48,10 @@ class FrenteCrud(Crud):
         def has_permission(self):
             return permissao_tb_aux(self)
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         form_class = FrenteForm
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         form_class = FrenteForm
 
 
@@ -65,13 +63,13 @@ class RelatoriaParlamentarCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         permission_required = permissoes_parlamentares()
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_parlamentares()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
 
@@ -102,13 +100,13 @@ class ProposicaoParlamentarCrud(MasterDetailCrud):
             else:
                 return proposicoes
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_parlamentares()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
 
@@ -140,13 +138,13 @@ class ParticipacaoParlamentarCrud(MasterDetailCrud):
         def get_headers(self):
             return ['Comissão', 'Cargo', 'Período']
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_parlamentares()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
 
@@ -154,7 +152,7 @@ class CargoMesaCrud(Crud):
     model = CargoMesa
     help_path = 'cargo_mesa'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -164,7 +162,7 @@ class PartidoCrud(Crud):
     model = Partido
     help_path = 'partidos'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -174,7 +172,7 @@ class SessaoLegislativaCrud(Crud):
     model = SessaoLegislativa
     help_path = 'sessao_legislativa'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -184,7 +182,7 @@ class TipoDependenteCrud(Crud):
     model = TipoDependente
     help_path = 'nivel_instrucao'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -194,7 +192,7 @@ class NivelInstrucaoCrud(Crud):
     model = NivelInstrucao
     help_path = 'tipo_dependente'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -204,7 +202,7 @@ class TipoAfastamentoCrud(Crud):
     model = TipoAfastamento
     help_path = 'tipo_afastamento'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -214,7 +212,7 @@ class TipoMilitarCrud(Crud):
     model = SituacaoMilitar
     help_path = 'tipo_situa_militar'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -225,19 +223,19 @@ class DependenteCrud(MasterDetailCrud):
     parent_field = 'parlamentar'
     help_path = ''
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_parlamentares()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
-    class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
+    class ListView(MasterDetailCrud.ListView):
         permission_required = permissoes_parlamentares()
 
-    class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+    class DetailView(MasterDetailCrud.DetailView):
         permission_required = permissoes_parlamentares()
 
 
@@ -249,13 +247,13 @@ class MandatoCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_parlamentares()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_parlamentares()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
 
@@ -266,7 +264,7 @@ class ColigacaoCrud(Crud):
     class ListView(CrudListView):
         ordering = ('-numero_votos', 'nome')
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -294,7 +292,7 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = '-partido__sigla'
 
-    class BaseMixin(PermissionRequiredMixin, MasterDetailCrud.BaseMixin):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -310,7 +308,7 @@ class LegislaturaCrud(Crud):
     class UpdateView(CrudUpdateView):
         form_class = LegislaturaForm
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
 
         def has_permission(self):
             return permissao_tb_aux(self)
@@ -321,15 +319,15 @@ class FiliacaoCrud(MasterDetailCrud):
     parent_field = 'parlamentar'
     help_path = ''
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = FiliacaoForm
         permission_required = permissoes_parlamentares()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = FiliacaoForm
         permission_required = permissoes_parlamentares()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_parlamentares()
 
     class ListView(MasterDetailCrud.ListView):
@@ -362,11 +360,11 @@ class ParlamentarCrud(Crud):
             else:
                 return ['parlamentares/parlamentar_perfil_publico.html']
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         form_class = ParlamentarForm
         permission_required = permissoes_parlamentares()
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         form_class = ParlamentarCreateForm
         permission_required = permissoes_parlamentares()
 
@@ -374,7 +372,7 @@ class ParlamentarCrud(Crud):
         def layout_key(self):
             return 'ParlamentarCreate'
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+    class DeleteView(CrudDeleteView):
         form_class = ParlamentarCreateForm
         permission_required = permissoes_parlamentares()
 

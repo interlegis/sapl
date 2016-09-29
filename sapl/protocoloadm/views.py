@@ -1,9 +1,8 @@
-import json
 from datetime import date, datetime
+import json
 
-from braces.views import FormValidMessageMixin
+from braces.views import FormValidMessageMixin, PermissionRequiredMixin
 from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
@@ -14,15 +13,15 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-import sapl.crud.base
 from sapl.base.models import AppConfig
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, make_pagination)
-from sapl.crud.masterdetail import MasterDetailCrud
+                            CrudDetailView, CrudDeleteView,
+                            CrudListView, CrudUpdateView,
+                            make_pagination, MasterDetailCrud)
 from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
                         permissoes_protocoloadm)
+import sapl.crud.base
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -34,6 +33,7 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TipoInstituicao,
                      TramitacaoAdministrativo)
+
 
 TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
 DocumentoAcessorioAdministrativoCrud = Crud.build(
@@ -53,16 +53,16 @@ class DocumentoAdministrativoCrud(Crud):
                             'numero_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         permission_required = permissoes_adm()
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         permission_required = permissoes_adm()
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+    class DeleteView(CrudDeleteView):
         permission_required = permissoes_adm()
 
-    class ListView(PermissionRequiredMixin, CrudListView):
+    class ListView(CrudListView):
         permission_required = permissoes_adm()
 
         def has_permission(self):
@@ -75,7 +75,7 @@ class DocumentoAdministrativoCrud(Crud):
             perms = self.get_permission_required()
             return self.request.user.has_perms(perms)
 
-    class DetailView(PermissionRequiredMixin, CrudDetailView):
+    class DetailView(CrudDetailView):
         permission_required = permissoes_adm()
 
         def has_permission(self):
@@ -99,13 +99,13 @@ class StatusTramitacaoAdministrativoCrud(Crud):
     class ListView(CrudListView):
         ordering = 'sigla'
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         permission_required = permissoes_adm()
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         permission_required = permissoes_adm()
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+    class DeleteView(CrudDeleteView):
         permission_required = permissoes_adm()
 
 
@@ -603,18 +603,18 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
                             'unidade_tramitacao_destino', 'status']
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoAdmForm
         permission_required = permissoes_adm()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
         permission_required = permissoes_adm()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_adm()
 
-    class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
+    class ListView(MasterDetailCrud.ListView):
         permission_required = permissoes_adm()
 
         def get_queryset(self):
@@ -632,7 +632,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             perms = self.get_permission_required()
             return self.request.user.has_perms(perms)
 
-    class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
+    class DetailView(MasterDetailCrud.DetailView):
         permission_required = permissoes_adm()
 
         def has_permission(self):

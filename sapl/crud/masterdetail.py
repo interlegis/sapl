@@ -1,21 +1,21 @@
 from django.utils.decorators import classonlymethod
 
-from .base import (CREATE, LIST, Crud, CrudBaseMixin, CrudCreateView,
+from .base import (ACTION_CREATE, ACTION_LIST, Crud, CrudBaseMixin, CrudCreateView,
                    CrudDeleteView, CrudDetailView, CrudListView,
                    CrudUpdateView)
 
 
-class MasterDetailCrud(Crud):
+class MasterDetailCrud__OBSOLETO(Crud):
 
     class BaseMixin(CrudBaseMixin):
 
         @property
         def list_url(self):
-            return self.resolve_url(LIST, args=(self.kwargs['pk'],))
+            return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],))
 
         @property
         def create_url(self):
-            return self.resolve_url(CREATE, args=(self.kwargs['pk'],))
+            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))
 
         def get_context_data(self, **kwargs):
             obj = getattr(self, 'object', None)
@@ -24,7 +24,7 @@ class MasterDetailCrud(Crud):
             else:
                 root_pk = self.kwargs['pk']  # in list and create
             kwargs.setdefault('root_pk', root_pk)
-            return super(MasterDetailCrud.BaseMixin,
+            return super(MasterDetailCrud__OBSOLETO.BaseMixin,
                          self).get_context_data(**kwargs)
 
     class ListView(CrudListView):
@@ -34,7 +34,8 @@ class MasterDetailCrud(Crud):
             return r'^(?P<pk>\d+)/%s$' % cls.model._meta.model_name
 
         def get_queryset(self):
-            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            qs = super(
+                MasterDetailCrud__OBSOLETO.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs)
 
@@ -45,7 +46,7 @@ class MasterDetailCrud(Crud):
             return r'^(?P<pk>\d+)/%s/create$' % cls.model._meta.model_name
 
         def get_form(self, form_class=None):
-            form = super(MasterDetailCrud.CreateView,
+            form = super(MasterDetailCrud__OBSOLETO.CreateView,
                          self).get_form(self.form_class)
             field = self.model._meta.get_field(self.crud.parent_field)
             parent = field.related_model.objects.get(pk=self.kwargs['pk'])
@@ -72,10 +73,10 @@ class MasterDetailCrud(Crud):
 
         def get_success_url(self):
             pk = getattr(self.get_object(), self.crud.parent_field).pk
-            return self.resolve_url(LIST, args=(pk,))
+            return self.resolve_url(ACTION_LIST, args=(pk,))
 
     @classonlymethod
     def build(cls, model, parent_field, help_path):
-        crud = super(MasterDetailCrud, cls).build(model, help_path)
+        crud = super(MasterDetailCrud__OBSOLETO, cls).build(model, help_path)
         crud.parent_field = parent_field
         return crud

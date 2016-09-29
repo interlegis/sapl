@@ -20,7 +20,7 @@ class AssuntoNormaCrud(Crud):
     model = AssuntoNorma
     help_path = 'assunto_norma_juridica'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
         permission_required = permissoes_norma()
         list_field_names = ['assunto', 'descricao']
 
@@ -29,7 +29,7 @@ class TipoNormaCrud(Crud):
     model = TipoNormaJuridica
     help_path = 'tipo_norma_juridica'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
         permission_required = permissoes_norma()
         list_field_names = ['equivalente_lexml', 'sigla', 'descricao']
 
@@ -38,7 +38,7 @@ class NormaCrud(Crud):
     model = NormaJuridica
     help_path = 'norma_juridica'
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         form_class = NormaJuridicaForm
         permission_required = permissoes_norma()
 
@@ -54,7 +54,7 @@ class NormaCrud(Crud):
                 self.initial['numero_materia'] = norma.materia.numero
             return self.initial.copy()
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         form_class = NormaJuridicaForm
         permission_required = permissoes_norma()
 
@@ -62,7 +62,7 @@ class NormaCrud(Crud):
         def layout_key(self):
             return 'NormaJuridicaCreate'
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+    class DeleteView(CrudDeleteView):
         permission_required = permissoes_norma()
 
     class BaseMixin(CrudBaseMixin):

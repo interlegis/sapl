@@ -1,8 +1,8 @@
 from datetime import datetime
 from re import sub
 
+from braces.views import PermissionRequiredMixin
 from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -18,8 +18,7 @@ from rest_framework import generics
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, make_pagination)
-from sapl.crud.masterdetail import MasterDetailCrud
+                            CrudUpdateView, make_pagination, MasterDetailCrud)
 from sapl.materia.forms import pega_ultima_tramitacao
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
@@ -42,6 +41,7 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
+
 
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
@@ -77,7 +77,7 @@ class BlocoCrud(Crud):
     model = Bloco
     help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
         list_field_names = ['nome', 'data_criacao', 'partidos']
 
         def has_permission(self):
@@ -88,7 +88,7 @@ class BancadaCrud(Crud):
     model = Bancada
     help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
         list_field_names = ['nome', 'legislatura']
 
         def has_permission(self):
@@ -108,7 +108,8 @@ class TipoSessaoCrud(Crud):
     model = TipoSessaoPlenaria
     help_path = 'tipo_sessao_plenaria'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -117,7 +118,8 @@ class TipoResultadoVotacaoCrud(Crud):
     model = TipoResultadoVotacao
     help_path = 'tipo_resultado_votacao'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -126,7 +128,8 @@ class TipoExpedienteCrud(Crud):
     model = TipoExpediente
     help_path = 'tipo_expediente'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -135,7 +138,8 @@ class CargoBancadaCrud(Crud):
     model = CargoBancada
     help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudBaseMixin):
+
         def has_permission(self):
             return permissao_tb_aux(self)
 
@@ -198,6 +202,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             return self.initial
 
     class DetailView(MasterDetailCrud.DetailView):
+
         @property
         def layout_key(self):
             return 'OrdemDiaDetail'
@@ -370,7 +375,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                                              obj.resultado)
             return [self._as_row(obj) for obj in object_list]
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
         permission_required = permissoes_sessao()
 
@@ -378,7 +383,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             return reverse('sapl.sessao:expedientemateria_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ExpedienteMateriaForm
         permission_required = permissoes_sessao()
 
@@ -406,20 +411,20 @@ class OradorCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_sessao()
 
 
 class OradorExpedienteCrud(OradorCrud):
     model = OradorExpediente
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
         form_class = OradorExpedienteForm
 
@@ -427,18 +432,18 @@ class OradorExpedienteCrud(OradorCrud):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
         form_class = OradorExpedienteForm
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_sessao()
 
 
 class OradorCrud(OradorCrud):
     model = Orador
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         permission_required = permissoes_sessao()
         form_class = OradorForm
 
@@ -446,11 +451,11 @@ class OradorCrud(OradorCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         permission_required = permissoes_sessao()
         form_class = OradorForm
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         permission_required = permissoes_sessao()
 
 
@@ -483,7 +488,7 @@ class SessaoCrud(Crud):
     class ListView(CrudListView):
         ordering = ['-data_inicio']
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(CrudCreateView):
         permission_required = permissoes_sessao()
 
         def get_initial(self):
@@ -493,10 +498,10 @@ class SessaoCrud(Crud):
             return {'legislatura': legislatura,
                     'sessao_legislativa': sessao_legislativa}
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(CrudUpdateView):
         permission_required = permissoes_sessao()
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
+    class DeleteView(CrudDeleteView):
         permission_required = permissoes_sessao()
 
 
@@ -2118,11 +2123,11 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
 
 
 def filtra_tramitacao_ordem_dia():
-        lista = pega_ultima_tramitacao()
-        return Tramitacao.objects.filter(
-            id__in=lista,
-            status__descricao='Ordem do Dia').distinct().values_list(
-            'materia_id', flat=True)
+    lista = pega_ultima_tramitacao()
+    return Tramitacao.objects.filter(
+        id__in=lista,
+        status__descricao='Ordem do Dia').distinct().values_list(
+        'materia_id', flat=True)
 
 
 def retira_materias_ja_adicionadas(id_sessao, model):
