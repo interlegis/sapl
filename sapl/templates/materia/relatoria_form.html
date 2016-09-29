@@ -1,0 +1,14 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block base_content %}
+  {% if form.comissao.value == 0 %}
+    <div class="alert alert-danger alert-dismissible fade in" role="alert">
+      A localização atual deve ser uma comissão!
+    </div>
+  {% else %}
+    {% crispy form %}
+  {% endif %}
+{% endblock %}
