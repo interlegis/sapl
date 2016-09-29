@@ -225,7 +225,6 @@ class RelatorioMateriasPorAutorView(FilterView):
 
 class CasaLegislativaCrud(CrudAux):
     model = CasaLegislativa
-    help_path = ''
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['codigo', 'nome', 'sigla']
@@ -248,7 +247,6 @@ class HelpView(PermissionRequiredMixin, TemplateView):
 
 class AppConfigCrud(CrudAux):
     model = AppConfig
-    help_path = ''
 
     class BaseMixin(CrudAux.BaseMixin):
         form_class = ConfiguracoesAppForm

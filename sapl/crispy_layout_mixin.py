@@ -1,12 +1,12 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -49,7 +49,12 @@ class SaplFormLayout(Layout):
 
 
 def get_field_display(obj, fieldname):
-    field = obj._meta.get_field(fieldname)
+    field = ''
+    try:
+        field = obj._meta.get_field(fieldname)
+    except:
+        value = getattr(obj, fieldname)
+        return '', value
     verbose_name = str(field.verbose_name)\
         if hasattr(field, 'verbose_name') else ''
     if hasattr(field, 'choices') and field.choices:

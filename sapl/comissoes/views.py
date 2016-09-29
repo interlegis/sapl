@@ -26,7 +26,6 @@ TipoComissaoCrud = CrudAux.build(
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
     parent_field = 'composicao__comissao'
-    help_path = ''
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['composicao', 'parlamentar', 'cargo']
@@ -38,7 +37,6 @@ class ParticipacaoCrud(MasterDetailCrud):
 class ComposicaoCrud(MasterDetailCrud):
     model = Composicao
     parent_field = 'comissao'
-    help_path = ''
     model_set = 'participacao_set'
 
     class ListView(MasterDetailCrud.ListView):

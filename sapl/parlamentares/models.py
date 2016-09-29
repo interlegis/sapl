@@ -267,6 +267,19 @@ class Parlamentar(models.Model):
     def __str__(self):
         return self.nome_completo
 
+    @property
+    def filiacao_atual(self):
+        ultima_filiacao = self.filiacao_set.order_by('-data').first()
+        if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
+            return ultima_filiacao.partido.sigla
+        else:
+            return _('Sem Partido')
+
+    @property
+    def avatar_html(self):
+        return '<img class="avatar-parlamentar" src='\
+            + self.fotografia.url + '/>'if self.fotografia else ''
+
 
 class TipoDependente(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))

@@ -1,4 +1,7 @@
+from datetime import date
+
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,7 +14,8 @@ from django.views.generic import FormView, ListView
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, MasterDetailCrud)
+                            CrudUpdateView, MasterDetailCrud, CrudAux,
+                            RP_CHANGE)
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
@@ -38,27 +42,17 @@ class FrenteList(ListView):
         return context
 
 
-class FrenteCrud(Crud):
+class FrenteCrud(CrudAux):
     model = Frente
-    help_path = ''
 
-    class BaseMixin(CrudBaseMixin):
+    class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['nome', 'data_criacao', 'parlamentares']
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-    class CreateView(CrudCreateView):
-        form_class = FrenteForm
-
-    class UpdateView(CrudUpdateView):
         form_class = FrenteForm
 
 
 class RelatoriaParlamentarCrud(MasterDetailCrud):
     model = Relatoria
     parent_field = 'parlamentar'
-    help_path = ''
 
     class ListView(MasterDetailCrud.ListView):
         permission_required = permissoes_parlamentares()
@@ -334,110 +328,69 @@ class FiliacaoCrud(MasterDetailCrud):
         ordering = '-data'
 
 
-def get_parlamentar_permissions():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='parlamentares')
-    perms_parlamentares = list(Permission.objects.filter(
-        content_type__in=cts))
-    for p in perms_parlamentares:
-        lista_permissoes.append('parlamentares.' + p.codename)
-    return set(lista_permissoes)
-
-
 class ParlamentarCrud(Crud):
     model = Parlamentar
-    help_path = ''
 
-    class DetailView(CrudDetailView):
+    class BaseMixin(Crud.BaseMixin):
+        form_class = ParlamentarCreateForm
+        list_field_names = [
+            'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo']
+
+    class DetailView(Crud.DetailView):
+        permission_required = []
 
         def get_template_names(self):
-            usuario = self.request.user
-            lista_permissoes = get_parlamentar_permissions()
+            return ['crud/detail.html']\
+                if self.request.user.has_perm(self.permission(RP_CHANGE))\
+                else ['parlamentares/parlamentar_perfil_publico.html']
 
-            if usuario.has_perms(lista_permissoes):
-                return ['crud/detail.html']
-
-            else:
-                return ['parlamentares/parlamentar_perfil_publico.html']
-
-    class UpdateView(CrudUpdateView):
+    class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
-        permission_required = permissoes_parlamentares()
 
-    class CreateView(CrudCreateView):
-        form_class = ParlamentarCreateForm
-        permission_required = permissoes_parlamentares()
+    class CreateView(Crud.CreateView):
 
         @property
         def layout_key(self):
             return 'ParlamentarCreate'
 
-    class DeleteView(CrudDeleteView):
-        form_class = ParlamentarCreateForm
-        permission_required = permissoes_parlamentares()
-
-    class ListView(CrudListView):
+    class ListView(Crud.ListView):
+        permission_required = []
         template_name = "parlamentares/parlamentares_list.html"
         paginate_by = None
-        ordering = '-nome_parlamentar'
 
         def take_legislatura_id(self):
-            legislaturas = Legislatura.objects.all().order_by(
-                '-numero')
-
-            if legislaturas:
-                try:
-                    legislatura_id = int(self.request.GET['periodo'])
-                except MultiValueDictKeyError:
-                    for l in Legislatura.objects.all():
-                        if l.atual():
-                            return l.id
-                return legislatura_id
-            else:
+            try:
+                return int(self.request.GET['periodo'])
+            except:
+                for l in Legislatura.objects.all():
+                    if l.atual():
+                        return l.id
                 return 0
 
         def get_queryset(self):
-            if self.take_legislatura_id() != 0:
-                mandatos = Mandato.objects.filter(
-                    legislatura_id=self.take_legislatura_id()).order_by(
-                        'parlamentar__nome_parlamentar')
-                return mandatos
-            return []
+            queryset = super().get_queryset()
 
-        def get_rows(self, object_list):
-            parlamentares = []
-            for m in object_list:
-                ultima_filiacao = m.parlamentar.filiacao_set.order_by(
-                    '-data').first()
-                if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
-                    partido = ultima_filiacao.partido.sigla
-                else:
-                    partido = _('Sem Partido')
-
-                parlamentar = [
-                    ("<img src=" + m.parlamentar.fotografia.url + " \
-                     height='42' width='42' />" if m.parlamentar.fotografia
-                     else '', ''),
-                    (m.parlamentar.nome_parlamentar, m.parlamentar.id),
-                    (partido, None),
-                    ('Sim' if m.parlamentar.ativo else 'Não', None)
-                ]
-                parlamentares.append(parlamentar)
-            return parlamentares
+            legislatura_id = self.take_legislatura_id()
+            if legislatura_id != 0:
+                queryset = queryset.filter(
+                    mandato__legislatura_id=legislatura_id)
+            return queryset
 
         def get_headers(self):
-            return ['', 'Parlamentar', 'Partido', 'Ativo?']
+            return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
 
         def get_context_data(self, **kwargs):
-            context = super(ParlamentarCrud.ListView, self
-                            ).get_context_data(**kwargs)
-            context.setdefault('title', self.verbose_name_plural)
+            context = super().get_context_data(**kwargs)
 
             # Adiciona legislatura para filtrar parlamentares
-            legislaturas = Legislatura.objects.all().order_by(
-                '-numero')
+            legislaturas = Legislatura.objects.all().order_by('-numero')
             context['legislaturas'] = legislaturas
             context['legislatura_id'] = self.take_legislatura_id()
+
+            # Tira Link do avatar_html e coloca no nome
+            for row in context['rows']:
+                row[1] = (row[1][0], row[0][1])
+                row[0] = (row[0][0], None)
             return context
 
 

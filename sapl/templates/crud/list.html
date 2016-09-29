@@ -52,7 +52,7 @@
         {% for value, href in value_list %}
         <td>
           {% if href %}
-          <a href="{{ href }}">{{ value }}</a>
+          <a href="{{ href }}">{{ value|safe }}</a>
           {% elif valu != 'core.Cep.None' %}
             {{ value|safe }}
           {% endif %}
