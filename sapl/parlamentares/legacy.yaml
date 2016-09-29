@@ -1,4 +1,5 @@
 Legislatura:
+  numero: num_legislatura
   data_eleicao: dat_eleicao
   data_fim: dat_fim
   data_inicio: dat_inicio
