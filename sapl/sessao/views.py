@@ -25,7 +25,8 @@ from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import (Parlamentar, SessaoLegislativa,
+                                       Legislatura)
 from sapl.sessao.serializers import SessaoPlenariaSerializer
 from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
 
@@ -484,6 +485,13 @@ class SessaoCrud(Crud):
 
     class CreateView(PermissionRequiredMixin, CrudCreateView):
         permission_required = permissoes_sessao()
+
+        def get_initial(self):
+            legislatura = Legislatura.objects.order_by('-numero')[0]
+            sessao_legislativa = SessaoLegislativa.objects.order_by(
+                '-data_inicio')[0]
+            return {'legislatura': legislatura,
+                    'sessao_legislativa': sessao_legislativa}
 
     class UpdateView(PermissionRequiredMixin, CrudUpdateView):
         permission_required = permissoes_sessao()
