@@ -13,6 +13,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
@@ -54,8 +55,19 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-
 AnexadaCrud = Crud.build(Anexada, '')
+
+
+def recuperar_materia(request):
+    tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
+    materia = MateriaLegislativa.objects.filter(tipo=tipo).last()
+    if materia:
+        response = JsonResponse({'numero': materia.numero + 1,
+                                 'ano': datetime.now().year})
+    else:
+        response = JsonResponse({'numero': 1, 'ano': datetime.now().year})
+
+    return response
 
 
 class OrigemCrud(Crud):

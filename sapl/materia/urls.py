@@ -19,7 +19,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoDocumentoCrud, TipoFimRelatoriaCrud,
                                 TipoMateriaCrud, TipoProposicaoCrud,
                                 TramitacaoCrud, TramitacaoEmLoteView,
-                                UnidadeTramitacaoCrud)
+                                UnidadeTramitacaoCrud, recuperar_materia)
 
 from .apps import AppConfig
 
@@ -35,6 +35,8 @@ urlpatterns = [
                               TramitacaoCrud.get_urls() +
                               RelatoriaCrud.get_urls() +
                               DocumentoAcessorioCrud.get_urls())),
+
+    url(r'^materia/recuperar-materia', recuperar_materia),
 
     url(r'''^confirmar/(?P<uidb64>[0-9A-Za-z_\-]+)/
         (?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$''',

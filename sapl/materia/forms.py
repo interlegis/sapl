@@ -17,6 +17,7 @@ from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
+from sapl.parlamentares.models import Parlamentar
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
                         autor_modal)
@@ -189,6 +190,11 @@ class RelatoriaForm(ModelForm):
                   'data_destituicao_relator', 'tipo_fim_relatoria']
 
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+
+    def __init__(self, *args, **kwargs):
+            super(RelatoriaForm, self).__init__(*args, **kwargs)
+            self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+                ativo=True).order_by('nome_completo')
 
     def clean(self):
         cleaned_data = self.cleaned_data

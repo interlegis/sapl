@@ -164,8 +164,8 @@ class LegislacaoCitada(models.Model):
         max_length=3, blank=True, verbose_name=_('Item'))
 
     class Meta:
-        verbose_name = _('Matéria Legislativa')
-        verbose_name_plural = _('Matérias Legislativas')
+        verbose_name = _('Legislação')
+        verbose_name_plural = _('Legislações')
 
 
 class VinculoNormaJuridica(models.Model):
