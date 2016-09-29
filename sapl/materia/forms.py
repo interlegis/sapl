@@ -474,7 +474,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  'autoria__partido',
+                  'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
@@ -510,7 +510,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
-        self.filters['autoria__partido'].label = 'Partido do Autor'
+        self.filters['autoria__autor__partido'].label = 'Partido do Autor'
         self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
 
         row1 = to_row(
@@ -532,7 +532,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
             [('autoria__autor__tipo', 6),
-             ('autoria__partido', 6)])
+             ('autoria__autor__partido', 6)])
         row6 = to_row(
             [('relatoria__parlamentar_id', 6),
              ('local_origem_externa', 6)])
@@ -616,7 +616,7 @@ class AutoriaForm(ModelForm):
 
     class Meta:
         model = Autoria
-        fields = ['autor', 'partido', 'primeiro_autor']
+        fields = ['autor', 'primeiro_autor']
 
     def clean(self):
         if self.errors:
