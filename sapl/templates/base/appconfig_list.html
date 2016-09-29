@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load common_tags %}
 
+{% block base_content %}
   <div class="actions btn-group pull-right" role="group">
   {% if user|get_config_not_exists %}
     <a href="{{ view.create_url }}" class="btn btn-default">
@@ -14,7 +15,6 @@
 <br/><br/>
 {% block extra_content %} {% endblock %}
 
-{% block base_content %}
 {% if not rows %}
   <p>{{ NO_ENTRIES_MSG }}</p>
 {% else %}
