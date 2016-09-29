@@ -1,20 +1,16 @@
 from builtins import LookupError
 
 from django.apps import apps
-from django.conf.urls import include, url
 from django.contrib.auth.management import _get_all_permissions
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
-from django.db import models
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import permissions
+from django.utils.translation import string_concat
 
 from sapl.utils import UF, YES_NO_CHOICES
-
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))

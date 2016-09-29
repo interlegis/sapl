@@ -4,21 +4,17 @@ from braces.views import FormMessagesMixin
 from compressor.utils.decorators import cached_property
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field
+from crispy_forms.layout import Field, Layout
 from django import forms
-from django.apps import apps
 from django.conf.urls import url
-from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core import exceptions
 from django.core.urlresolvers import reverse
-from django.db import models, router
-from django.db.utils import DEFAULT_DB_ALIAS
+from django.db import models
 from django.http.response import Http404
-from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _, string_concat
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -26,7 +22,6 @@ from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.utils import normalize
-
 
 logger = logging.getLogger(__name__)
 
@@ -1056,7 +1051,8 @@ class MasterDetailCrud(Crud):
         @property
         def detail_list_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
-            if not obj.ListView.permission_required or self.request.user.has_perm(self.permission(RP_LIST)):
+            if not obj.ListView.permission_required or\
+                    self.request.user.has_perm(self.permission(RP_LIST)):
                 if '__' in obj.parent_field:
                     fields = obj.parent_field.split('__')
                     parent_object = self.object
@@ -1121,13 +1117,13 @@ class MasterDetailCrud(Crud):
         @property
         def detail_root_detail_url(self):
             """
-            Implementar retorno para o parent_field imediato no caso de 
+            Implementar retorno para o parent_field imediato no caso de
             edição em cascata de MasterDetailDetail...
             """
             return ''
             obj = self.crud if hasattr(self, 'crud') else self
             if hasattr(obj, 'parent_field'):
-                parent_field = obj.parent_field.split('__')[0]
+                # parent_field = obj.parent_field.split('__')[0]
 
                 root_pk = self.object .pk
                 pk = root_pk

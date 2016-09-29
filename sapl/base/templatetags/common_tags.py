@@ -127,6 +127,7 @@ def get_config_not_exists(user):
     else:
         return False
 
+
 @register.filter
 def str2intabs(value):
     if not isinstance(value, str):

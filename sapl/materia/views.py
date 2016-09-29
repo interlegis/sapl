@@ -28,7 +28,7 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, make_pagination, MasterDetailCrud)
+                            CrudUpdateView, MasterDetailCrud, make_pagination)
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,

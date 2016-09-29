@@ -1,13 +1,9 @@
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
+
 from django.core.urlresolvers import reverse
 from django.views.generic import ListView
 
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudListView, CrudUpdateView,
-                            MasterDetailCrud, CrudAux)
-from sapl.materia.models import MateriaLegislativa, Tramitacao
-from sapl.utils import permissao_tb_aux, permissoes_comissoes
+from sapl.crud.base import Crud, CrudAux, MasterDetailCrud
+from sapl.materia.models import MateriaLegislativa
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
@@ -77,7 +73,7 @@ class MateriasTramitacaoListView(ListView):
         materias = MateriaLegislativa.objects.filter(tramitacao__isnull=False)
         for materia in materias:
             comissao = materia.tramitacao_set.last(
-                ).unidade_tramitacao_local.comissao
+            ).unidade_tramitacao_local.comissao
             if comissao:
                 if comissao.pk == int(self.kwargs['pk']):
                     lista.append(materia)

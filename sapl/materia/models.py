@@ -6,8 +6,8 @@ from model_utils import Choices
 from sapl.comissoes.models import Comissao
 from sapl.parlamentares.models import Parlamentar, Partido
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        restringe_tipos_de_arquivo_txt, xstr,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model,
+                        restringe_tipos_de_arquivo_txt, xstr)
 
 
 def grupo_autor():

@@ -18,7 +18,7 @@ from rest_framework import generics
 
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, make_pagination, MasterDetailCrud)
+                            CrudUpdateView, MasterDetailCrud, make_pagination)
 from sapl.materia.forms import pega_ultima_tramitacao
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
@@ -41,7 +41,6 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
-
 
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')

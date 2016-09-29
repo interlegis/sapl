@@ -1,8 +1,8 @@
+import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
-import pytest
 
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autor, Autoria, DespachoInicial,

@@ -12,7 +12,6 @@ from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioMateriasTramitacaoView,
                     RelatorioPresencaSessaoView)
 
-
 app_name = AppConfig.name
 
 
