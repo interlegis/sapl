@@ -63,6 +63,7 @@ class SessaoLegislativa(models.Model):
     class Meta:
         verbose_name = _('Sessão Legislativa')
         verbose_name_plural = _('Sessões Legislativas')
+        ordering = ['-data_inicio', '-data_fim']
 
     def __str__(self):
         return _('%(numero)sº (%(inicio)s - %(fim)s)') % {
