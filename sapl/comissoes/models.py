@@ -98,8 +98,11 @@ class Periodo(models.Model):  # PeriodoCompComissao
         verbose_name_plural = _('Períodos de composição de Comissão')
 
     def __str__(self):
-        return '%s - %s' % (self.data_inicio.strftime("%d/%m/%Y"),
-                            self.data_fim.strftime("%d/%m/%Y"))
+        if self.data_inicio and self.data_fim:
+            return '%s - %s' % (self.data_inicio.strftime("%d/%m/%Y"),
+                                self.data_fim.strftime("%d/%m/%Y"))
+        else:
+            return '-'
 
 
 class CargoComissao(models.Model):

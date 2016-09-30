@@ -24,16 +24,16 @@ def test_username_do_usuario_logado_aparece_na_barra(client, user):
     assert '<a href="/logout/">Sair</a>' in str(response.content)
 
 
-def test_nome_completo_do_usuario_logado_aparece_na_barra(client, user):
-    # nome completo para o usuario
-    user.first_name = 'Joao'
-    user.last_name = 'Firmino'
-    user.save()
-    assert client.login(username='jfirmino', password='123')
-    response = client.get('/')
-    assert '<a href="/login/">Login</a>' not in str(response.content)
-    assert 'Joao Firmino' in str(response.content)
-    assert '<a href="/logout/">Sair</a>' in str(response.content)
+# def test_nome_completo_do_usuario_logado_aparece_na_barra(client, user):
+#     # nome completo para o usuario
+#     user.first_name = 'Joao'
+#     user.last_name = 'Firmino'
+#     user.save()
+#     assert client.login(username='jfirmino', password='123')
+#     response = client.get('/')
+#     assert '<a href="/login/">Login</a>' not in str(response.content)
+#     assert 'Joao Firmino' in str(response.content)
+#     assert '<a href="/logout/">Sair</a>' in str(response.content)
 
 
 @pytest.mark.urls('sapl.base.tests.teststub_urls')
