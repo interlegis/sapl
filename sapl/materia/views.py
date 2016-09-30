@@ -679,6 +679,14 @@ class TramitacaoCrud(MasterDetailCrud):
         form_class = TramitacaoForm
         permission_required = permissoes_materia()
 
+        def get_initial(self):
+            local = MateriaLegislativa.objects.get(
+                pk=self.kwargs['pk']).tramitacao_set.last()
+            if local:
+                self.initial['unidade_tramitacao_local'
+                             ] = local.unidade_tramitacao_destino.pk
+            return self.initial
+
         def post(self, request, *args, **kwargs):
             materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
             do_envia_email_tramitacao(request, materia)

@@ -224,6 +224,10 @@ class TramitacaoForm(ModelForm):
                   'data_fim_prazo',
                   'texto']
 
+    def __init__(self, *args, **kwargs):
+        super(TramitacaoForm, self).__init__(*args, **kwargs)
+        self.fields['data_tramitacao'].initial = datetime.now()
+
     def clean(self):
 
         if 'data_encaminhamento' in self.data:
