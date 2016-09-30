@@ -178,12 +178,11 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 
 BOWER_COMPONENTS_ROOT = PROJECT_DIR.child("bower")
 BOWER_INSTALLED_APPS = (
-    'jquery#3.1.0',
+    'jquery#3.1.1',
     'bootstrap-sass#3.3.7',
     'components-font-awesome#4.5.0',
     'tinymce#4.3.8',
     'jquery-ui#1.12.1',
-    'jquery-runner#2.3.3',
     'jQuery-Mask-Plugin#1.14.0',
     'jsdiff#2.2.2',
     'https://github.com/hoarrd/drunken-parrot-flat-ui.git',
