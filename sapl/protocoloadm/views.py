@@ -1,8 +1,9 @@
-import json
 from datetime import date, datetime
+import json
 
-from braces.views import FormValidMessageMixin, PermissionRequiredMixin
+from braces.views import FormValidMessageMixin
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
@@ -13,14 +14,16 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-import sapl.crud.base
+from sapl.base.apps import AppConfig as AppsAppConfig
 from sapl.base.models import AppConfig
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, MasterDetailCrud, make_pagination)
+                            CrudUpdateView, MasterDetailCrud, make_pagination,
+                            CrudAux)
 from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
                         permissoes_protocoloadm)
+import sapl.crud.base
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -33,78 +36,56 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      TipoDocumentoAdministrativo, TipoInstituicao,
                      TramitacaoAdministrativo)
 
-TipoDocumentoAdministrativoCrud = Crud.build(TipoDocumentoAdministrativo, '')
-DocumentoAcessorioAdministrativoCrud = Crud.build(
-    DocumentoAcessorioAdministrativo, '')
+
+TipoDocumentoAdministrativoCrud = CrudAux.build(
+    TipoDocumentoAdministrativo, '')
+TipoInstituicaoCrud = CrudAux.build(TipoInstituicao, '')
+
+
 ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
 ProtocoloMateriaCrud = Crud.build(Protocolo, '')
-TipoInstituicaoCrud = Crud.build(TipoInstituicao, '')
+
+
+DocumentoAcessorioAdministrativoCrud = Crud.build(
+    DocumentoAcessorioAdministrativo, '')
+
+
+class DocumentoAdministrativoMixin:
+
+    def has_permission(self):
+        app_config = AppConfig.objects.last()
+        if app_config and app_config.documentos_administrativos == 'O':
+            return True
+
+        return self.request.user.has_module_perms(AppsAppConfig.label)
 
 
 class DocumentoAdministrativoCrud(Crud):
     model = DocumentoAdministrativo
     help_path = ''
 
-    class BaseMixin(sapl.crud.base.CrudBaseMixin):
+    class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
                             'numero_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
-    class CreateView(CrudCreateView):
-        permission_required = permissoes_adm()
+    class ListView(Crud.ListView, DocumentoAdministrativoMixin):
+        pass
 
-    class UpdateView(CrudUpdateView):
-        permission_required = permissoes_adm()
-
-    class DeleteView(CrudDeleteView):
-        permission_required = permissoes_adm()
-
-    class ListView(CrudListView):
-        permission_required = permissoes_adm()
-
-        def has_permission(self):
-            app_config = AppConfig.objects.last()
-
-            if app_config:
-                if app_config.documentos_administrativos == 'O':
-                    return True
-
-            perms = self.get_permission_required()
-            return self.request.user.has_perms(perms)
-
-    class DetailView(CrudDetailView):
-        permission_required = permissoes_adm()
-
-        def has_permission(self):
-            app_config = AppConfig.objects.last()
-
-            if app_config:
-                if app_config.documentos_administrativos == 'O':
-                    return True
-
-            perms = self.get_permission_required()
-            return self.request.user.has_perms(perms)
+    class DetailView(Crud.DetailView, DocumentoAdministrativoMixin):
+        pass
 
 
-class StatusTramitacaoAdministrativoCrud(Crud):
+class StatusTramitacaoAdministrativoCrud(CrudAux):
     model = StatusTramitacaoAdministrativo
     help_path = ''
 
-    class BaseMixin(CrudBaseMixin):
+    class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['sigla', 'indicador', 'descricao']
 
-    class ListView(CrudListView):
+    class ListView(CrudAux.ListView):
         ordering = 'sigla'
-
-    class CreateView(CrudCreateView):
-        permission_required = permissoes_adm()
-
-    class UpdateView(CrudUpdateView):
-        permission_required = permissoes_adm()
-
-    class DeleteView(CrudDeleteView):
-        permission_required = permissoes_adm()
 
 
 class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
@@ -392,21 +373,12 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
 
 class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
-                                           FilterView):
+                                           FilterView,
+                                           DocumentoAdministrativoMixin):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
     permission_required = permissoes_adm()
-
-    def has_permission(self):
-        app_config = AppConfig.objects.last()
-
-        if app_config:
-            if app_config.documentos_administrativos == 'O':
-                return True
-
-        perms = self.get_permission_required()
-        return self.request.user.has_perms(perms)
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
@@ -603,45 +575,20 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoAdmForm
-        permission_required = permissoes_adm()
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
-        permission_required = permissoes_adm()
 
-    class DeleteView(MasterDetailCrud.DeleteView):
-        permission_required = permissoes_adm()
-
-    class ListView(MasterDetailCrud.ListView):
-        permission_required = permissoes_adm()
+    class ListView(MasterDetailCrud.ListView, DocumentoAdministrativoMixin):
 
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
-        def has_permission(self):
-            app_config = AppConfig.objects.last()
-
-            if app_config:
-                if app_config.documentos_administrativos == 'O':
-                    return True
-
-            perms = self.get_permission_required()
-            return self.request.user.has_perms(perms)
-
-    class DetailView(MasterDetailCrud.DetailView):
-        permission_required = permissoes_adm()
-
-        def has_permission(self):
-            app_config = AppConfig.objects.last()
-
-            if app_config:
-                if app_config.documentos_administrativos == 'O':
-                    return True
-
-            perms = self.get_permission_required()
-            return self.request.user.has_perms(perms)
+    class DetailView(MasterDetailCrud.DetailView,
+                     DocumentoAdministrativoMixin):
+        pass
 
 
 def get_nome_autor(request):
