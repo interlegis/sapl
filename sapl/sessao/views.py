@@ -1,9 +1,9 @@
 from datetime import datetime
 from re import sub
 
-from braces.views import PermissionRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -19,8 +19,10 @@ from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 from rest_framework import generics
 
+from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
-                            MasterDetailCrud, make_pagination)
+                            MasterDetailCrud, make_pagination,
+                            PermissionRequiredForAppCrudMixin)
 from sapl.materia.forms import pega_ultima_tramitacao
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
@@ -29,8 +31,9 @@ from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import (Legislatura, Parlamentar,
                                        SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
+from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.sessao.serializers import SessaoPlenariaSerializer
-from sapl.utils import permissoes_painel, permissoes_sessao
+from sapl.utils import permissoes_painel,  permission_required_for_app
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, PautaSessaoFilterSet,
@@ -43,9 +46,9 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
+
 #OrdemDiaCrud = Crud.build(OrdemDia, '')
 #RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
-
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -129,12 +132,14 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             'resultado']
 
     class CreateView(MasterDetailCrud.CreateView):
+        form_class = OrdemDiaForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
                            kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OrdemDiaForm
 
         def get_initial(self):
             self.initial['tipo_materia'] = self.object.materia.tipo.id
@@ -299,35 +304,40 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                         obj.resultado = btn_abrir
                 else:
                     url = ''
-                    if obj.tipo_votacao == 1:
-                        url = reverse('sapl.sessao:votacaosimbolicaexpedit',
-                                      kwargs={
-                                          'pk': obj.sessao_plenaria_id,
-                                          'oid': obj.materia_id,
-                                          'mid': obj.pk})
-                    elif obj.tipo_votacao == 2:
-                        url = reverse('sapl.sessao:votacaonominalexpedit',
-                                      kwargs={
-                                          'pk': obj.sessao_plenaria_id,
-                                          'oid': obj.materia_id,
-                                          'mid': obj.pk})
-                    elif obj.tipo_votacao == 3:
-                        url = reverse('sapl.sessao:votacaosecretaexpedit',
-                                      kwargs={
-                                          'pk': obj.sessao_plenaria_id,
-                                          'oid': obj.materia_id,
-                                          'mid': obj.pk})
-                    obj.resultado = '<a href="%s">%s</a>' % (url,
-                                                             obj.resultado)
+
+                    if self.request.user.has_module_perms(AppConfig.label):
+                        if obj.tipo_votacao == 1:
+                            url = reverse(
+                                'sapl.sessao:votacaosimbolicaexpedit',
+                                kwargs={
+                                    'pk': obj.sessao_plenaria_id,
+                                    'oid': obj.materia_id,
+                                    'mid': obj.pk})
+                        elif obj.tipo_votacao == 2:
+                            url = reverse('sapl.sessao:votacaonominalexpedit',
+                                          kwargs={
+                                              'pk': obj.sessao_plenaria_id,
+                                              'oid': obj.materia_id,
+                                              'mid': obj.pk})
+                        elif obj.tipo_votacao == 3:
+                            url = reverse('sapl.sessao:votacaosecretaexpedit',
+                                          kwargs={
+                                              'pk': obj.sessao_plenaria_id,
+                                              'oid': obj.materia_id,
+                                              'mid': obj.pk})
+                        obj.resultado = '<a href="%s">%s</a>' % (url,
+                                                                 obj.resultado)
             return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):
+        form_class = ExpedienteMateriaForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:expedientemateria_list',
                            kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ExpedienteMateriaForm
 
         def get_initial(self):
             self.initial['tipo_materia'] = self.object.materia.tipo.id
@@ -393,9 +403,6 @@ class SessaoCrud(Crud):
         list_field_names = ['data_inicio', 'legislatura', 'sessao_legislativa',
                             'tipo']
 
-    class CrudDetailView(DetailView):
-        model = SessaoPlenaria
-
     class ListView(Crud.ListView):
         ordering = ['-data_inicio']
 
@@ -407,6 +414,13 @@ class SessaoCrud(Crud):
                 '-data_inicio')[0]
             return {'legislatura': legislatura,
                     'sessao_legislativa': sessao_legislativa}
+
+
+class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,
+                            FormMixin,
+                            DetailView):
+    model = SessaoPlenaria
+    app_label = AppConfig.label,
 
 
 class PresencaMixin:
@@ -445,14 +459,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
     form_class = PresencaForm
     model = SessaoPlenaria
 
-    @method_decorator(permission_required((
-        '%s.add_%s' % (
-            AppConfig.label, SessaoPlenariaPresenca._meta.model_name),
-        '%s.change_%s' % (
-            AppConfig.label, SessaoPlenariaPresenca._meta.model_name),
-        '%s.delete_%s' % (
-            AppConfig.label, SessaoPlenariaPresenca._meta.model_name),
-    )))
+    @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
@@ -492,9 +499,31 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
         return reverse('sapl.sessao:presenca', kwargs={'pk': pk})
 
 
-class PainelView(PermissionRequiredMixin, TemplateView):
+class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
     template_name = 'sessao/painel.html'
-    permission_required = permissoes_painel()
+    app_label = 'painel'
+
+    def has_permission(self):
+        painel_aberto = AppsAppConfig.attr('painel_aberto')
+
+        if painel_aberto and self.request.user.is_anonymous():
+            return True
+
+        return PermissionRequiredForAppCrudMixin.has_permission(self)
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous():
+            self.template_name = 'painel/index.html'
+        return TemplateView.get(self, request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+
+        context = TemplateView.get_context_data(self, **kwargs)
+        context.update({
+            'head_title': str(_('Painel Plenário')),
+            'sessao_id': kwargs['pk']})
+
+        return context
 
 
 class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
@@ -502,20 +531,13 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
     form_class = PresencaForm
     model = SessaoPlenaria
 
-    @method_decorator(permission_required((
-        '%s.add_%s' % (AppConfig.label, PresencaOrdemDia._meta.model_name),
-        '%s.change_%s' % (AppConfig.label, PresencaOrdemDia._meta.model_name),
-        '%s.delete_%s' % (AppConfig.label, PresencaOrdemDia._meta.model_name),
-    )))
+    @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
 
         self.object = self.get_object()
         form = self.get_form()
 
         pk = kwargs['pk']
-
-        if not self.request.user.has_perms(permissoes_sessao()):
-            return self.form_invalid(form)
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
@@ -589,11 +611,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
         return self.render_to_response(context)
 
-    @method_decorator(permission_required((
-        '%s.add_%s' % (AppConfig.label, OrdemDia._meta.model_name),
-        '%s.change_%s' % (AppConfig.label, OrdemDia._meta.model_name),
-        '%s.delete_%s' % (AppConfig.label, OrdemDia._meta.model_name),
-    )))
+    @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
@@ -684,11 +702,7 @@ class MesaView(FormMixin, DetailView):
 
         return self.render_to_response(context)
 
-    @method_decorator(permission_required((
-        '%s.add_integrantemesa' % AppConfig.label,
-        '%s.change_integrantemesa' % AppConfig.label,
-        '%s.delete_integrantemesa' % AppConfig.label,
-    )))
+    @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = MesaForm(request.POST)
@@ -759,8 +773,9 @@ class MesaView(FormMixin, DetailView):
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
 
 
-class ResumoView(SessaoCrud.CrudDetailView):
+class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
+    model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -931,17 +946,15 @@ class ResumoView(SessaoCrud.CrudDetailView):
         return self.render_to_response(context)
 
 
-class ExpedienteView(FormMixin,
-                     SessaoCrud.CrudDetailView):
+class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'
     form_class = ExpedienteForm
+    model = SessaoPlenaria
 
+    @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = ExpedienteForm(request.POST)
-
-        if not self.request.user.has_perms(permissoes_sessao()):
-            return self.form_invalid(form)
 
         if form.is_valid():
             list_tipo = request.POST.getlist('tipo')
@@ -999,16 +1012,13 @@ class ExpedienteView(FormMixin,
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
 
 
-class VotacaoEditView(PermissionRequiredMixin,
-                      FormMixin,
-                      SessaoCrud.CrudDetailView):
+class VotacaoEditView(SessaoPermissionMixin):
 
     '''
         Votação Simbólica e Secreta
     '''
 
     template_name = 'sessao/votacao/votacao_edit.html'
-    permission_required = permissoes_sessao()
 
     def post(self, request, *args, **kwargs):
 
@@ -1075,9 +1085,7 @@ class VotacaoEditView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoView(PermissionRequiredMixin,
-                  FormMixin,
-                  SessaoCrud.CrudDetailView):
+class VotacaoView(SessaoPermissionMixin):
 
     '''
         Votação Simbólica e Secreta
@@ -1085,7 +1093,6 @@ class VotacaoView(PermissionRequiredMixin,
 
     template_name = 'sessao/votacao/votacao.html'
     form_class = VotacaoForm
-    permission_required = permissoes_sessao()
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1197,11 +1204,8 @@ class VotacaoView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalView(PermissionRequiredMixin,
-                         FormMixin,
-                         SessaoCrud.CrudDetailView):
+class VotacaoNominalView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal.html'
-    permission_required = permissoes_sessao()
 
     def get(self, request, *args, **kwargs):
         ordem_id = kwargs['mid']
@@ -1325,11 +1329,8 @@ class VotacaoNominalView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalEditView(PermissionRequiredMixin,
-                             FormMixin,
-                             SessaoCrud.CrudDetailView):
+class VotacaoNominalEditView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal_edit.html'
-    permission_required = permissoes_sessao()
 
     def get(self, request, *args, **kwargs):
         context = {}
@@ -1405,11 +1406,8 @@ class VotacaoNominalEditView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalExpedienteView(PermissionRequiredMixin,
-                                   FormMixin,
-                                   SessaoCrud.CrudDetailView):
+class VotacaoNominalExpedienteView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal.html'
-    permission_required = permissoes_sessao()
 
     def get(self, request, *args, **kwargs):
         expediente_id = kwargs['mid']
@@ -1531,11 +1529,8 @@ class VotacaoNominalExpedienteView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoNominalExpedienteEditView(PermissionRequiredMixin,
-                                       FormMixin,
-                                       SessaoCrud.CrudDetailView):
+class VotacaoNominalExpedienteEditView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal_edit.html'
-    permission_required = permissoes_sessao()
 
     def get(self, request, *args, **kwargs):
         context = {}
@@ -1610,9 +1605,7 @@ class VotacaoNominalExpedienteEditView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoExpedienteView(PermissionRequiredMixin,
-                            FormMixin,
-                            SessaoCrud.CrudDetailView):
+class VotacaoExpedienteView(SessaoPermissionMixin):
 
     '''
         Votação Simbólica e Secreta
@@ -1620,7 +1613,6 @@ class VotacaoExpedienteView(PermissionRequiredMixin,
 
     template_name = 'sessao/votacao/votacao.html'
     form_class = VotacaoForm
-    permission_required = permissoes_sessao()
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1734,9 +1726,7 @@ class VotacaoExpedienteView(PermissionRequiredMixin,
                        kwargs={'pk': pk})
 
 
-class VotacaoExpedienteEditView(PermissionRequiredMixin,
-                                FormMixin,
-                                SessaoCrud.CrudDetailView):
+class VotacaoExpedienteEditView(SessaoPermissionMixin):
 
     '''
         Votação Simbólica e Secreta
@@ -1744,7 +1734,6 @@ class VotacaoExpedienteEditView(PermissionRequiredMixin,
 
     template_name = 'sessao/votacao/votacao_edit.html'
     form_class = VotacaoEditForm
-    permission_required = permissoes_sessao()
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -1835,8 +1824,9 @@ class PautaSessaoListView(SessaoListView):
     template_name = "sessao/pauta_sessao_list.html"
 
 
-class PautaSessaoDetailView(SessaoCrud.CrudDetailView):
+class PautaSessaoDetailView(DetailView):
     template_name = "sessao/pauta_sessao_detail.html"
+    model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1946,8 +1936,9 @@ class SessaoPlenariaView(generics.ListAPIView):
     serializer_class = SessaoPlenariaSerializer
 
 
-class PautaExpedienteDetail(SessaoCrud.CrudDetailView):
+class PautaExpedienteDetail(DetailView):
     template_name = "sessao/pauta/expediente.html"
+    model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
@@ -1964,8 +1955,9 @@ class PautaExpedienteDetail(SessaoCrud.CrudDetailView):
              'tramitacao': tramitacao})
 
 
-class PautaOrdemDetail(SessaoCrud.CrudDetailView):
+class PautaOrdemDetail(DetailView):
     template_name = "sessao/pauta/ordem.html"
+    model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
@@ -2063,11 +2055,11 @@ def retira_materias_ja_adicionadas(id_sessao, model):
     return lista_id_materias
 
 
-class AdicionarVariasMateriasExpediente(PermissionRequiredMixin,
+class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                                         MateriaLegislativaPesquisaView):
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_expediente.html'
-    permission_required = permissoes_sessao()
+    app_label = AppConfig.label
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasMateriasExpediente,
@@ -2143,7 +2135,6 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredMixin,
 class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_ordem.html'
-    permission_required = permissoes_sessao()
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasMateriasExpediente,

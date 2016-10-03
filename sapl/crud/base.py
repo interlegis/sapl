@@ -158,11 +158,25 @@ class ListWithSearchForm(forms.Form):
         )
 
 
+class PermissionRequiredForAppCrudMixin(PermissionRequiredMixin):
+
+    def has_permission(self):
+        apps = self.app_label
+        if isinstance(apps, str):
+            apps = apps,
+        # papp_label vazio dará acesso geral
+        for app in apps:
+            if not self.request.user.has_module_perms(app):
+                return False
+        return True
+
+
 class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 
     def has_permission(self):
         perms = self.get_permission_required()
-        # Torna a view pública se não possuir o atributo permission_required
+        # Torna a view pública se não possuir conteudo
+        # no atributo permission_required
         return self.request.user.has_perms(perms) if len(perms) else True
 
     def dispatch(self, request, *args, **kwargs):
@@ -673,7 +687,10 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
         return DetailView.get_object(self, queryset=queryset)
 
     def get(self, request, *args, **kwargs):
-        self.object = self.model.objects.get(pk=kwargs.get('pk'))
+        try:
+            self.object = self.model.objects.get(pk=kwargs.get('pk'))
+        except:
+            raise Http404
         obj = self.crud if hasattr(self, 'crud') else self
         if hasattr(obj, 'model_set') and obj.model_set:
             self.object_list = self.get_queryset()

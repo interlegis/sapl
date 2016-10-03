@@ -107,6 +107,15 @@ class AppConfig(models.Model):
             ('view_tabelas_auxiliares', _('Visualizar Tabelas Auxiliares')),
         )
 
+    @classmethod
+    def attr(cls, attr):
+        config = AppConfig.objects.first()
+
+        if not config:
+            return ''
+
+        return getattr(config, attr)
+
     def __str__(self):
         return _('Configurações da Aplicação - %(id)s') % {
             'id': self.id}
