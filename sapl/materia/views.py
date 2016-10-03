@@ -27,8 +27,10 @@ from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux, CrudDetailView,
-                            MasterDetailCrud, make_pagination)
-from sapl.materia.forms import AnexadaForm
+                            MasterDetailCrud, make_pagination,
+                            ACTION_CREATE, ACTION_UPDATE, ACTION_LIST,
+                            ACTION_DELETE)
+from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
@@ -51,8 +53,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Tramitacao, UnidadeTramitacao)
 
 
-AnexadaCrud = Crud.build(Anexada, '')
-
+#AnexadaCrud = Crud.build(Anexada, '')
 OrigemCrud = Crud.build(Origem, '')
 
 TipoMateriaCrud = CrudAux.build(
@@ -720,7 +721,37 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             return reverse('%s:%s' % (namespace, self.url_name(suffix)),
                            args=args)
 
+        def has_permission(self):
+            return self.request.user.has_module_perms('materia')
+
+        @property
+        def list_url(self):
+            return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],))\
+                if self.request.user.has_module_perms('materia') else ''
+
+        @property
+        def create_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.CreateView:
+                return ''
+            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
+                if self.request.user.has_module_perms('materia') else ''
+
+        @property
+        def update_url(self):
+            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
+                if self.request.user.has_module_perms('materia') else ''
+
+        @property
+        def delete_url(self):
+            return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
+                if self.request.user.has_module_perms('materia') else ''
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = LegislacaoCitadaForm
+
     class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = LegislacaoCitadaForm
 
         def get_initial(self):
             self.initial['tipo'] = self.object.norma.tipo.id
@@ -750,6 +781,18 @@ class AnexadaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['materia_anexada', 'data_anexacao']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexadaForm
+
+        def get_initial(self):
+            self.initial['tipo'] = self.object.materia_anexada.tipo.id
+            self.initial['numero'] = self.object.materia_anexada.numero
+            self.initial['ano'] = self.object.materia_anexada.ano
+            return self.initial
 
     class DetailView(MasterDetailCrud.DetailView):
 

@@ -316,7 +316,7 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
     def delete_url(self):
         obj = self.crud if hasattr(self, 'crud') else self
         if not obj.DeleteView.permission_required:
-            return self.resolve_url(ACTION_DELETE)
+            return self.resolve_url(ACTION_DELETE, args=(self.object.id,))
         else:
             return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
                 if self.request.user.has_perm(
