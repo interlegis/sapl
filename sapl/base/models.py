@@ -202,8 +202,6 @@ def create_proxy_permissions(
         for perm in perms:
             print("Adding permission '%s'" % perm)
 
-"""
 models.signals.post_migrate.connect(
     receiver=create_proxy_permissions,
     dispatch_uid="django.contrib.auth.management.create_permissions")
-"""
