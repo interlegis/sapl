@@ -5,7 +5,8 @@ from django.views.generic import FormView, ListView
 
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudUpdateView, make_pagination)
+                            CrudDeleteView, CrudUpdateView, make_pagination,
+                            CrudAux, RP_LIST, RP_DETAIL)
 from sapl.utils import permissoes_norma
 
 from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
@@ -15,31 +16,22 @@ from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
 LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 
-class AssuntoNormaCrud(Crud):
-    model = AssuntoNorma
-    help_path = 'assunto_norma_juridica'
-
-    class BaseMixin(CrudBaseMixin):
-        permission_required = permissoes_norma()
-        list_field_names = ['assunto', 'descricao']
+AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
+                                 list_field_names=['assunto', 'descricao'])
 
 
-class TipoNormaCrud(Crud):
-    model = TipoNormaJuridica
-    help_path = 'tipo_norma_juridica'
-
-    class BaseMixin(CrudBaseMixin):
-        permission_required = permissoes_norma()
-        list_field_names = ['equivalente_lexml', 'sigla', 'descricao']
+TipoNormaCrud = CrudAux.build(
+    TipoNormaJuridica, 'tipo_norma_juridica',
+    list_field_names=['equivalente_lexml', 'sigla', 'descricao'])
 
 
 class NormaCrud(Crud):
     model = NormaJuridica
     help_path = 'norma_juridica'
+    public = [RP_LIST, RP_DETAIL]
 
-    class UpdateView(CrudUpdateView):
+    class UpdateView(Crud.UpdateView):
         form_class = NormaJuridicaForm
-        permission_required = permissoes_norma()
 
         @property
         def layout_key(self):
@@ -53,18 +45,14 @@ class NormaCrud(Crud):
                 self.initial['numero_materia'] = norma.materia.numero
             return self.initial.copy()
 
-    class CreateView(CrudCreateView):
+    class CreateView(Crud.CreateView):
         form_class = NormaJuridicaForm
-        permission_required = permissoes_norma()
 
         @property
         def layout_key(self):
             return 'NormaJuridicaCreate'
 
-    class DeleteView(CrudDeleteView):
-        permission_required = permissoes_norma()
-
-    class BaseMixin(CrudBaseMixin):
+    class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'ementa']
 
 
