@@ -2,8 +2,6 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -21,8 +19,8 @@ from rest_framework import generics
 
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
-                            MasterDetailCrud, make_pagination,
-                            PermissionRequiredForAppCrudMixin)
+                            MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import pega_ultima_tramitacao
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
@@ -33,7 +31,7 @@ from sapl.parlamentares.models import (Legislatura, Parlamentar,
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.sessao.serializers import SessaoPlenariaSerializer
-from sapl.utils import permissoes_painel,  permission_required_for_app
+from sapl.utils import permission_required_for_app
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, PautaSessaoFilterSet,
@@ -46,9 +44,8 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
-
-#OrdemDiaCrud = Crud.build(OrdemDia, '')
-#RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+# OrdemDiaCrud = Crud.build(OrdemDia, '')
+# RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -181,9 +178,9 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'mid': obj.pk})
                         if self.request.user.has_module_perms(AppConfig.label):
                             btn_registrar = '''
-                                    <a href="%s"
-                                       class="btn btn-primary"
-                                       role="button">Registrar Votação</a>''' % (
+                            <a href="%s"
+                               class="btn btn-primary"
+                               role="button">Registrar Votação</a>''' % (
                                 url)
                             obj.resultado = btn_registrar
                         else:

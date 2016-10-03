@@ -8,9 +8,7 @@ from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, make_pagination
 from sapl.norma.forms import NormaJuridicaForm
 
 from .forms import NormaJuridicaPesquisaForm
-from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
-                     TipoNormaJuridica)
-
+from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 

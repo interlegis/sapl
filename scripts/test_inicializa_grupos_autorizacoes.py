@@ -1,15 +1,13 @@
+import pytest
 from django.apps import apps
 from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-import pytest
+from django.utils.translation import string_concat
 
 from inicializa_grupos_autorizacoes import cria_grupos_permissoes
-
 
 pytestmark = pytest.mark.django_db
 

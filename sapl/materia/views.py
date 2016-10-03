@@ -26,10 +26,10 @@ from django_filters.views import FilterView
 from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux, CrudDetailView,
-                            MasterDetailCrud, make_pagination,
-                            ACTION_CREATE, ACTION_UPDATE, ACTION_LIST,
-                            ACTION_DELETE, ACTION_DETAIL)
+from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
+                            ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
+                            Crud, CrudAux, CrudDetailView, MasterDetailCrud,
+                            make_pagination)
 from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
@@ -52,8 +52,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
-
-#AnexadaCrud = Crud.build(Anexada, '')
 OrigemCrud = Crud.build(Origem, '')
 
 TipoMateriaCrud = CrudAux.build(

@@ -19,7 +19,7 @@ def subnav(context, path=None):
     Os campos esperados nos arquivos yaml são:
         title
         url
-        check_permission - opcional. quando usado 
+        check_permission - opcional. quando usado
             será realizado o teste de permissão para renderizá-lo.
     """
     menu = None
