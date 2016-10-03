@@ -1086,9 +1086,6 @@ class MasterDetailCrud(Crud):
         def get_url_regex(cls):
             return r'^%s/(?P<pk>\d+)/edit$' % cls.model._meta.model_name
 
-        def get(self, request, *args, **kwargs):
-            return Crud.UpdateView.get(self, request, *args, **kwargs)
-
     class DeleteView(Crud.DeleteView):
         permission_required = RP_DELETE,
 

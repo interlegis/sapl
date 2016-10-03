@@ -364,17 +364,35 @@ class LegislacaoCitadaForm(ModelForm):
         else:
             cleaned_data['norma'] = norma
 
-        if LegislacaoCitada.objects.filter(
+        filtro_base = LegislacaoCitada.objects.filter(
             materia=self.instance.materia,
-            norma=cleaned_data['norma']
-        ).exists():
-            msg = _('Essa Legislação já foi cadastrada.')
-            raise ValidationError(msg)
+            norma=self.cleaned_data['norma'],
+            disposicoes=self.cleaned_data['disposicoes'],
+            parte=self.cleaned_data['parte'],
+            livro=self.cleaned_data['livro'],
+            titulo=self.cleaned_data['titulo'],
+            capitulo=self.cleaned_data['capitulo'],
+            secao=self.cleaned_data['secao'],
+            subsecao=self.cleaned_data['subsecao'],
+            artigo=self.cleaned_data['artigo'],
+            paragrafo=self.cleaned_data['paragrafo'],
+            inciso=self.cleaned_data['inciso'],
+            alinea=self.cleaned_data['alinea'],
+            item=self.cleaned_data['item'])
 
+        if not self.instance.id:
+            if filtro_base.exists():
+                msg = _('Essa Legislação já foi cadastrada.')
+                raise ValidationError(msg)
+        else:
+            if filtro_base.exclude(id=self.instance.id).exists():
+                msg = _('Essa Legislação já foi cadastrada.')
+                raise ValidationError(msg)
         return cleaned_data
 
     def save(self, commit=False):
         legislacao = super(LegislacaoCitadaForm, self).save(commit)
+
         legislacao.norma = self.cleaned_data['norma']
         legislacao.save()
         return legislacao

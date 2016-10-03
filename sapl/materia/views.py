@@ -29,7 +29,7 @@ from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux, CrudDetailView,
                             MasterDetailCrud, make_pagination,
                             ACTION_CREATE, ACTION_UPDATE, ACTION_LIST,
-                            ACTION_DELETE)
+                            ACTION_DELETE, ACTION_DETAIL)
 from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
@@ -731,15 +731,17 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
 
         @property
         def create_url(self):
-            obj = self.crud if hasattr(self, 'crud') else self
-            if not obj.CreateView:
-                return ''
             return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
                 if self.request.user.has_module_perms('materia') else ''
 
         @property
+        def detail_url(self):
+            return self.resolve_url(ACTION_DETAIL, args=(self.object.id,))\
+                if self.request.user.has_module_perms('materia') else ''
+
+        @property
         def update_url(self):
-            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
+            return self.resolve_url(ACTION_UPDATE, args=(self.kwargs['pk'],))\
                 if self.request.user.has_module_perms('materia') else ''
 
         @property
