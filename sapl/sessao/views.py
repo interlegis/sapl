@@ -43,8 +43,8 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
-OrdemDiaCrud = Crud.build(OrdemDia, '')
-RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+#OrdemDiaCrud = Crud.build(OrdemDia, '')
+#RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
@@ -122,6 +122,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     model = OrdemDia
     parent_field = 'sessao_plenaria'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem', 'materia', 'observacao',
