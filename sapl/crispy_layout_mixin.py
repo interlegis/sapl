@@ -150,7 +150,7 @@ class CrispyLayoutFormMixin:
         in the first fieldset of the layout.
         '''
         obj = self.crud if hasattr(self, 'crud') else self
-        if hasattr(obj, 'list_field_names'):
+        if hasattr(obj, 'list_field_names') and obj.list_field_names:
             return obj.list_field_names
         rows = self.get_layout()[0][1:]
         return [fieldname for row in rows for fieldname, __ in row]

@@ -668,7 +668,9 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
                 for i, name in enumerate(self.list_field_names_set)]
 
     def get_object(self, queryset=None):
-        return self.object
+        if hasattr(self, 'object'):
+            return self.object
+        return DetailView.get_object(self, queryset=queryset)
 
     def get(self, request, *args, **kwargs):
         self.object = self.model.objects.get(pk=kwargs.get('pk'))
@@ -680,7 +682,10 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 
     def get_queryset(self):
         obj = self.crud if hasattr(self, 'crud') else self
-        queryset = getattr(self.object, obj.model_set).all()
+        if hasattr(obj, 'model_set') and obj.model_set:
+            queryset = getattr(self.object, obj.model_set).all()
+        else:
+            queryset = super().get_queryset()
 
         if not self.request.user.is_authenticated():
             return queryset
@@ -782,13 +787,6 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
         return self.list_url
 
 
-class DeactivatedMixin(View):
-
-    @classmethod
-    def get_url_regex(cls):
-        return r'^dummy$'
-
-
 class Crud:
     BaseMixin = CrudBaseMixin
     ListView = CrudListView
@@ -842,28 +840,16 @@ class Crud:
     @classonlymethod
     def build(cls, _model, _help_path, _model_set=None, list_field_names=[]):
 
-        def create_class_with_list_field(_list_field_names):
+        def create_class(_list_field_names):
             class ModelCrud(cls):
                 model = _model
                 model_set = _model_set
                 help_path = _help_path
-
-                class BaseMixin(cls.BaseMixin):
-                    list_field_names = _list_field_names
+                list_field_names = _list_field_names
             return ModelCrud
 
-        def create_class():
-            class ModelCrud(cls):
-                model = _model
-                model_set = _model_set
-                help_path = _help_path
-            return ModelCrud
-
-        ModelCrud = create_class() if not list_field_names\
-            else create_class_with_list_field(list_field_names)
-
+        ModelCrud = create_class(list_field_names)
         ModelCrud.__name__ = '%sCrud' % _model.__name__
-
         return ModelCrud
 
 

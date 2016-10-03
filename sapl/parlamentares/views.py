@@ -15,7 +15,7 @@ from sapl.comissoes.models import Participacao
 from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
                             CrudDeleteView, CrudDetailView, CrudListView,
                             CrudUpdateView, MasterDetailCrud, CrudAux,
-                            RP_CHANGE, RP_DETAIL, RP_LIST, DeactivatedMixin,
+                            RP_CHANGE, RP_DETAIL, RP_LIST,
                             CrudBaseForListAndDetailExternalAppView)
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig

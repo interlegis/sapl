@@ -39,6 +39,7 @@ urlpatterns = [
                              ExpedienteMateriaCrud.get_urls() +
                              MateriaOrdemDiaCrud.get_urls())),
 
+    url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
 
     url(r'^recuperar-materia/', recuperar_materia),
     url(r'^recuperar-numero-sessao/', recuperar_numero_sessao),
@@ -86,17 +87,16 @@ urlpatterns = [
         PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
 
     # Subnav sessão
-    url(r'^(?P<pk>\d+)/expediente$',
+    url(r'^sessao/(?P<pk>\d+)/expediente$',
         ExpedienteView.as_view(), name='expediente'),
-    url(r'^(?P<pk>\d+)/presenca$',
+    url(r'^sessao/(?P<pk>\d+)/presenca$',
         PresencaView.as_view(), name='presenca'),
-    url(r'^(?P<pk>\d+)/painel$',
+    url(r'^sessao/(?P<pk>\d+)/painel$',
         PainelView.as_view(), name='painel'),
-    url(r'^(?P<pk>\d+)/presencaordemdia$',
+    url(r'^sessao/(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
-    url(r'^(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
-    url(r'^(?P<pk>\d+)/resumo$',
+    url(r'^sessao/(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
     url(r'^sessao/pesquisar-sessao$',
         PesquisarSessaoPlenariaView.as_view(), name='pesquisar_sessao'),
