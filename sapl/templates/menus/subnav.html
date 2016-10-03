@@ -12,12 +12,16 @@
         </a>
         <ul class="dropdown-menu" role="menu">
           {% for subitem in item.children %}
-              <li class="{{subitem.active}}"><a href="{{ subitem.url }}">{% trans subitem.title %}</a></li>
+              {% if subitem.url %}
+                <li class="{{subitem.active}}"><a href="{{ subitem.url }}">{% trans subitem.title %}</a></li>
+              {% endif %}
           {% endfor %}
         </ul>
       </li>
     {% else %}
-      <li class="{{item.active}}"><a href="{{ item.url }}">{% trans item.title %}</a></li>
+      {% if item.url %}
+        <li class="{{item.active}}"><a href="{{ item.url }}">{% trans item.title %}</a></li>
+      {% endif %}
     {% endif %}
   {% endfor %}
 </ul>
