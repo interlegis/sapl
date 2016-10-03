@@ -68,10 +68,11 @@ class MateriasTramitacaoListView(ListView):
     def get_queryset(self):
         # FIXME: Otimizar consulta
         lista = []
-        materias = MateriaLegislativa.objects.filter(tramitacao__isnull=False)
+        materias = MateriaLegislativa.objects.filter(
+            tramitacao__isnull=False).order_by('tipo', 'ano', 'numero')
         for materia in materias:
             comissao = materia.tramitacao_set.last(
-            ).unidade_tramitacao_local.comissao
+            ).unidade_tramitacao_destino.comissao
             if comissao:
                 if comissao.pk == int(self.kwargs['pk']):
                     lista.append(materia)
