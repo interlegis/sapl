@@ -376,10 +376,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     f = m._meta.get_field(f)
                     if hasattr(f, 'related_model') and f.related_model:
                         m = f.related_model
-                if m == self.model:
-                    s.append(force_text(f.verbose_name))
-                else:
-                    s.append(force_text(f.verbose_name))
+                s.append(force_text(f.verbose_name))
             s = ' / '.join(s)
             r.append(s)
         return r
