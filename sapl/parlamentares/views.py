@@ -118,24 +118,13 @@ class MandatoCrud(MasterDetailCrud):
     model = Mandato
     parent_field = 'parlamentar'
     public = [RP_DETAIL, RP_LIST]
+    list_field_names = ['legislatura',
+                        'votos_recebidos',
+                        'coligacao',
+                        'coligacao__numero_votos']
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
-
-        def get_headers(self):
-            return [_('Legislatura'), _('Votos do Mandato'),
-                    _('Coligação'), _('Votos da Coligação')]
-
-        def get_rows(self, object_list):
-            mandatos = []
-            for m in object_list:
-                mandato = [(m, reverse('sapl.parlamentares:mandato_detail',
-                                       kwargs={'pk': m.pk})),
-                           (m.votos_recebidos, None),
-                           (m.coligacao, None),
-                           (m.coligacao.numero_votos, None)]
-                mandatos.append(mandato)
-            return mandatos
 
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):

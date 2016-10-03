@@ -379,17 +379,12 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                 if m == self.model:
                     s.append(force_text(f.verbose_name))
                 else:
-                    s.append(force_text(m._meta.verbose_name))
+                    s.append(force_text(f.verbose_name))
             s = ' / '.join(s)
             r.append(s)
         return r
 
     def _as_row(self, obj):
-        """
-        FIXME: Refatorar função para capturar url correta em caso de uso de
-        campos foreignkey. getHeaders já faz isso para construir o título.
-        falta fazer com esta função
-        """
         r = []
         for i, name in enumerate(self.list_field_names):
             url = self.resolve_url(
@@ -401,20 +396,28 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                 url = url + ('?pkk=' + self.kwargs['pk']
                              if 'pk' in self.kwargs else '')
 
+            if not isinstance(name, tuple):
+                name = name,
+
             """ se elemento de list_field_name for uma tupla, constrói a
             informação com ' - ' se os campos forem simples,
             ou com <br> se for m2m """
             if isinstance(name, tuple):
                 s = ''
                 for j, n in enumerate(name):
-                    ss = get_field_display(obj, n)[1]
-                    ss = (
-                        ('<br>' if '<ul>' in ss else ' - ') + ss)\
-                        if ss and j != 0 and s else ss
-                    s += ss
+                    m = obj
+                    n = n.split('__')
+                    for f in n[:-1]:
+                        m = getattr(m, f)
+                        if not m:
+                            break
+                    if m:
+                        ss = get_field_display(m, n[-1])[1]
+                        ss = (
+                            ('<br>' if '<ul>' in ss else ' - ') + ss)\
+                            if ss and j != 0 and s else ss
+                        s += ss
                 r.append((s, url))
-            else:
-                r.append((get_field_display(obj, name)[1], url))
         return r
 
     def get_context_data(self, **kwargs):
