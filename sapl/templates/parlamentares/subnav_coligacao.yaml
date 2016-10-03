@@ -1,0 +1,5 @@
+{% load i18n %}
+- title: {% trans 'Início' %}
+  url: coligacao_detail
+- title: {% trans 'Composição da Coligação' %}
+  url: composicaocoligacao_list

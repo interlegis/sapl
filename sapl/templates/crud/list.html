@@ -34,14 +34,20 @@
         <tr>
           {% for name in headers %}
             <th>
-              <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and view.initial_order.0 != '-' or 'o' not in request.GET and not view.initial_order and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}{{ordering_url}}">{{ name }}
-              {% if 'o' not in request.GET and view.initial_order and view.initial_order.0 != '-' or 'o' not in request.GET and not view.initial_order and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
-                <span class="caret top" title="{% trans 'Listado na Ordem Ascendente'%}"></span>
-              {% elif 'o' not in request.GET and view.initial_order and view.initial_order.0 == '-' or 'o' in request.GET and forloop.counter == request.GET.o|str2intabs %}
-                <span class="caret" title="{% trans 'Listado na Ordem Descendente'%}"></span>
-              {%endif%}
-              </a>
-
+              {% if view.ordered_list %}
+                <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}{{ordering_url}}">
+                  {{ name }}
+                  {% if 'o' in request.GET or not view.ordering %}
+                    {% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
+                      <span class="caret top" title="{% trans 'Listado na Ordem Ascendente'%}"></span>
+                    {% elif 'o' in request.GET and forloop.counter == request.GET.o|str2intabs %}
+                      <span class="caret" title="{% trans 'Listado na Ordem Descendente'%}"></span>
+                    {%endif%}
+                  {%endif%}
+                </a>
+              {% else %}
+                  {{ name }}
+              {% endif %}
             </th>
           {% endfor %}
         </tr>

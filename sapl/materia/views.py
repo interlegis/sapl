@@ -668,7 +668,7 @@ class TramitacaoCrud(MasterDetailCrud):
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
                             'unidade_tramitacao_destino', 'status']
-        initial_order = '-data_tramitacao'
+        ordering = '-data_tramitacao',
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoForm

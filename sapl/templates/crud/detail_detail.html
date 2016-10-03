@@ -7,7 +7,7 @@
     {% block actions %}
       <div class="actions btn-group btn-group-sm" role="group">
         {% if view.detail_list_url %}
-          <a href="{{ view.detail_list_url }}?list" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
+          <a href="{{ view.detail_list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
         {% endif %}
         {% if view.detail_create_url %}
           <a href="{{ view.detail_create_url }}" class="btn btn-default">
@@ -21,7 +21,7 @@
             <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
           {% endif %}
           {% if view.delete_url %}
-            <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+            <a href="{{ view.delete_url }}" class="btn btn-danger btn-excluir">{% trans 'Excluir' %}</a>
           {% endif %}
         </div>
       {% endif %}

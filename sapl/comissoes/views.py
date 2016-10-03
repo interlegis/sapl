@@ -52,7 +52,7 @@ class ComissaoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
-        initial_order = '-ativa', 'sigla'
+        ordering = '-ativa', 'sigla'
 
     class ListView(Crud.ListView):
         permission_required = []

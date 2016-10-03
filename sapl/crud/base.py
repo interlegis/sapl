@@ -17,7 +17,7 @@ from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
-from django.views.generic.base import ContextMixin
+from django.views.generic.base import ContextMixin, View
 from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
@@ -79,6 +79,7 @@ def make_pagination(index, num_pages):
 
 """
 variáveis do crud:
+    help_path
     container_field
     container_field_set
     is_m2m
@@ -90,10 +91,9 @@ variáveis do crud:
     permission_required -> este atributo ser vazio não nulo torna a view publ
     layout_key_set
     layout_key
+    ordered_list = False desativa os clicks e controles de ord da listagem
     parent_field = parentesco reverso separado por '__'
-    initial_order = deve ser um elemento de list_field_names
-        FIXME: as setas indicativas de ordem em crud/list.html
-        não está se comportando como esperado para initial_order descrescente
+    namespace
 """
 
 
@@ -214,8 +214,11 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             self.model_name_set = getattr(
                 obj.model, obj.model_set).field.model._meta.model_name
 
-        if hasattr(self, 'permission_required') and\
-                self.permission_required:
+        if hasattr(self, 'permission_required') and self.permission_required:
+            if hasattr(obj, 'public'):
+                self.permission_required = list(
+                    set(self.permission_required) - set(obj.public))
+
             self.permission_required = tuple((
                 self.permission(pr) for pr in self.permission_required))
 
@@ -225,8 +228,8 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
 
     def url_name_set(self, suffix):
         obj = self.crud if hasattr(self, 'crud') else self
-        return '%s_%s' % (getattr(
-            obj.model, obj.model_set).field.model._meta.model_name, suffix)
+        return '%s_%s' % (getattr(obj.model, obj.model_set
+                                  ).field.model._meta.model_name, suffix)
 
     def permission(self, rad):
         return '%s%s%s' % (self.app_label if rad.endswith('_') else '',
@@ -249,6 +252,10 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             obj.model, obj.model_set).field.model._meta.app_config.name
         return reverse('%s:%s' % (namespace, self.url_name_set(suffix)),
                        args=args)
+
+    @property
+    def ordered_list(self):
+        return True
 
     @property
     def list_url(self):
@@ -338,20 +345,37 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         para junção de fields via tuplas.
         list_field_names pode ser construido como
         list_field_names=('nome', 'endereco', ('telefone', sexo'), 'dat_nasc')
+        ou ainda:
+          list_field_names = ['composicao__comissao__nome', 'cargo__nome', (
+          'composicao__periodo__data_inicio', 'composicao__periodo__data_fim')]
         """
         r = []
         for fieldname in self.list_field_names:
-            if isinstance(fieldname, tuple):
-                s = [force_text(self.model._meta.get_field(
-                    fn).verbose_name) for fn in fieldname]
-                s = ' / '.join(s)
-                r.append(s)
-            else:
-                r.append(
-                    self.model._meta.get_field(fieldname).verbose_name)
+            if not isinstance(fieldname, tuple):
+                fieldname = fieldname,
+
+            s = []
+            for fn in fieldname:
+                m = self.model
+                fn = fn.split('__')
+                for f in fn:
+                    f = m._meta.get_field(f)
+                    if hasattr(f, 'related_model') and f.related_model:
+                        m = f.related_model
+                if m == self.model:
+                    s.append(force_text(f.verbose_name))
+                else:
+                    s.append(force_text(m._meta.verbose_name))
+            s = ' / '.join(s)
+            r.append(s)
         return r
 
     def _as_row(self, obj):
+        """
+        FIXME: Refatorar função para capturar url correta em caso de uso de
+        campos foreignkey. getHeaders já faz isso para construir o título.
+        falta fazer com esta função
+        """
         r = []
         for i, name in enumerate(self.list_field_names):
             url = self.resolve_url(
@@ -420,10 +444,12 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
             del qr['page']
         context['filter_url'] = (
             '&' + qr.urlencode()) if len(qr) > 0 else ''
-        if 'o' in qr:
-            del qr['o']
-        context['ordering_url'] = (
-            '&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        if self.ordered_list:
+            if 'o' in qr:
+                del qr['o']
+            context['ordering_url'] = (
+                '&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
 
     def get_queryset(self):
@@ -447,53 +473,61 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     if q:
                         queryset = queryset.filter(q)
 
-        list_field_names = self.list_field_names
-        o = '1'
-        desc = ''
-        if 'o' in self.request.GET:
-            o = self.request.GET['o']
-            desc = '-' if o.startswith('-') else ''
+        if self.ordered_list:
+            list_field_names = self.list_field_names
+            o = '1'
+            desc = ''
+            if 'o' in self.request.GET:
+                o = self.request.GET['o']
+                desc = '-' if o.startswith('-') else ''
 
-            # Constroi a ordenação da listagem com base no que o usuário clicar
-            try:
-                fields_for_ordering = list_field_names[
-                    (abs(int(o)) - 1) % len(list_field_names)]
+                # Constroi a ordenação da listagem com base no que o usuário
+                # clicar
+                try:
+                    fields_for_ordering = list_field_names[
+                        (abs(int(o)) - 1) % len(list_field_names)]
 
-                if isinstance(fields_for_ordering, str):
-                    fields_for_ordering = [fields_for_ordering, ]
+                    if isinstance(fields_for_ordering, str):
+                        fields_for_ordering = [fields_for_ordering, ]
 
-                ordering = ()
-                model = self.model
-                for fo in fields_for_ordering:
-                    fm = model._meta.get_field(fo)
-                    if hasattr(fm, 'related_model') and fm.related_model:
-                        rmo = fm.related_model._meta.ordering
-                        if rmo:
-                            rmo = rmo[0]
-                            if not isinstance(rmo, str):
+                    ordering = ()
+                    model = self.model
+                    for fo in fields_for_ordering:
+
+                        fm = None
+                        try:
+                            fm = model._meta.get_field(fo)
+                        except:
+                            pass
+
+                        if fm and hasattr(fm, 'related_model')\
+                                and fm.related_model:
+                            rmo = fm.related_model._meta.ordering
+                            if rmo:
                                 rmo = rmo[0]
-                            fo = '%s__%s' % (fo, rmo)
+                                if not isinstance(rmo, str):
+                                    rmo = rmo[0]
+                                fo = '%s__%s' % (fo, rmo)
 
-                    fo = desc + fo
-                    ordering += (fo,)
+                        fo = desc + fo
+                        ordering += (fo,)
 
-                model = self.model
-                model_ordering = model._meta.ordering
-                if model_ordering:
-                    if isinstance(model_ordering, str):
-                        model_ordering = (model_ordering,)
-                    for mo in model_ordering:
-                        if mo not in ordering:
-                            ordering = ordering + (mo, )
-                queryset = queryset.order_by(*ordering)
+                    model = self.model
+                    model_ordering = model._meta.ordering
+                    if model_ordering:
+                        if isinstance(model_ordering, str):
+                            model_ordering = (model_ordering,)
+                        for mo in model_ordering:
+                            if mo not in ordering:
+                                ordering = ordering + (mo, )
+                    queryset = queryset.order_by(*ordering)
 
-                print(ordering)
-            except Exception as e:
-                logger.error(string_concat(_(
-                    'ERRO: contrução da tupla de ordenação.'), str(e)))
-        elif hasattr(self, 'initial_order'):
-            queryset = queryset.order_by(*(self.initial_order))
+                    # print(ordering)
+                except Exception as e:
+                    logger.error(string_concat(_(
+                        'ERRO: construção da tupla de ordenação.'), str(e)))
 
+        # print(queryset.query)
         if not self.request.user.is_authenticated():
             return queryset
 
@@ -748,6 +782,13 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
         return self.list_url
 
 
+class DeactivatedMixin(View):
+
+    @classmethod
+    def get_url_regex(cls):
+        return r'^dummy$'
+
+
 class Crud:
     BaseMixin = CrudBaseMixin
     ListView = CrudListView
@@ -757,16 +798,20 @@ class Crud:
     DeleteView = CrudDeleteView
     help_path = ''
 
+    class PublicMixin:
+        permission_required = []
+
     @classonlymethod
     def get_urls(cls):
 
         def _add_base(view):
-            class CrudViewWithBase(cls.BaseMixin, view):
-                model = cls.model
-                help_path = cls.help_path
-                crud = cls
-            CrudViewWithBase.__name__ = view.__name__
-            return CrudViewWithBase
+            if view:
+                class CrudViewWithBase(cls.BaseMixin, view):
+                    model = cls.model
+                    help_path = cls.help_path
+                    crud = cls
+                CrudViewWithBase.__name__ = view.__name__
+                return CrudViewWithBase
 
         CrudListView = _add_base(cls.ListView)
         CrudCreateView = _add_base(cls.CreateView)
@@ -774,18 +819,25 @@ class Crud:
         CrudUpdateView = _add_base(cls.UpdateView)
         CrudDeleteView = _add_base(cls.DeleteView)
 
+        cruds_base = [
+            (CrudListView.get_url_regex()
+             if CrudListView else None, CrudListView, ACTION_LIST),
+            (CrudCreateView.get_url_regex()
+             if CrudCreateView else None, CrudCreateView, ACTION_CREATE),
+            (CrudDetailView.get_url_regex()
+             if CrudDetailView else None, CrudDetailView, ACTION_DETAIL),
+            (CrudUpdateView.get_url_regex()
+             if CrudUpdateView else None, CrudUpdateView, ACTION_UPDATE),
+            (CrudDeleteView.get_url_regex()
+             if CrudDeleteView else None, CrudDeleteView, ACTION_DELETE)]
+
+        cruds = []
+        for crud in cruds_base:
+            if crud[0]:
+                cruds.append(crud)
+
         return [url(regex, view.as_view(), name=view.url_name(suffix))
-                for regex, view, suffix in [
-                    (CrudListView.get_url_regex(), CrudListView, ACTION_LIST),
-                    (CrudCreateView.get_url_regex(),
-                     CrudCreateView, ACTION_CREATE),
-                    (CrudDetailView.get_url_regex(),
-                     CrudDetailView, ACTION_DETAIL),
-                    (CrudUpdateView.get_url_regex(),
-                     CrudUpdateView, ACTION_UPDATE),
-                    (CrudDeleteView.get_url_regex(),
-                     CrudDeleteView, ACTION_DELETE),
-        ]]
+                for regex, view, suffix in cruds]
 
     @classonlymethod
     def build(cls, _model, _help_path, _model_set=None, list_field_names=[]):
@@ -817,6 +869,15 @@ class Crud:
 
 class CrudAux(Crud):
 
+    class BaseMixin(Crud.BaseMixin):
+        permission_required = ('base.view_tabelas_auxiliares',)
+        subnav_template_name = None
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = self.subnav_template_name
+            return context
+
     @classonlymethod
     def build(cls, _model, _help_path, _model_set=None, list_field_names=[]):
 
@@ -824,9 +885,7 @@ class CrudAux(Crud):
             _model, _help_path, _model_set, list_field_names)
 
         class ModelCrudAux(ModelCrud):
-
-            class BaseMixin(ModelCrud.BaseMixin):
-                permission_required = ('base.view_tabelas_auxiliares',)
+            BaseMixin = CrudAux.BaseMixin
 
         return ModelCrudAux
 
@@ -838,16 +897,25 @@ class MasterDetailCrud(Crud):
 
         @property
         def list_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.ListView:
+                return ''
             return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],))\
                 if self.request.user.has_perm(self.permission(RP_LIST)) else ''
 
         @property
         def create_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.CreateView:
+                return ''
             return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
                 if self.request.user.has_perm(self.permission(RP_ADD)) else ''
 
         @property
         def detail_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.DetailView:
+                return ''
             pkk = self.request.GET['pkk'] if 'pkk' in self.request.GET else ''
             return (super().detail_url + (('?pkk=' + pkk) if pkk else ''))\
                 if self.request.user.has_perm(
@@ -855,6 +923,9 @@ class MasterDetailCrud(Crud):
 
         @property
         def update_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.UpdateView:
+                return ''
             pkk = self.request.GET['pkk'] if 'pkk' in self.request.GET else ''
             return (super().update_url + (('?pkk=' + pkk) if pkk else ''))\
                 if self.request.user.has_perm(
@@ -862,6 +933,9 @@ class MasterDetailCrud(Crud):
 
         @property
         def delete_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.DeleteView:
+                return ''
             return super().delete_url\
                 if self.request.user.has_perm(
                     self.permission(RP_DELETE)) else ''
@@ -910,9 +984,7 @@ class MasterDetailCrud(Crud):
 
         def get_context_data(self, **kwargs):
             obj = self.crud if hasattr(self, 'crud') else self
-            count = self.object_list.count()
             context = CrudListView.get_context_data(self, **kwargs)
-            context['count'] = count
 
             parent_model = None
             if '__' in obj.parent_field:
@@ -1083,6 +1155,9 @@ class MasterDetailCrud(Crud):
         @property
         def detail_create_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.CreateView:
+                return ''
+
             if self.request.user.has_perm(self.permission(RP_ADD)):
                 parent_field = obj.parent_field.split('__')[0]
                 parent_object = getattr(self.object, parent_field)
@@ -1122,6 +1197,7 @@ class MasterDetailCrud(Crud):
             edição em cascata de MasterDetailDetail...
             """
             return ''
+
             obj = self.crud if hasattr(self, 'crud') else self
             if hasattr(obj, 'parent_field'):
                 # parent_field = obj.parent_field.split('__')[0]
@@ -1140,3 +1216,22 @@ class MasterDetailCrud(Crud):
             list_field_names=list_field_names)
         crud.parent_field = parent_field
         return crud
+
+
+class CrudBaseForListAndDetailExternalAppView(MasterDetailCrud):
+    CreateView, UpdateView, DeleteView = None, None, None
+
+    class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
+
+        @classmethod
+        def url_name(cls, suffix):
+            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
+
+        def resolve_url(self, suffix, args=None):
+            obj = self.crud if hasattr(self, 'crud') else self
+
+            """ namespace deve ser redirecionado para app local pois
+            o models colocados nos cruds que herdam este Crud são de outras app
+            """
+            return reverse('%s:%s' % (obj.namespace, self.url_name(suffix)),
+                           args=args)
