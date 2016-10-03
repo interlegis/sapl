@@ -73,8 +73,10 @@ class MateriasTramitacaoListView(ListView):
         for materia in materias:
             comissao = materia.tramitacao_set.last(
             ).unidade_tramitacao_destino.comissao
-            if comissao:
-                if comissao.pk == int(self.kwargs['pk']):
+            if (comissao and
+                materia not in lista and
+                comissao.pk == int(self.kwargs['pk'])
+               ):
                     lista.append(materia)
         return lista
 
