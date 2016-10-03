@@ -354,7 +354,6 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         for fieldname in self.list_field_names:
             if not isinstance(fieldname, tuple):
                 fieldname = fieldname,
-
             s = []
             for fn in fieldname:
                 m = self.model
