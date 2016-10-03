@@ -702,6 +702,12 @@ class MesaView(FormMixin, DetailView):
 
         return self.render_to_response(context)
 
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Mesa Diretora'), self.object)
+        return context
+
     @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
