@@ -18,17 +18,18 @@
 
 {% block sections_nav %} {% endblock %}
 
-{% block detail_content %}
+{% block base_content %}
   <h1><b>Pesquisar Sessão Plenária</b></h1>
   <br></br>
 
-  {% crispy filter.form %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
   {% if filter_url %}
     <p></p>
     <table class="table table-striped table-hover">
-      <thead class="thead-default">
-        <tr><td><h3>Resultados</h3></td></tr>
-      </thead>
+      <thead class="thead-default"><tr><td><h3>Resultados</h3></td></tr></thead>
       {% if page_obj|length %}
         {% if numero_res > 1 %}
           <h3>Foram encontradas {{numero_res}} sessões.</h3></br>
@@ -53,4 +54,4 @@
     </table>
     {% include "paginacao.html" %}
   {% endif %}
-{% endblock detail_content %}
+{% endblock base_content %}
