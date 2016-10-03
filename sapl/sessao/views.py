@@ -246,12 +246,13 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
     model = ExpedienteMateria
     parent_field = 'sessao_plenaria'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem', 'materia',
                             'observacao', 'resultado']
 
-    class ListView(Crud.PublicMixin, MasterDetailCrud.ListView):
+    class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_rows(self, object_list):
