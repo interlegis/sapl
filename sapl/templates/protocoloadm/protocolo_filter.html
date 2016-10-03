@@ -5,76 +5,49 @@
 
 {% block sections_nav %} {% endblock %}
 
-{% block detail_content %}
+{% block base_content %}
   <h1><b>Pesquisa de Protocolo</b></h1>
   <br></br>
   {% if filter_url %}
-      <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-      </div>
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
   {% endif %}
- 
+
   {% if not filter_url %}
     {% crispy filter.form %}
   {% endif %}
 
-
   {% if filter_url %}
-  <p></p>
-  <table class="table table-striped table-bordered">
-        <thead class="thead-default">
-            <tr><td><h3>Resultados</h3></td></tr>
-        </thead>
-        {% if page_obj|length %}
-          {% if filter_url %}
-            {% if numero_res > 1 %}
-              <h3>Pesquisa concluída com sucesso! Foram encontrados {{numero_res}} protocolos.</h3>
-            {% elif numero_res == 1 %}
-              <h3>Pesquisa concluída com sucesso! Foi encontrado {{numero_res}} protocolo.</h3>
-            {% endif %}
+    <table class="table table-striped table-bordered">
+      <thead class="thead-default"><tr><td><h3>Resultados</h3></td></tr></thead>
+      {% if page_obj|length %}
+        {% if filter_url %}
+          {% if numero_res > 1 %}
+            <h3>Pesquisa concluída com sucesso! Foram encontrados {{numero_res}} protocolos.</h3>
+          {% elif numero_res == 1 %}
+            <h3>Pesquisa concluída com sucesso! Foi encontrado {{numero_res}} protocolo.</h3>
           {% endif %}
-          {% for p in page_obj %}
-            <tr>
-              <td>
-                <strong>Protocolo:
-                <a href="{% url 'protocoloadm:protocolo_mostrar' p.numero p.ano %}">
-                  {{ p.numero|stringformat:'06d' }}/{{ p.ano }}
-                </a></strong>
-                &nbsp;&nbsp;<strong>-</strong>&nbsp;&nbsp;
-
-                <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}">
-                  <img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual">
-                </a></br>
-
-                <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não Informado"}}</br>
-
-                <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não Informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
-
-                <strong>Interessado:</strong> {{ p.interessado }}</br>
-
-                <strong>Natureza do Processo:</strong>
-                  {% if p.tipo_processo == 0 %}
-                    Administrativo
-                  {% elif p.tipo_processo == 1 %}
-                    Matéria Legislativa
-                  {% endif %}</br>
-
-                <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:"Não Informado" }} </br>
-                <p></p>
-              </td>
-              </tr>
-          {% endfor %}
-        {% else  %}
-            <tr>
-                <td>
-                    <h3>Nenhum protocolo encontrado com essas especificações</h3>
-                 </tr>
         {% endif %}
-
+        {% for p in page_obj %}
+          <tr>
+            <td>
+              <strong>Protocolo:
+              <a href="{% url 'protocoloadm:protocolo_mostrar' p.numero p.ano %}">{{ p.numero|stringformat:'06d' }}/{{ p.ano }}</a></strong>&nbsp;&nbsp;<strong>-</strong>&nbsp;&nbsp;
+              <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
+              <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não Informado"}}</br>
+              <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não Informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
+              <strong>Interessado:</strong> {{ p.interessado }}</br>
+              <strong>Natureza do Processo:</strong>
+              {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
+              <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:"Não Informado" }} </br>
+            </td>
+          </tr>
+        {% endfor %}
+      {% else  %}
+        <tr><td><h3>Nenhum protocolo encontrado com essas especificações</h3></tr>
+      {% endif %}
     </table>
-
-{% include "paginacao.html" %}
-
-{% endif %}
-
-{% endblock detail_content %}
+    {% include "paginacao.html" %}
+  {% endif %}
+{% endblock base_content %}
