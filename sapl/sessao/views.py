@@ -174,11 +174,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
-                        if self.request.user.has_perms(permissoes_sessao()):
+                        if self.request.user.has_module_perms(AppConfig.label):
                             btn_registrar = '''
-                                <a href="%s"
-                                   class="btn btn-primary"
-                                   role="button">Registrar Votação</a>''' % (
+                                    <a href="%s"
+                                       class="btn btn-primary"
+                                       role="button">Registrar Votação</a>''' % (
                                 url)
                             obj.resultado = btn_registrar
                         else:
@@ -279,16 +279,19 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
 
-                        btn_registrar = '''
-                            <a href="%s"
-                               class="btn btn-primary"
-                               role="button">Registrar Votação</a>''' % (url)
-                        obj.resultado = btn_registrar
+                        if self.request.user.has_module_perms(AppConfig.label):
+                            btn_registrar = '''
+                                <a href="%s" class="btn btn-primary"
+                                   role="button">
+                                   Registrar Votação</a>''' % (url)
+                            obj.resultado = btn_registrar
                     else:
                         url = reverse('sapl.sessao:abrir_votacao_exp', kwargs={
                             'pk': obj.pk, 'spk': obj.sessao_plenaria_id})
-                        btn_abrir = '''
-                            Matéria não votada<br />
+                        btn_abrir = '''Matéria não votada<br />'''
+
+                        if self.request.user.has_module_perms(AppConfig.label):
+                            btn_abrir += '''
                             <a href="%s"
                                class="btn btn-primary"
                                role="button">Abrir Votação</a>''' % (url)
