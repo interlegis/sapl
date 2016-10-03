@@ -6,53 +6,59 @@
   <div class="context-actions clearfix">
     {% block actions %}
       <div class="actions btn-group btn-group-sm" role="group">
-        {% if view.list_url %}
-          <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
+        {% if view.detail_list_url %}
+          <a href="{{ view.detail_list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
         {% endif %}
-        {% if view.create_url %}
-          <a href="{{ view.create_url }}" class="btn btn-default">
+        {% if view.detail_create_url %}
+          <a href="{{ view.detail_create_url }}" class="btn btn-default">
             {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
           </a>
         {% endif %}
       </div>
       {% if view.update_url or view.delete_url %}
-        <div class="actions btn-group pull-right" role="group">
+        <div class="actions btn-group pull-right " role="group">
           {% if view.update_url %}
             <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
           {% endif %}
           {% if view.delete_url %}
-            <a href="{{ view.delete_url }}" class="btn btn-danger">{% trans 'Excluir' %}</a>
+            <a href="{{ view.delete_url }}" class="btn btn-danger btn-excluir">{% trans 'Excluir' %}</a>
           {% endif %}
         </div>
       {% endif %}
     {% endblock actions %}
   </div>
-
   {% block detail_content %}
     {% for fieldset in view.layout_display %}
-      <h2 class="legend">{{ fieldset.legend }}</h2>
-      {% for row in fieldset.rows %}
-        <div class="row-fluid">
-          {% for column in row %}
-            <div class="col-sm-{{ column.span }}">
-              <div id="div_id_{{ column.id }}" class="form-group">
-                <p class="control-label">{{ column.verbose_name }}</p>
-                <div class="controls">
-                  <div class="form-control-static">{{ column.text|safe }}</div>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
+    <h2 class="legend">{{ fieldset.legend }}</h2>
+    {% for row in fieldset.rows %}
+    <div class="row-fluid">
+      {% for column in row %}
+      <div class="col-sm-{{ column.span }}">
+        <div id="div_id_{{ column.id }}" class="form-group">
+          <p class="control-label">{{ column.verbose_name }}</p>
+          <div class="controls">
+            <div class="form-control-static">{{ column.text|safe }}</div>
+          </div>
         </div>
+      </div>
       {% endfor %}
+    </div>
+    {% endfor %}
     {% endfor %}
   {% endblock detail_content %}
-
+    <div class="actions btn-group pull-right btn-group-lg" role="group">
+      {% if view.detail_set_create_url %}
+      <a href="{{ view.detail_set_create_url }}" class="btn btn-default">
+        {% blocktrans with verbose_name=view.verbose_name_set %} Adicionar {{ verbose_name }} {% endblocktrans %}
+      </a>
+      {% endif %}
+      {% block more_buttons %}{% endblock more_buttons %}
+    </div>
   <div class="container-table">
     {% if not rows %}
       <p>{{ NO_ENTRIES_MSG }}</p>
     {% else %}
-      <div class="result-count">{% blocktrans with verbose_name_plural=view.model_set_verbose_name_plural %}Total de {{ verbose_name_plural }}: <strong>{{count}}</strong>{% endblocktrans %}</div>
+      <div class="result-count">{% blocktrans with verbose_name_plural=view.verbose_name_plural %}Total de Registros: <strong>{{count}}</strong>{% endblocktrans %}</div>
       <table class="table table-striped table-hover">
         <thead>
           <tr>
@@ -68,7 +74,7 @@
           <td>
             {% if href %}
             <a href="{{ href }}">{{ value }}</a>
-            {% elif value != 'core.Cep.None' %}
+            {% elif valu != 'core.Cep.None' %}
               {{ value|safe }}
             {% endif %}
           </td>
@@ -77,7 +83,10 @@
         {% endfor %}
       </tbody>
       </table>
-      {% endif %}
+    {% endif %}
   </div>
+
   {% include "paginacao.html" %}
+
+
 {% endblock base_content %}

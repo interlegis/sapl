@@ -8,10 +8,10 @@
 - title: {% trans 'Dependentes' %}
   url: dependente_list
 - title: {% trans 'Comissões' %}
-  url: participacao_list
+  url: participacao_parlamentar_list
 - title: {% trans 'Proposições' %}
-  url: proposicao_list
+  url: proposicao_parlamentar_list
 - title: {% trans 'Relatorias' %}
-  url: relatoria_list
+  url: relatoria_parlamentar_list
 - title: {% trans 'Frentes' %}
-  url: frent_list
+  url: frente_parlamentar_list

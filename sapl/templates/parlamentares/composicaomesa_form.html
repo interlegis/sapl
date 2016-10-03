@@ -48,13 +48,13 @@
 	      <div class="col-md-4" align="center">
 					<br /><br />
 	        {% if cargos_vagos %}
-	        	{% if perms.parlamentares.add_cargomesa or perms.parlamentares.add_composicaomesa %}
+	        	{% if perms.parlamentares.add_cargomesa %}
 	        		<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />
 	        	{% endif %}
 	        {% endif %}
 	        <br />
 	        <br />
-	        {% if perms.parlamentares.add_cargomesa or perms.parlamentares.add_composicaomesa %}
+	        {% if perms.parlamentares.add_composicaomesa %}
 	        	<input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
 	        {% endif %}
 	      </div>

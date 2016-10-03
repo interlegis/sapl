@@ -70,6 +70,13 @@ h6, .h6 {
     color: inherit;
 }
 
+.caret {
+  /* Por padrão caret aponta para baixo*/
+  &.top {
+    transform: rotate(180deg);
+  }
+}
+
 // #### CRUD DETAIL ########################################
 p.control-label {
   font-weight: bold;
@@ -145,6 +152,11 @@ fieldset {
       font-size: 18px;
     }
   }
+}
+
+.avatar-parlamentar {
+  height: 42px;
+  width: 42px;
 }
 
 /* INDEX */

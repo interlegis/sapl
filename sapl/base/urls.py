@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 from django.contrib.auth import views
+from django.contrib.auth.decorators import permission_required
 from django.views.generic.base import TemplateView
 
 from .apps import AppConfig
@@ -15,7 +16,9 @@ app_name = AppConfig.name
 
 
 urlpatterns = [
-    url(r'^sistema/', TemplateView.as_view(template_name='sistema.html')),
+    url(r'^sistema/', permission_required('base.view_tabelas_auxiliares')
+        (TemplateView.as_view(template_name='sistema.html'))),
+
     url(r'^ajuda/', TemplateView.as_view(template_name='ajuda.html')),
     url(r'^relatorios/', TemplateView.as_view(
         template_name='base/relatorios_list.html')),

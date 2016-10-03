@@ -32,8 +32,6 @@ def subnav(context, path=None):
         execução deste subnav. Inicialmente, a maneira mais prática encontrada
         de isolar foi com o teste abaixo.
         """
-        if 'sistema' in request.path:
-            return
 
         rm = request.resolver_match
         app_template = rm.app_name.rsplit('.', 1)[-1]
@@ -44,6 +42,9 @@ def subnav(context, path=None):
             yaml_path = context['subnav_template_name']
         else:
             yaml_path = '%s/%s' % (app_template, 'subnav.yaml')
+
+        if not yaml_path:
+            return
 
         try:
             """

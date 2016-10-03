@@ -20,10 +20,12 @@
 	        </div>
 
 	        <div class="col-md-4" align="center">
-						<br /><br />
-	          {% if view.get_cargos_mesa %}<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />{% endif %}
-	          <br /><br />
-	          <input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
+            {% if perms.sessao %}
+  						<br /><br />
+  	          {% if view.get_cargos_mesa %}<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />{% endif %}
+  	          <br /><br />
+              <input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
+            {% endif %}
 	        </div>
 	        {% if view.get_cargos_mesa %}
 		        <div class="col-md-4">

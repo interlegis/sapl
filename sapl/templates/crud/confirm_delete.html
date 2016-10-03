@@ -3,13 +3,12 @@
 
 {% block base_content %}
   <form action="" method="post">{% csrf_token %}
+    <br>
     <div class="panel panel-danger">
       <div class="panel-heading  text-center">
-        {% block msg %}
-          {% blocktrans %}
-            Confirma exclusão de "{{ object }}"?
-          {% endblocktrans %}
-        {% endblock msg %}
+        {% blocktrans %}
+          Confirma exclusão de "{{ object }}"?
+        {% endblocktrans %}
       </div>
       <div class="panel-body text-center">
         <a href="{{ view.cancel_url }}" class="btn btn-inverse">{% trans 'Cancelar'  %}</a>

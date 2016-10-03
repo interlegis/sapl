@@ -26,25 +26,20 @@ from django_filters.views import FilterView
 from sapl.base.models import CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, make_pagination)
-from sapl.crud.masterdetail import MasterDetailCrud
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux, CrudDetailView,
+                            MasterDetailCrud, make_pagination)
+from sapl.materia.forms import AnexadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        permissao_tb_aux, permissoes_autor, permissoes_materia,
+                        permissoes_autor, permissoes_materia,
                         permissoes_protocoloadm)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    AnexadaForm, AutorForm, AutoriaForm,
-                    ConfirmarProposicaoForm, DespachoInicialForm,
-                    DocumentoAcessorioForm, LegislacaoCitadaForm,
-                    MateriaLegislativaFilterSet, NumeracaoForm,
+                    AutorForm, ConfirmarProposicaoForm, DocumentoAcessorioForm,
+                    MateriaLegislativaFilterSet,
                     PrimeiraTramitacaoEmLoteFilterSet, ProposicaoForm,
-                    ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, TramitacaoForm,
-                    TramitacaoUpdateForm, UnidadeTramitacaoForm,
+                    ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
@@ -55,7 +50,25 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
+
 AnexadaCrud = Crud.build(Anexada, '')
+
+OrigemCrud = Crud.build(Origem, '')
+
+TipoMateriaCrud = CrudAux.build(
+    TipoMateriaLegislativa, 'tipo_materia_legislativa')
+
+RegimeTramitacaoCrud = CrudAux.build(
+    RegimeTramitacao, 'regime_tramitacao')
+
+TipoDocumentoCrud = CrudAux.build(
+    TipoDocumento, 'tipo_documento')
+
+TipoFimRelatoriaCrud = CrudAux.build(
+    TipoFimRelatoria, 'fim_relatoria')
+
+TipoAutorCrud = CrudAux.build(
+    TipoAutor, 'regime_tramitacao')
 
 
 def recuperar_materia(request):
@@ -68,66 +81,6 @@ def recuperar_materia(request):
         response = JsonResponse({'numero': 1, 'ano': datetime.now().year})
 
     return response
-
-
-class OrigemCrud(Crud):
-    model = Origem
-    help_path = 'origem'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoMateriaCrud(Crud):
-    model = TipoMateriaLegislativa
-    help_path = 'tipo_materia_legislativa'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class RegimeTramitacaoCrud(Crud):
-    model = RegimeTramitacao
-    help_path = 'regime_tramitacao'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoDocumentoCrud(Crud):
-    model = TipoDocumento
-    help_path = 'tipo_documento'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoFimRelatoriaCrud(Crud):
-    model = TipoFimRelatoria
-    help_path = 'fim_relatoria'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoAutorCrud(Crud):
-    model = TipoAutor
-    help_path = 'tipo_autor'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
 
 
 def montar_helper_autor(self):
@@ -152,18 +105,14 @@ def montar_helper_autor(self):
              ' class="btn btn-inverse">Cancelar</a>')]))
 
 
-class AutorCrud(Crud):
+class AutorCrud(CrudAux):
     model = Autor
     help_path = 'autor'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['tipo', 'nome']
 
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-    class UpdateView(CrudUpdateView):
-        form_class = AutorForm
+    class UpdateView(CrudAux.UpdateView):
         layout_key = 'AutorCreate'
 
         def __init__(self, *args, **kwargs):
@@ -175,7 +124,7 @@ class AutorCrud(Crud):
             context['helper'] = self.helper
             return context
 
-    class CreateView(CrudCreateView):
+    class CreateView(CrudAux.CreateView):
         form_class = AutorForm
         layout_key = 'AutorCreate'
 
@@ -229,34 +178,10 @@ class ConfirmarEmailView(TemplateView):
         return self.render_to_response(context)
 
 
-class OrgaoCrud(Crud):
-    model = Orgao
-    help_path = 'orgao'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoProposicaoCrud(Crud):
-    model = TipoProposicao
-    help_path = 'tipo_proposicao'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class StatusTramitacaoCrud(Crud):
-    model = StatusTramitacao
-    help_path = 'status_tramitacao'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
+OrgaoCrud = CrudAux.build(Orgao, 'orgao')
+TipoProposicaoCrud = CrudAux.build(TipoProposicao, 'tipo_proposicao')
+StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
+UnidadeTramitacaoCrud = CrudAux.build(UnidadeTramitacao, 'unidade_tramitacao')
 
 
 def criar_materia_proposicao(proposicao):
@@ -294,22 +219,6 @@ def criar_doc_proposicao(proposicao):
         data=proposicao.data_envio,
         autor=autor
     )
-
-
-class UnidadeTramitacaoCrud(Crud):
-    model = UnidadeTramitacao
-    help_path = 'unidade_tramitacao'
-
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
-        permission_required = permissoes_materia()
-        form_class = UnidadeTramitacaoForm
-
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        permission_required = permissoes_materia()
-        form_class = UnidadeTramitacaoForm
-
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
-        permission_required = permissoes_materia()
 
 
 class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
@@ -457,13 +366,12 @@ class ProposicaoCrud(Crud):
     model = Proposicao
     help_path = ''
 
-    class BaseMixin(CrudBaseMixin):
+    class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data_envio', 'descricao',
                             'tipo', 'data_recebimento']
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class CreateView(Crud.CreateView):
         form_class = ProposicaoForm
-        permission_required = {'materia.add_proposicao'}
 
         @property
         def layout_key(self):
@@ -489,9 +397,8 @@ class ProposicaoCrud(Crud):
             else:
                 return {'autor': autor_id}
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(Crud.UpdateView):
         form_class = ProposicaoForm
-        permission_required = permissoes_autor()
 
         def get_initial(self):
             initial = self.initial.copy()
@@ -525,8 +432,7 @@ class ProposicaoCrud(Crud):
                     messages.add_message(self.request, messages.ERROR, msg)
                     return False
 
-    class DetailView(PermissionRequiredMixin, CrudDetailView):
-        permission_required = permissoes_autor()
+    class DetailView(Crud.DetailView):
 
         def has_permission(self):
             perms = self.get_permission_required()
@@ -542,9 +448,8 @@ class ProposicaoCrud(Crud):
             context['subnav_template_name'] = ''
             return context
 
-    class ListView(PermissionRequiredMixin, CrudListView):
+    class ListView(Crud.ListView):
         ordering = ['-data_envio', 'descricao']
-        permission_required = permissoes_autor()
 
         def get_rows(self, object_list):
 
@@ -572,8 +477,7 @@ class ProposicaoCrud(Crud):
 
             return lista
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
-        permission_required = {'materia.delete_proposicao'}
+    class DeleteView(Crud.DeleteView):
 
         def has_permission(self):
             perms = self.get_permission_required()
@@ -636,10 +540,9 @@ class RelatoriaCrud(MasterDetailCrud):
     model = Relatoria
     parent_field = 'materia'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        permission_required = permissoes_materia()
-        form_class = RelatoriaForm
+    class CreateView(MasterDetailCrud.CreateView):
 
         def get_initial(self):
             materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
@@ -658,26 +561,20 @@ class RelatoriaCrud(MasterDetailCrud):
 
             return {'comissao': localizacao}
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        permission_required = permissoes_materia()
-        form_class = RelatoriaForm
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
-
 
 class TramitacaoCrud(MasterDetailCrud):
     model = Tramitacao
     parent_field = 'materia'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
                             'unidade_tramitacao_destino', 'status']
+        ordered_list = False
+        ordering = '-data_tramitacao',
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = TramitacaoForm
-        permission_required = permissoes_materia()
+    class CreateView(MasterDetailCrud.CreateView):
 
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
@@ -692,9 +589,7 @@ class TramitacaoCrud(MasterDetailCrud):
             do_envia_email_tramitacao(request, materia)
             return super(CreateView, self).post(request, *args, **kwargs)
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = TramitacaoUpdateForm
-        permission_required = permissoes_materia()
+    class UpdateView(MasterDetailCrud.UpdateView):
 
         def post(self, request, *args, **kwargs):
             materia = MateriaLegislativa.objects.get(
@@ -713,8 +608,7 @@ class TramitacaoCrud(MasterDetailCrud):
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
+    class DeleteView(MasterDetailCrud.DeleteView):
 
         def delete(self, request, *args, **kwargs):
             tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
@@ -767,78 +661,56 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
     model = DocumentoAcessorio
     parent_field = 'materia'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['nome', 'tipo', 'data', 'autor', 'arquivo']
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = DocumentoAcessorioForm
-        permission_required = permissoes_materia()
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, **kwargs):
             montar_helper_documento_acessorio(self)
-            super(CreateView, self).__init__(*args, **kwargs)
+            super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
-            context = super(CreateView, self).get_context_data(**kwargs)
+            context = super(
+                MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
             context['helper'] = self.helper
             return context
 
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
-        permission_required = permissoes_materia()
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, **kwargs):
             montar_helper_documento_acessorio(self)
-            super(UpdateView, self).__init__(*args, **kwargs)
+            super(MasterDetailCrud.UpdateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(UpdateView, self).get_context_data(**kwargs)
             context['helper'] = self.helper
             return context
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
-
 
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
     parent_field = 'materia'
     help_path = ''
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = AutoriaForm
-        permission_required = permissoes_materia()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = AutoriaForm
-        permission_required = permissoes_materia()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
+    public = [RP_LIST, RP_DETAIL]
 
 
 class DespachoInicialCrud(MasterDetailCrud):
     model = DespachoInicial
     parent_field = 'materia'
     help_path = ''
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = DespachoInicialForm
-        permission_required = permissoes_materia()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = DespachoInicialForm
-        permission_required = permissoes_materia()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
+    public = [RP_LIST, RP_DETAIL]
 
 
 class LegislacaoCitadaCrud(MasterDetailCrud):
     model = LegislacaoCitada
     parent_field = 'materia'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['norma', 'disposicoes']
@@ -848,22 +720,13 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             return reverse('%s:%s' % (namespace, self.url_name(suffix)),
                            args=args)
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = LegislacaoCitadaForm
-        permission_required = permissoes_materia()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = LegislacaoCitadaForm
-        permission_required = permissoes_materia()
+    class UpdateView(MasterDetailCrud.UpdateView):
 
         def get_initial(self):
             self.initial['tipo'] = self.object.norma.tipo.id
             self.initial['numero'] = self.object.norma.numero
             self.initial['ano'] = self.object.norma.ano
             return self.initial
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -876,41 +739,17 @@ class NumeracaoCrud(MasterDetailCrud):
     model = Numeracao
     parent_field = 'materia'
     help_path = ''
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = NumeracaoForm
-        permission_required = permissoes_materia()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = NumeracaoForm
-        permission_required = permissoes_materia()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
+    public = [RP_LIST, RP_DETAIL]
 
 
 class AnexadaCrud(MasterDetailCrud):
     model = Anexada
     parent_field = 'materia_principal'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['materia_anexada', 'data_anexacao']
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = AnexadaForm
-        permission_required = permissoes_materia()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = AnexadaForm
-        permission_required = permissoes_materia()
-
-        def get_initial(self):
-            self.initial['tipo'] = self.object.materia_anexada.tipo.id
-            self.initial['numero'] = self.object.materia_anexada.numero
-            self.initial['ano'] = self.object.materia_anexada.ano
-
-            return self.initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -918,27 +757,17 @@ class AnexadaCrud(MasterDetailCrud):
         def layout_key(self):
             return 'AnexadaDetail'
 
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_materia()
-
 
 class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
     help_path = 'materia_legislativa'
+    public = [RP_LIST, RP_DETAIL]
 
-    class BaseMixin(CrudBaseMixin):
+    class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
-        permission_required = permissoes_materia()
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        permission_required = permissoes_materia()
-
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
-        permission_required = permissoes_materia()
-
-
+# FIXME - qual a finalidade dessa classe??
 class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
     template_name = "materia/documento_acessorio.html"
     form_class = DocumentoAcessorioForm

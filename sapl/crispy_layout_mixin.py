@@ -49,7 +49,12 @@ class SaplFormLayout(Layout):
 
 
 def get_field_display(obj, fieldname):
-    field = obj._meta.get_field(fieldname)
+    field = ''
+    try:
+        field = obj._meta.get_field(fieldname)
+    except:
+        value = getattr(obj, fieldname)
+        return '', value
     verbose_name = str(field.verbose_name)\
         if hasattr(field, 'verbose_name') else ''
     if hasattr(field, 'choices') and field.choices:
@@ -97,9 +102,24 @@ class CrispyLayoutFormMixin:
         else:
             return self.model.__name__
 
+    @property
+    def layout_key_set(self):
+        if hasattr(super(CrispyLayoutFormMixin, self), 'layout_key_set'):
+            return super(CrispyLayoutFormMixin, self).layout_key_set
+        else:
+            obj = self.crud if hasattr(self, 'crud') else self
+            return getattr(obj.model,
+                           obj.model_set).field.model.__name__
+
     def get_layout(self):
         yaml_layout = '%s/layouts.yaml' % self.model._meta.app_config.label
         return read_layout_from_yaml(yaml_layout, self.layout_key)
+
+    def get_layout_set(self):
+        obj = self.crud if hasattr(self, 'crud') else self
+        yaml_layout = '%s/layouts.yaml' % getattr(
+            obj.model, obj.model_set).field.model._meta.app_config.label
+        return read_layout_from_yaml(yaml_layout, self.layout_key_set)
 
     @property
     def fields(self):
@@ -129,7 +149,20 @@ class CrispyLayoutFormMixin:
         This base implementation returns the field names
         in the first fieldset of the layout.
         '''
+        obj = self.crud if hasattr(self, 'crud') else self
+        if hasattr(obj, 'list_field_names') and obj.list_field_names:
+            return obj.list_field_names
         rows = self.get_layout()[0][1:]
+        return [fieldname for row in rows for fieldname, __ in row]
+
+    @property
+    def list_field_names_set(self):
+        '''The list of field names to display on table
+
+        This base implementation returns the field names
+        in the first fieldset of the layout.
+        '''
+        rows = self.get_layout_set()[0][1:]
         return [fieldname for row in rows for fieldname, __ in row]
 
     def get_column(self, fieldname, span):

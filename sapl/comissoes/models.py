@@ -1,4 +1,3 @@
-import datetime
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -131,7 +130,7 @@ class Composicao(models.Model):  # IGNORE
 
 
 class Participacao(models.Model):  # ComposicaoComissao
-    composicao = models.ForeignKey(Composicao)
+    composicao = models.ForeignKey(Composicao, related_name='participacao_set')
     parlamentar = models.ForeignKey(Parlamentar)
     cargo = models.ForeignKey(CargoComissao)
     titular = models.BooleanField(verbose_name=_('Titular'))

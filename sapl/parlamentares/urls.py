@@ -23,11 +23,8 @@ urlpatterns = [
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
-        RelatoriaParlamentarCrud.get_urls()
+        RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls()
     )),
-
-    url(r'^parlamentar/(?P<pk>\d+)/frente$',
-        FrenteList.as_view(), name="frent_list"),
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +

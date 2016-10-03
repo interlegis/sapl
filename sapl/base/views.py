@@ -1,18 +1,16 @@
-from django.contrib.auth.mixins import PermissionRequiredMixin
+
+from braces.views import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import BaseCreateView
 from django_filters.views import FilterView
 
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDetailView, CrudUpdateView)
+from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
-from sapl.utils import permissao_tb_aux
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
@@ -225,24 +223,14 @@ class RelatorioMateriasPorAutorView(FilterView):
         return context
 
 
-class CasaLegislativaCrud(Crud):
+class CasaLegislativaCrud(CrudAux):
     model = CasaLegislativa
-    help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['codigo', 'nome', 'sigla']
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
         form_class = CasaLegislativaForm
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        form_class = CasaLegislativaForm
-
-    class DetailView(CrudDetailView):
-        form_class = CasaLegislativaForm
+    class DetailView(CrudAux.DetailView):
 
         def get(self, request, *args, **kwargs):
             return HttpResponseRedirect(
@@ -257,28 +245,21 @@ class HelpView(PermissionRequiredMixin, TemplateView):
         return ['ajuda/%s.html' % self.kwargs['topic']]
 
 
-class SistemaView(PermissionRequiredMixin, TemplateView):
-    template_name = 'sistema.html'
-    permission_required = ''
-
-    def has_permission(self):
-        return permissao_tb_aux(self)
-
-
-class AppConfigCrud(Crud):
+class AppConfigCrud(CrudAux):
     model = AppConfig
-    help_path = ''
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-        list_field_names = ['documentos_administrativos',
-                            'sequencia_numeracao',
-                            'painel_aberto']
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
+    class BaseMixin(CrudAux.BaseMixin):
         form_class = ConfiguracoesAppForm
+
+        @property
+        def list_url(self):
+            return ''
+
+        @property
+        def create_url(self):
+            return ''
+
+    class CreateView(CrudAux.CreateView):
 
         def get(self, request, *args, **kwargs):
             app_config = AppConfig.objects.last()
@@ -288,8 +269,20 @@ class AppConfigCrud(Crud):
                             kwargs={'pk': app_config.pk}))
             else:
                 self.object = None
-                return super(BaseCreateView, self).get(
+                return super(CrudAux.CreateView, self).get(
                     request, *args, **kwargs)
 
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        form_class = ConfiguracoesAppForm
+    class ListView(CrudAux.ListView):
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
+
+    class DetailView(CrudAux.DetailView):
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
+
+    class DeleteView(CrudAux.DeleteView):
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))

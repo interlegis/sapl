@@ -1,48 +1,74 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% load common_tags %}
+{% load i18n common_tags crispy_forms_tags%}
 
 {% block base_content %}
 
-  <div class="actions btn-group pull-right" role="group">
-  {% if perms|get_add_perm:view %}
-    <a href="{{ view.create_url }}" class="btn btn-default">
-      {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
-    </a>
-  {% endif %}
-    {% block more_buttons %}{% endblock more_buttons %}
-  </div>
+<div class="context-actions clearfix">
 
-<br/><br/>
+  <div class="actions search pull-left">
+    {% if form %}
+      {% crispy form %}
+    {% endif %}
+  </div>
+  {% block actions %}
+    <div class="actions btn-group pull-right btn-group-lg" role="group">
+      {% if view.create_url %}
+      <a href="{{ view.create_url }}" class="btn btn-default">
+        {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+      </a>
+      {% endif %}
+      {% block more_buttons %}{% endblock more_buttons %}
+    </div>
+  {% endblock actions %}
+</div>
+
 {% block extra_content %} {% endblock %}
 
 {% if not rows %}
   <p>{{ NO_ENTRIES_MSG }}</p>
 {% else %}
-  <table class="table table-striped table-hover">
-    <thead>
+  <div class="container-table">
+    <div class="result-count">{% blocktrans with verbose_name_plural=view.verbose_name_plural %}Total de {{ verbose_name_plural }}: <strong>{{count}}</strong>{% endblocktrans %}</div>
+    <table class="table table-striped table-hover table-link-ordering">
+      <thead>
+        <tr>
+          {% for name in headers %}
+            <th>
+              {% if view.ordered_list %}
+                <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}{{ordering_url}}">
+                  {{ name }}
+                  {% if 'o' in request.GET or not view.ordering %}
+                    {% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
+                      <span class="caret top" title="{% trans 'Listado na Ordem Ascendente'%}"></span>
+                    {% elif 'o' in request.GET and forloop.counter == request.GET.o|str2intabs %}
+                      <span class="caret" title="{% trans 'Listado na Ordem Descendente'%}"></span>
+                    {%endif%}
+                  {%endif%}
+                </a>
+              {% else %}
+                  {{ name }}
+              {% endif %}
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for value_list in rows %}
       <tr>
-        {% for name in headers %}
-        <th>{{ name }}</th>
+        {% for value, href in value_list %}
+        <td>
+          {% if href %}
+          <a href="{{ href }}">{{ value|safe }}</a>
+          {% elif valu != 'core.Cep.None' %}
+            {{ value|safe }}
+          {% endif %}
+        </td>
         {% endfor %}
       </tr>
-    </thead>
-    <tbody>
-    {% for value_list in rows %}
-    <tr>
-      {% for value, href in value_list %}
-      <td>
-        {% if href %}
-        <a href="{{ href }}">{{ value }}</a>
-        {% else %}
-          {{ value|safe }}
-        {% endif %}
-      </td>
       {% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-  </table>
+    </tbody>
+    </table>
+  </div>
 {% endif %}
 
 {% include "paginacao.html" %}

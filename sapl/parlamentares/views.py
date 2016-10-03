@@ -1,126 +1,88 @@
+
 from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.shortcuts import redirect
-from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView
 
 from sapl.comissoes.models import Participacao
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView)
-from sapl.crud.masterdetail import MasterDetailCrud
+from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            CrudBaseForListAndDetailExternalAppView,
+                            MasterDetailCrud)
 from sapl.materia.models import Proposicao, Relatoria
-from sapl.utils import permissao_tb_aux, permissoes_parlamentares
+from sapl.parlamentares.apps import AppConfig
 
-from .forms import (ComposicaoColigacaoForm, FiliacaoForm, FrenteForm,
-                    LegislaturaForm, ParlamentarCreateForm, ParlamentarForm)
+from .forms import LegislaturaForm, ParlamentarCreateForm, ParlamentarForm
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
 
+CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
+PartidoCrud = CrudAux.build(Partido, 'partidos')
+SessaoLegislativaCrud = CrudAux.build(SessaoLegislativa, 'sessao_legislativa')
+TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
+NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
+TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
+TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
-class FrenteList(ListView):
+FrenteCrud = CrudAux.build(Frente, 'tipo_situa_militar', list_field_names=[
+    'nome', 'data_criacao', 'parlamentares'])
+
+DependenteCrud = MasterDetailCrud.build(
+    Dependente, 'parlamentar', 'dependente')
+
+
+class FrenteList(MasterDetailCrud):
     model = Frente
-    paginate_by = 10
-    template_name = 'parlamentares/frentes.html'
+    is_m2m = True
+    parent_field = 'parlamentares'
+    CreateView, UpdateView, DeleteView = None, None, None
 
-    def get_queryset(self):
-        return Frente.objects.filter(parlamentares__in=[self.kwargs['pk']])
+    class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
+        list_field_names = ['nome', 'data_criacao']
 
-    def get_context_data(self, **kwargs):
-        context = super(FrenteList, self).get_context_data(**kwargs)
-        context['root_pk'] = self.kwargs['pk']
-        context['object_list'] = self.get_queryset()
-        return context
-
-
-class FrenteCrud(Crud):
-    model = Frente
-    help_path = ''
-
-    class BaseMixin(CrudBaseMixin):
-        list_field_names = ['nome', 'data_criacao', 'parlamentares']
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
-        form_class = FrenteForm
-
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
-        form_class = FrenteForm
+        @classmethod
+        def url_name(cls, suffix):
+            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
 
 
-class RelatoriaParlamentarCrud(MasterDetailCrud):
+class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Relatoria
     parent_field = 'parlamentar'
-    help_path = ''
-
-    class ListView(MasterDetailCrud.ListView):
-        permission_required = permissoes_parlamentares()
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        permission_required = permissoes_parlamentares()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        permission_required = permissoes_parlamentares()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_parlamentares()
+    help_path = 'relatoria_parlamentar'
+    namespace = AppConfig.name
 
 
-class ProposicaoParlamentarCrud(MasterDetailCrud):
+class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Proposicao
+    list_field_names = ['tipo', 'descricao']
     parent_field = 'autor__parlamentar'
-    help_path = ''
+    namespace = AppConfig.name
 
-    class BaseMixin(CrudBaseMixin):
-        list_field_names = ['tipo', 'descricao']
-
-    class ListView(MasterDetailCrud.ListView):
-        permission_required = permissoes_parlamentares()
-
-        def get_context_data(self, **kwargs):
-            context = super(ProposicaoParlamentarCrud.ListView, self
-                            ).get_context_data(**kwargs)
-            context['root_pk'] = self.kwargs['pk']
-            return context
+    class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
 
         def get_queryset(self):
-            try:
-                proposicoes = Proposicao.objects.filter(
-                    autor__parlamentar_id=self.kwargs['pk'],
-                    data_envio__isnull=False)
-            except ObjectDoesNotExist:
-                return []
-            else:
-                return proposicoes
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        permission_required = permissoes_parlamentares()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        permission_required = permissoes_parlamentares()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_parlamentares()
+            return super().get_queryset().filter(
+                autor__parlamentar_id=self.kwargs['pk'],
+                data_envio__isnull=False)
 
 
-class ParticipacaoParlamentarCrud(MasterDetailCrud):
+class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Participacao
     parent_field = 'parlamentar'
-    help_path = ''
+    namespace = AppConfig.name
+    list_field_names = ['composicao__comissao__nome', 'cargo__nome', (
+        'composicao__periodo__data_inicio', 'composicao__periodo__data_fim')]
 
-    class ListView(MasterDetailCrud.ListView):
+    class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
         ordering = ('-composicao__periodo')
 
         def get_rows(self, object_list):
+            """
+            FIXME:
+                Este metodo não será necessário quando get_rows for refatorada
+            """
+
             comissoes = []
             for p in object_list:
                 if p.cargo.nome != 'Relator':
@@ -138,138 +100,27 @@ class ParticipacaoParlamentarCrud(MasterDetailCrud):
             return comissoes
 
         def get_headers(self):
-            return ['Comissão', 'Cargo', 'Período']
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        permission_required = permissoes_parlamentares()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        permission_required = permissoes_parlamentares()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_parlamentares()
+            return [_('Comissão'), _('Cargo'), _('Período de participação'), ]
 
 
-class CargoMesaCrud(Crud):
-    model = CargoMesa
-    help_path = 'cargo_mesa'
+class ColigacaoCrud(CrudAux):
+    model = Coligacao
+    help_path = 'tabelas_auxiliares#coligacao'
 
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
+    class ListView(CrudAux.ListView):
+        ordering = ('-numero_votos', 'nome')
 
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class PartidoCrud(Crud):
-    model = Partido
-    help_path = 'partidos'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class SessaoLegislativaCrud(Crud):
-    model = SessaoLegislativa
-    help_path = 'sessao_legislativa'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoDependenteCrud(Crud):
-    model = TipoDependente
-    help_path = 'nivel_instrucao'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class NivelInstrucaoCrud(Crud):
-    model = NivelInstrucao
-    help_path = 'tipo_dependente'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoAfastamentoCrud(Crud):
-    model = TipoAfastamento
-    help_path = 'tipo_afastamento'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class TipoMilitarCrud(Crud):
-    model = SituacaoMilitar
-    help_path = 'tipo_situa_militar'
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class DependenteCrud(MasterDetailCrud):
-    model = Dependente
-    parent_field = 'parlamentar'
-    help_path = ''
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        permission_required = permissoes_parlamentares()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        permission_required = permissoes_parlamentares()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_parlamentares()
-
-    class ListView(PermissionRequiredMixin, MasterDetailCrud.ListView):
-        permission_required = permissoes_parlamentares()
-
-    class DetailView(PermissionRequiredMixin, MasterDetailCrud.DetailView):
-        permission_required = permissoes_parlamentares()
+    class BaseMixin(CrudAux.BaseMixin):
+        subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
 
 
 class MandatoCrud(MasterDetailCrud):
     model = Mandato
     parent_field = 'parlamentar'
-    help_path = ''
+    public = [RP_DETAIL, RP_LIST]
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
-
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        permission_required = permissoes_parlamentares()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        permission_required = permissoes_parlamentares()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_parlamentares()
-
-
-class ColigacaoCrud(Crud):
-    model = Coligacao
-    help_path = 'tabelas_auxiliares#coligacao'
-
-    class ListView(CrudListView):
-        ordering = ('-numero_votos', 'nome')
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
 
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):
@@ -277,185 +128,113 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
     parent_field = 'coligacao'
     help_path = ''
 
-    class CreateView(MasterDetailCrud.CreateView):
-        form_class = ComposicaoColigacaoForm
+    class BaseMixin(MasterDetailCrud.BaseMixin):
 
-        def get_initial(self):
-            id = self.kwargs['pk']
-            return {'coligacao_id': id}
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = ComposicaoColigacaoForm
-
-        def get_initial(self):
-            id = self.kwargs['pk']
-            return {'coligacao_id': id}
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data()
+            context['subnav_template_name'] = \
+                'parlamentares/subnav_coligacao.yaml'
+            return context
 
     class ListView(MasterDetailCrud.ListView):
         ordering = '-partido__sigla'
 
-    class BaseMixin(PermissionRequiredMixin, MasterDetailCrud.BaseMixin):
 
-        def has_permission(self):
-            return permissao_tb_aux(self)
-
-
-class LegislaturaCrud(Crud):
+class LegislaturaCrud(CrudAux):
     model = Legislatura
     help_path = 'tabelas_auxiliares#legislatura'
 
-    class CreateView(CrudCreateView):
+    class BaseMixin(CrudAux.BaseMixin):
         form_class = LegislaturaForm
-
-    class UpdateView(CrudUpdateView):
-        form_class = LegislaturaForm
-
-    class BaseMixin(PermissionRequiredMixin, CrudBaseMixin):
-
-        def has_permission(self):
-            return permissao_tb_aux(self)
 
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
     parent_field = 'parlamentar'
     help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
-    class CreateView(PermissionRequiredMixin, MasterDetailCrud.CreateView):
-        form_class = FiliacaoForm
-        permission_required = permissoes_parlamentares()
-
-    class UpdateView(PermissionRequiredMixin, MasterDetailCrud.UpdateView):
-        form_class = FiliacaoForm
-        permission_required = permissoes_parlamentares()
-
-    class DeleteView(PermissionRequiredMixin, MasterDetailCrud.DeleteView):
-        permission_required = permissoes_parlamentares()
-
-    class ListView(MasterDetailCrud.ListView):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
         ordering = '-data'
-
-
-def get_parlamentar_permissions():
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='parlamentares')
-    perms_parlamentares = list(Permission.objects.filter(
-        content_type__in=cts))
-    for p in perms_parlamentares:
-        lista_permissoes.append('parlamentares.' + p.codename)
-    return set(lista_permissoes)
 
 
 class ParlamentarCrud(Crud):
     model = Parlamentar
-    help_path = ''
+    public = [RP_LIST, RP_DETAIL]
 
-    class DetailView(CrudDetailView):
+    class BaseMixin(Crud.BaseMixin):
+        form_class = ParlamentarCreateForm
+        ordered_list = False
+        list_field_names = [
+            'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo']
+
+    class DetailView(Crud.DetailView):
 
         def get_template_names(self):
-            usuario = self.request.user
-            lista_permissoes = get_parlamentar_permissions()
+            return ['crud/detail.html']\
+                if self.request.user.has_perm(self.permission(RP_CHANGE))\
+                else ['parlamentares/parlamentar_perfil_publico.html']
 
-            if usuario.has_perms(lista_permissoes):
-                return ['crud/detail.html']
-
-            else:
-                return ['parlamentares/parlamentar_perfil_publico.html']
-
-    class UpdateView(PermissionRequiredMixin, CrudUpdateView):
+    class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
-        permission_required = permissoes_parlamentares()
 
-    class CreateView(PermissionRequiredMixin, CrudCreateView):
-        form_class = ParlamentarCreateForm
-        permission_required = permissoes_parlamentares()
+    class CreateView(Crud.CreateView):
 
         @property
         def layout_key(self):
             return 'ParlamentarCreate'
 
-    class DeleteView(PermissionRequiredMixin, CrudDeleteView):
-        form_class = ParlamentarCreateForm
-        permission_required = permissoes_parlamentares()
+        def form_valid(self, form):
+            '''
+            Reimplementa form_valid devido ao save de ParlamentarCreateForm
+            ser específico, sendo necessário isolar padrão do crud que aciona
+            form.save(commit=False) para registrar dados de auditoria se
+            o model implementá-los, bem como de container se também implement.
+            '''
+            return super(Crud.CreateView, self).form_valid(form)
 
-    class ListView(CrudListView):
+    class ListView(Crud.ListView):
         template_name = "parlamentares/parlamentares_list.html"
         paginate_by = None
-        ordering = '-nome_parlamentar'
 
         def take_legislatura_id(self):
-            legislaturas = Legislatura.objects.all().order_by(
-                '-numero')
-
-            if legislaturas:
-                try:
-                    legislatura_id = int(self.request.GET['periodo'])
-                except MultiValueDictKeyError:
-                    for l in Legislatura.objects.all():
-                        if l.atual():
-                            return l.id
-                return legislatura_id
-            else:
+            try:
+                return int(self.request.GET['periodo'])
+            except:
+                for l in Legislatura.objects.all():
+                    if l.atual():
+                        return l.id
                 return 0
 
         def get_queryset(self):
-            if self.take_legislatura_id() != 0:
-                mandatos = Mandato.objects.filter(
-                    legislatura_id=self.take_legislatura_id()).order_by(
-                        'parlamentar__nome_parlamentar')
-                return mandatos
-            return []
+            queryset = super().get_queryset()
 
-        def get_rows(self, object_list):
-            parlamentares = []
-            for m in object_list:
-                ultima_filiacao = m.parlamentar.filiacao_set.order_by(
-                    '-data').first()
-                if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
-                    partido = ultima_filiacao.partido.sigla
-                else:
-                    partido = _('Sem Partido')
-
-                parlamentar = [
-                    ("<img src=" + m.parlamentar.fotografia.url + " \
-                     height='42' width='42' />" if m.parlamentar.fotografia
-                     else '', ''),
-                    (m.parlamentar.nome_parlamentar, m.parlamentar.id),
-                    (partido, None),
-                    ('Sim' if m.parlamentar.ativo else 'Não', None)
-                ]
-                parlamentares.append(parlamentar)
-            return parlamentares
+            legislatura_id = self.take_legislatura_id()
+            if legislatura_id != 0:
+                queryset = queryset.filter(
+                    mandato__legislatura_id=legislatura_id)
+            return queryset
 
         def get_headers(self):
-            return ['', 'Parlamentar', 'Partido', 'Ativo?']
+            return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
 
         def get_context_data(self, **kwargs):
-            context = super(ParlamentarCrud.ListView, self
-                            ).get_context_data(**kwargs)
-            context.setdefault('title', self.verbose_name_plural)
+            context = super().get_context_data(**kwargs)
 
             # Adiciona legislatura para filtrar parlamentares
-            legislaturas = Legislatura.objects.all().order_by(
-                '-numero')
+            legislaturas = Legislatura.objects.all().order_by('-numero')
             context['legislaturas'] = legislaturas
             context['legislatura_id'] = self.take_legislatura_id()
+
+            # Tira Link do avatar_html e coloca no nome
+            for row in context['rows']:
+                row[1] = (row[1][0], row[0][1])
+                row[0] = (row[0][0], None)
             return context
 
 
-def check_permission_mesa(request):
-    lista_permissoes = []
-    cts = ContentType.objects.filter(app_label='parlamentares')
-    cts = cts.filter(model__icontains='mesa')
-    perms = list(Permission.objects.filter(content_type__in=cts))
-    for p in perms:
-        lista_permissoes.append('parlamentares.' + p.codename)
-
-    return request.user.has_perms(set(lista_permissoes))
-
-
 class MesaDiretoraView(FormView):
-    template_name = "mesa_diretora/mesa_diretora.html"
+    template_name = 'parlamentares/composicaomesa_form.html'
     success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
@@ -474,18 +253,18 @@ class MesaDiretoraView(FormView):
     def get(self, request, *args, **kwargs):
 
         if (not Legislatura.objects.exists() or
-                not SessaoLegislativa.objects.all()):
+                not SessaoLegislativa.objects.exists()):
             return self.validation(request)
 
         mesa = SessaoLegislativa.objects.filter(
-            legislatura=Legislatura.objects.last()).first(
+            legislatura=Legislatura.objects.first()).first(
         ).composicaomesa_set.all()
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
-        parlamentares = Legislatura.objects.last().mandato_set.all()
+        parlamentares = Legislatura.objects.first().mandato_set.all()
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
             set(
@@ -495,22 +274,25 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-                'legislatura_selecionada': Legislatura.objects.last(),
+                'legislatura_selecionada': Legislatura.objects.first(),
                 'sessoes': SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.last()),
+                legislatura=Legislatura.objects.first()),
                 'sessao_selecionada': SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.last()).first(),
+                legislatura=Legislatura.objects.first()).first(),
                 'composicao_mesa': mesa,
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos
             })
 
     def post(self, request, *args, **kwargs):
-        if 'Incluir' in request.POST and check_permission_mesa(request):
 
-            if (not Legislatura.objects.all() or
-                    not SessaoLegislativa.objects.all()):
-                return self.validation(request)
+        if (not Legislatura.objects.exists() or
+                not SessaoLegislativa.objects.exists()):
+            return self.validation(request)
+
+        if 'Incluir' in request.POST and request.user.has_perm(
+                '%s.add_%s' % (
+                    AppConfig.label, ComposicaoMesa._meta.model_name)):
 
             composicao = ComposicaoMesa()
             composicao.sessao_legislativa = SessaoLegislativa.objects.get(
@@ -521,13 +303,12 @@ class MesaDiretoraView(FormView):
                 id=int(request.POST['cargo']))
             composicao.save()
 
-            return redirect('sapl.parlamentares:mesa_diretora')
+            messages.success(request, _(
+                'Parlamentar adicionado com sucesso!'))
 
-        elif 'Excluir' in request.POST and check_permission_mesa(request):
-
-            if (not Legislatura.objects.all() or
-                    not SessaoLegislativa.objects.all()):
-                return self.validation(request)
+        elif 'Excluir' in request.POST and request.user.has_perm(
+                '%s.delete_%s' % (
+                    AppConfig.label, ComposicaoMesa._meta.model_name)):
 
             if 'composicao_mesa' in request.POST:
                 ids = request.POST['composicao_mesa'].split(':')
@@ -537,32 +318,42 @@ class MesaDiretoraView(FormView):
                     cargo_id=int(ids[1])
                 )
                 composicao.delete()
-            return redirect('sapl.parlamentares:mesa_diretora')
-        else:
-            mesa = ComposicaoMesa.objects.filter(
-                sessao_legislativa=request.POST['sessao'])
+                messages.success(request, _(
+                    'Parlamentar excluido com sucesso!'))
+            else:
+                messages.error(request, _(
+                    'Selecione um parlamentar para ser excluido!'))
 
-            cargos_ocupados = [m.cargo for m in mesa]
-            cargos = CargoMesa.objects.all()
-            cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+        mesa = ComposicaoMesa.objects.filter(
+            sessao_legislativa=request.POST['sessao'])
 
-            parlamentares = Legislatura.objects.get(
-                id=int(request.POST['legislatura'])).mandato_set.all()
-            parlamentares_ocupados = [m.parlamentar for m in mesa]
-            parlamentares_vagos = list(
-                set(
-                    [p.parlamentar for p in parlamentares]) - set(
-                    parlamentares_ocupados))
-            return self.render_to_response(
-                {'legislaturas': Legislatura.objects.all(
-                ).order_by('-numero'),
-                    'legislatura_selecionada': Legislatura.objects.get(
-                    id=int(request.POST['legislatura'])),
-                    'sessoes': SessaoLegislativa.objects.filter(
-                    legislatura_id=int(request.POST['legislatura'])),
-                    'sessao_selecionada': SessaoLegislativa.objects.get(
-                    id=int(request.POST['sessao'])),
-                    'composicao_mesa': mesa,
-                    'parlamentares': parlamentares_vagos,
-                    'cargos_vagos': cargos_vagos
-                })
+        cargos_ocupados = [m.cargo for m in mesa]
+        cargos = CargoMesa.objects.all()
+        cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+
+        parlamentares = Legislatura.objects.get(
+            id=int(request.POST['legislatura'])).mandato_set.all()
+        parlamentares_ocupados = [m.parlamentar for m in mesa]
+        parlamentares_vagos = list(
+            set(
+                [p.parlamentar for p in parlamentares]) - set(
+                parlamentares_ocupados))
+
+        sessao_selecionada = SessaoLegislativa.objects.get(
+            id=int(request.POST['sessao']))
+        if str(sessao_selecionada.legislatura_id) != int(
+                request.POST['legislatura']):
+            sessao_selecionada = SessaoLegislativa.objects.filter(
+                legislatura=Legislatura.objects.first()).first()
+        return self.render_to_response(
+            {'legislaturas': Legislatura.objects.all(
+            ).order_by('-numero'),
+                'legislatura_selecionada': Legislatura.objects.get(
+                id=int(request.POST['legislatura'])),
+                'sessoes': SessaoLegislativa.objects.filter(
+                legislatura_id=int(request.POST['legislatura'])),
+                'sessao_selecionada': sessao_selecionada,
+                'composicao_mesa': mesa,
+                'parlamentares': parlamentares_vagos,
+                'cargos_vagos': cargos_vagos
+            })
