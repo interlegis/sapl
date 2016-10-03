@@ -1,5 +1,5 @@
-from datetime import date, datetime
 import json
+from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
@@ -16,14 +16,10 @@ from django_filters.views import FilterView
 
 from sapl.base.apps import AppConfig as AppsAppConfig
 from sapl.base.models import AppConfig
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, MasterDetailCrud, make_pagination,
-                            CrudAux)
+from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
                         permissoes_protocoloadm)
-import sapl.crud.base
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -35,7 +31,6 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TipoInstituicao,
                      TramitacaoAdministrativo)
-
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')

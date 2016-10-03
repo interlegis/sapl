@@ -17,7 +17,7 @@ from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
-from django.views.generic.base import ContextMixin, View
+from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
@@ -204,6 +204,7 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 class CrudBaseMixin(CrispyLayoutFormMixin):
 
     def __init__(self, **kwargs):
+        super(CrudBaseMixin, self).__init__(**kwargs)
         obj = self.crud if hasattr(self, 'crud') else self
         self.app_label = obj.model._meta.app_label
         self.model_name = obj.model._meta.model_name
@@ -1024,8 +1025,8 @@ class MasterDetailCrud(Crud):
 
         def get_form(self, form_class=None):
             obj = self.crud if hasattr(self, 'crud') else self
-            form = super(CrudCreateView,
-                         self).get_form(self.form_class)
+            form = super(MasterDetailCrud.CreateView, self).get_form(
+                self.form_class)
             if not obj.is_m2m:
                 parent_field = obj.parent_field.split('__')[0]
                 field = self.model._meta.get_field(parent_field)
@@ -1168,8 +1169,9 @@ class MasterDetailCrud(Crud):
         @property
         def detail_set_create_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
-            if hasattr(obj, 'model_set') and self.request.user.has_perm(
-                    self.permission_set(RP_ADD)):
+            if hasattr(obj, 'model_set') and obj.model_set\
+                    and self.request.user.has_perm(
+                        self.permission_set(RP_ADD)):
                 root_pk = self.object .pk
                 pk = root_pk
                 return self.resolve_url_set(ACTION_CREATE, args=(pk,))

@@ -1,33 +1,21 @@
-from datetime import date
 
 from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.shortcuts import redirect
-from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView
 
 from sapl.comissoes.models import Participacao
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudDetailView, CrudListView,
-                            CrudUpdateView, MasterDetailCrud, CrudAux,
-                            RP_CHANGE, RP_DETAIL, RP_LIST,
-                            CrudBaseForListAndDetailExternalAppView)
+from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            CrudBaseForListAndDetailExternalAppView,
+                            MasterDetailCrud)
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import permissao_tb_aux, permissoes_parlamentares
 
-from .forms import (ComposicaoColigacaoForm, FiliacaoForm,
-                    LegislaturaForm, ParlamentarCreateForm, ParlamentarForm)
+from .forms import LegislaturaForm, ParlamentarCreateForm, ParlamentarForm
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente)
-
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')

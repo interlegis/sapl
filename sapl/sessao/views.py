@@ -19,32 +19,29 @@ from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 from rest_framework import generics
 
-from sapl.crud.base import (Crud, MasterDetailCrud, make_pagination,
-                            CrudAux, RP_CHANGE, RP_DETAIL, RP_LIST,)
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            MasterDetailCrud, make_pagination)
 from sapl.materia.forms import pega_ultima_tramitacao
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import (Parlamentar, SessaoLegislativa,
-                                       Legislatura)
+from sapl.parlamentares.models import (Legislatura, Parlamentar,
+                                       SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.serializers import SessaoPlenariaSerializer
-from sapl.utils import permissao_tb_aux, permissoes_painel, permissoes_sessao
+from sapl.utils import permissoes_painel, permissoes_sessao
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
-                    ExpedienteForm, ExpedienteMateriaForm, ListMateriaForm,
-                    MesaForm, OradorExpedienteForm, OradorForm, OrdemDiaForm,
-                    PautaSessaoFilterSet, PresencaForm,
-                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
+from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
+                    ListMateriaForm, MesaForm, PautaSessaoFilterSet,
+                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
+                    VotacaoForm, VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
-
 
 OrdemDiaCrud = Crud.build(OrdemDia, '')
 RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
@@ -131,14 +128,12 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             'resultado']
 
     class CreateView(MasterDetailCrud.CreateView):
-        form_class = OrdemDiaForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
                            kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = OrdemDiaForm
 
         def get_initial(self):
             self.initial['tipo_materia'] = self.object.materia.tipo.id
@@ -322,14 +317,12 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):
-        form_class = ExpedienteMateriaForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:expedientemateria_list',
                            kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = ExpedienteMateriaForm
 
         def get_initial(self):
             self.initial['tipo_materia'] = self.object.materia.tipo.id
@@ -358,28 +351,20 @@ class OradorExpedienteCrud(OradorCrud):
     model = OradorExpediente
 
     class CreateView(MasterDetailCrud.CreateView):
-        form_class = OradorExpedienteForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = OradorExpedienteForm
 
 
 class OradorCrud(OradorCrud):
     model = Orador
 
     class CreateView(MasterDetailCrud.CreateView):
-        form_class = OradorForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = OradorForm
 
 
 def recuperar_numero_sessao(request):

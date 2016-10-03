@@ -1,26 +1,26 @@
 import os
-
 import django
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")
 django.setup()
 
-
-if __name__ == '__main__':
-
+if True:
     from django.apps import apps
     from django.contrib.auth import get_user_model
     from django.contrib.auth.models import Group, Permission
     from django.contrib.contenttypes.models import ContentType
 
-    def cria_ou_reseta_grupo(nome):
+
+class InicializaGruposAutorizacoes():
+
+    def cria_ou_reseta_grupo(self, nome):
         grupo = Group.objects.get_or_create(name=nome)[0]
         for p in list(grupo.permissions.all()):
             grupo.permissions.remove(p)
         return grupo
 
-    def cria_usuario(nome, grupo):
+    def cria_usuario(self, nome, grupo):
         nome_usuario = nome
         usuario = get_user_model().objects.get_or_create(
             username=nome_usuario)[0]
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         usuario.save()
         grupo.user_set.add(usuario)
 
-    def cria_grupos_permissoes():
+    def cria_grupos_permissoes(self):
 
         nomes_apps = ['base', 'parlamentares', 'comissoes',
                       'materia', 'norma', 'sessao', 'painel']
@@ -44,12 +44,12 @@ if __name__ == '__main__':
         permissoes['documento_administrativo'] = list(
             Permission.objects.filter(content_type__in=cts))
         nome_grupo = 'Operador Administrativo'
-        grupo = cria_ou_reseta_grupo(nome_grupo)
+        grupo = self.cria_ou_reseta_grupo(nome_grupo)
         for p in permissoes['documento_administrativo']:
             grupo.permissions.add(p)
 
         nome_usuario = 'operador_administrativo'
-        cria_usuario(nome_usuario, grupo)
+        self.cria_usuario(nome_usuario, grupo)
 
         # prolocolo administrativo
         cts = cts.exclude(model__icontains='tramitacao').exclude(
@@ -57,12 +57,12 @@ if __name__ == '__main__':
         permissoes['protocoloadm'] = list(
             Permission.objects.filter(content_type__in=cts))
         nome_grupo = 'Operador de Protocolo Administrativo'
-        grupo = cria_ou_reseta_grupo(nome_grupo)
+        grupo = self.cria_ou_reseta_grupo(nome_grupo)
         for p in permissoes['protocoloadm']:
             grupo.permissions.add(p)
 
         nome_usuario = 'operador_protocoloadm'
-        cria_usuario(nome_usuario, grupo)
+        self.cria_usuario(nome_usuario, grupo)
 
         # permissoes do base
         cts = ContentType.objects.filter(app_label='base')
@@ -77,7 +77,7 @@ if __name__ == '__main__':
                 # Cria Grupo
                 nome_grupo = 'Operador de %s' % apps.get_app_config(
                     nome_app).verbose_name
-                grupo = cria_ou_reseta_grupo(nome_grupo)
+                grupo = self.cria_ou_reseta_grupo(nome_grupo)
 
                 # Elimina o acesso a proposicoes pelo Operador de Matérias
                 if nome_app == 'materia':
@@ -99,13 +99,13 @@ if __name__ == '__main__':
                 grupo.user_set.add(usuario)
 
         # Operador Geral
-        grupo_geral = cria_ou_reseta_grupo('Operador Geral')
+        grupo_geral = self.cria_ou_reseta_grupo('Operador Geral')
         for lista in permissoes.values():
             for p in lista:
                 grupo_geral.permissions.add(p)
 
         nome_usuario = 'operador_geral'
-        cria_usuario(nome_usuario, grupo_geral)
+        self.cria_usuario(nome_usuario, grupo_geral)
 
         # Autor
         perms_autor = []
@@ -116,11 +116,17 @@ if __name__ == '__main__':
             Permission.objects.get(name='Can delete Proposição'))
 
         # Configura Permissoes Autor
-        grupo = cria_ou_reseta_grupo('Autor')
+        grupo = self.cria_ou_reseta_grupo('Autor')
         for p in perms_autor:
             grupo.permissions.add(p)
 
         nome_usuario = 'operador_autor'
-        cria_usuario(nome_usuario, grupo)
+        self.cria_usuario(nome_usuario, grupo)
 
-    cria_grupos_permissoes()
+    def __call__(self):
+        self.cria_grupos_permissoes()
+
+
+cria_grupos_permissoes = InicializaGruposAutorizacoes()
+if __name__ == '__main__':
+    cria_grupos_permissoes.cria_grupos_permissoes()

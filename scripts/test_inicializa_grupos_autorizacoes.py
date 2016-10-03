@@ -1,9 +1,10 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+import pytest
 
 from inicializa_grupos_autorizacoes import cria_grupos_permissoes
+
 
 pytestmark = pytest.mark.django_db
 

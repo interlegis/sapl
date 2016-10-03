@@ -4,12 +4,9 @@ from django.shortcuts import redirect
 from django.views.generic import FormView, ListView
 
 from sapl.compilacao.views import IntegracaoTaView
-from sapl.crud.base import (Crud, CrudBaseMixin, CrudCreateView,
-                            CrudDeleteView, CrudUpdateView, make_pagination,
-                            CrudAux, RP_LIST, RP_DETAIL)
-from sapl.utils import permissoes_norma
+from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, make_pagination
 
-from .forms import NormaJuridicaForm, NormaJuridicaPesquisaForm
+from .forms import NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
                      TipoNormaJuridica)
 
@@ -31,7 +28,6 @@ class NormaCrud(Crud):
     public = [RP_LIST, RP_DETAIL]
 
     class UpdateView(Crud.UpdateView):
-        form_class = NormaJuridicaForm
 
         @property
         def layout_key(self):
@@ -46,7 +42,6 @@ class NormaCrud(Crud):
             return self.initial.copy()
 
     class CreateView(Crud.CreateView):
-        form_class = NormaJuridicaForm
 
         @property
         def layout_key(self):
