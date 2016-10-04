@@ -590,7 +590,6 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
 
 def pega_ultima_tramitacao():
-    import ipdb; ipdb.set_trace()
     ultimas_tramitacoes = Tramitacao.objects.values(
         'materia_id').annotate(data_encaminhamento=Max(
             'data_encaminhamento'),
