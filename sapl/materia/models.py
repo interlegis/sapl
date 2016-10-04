@@ -35,7 +35,7 @@ class TipoMateriaLegislativa(models.Model):
 
 
 class RegimeTramitacao(models.Model):
-    descricao = models.CharField(max_length=50)
+    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
     class Meta:
         verbose_name = _('Regime Tramitação')
@@ -589,7 +589,7 @@ class Tramitacao(models.Model):
     class Meta:
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
-        ordering = 'data_tramitacao',
+        ordering = '-data_tramitacao',
 
     def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {

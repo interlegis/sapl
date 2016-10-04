@@ -1,6 +1,6 @@
 import os
-import django
 
+import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")
 django.setup()

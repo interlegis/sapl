@@ -7,11 +7,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 
 from sapl.utils import UF, YES_NO_CHOICES
-
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -106,6 +105,15 @@ class AppConfig(models.Model):
             ('menu_sistemas', _('Renderizar Menu Sistemas')),
             ('view_tabelas_auxiliares', _('Visualizar Tabelas Auxiliares')),
         )
+
+    @classmethod
+    def attr(cls, attr):
+        config = AppConfig.objects.first()
+
+        if not config:
+            return ''
+
+        return getattr(config, attr)
 
     def __str__(self):
         return _('Configurações da Aplicação - %(id)s') % {

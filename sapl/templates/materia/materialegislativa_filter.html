@@ -2,72 +2,62 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block actions %}
-  <div class="actions btn-group pull-right" role="group">
-    {% if user.is_authenticated %}
-    <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">
-        {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}
-    </a>
+  {% block actions %}
+    <div class="actions btn-group pull-right" role="group">
+      {% if perms.materia %}
+      <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">
+          {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}
+      </a>
+      {% endif %}
+    {% if filter_url %}
+        <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
     {% endif %}
-  {% if filter_url %}
-      <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-  {% endif %}
-  </div>
-{% endblock %}
+    </div>
+  {% endblock %}
 
-{% block sections_nav %}
-{% endblock %}
+  {% block detail_content %}
+    {% if not filter_url %}
+      {% crispy filter.form %}
+    {% endif %}
 
-{% block detail_content %}
-
-  {% if not filter_url %}
-    {% crispy filter.form %}
-  {% endif %}
-
-  <p></p>
-  {% if filter_url %}
-  <table class="table table-striped table-bordered">
+    {% if filter_url %}
+      <table class="table table-striped table-bordered">
         <thead class="thead-default">
-            <tr><td><h3>{% trans "Resultados" %}</h3></td></tr>
+          <tr><td><h3>{% trans "Resultados" %}</h3></td></tr>
         </thead>
         {% if paginator.count %}
           {% if paginator.count > 1 %}
-              <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
-            {% elif paginator.count == 1 %}
-              <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
-            {% endif %}
+            <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+          {% elif paginator.count == 1 %}
+            <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
+          {% endif %}
 
           {% for m in page_obj %}
-              <tr>
-                  <td>
-                      <strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
-                      <strong>Autores:</strong>
-                      {% for a in m.autoria_set.all %}
-                        {% if not forloop.first %}
-                          , &nbsp;&nbsp; {{a.autor|default_if_none:"Não Informado"}}
-                        {% else %}
-                          &nbsp;{{a.autor|default_if_none:"Não Informado"}}
-                        {% endif %}
-                      {% endfor %}
-                      </br>
-                      <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
-                      <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não Informada"}}</br>
-                      <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
-                      <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
-                      <p></p>
-              </tr>
+            <tr>
+              <td>
+                <strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+                <strong>Autores:</strong>
+                {% for a in m.autoria_set.all %}
+                  {% if not forloop.first %}
+                    , &nbsp;&nbsp; {{a.autor|default_if_none:"Não Informado"}}
+                  {% else %}
+                    &nbsp;{{a.autor|default_if_none:"Não Informado"}}
+                  {% endif %}
+                {% endfor %}
+                </br>
+                <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
+                <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não Informada"}}</br>
+                <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
+                <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
+                <p></p>
+            </tr>
           {% endfor %}
         {% else  %}
-            <tr>
-                <td>
-                    <h3>Nenhuma matéria encontrada com essas especificações</h3>
-                 </tr>
+          <tr><td><h3>Nenhuma matéria encontrada com essas especificações</h3></tr>
         {% endif %}
-
-    </table>
-
-
-{% include "paginacao.html" %}
-{% endif %}
-
-{% endblock detail_content %}
+      </table>
+      {% include "paginacao.html" %}
+    {% endif %}
+    {% endblock detail_content %}
+  {% block table_content %}
+  {% endblock table_content %}

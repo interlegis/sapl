@@ -122,10 +122,12 @@ def ultima_filiacao(value):
 
 @register.filter
 def get_config_not_exists(user):
-    if not AppConfig.objects.all().exists():
-        return True
-    else:
-        return False
+    return not AppConfig.objects.exists()
+
+
+@register.filter
+def get_config_attr(attribute):
+    return AppConfig.attr(attribute)
 
 
 @register.filter

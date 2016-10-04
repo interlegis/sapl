@@ -2,6 +2,12 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
+{% block title %}
+	<h1 class="page-header">
+		Resumo <small>({{sessaoplenaria}})</small>
+	</h1>
+{% endblock %}
+
 {% block detail_content %}
 	<fieldset>
 		<legend>Identificação Básica</legend>

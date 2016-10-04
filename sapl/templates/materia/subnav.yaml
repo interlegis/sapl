@@ -11,16 +11,12 @@
   url: documentoacessorio_list
 - title: {% trans 'Legislação Citada' %}
   url: legislacaocitada_list
+  app_name: 'materia'
 - title: {% trans 'Numeração' %}
   url: numeracao_list
 - title: {% trans 'Tramitação' %}
   url: tramitacao_list
 - title: {% trans 'Relatoria' %}
   url: relatoria_list
-
-#  Opção adicionada para chamar o TextoArticulado da matéria.
-#   para integração foram necessárias apenas criar a url materia_ta em urls.py
-#   e a view MateriaTaView(IntegracaoTaView) em views.py
-#  Em nada mais a integração interfere em MateriaLegislativa
 - title: {% trans 'Texto' %}
   url: materia_ta

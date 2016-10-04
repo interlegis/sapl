@@ -7,6 +7,7 @@
   url: filiacao_list
 - title: {% trans 'Dependentes' %}
   url: dependente_list
+  check_permission: parlamentares.list_dependente
 - title: {% trans 'Comissões' %}
   url: participacao_parlamentar_list
 - title: {% trans 'Proposições' %}

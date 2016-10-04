@@ -5,12 +5,12 @@ from django.views.generic import FormView, ListView
 
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, make_pagination
+from sapl.norma.forms import NormaJuridicaForm
 
 from .forms import NormaJuridicaPesquisaForm
-from .models import (AssuntoNorma, LegislacaoCitada, NormaJuridica,
-                     TipoNormaJuridica)
+from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
 
-LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
+# LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 
 
 AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
@@ -28,6 +28,7 @@ class NormaCrud(Crud):
     public = [RP_LIST, RP_DETAIL]
 
     class UpdateView(Crud.UpdateView):
+        form_class = NormaJuridicaForm
 
         @property
         def layout_key(self):
@@ -42,6 +43,7 @@ class NormaCrud(Crud):
             return self.initial.copy()
 
     class CreateView(Crud.CreateView):
+        form_class = NormaJuridicaForm
 
         @property
         def layout_key(self):

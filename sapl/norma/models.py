@@ -167,6 +167,9 @@ class LegislacaoCitada(models.Model):
         verbose_name = _('Legislação')
         verbose_name_plural = _('Legislações')
 
+    def __str__(self):
+        return str(self.norma)
+
 
 class VinculoNormaJuridica(models.Model):
     TIPO_VINCULO_CHOICES = (

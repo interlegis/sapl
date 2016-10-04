@@ -54,7 +54,7 @@ def get_field_display(obj, fieldname):
         field = obj._meta.get_field(fieldname)
     except:
         value = getattr(obj, fieldname)
-        return '', value
+        return '', str(value)
     verbose_name = str(field.verbose_name)\
         if hasattr(field, 'verbose_name') else ''
     if hasattr(field, 'choices') and field.choices:

@@ -13,8 +13,8 @@ from django.db import models
 from django.http.response import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -22,7 +22,6 @@ from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.utils import normalize
-
 
 logger = logging.getLogger(__name__)
 
@@ -158,11 +157,25 @@ class ListWithSearchForm(forms.Form):
         )
 
 
+class PermissionRequiredForAppCrudMixin(PermissionRequiredMixin):
+
+    def has_permission(self):
+        apps = self.app_label
+        if isinstance(apps, str):
+            apps = apps,
+        # papp_label vazio dará acesso geral
+        for app in apps:
+            if not self.request.user.has_module_perms(app):
+                return False
+        return True
+
+
 class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 
     def has_permission(self):
         perms = self.get_permission_required()
-        # Torna a view pública se não possuir o atributo permission_required
+        # Torna a view pública se não possuir conteudo
+        # no atributo permission_required
         return self.request.user.has_perms(perms) if len(perms) else True
 
     def dispatch(self, request, *args, **kwargs):
@@ -302,7 +315,7 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
     def delete_url(self):
         obj = self.crud if hasattr(self, 'crud') else self
         if not obj.DeleteView.permission_required:
-            return self.resolve_url(ACTION_DELETE)
+            return self.resolve_url(ACTION_DELETE, args=(self.object.id,))
         else:
             return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
                 if self.request.user.has_perm(
@@ -354,7 +367,6 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         for fieldname in self.list_field_names:
             if not isinstance(fieldname, tuple):
                 fieldname = fieldname,
-
             s = []
             for fn in fieldname:
                 m = self.model
@@ -363,20 +375,12 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     f = m._meta.get_field(f)
                     if hasattr(f, 'related_model') and f.related_model:
                         m = f.related_model
-                if m == self.model:
-                    s.append(force_text(f.verbose_name))
-                else:
-                    s.append(force_text(m._meta.verbose_name))
+                s.append(force_text(f.verbose_name))
             s = ' / '.join(s)
             r.append(s)
         return r
 
     def _as_row(self, obj):
-        """
-        FIXME: Refatorar função para capturar url correta em caso de uso de
-        campos foreignkey. getHeaders já faz isso para construir o título.
-        falta fazer com esta função
-        """
         r = []
         for i, name in enumerate(self.list_field_names):
             url = self.resolve_url(
@@ -388,20 +392,28 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                 url = url + ('?pkk=' + self.kwargs['pk']
                              if 'pk' in self.kwargs else '')
 
+            if not isinstance(name, tuple):
+                name = name,
+
             """ se elemento de list_field_name for uma tupla, constrói a
             informação com ' - ' se os campos forem simples,
             ou com <br> se for m2m """
             if isinstance(name, tuple):
                 s = ''
                 for j, n in enumerate(name):
-                    ss = get_field_display(obj, n)[1]
-                    ss = (
-                        ('<br>' if '<ul>' in ss else ' - ') + ss)\
-                        if ss and j != 0 and s else ss
-                    s += ss
+                    m = obj
+                    n = n.split('__')
+                    for f in n[:-1]:
+                        m = getattr(m, f)
+                        if not m:
+                            break
+                    if m:
+                        ss = get_field_display(m, n[-1])[1]
+                        ss = (
+                            ('<br>' if '<ul>' in ss else ' - ') + ss)\
+                            if ss and j != 0 and s else ss
+                        s += ss
                 r.append((s, url))
-            else:
-                r.append((get_field_display(obj, name)[1], url))
         return r
 
     def get_context_data(self, **kwargs):
@@ -674,7 +686,10 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
         return DetailView.get_object(self, queryset=queryset)
 
     def get(self, request, *args, **kwargs):
-        self.object = self.model.objects.get(pk=kwargs.get('pk'))
+        try:
+            self.object = self.model.objects.get(pk=kwargs.get('pk'))
+        except:
+            raise Http404
         obj = self.crud if hasattr(self, 'crud') else self
         if hasattr(obj, 'model_set') and obj.model_set:
             self.object_list = self.get_queryset()
@@ -1069,9 +1084,6 @@ class MasterDetailCrud(Crud):
         @classmethod
         def get_url_regex(cls):
             return r'^%s/(?P<pk>\d+)/edit$' % cls.model._meta.model_name
-
-        def get(self, request, *args, **kwargs):
-            return Crud.UpdateView.get(self, request, *args, **kwargs)
 
     class DeleteView(Crud.DeleteView):
         permission_required = RP_DELETE,

@@ -28,11 +28,13 @@ RegistroVotacao:
 
 Orador:
   {% trans 'Orador das Explicações Pessoais' %}:
-  - numero_ordem parlamentar url_discurso
+  - numero_ordem parlamentar
+  - url_discurso observacao
 
 OradorExpediente:
   {% trans 'Orador do Expediente' %}:
-  - numero_ordem parlamentar url_discurso
+  - numero_ordem parlamentar
+  - url_discurso observacao
 
 ExpedienteMateria:
   {% trans 'Matéria do Expediente' %}:

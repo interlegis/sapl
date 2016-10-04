@@ -1,6 +1,7 @@
-import yaml
 from django import template
 from django.core.urlresolvers import reverse
+import yaml
+
 
 register = template.Library()
 
@@ -14,6 +15,12 @@ def subnav(context, path=None):
         1) Se a variável path não é nula;
         2) Se existe no contexto a chave subnav_template_name;
         3) o path default: <app_name>/subnav.yaml
+
+    Os campos esperados nos arquivos yaml são:
+        title
+        url
+        check_permission - opcional. quando usado
+            será realizado o teste de permissão para renderizá-lo.
     """
     menu = None
     root_pk = context.get('root_pk', None)
@@ -76,40 +83,36 @@ def resolve_urls_inplace(menu, pk, rm, context):
     else:
         if 'url' in menu:
             url_name = menu['url']
-            menu['url'] = reverse('%s:%s' % (rm.app_name, menu['url']),
-                                  kwargs={'pk': pk})
-            menu['active'] = 'active'\
-                if context['request'].path == menu['url'] else ''
 
-            if not menu['active']:
-                """
-                Se não encontrada diretamente,
-                procura a url acionada dentro do crud, caso seja um.
-                Serve para manter o active no suvnav correto ao acionar
-                as funcionalidades diretas do MasterDetailCrud, como:
-                - visualização de detalhes, adição, edição, remoção.
+            if 'check_permission' in menu and not context[
+                    'request'].user.has_perm(menu['check_permission']):
+                menu['url'] = ''
+                menu['active'] = ''
+            else:
+                menu['url'] = reverse(
+                    '%s:%s' % (rm.app_name, menu['url']), kwargs={'pk': pk})
+                menu['active'] = 'active'\
+                    if context['request'].path == menu['url'] else ''
 
-                Casos para urls_extras:
-                Em relações de segundo nível, como ocorre em
-                (0) Comissões -> (1) Composição -> (2) Participação
+                if not menu['active']:
+                    """
+                    Se não encontrada diretamente,
+                    procura a url acionada dentro do crud, caso seja um.
+                    Serve para manter o active no suvnav correto ao acionar
+                    as funcionalidades diretas do MasterDetailCrud, como:
+                    - visualização de detalhes, adição, edição, remoção.
+                    """
 
-                (2) não tem ligação direta com (1) através da view. Para (2)
-                ser localizado, e o nav-tabs ou nav-pills do front-end serem
-                ativados foi inserido o teste de existência de urls_extras
-                para serem testadas e, sendo válidado, o active do front-end
-                seja devidamente colocado.
-                """
-
-                view = context['view']
-                if hasattr(view, '__class__') and\
-                        hasattr(view.__class__, 'crud'):
-                    urls = view.__class__.crud.get_urls()
-                    for u in urls:
-                        if (u.name == url_name or
-                                'urls_extras' in menu and
-                                u.name in menu['urls_extras']):
-                            menu['active'] = 'active'
-                            break
+                    view = context['view']
+                    if hasattr(view, '__class__') and\
+                            hasattr(view.__class__, 'crud'):
+                        urls = view.__class__.crud.get_urls()
+                        for u in urls:
+                            if (u.name == url_name or
+                                    'urls_extras' in menu and
+                                    u.name in menu['urls_extras']):
+                                menu['active'] = 'active'
+                                break
 
         if 'children' in menu:
             menu['active'] = resolve_urls_inplace(

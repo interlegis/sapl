@@ -215,6 +215,8 @@ class AbstractOrador(models.Model):  # Oradores
         verbose_name=_('Ordem de pronunciamento'))
     url_discurso = models.URLField(
         max_length=150, blank=True, verbose_name=_('URL Vídeo'))
+    observacao = models.CharField(
+        max_length=150, blank=True, verbose_name=_('Observação'))
 
     class Meta:
         abstract = True

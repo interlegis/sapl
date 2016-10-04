@@ -118,6 +118,10 @@ class MandatoCrud(MasterDetailCrud):
     model = Mandato
     parent_field = 'parlamentar'
     public = [RP_DETAIL, RP_LIST]
+    list_field_names = ['legislatura',
+                        'votos_recebidos',
+                        'coligacao',
+                        'coligacao__numero_votos']
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
