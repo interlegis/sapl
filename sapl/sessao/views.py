@@ -456,6 +456,12 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
     form_class = PresencaForm
     model = SessaoPlenaria
 
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Presença'), self.object)
+        return context
+
     @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -527,6 +533,12 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
     template_name = 'sessao/presenca_ordemdia.html'
     form_class = PresencaForm
     model = SessaoPlenaria
+
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Presença Ordem do Dia'), self.object)
+        return context
 
     @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
@@ -953,6 +965,12 @@ class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'
     form_class = ExpedienteForm
     model = SessaoPlenaria
+
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Expediente Diversos'), self.object)
+        return context
 
     @method_decorator(permission_required_for_app(AppConfig.label))
     def post(self, request, *args, **kwargs):
