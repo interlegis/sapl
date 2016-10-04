@@ -2143,6 +2143,8 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                 expediente = ExpedienteMateria()
                 expediente.sessao_plenaria_id = self.kwargs['pk']
                 expediente.materia_id = materia.id
+                expediente.observacao = MateriaLegislativa.objects.get(
+                    pk=materia.id).ementa
                 if lista_materias_expediente:
                     posicao = lista_materias_expediente.last().numero_ordem + 1
                     expediente.numero_ordem = posicao
@@ -2203,6 +2205,8 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 ordem_dia = OrdemDia()
                 ordem_dia.sessao_plenaria_id = self.kwargs['pk']
                 ordem_dia.materia_id = materia.id
+                ordem_dia.observacao = MateriaLegislativa.objects.get(
+                    pk=materia.id).ementa
                 if lista_materias_ordem_dia:
                     posicao = lista_materias_ordem_dia.last().numero_ordem + 1
                     ordem_dia.numero_ordem = posicao
