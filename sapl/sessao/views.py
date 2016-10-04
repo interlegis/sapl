@@ -2154,7 +2154,10 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                 expediente.tipo_votacao = request.POST['tipo_votacao_%s' % m]
                 expediente.save()
 
-        return self.get(request, self.kwargs)
+        pk = self.kwargs['pk']
+
+        return HttpResponseRedirect(
+            reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 
 class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
