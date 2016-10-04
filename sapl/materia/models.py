@@ -35,7 +35,7 @@ class TipoMateriaLegislativa(models.Model):
 
 
 class RegimeTramitacao(models.Model):
-    descricao = models.CharField(max_length=50)
+    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
     class Meta:
         verbose_name = _('Regime Tramitação')
