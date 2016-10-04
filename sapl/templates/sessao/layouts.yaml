@@ -5,7 +5,7 @@ TipoSessaoPlenaria:
 
 SessaoPlenaria:
   {% trans 'Dados Básicos' %}:
-  - numero:1  tipo:3  legislatura  sessao_legislativa
+  - tipo:3  numero:1  legislatura  sessao_legislativa
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
   - upload_pauta  upload_ata

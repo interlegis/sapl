@@ -7,6 +7,7 @@
 
 <script language="Javascript">
 
+  // Seleciona o numero de acordo com o tipo
   function recuperar_numero_sessao() {
     var tipo = $("#id_tipo").val()
 
@@ -17,8 +18,54 @@
                                         console.log(data)
                                       });
     }
+    else{
+      $("#id_numero").val('');
+    }
   }
   $("#id_tipo").change(recuperar_numero_sessao);
+
+
+  // Filtra as choices de sessao legislativa pela legislatura
+  $(function() {
+
+    $("#id_legislatura").ready(function(){
+      var id_legislatura = $("#id_legislatura").val();
+      $("#id_sessao_legislativa option").remove();
+      if (id_legislatura) {
+          $.get("/sessao-legislativa-legislatura-ajax", {legislatura: id_legislatura}, function(data) {
+              lista_sessoes = data['sessao_legislativa'];
+
+              for (i = 0; i < lista_sessoes.length; i++) {
+                  $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
+              }
+
+          });
+      }
+      else{
+        $("#id_sessao_legislativa option").remove();
+      }      
+    });
+
+    $("#id_legislatura").change(function(){
+
+      var id_legislatura = $("#id_legislatura").val();
+      $("#id_sessao_legislativa option").remove();
+      if (id_legislatura) {
+
+          $.get("/sessao-legislativa-legislatura-ajax", {legislatura: id_legislatura}, function(data) {
+              lista_sessoes = data['sessao_legislativa'];
+
+              for (i = 0; i < lista_sessoes.length; i++) {
+                  $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
+              }
+
+          });
+      }
+      else{
+        $("#id_sessao_legislativa option").remove();
+      }      
+    });
+  })
 </script>
 
 {% endblock %}

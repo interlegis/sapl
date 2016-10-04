@@ -23,7 +23,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                abrir_votacao_ordem_view, recuperar_materia,
                                recuperar_numero_sessao,
                                reordernar_materias_expediente,
-                               reordernar_materias_ordem)
+                               reordernar_materias_ordem,
+                               sessao_legislativa_legislatura_ajax)
 
 from .apps import AppConfig
 
@@ -43,6 +44,8 @@ urlpatterns = [
 
     url(r'^recuperar-materia/', recuperar_materia),
     url(r'^recuperar-numero-sessao/', recuperar_numero_sessao),
+    url(r'^sessao-legislativa-legislatura-ajax/',
+        sessao_legislativa_legislatura_ajax),
 
     url(r'^(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao-expediente$',
         abrir_votacao_expediente_view,

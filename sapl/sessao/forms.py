@@ -26,6 +26,7 @@ def pega_anos():
     except:
         return []
 
+
 ANO_CHOICES = [('', '---------')] + pega_anos()
 MES_CHOICES = [('', '---------')] + RANGE_MESES
 DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES

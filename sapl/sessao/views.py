@@ -369,14 +369,29 @@ class OradorCrud(OradorCrud):
 
 def recuperar_numero_sessao(request):
     try:
-        numero = SessaoPlenaria.objects.filter(
-            tipo__pk=request.GET['tipo']).last().numero
+        sessao = SessaoPlenaria.objects.filter(
+            tipo__pk=request.GET['tipo']).last()
     except ObjectDoesNotExist:
         response = JsonResponse({'numero': 1})
     else:
-        response = JsonResponse({'numero': numero + 1})
+        if sessao:
+            response = JsonResponse({'numero': sessao.numero + 1})
+        else:
+            response = JsonResponse({'numero': 1})
 
     return response
+
+
+def sessao_legislativa_legislatura_ajax(request):
+    try:
+        sessao = SessaoLegislativa.objects.filter(
+            legislatura=request.GET['legislatura']).order_by('-data_inicio')
+    except ObjectDoesNotExist:
+        sessao = SessaoLegislativa.objects.all().order_by('-data_inicio')
+
+    lista_sessoes = [(s.id, s.__str__()) for s in sessao]
+
+    return JsonResponse({'sessao_legislativa': lista_sessoes})
 
 
 class SessaoCrud(Crud):
