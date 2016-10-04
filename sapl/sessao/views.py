@@ -34,9 +34,10 @@ from sapl.sessao.serializers import SessaoPlenariaSerializer
 from sapl.utils import permission_required_for_app
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
-                    ListMateriaForm, MesaForm, PautaSessaoFilterSet,
-                    PresencaForm, SessaoPlenariaFilterSet, VotacaoEditForm,
-                    VotacaoForm, VotacaoNominalForm)
+                    ListMateriaForm, MesaForm, OradorExpedienteForm,
+                    OradorForm, PautaSessaoFilterSet, PresencaForm,
+                    SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -364,6 +365,11 @@ class OradorExpedienteCrud(OradorCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
 
+        form_class = OradorExpedienteForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
@@ -373,6 +379,11 @@ class OradorCrud(OradorCrud):
     model = Orador
 
     class CreateView(MasterDetailCrud.CreateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
 
         def get_success_url(self):
             return reverse('sapl.sessao:orador_list',

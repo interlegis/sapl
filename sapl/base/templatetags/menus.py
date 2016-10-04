@@ -1,7 +1,6 @@
+import yaml
 from django import template
 from django.core.urlresolvers import reverse
-import yaml
-
 
 register = template.Library()
 
