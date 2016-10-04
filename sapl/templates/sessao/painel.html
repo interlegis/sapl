@@ -2,6 +2,14 @@
 {% load i18n %}
 {% load staticfiles %}
 {% block actions %} {% endblock %}
+
+{% block title %}
+	<h1 class="page-header">
+		Painel Eletrônico <small>({{sessaoplenaria}})</small>
+	</h1>
+{% endblock %}
+
+
 {% block detail_content %}
 	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
 
