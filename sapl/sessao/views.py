@@ -524,7 +524,8 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
-            'sessao_id': kwargs['pk']})
+            'sessao_id': kwargs['pk'],
+            'root_pk': kwargs['pk']})
 
         return context
 
