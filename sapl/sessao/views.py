@@ -782,7 +782,6 @@ class MesaView(FormMixin, DetailView):
             lista_cargos_ocupados.append(cargo)
 
         lista = list(set(lista_cargos) - set(lista_cargos_ocupados))
-        lista.sort(key=lambda x: x.descricao)
         return lista
 
     def get_success_url(self):
