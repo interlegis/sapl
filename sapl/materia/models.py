@@ -589,7 +589,6 @@ class Tramitacao(models.Model):
     class Meta:
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
-        ordering = '-data_tramitacao',
 
     def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {
