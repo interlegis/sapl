@@ -15,7 +15,8 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, SessaoPlenaria)
+                     OrdemDia, PresencaOrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca)
 
 
 def pega_anos():
@@ -275,8 +276,15 @@ class OradorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
             super(OradorForm, self).__init__(*args, **kwargs)
+
+            id_sessao = int(self.initial['id_sessao'])
+
+            ids = [s.parlamentar.id for
+                   s in SessaoPlenariaPresenca.objects.filter(
+                        sessao_plenaria_id=id_sessao)]
+
             self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-                ativo=True).order_by('nome_completo')
+                id__in=ids).order_by('nome_completo')
 
     class Meta:
         model = Orador
@@ -287,6 +295,7 @@ class OradorExpedienteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
             super(OradorExpedienteForm, self).__init__(*args, **kwargs)
+
             self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
                 ativo=True).order_by('nome_completo')
 
