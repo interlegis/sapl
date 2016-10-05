@@ -852,9 +852,10 @@ class ResumoView(DetailView):
 
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)s') % {'abertura': abertura},
-            _('Encerramento: %(encerramento)s') % {
-                'encerramento': encerramento},
+            _('Abertura: %(abertura)s - %(hora_inicio)s') % {
+              'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
+            _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
+              'encerramento': encerramento, 'hora_fim': self.object.hora_fim},
         ]})
         # =====================================================================
         # Conteúdo Multimídia
