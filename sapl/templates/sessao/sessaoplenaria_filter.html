@@ -1,30 +1,24 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% load common_tags %}
 
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
-    {% if perms|get_add_perm:view %}
+    {% if perms.sessao %}
       <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-default">
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
     {% endif %}
     </a>
-  {% if filter_url %}
-      <a href="{% url 'sapl.sessao:pesquisar_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-  {% endif %}
+    {% if filter_url %}
+        <a href="{% url 'sapl.sessao:pesquisar_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    {% endif %}
   </div>
 {% endblock %}
 
-{% block sections_nav %} {% endblock %}
-
-{% block base_content %}
-  <h1><b>Pesquisar Sessão Plenária</b></h1>
-  <br></br>
-
-  {% if not filter_url %}
-    {% crispy filter.form %}
-  {% endif %}
+{% block detail_content %}
+    {% if not filter_url %}
+      {% crispy filter.form %}
+    {% endif %}
 
   {% if filter_url %}
     <p></p>
@@ -54,4 +48,6 @@
     </table>
     {% include "paginacao.html" %}
   {% endif %}
-{% endblock base_content %}
+{% endblock detail_content %}
+{% block table_content %}
+{% endblock table_content %}

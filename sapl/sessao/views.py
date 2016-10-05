@@ -2051,6 +2051,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         context = super(PesquisarSessaoPlenariaView,
                         self).get_context_data(**kwargs)
 
+        context['title'] = _('Pesquisar Sessão Plenária')
         paginator = context['paginator']
         page_obj = context['page_obj']
 
