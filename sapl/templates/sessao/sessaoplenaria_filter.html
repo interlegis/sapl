@@ -6,7 +6,7 @@
   <div class="actions btn-group pull-right" role="group">
     {% if perms.sessao %}
       <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-default">
-          {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
+        {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
     {% endif %}
     </a>
     {% if filter_url %}

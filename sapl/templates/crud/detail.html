@@ -9,6 +9,9 @@
         {% if view.list_url %}
           <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
         {% endif %}
+        {% if view.search_url %}
+          <a href="{{ view.search_url }}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+        {% endif %}
         {% if view.create_url %}
           <a href="{{ view.create_url }}" class="btn btn-default">
             {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}

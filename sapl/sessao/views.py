@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
+from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
@@ -44,6 +45,7 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
+
 
 # OrdemDiaCrud = Crud.build(OrdemDia, '')
 # RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
@@ -427,8 +429,27 @@ class SessaoCrud(Crud):
         list_field_names = ['data_inicio', 'legislatura', 'sessao_legislativa',
                             'tipo']
 
-    class ListView(Crud.ListView):
-        ordering = ['-data_inicio']
+        @property
+        def list_url(self):
+            return ''
+
+        @property
+        def cancel_url(self):
+            return self.search_url
+
+        @property
+        def search_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_sessao'))
+
+    class ListView(Crud.ListView, RedirectView):
+
+        def get_redirect_url(self, *args, **kwargs):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_sessao'))
+
+        def get(self, request, *args, **kwargs):
+            return RedirectView.get(self, request, *args, **kwargs)
 
     class CreateView(Crud.CreateView):
 
