@@ -50,8 +50,6 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
-TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
-TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 
 BlocoCrud = CrudAux.build(
     Bloco, '', list_field_names=['nome', 'data_criacao', 'partidos'])
