@@ -1,6 +1,7 @@
-import yaml
 from django import template
 from django.core.urlresolvers import reverse
+import yaml
+
 
 register = template.Library()
 
@@ -28,43 +29,42 @@ def subnav(context, path=None):
         if obj:
             root_pk = obj.pk
 
-    if root_pk:
-        request = context['request']
+    request = context['request']
 
+    """
+    As implementações das Views de Modelos que são dados auxiliares e
+    de diversas app's estão concentradas em urls com prefixo 'sistema'.
+    Essas Views não possuem submenu de navegação e são incompativeis com a
+    execução deste subnav. Inicialmente, a maneira mais prática encontrada
+    de isolar foi com o teste abaixo.
+    """
+
+    rm = request.resolver_match
+    app_template = rm.app_name.rsplit('.', 1)[-1]
+
+    if path:
+        yaml_path = path
+    elif 'subnav_template_name' in context:
+        yaml_path = context['subnav_template_name']
+    else:
+        yaml_path = '%s/%s' % (app_template, 'subnav.yaml')
+
+    if not yaml_path:
+        return
+
+    try:
         """
-        As implementações das Views de Modelos que são dados auxiliares e
-        de diversas app's estão concentradas em urls com prefixo 'sistema'.
-        Essas Views não possuem submenu de navegação e são incompativeis com a
-        execução deste subnav. Inicialmente, a maneira mais prática encontrada
-        de isolar foi com o teste abaixo.
+        Por padrão, são carragados dois Loaders,
+        filesystem.Loader - busca em TEMPLATE_DIRS do projeto atual
+        app_directories.Loader - busca em todas apps instaladas
+        A função nativa abaixo busca em todos os Loaders Configurados.
         """
-
-        rm = request.resolver_match
-        app_template = rm.app_name.rsplit('.', 1)[-1]
-
-        if path:
-            yaml_path = path
-        elif 'subnav_template_name' in context:
-            yaml_path = context['subnav_template_name']
-        else:
-            yaml_path = '%s/%s' % (app_template, 'subnav.yaml')
-
-        if not yaml_path:
-            return
-
-        try:
-            """
-            Por padrão, são carragados dois Loaders,
-            filesystem.Loader - busca em TEMPLATE_DIRS do projeto atual
-            app_directories.Loader - busca em todas apps instaladas
-            A função nativa abaixo busca em todos os Loaders Configurados.
-            """
-            yaml_template = template.loader.get_template(yaml_path)
-            rendered = yaml_template.render()
-            menu = yaml.load(rendered)
-            resolve_urls_inplace(menu, root_pk, rm, context)
-        except Exception as e:
-            print(e)
+        yaml_template = template.loader.get_template(yaml_path)
+        rendered = yaml_template.render()
+        menu = yaml.load(rendered)
+        resolve_urls_inplace(menu, root_pk, rm, context)
+    except Exception as e:
+        print(e)
 
     return {'menu': menu}
 
@@ -88,8 +88,13 @@ def resolve_urls_inplace(menu, pk, rm, context):
                 menu['url'] = ''
                 menu['active'] = ''
             else:
-                menu['url'] = reverse(
-                    '%s:%s' % (rm.app_name, menu['url']), kwargs={'pk': pk})
+                try:
+                    menu['url'] = reverse('%s:%s' % (
+                        rm.app_name, menu['url']),
+                        kwargs={'pk': pk})
+                except:
+                    menu['url'] = reverse('%s:%s' % (rm.app_name, menu['url']))
+
                 menu['active'] = 'active'\
                     if context['request'].path == menu['url'] else ''
 
