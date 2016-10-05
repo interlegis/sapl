@@ -581,6 +581,7 @@ class TramitacaoCrud(MasterDetailCrud):
             if local:
                 self.initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
+            self.initial['data_tramitacao'] = datetime.now()
             return self.initial
 
         def post(self, request, *args, **kwargs):
