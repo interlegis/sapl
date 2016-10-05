@@ -10,7 +10,7 @@
 	      <div class="row">
 	        <div class="col-md-4">
 						<label>Composição</label>
-	          <select multiple size="5" name="composicao_mesa" class="form-control">
+	          <select multiple size="5" name="composicao_mesa" id="composicao_mesa" class="form-control">
 	            {% for i in integrantes %}
 	            	<option value="{{i.parlamentar.id}}:{{i.cargo.id}}">
 	            {{i.parlamentar.nome_parlamentar}} || {{i.cargo.descricao}}
@@ -24,7 +24,7 @@
   						<br /><br />
   	          {% if view.get_cargos_mesa %}<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />{% endif %}
   	          <br /><br />
-              <input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
+              <input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" onclick="verificar()"/>
             {% endif %}
 	        </div>
 	        {% if view.get_cargos_mesa %}
@@ -47,3 +47,18 @@
 		</form>
 	</fieldset>
 {% endblock detail_content %}
+
+{% block extra_js %}
+	<script language="Javascript">
+		function verificar(){
+			x = document.getElementById("composicao_mesa");
+			flag = true;
+			for (i = 0; i < x.options.length; i++){
+				if (x.options[i].selected == true)
+					flag = false;
+			}
+			if(flag)
+				alert('Nenhum parlamentar foi selecionado!');
+		}
+	</script>
+{% endblock extra_js %}
