@@ -10,9 +10,10 @@
   // Seleciona o numero de acordo com o tipo
   function recuperar_numero_sessao() {
     var tipo = $("#id_tipo").val()
+    var sessao = $("#id_sessao_legislativa").val()
 
     if (tipo) {
-      $.get("/recuperar-numero-sessao",{tipo: tipo},
+      $.get("/recuperar-numero-sessao",{tipo: tipo, sessao_legislativa:sessao},
                                       function(data, status) {
                                         $("#id_numero").val(data.numero);
                                         console.log(data)
@@ -22,7 +23,7 @@
       $("#id_numero").val('');
     }
   }
-  $("#id_tipo").change(recuperar_numero_sessao);
+  $("#id_tipo").click(recuperar_numero_sessao);
 
 
   // Filtra as choices de sessao legislativa pela legislatura

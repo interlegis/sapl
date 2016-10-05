@@ -393,7 +393,8 @@ class OradorCrud(OradorCrud):
 def recuperar_numero_sessao(request):
     try:
         sessao = SessaoPlenaria.objects.filter(
-            tipo__pk=request.GET['tipo']).last()
+            tipo__pk=request.GET['tipo'],
+            sessao_legislativa=request.GET['sessao_legislativa']).last()
     except ObjectDoesNotExist:
         response = JsonResponse({'numero': 1})
     else:
