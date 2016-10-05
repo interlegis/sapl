@@ -434,10 +434,7 @@ class SessaoCrud(Crud):
 
         def get_initial(self):
             legislatura = Legislatura.objects.order_by('-data_inicio')[0]
-            sessao_legislativa = SessaoLegislativa.objects.order_by(
-                '-data_inicio')[0]
-            return {'legislatura': legislatura,
-                    'sessao_legislativa': sessao_legislativa}
+            return {'legislatura': legislatura}
 
 
 class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,

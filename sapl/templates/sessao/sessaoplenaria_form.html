@@ -36,6 +36,7 @@
           $.get("/sessao-legislativa-legislatura-ajax", {legislatura: id_legislatura}, function(data) {
               lista_sessoes = data['sessao_legislativa'];
 
+              $('#id_sessao_legislativa').append('<option value="">' + '---------' + '</option>');
               for (i = 0; i < lista_sessoes.length; i++) {
                   $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
               }
@@ -56,6 +57,7 @@
           $.get("/sessao-legislativa-legislatura-ajax", {legislatura: id_legislatura}, function(data) {
               lista_sessoes = data['sessao_legislativa'];
 
+              $('#id_sessao_legislativa').append('<option value="">' + '---------' + '</option>');
               for (i = 0; i < lista_sessoes.length; i++) {
                   $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
               }
@@ -67,6 +69,7 @@
       }      
     });
   })
+
 </script>
 
 {% endblock %}
