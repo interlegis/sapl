@@ -140,3 +140,12 @@ def str2intabs(value):
         return v
     except:
         return ''
+
+
+@register.filter
+def url(value):
+    # import ipdb; ipdb.set_trace()
+    string = value[:8]
+    if 'http://' in string or 'https://' in string:
+        return True
+    return False

@@ -38,7 +38,12 @@
               <div id="div_id_{{ column.id }}" class="form-group">
                 <p class="control-label">{{ column.verbose_name }}</p>
                 <div class="controls">
-                  <div class="form-control-static">{{ column.text|safe }}</div>
+                <!-- TODO Transformar os links em URLs diretamente no CRUD -->
+                  {% if column.text|url %}
+                    <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
+                  {% else %}
+                    <div class="form-control-static">{{ column.text|safe }}</div>
+                  {% endif %}
                 </div>
               </div>
             </div>
