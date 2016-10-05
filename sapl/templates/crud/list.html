@@ -60,7 +60,11 @@
           {% if href %}
           <a href="{{ href }}">{{ value|safe }}</a>
           {% elif valu != 'core.Cep.None' %}
-            {{ value|safe }}
+            {% if value|url %}
+              <a href="{{ value|safe }}"> {{ value|safe }} </a></div>
+            {% else %}
+              {{ value|safe }}
+            {% endif %}
           {% endif %}
         </td>
         {% endfor %}
