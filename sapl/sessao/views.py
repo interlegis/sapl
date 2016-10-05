@@ -433,7 +433,7 @@ class SessaoCrud(Crud):
     class CreateView(Crud.CreateView):
 
         def get_initial(self):
-            legislatura = Legislatura.objects.order_by('-numero')[0]
+            legislatura = Legislatura.objects.order_by('-data_inicio')[0]
             sessao_legislativa = SessaoLegislativa.objects.order_by(
                 '-data_inicio')[0]
             return {'legislatura': legislatura,
