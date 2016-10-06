@@ -750,7 +750,9 @@ class MesaView(FormMixin, DetailView):
             integrante = {'parlamentar': parlamentar, 'cargo': cargo}
             integrantes.append(integrante)
 
-        context.update({'integrantes': integrantes})
+        integrantes_ordenados = sorted(
+            integrantes, key=lambda k: k['cargo'].id)
+        context.update({'integrantes': integrantes_ordenados})
 
         return self.render_to_response(context)
 
