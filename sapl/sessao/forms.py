@@ -19,7 +19,7 @@ from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
                      SessaoPlenariaPresenca)
 
 
-def pega_anos():
+def recupera_anos():
     try:
         anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
         anos = [(k.year, k.year) for k in anos_list]
@@ -28,7 +28,9 @@ def pega_anos():
         return []
 
 
-ANO_CHOICES = [('', '---------')] + pega_anos()
+def ANO_CHOICES():
+    return [('', '---------')] + recupera_anos()
+
 MES_CHOICES = [('', '---------')] + RANGE_MESES
 DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
 
@@ -166,6 +168,7 @@ class VotacaoEditForm(forms.Form):
 
 
 class SessaoPlenariaFilterSet(django_filters.FilterSet):
+
     data_inicio__year = django_filters.ChoiceFilter(required=False,
                                                     label=u'Ano',
                                                     choices=ANO_CHOICES)
