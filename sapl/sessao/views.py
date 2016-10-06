@@ -728,6 +728,10 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
         return self.get(self, request, args, kwargs)
 
 
+def ordenar_integrantes_por_cargo(integrantes):
+    return sorted(integrantes, key=lambda k: k['cargo'].id)
+
+
 class MesaView(FormMixin, DetailView):
     template_name = 'sessao/mesa.html'
     form_class = MesaForm
@@ -750,9 +754,8 @@ class MesaView(FormMixin, DetailView):
             integrante = {'parlamentar': parlamentar, 'cargo': cargo}
             integrantes.append(integrante)
 
-        integrantes_ordenados = sorted(
-            integrantes, key=lambda k: k['cargo'].id)
-        context.update({'integrantes': integrantes_ordenados})
+        context.update(
+            {'integrantes': ordenar_integrantes_por_cargo(integrantes)})
 
         return self.render_to_response(context)
 
@@ -853,7 +856,7 @@ class ResumoView(DetailView):
             _('Abertura: %(abertura)s - %(hora_inicio)s') % {
                 'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
             _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
-                'encerramento': encerramento, 'hora_fim': self.object.hora_fim},
+                'encerramento': encerramento, 'hora_fim': self.object.hora_fim}
         ]})
         # =====================================================================
         # Conteúdo Multimídia
@@ -883,7 +886,7 @@ class ResumoView(DetailView):
             integrante = {'parlamentar': parlamentar, 'cargo': cargo}
             integrantes.append(integrante)
 
-        context.update({'mesa': integrantes})
+        context.update({'mesa': ordenar_integrantes_por_cargo(integrantes)})
 
         # =====================================================================
         # Presença Sessão
