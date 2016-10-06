@@ -27,7 +27,8 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
                      Tramitacao, UnidadeTramitacao)
 
-ANO_CHOICES = [('', '---------')] + RANGE_ANOS
+def ANO_CHOICES():
+    return [('', '---------')] + RANGE_ANOS
 
 
 def em_tramitacao():

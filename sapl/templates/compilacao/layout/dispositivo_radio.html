@@ -2,7 +2,7 @@
 {% load i18n compilacao_filters common_tags%}
 
 
-<div class="controls lista-dispositvo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
+<div class="controls lista-dispositivo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
   {% include 'bootstrap/layout/field_errors_block.html' %}
 
     {% for choice, dpt in  field.field.choices %}

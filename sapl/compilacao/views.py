@@ -1,22 +1,26 @@
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, string_concat
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -28,6 +32,8 @@ from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoBasicaForm,
                                    DispositivoEdicaoVigenciaForm,
                                    DispositivoRegistroAlteracaoForm,
+                                   DispositivoRegistroInclusaoForm,
+                                   DispositivoRegistroRevogacaoForm,
                                    DispositivoSearchModalForm, NotaForm,
                                    PublicacaoForm, TaForm,
                                    TextNotificacoesForm, TipoTaForm, VideForm)
@@ -41,20 +47,74 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 
+
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = Crud.build(
+    TipoDispositivo, 'tipo_dispositivo')
+
+logger = logging.getLogger(__name__)
+
+
+def get_integrations_view_names():
+    result = []
+    modules = sys.modules
+    for key, value in modules.items():
+        if key.endswith('.views'):
+            for v in value.__dict__.values():
+                if hasattr(v, '__bases__'):
+                    for base in v.__bases__:
+                        if base == IntegracaoTaView:
+                            result.append(v)
+    return result
+
+
+def choice_models_in_extenal_views():
+    integrations_view_names = get_integrations_view_names()
+    result = [(None, '-------------'), ]
+    for item in integrations_view_names:
+        if hasattr(item, 'model') and hasattr(item, 'model_type_foreignkey'):
+            ct = ContentType.objects.filter(
+                model=item.model.__name__.lower(),
+                app_label=item.model._meta.app_label)
+            if ct.exists():
+                result.append((
+                    ct[0].pk,
+                    item.model._meta.verbose_name_plural))
+    return result
 
 
 class IntegracaoTaView(TemplateView):
 
-    def get(self, *args, **kwargs):
+    def get_redirect_deactivated(self):
+        messages.error(
+            self.request,
+            _('O modulo de Textos Articulados está desativado.'))
+        return redirect('/')
+
+    def get(self, request,  *args, **kwargs):
+
+        try:
+            if settings.DEBUG or not TipoDispositivo.objects.exists():
+                self.import_pattern()
+        except Exception as e:
+            logger.error(
+                string_concat(
+                    _('Ocorreu erro na importação do arquivo base dos Tipos de'
+                      'Dispositivos, entre outras informações iniciais.'),
+                    str(e)))
+            return self.get_redirect_deactivated()
+
         item = get_object_or_404(self.model, pk=kwargs['pk'])
         related_object_type = ContentType.objects.get_for_model(item)
 
         ta = TextoArticulado.objects.filter(
             object_id=item.pk,
+            content_type=related_object_type)
+
+        tipo_ta = TipoTextoArticulado.objects.filter(
             content_type=related_object_type)
 
         if not ta.exists():
@@ -102,36 +162,86 @@ class IntegracaoTaView(TemplateView):
         return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
                                         kwargs={'ta_id': ta.pk}))
 
+        """msg = messages.error if not request.user.is_anonymous(
+        ) else messages.info
+
+        msg(request,
+            _('A funcionalidade de Textos Articulados está desativada.'))
+
+        if not request.user.is_anonymous():
+            msg(
+                request,
+                _('Para ativá-la, os Tipos de Textos devem ser criados.'))
+
+            msg(request,
+                _('Sua tela foi redirecionada para a tela de '
+                  'cadastro de Textos Articulados.'))
+
+            return redirect(to=reverse_lazy('sapl.compilacao:tipo_ta_list',
+                                            kwargs={}))
+        else:
+
+        return redirect(to=reverse_lazy(
+            '%s:%s_detail' % (
+                item._meta.app_config.name, item._meta.model_name),
+            kwargs={'pk': item.pk}))"""
+
+    def import_pattern(self):
+
+        from unipath import Path
+
+        compilacao_app = Path(__file__).ancestor(1)
+        print(compilacao_app)
+        with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
+            lines = f.readlines()
+            lines = [line.rstrip('\n') for line in lines]
+
+            with connection.cursor() as cursor:
+                for line in lines:
+                    try:
+                        cursor.execute(line)
+                    except IntegrityError as e:
+                        if not settings.DEBUG:
+                            logger.error(
+                                string_concat(
+                                    _('Ocorreu erro na importação: '),
+                                    line,
+                                    str(e)))
+
+        integrations_view_names = get_integrations_view_names()
+
+        def cria_sigla(verbose_name):
+            verbose_name = verbose_name.upper().split()
+            if len(verbose_name) == 1:
+                verbose_name = verbose_name[0]
+                sigla = ''
+                for letra in verbose_name:
+                    if letra in 'BCDFGHJKLMNPQRSTVWXYZ':
+                        sigla += letra
+            else:
+                sigla = ''.join([palavra[0] for palavra in verbose_name])
+            return sigla[:3]
+
+        for view in integrations_view_names:
+            try:
+                tipo = TipoTextoArticulado()
+                tipo.sigla = cria_sigla(
+                    view.model._meta.verbose_name
+                    if view.model._meta.verbose_name
+                    else view.model._meta.model_name)
+                tipo.descricao = view.model._meta.verbose_name
+                tipo.content_type = ContentType.objects.get_by_natural_key(
+                    view.model._meta.app_label, view.model._meta.model_name)
+                tipo.save()
+            except IntegrityError as e:
+                if not settings.DEBUG:
+                    logger.error(
+                        string_concat(
+                            _('Ocorreu erro na criação tipo de ta: '),
+                            str(e)))
+
     class Meta:
         abstract = True
-
-
-def get_integrations_view_names():
-    result = []
-    modules = sys.modules
-    for key, value in modules.items():
-        if key.endswith('.views'):
-            for v in value.__dict__.values():
-                if hasattr(v, '__bases__'):
-                    for base in v.__bases__:
-                        if base == IntegracaoTaView:
-                            result.append(v)
-    return result
-
-
-def choice_models_in_extenal_views():
-    integrations_view_names = get_integrations_view_names()
-    result = [(None, '-------------'), ]
-    for item in integrations_view_names:
-        if hasattr(item, 'model') and hasattr(item, 'model_type_foreignkey'):
-            ct = ContentType.objects.filter(
-                model=item.model.__name__.lower(),
-                app_label=item.model._meta.app_label)
-            if ct.exists():
-                result.append((
-                    ct[0].pk,
-                    item.model._meta.verbose_name_plural))
-    return result
 
 
 class CompMixin:
@@ -983,8 +1093,7 @@ class TextEditView(TemplateView):
             ta_publicado = lista_ta_publicado[dispositivo.ta_publicado_id] if\
                 lista_ta_publicado else dispositivo.ta_publicado
 
-            if dispositivo.texto == \
-                    Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
+            if dispositivo.dispositivo_de_revogacao:
                 return _('Revogado pelo %s - %s.') % (
                     d, ta_publicado)
             elif not dispositivo.dispositivo_substituido_id:
@@ -1170,7 +1279,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                 else:
                     self.set_message(data, 'success', _(
                         'Exclusão efetuada com sucesso!'), modal=True)
-                ta_base.ordenar_dispositivos()
+                ta_base.reagrupar_ordem_de_dispositivos()
         except Exception as e:
             data['pk'] = self.kwargs['dispositivo_id']
             self.set_message(data, 'danger', str(e), modal=True)
@@ -1459,7 +1568,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
 class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
-    def allowed_inserts(self):
+    def allowed_inserts(self, _base=None):
         request = self.request
         try:
             if request and 'perfil_estrutural' not in request.session:
@@ -1467,7 +1576,8 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             perfil_pk = request.session['perfil_estrutural']
 
-            base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+            base = Dispositivo.objects.get(
+                pk=self.kwargs['dispositivo_id'] if not _base else _base)
 
             prox_possivel = Dispositivo.objects.filter(
                 ordem__gt=base.ordem,
@@ -1740,7 +1850,9 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
     def json_add_in(self, context):
         return self.json_add_next(context, local_add='json_add_in')
 
-    def json_add_next(self, context, local_add='json_add_next'):
+    def json_add_next(
+            self,
+            context, local_add='json_add_next', create_auto_inserts=True):
         try:
 
             dp_auto_insert = None
@@ -1834,23 +1946,24 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             dp.publicacao = pub_last
             dp.save()
 
-            tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
-                filho_de_insercao_automatica=True,
-                perfil_id=context['perfil_pk'])
-
             count_auto_insert = 0
-            for tipoauto in tipos_dp_auto_insert:
-                qtdp = tipoauto.quantidade_permitida
-                if qtdp >= 0:
-                    qtdp -= Dispositivo.objects.filter(
-                        ta_id=dp.ta_id,
-                        dispositivo_pai_id=dp.id,
-                        tipo_dispositivo_id=tipoauto.filho_permitido.pk
-                    ).count()
-                    if qtdp > 0:
+            if create_auto_inserts:
+                tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
+                    filho_de_insercao_automatica=True,
+                    perfil_id=context['perfil_pk'])
+
+                for tipoauto in tipos_dp_auto_insert:
+                    qtdp = tipoauto.quantidade_permitida
+                    if qtdp >= 0:
+                        qtdp -= Dispositivo.objects.filter(
+                            ta_id=dp.ta_id,
+                            dispositivo_pai_id=dp.id,
+                            tipo_dispositivo_id=tipoauto.filho_permitido.pk
+                        ).count()
+                        if qtdp > 0:
+                            count_auto_insert += 1
+                    else:
                         count_auto_insert += 1
-                else:
-                    count_auto_insert += 1
 
             # Inserção automática
             if count_auto_insert:
@@ -2003,6 +2116,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
         except Exception as e:
             print(e)
+            return {}
 
 
 class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
@@ -2018,6 +2132,9 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         if 'variacao' in self.request.GET:
             context['variacao'] = self.request.GET['variacao']
+
+        if 'pk_bloco' in self.request.GET:
+            context['pk_bloco'] = self.request.GET['pk_bloco']
 
         if 'perfil_estrutural' in self.request.session:
             context['perfil_pk'] = self.request.session['perfil_estrutural']
@@ -2066,7 +2183,67 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 return perfis[0].pk
         return None
 
-    def registra_alteracao(self, bloco_alteracao, dispositivo_a_alterar):
+    def json_add_next_registra_inclusao(
+            self, context, local_add='json_add_next'):
+
+        base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+        bloco_alteracao = Dispositivo.objects.get(pk=context['pk_bloco'])
+
+        data = {}
+        data.update({'pk': bloco_alteracao.pk,
+                     'pai': [bloco_alteracao.pk, ]})
+
+        """if bloco_alteracao.inicio_vigencia < base.inicio_vigencia:
+            self.set_message(
+                data, 'danger',
+                _('O Dispositivo Base para inclusão possui início de vigência '
+                  'anterior ao bloco de alteração atual. Um bloco de '
+                  'alteração não pode ser retroativo!'), time=10000)
+            return data"""
+
+        data = self.json_add_next(context,
+                                  local_add=local_add,
+                                  create_auto_inserts=True)
+
+        if data:
+
+            ndp = Dispositivo.objects.get(pk=data['pk'])
+
+            ndp.dispositivo_atualizador = bloco_alteracao
+            ndp.ta_publicado = bloco_alteracao.ta
+            ndp.publicacao = bloco_alteracao.publicacao
+            ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
+            if ndp.dispositivo_vigencia:
+                ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+                ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
+            else:
+                ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
+                ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
+
+            ndp.save()
+
+            bloco_alteracao.ordenar_bloco_alteracao()
+
+            data.update({'pk': ndp.pk,
+                         'pai': [bloco_alteracao.pk, ]})
+
+        return data
+
+    def json_add_in_registra_inclusao(self, context):
+        return self.json_add_next_registra_inclusao(
+            context, local_add='json_add_in')
+
+    def registra_revogacao(self, bloco_alteracao, dispositivo_a_revogar):
+        return self.registra_alteracao(
+            bloco_alteracao,
+            dispositivo_a_revogar,
+            revogacao=True
+        )
+
+    def registra_alteracao(self,
+                           bloco_alteracao,
+                           dispositivo_a_alterar,
+                           revogacao=False):
         """
         Caracteristicas:
         1 - Se é um dispositivo simples e sem subsequente
@@ -2096,10 +2273,10 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         for d in history:
             """FIXME: A comparação "<" deverá ser mudada para
-                "<=" caso um seja necessário permitir duas alterações
+                "<=" caso seja necessário permitir duas alterações
                 com mesmo inicio_vigencia no mesmo dispositivo. Neste Caso,
-                a sequencia correta ficará a cargo dos reposicionamentos entre
-                dispositivos de mesmo nível,
+                a sequencia correta ficará a cargo dos reposicionamentos e
+                (a ser implementado) entre dispositivos de mesmo nível,
             """
             if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
                 dispositivo_a_alterar = d
@@ -2118,8 +2295,12 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
 
         ndp.rotulo = dispositivo_a_alterar.rotulo
-        ndp.texto = dispositivo_a_alterar.texto
         ndp.publicacao = bloco_alteracao.publicacao
+        if not revogacao:
+            ndp.texto = dispositivo_a_alterar.texto
+        else:
+            ndp.texto = Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO
+            ndp.dispositivo_de_revogacao = True
 
         ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
         if ndp.dispositivo_vigencia:
@@ -2167,9 +2348,16 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 d.dispositivo_pai = ndp
                 d.save()
 
-            self.set_message(
-                data, 'success',
-                _('Dispositivo de Alteração adicionado com sucesso.'))
+            ndp.ta.reordenar_dispositivos()
+
+            if not revogacao:
+                self.set_message(
+                    data, 'success',
+                    _('Dispositivo de Alteração adicionado com sucesso.'))
+            else:
+                self.set_message(
+                    data, 'success',
+                    _('Dispositivo de Revogação adicionado com sucesso.'))
 
         except Exception as e:
             print(e)
@@ -2193,8 +2381,13 @@ class DispositivoDinamicEditView(
         if 'action' in self.request.GET:
             initial.update({'editor_type': self.request.GET['action']})
 
+        if self.action.startswith('get_form_'):
+            if self.action.endswith('_radio_allowed_inserts'):
+                initial.update({'allowed_inserts': self.allowed_inserts()})
+
         initial.update({'dispositivo_search_form': reverse_lazy(
             'sapl.compilacao:dispositivo_search_form')})
+
         return initial
 
     def get_form(self, form_class=None):
@@ -2221,11 +2414,17 @@ class DispositivoDinamicEditView(
                 self.form_class = DispositivoEdicaoBasicaForm
             elif self.action.endswith('_alteracao'):
                 self.form_class = DispositivoRegistroAlteracaoForm
+            elif self.action.endswith('_revogacao'):
+                self.form_class = DispositivoRegistroRevogacaoForm
+            elif self.action.endswith('_inclusao'):
+                self.form_class = DispositivoRegistroInclusaoForm
+
             context = self.get_context_data()
             return self.render_to_response(context)
+
         elif self.action.startswith('get_actions'):
             self.form_class = None
-            self.template_name = 'compilacao/ajax_actions_dinamic_edit.html'
+
             self.object = Dispositivo.objects.get(
                 pk=self.kwargs['dispositivo_id'])
 
@@ -2234,17 +2433,26 @@ class DispositivoDinamicEditView(
             context = {}
             context['object'] = self.object
 
-            if ta_id == str(self.object.ta_id):
+            if self.action.endswith('_allowed_inserts_registro_inclusao'):
+                self.template_name = ('compilacao/'
+                                      'ajax_actions_registro_inclusao.html')
                 context['allowed_inserts'] = self.allowed_inserts()
 
-                if 'perfil_pk' in request.GET:
-                    self.set_perfil_in_session(
-                        request, request.GET['perfil_pk'])
-                elif 'perfil_estrutural' not in request.session:
-                    self.set_perfil_in_session(request=request)
+            else:
+                self.template_name = ('compilacao/'
+                                      'ajax_actions_dinamic_edit.html')
 
-                context['perfil_estrutural_list'
-                        ] = PerfilEstruturalTextoArticulado.objects.all()
+                if ta_id == str(self.object.ta_id):
+                    context['allowed_inserts'] = self.allowed_inserts()
+
+                    if 'perfil_pk' in request.GET:
+                        self.set_perfil_in_session(
+                            request, request.GET['perfil_pk'])
+                    elif 'perfil_estrutural' not in request.session:
+                        self.set_perfil_in_session(request=request)
+
+                    context['perfil_estrutural_list'
+                            ] = PerfilEstruturalTextoArticulado.objects.all()
 
             return self.render_to_response(context)
 
@@ -2266,6 +2474,20 @@ class DispositivoDinamicEditView(
                 pk=request.POST['dispositivo_alterado'])
 
             data = self.registra_alteracao(d, dispositivo_a_alterar)
+
+        elif formtype == 'get_form_revogacao':
+
+            dispositivo_a_revogar = Dispositivo.objects.get(
+                pk=request.POST['dispositivo_revogado'])
+
+            data = self.registra_revogacao(d, dispositivo_a_revogar)
+
+        if formtype == 'get_form_inclusao':
+
+            dispositivo_base_para_inclusao = Dispositivo.objects.get(
+                pk=request.POST['dispositivo_base_para_inclusao'])
+
+            data = self.registra_inclusao(d, dispositivo_base_para_inclusao)
 
         elif formtype == 'get_form_base':
             texto = request.POST['texto'].strip()

@@ -46,7 +46,3 @@ Protocolo:
   - assunto_ementa
   - autor
   - observacao
-
-TipoInstituicao:
-  {% trans 'Tipo de Instituição' %}:
-  - descricao

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n common_tags %}
 - title: {% trans 'Início' %}
   url: materialegislativa_detail
 - title: {% trans 'Anexada' %}
@@ -18,5 +18,7 @@
   url: tramitacao_list
 - title: {% trans 'Relatoria' %}
   url: relatoria_list
+{% if 'texto_articulado_materia'|get_config_attr %}
 - title: {% trans 'Texto' %}
   url: materia_ta
+{% endif %}

@@ -1,9 +1,10 @@
 
 from django.core.urlresolvers import reverse
+from django.db.models import F
 from django.views.generic import ListView
 
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Tramitacao
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
@@ -67,16 +68,19 @@ class MateriasTramitacaoListView(ListView):
 
     def get_queryset(self):
         # FIXME: Otimizar consulta
-        lista = []
+        ts = Tramitacao.objects.order_by(
+            'materia', '-data_tramitacao', '-id').annotate(
+            comissao=F('unidade_tramitacao_destino__comissao')).distinct(
+                'materia').values_list('materia', 'comissao')
+
+        ts = list(filter(lambda x: x[1] == int(self.kwargs['pk']), ts))
+        ts = list(zip(*ts))
+        ts = ts[0] if ts else []
+
         materias = MateriaLegislativa.objects.filter(
-            tramitacao__isnull=False).order_by('tipo', 'ano', 'numero')
-        for materia in materias:
-            comissao = materia.tramitacao_set.last(
-            ).unidade_tramitacao_destino.comissao
-            if (comissao and materia not in lista and
-                    comissao.pk == int(self.kwargs['pk'])):
-                lista.append(materia)
-        return lista
+            pk__in=ts).order_by('tipo', '-ano', '-numero')
+
+        return materias
 
     def get_context_data(self, **kwargs):
         context = super(

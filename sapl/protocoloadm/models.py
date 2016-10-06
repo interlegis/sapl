@@ -9,17 +9,6 @@ from sapl.materia.models import (Autor, TipoMateriaLegislativa,
 from sapl.utils import RANGE_ANOS, YES_NO_CHOICES
 
 
-class TipoInstituicao(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
-
-    class Meta:
-        verbose_name = _('Tipo de Instituição')
-        verbose_name_plural = _('Tipos de Instituições')
-
-    def __str__(self):
-        return self.descricao
-
-
 class TipoDocumentoAdministrativo(models.Model):
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))

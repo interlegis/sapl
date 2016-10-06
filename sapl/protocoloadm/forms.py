@@ -26,7 +26,8 @@ NATUREZA_PROCESSO = [('', 'Ambos'),
                      ('1', 'Legislativo')]
 
 
-ANO_CHOICES = [('', '---------')] + RANGE_ANOS
+def ANO_CHOICES():
+    return [('', '---------')] + RANGE_ANOS
 
 EM_TRAMITACAO = [('', 'Tanto Faz'),
                  (0, 'Sim'),

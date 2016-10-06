@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
+from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
@@ -45,13 +46,10 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
-# OrdemDiaCrud = Crud.build(OrdemDia, '')
-# RegistroVotacaoCrud = Crud.build(RegistroVotacao, '')
+
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
-TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
-TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 
 BlocoCrud = CrudAux.build(
     Bloco, '', list_field_names=['nome', 'data_criacao', 'partidos'])
@@ -427,10 +425,29 @@ class SessaoCrud(Crud):
         list_field_names = ['data_inicio', 'legislatura', 'sessao_legislativa',
                             'tipo']
 
-    class ListView(Crud.ListView):
-        ordering = ['-data_inicio']
+        @property
+        def list_url(self):
+            return ''
+
+        @property
+        def search_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_sessao'))
+
+    class ListView(Crud.ListView, RedirectView):
+
+        def get_redirect_url(self, *args, **kwargs):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_sessao'))
+
+        def get(self, request, *args, **kwargs):
+            return RedirectView.get(self, request, *args, **kwargs)
 
     class CreateView(Crud.CreateView):
+
+        @property
+        def cancel_url(self):
+            return self.search_url
 
         def get_initial(self):
             legislatura = Legislatura.objects.order_by('-data_inicio')[0]
@@ -711,6 +728,10 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
         return self.get(self, request, args, kwargs)
 
 
+def ordenar_integrantes_por_cargo(integrantes):
+    return sorted(integrantes, key=lambda k: k['cargo'].id)
+
+
 class MesaView(FormMixin, DetailView):
     template_name = 'sessao/mesa.html'
     form_class = MesaForm
@@ -733,7 +754,8 @@ class MesaView(FormMixin, DetailView):
             integrante = {'parlamentar': parlamentar, 'cargo': cargo}
             integrantes.append(integrante)
 
-        context.update({'integrantes': integrantes})
+        context.update(
+            {'integrantes': ordenar_integrantes_por_cargo(integrantes)})
 
         return self.render_to_response(context)
 
@@ -831,9 +853,10 @@ class ResumoView(DetailView):
 
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)s') % {'abertura': abertura},
-            _('Encerramento: %(encerramento)s') % {
-                'encerramento': encerramento},
+            _('Abertura: %(abertura)s - %(hora_inicio)s') % {
+                'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
+            _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
+                'encerramento': encerramento, 'hora_fim': self.object.hora_fim}
         ]})
         # =====================================================================
         # Conteúdo Multimídia
@@ -863,7 +886,7 @@ class ResumoView(DetailView):
             integrante = {'parlamentar': parlamentar, 'cargo': cargo}
             integrantes.append(integrante)
 
-        context.update({'mesa': integrantes})
+        context.update({'mesa': ordenar_integrantes_por_cargo(integrantes)})
 
         # =====================================================================
         # Presença Sessão

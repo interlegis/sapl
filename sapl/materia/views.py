@@ -21,9 +21,10 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
 
-from sapl.base.models import CasaLegislativa
+from sapl.base.models import CasaLegislativa, AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -52,6 +53,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
+
 OrigemCrud = Crud.build(Origem, '')
 
 TipoMateriaCrud = CrudAux.build(
@@ -68,6 +70,38 @@ TipoFimRelatoriaCrud = CrudAux.build(
 
 TipoAutorCrud = CrudAux.build(
     TipoAutor, 'regime_tramitacao')
+
+
+class MateriaTaView(IntegracaoTaView):
+    model = MateriaLegislativa
+    model_type_foreignkey = TipoMateriaLegislativa
+    """
+    Para manter a app compilacao isolada das outras aplicações,
+    este get foi implementado para tratar uma prerrogativa externa
+    de usuário.
+    """
+
+    def get(self, request, *args, **kwargs):
+        if AppConfig.attr('texto_articulado_materia'):
+            return IntegracaoTaView.get(self, request, *args, **kwargs)
+        else:
+            return self.get_redirect_deactivated()
+
+
+class ProposicaoTaView(IntegracaoTaView):
+    model = Proposicao
+    model_type_foreignkey = TipoProposicao
+
+    def get(self, request, *args, **kwargs):
+        """
+        Para manter a app compilacao isolada das outras aplicações,
+        este get foi implementado para tratar uma prerrogativa externa
+        de usuário.
+        """
+        if AppConfig.attr('texto_articulado_proposicao'):
+            return IntegracaoTaView.get(self, request, *args, **kwargs)
+        else:
+            return self.get_redirect_deactivated()
 
 
 def recuperar_materia(request):
@@ -581,6 +615,7 @@ class TramitacaoCrud(MasterDetailCrud):
             if local:
                 self.initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
+            self.initial['data_tramitacao'] = datetime.now()
             return self.initial
 
         def post(self, request, *args, **kwargs):
@@ -809,6 +844,30 @@ class MateriaLegislativaCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
+        @property
+        def list_url(self):
+            return ''
+
+        @property
+        def search_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_materia'))
+
+    class CreateView(Crud.CreateView):
+
+        @property
+        def cancel_url(self):
+            return self.search_url
+
+    class ListView(Crud.ListView, RedirectView):
+
+        def get_redirect_url(self, *args, **kwargs):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_materia'))
+
+        def get(self, request, *args, **kwargs):
+            return RedirectView.get(self, request, *args, **kwargs)
+
 
 # FIXME - qual a finalidade dessa classe??
 class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
@@ -941,16 +1000,6 @@ class MateriaLegislativaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         return context
-
-
-class MateriaTaView(IntegracaoTaView):
-    model = MateriaLegislativa
-    model_type_foreignkey = TipoMateriaLegislativa
-
-
-class ProposicaoTaView(IntegracaoTaView):
-    model = Proposicao
-    model_type_foreignkey = TipoProposicao
 
 
 class AcompanhamentoMateriaView(PermissionRequiredMixin, CreateView):
