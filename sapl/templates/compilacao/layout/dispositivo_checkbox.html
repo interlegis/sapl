@@ -1,7 +1,7 @@
 {% load crispy_forms_filters %}
 {% load i18n compilacao_filters common_tags%}
 
-<div class="controls cp lista-dispositvo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
+<div class="controls cp lista-dispositivo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
   {% include 'bootstrap/layout/field_errors_block.html' %}
 
   {% for choice in  field.field.choices %}

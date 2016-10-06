@@ -65,7 +65,7 @@
             <br>
             {% if view.ta_vigencia %}
                 <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
-            {% elif view.ta_vigencia != 0 %}
+            {% elif view.ta_vigencia and view.ta_vigencia != 0%}
                 <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
             {% endif %}
           </span>

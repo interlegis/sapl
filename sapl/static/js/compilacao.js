@@ -148,7 +148,7 @@ function DispostivoSearch(opts) {
             var btn_open_search = $('<button>')
                 .text(opts['text_button'])
                 .attr('type','button')
-                .attr('class','btn btn-sm btn-modal-open');
+                .attr('class','btn btn-sm btn-success btn-modal-open');
             button_ds.append(btn_open_search);
             btn_open_search.on('click', function() {
                 $.get(opts['url_form'], function(data) {
@@ -220,6 +220,10 @@ function DispostivoSearch(opts) {
                         onChangeFieldSelects();
 
                         modal_ds.modal('hide');
+
+                        if ('post_selected' in opts)
+                            opts['post_selected'](opts['params_post_selected'])
+
                     });
 
                     modal_ds.modal('show');

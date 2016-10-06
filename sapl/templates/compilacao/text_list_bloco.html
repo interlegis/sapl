@@ -19,7 +19,9 @@
     {% spaceless %}
       <div class="{{ dpt.tipo_dispositivo.class_css }}">
         <div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
-          {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+
+
+          {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao or dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.dispositivo_subsequente %}
             {% if dpt.auto_inserido %}
               {{ dpt.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
               <a class="dpt-link" name="{{dpt.pk}}">{{ dpt.dispositivo_pai.rotulo }}</a>
@@ -30,12 +32,16 @@
               {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
             {% endif %}
           {% endif %}
+
           <span class="dtxt" id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido_id|default:''}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
-          {% if dpt.ta_publicado_id and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
+          {% if dpt.ta_publicado_id %}
             <a class="nota-alteracao" href="{%url 'sapl.compilacao:ta_text' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
               {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
               {% nota_automatica dpt ta_pub_list %}
               {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+              {% if dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.dispositivo_substituido %}
+                &nbsp;
+              {% endif %}
             </a>
           {% endif %}
           {% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
@@ -52,7 +58,7 @@
           {% endif %}
         </div>
 
-        {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
+        {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
           <div class="dn" id="dn{{dpt.pk}}" pk="{{dpt.pk}}">{# Dispostivo Nota e Vides #}
             <ul class="dnl">{# Dispostivo Nota Lista#}
 

@@ -1,0 +1,18 @@
+{% load i18n %}
+
+{% if object.dispositivo_subsequente == None %}
+  <div class="row">
+    {% for inserts in allowed_inserts %}
+      {% if inserts.itens %}
+        <div class="col-md-6">
+          <div class="list-group">
+              <a class="list-group-item active">{{inserts.icone|safe}}<span>{{inserts.tipo_insert}}</span></a>
+            {% for item in inserts.itens %}
+              <a class="btn-action list-group-item"  action="{{inserts.action}}_registra_inclusao" pk="{{item.dispositivo_base}}" variacao="{{item.variacao}}" tipo_pk="{{item.tipo_pk}}" pk_bloco="{{request.GET.pk_bloco}}" >{{item.provavel|safe}}</a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}

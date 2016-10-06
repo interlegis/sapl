@@ -24,7 +24,7 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
 
-from sapl.base.models import CasaLegislativa
+from sapl.base.models import CasaLegislativa, AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -70,6 +70,38 @@ TipoFimRelatoriaCrud = CrudAux.build(
 
 TipoAutorCrud = CrudAux.build(
     TipoAutor, 'regime_tramitacao')
+
+
+class MateriaTaView(IntegracaoTaView):
+    model = MateriaLegislativa
+    model_type_foreignkey = TipoMateriaLegislativa
+    """
+    Para manter a app compilacao isolada das outras aplicações,
+    este get foi implementado para tratar uma prerrogativa externa
+    de usuário.
+    """
+
+    def get(self, request, *args, **kwargs):
+        if AppConfig.attr('texto_articulado_materia'):
+            return IntegracaoTaView.get(self, request, *args, **kwargs)
+        else:
+            return self.get_redirect_deactivated()
+
+
+class ProposicaoTaView(IntegracaoTaView):
+    model = Proposicao
+    model_type_foreignkey = TipoProposicao
+
+    def get(self, request, *args, **kwargs):
+        """
+        Para manter a app compilacao isolada das outras aplicações,
+        este get foi implementado para tratar uma prerrogativa externa
+        de usuário.
+        """
+        if AppConfig.attr('texto_articulado_proposicao'):
+            return IntegracaoTaView.get(self, request, *args, **kwargs)
+        else:
+            return self.get_redirect_deactivated()
 
 
 def recuperar_materia(request):
@@ -968,16 +1000,6 @@ class MateriaLegislativaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         return context
-
-
-class MateriaTaView(IntegracaoTaView):
-    model = MateriaLegislativa
-    model_type_foreignkey = TipoMateriaLegislativa
-
-
-class ProposicaoTaView(IntegracaoTaView):
-    model = Proposicao
-    model_type_foreignkey = TipoProposicao
 
 
 class AcompanhamentoMateriaView(PermissionRequiredMixin, CreateView):

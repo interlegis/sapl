@@ -86,7 +86,7 @@ def nota_automatica(dispositivo, ta_pub_list):
         ta_publicado = ta_pub_list[dispositivo.ta_publicado_id] if\
             ta_pub_list else dispositivo.ta_publicado
 
-        if dispositivo.texto == Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO:
+        if dispositivo.dispositivo_de_revogacao:
             return _('Revogado pelo %s - %s.') % (
                 d, ta_publicado)
         elif not dispositivo.dispositivo_substituido_id:

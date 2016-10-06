@@ -2,7 +2,8 @@ from django.conf.urls import include, url
 
 from sapl.compilacao import views
 from sapl.compilacao.views import (TipoNotaCrud, TipoPublicacaoCrud,
-                                   TipoVideCrud, VeiculoPublicacaoCrud)
+                                   TipoVideCrud, VeiculoPublicacaoCrud,
+                                   TipoDispositivoCrud)
 
 from .apps import AppConfig
 
@@ -122,5 +123,7 @@ urlpatterns = [
         include(TipoPublicacaoCrud.get_urls())),
     url(r'^ta/config/veiculo-publicacao/',
         include(VeiculoPublicacaoCrud.get_urls())),
+    url(r'^ta/config/tipo-dispositivo/',
+        include(TipoDispositivoCrud.get_urls())),
 
 ]

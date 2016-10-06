@@ -1281,7 +1281,7 @@ a:link:after, a:visited:after {
   }
 }
 
-.result-busca-dispositivo, .lista-dispositvo {
+.result-busca-dispositivo, .lista-dispositivo {
 
   padding: 0 0 1em;
   min-height: 3em;
@@ -1297,6 +1297,7 @@ a:link:after, a:visited:after {
 
       border-collapse:separate;
       border-bottom: 1px solid white;
+      width: 100%;
 
       &.ta_title {
         background-color: rgba(0, 0, 0, 0.15);
@@ -1340,6 +1341,9 @@ a:link:after, a:visited:after {
           font-family: "SourceSansPro", Helvetica, Arial, sans-serif;
           display: block;
           margin: 0px;
+        }
+        .artigo {
+          float: none;
         }
       }
     }
