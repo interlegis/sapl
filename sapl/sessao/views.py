@@ -430,10 +430,6 @@ class SessaoCrud(Crud):
             return ''
 
         @property
-        def cancel_url(self):
-            return self.search_url
-
-        @property
         def search_url(self):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'pesquisar_sessao'))
@@ -448,6 +444,10 @@ class SessaoCrud(Crud):
             return RedirectView.get(self, request, *args, **kwargs)
 
     class CreateView(Crud.CreateView):
+
+        @property
+        def cancel_url(self):
+            return self.search_url
 
         def get_initial(self):
             legislatura = Legislatura.objects.order_by('-data_inicio')[0]
@@ -849,9 +849,9 @@ class ResumoView(DetailView):
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
             _('Abertura: %(abertura)s - %(hora_inicio)s') % {
-              'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
+                'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
             _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
-              'encerramento': encerramento, 'hora_fim': self.object.hora_fim},
+                'encerramento': encerramento, 'hora_fim': self.object.hora_fim},
         ]})
         # =====================================================================
         # Conteúdo Multimídia

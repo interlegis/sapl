@@ -21,6 +21,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
 
 from sapl.base.models import CasaLegislativa
@@ -51,6 +52,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
+
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -809,6 +811,30 @@ class MateriaLegislativaCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
+
+        @property
+        def list_url(self):
+            return ''
+
+        @property
+        def search_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_materia'))
+
+    class CreateView(Crud.CreateView):
+
+        @property
+        def cancel_url(self):
+            return self.search_url
+
+    class ListView(Crud.ListView, RedirectView):
+
+        def get_redirect_url(self, *args, **kwargs):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_materia'))
+
+        def get(self, request, *args, **kwargs):
+            return RedirectView.get(self, request, *args, **kwargs)
 
 
 # FIXME - qual a finalidade dessa classe??
