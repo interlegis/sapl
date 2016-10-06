@@ -7,10 +7,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import UF, YES_NO_CHOICES
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -97,6 +98,18 @@ class AppConfig(models.Model):
     painel_aberto = models.BooleanField(
         verbose_name=_('Painel aberto para usuário anônimo'),
         choices=YES_NO_CHOICES, default=False)
+
+    texto_articulado_proposicao = models.BooleanField(
+        verbose_name=_('Usar Textos Articulados para Proposições'),
+        choices=YES_NO_CHOICES, default=False)
+
+    texto_articulado_materia = models.BooleanField(
+        verbose_name=_('Usar Textos Articulados para Matérias'),
+        choices=YES_NO_CHOICES, default=False)
+
+    texto_articulado_norma = models.BooleanField(
+        verbose_name=_('Usar Textos Articulados para Normas'),
+        choices=YES_NO_CHOICES, default=True)
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
