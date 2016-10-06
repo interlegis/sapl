@@ -5,6 +5,7 @@ import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
@@ -12,6 +13,7 @@ from django.core.signing import Signer
 from django.core.urlresolvers import reverse_lazy
 from django.db import transaction, connection
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
@@ -56,130 +58,6 @@ TipoDispositivoCrud = Crud.build(
 logger = logging.getLogger(__name__)
 
 
-class IntegracaoTaView(TemplateView):
-
-    def ta_ativado(self, kwargs):
-        pass
-
-    def get(self, request,  *args, **kwargs):
-
-        try:
-            if not TipoDispositivo.objects.exists():
-                self.import_pattern()
-        except Exception as e:
-            logger.error(
-                string_concat(
-                    _('Ocorreu erro na importação do arquivo base dos Tipos de'
-                      'Dispositivos, entre outras informações iniciais.'),
-                    str(e)))
-
-        item = get_object_or_404(self.model, pk=kwargs['pk'])
-        related_object_type = ContentType.objects.get_for_model(item)
-
-        ta = TextoArticulado.objects.filter(
-            object_id=item.pk,
-            content_type=related_object_type)
-
-        tipo_ta = TipoTextoArticulado.objects.filter(
-            content_type=related_object_type)
-
-        if self.ta_ativado(kwargs):
-
-            if not ta.exists():
-                ta = TextoArticulado()
-                tipo_ta = TipoTextoArticulado.objects.filter(
-                    content_type=related_object_type)[:1]
-                if tipo_ta.exists():
-                    ta.tipo_ta = tipo_ta[0]
-                ta.content_object = item
-            else:
-                ta = ta[0]
-
-            if hasattr(item, 'ementa') and item.ementa:
-                ta.ementa = item.ementa
-            else:
-                ta.ementa = _('Integração com %s sem ementa.') % item
-
-            if hasattr(item, 'observacao') and item.observacao:
-                ta.observacao = item.observacao
-            else:
-                ta.observacao = _('Integração com %s sem observacao.') % item
-
-            if hasattr(item, 'numero') and item.numero:
-                ta.numero = item.numero
-            else:
-                ta.numero = int('%s%s%s' % (
-                    int(datetime.now().year),
-                    int(datetime.now().month),
-                    int(datetime.now().day)))
-
-            if hasattr(item, 'ano') and item.ano:
-                ta.ano = item.ano
-            else:
-                ta.ano = datetime.now().year
-
-            if hasattr(item, 'data_apresentacao'):
-                ta.data = item.data_apresentacao
-            elif hasattr(item, 'data'):
-                ta.data = item.data
-            else:
-                ta.data = datetime.now()
-
-            ta.save()
-
-            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
-                                            kwargs={'ta_id': ta.pk}))
-        else:
-            msg = messages.error if not request.user.is_anonymous(
-            ) else messages.info
-
-            msg(request,
-                _('A funcionalidade de Textos Articulados está desativada.'))
-
-            if not request.user.is_anonymous():
-                msg(
-                    request,
-                    _('Para ativá-la, os Tipos de Textos devem ser criados.'))
-
-                msg(request,
-                    _('Sua tela foi redirecionada para a tela de '
-                      'cadastro de Textos Articulados.'))
-
-                return redirect(to=reverse_lazy('sapl.compilacao:tipo_ta_list',
-                                                kwargs={}))
-            else:
-
-                return redirect(to=reverse_lazy(
-                    '%s:%s_detail' % (
-                        item._meta.app_config.name, item._meta.model_name),
-                    kwargs={'pk': item.pk}))
-
-    def import_pattern(self):
-
-        from unipath import Path
-
-        compilacao_app = Path(__file__).ancestor(1)
-        print(compilacao_app)
-        with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
-            lines = f.readlines()
-            lines = [line.rstrip('\n') for line in lines]
-
-            with connection.cursor() as cursor:
-                for line in lines:
-                    cursor.execute(line)
-
-            print(lines)
-
-    # INSERT INTO compilacao_tipotextoarticulado (id, sigla, descricao, participacao_social, content_type_id) VALUES (2, 'ML', 'Matéria Legislativa', true, 119);
-    # INSERT INTO compilacao_tipotextoarticulado (id, sigla, descricao, participacao_social, content_type_id) VALUES (5, 'PRP', 'Proposição', true, 136);
-    # INSERT INTO compilacao_tipotextoarticulado (id, sigla, descricao,
-    # participacao_social, content_type_id) VALUES (1, 'NJ', 'Norma Juridica',
-    # false, 142);
-
-    class Meta:
-        abstract = True
-
-
 def get_integrations_view_names():
     result = []
     modules = sys.modules
@@ -206,6 +84,164 @@ def choice_models_in_extenal_views():
                     ct[0].pk,
                     item.model._meta.verbose_name_plural))
     return result
+
+
+class IntegracaoTaView(TemplateView):
+
+    def get_redirect_deactivated(self):
+        messages.error(
+            self.request,
+            _('O modulo de Textos Articulados está desativado.'))
+        return redirect('/')
+
+    def get(self, request,  *args, **kwargs):
+
+        try:
+            if settings.DEBUG or not TipoDispositivo.objects.exists():
+                self.import_pattern()
+        except Exception as e:
+            logger.error(
+                string_concat(
+                    _('Ocorreu erro na importação do arquivo base dos Tipos de'
+                      'Dispositivos, entre outras informações iniciais.'),
+                    str(e)))
+            return self.get_redirect_deactivated()
+
+        item = get_object_or_404(self.model, pk=kwargs['pk'])
+        related_object_type = ContentType.objects.get_for_model(item)
+
+        ta = TextoArticulado.objects.filter(
+            object_id=item.pk,
+            content_type=related_object_type)
+
+        tipo_ta = TipoTextoArticulado.objects.filter(
+            content_type=related_object_type)
+
+        if not ta.exists():
+            ta = TextoArticulado()
+            tipo_ta = TipoTextoArticulado.objects.filter(
+                content_type=related_object_type)[:1]
+            if tipo_ta.exists():
+                ta.tipo_ta = tipo_ta[0]
+            ta.content_object = item
+        else:
+            ta = ta[0]
+
+        if hasattr(item, 'ementa') and item.ementa:
+            ta.ementa = item.ementa
+        else:
+            ta.ementa = _('Integração com %s sem ementa.') % item
+
+        if hasattr(item, 'observacao') and item.observacao:
+            ta.observacao = item.observacao
+        else:
+            ta.observacao = _('Integração com %s sem observacao.') % item
+
+        if hasattr(item, 'numero') and item.numero:
+            ta.numero = item.numero
+        else:
+            ta.numero = int('%s%s%s' % (
+                int(datetime.now().year),
+                int(datetime.now().month),
+                int(datetime.now().day)))
+
+        if hasattr(item, 'ano') and item.ano:
+            ta.ano = item.ano
+        else:
+            ta.ano = datetime.now().year
+
+        if hasattr(item, 'data_apresentacao'):
+            ta.data = item.data_apresentacao
+        elif hasattr(item, 'data'):
+            ta.data = item.data
+        else:
+            ta.data = datetime.now()
+
+        ta.save()
+
+        return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
+                                        kwargs={'ta_id': ta.pk}))
+
+        """msg = messages.error if not request.user.is_anonymous(
+        ) else messages.info
+
+        msg(request,
+            _('A funcionalidade de Textos Articulados está desativada.'))
+
+        if not request.user.is_anonymous():
+            msg(
+                request,
+                _('Para ativá-la, os Tipos de Textos devem ser criados.'))
+
+            msg(request,
+                _('Sua tela foi redirecionada para a tela de '
+                  'cadastro de Textos Articulados.'))
+
+            return redirect(to=reverse_lazy('sapl.compilacao:tipo_ta_list',
+                                            kwargs={}))
+        else:
+
+        return redirect(to=reverse_lazy(
+            '%s:%s_detail' % (
+                item._meta.app_config.name, item._meta.model_name),
+            kwargs={'pk': item.pk}))"""
+
+    def import_pattern(self):
+
+        from unipath import Path
+
+        compilacao_app = Path(__file__).ancestor(1)
+        print(compilacao_app)
+        with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
+            lines = f.readlines()
+            lines = [line.rstrip('\n') for line in lines]
+
+            with connection.cursor() as cursor:
+                for line in lines:
+                    try:
+                        cursor.execute(line)
+                    except IntegrityError as e:
+                        if not settings.DEBUG:
+                            logger.error(
+                                string_concat(
+                                    _('Ocorreu erro na importação: '),
+                                    line,
+                                    str(e)))
+
+        integrations_view_names = get_integrations_view_names()
+
+        def cria_sigla(verbose_name):
+            verbose_name = verbose_name.upper().split()
+            if len(verbose_name) == 1:
+                verbose_name = verbose_name[0]
+                sigla = ''
+                for letra in verbose_name:
+                    if letra in 'BCDFGHJKLMNPQRSTVWXYZ':
+                        sigla += letra
+            else:
+                sigla = ''.join([palavra[0] for palavra in verbose_name])
+            return sigla[:3]
+
+        for view in integrations_view_names:
+            try:
+                tipo = TipoTextoArticulado()
+                tipo.sigla = cria_sigla(
+                    view.model._meta.verbose_name
+                    if view.model._meta.verbose_name
+                    else view.model._meta.model_name)
+                tipo.descricao = view.model._meta.verbose_name
+                tipo.content_type = ContentType.objects.get_by_natural_key(
+                    view.model._meta.app_label, view.model._meta.model_name)
+                tipo.save()
+            except IntegrityError as e:
+                if not settings.DEBUG:
+                    logger.error(
+                        string_concat(
+                            _('Ocorreu erro na criação tipo de ta: '),
+                            str(e)))
+
+    class Meta:
+        abstract = True
 
 
 class CompMixin:

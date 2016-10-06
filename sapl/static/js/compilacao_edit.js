@@ -548,6 +548,7 @@ function DispositivoEdit() {
 
 
     instance.init = function() {
+        $('.dpt-actions-fixed').first().css('opacity','1');
         editortype = ReadCookie("editortype");
         if (editortype == null || editortype == '') {
             editortype = "textarea"

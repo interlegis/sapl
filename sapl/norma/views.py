@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.views.generic import FormView, ListView
 from django.views.generic.base import RedirectView
 
+from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, make_pagination
 from sapl.norma.forms import NormaJuridicaForm
@@ -21,6 +22,22 @@ AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
 TipoNormaCrud = CrudAux.build(
     TipoNormaJuridica, 'tipo_norma_juridica',
     list_field_names=['equivalente_lexml', 'sigla', 'descricao'])
+
+
+class NormaTaView(IntegracaoTaView):
+    model = NormaJuridica
+    model_type_foreignkey = TipoNormaJuridica
+
+    def get(self, request, *args, **kwargs):
+        """
+        Para manter a app compilacao isolada das outras aplicações,
+        este get foi implementado para tratar uma prerrogativa externa
+        de usuário.
+        """
+        if AppConfig.attr('texto_articulado_norma'):
+            return IntegracaoTaView.get(self, request, *args, **kwargs)
+        else:
+            return self.get_redirect_deactivated()
 
 
 class NormaCrud(Crud):
@@ -179,8 +196,3 @@ class PesquisaNormaListView(ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         return context
-
-
-class NormaTaView(IntegracaoTaView):
-    model = NormaJuridica
-    model_type_foreignkey = TipoNormaJuridica
