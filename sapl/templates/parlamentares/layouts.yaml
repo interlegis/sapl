@@ -5,7 +5,8 @@ CargoMesa:
 
 Legislatura:
   {% trans 'Legislatura' %}:
-  - numero:2 data_inicio  data_fim  data_eleicao
+  - numero:12
+  - data_eleicao  data_inicio  data_fim
 
 Coligacao:
   {% trans 'Coligação' %}:

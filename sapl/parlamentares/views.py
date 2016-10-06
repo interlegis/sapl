@@ -11,8 +11,8 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
-from .forms import (FiliacaoForm, LegislaturaForm, ParlamentarCreateForm,
-                    ParlamentarForm)
+from .forms import (FiliacaoForm, LegislaturaForm, LegislaturaCreateForm,
+                    ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -149,7 +149,18 @@ class LegislaturaCrud(CrudAux):
     model = Legislatura
     help_path = 'tabelas_auxiliares#legislatura'
 
-    class BaseMixin(CrudAux.BaseMixin):
+    class CreateView(CrudAux.CreateView):
+        form_class = LegislaturaCreateForm
+
+        def get_initial(self):
+            try:
+                ultima_legislatura = Legislatura.objects.latest('numero')
+                numero = ultima_legislatura.numero + 1
+            except Legislatura.DoesNotExist:
+                numero = 1
+            return {'numero': numero}
+
+    class UpdateView(CrudAux.UpdateView):
         form_class = LegislaturaForm
 
 
