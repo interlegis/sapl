@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from bs4 import BeautifulSoup
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import CasaLegislativa
@@ -514,8 +514,11 @@ def get_sessao_plenaria(sessao, casa):
             for cargo in CargoMesa.objects.filter(id=composicao.cargo.id):
                 dic_mesa = {}
                 dic_mesa['nom_parlamentar'] = parlamentar.nome_parlamentar
-                dic_mesa['sgl_partido'] = Filiacao.objects.filter(
+                partido_sigla = Filiacao.objects.filter(
                     parlamentar=parlamentar).first().partido.sigla
+                if not partido_sigla:
+                    partido_sigla = ''
+                dic_mesa['sgl_partido'] = partido_sigla
                 dic_mesa['des_cargo'] = cargo.descricao
                 lst_mesa.append(dic_mesa)
 
@@ -527,8 +530,11 @@ def get_sessao_plenaria(sessao, casa):
                 id=presenca.parlamentar.id):
             dic_presenca = {}
             dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
-            dic_presenca['sgl_partido'] = Filiacao.objects.filter(
+            partido_sigla = Filiacao.objects.filter(
                 parlamentar=parlamentar).first().partido.sigla
+            if not partido_sigla:
+                partido_sigla = ''
+            dic_presenca['sgl_partido'] = partido_sigla
             lst_presenca_sessao.append(dic_presenca)
 
     # Exibe os Expedientes
@@ -634,9 +640,11 @@ def get_sessao_plenaria(sessao, casa):
             orador_expediente.numero_ordem)
         dic_oradores_expediente["nom_parlamentar"] = (
             parlamentar.nome_parlamentar)
-        dic_oradores_expediente['sgl_partido'] = (
-            Filiacao.objects.filter(
-                parlamentar=parlamentar).first().partido.sigla)
+        partido_sigla = Filiacao.objects.filter(
+            parlamentar=parlamentar).first().partido.sigla
+        if not partido_sigla:
+            partido_sigla = ''
+        dic_oradores_expediente['sgl_partido'] = partido_sigla
         lst_oradores_expediente.append(dic_oradores_expediente)
 
     # Lista presença na ordem do dia
@@ -648,9 +656,11 @@ def get_sessao_plenaria(sessao, casa):
             dic_presenca_ordem_dia = {}
             dic_presenca_ordem_dia['nom_parlamentar'] = (
                 parlamentar.nome_parlamentar)
-            dic_presenca_ordem_dia['sgl_partido'] = (
-                Filiacao.objects.filter(
-                    parlamentar=parlamentar).first().partido.sigla)
+            partido_sigla = Filiacao.objects.filter(
+                parlamentar=parlamentar).first().partido.sigla
+            if not partido_sigla:
+                partido_sigla = ''
+            dic_presenca_ordem_dia['sgl_partido'] = partido_sigla
             lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
 
     # Lista das matérias da Ordem do Dia, incluindo o resultado das votacoes
@@ -741,9 +751,11 @@ def get_sessao_plenaria(sessao, casa):
             dic_oradores = {}
             dic_oradores["num_ordem"] = orador.numero_ordem
             dic_oradores["nom_parlamentar"] = parlamentar.nome_parlamentar
-            dic_oradores['sgl_partido'] = (
-                Filiacao.objects.filter(
-                    parlamentar=parlamentar).first().partido.sigla)
+            partido_sigla = Filiacao.objects.filter(
+                parlamentar=parlamentar).first().partido.sigla
+            if not partido_sigla:
+                partido_sigla = ''
+            dic_oradores['sgl_partido'] = partido_sigla
             lst_oradores.append(dic_oradores)
 
     return (inf_basicas_dic,
@@ -767,6 +779,9 @@ def relatorio_sessao_plenaria(request, pk):
         'inline; filename="relatorio_protocolo.pdf"')
 
     casa = CasaLegislativa.objects.first()
+
+    if not casa:
+        raise Http404
 
     cabecalho = get_cabecalho(casa)
     rodape = get_rodape(casa)
