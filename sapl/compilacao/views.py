@@ -198,6 +198,10 @@ class IntegracaoTaView(TemplateView):
 
             with connection.cursor() as cursor:
                 for line in lines:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+
                     try:
                         cursor.execute(line)
                     except IntegrityError as e:
@@ -207,6 +211,8 @@ class IntegracaoTaView(TemplateView):
                                     _('Ocorreu erro na importação: '),
                                     line,
                                     str(e)))
+                    except Exception as ee:
+                        print(ee)
 
         integrations_view_names = get_integrations_view_names()
 
@@ -2293,6 +2299,8 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         ndp = Dispositivo.new_instance_based_on(
             dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
+
+        ndp.auto_inserido = dispositivo_a_alterar.auto_inserido
 
         ndp.rotulo = dispositivo_a_alterar.rotulo
         ndp.publicacao = bloco_alteracao.publicacao

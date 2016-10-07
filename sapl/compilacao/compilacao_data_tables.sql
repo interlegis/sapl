@@ -229,3 +229,7 @@ INSERT INTO compilacao_tipopublicacao (id, sigla, nome) VALUES (1, 'PUB', 'Publi
 SELECT pg_catalog.setval('compilacao_tipopublicacao_id_seq', 3, true);
 INSERT INTO compilacao_tipovide (id, sigla, nome) VALUES (1, 'RS', 'Referência Simples');
 SELECT pg_catalog.setval('compilacao_tipovide_id_seq', 1, true);
+
+
+# temporarios
+update compilacao_dispositivo set auto_inserido = False where tipo_dispositivo_id not in (2, 120);
