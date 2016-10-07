@@ -1,7 +1,8 @@
+import pytest
 from django.apps import apps
 from django.db.models import CharField, TextField
 from model_mommy import mommy
-import pytest
+
 from .settings import SAPL_APPS
 
 pytestmark = pytest.mark.django_db

@@ -29,8 +29,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo,
-                     TramitacaoAdministrativo)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')

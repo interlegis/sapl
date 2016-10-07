@@ -13,7 +13,6 @@ from sapl.norma.forms import NormaJuridicaForm
 from .forms import NormaJuridicaPesquisaForm
 from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
 
-
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
                                  list_field_names=['assunto', 'descricao'])

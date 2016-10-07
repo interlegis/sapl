@@ -1,9 +1,9 @@
 from django.conf.urls import include, url
 
 from sapl.compilacao import views
-from sapl.compilacao.views import (TipoNotaCrud, TipoPublicacaoCrud,
-                                   TipoVideCrud, VeiculoPublicacaoCrud,
-                                   TipoDispositivoCrud)
+from sapl.compilacao.views import (TipoDispositivoCrud, TipoNotaCrud,
+                                   TipoPublicacaoCrud, TipoVideCrud,
+                                   VeiculoPublicacaoCrud)
 
 from .apps import AppConfig
 

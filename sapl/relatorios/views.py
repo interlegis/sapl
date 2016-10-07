@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from bs4 import BeautifulSoup
-from django.http import HttpResponse, Http404
+from django.http import Http404, HttpResponse
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import CasaLegislativa

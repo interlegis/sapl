@@ -24,7 +24,7 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
 
-from sapl.base.models import CasaLegislativa, AppConfig
+from sapl.base.models import AppConfig, CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -52,7 +52,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, '')
 

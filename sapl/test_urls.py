@@ -1,3 +1,4 @@
+import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -7,17 +8,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import CharField, TextField
 from django.http.response import HttpResponseNotFound
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from model_mommy import mommy
-import pytest
 
-from sapl.crud.base import PermissionRequiredForAppCrudMixin, CrudAux
+from sapl.crud.base import CrudAux, PermissionRequiredForAppCrudMixin
 from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
-
 
 pytestmark = pytest.mark.django_db
 
