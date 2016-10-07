@@ -245,7 +245,7 @@ def test_urlpatterns(url_item, admin_client):
                 break
 
         assert isvalid, """
-        A url (%s) não está no padrão de sua app (%s).
+        O prefixo da url (%s) não está no padrão de sua app (%s).
         Os prefixos permitidos são:
         %s
         """ % (url, app_name, prefixs)
