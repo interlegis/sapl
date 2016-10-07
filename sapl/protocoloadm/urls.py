@@ -69,6 +69,6 @@ urlpatterns = [
     # FIXME: Usado para pesquisar autor
     # Melhor forma de fazer?
     # Deve mudar de app?
-    url(r'^proposicao/pesquisar-autor',
+    url(r'^protocoloadm/pesquisar-autor',
         pesquisa_autores, name='pesquisar_autor'),
 ]

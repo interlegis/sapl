@@ -90,7 +90,7 @@ function autorModal() {
     $("#pesquisar").click(function() {
         var query = $("#q").val()
 
-        $.get("/proposicao/pesquisar-autor?q="+ query, function(
+        $.get("/protocoloadm/pesquisar-autor?q="+ query, function(
           data, status){
 
           $("#div-resultado").children().remove();

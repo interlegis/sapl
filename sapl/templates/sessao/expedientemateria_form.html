@@ -14,7 +14,7 @@
     var ano_materia = $("#id_ano_materia").val()
 
     if (tipo_materia && numero_materia && ano_materia) {
-      $.get("/recuperar-materia",{tipo_materia: tipo_materia,
+      $.get("/sessao/recuperar-materia",{tipo_materia: tipo_materia,
                                   numero_materia: numero_materia,
                                   ano_materia: ano_materia},
                                 function(data, status) {

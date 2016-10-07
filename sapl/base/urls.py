@@ -20,8 +20,6 @@ urlpatterns = [
         (TemplateView.as_view(template_name='sistema.html'))),
 
     url(r'^ajuda/', TemplateView.as_view(template_name='ajuda.html')),
-    url(r'^relatorios/$', TemplateView.as_view(
-        template_name='base/relatorios_list.html')),
     url(r'^ajuda/(?P<topic>\w+)$', HelpView.as_view(), name='help_topic'),
     url(r'^ajuda/', TemplateView.as_view(template_name='ajuda/index.html'),
         name='help_base'),
@@ -34,6 +32,9 @@ urlpatterns = [
         name='login'),
     url(r'^logout/$', views.logout, {'next_page': '/login'}, name='logout'),
 
+    # TODO mover estas telas para a app 'relatorios'
+    url(r'^relatorios/$', TemplateView.as_view(
+        template_name='base/relatorios_list.html')),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
     url(r'^sistema/relatorios/materia-por-ano-autor-tipo$',

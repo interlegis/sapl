@@ -38,7 +38,7 @@ urlpatterns = [
 
     url(r'^materia/recuperar-materia', recuperar_materia),
 
-    url(r'''^confirmar/(?P<uidb64>[0-9A-Za-z_\-]+)/
+    url(r'''^materia/confirmar/(?P<uidb64>[0-9A-Za-z_\-]+)/
         (?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$''',
         ConfirmarEmailView.as_view(), name='confirmar_email'),
 
@@ -91,11 +91,11 @@ urlpatterns = [
         AcompanhamentoExcluirView.as_view(),
         name='acompanhar_excluir'),
 
-    url(r'^acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
+    url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
-    url(r'^primeira-tramitacao-em-lote',
+    url(r'^materia/primeira-tramitacao-em-lote',
         PrimeiraTramitacaoEmLoteView.as_view(),
         name='primeira_tramitacao_em_lote'),
-    url(r'^tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
+    url(r'^materia/tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
         name='tramitacao_em_lote'),
 ]
