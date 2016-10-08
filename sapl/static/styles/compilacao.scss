@@ -647,7 +647,7 @@ a:link:after, a:visited:after {
     &.dpt {
       width: auto !important;
       margin: 1em -0.5em;
-      border: 1px solid #ddd !important;
+      border: 1px solid #fad46b !important;
       padding: 0;
       background-color: #fafafa;
       border-radius: 3px;
@@ -730,6 +730,7 @@ a:link:after, a:visited:after {
         padding-bottom: 1px;
         &.btn-default {
           background-color: #fad46b;
+          border: 1px solid #fad46b;
         }
       }
     }
