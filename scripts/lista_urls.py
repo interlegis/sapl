@@ -8,9 +8,8 @@ if __name__ == '__main__':
     django.setup()
 
 if True:
-    from django.apps import apps
     from sapl.urls import urlpatterns
-    from django.core.urlresolvers import RegexURLResolver, RegexURLPattern
+    from django.core.urlresolvers import RegexURLResolver
 
 
 class ListaUrls():

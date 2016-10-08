@@ -1577,23 +1577,8 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
     def allowed_inserts(self, _base=None):
         request = self.request
         try:
-            if request and 'perfil_estrutural' not in request.session:
-                self.set_perfil_in_session(request)
-
-            perfil_pk = request.session['perfil_estrutural']
-
             base = Dispositivo.objects.get(
                 pk=self.kwargs['dispositivo_id'] if not _base else _base)
-
-            prox_possivel = Dispositivo.objects.filter(
-                ordem__gt=base.ordem,
-                nivel__lte=base.nivel,
-                ta_id=base.ta_id)[:1]
-
-            if prox_possivel.exists():
-                prox_possivel = prox_possivel[0]
-            else:
-                prox_possivel = None
 
             result = [{'tipo_insert': force_text(string_concat(
                 _('Inserir Após'),
@@ -1612,10 +1597,24 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                 {'tipo_insert': force_text(_('Inserir Antes')),
                  'icone': '&#8630;&nbsp;',
                  'action': 'json_add_prior',
-                 'itens': []}
-            ]
+                 'itens': []}]
 
-            # Possíveis inserções sequenciais já existentes
+            if request and 'perfil_estrutural' not in request.session:
+                self.set_perfil_in_session(request)
+
+            perfil_pk = request.session['perfil_estrutural']
+
+            prox_possivel = Dispositivo.objects.filter(
+                ordem__gt=base.ordem,
+                nivel__lte=base.nivel,
+                ta_id=base.ta_id)[:1]
+
+            if prox_possivel.exists():
+                prox_possivel = prox_possivel[0]
+            else:
+                prox_possivel = None
+
+            # Possíveis inserções de nível já existentes
             parents = base.get_parents()
             parents.insert(0, base)
             nivel = sys.maxsize
@@ -1769,37 +1768,59 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     else:
                         Dispositivo.set_numero_for_add_in(base, base, td)
 
-                    r = [{'class_css': td.class_css,
-                          'tipo_pk': td.pk,
-                          'variacao': 0,
-                          'provavel': '%s <small>(%s)</small>' % (
-                              base.rotulo_padrao(1, paradentro),
-                              td.nome,),
-                          'dispositivo_base': base.pk}]
+                    r = []
+
+                    flag_pv = td.permitido_variacao(tipb, perfil_pk=perfil_pk)
+
+                    if td.contagem_continua and flag_pv:
+                        flag_direcao = 1
+                        flag_variacao = 0
+                        while True:
+                            if base.dispositivo0 == 0:
+                                local_insert = 1
+                            else:
+                                local_insert = 0
+
+                            rt = base.transform_in_next(flag_direcao)
+                            if not rt[0]:
+                                break
+                            flag_variacao += rt[1]
+                            r.append({'class_css': td.class_css,
+                                      'tipo_pk': td.pk,
+                                      'variacao': flag_variacao,
+                                      'provavel': '%s <small>(%s)</small>' % (
+                                          base.rotulo_padrao(local_insert),
+                                          base.tipo_dispositivo.nome,),
+                                      'dispositivo_base': base.pk})
+
+                            flag_direcao = -1
+
+                        r.reverse()
+
+                        if len(r) > 0 and td.formato_variacao0 == \
+                                TipoDispositivo.FNCN:
+                            r = [r[0], ]
+                    else:
+                        if td.contagem_continua:
+                            base.transform_in_next()
+                        r = [{'class_css': td.class_css,
+                              'tipo_pk': td.pk,
+                              'variacao': 0,
+                              'provavel': '%s <small>(%s)</small>' % (
+                                  base.rotulo_padrao(1, paradentro),
+                                  td.nome,),
+                              'dispositivo_base': base.pk}]
 
                     if paradentro == 1:
-                        """if (tipb.class_css == 'caput' and
-                                td.class_css == 'paragrafo'):
-                            result[0]['itens'].insert(0, r[0])
-                        else:"""
                         result[1]['itens'] += r
                     else:
                         result[2]['itens'] += r
                         result[0]['itens'] += r
 
-            # if len(result[0]['itens']) < len(result[1]['itens']):
-            #    r = result[0]
-            #    result.remove(result[0])
-            #    result.insert(1, r)
-
-            # remover temporariamente a opção inserir antes
-            # confirmar necessidade
+            # FIXME para liberar as opções de inserção antes,
+            # o método json_add_prior deve ser implementado
             if len(result) > 2:
                 result.pop()
-
-            # if tipb.dispositivo_de_articulacao and\
-            #        tipb.dispositivo_de_alteracao:
-            #    result.pop()
 
             return result
 
@@ -1912,15 +1933,13 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                         ordem__lte=base.ordem,
                         ordem__gte=parents[-1].ordem,
                         tipo_dispositivo_id=tipo.pk,
-                        ta_id=base.ta_id)[:1]
+                        ta_id=base.ta_id).first()
 
-                    if not ultimo_irmao.exists():
-                        dp.set_numero_completo([1, 0, 0, 0, 0, 0, ])
-                    else:
-                        ultimo_irmao = ultimo_irmao[0]
-                        dp.set_numero_completo(
-                            ultimo_irmao.get_numero_completo())
-                        dp.transform_in_next()
+                    dp.set_numero_completo(
+                        [1, 0, 0, 0, 0, 0, ] if not ultimo_irmao else
+                        ultimo_irmao.get_numero_completo())
+                    if ultimo_irmao:
+                        dp.transform_in_next(variacao)
                 else:
                     if ';' in tipo.rotulo_prefixo_texto:
                         dp.set_numero_completo([0, 0, 0, 0, 0, 0, ])
@@ -2198,7 +2217,6 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
     def json_add_next_registra_inclusao(
             self, context, local_add='json_add_next'):
 
-        base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
         bloco_alteracao = Dispositivo.objects.get(pk=context['pk_bloco'])
 
         data = {}
