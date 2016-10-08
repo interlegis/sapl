@@ -26,13 +26,15 @@ app_name = AppConfig.name
 urlpatterns = [
     url(r'^protocoloadm/docadm/',
         include(DocumentoAdministrativoCrud.get_urls())),
-    url(r'^protocoloadm/tipo-documento-adm/',
+    # gerada a partir de um CrudAux???? padrao 'sistema' ?
+    url(r'^sistema/tipo-documento-adm/',
         include(TipoDocumentoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/doc-acessorio/',
         include(DocumentoAcessorioAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/tramitacao-doc-adm/',
         include(TramitacaoAdmCrud.get_urls())),
-    url(r'^protocoloadm/status-tramitacao-adm/',
+    # gerada a partir de um CrudAux???? padrao 'sistema' ?
+    url(r'^sistema/status-tramitacao-adm/',
         include(StatusTramitacaoAdministrativoCrud.get_urls())),
     url(r'^protocoloadm/protocolo-doc/',
         include(ProtocoloDocumentoCrud.get_urls())),
