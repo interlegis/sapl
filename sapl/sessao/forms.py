@@ -15,8 +15,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca)
+                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca)
 
 
 def recupera_anos():
@@ -203,6 +202,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
 
 class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
+
     class Meta:
         model = MateriaLegislativa
         fields = ['numero',
@@ -278,16 +278,16 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 class OradorForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
-            super(OradorForm, self).__init__(*args, **kwargs)
+        super(OradorForm, self).__init__(*args, **kwargs)
 
-            id_sessao = int(self.initial['id_sessao'])
+        id_sessao = int(self.initial['id_sessao'])
 
-            ids = [s.parlamentar.id for
-                   s in SessaoPlenariaPresenca.objects.filter(
-                        sessao_plenaria_id=id_sessao)]
+        ids = [s.parlamentar.id for
+               s in SessaoPlenariaPresenca.objects.filter(
+                   sessao_plenaria_id=id_sessao)]
 
-            self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-                id__in=ids).order_by('nome_completo')
+        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+            id__in=ids).order_by('nome_completo')
 
     class Meta:
         model = Orador
@@ -297,10 +297,10 @@ class OradorForm(ModelForm):
 class OradorExpedienteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
-            super(OradorExpedienteForm, self).__init__(*args, **kwargs)
+        super(OradorExpedienteForm, self).__init__(*args, **kwargs)
 
-            self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-                ativo=True).order_by('nome_completo')
+        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+            ativo=True).order_by('nome_completo')
 
     class Meta:
         model = OradorExpediente
