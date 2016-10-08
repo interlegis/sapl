@@ -74,14 +74,16 @@
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div id="div_id_ementa" class="holder">
-              <label>{% field_verbose_name object 'ementa' %}</label>
-              <p>{{ object.ementa|safe}}</p>
+        {% comment %}
+          <div class="row">
+            <div class="col-md-12">
+              <div id="div_id_ementa" class="holder">
+                <label>{% field_verbose_name object 'ementa' %}</label>
+                <p>{{ object.ementa|safe}}</p>
+              </div>
             </div>
           </div>
-        </div>
+        {% endcomment %}
     </fieldset>
   {% endblock detail_content %}
 {% endblock base_content %}

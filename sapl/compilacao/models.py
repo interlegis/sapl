@@ -589,11 +589,11 @@ class Dispositivo(BaseModel, TimestampedMixin):
     texto = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto Original'))
+        verbose_name=_('Texto do Dispositivo'))
     texto_atualizador = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto no Dispositivo Atualizador'))
+        verbose_name=_('Texto do Dispositivo no Dispositivo Atualizador'))
 
     inicio_vigencia = models.DateField(
         verbose_name=_('Início de Vigência'))
@@ -625,6 +625,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     tipo_dispositivo = models.ForeignKey(
         TipoDispositivo,
+        on_delete=models.PROTECT,
         related_name='dispositivos_do_tipo_set',
         verbose_name=_('Tipo do Dispositivo'))
 
@@ -634,10 +635,12 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     ta = models.ForeignKey(
         TextoArticulado,
+        on_delete=models.PROTECT,
         related_name='dispositivos_set',
         verbose_name=_('Texto Articulado'))
     ta_publicado = models.ForeignKey(
         TextoArticulado,
+        on_delete=models.PROTECT,
         blank=True, null=True, default=None,
         related_name='dispositivos_alterados_pelo_ta_set',
         verbose_name=_('Texto Articulado Publicado'))

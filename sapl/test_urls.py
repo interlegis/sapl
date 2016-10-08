@@ -1,22 +1,18 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
-from django.db.models import CharField, TextField
-from django.http.response import HttpResponseNotFound
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-from model_mommy import mommy
+from django.utils.translation import ugettext_lazy as _
+import pytest
 
-from sapl.crud.base import CrudAux, PermissionRequiredForAppCrudMixin
+from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -75,32 +71,6 @@ def create_perms_post_migrate(app):
         if (ct.pk, codename) not in all_perms
     ]
     Permission.objects.bulk_create(perms)
-
-
-def test_charfield_textfield():
-    for app in sapl_appconfs:
-        for model in app.get_models():
-            fields = model._meta.local_fields
-            for field in fields:
-                if isinstance(field, (CharField, TextField)):
-                    assert not field.null, 'This %s is null: %s.%s' % (
-                        type(field).__name__,
-                        model.__name__,
-                        field.attname)
-
-
-def test_str_sanity():
-    # this simply a sanity check
-    # __str__ semantics is not considered and should be tested separetely
-    for app in sapl_appconfs:
-        for model in app.get_models():
-            obj = mommy.prepare(model)
-            try:
-                str(obj)
-            except Exception as exc:
-                msg = '%s.%s.__str__ is broken.' % (
-                    model.__module__, model.__name__)
-                raise AssertionError(msg, exc)
 
 btn_login = ('<input class="btn btn-success btn-sm" ' +
              'type="submit" value="login" />')
@@ -170,7 +140,7 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
                 if 'ListView' in string_view_class:
                     response = admin_client.get('/sistema', {}, follow=True)
                     assert url in str(response.content), """
-                        A url (%s) não consta nas Tabelas Auxiliares, 
+                        A url (%s) não consta nas Tabelas Auxiliares,
                         porem é uma implementação de ListView de CrudAux.
                         Se encontra em %s.urls
                     """ % (url, app_name)
@@ -296,7 +266,8 @@ def em_construcao_crud_permissions_urls(urls_app, client):
             if app in ['base', 'parlamentares']:
                 user_for_url_atual_app = user_for_url_atual_app % 'geral'
             elif app in 'protocoloadm':
-                user_for_url_atual_app = user_for_url_atual_app % 'administrativo'
+                user_for_url_atual_app = (
+                    user_for_url_atual_app % 'administrativo')
             elif app in ['compilacao']:
                 return  # TODO implementar teste para compilacao
             else:
@@ -327,7 +298,8 @@ def em_construcao_crud_permissions_urls(urls_app, client):
                 No entanto, o objetivo do teste é validar o acesso de toda url.
                 Independente do erro que vá acontecer, esse erro não ocorrerá
                 se o user não tiver permissão de acesso pelo fato de que "AS
-                VIEWS BEM FORMADAS PARA VALIDAÇÃO DE ACESSO DEVEM SEMPRE REDIRECIONAR PARA
+                VIEWS BEM FORMADAS PARA VALIDAÇÃO DE ACESSO DEVEM SEMPRE
+                REDIRECIONAR PARA
                 LOGIN ANTES DE SUA EXECUÇÃO", desta forma nunca gerando erro
                 interno dada qualquer incoerência de parâmetros nas urls
                 """

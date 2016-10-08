@@ -3,7 +3,7 @@
 {% load common_tags %}
 
 {% dispositivotree dispositivos_list %}
-    <div class="dpt" id="id{{node.dpt.id}}" pk="{{node.dpt.pk}}" ordem="{{node.dpt.ordem}}" name="{{node.dpt.pk}}" title="{{node.dpt.pk}} - {{node.dpt.ordem}}" formtype="get_form_base">
+    <div class="dpt" id="id{{node.dpt.id}}" pk="{{node.dpt.pk}}" ordem="{{node.dpt.ordem}}" name="{{node.dpt.pk}}" formtype="get_form_base">
       <div class="dpt-actions">
       </div>
       <div class="dpt-actions-fixed">
@@ -22,12 +22,10 @@
             {{ node.dpt.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
             {% if node.da and node in node.da.alts %}
               <a class="dpt-link link-rotulo" name="{{node.dpt.pk}}" href="{% url 'sapl.compilacao:ta_text_edit' node.dpt.dispositivo_pai.ta_id %}#{{node.dpt.pk}}" title="{% trans 'Abrir editor deste dispositivo em seu Texto Articulado Original'%}">{{ node.dpt.dispositivo_pai.rotulo }}</a>
+              {{ node.dpt.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
             {% else %}
-              <a class="dpt-link link-rotulo" name="{{node.dpt.pk}}">{{ node.dpt.dispositivo_pai.rotulo }}</a>
+              <a class="dpt-link link-rotulo" name="{{node.dpt.pk}}">{% comment %}{{ node.dpt.dispositivo_pai.rotulo }}{% endcomment %}</a>
             {% endif %}
-
-            {{ node.dpt.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
-
           {% else %}
             {{ node.td.rotulo_prefixo_html|safe }}
             {% if node.da and node in node.da.alts %}
@@ -72,88 +70,3 @@
       {% endif %}
     </div>
 {% enddispositivotree %}
-
-
-{% comment %}
-
-{% for item in dispositivos_list %}
-
-
-    <div class="dpt-alts">
-      {% if item.alts %}
-        {%with dispositivos_list=item.alts %}
-          {%include 'compilacao/text_edit_bloco.html'%}
-        {%endwith%}
-      {% endif %}
-    </div>
-
-<<<<<<< d5a8cdb5d563a8353942e0dc3c3b2484bd636ea6:templates/compilacao/text_edit_bloco.html
-=======
-            {% if dpt.dispositivo_vigencia %}
-              <li>&#8226;</li>
-              <li>{% field_verbose_name dpt 'dispositivo_vigencia'%}: <a href="{% url 'sapl.compilacao:ta_text_edit' dpt.dispositivo_vigencia.ta_id %}#{{ dpt.dispositivo_vigencia_id }}" action="refresh" pk="{{dpt.dispositivo_vigencia.pk}}" title="{% field_verbose_name dpt 'dispositivo_vigencia'%} {% trans 'em' %}:&#013;{{dpt.dispositivo_vigencia.ta}}">{{dpt.dispositivo_vigencia|nomenclatura}}</a> </li>
-            {% endif %}
->>>>>>> Fix #497 Encaps apps secundárias dentro app sapl:sapl/templates/compilacao/text_edit_bloco.html
-
-
-
-  </div>
-
-{% endfor%}
-{% for dpt in object_list %}
-  <div class="bloco {{ dpt.tipo_dispositivo.class_css }}">
-    {% spaceless %}
-      {% if not dpt.tipo_dispositivo.dispositivo_de_alteracao %}
-        <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}} - {{dpt.ordem}}">
-          {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
-          {{ dpt.rotulo }}
-          {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
-          {{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}
-          {% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-            <span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>
-          {%else%}
-            {{ dpt.texto|safe }}
-          {%endif%}
-        </div>
-      {% endif %}
-<<<<<<< d5a8cdb5d563a8353942e0dc3c3b2484bd636ea6:templates/compilacao/text_edit_bloco.html
-      {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-        <a class="nota-alteracao" href="{% url 'compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
-          {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
-          {% nota_automatica dpt  ta_pub_list %}
-          {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
-        </a>
-      {% endif %}
-    {% endspaceless %}
-=======
-      <div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">
-        {% spaceless %}
-          {% if not dpt.tipo_dispositivo.dispositivo_de_alteracao %}
-            <div class="de" id="id{{dpt.id}}" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.pk}} - {{dpt.ordem}}">{{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}{{ dpt.rotulo }}{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{% if dpt.texto == '' and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}<span class="semtexto">({{dpt.tipo_dispositivo}} sem texto)</span>{%else%}{{ dpt.texto|safe }}{%endif%}</div>
-          {% endif %}
-          {% if dpt.ta_publicado_id != None and not dpt.tipo_dispositivo.dispositivo_de_articulacao %}
-            <a class="nota-alteracao" href="{% url 'sapl.compilacao:ta_text_edit' dpt.ta_publicado.pk %}#{{dpt.dispositivo_atualizador_id}}">
-              {{ dpt.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
-              {% nota_automatica dpt  ta_pub_list %}
-              {{ dpt.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
-            </a>
-          {% endif %}
-        {% endspaceless %}
-        {% if dpt.tipo_dispositivo.dispositivo_de_alteracao %}
-          {%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
-            {%include template_name%}
-          {%endwith%}
-        {% endif%}
-      </div>
-    {% endif%}
->>>>>>> Fix #497 Encaps apps secundárias dentro app sapl:sapl/templates/compilacao/text_edit_bloco.html
-
-      {% if dpt.tipo_dispositivo.dispositivo_de_alteracao %}
-        {%with node=dpt template_name='compilacao/text_edit_blocoalteracao.html' %}
-          {%include template_name%}
-        {%endwith%}
-      {% endif%}
-
-  </div>
-{% endfor %}
-{% endcomment %}

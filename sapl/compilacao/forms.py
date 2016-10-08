@@ -483,6 +483,9 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         layout = []
 
         inst = kwargs['instance'] if 'instance' in kwargs else None
+        texto_articulado_do_editor = kwargs['initial'][
+            'texto_articulado_do_editor'] if\
+            'texto_articulado_do_editor' in kwargs['initial'] else None
 
         editor_type = kwargs['initial']['editor_type']\
             if'editor_type' in kwargs['initial'] else ''
@@ -583,11 +586,22 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                     required=False,
                     label='',
                     widget=forms.Textarea(),
-                    help_text=_('Não havendo diferenças gráficas entre o '
-                                'conteúdo que deve estar no Texto Original e '
-                                'no Texto Alterador, não há necessidade '
-                                'de duplicar a informação. A validação dos '
-                                'dados negará a igualdade.'))
+                    help_text=_(
+                        """%s é um campo para ser informado apenas
+                                 se houver diferenças gráficas entre
+                                 o que deve aparecer aqui (%s), e o que
+                                 deve aparecer em (%s). Possivelmente uma
+                                 aspa a mais, ou, por exemplo, em um destes
+                                 destes dois documentos
+                                 uma expressão terminou com um (.) ponto final
+                                 mas faz mais sentido que no documento anterior
+                                 seja colocado com (;) um ponto e virgula.
+                                 """ % (
+                            Dispositivo._meta.get_field(
+                                'texto_atualizador').verbose_name,
+                            inst.ta_publicado,
+                            inst.ta
+                        )))
                 self.visibilidade = forms.ChoiceField(
                     label=Dispositivo._meta.get_field(
                         'visibilidade').verbose_name,
@@ -622,11 +636,14 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 *layout, label_cancel=label_cancel)
 
         elif editor_type == "get_form_base":
-            getattr(self, "actions_" + editor_type)(layout, inst)
+            getattr(self, "actions_" + editor_type)(
+                layout, inst, texto_articulado_do_editor)
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
 
-    def actions_get_form_base(self, layout, inst):
+    def actions_get_form_base(self, layout,
+                              inst,
+                              texto_articulado_do_editor=None):
         label_cancel = _('Fechar')
 
         more = [
@@ -647,10 +664,12 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                                   inst.pk,
                                   _('Excluir Dispositivo')))]
 
-        if inst.dispositivos_filhos_set.filter(
-            auto_inserido=False).exists() or (
-                inst.tipo_dispositivo.dispositivo_de_alteracao and
-                inst.tipo_dispositivo.dispositivo_de_articulacao):
+        if (inst.dispositivos_filhos_set.filter(
+                auto_inserido=False).exists() or (
+                    inst.tipo_dispositivo.dispositivo_de_alteracao and
+                    inst.tipo_dispositivo.dispositivo_de_articulacao)) and (
+                        inst.ta_id == int(texto_articulado_do_editor)
+                if texto_articulado_do_editor else 0):
             btns_excluir.append(
                 HTML(
                     '<a class="btn btn-danger btn-excluir" '
@@ -660,7 +679,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                     '>%s</a>' % (_('Excluir este dispositivo '
                                    'e toda sua estrutura.'),
                                  inst.pk,
-                                 _('Excluir Bloco de Dispositivo.'))))
+                                 _('Excluir Bloco Completo.'))))
 
         if btns_excluir and (not inst.auto_inserido or inst.ta_publicado):
             css_class = 'btn-group pull-right btns-excluir'
@@ -1365,7 +1384,7 @@ class DispositivoRegistroInclusaoForm(Form):
             HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
                  _('Cancelar')),
         ]
-        #more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        # more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 

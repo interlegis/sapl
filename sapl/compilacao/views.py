@@ -1313,12 +1313,12 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     p.fim_vigencia = None
                     p.fim_eficacia = None
 
-                for d in base.dispositivos_filhos_set.all():
-                    if d.auto_inserido:
-                        self.remover_dispositivo(d, bloco)
-                    elif not bloco:
+                try:
+                    for d in base.dispositivos_filhos_set.all():
                         p.dispositivos_filhos_set.add(d)
-                p.save()
+                    p.save()
+                except Exception as e:
+                    print(e)
             base.delete()
         else:
             proxima_articulacao = base.get_proximo_nivel_zero()
@@ -1595,19 +1595,25 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             else:
                 prox_possivel = None
 
-            result = [{'tipo_insert': force_text(_('Inserir Depois')),
-                       'icone': '&#8631;&nbsp;',
-                       'action': 'json_add_next',
-                       'itens': []},
-                      {'tipo_insert': force_text(_('Inserir Dentro')),
-                       'icone': '&#8690;&nbsp;',
-                       'action': 'json_add_in',
-                       'itens': []},
-                      {'tipo_insert': force_text(_('Inserir Antes')),
-                       'icone': '&#8630;&nbsp;',
-                       'action': 'json_add_prior',
-                       'itens': []}
-                      ]
+            result = [{'tipo_insert': force_text(string_concat(
+                _('Inserir Após'),
+                ' ',
+                base.tipo_dispositivo.nome)),
+                'icone': '&#8631;&nbsp;',
+                'action': 'json_add_next',
+                'itens': []},
+                {'tipo_insert': force_text(string_concat(
+                    _('Inserir em'),
+                    ' ',
+                    base.tipo_dispositivo.nome)),
+                 'icone': '&#8690;&nbsp;',
+                 'action': 'json_add_in',
+                 'itens': []},
+                {'tipo_insert': force_text(_('Inserir Antes')),
+                 'icone': '&#8630;&nbsp;',
+                 'action': 'json_add_prior',
+                 'itens': []}
+            ]
 
             # Possíveis inserções sequenciais já existentes
             parents = base.get_parents()
@@ -2226,8 +2232,14 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
                 ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
 
-            ndp.save()
+            dispositivos_do_bloco = \
+                bloco_alteracao.dispositivos_alterados_set.order_by(
+                    'ordem_bloco_atualizador')
+            if dispositivos_do_bloco.exists:
+                ndp.ordem_bloco_atualizador = dispositivos_do_bloco.last(
+                ).ordem_bloco_atualizador + Dispositivo.INTERVALO_ORDEM
 
+            ndp.save()
             bloco_alteracao.ordenar_bloco_alteracao()
 
             data.update({'pk': ndp.pk,
@@ -2337,6 +2349,14 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                     timedelta(days=1)
                 ndp.fim_vigencia = n.inicio_vigencia - \
                     timedelta(days=1)
+
+            # Coloca o novo dispostivo no final do bloco
+            dispositivos_do_bloco = \
+                bloco_alteracao.dispositivos_alterados_set.order_by(
+                    'ordem_bloco_atualizador')
+            if dispositivos_do_bloco.exists:
+                ndp.ordem_bloco_atualizador = dispositivos_do_bloco.last(
+                ).ordem_bloco_atualizador + Dispositivo.INTERVALO_ORDEM
             ndp.save()
 
             p.dispositivo_subsequente = ndp
@@ -2357,6 +2377,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 d.save()
 
             ndp.ta.reordenar_dispositivos()
+            bloco_alteracao.ordenar_bloco_alteracao()
 
             if not revogacao:
                 self.set_message(
@@ -2392,6 +2413,9 @@ class DispositivoDinamicEditView(
         if self.action.startswith('get_form_'):
             if self.action.endswith('_radio_allowed_inserts'):
                 initial.update({'allowed_inserts': self.allowed_inserts()})
+
+            initial.update({'texto_articulado_do_editor':
+                            self.kwargs['ta_id']})
 
         initial.update({'dispositivo_search_form': reverse_lazy(
             'sapl.compilacao:dispositivo_search_form')})
@@ -2550,152 +2574,6 @@ class DispositivoDinamicEditView(
                              _('Dispositivo alterado com sucesso.'))
 
         return JsonResponse(data, safe=False)
-
-
-class DispositivoSimpleEditView__Old:
-    template_name = 'compilacao/text_edit_bloco.html'
-
-    def get_queryset_perfil_estrutural(self):
-        perfis = PerfilEstruturalTextoArticulado.objects.all()
-        return perfis
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            if 'perfil_pk' in request.GET:
-                self.set_perfil_in_session(
-                    request, request.GET['perfil_pk'])
-            elif 'perfil_estrutural' not in request.session:
-                self.set_perfil_in_session(request=request)
-
-            self.object_list = self.get_queryset()
-
-            self.perfil_estrutural_list = self.get_queryset_perfil_estrutural()
-
-            context = self.get_context_data(
-                object_list=self.object_list,
-                perfil_estrutural_list=self.perfil_estrutural_list
-            )
-        except Exception as e:
-            print(e)
-
-        return self.render_to_response(context)
-
-    def get_queryset(self):
-        self.flag_alteradora = -1
-        self.flag_nivel_ini = 0
-        self.flag_nivel_old = -1
-
-        try:
-            self.pk_edit = int(self.request.GET['edit'])
-        except:
-            self.pk_edit = 0
-        self.pk_view = int(self.kwargs['dispositivo_id'])
-
-        try:
-            if self.pk_edit == self.pk_view:
-                bloco = Dispositivo.objects.get(
-                    pk=self.kwargs['dispositivo_id'])
-            else:
-                bloco = Dispositivo.objects.get(
-                    pk=self.kwargs['dispositivo_id'])
-        except Dispositivo.DoesNotExist:
-            return []
-
-        self.flag_nivel_old = bloco.nivel - 1
-        self.flag_nivel_ini = bloco.nivel
-
-        if self.pk_edit == self.pk_view:
-            return [bloco, ]
-
-        proximo_bloco = Dispositivo.objects.filter(
-            ordem__gt=bloco.ordem,
-            nivel__lte=bloco.nivel,
-            ta_id=self.kwargs['ta_id'])[:1]
-
-        if proximo_bloco.count() == 0:
-            itens = Dispositivo.objects.filter(
-                ordem__gte=bloco.ordem,
-                ta_id=self.kwargs['ta_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
-        else:
-            itens = Dispositivo.objects.filter(
-                ordem__gte=bloco.ordem,
-                ordem__lt=proximo_bloco[0].ordem,
-                ta_id=self.kwargs['ta_id']
-            ).select_related(*DISPOSITIVO_SELECT_RELATED)
-        return itens
-
-
-class ActionsEditMixin_old:
-
-    def render_to_json_response(self, context, **response_kwargs):
-
-        action = getattr(self, context['action'])
-        return JsonResponse(action(context), safe=False)
-
-    def get_json_for_refresh(self, dp, dpauto=None):
-
-        if dp.tipo_dispositivo.contagem_continua:
-            pais = []
-            if dp.dispositivo_pai is None:
-                data = {'pk': dp.pk, 'pai': [-1, ]}
-            else:
-                pkfilho = dp.pk
-                dp = dp.dispositivo_pai
-
-                proxima_articulacao = dp.get_proximo_nivel_zero()
-
-                if proxima_articulacao is not None:
-                    parents = Dispositivo.objects.filter(
-                        ta_id=dp.ta_id,
-                        ordem__gte=dp.ordem,
-                        ordem__lt=proxima_articulacao.ordem,
-                        nivel__lte=dp.nivel)
-                else:
-                    parents = Dispositivo.objects.filter(
-                        ta_id=dp.ta_id,
-                        ordem__gte=dp.ordem,
-                        nivel__lte=dp.nivel)
-
-                nivel = sys.maxsize
-                for p in parents:
-                    if p.nivel > nivel:
-                        continue
-                    pais.append(p.pk)
-                    nivel = p.nivel
-                data = {
-                    'pk': pkfilho if not dpauto else dpauto.pk, 'pai': pais}
-        else:
-            data = {'pk': dp.pk if not dpauto else dpauto.pk, 'pai': [
-                dp.dispositivo_pai.pk, ]}
-
-        return data
-
-
-class ActionsEditView_Old(ActionsEditMixin, TemplateView):
-
-    def render_to_response(self, context, **response_kwargs):
-        context['action'] = self.request.GET['action']
-
-        if 'tipo_pk' in self.request.GET:
-            context['tipo_pk'] = self.request.GET['tipo_pk']
-
-        if 'variacao' in self.request.GET:
-            context['variacao'] = self.request.GET['variacao']
-
-        if 'perfil_estrutural' in self.request.session:
-            context['perfil_pk'] = self.request.session['perfil_estrutural']
-
-        if 'herancas' in self.request.session:
-            del self.request.session['herancas']
-            del self.request.session['herancas_fila']
-
-        if context['action'] == 'drag_move_dpt_alterado':
-            context['index'] = self.request.GET['index']
-            context['bloco_pk'] = self.request.GET['bloco_pk']
-
-        return self.render_to_json_response(context, **response_kwargs)
 
 
 class DispositivoSearchFragmentFormView(ListView):
