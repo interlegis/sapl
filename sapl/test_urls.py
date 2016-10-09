@@ -72,7 +72,7 @@ def create_perms_post_migrate(app):
     ]
     Permission.objects.bulk_create(perms)
 
-btn_login = ('<input class="btn btn-success btn-sm" ' +
+btn_login = ('<input class="btn btn-success btn-sm" '
              'type="submit" value="login" />')
 
 
@@ -256,22 +256,37 @@ def test_urlpatterns(url_item, admin_client):
         %s
         """ % (url, app_name, prefixs)
 
-urls_publicas_sem_permission_required = [
-    '/login',
-    '/logout',
-    '/comissao/1/materias-em-tramitacao',
-    '/materia/confirmar/1/1',
+urls_publicas_excecoes = {
+    'get': [
+        '/materia/confirmar/1/1',
+        '/materia/pesquisar-materia',
+        '/mesa-diretora/',
+        '/norma/pesquisa',
+        '/sessao/1/expediente',
+        '/sessao/1/mesa',
+        '/sessao/1/presenca',
+        '/sessao/1/presencaordemdia',
+        '/sessao/1/resumo',
+        '/sessao/pauta-sessao',
+        '/sessao/pauta-sessao/1',
 
-]
+
+
+        '/materia/proposicao/1/ta',  # FIXME Compilação deverá tratar
+        '/materia/1/ta',
+        '/norma/1/ta',
+    ],
+    'post': [
+        '/norma/pesquisa-resultado',
+
+    ]
+}
 
 
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_permissions_urls_for_users_by_apps(url_item, client):
     key, url, var, app_name = url_item
     url = '/' + (url % {v: 1 for v in var})
-
-    if url in urls_publicas_sem_permission_required:
-        return
 
     if not get_user_model().objects.exists():
         for app in sapl_appconfs:
@@ -327,7 +342,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                 o teste to py.test adicionar sua url
                 representativa na variavel externa ao teste:
 
-                    urls_publicas_sem_permission_required, logo acima do teste
+                    urls_publicas_excecoes, logo acima do teste
                 """
                 pass
 
@@ -354,13 +369,15 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
 
             rg = None
             try:
-                rg = client.get(url, {}, follow=True)
+                if url not in urls_publicas_excecoes['get']:
+                    rg = client.get(url, {}, follow=True)
             except:
                 pass
 
             rp = None
             try:
-                rp = client.post(url, {}, follow=True)
+                if url not in urls_publicas_excecoes['post']:
+                    rp = client.post(url, {}, follow=True)
             except:
                 pass
 
@@ -403,7 +420,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                             abaixo localizada no arquivo que se encontra este
                             teste:
                             
-                                urls_publicas_sem_permission_required
+                                urls_publicas_excecoes
                                     
                             
                             """ % (_type, url, app, username)
