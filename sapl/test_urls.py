@@ -203,12 +203,13 @@ apps_url_patterns_prefixs_and_users = {
         ]},
     'protocoloadm': {
         'users': {'operador_geral': ['/sistema',
-                                     '/protocoloadm/docadm',
+                                     '/docadm',
                                      '/protocoloadm'],
-                  'operador_administrativo': ['/protocoloadm/docadm'],
+                  'operador_administrativo': ['/docadm'],
                   'operador_protocoloadm': ['/protocoloadm']},
         'prefixs': [
             '/protocoloadm',
+            '/docadm'
             '/sistema'
         ]},
     'relatorios': {
@@ -269,15 +270,29 @@ urls_publicas_excecoes = {
         '/sessao/1/resumo',
         '/sessao/pauta-sessao',
         '/sessao/pauta-sessao/1',
+        '/sessao/pauta-sessao/pesquisar-pauta',
+        '/sessao/pesquisar-sessao',
 
-
-
-        '/materia/proposicao/1/ta',  # FIXME Compilação deverá tratar
+        '/proposicao/1/ta',  # FIXME Compilação deverá tratar
         '/materia/1/ta',
         '/norma/1/ta',
     ],
     'post': [
         '/norma/pesquisa-resultado',
+        '/mesa-diretora/'  # tratamento de permissão interno.
+        'sessao/1/resumo',
+        '/sessao/pauta-sessao',
+        '/sessao/pauta-sessao/1',
+        '/sessao/pauta-sessao/1/expediente/',
+        '/sessao/pauta-sessao/1/ordem/',
+
+        '/comissao/1/materias-em-tramitacao',
+
+        '/proposicao/1/ta',
+        '/materia/1/ta',
+        '/norma/1/ta',
+        '/materia/confirmar/1/1',
+        '/materia/pesquisar-materia'
 
     ]
 }

@@ -23,19 +23,25 @@ from .apps import AppConfig
 
 app_name = AppConfig.name
 
-urlpatterns = [
-    url(r'^protocoloadm/docadm/',
+urlpatterns_documento_administrativo = [
+    url(r'^docadm/',
         include(DocumentoAdministrativoCrud.get_urls())),
-    # gerada a partir de um CrudAux???? padrao 'sistema' ?
-    url(r'^sistema/tipo-documento-adm/',
-        include(TipoDocumentoAdministrativoCrud.get_urls())),
-    url(r'^protocoloadm/doc-acessorio/',
+    url(r'^docadm/doc-acessorio/',
         include(DocumentoAcessorioAdministrativoCrud.get_urls())),
-    url(r'^protocoloadm/tramitacao-doc-adm/',
+    url(r'^docadm/tramitacao-doc-adm/',
         include(TramitacaoAdmCrud.get_urls())),
-    # gerada a partir de um CrudAux???? padrao 'sistema' ?
-    url(r'^sistema/status-tramitacao-adm/',
-        include(StatusTramitacaoAdministrativoCrud.get_urls())),
+    url(r'^docadm/pesq-doc-adm',
+        PesquisarDocumentoAdministrativoView.as_view(), name='pesq_doc_adm'),
+    url(r'^docadm/doc-adm/(?P<pk>\d+)$',
+        DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
+    url(r'^docadm/doc-ace-adm/(?P<pk>\d+)',
+        DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
+    url(r'^docadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
+        DocumentoAcessorioAdministrativoEditView.as_view(),
+        name='doc_ace_adm_edit'),
+]
+
+urlpatterns_protocolo = [
     url(r'^protocoloadm/protocolo-doc/',
         include(ProtocoloDocumentoCrud.get_urls())),
     url(r'^protocoloadm/protocolo-mat/',
@@ -52,21 +58,17 @@ urlpatterns = [
         ProtocoloDocumentoView.as_view(), name='protocolar_doc'),
     url(r'^protocoloadm/protocolar-mat',
         ProtocoloMateriaView.as_view(), name='protocolar_mat'),
-    url(r'^protocoloadm/pesq-doc-adm',
-        PesquisarDocumentoAdministrativoView.as_view(), name='pesq_doc_adm'),
-    url(r'^protocoloadm/doc-adm/(?P<pk>\d+)$',
-        DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
-    url(r'^protocoloadm/doc-ace-adm/(?P<pk>\d+)',
-        DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
-    url(r'^protocoloadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
-        DocumentoAcessorioAdministrativoEditView.as_view(),
-        name='doc_ace_adm_edit'),
-
-
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar-documento$',
         CriarDocumentoProtocolo.as_view(), name='criar_documento'),
+]
+
+urlpatterns_sistema = [
+    url(r'^sistema/tipo-documento-adm/',
+        include(TipoDocumentoAdministrativoCrud.get_urls())),
+    url(r'^sistema/status-tramitacao-adm/',
+        include(StatusTramitacaoAdministrativoCrud.get_urls())),
 
     # FIXME: Usado para pesquisar autor
     # Melhor forma de fazer?
@@ -74,3 +76,7 @@ urlpatterns = [
     url(r'^protocoloadm/pesquisar-autor',
         pesquisa_autores, name='pesquisar_autor'),
 ]
+
+urlpatterns = (urlpatterns_documento_administrativo +
+               urlpatterns_protocolo +
+               urlpatterns_sistema)
