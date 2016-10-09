@@ -1,17 +1,18 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import pytest
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -111,8 +112,8 @@ def test_crudaux_formato_inicio_urls_associadas(url_item):
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
 
-    # Verifica se um crud é do tipo CrudAux, se sim, sua url deve começar
-    # com /sistema/
+    # Verifica a url é de um CrudAux e, se for, testa se está
+    # na página Tabelas Auxiliares
     key, url, var, app_name = url_item
     url = '/' + (url % {v: 1 for v in var})
 
@@ -144,67 +145,104 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
                         Se encontra em %s.urls
                     """ % (url, app_name)
 
+apps_url_patterns_prefixs_and_users = {
+    'base': {
+        'users': {'operador_geral': ['/sistema']},
+        'prefixs': [
+            '/sistema',
+            '/login',
+            '/logout'
+        ]},
+    'comissoes': {
+        'users': {'operador_geral': ['/sistema', '/comissao'],
+                  'operador_comissoes': ['/comissao']},
+        'prefixs': [
+            '/comissao',
+            '/sistema'
+        ]},
+    'compilacao': {
+        'prefixs': [
+            '/ta',
+        ]},
+    'lexml': {
+        'prefixs': [
+            '/lexml',
+            '/sistema'
+        ]},
+    'materia': {
+        'users': {'operador_geral': ['/sistema', '/materia'],
+                  'operador_autor': ['/proposicao'],
+                  'operador_materia': ['/materia']},
+        'prefixs': [
+            '/materia',
+            '/proposicao',
+            '/sistema'
+        ]},
+    'norma': {
+        'users': {'operador_geral': ['/sistema', '/norma'],
+                  'operador_norma': ['/norma']},
+        'prefixs': [
+            '/norma',
+            '/sistema'
+        ]},
+    'painel': {
+        'users': {'operador_geral': ['/sistema', '/painel'],
+                  'operador_painel': ['/painel']},
+        'prefixs': [
+            '/painel',
+            '/sistema'
+        ]},
+    'parlamentares': {
+        'users': {'operador_geral': ['/sistema',
+                                     '/mesa-diretora',
+                                     '/parlamentar']},
+        'prefixs': [
+            '/parlamentar',
+            '/mesa-diretora',
+            '/sistema'
+        ]},
+    'protocoloadm': {
+        'users': {'operador_geral': ['/sistema',
+                                     '/protocoloadm/docadm',
+                                     '/protocoloadm'],
+                  'operador_administrativo': ['/protocoloadm/docadm'],
+                  'operador_protocoloadm': ['/protocoloadm']},
+        'prefixs': [
+            '/protocoloadm',
+            '/sistema'
+        ]},
+    'relatorios': {
+        'prefixs': [
+            '/relatorios',
+        ]},
+    'sessao': {
+        'users': {'operador_geral': ['/sistema', 'sessao'],
+                  'operador_sessao': ['/sessao']},
+        'prefixs': [
+            '/sessao',
+            '/sistema',
+        ]},
+}
+
 
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_urlpatterns(url_item, admin_client):
 
     key, url, var, app_name = url_item
     url = '/' + (url % {v: 1 for v in var})
+
+    assert '\n' not in url, """
+        A url (%s) da app (%s) está mal formada.
+    """ % (app_name, url)
+
     app_name = app_name[5:]
 
-    apps_url_patterns_prefixs = {
-        'base': [
-            '/sistema',
-            '/login',
-            '/logout'
-        ],
-        'comissoes': [
-            '/comissao',
-            '/sistema'
-        ],
-        'compilacao': [
-            '/ta',
-        ],
-        'lexml': [
-            '/lexml',
-            '/sistema'
-        ],
-        'materia': [
-            '/materia',
-            '/proposicao',
-            '/sistema'
-        ],
-        'norma': [
-            '/norma',
-            '/sistema'
-        ],
-        'painel': [
-            '/painel',
-            '/sistema'
-        ],
-        'parlamentares': [
-            '/parlamentar',
-            '/mesa-diretora',
-            '/sistema'
-        ],
-        'protocoloadm': [
-            '/protocoloadm',
-            '/sistema'
-        ],
-        'relatorios': [
-            '/relatorios',
-        ],
-        'sessao': [
-            '/sessao',
-            '/sistema',
-        ],
-    }
-    assert app_name in apps_url_patterns_prefixs, """
+    assert app_name in apps_url_patterns_prefixs_and_users, """
         A app (%s) da url (%s) não consta na lista de prefixos do teste
     """ % (app_name, url)
 
-    if app_name in apps_url_patterns_prefixs:
-        prefixs = apps_url_patterns_prefixs[app_name]
+    if app_name in apps_url_patterns_prefixs_and_users:
+        prefixs = apps_url_patterns_prefixs_and_users[app_name]['prefixs']
 
         isvalid = False
         for prefix in prefixs:
@@ -218,9 +256,23 @@ def test_urlpatterns(url_item, admin_client):
         %s
         """ % (url, app_name, prefixs)
 
+urls_publicas_sem_permission_required = [
+    '/login',
+    '/logout',
+    '/comissao/1/materias-em-tramitacao',
+    '/materia/confirmar/1/1',
 
-@pytest.mark.parametrize('urls_app', _lista_urls)
-def em_construcao_crud_permissions_urls(urls_app, client):
+]
+
+
+@pytest.mark.parametrize('url_item', _lista_urls)
+def test_permissions_urls_for_users_by_apps(url_item, client):
+    key, url, var, app_name = url_item
+    url = '/' + (url % {v: 1 for v in var})
+
+    if url in urls_publicas_sem_permission_required:
+        return
+
     if not get_user_model().objects.exists():
         for app in sapl_appconfs:
             # readequa permissões dos models adicionando
@@ -230,106 +282,140 @@ def em_construcao_crud_permissions_urls(urls_app, client):
         cria_grupos_permissoes()
     users = get_user_model().objects.values_list('username', flat=True)
 
-    for url_item in _lista_urls[urls_app]:
+    app_labels = app_name.split('.')[1]
 
-        key, url, var, app_name = url_item
-        url = '/' + (url % {v: 1 for v in var})
+    view = None
+    if hasattr(key, 'view_class'):
+        view = key.view_class()
 
-        app_labels = app_name.split('.')[1]
+        """
+        A classe PermissionRequiredForAppCrudMixin pode ser usada em uma
+        app mas envolver permissoes para outras
+        como é o caso de PainelView que está na app 'sessao'
+        mas é um redirecionamento para 'painel'... aqui é feita
+        a troca da app a ser testada, por essas outras possíveis.
+        
+        Este, até a ultima versão deste teste é o único tipo de view que
+            possui restrição restrição simples, por permissão, e não por
+            container, como é o caso de proposições que possui restrição
+            por usuário e não só por, ou não tem, o campo permission_required
+        """
+        if PermissionRequiredForAppCrudMixin in type.mro(key.view_class):
+            # essa classe deve informar app_label
+            assert hasattr(key.view_class, 'app_label')
+            # app_label deve ter conteudo
+            assert key.view_class.app_label
+            app_labels = key.view_class.app_label
+        else:
 
-        view_class = None
-        if hasattr(key, 'view_class'):
-            view_class = key.view_class
-
-            """
-            A classe PermissionRequiredForAppCrudMixin pode ser usada em uma
-            app mas envolver permissoes para outras
-            como é o caso de PainelView que está na app 'sessao'
-            mas é um redirecionamento para 'painel'... aqui é feita
-            a troca a urls_app a ser testada, por essas outras possíveis
-            """
-            if PermissionRequiredForAppCrudMixin in type.mro(view_class):
-                # essa classe deve informar app_label
-                assert hasattr(view_class, 'app_label')
-                # app_label deve ter conteudo
-                assert view_class.app_label
-                app_labels = view_class.app_label
-
-        if isinstance(app_labels, str):
-            app_labels = app_labels,
-
-        for app in app_labels:
-
-            # monta o username correspondente de a app da url a ser testada
-            user_for_url_atual_app = 'operador_%s'
-            if app in ['base', 'parlamentares']:
-                user_for_url_atual_app = user_for_url_atual_app % 'geral'
-            elif app in 'protocoloadm':
-                user_for_url_atual_app = (
-                    user_for_url_atual_app % 'administrativo')
-            elif app in ['compilacao']:
-                return  # TODO implementar teste para compilacao
+            if hasattr(view, 'permission_required') and \
+                    view.permission_required is not None and\
+                    len(view.permission_required) == 0:
+                """
+                condição do Crud, se tem permission_required e ele é igual [],
+                então é uma view pública, teste liberado.
+                """
+                return
             else:
-                user_for_url_atual_app = user_for_url_atual_app % app
-
-            for username in users:
-                print(username, user_for_url_atual_app, url)
-
-                client.login(username=username, password='interlegis')
-
-                rg = None
-                try:
-                    rg = client.get(url, {}, follow=True)
-                except:
-                    pass
-
-                rp = None
-                try:
-                    rp = client.post(url, {}, follow=True)
-                except:
-                    pass
-
                 """
-                devido às urls serem incompletas ou com pks e outras valores
-                inexistentes na base, iniciar a execução da view, seja por get,
-                post ou qualquer outro método pode causar o erro...
-                por isso o "try ... except" acima.
-                No entanto, o objetivo do teste é validar o acesso de toda url.
-                Independente do erro que vá acontecer, esse erro não ocorrerá
-                se o user não tiver permissão de acesso pelo fato de que "AS
-                VIEWS BEM FORMADAS PARA VALIDAÇÃO DE ACESSO DEVEM SEMPRE
-                REDIRECIONAR PARA
-                LOGIN ANTES DE SUA EXECUÇÃO", desta forma nunca gerando erro
-                interno dada qualquer incoerência de parâmetros nas urls
+                Views que não se encaixam nãs condições acima, podem possuir
+                ou não restrição de acesso. Se o código continuar,
+                será tratado como tentativa de validar pois é possível
+                ter restrição local, como uma anotação method_required.
+                Caberá ao desenvolvedor de uma nova view, se for pública e
+                sem necessidade de nenhum tratamento de permissão, para limpar
+                o teste to py.test adicionar sua url
+                representativa na variavel externa ao teste:
+
+                    urls_publicas_sem_permission_required, logo acima do teste
                 """
-                if rg:
-                    """
-                    Se o usuário a ser testado é o usuário da app da url de get
-                    espera-se que não tenha recebido uma tela de login
-                    """
-                    if username == user_for_url_atual_app and\
-                            not url.startswith('/sistema/'):
-                        assert btn_login not in str(rg.content)
-                    elif username != 'operador_geral' and\
-                            url.startswith('/sistema/'):
-                        assert btn_login in str(rg.content)
-                    elif username == 'operador_geral' and\
-                            url.startswith('/sistema/'):
-                        assert btn_login not in str(rg.content)
+                pass
 
-                if rp:
-                    """
-                    Se o usuário a ser testado é o usuário da app da url de
-                    post espera-se que não tenha recebido uma tela de login
-                    """
-                    if username == user_for_url_atual_app and\
-                            not url.startswith('/sistema/'):
-                        assert btn_login not in str(rp.content)
-                    elif username != 'operador_geral' and\
-                            url.startswith('/sistema/'):
-                        assert btn_login in str(rp.content)
-                    elif username == 'operador_geral' and\
-                            url.startswith('/sistema/'):
-                        assert btn_login not in str(rp.content)
+    if isinstance(app_labels, str):
+        app_labels = app_labels,
 
-                client.get('/logout/', follow=True)
+    for app in app_labels:
+
+        assert app in apps_url_patterns_prefixs_and_users, """
+            O app_label (%s) associado a url (%s) não está na base de testes.
+            %s
+            """ % (app_name, url)
+
+        if 'users' not in apps_url_patterns_prefixs_and_users[app]:
+            continue
+
+        users_for_url_atual_app = apps_url_patterns_prefixs_and_users[
+            app]['users']
+
+        for username in users:
+            print(username, users_for_url_atual_app, url)
+
+            client.login(username=username, password='interlegis')
+
+            rg = None
+            try:
+                rg = client.get(url, {}, follow=True)
+            except:
+                pass
+
+            rp = None
+            try:
+                rp = client.post(url, {}, follow=True)
+            except:
+                pass
+
+            """
+            devido às urls serem incompletas ou com pks e outras valores
+            inexistentes na base, iniciar a execução da view, seja por get,
+            post ou qualquer outro método pode causar o erro...
+            por isso o "try ... except" acima.
+            No entanto, o objetivo do teste é validar o acesso de toda url.
+            Independente do erro que vá acontecer, esse erro não ocorrerá
+            se o user não tiver permissão de acesso pelo fato de que "AS
+            VIEWS BEM FORMADAS PARA VALIDAÇÃO DE ACESSO DEVEM SEMPRE
+            REDIRECIONAR PARA
+            LOGIN ANTES DE SUA EXECUÇÃO", desta forma nunca gerando erro
+            interno dada qualquer incoerência de parâmetros nas urls
+            """
+
+            for _type, content in (
+                    ('get', str(rg.content if rg else '')),
+                    ('post', str(rp.content if rp else ''))):
+
+                if not content:
+                    continue
+
+                def _assert_login(_in):
+                    if _in:
+                        assert btn_login in content, """
+                            No teste de requisição "%s" a url (%s).
+                            App (%s)
+                            O usuário (%s) deveria ser redirecionado
+                            para tela de login.        
+                            """ % (_type, url, app, username)
+                    else:
+                        assert btn_login not in content, """
+                            No teste de requisição "%s" a url (%s).
+                            App (%s)
+                            O usuário (%s) não deveria ser redirecionado
+                            para tela de login. Se essa é uma url
+                            invariavelmente pública, a adicione na variavel
+                            abaixo localizada no arquivo que se encontra este
+                            teste:
+                            
+                                urls_publicas_sem_permission_required
+                                    
+                            
+                            """ % (_type, url, app, username)
+
+                if username not in users_for_url_atual_app:
+                    # se não é usuário da app deve ser redirecionado para login
+                    _assert_login(True)
+                else:
+                    prefixs = users_for_url_atual_app[username]
+                    for pr in prefixs:
+                        if url.startswith(pr):
+                            _assert_login(False)
+                            break
+
+            client.get('/logout/', follow=True)

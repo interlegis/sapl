@@ -13,8 +13,8 @@ from django.db import models
 from django.http.response import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -22,6 +22,7 @@ from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +164,7 @@ class PermissionRequiredForAppCrudMixin(PermissionRequiredMixin):
         apps = self.app_label
         if isinstance(apps, str):
             apps = apps,
-        # papp_label vazio dará acesso geral
+        # app_label vazio dará acesso geral
         for app in apps:
             if not self.request.user.has_module_perms(app):
                 return False
@@ -870,13 +871,36 @@ class Crud:
 
 
 class CrudAux(Crud):
+    """
+        Checa permissão para ver qualquer dado de tabela auxiliar
+        a permissão base.view_tabelas_auxiliares está definada class Meta
+        do model sapl.base.models.AppConfig que, naturalmente é um arquivo 
+        de configuração geral e só pode ser acessado através das Tabelas 
+        Auxiliares... Com isso o script de geração de perfis acaba que por 
+        criar essa permissão apenas para o perfil Operador Geral.
+    """
+    permission_required = ('base.view_tabelas_auxiliares',)
 
     class BaseMixin(Crud.BaseMixin):
-        permission_required = ('base.view_tabelas_auxiliares',)
         subnav_template_name = None
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            """
+            Mantem as permissões individuais geradas pelo Crud através do 
+            Modelo e adiciona a obrigatoriedade de permissão para view 
+            tabelas auxiliares.
+            """
+            self.permission_required = self.permission_required + \
+                self.crud.permission_required
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+            """Força o template filter subnav em base/templatetags/menus.py
+            a abrir um yaml diferente do padrão.
+            Se o valor de subnav_template_name é nulo faz o filter subnav
+            não abrir o padrão e nem um outro arquivo.
+            """
             context['subnav_template_name'] = self.subnav_template_name
             return context
 
@@ -886,8 +910,8 @@ class CrudAux(Crud):
         ModelCrud = Crud.build(
             _model, _help_path, _model_set, list_field_names)
 
-        class ModelCrudAux(ModelCrud):
-            BaseMixin = CrudAux.BaseMixin
+        class ModelCrudAux(CrudAux, ModelCrud):
+            pass
 
         return ModelCrudAux
 

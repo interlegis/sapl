@@ -25,7 +25,10 @@ class ListaUrls():
                         if value:
                             url = value[0][0][0]
                             var = value[0][0][1]
+                            # if url.endswith('anexada/create'):
+                            # if url.startswith('materia/confirmar/'):
                             urls.append((key, url, var, item.app_name))
+
         urls.sort(key=lambda x: x[1])
         return urls
 
