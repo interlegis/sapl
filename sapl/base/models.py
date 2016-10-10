@@ -160,7 +160,7 @@ class Autor(models.Model):
         blank=True, null=True, default=None)
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
-    content_object = GenericForeignKey('content_type', 'object_id')
+    autor_related = GenericForeignKey('content_type', 'object_id')
 
     nome = models.CharField(
         max_length=50, blank=True, verbose_name=_('Nome do Autor'))
@@ -174,8 +174,8 @@ class Autor(models.Model):
 
     def __str__(self):
 
-        if self.content_object:
-            return str(self.content_object)
+        if self.autor_related:
+            return str(self.autor_related)
         else:
             if str(self.cargo):
                 return _('%(nome)s - %(cargo)s') % {

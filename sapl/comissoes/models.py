@@ -6,7 +6,7 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
-from sapl.utils import YES_NO_CHOICES
+from sapl.utils import YES_NO_CHOICES, SaplGenericRelation
 
 
 class TipoComissao(models.Model):
@@ -81,7 +81,7 @@ class Comissao(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Comissão Ativa?'))
 
-    autor = GenericRelation(Autor)
+    autor = SaplGenericRelation(Autor, fields_search=('nome', 'sigla'))
 
     class Meta:
         verbose_name = _('Comissão')
