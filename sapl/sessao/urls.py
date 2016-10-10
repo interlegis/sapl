@@ -30,6 +30,7 @@ from .apps import AppConfig
 
 app_name = AppConfig.name
 
+
 urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
                              OradorExpedienteCrud.get_urls() +

@@ -1,12 +1,12 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -138,8 +138,9 @@ class CrispyLayoutFormMixin:
             # simply return None if there is no get_form on super
             pass
         else:
-            form.helper = FormHelper()
-            form.helper.layout = SaplFormLayout(*self.get_layout())
+            if self.layout_key:
+                form.helper = FormHelper()
+                form.helper.layout = SaplFormLayout(*self.get_layout())
             return form
 
     @property

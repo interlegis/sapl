@@ -7,10 +7,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 
-from sapl.utils import UF, YES_NO_CHOICES
+from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -130,6 +131,65 @@ class AppConfig(models.Model):
     def __str__(self):
         return _('Configurações da Aplicação - %(id)s') % {
             'id': self.id}
+
+
+class TipoAutor(models.Model):
+    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+
+    content_type = models.OneToOneField(
+        ContentType,
+        null=True, default=None,
+        verbose_name=_('Modelagem no SAPL'))
+
+    class Meta:
+        verbose_name = _('Tipo de Autor')
+        verbose_name_plural = _('Tipos de Autor')
+
+    def __str__(self):
+        return self.descricao
+
+
+class Autor(models.Model):
+
+    user = models.OneToOneField(get_settings_auth_user_model())
+
+    tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'))
+
+    content_type = models.ForeignKey(
+        ContentType,
+        blank=True, null=True, default=None)
+    object_id = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    nome = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Nome do Autor'))
+
+    cargo = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        verbose_name = _('Autor')
+        verbose_name_plural = _('Autores')
+        unique_together = (('content_type', 'object_id'), )
+
+    def __str__(self):
+
+        if self.content_object:
+            return str(self.content_object)
+        else:
+            if str(self.cargo):
+                return _('%(nome)s - %(cargo)s') % {
+                    'nome': self.nome, 'cargo': self.cargo}
+            else:
+                return str(self.nome)
+        """if str(self.tipo) == 'Parlamentar' and self.parlamentar:
+            return self.parlamentar.nome_parlamentar
+        elif str(self.tipo) == 'Comissao' and self.comissao:
+            return str(self.comissao)
+        elif str(self.tipo) == 'Partido' and self.partido:
+            return str(self.partido)
+        else:
+        """
 
 
 def create_proxy_permissions(
