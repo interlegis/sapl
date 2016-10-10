@@ -30,7 +30,8 @@
   // Filtra as choices de sessao legislativa pela legislatura
   $(function() {
 
-    $("#id_legislatura").ready(function(){
+    function altera_legislatura(){
+      console.debug('hey');
       var id_legislatura = $("#id_legislatura").val();
       var id_sessao_leg = $("#id_sessao_legislativa").val();
       $("#id_sessao_legislativa option").remove();
@@ -48,28 +49,12 @@
       else{
         $("#id_sessao_legislativa option").remove();
       }
-    });
+    }
 
-    $("#id_legislatura").change(function(){
-      var id_legislatura = $("#id_legislatura").val();
-      $("#id_sessao_legislativa option").remove();
-      if (id_legislatura) {
+    $("#id_legislatura").ready(altera_legislatura);
 
-          $.get("/sessao/sessao-legislativa-legislatura-ajax", {legislatura: id_legislatura}, function(data) {
-              lista_sessoes = data['sessao_legislativa'];
-
-              $('#id_sessao_legislativa').append('<option value="">' + '---------' + '</option>');
-              for (i = 0; i < lista_sessoes.length; i++) {
-                  $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
-              }
-
-          });
-      }
-      else{
-        $("#id_sessao_legislativa option").remove();
-      }
-    });
-  })
+    $("#id_legislatura").change(altera_legislatura);
+  });
 
 </script>
 
