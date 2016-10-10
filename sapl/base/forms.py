@@ -85,21 +85,22 @@ class AutorForm(ModelForm):
 
     q = forms.CharField(
         max_length=50, required=False,
-        label='Pesquise o nome do Autor com o tipo Selecionado')
-    content_object = forms.ChoiceField(label='',
-                                       required=False,
-                                       widget=forms.RadioSelect())
+        label='Pesquise o nome do Autor com o '
+        'tipo Selecionado e marque o escolhido.')
+    autor_related = forms.ChoiceField(label='',
+                                      required=False,
+                                      widget=forms.RadioSelect())
 
     class Meta:
         model = Autor
         fields = ['tipo',
                   'nome',
-                  'content_object',
+                  'autor_related',
                   'q']
 
     def __init__(self, *args, **kwargs):
 
-        content_object = Div(
+        autor_related = Div(
 
             FieldWithButtons(
                 Field('q',
@@ -108,20 +109,16 @@ class AutorForm(ModelForm):
                 StrictButton(
                     _('Filtrar'), css_class='btn-default btn-filtrar-autor',
                     type='button')),
-
-
-
-
-            Field('content_object'),
+            Field('autor_related'),
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
-            data_field='content_object')
+            data_field='autor_related')
 
         row1 = to_row([
             ('tipo', 4),
             ('nome', 8),
-            (content_object, 8),
+            (autor_related, 8),
 
         ])
 
@@ -130,11 +127,11 @@ class AutorForm(ModelForm):
 
         super(AutorForm, self).__init__(*args, **kwargs)
 
-        self.fields['content_object'].choices = [('1', 'teste')]
-        if self.instance and self.instance.content_object:
-            self.fields['content_object'].choices = [
-                (self.instance.content_object.pk,
-                 self.instance.content_object)]
+        self.fields['autor_related'].choices = []
+        if self.instance and self.instance.autor_related:
+            self.fields['autor_related'].choices = [
+                (self.instance.autor_related.pk,
+                 self.instance.autor_related)]
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:

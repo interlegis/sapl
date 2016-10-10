@@ -8,7 +8,7 @@ from model_utils import Choices
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         intervalos_tem_intersecao,
-                        restringe_tipos_de_arquivo_img)
+                        restringe_tipos_de_arquivo_img, SaplGenericRelation)
 
 
 class Legislatura(models.Model):
@@ -264,7 +264,9 @@ class Parlamentar(models.Model):
         verbose_name=_('Fotografia'),
         validators=[restringe_tipos_de_arquivo_img])
 
-    autor = GenericRelation(Autor)
+    # campo conceitual de reversão genérica para o model Autor
+    autor = SaplGenericRelation(Autor, fields_search=('nome_completo',
+                                                      'nome_parlamentar'))
 
     class Meta:
         verbose_name = _('Parlamentar')

@@ -7,10 +7,10 @@
 $(document).ready(function(){
   var active = function(str) {
     if (str == 'nome') {
-      $('#id_q').val('');
+      $('#id_nome, #id_q').val('');
       $('#div_id_nome').removeClass('hidden');
       $("[data-application='AutorSearch']").addClass('hidden');
-      $("#div_id_content_object .controls").html('');
+      $("#div_id_autor_related .controls").html('');
     }
     else {
       $('#id_nome').val('');
@@ -18,7 +18,7 @@ $(document).ready(function(){
       $("[data-application='AutorSearch']").removeClass('hidden');
     }
   }
-  var update_search = function(pk) {
+  var update_search = function(pk, atualizar=true) {
     var q = $('#id_q').val();
     var url = '{% url 'sapl.api:autores_possiveis_pelo_tipo' 0 %}'
     url = url.replace('0', pk);
@@ -28,15 +28,29 @@ $(document).ready(function(){
           'format' : 'json',
     }
     $.get(url, formData).done(function(data) {
-      var radios = $("#div_id_content_object .controls").html('');
-      active('pesquisa');
-      data.forEach(function (val, index) {
-        var html_radio = '<div class="radio"><label><input type="radio" name="content_object" id="id_content_object_'+index+'" value="'+val.pk+'">'+val.display+'</label></div>';
-        radios.append(html_radio);
+        active('pesquisa');
+        if (atualizar) {
+          var radios = $("#div_id_autor_related .controls").html('');
+          data.forEach(function (val, index) {
+            var html_radio = '<div class="radio"><label><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.pk+'">'+val.display+'</label></div>';
+            radios.append(html_radio);
+          });
+          if (data.length > 1) {
+            $('input[name=autor_related]').change(function(event){
+              $('#id_q').val(event.target.parentElement.textContent);
+              //$('input[name=autor_related]:not(:checked)').closest('.radio').remove();
+            });
+          }
+          else {
+            $('input[name=autor_related]').prop('checked', 'checked')
+          }
+        }
+        else{
+          $('#id_nome, #id_q').val('');
+        }
+      }).fail(function(data) {
+        active('nome');
       });
-    }).fail(function(data) {
-      active('nome');
-    });
   }
 
   $('#id_tipo').change(function(event) {
@@ -46,7 +60,8 @@ $(document).ready(function(){
     }
     else {
       var pk = this[event.target.selectedIndex].value;
-      update_search(pk);
+      $('input[name=autor_related]').closest('.radio').remove();
+      update_search(pk, false)
     }
   });
   $('.btn-filtrar-autor').click(function(event) {
