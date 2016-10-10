@@ -23,7 +23,9 @@ Dependente:
 
 SessaoLegislativa:
   {% trans 'Sessão Legislativa' %}:
-  - numero:4  tipo:4  legislatura:4  data_inicio  data_fim  data_inicio_intervalo  data_fim_intervalo
+  - numero  tipo  legislatura
+  - data_inicio  data_fim
+  - data_inicio_intervalo  data_fim_intervalo
 
 Parlamentar:
   {% trans 'Cadastro do Parlamentar' %}:
