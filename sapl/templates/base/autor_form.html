@@ -1,0 +1,61 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% block extra_js %}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+  var active = function(str) {
+    if (str == 'nome') {
+      $('#id_q').val('');
+      $('#div_id_nome').removeClass('hidden');
+      $("[data-application='AutorSearch']").addClass('hidden');
+      $("#div_id_content_object .controls").html('');
+    }
+    else {
+      $('#id_nome').val('');
+      $('#div_id_nome').addClass('hidden');
+      $("[data-application='AutorSearch']").removeClass('hidden');
+    }
+  }
+  var update_search = function(pk) {
+    var q = $('#id_q').val();
+    var url = '{% url 'sapl.api:autores_possiveis_pelo_tipo' 0 %}'
+    url = url.replace('0', pk);
+
+    var formData = {
+          'q'      : q,
+          'format' : 'json',
+    }
+    $.get(url, formData).done(function(data) {
+      var radios = $("#div_id_content_object .controls").html('');
+      active('pesquisa');
+      data.forEach(function (val, index) {
+        var html_radio = '<div class="radio"><label><input type="radio" name="content_object" id="id_content_object_'+index+'" value="'+val.pk+'">'+val.display+'</label></div>';
+        radios.append(html_radio);
+      });
+    }).fail(function(data) {
+      active('nome');
+    });
+  }
+
+  $('#id_tipo').change(function(event) {
+    if (event.target.selectedIndex == 0) {
+      $('#id_nome, #id_q').val('');
+      active('nome');
+    }
+    else {
+      var pk = this[event.target.selectedIndex].value;
+      update_search(pk);
+    }
+  });
+  $('.btn-filtrar-autor').click(function(event) {
+    var pk = $('#id_tipo').val();
+    update_search(pk);
+  });
+});
+
+
+</script>
+
+{% endblock %}

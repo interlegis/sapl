@@ -1,16 +1,28 @@
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Button
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+from sapl.base.forms import AutorForm, TipoAutorForm
+from sapl.base.models import TipoAutor, Autor
+from sapl.crispy_layout_mixin import to_row, SaplFormLayout, form_actions
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
+from sapl.utils import autor_label, autor_modal
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
@@ -24,6 +36,114 @@ from .models import AppConfig, CasaLegislativa
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+def montar_row_autor(name):
+    autor_row = to_row(
+        [(name, 0),
+         (Button('pesquisar',
+                 'Pesquisar Autor',
+                 css_class='btn btn-primary btn-sm'), 2),
+         (Button('limpar',
+                 'Limpar Autor',
+                 css_class='btn btn-primary btn-sm'), 10)])
+
+    return autor_row
+
+
+def montar_helper_autor(self):
+    autor_row = montar_row_autor('nome')
+    self.helper = FormHelper()
+    self.helper.layout = SaplFormLayout(*self.get_layout())
+
+    # Adiciona o novo campo 'autor' e mecanismo de busca
+    self.helper.layout[0][0].append(HTML(autor_label))
+    self.helper.layout[0][0].append(HTML(autor_modal))
+    self.helper.layout[0][1] = autor_row
+
+    # Adiciona espaço entre o novo campo e os botões
+    # self.helper.layout[0][4][1].append(HTML('<br /><br />'))
+
+    # Remove botões que estão fora do form
+    self.helper.layout[1].pop()
+
+    # Adiciona novos botões dentro do form
+    self.helper.layout[0][4][0].insert(2, form_actions(more=[
+        HTML('<a href="{{ view.cancel_url }}"'
+             ' class="btn btn-inverse">Cancelar</a>')]))
+
+
+class TipoAutorCrud(CrudAux):
+    model = TipoAutor
+    help_path = 'tipo-autor'
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ['descricao', 'content_type']
+        form_class = TipoAutorForm
+
+
+class AutorCrud(CrudAux):
+    model = Autor
+    help_path = 'autor'
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ['tipo', 'nome', 'user__username']
+
+    class UpdateView(CrudAux.UpdateView):
+        layout_key = None
+        form_class = AutorForm
+
+        def __init__(self, *args, **kwargs):
+            # montar_helper_autor(self)
+            super(CrudAux.UpdateView, self).__init__(*args, **kwargs)
+
+        def get_context_data(self, **kwargs):
+            context = super(
+                CrudAux.UpdateView, self).get_context_data(**kwargs)
+            #context['helper'] = self.helper
+            return context
+
+    class CreateView(CrudAux.CreateView):
+        form_class = AutorForm
+        layout_key = None
+
+        """def __init__(self, *args, **kwargs):
+            montar_helper_autor(self)
+            super(CrudAux.CreateView, self).__init__(*args, **kwargs)"""
+
+        """def get_context_data(self, **kwargs):
+            context = super(
+                CrudAux.CreateView, self).get_context_data(**kwargs)
+            context['helper'] = self.helper
+            return context"""
+
+        """def get_success_url(self):
+            pk_autor = Autor.objects.get(
+                email=self.request.POST.get('email')).id
+            kwargs = {}
+            user = get_user_model().objects.get(
+                email=self.request.POST.get('email'))
+            kwargs['token'] = default_token_generator.make_token(user)
+            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+            assunto = "SAPL - Confirmação de Conta"
+            full_url = self.request.get_raw_uri()
+            url_base = full_url[:full_url.find('sistema') - 1]
+
+            mensagem = ("Este e-mail foi utilizado para fazer cadastro no " +
+                        "SAPL com o perfil de Autor. Agora você pode " +
+                        "criar/editar/enviar Proposições.\n" +
+                        "Seu nome de usuário é: " +
+                        self.request.POST['username'] + "\n"
+                        "Caso você não tenha feito este cadastro, por favor " +
+                        "ignore esta mensagem. Caso tenha, clique " +
+                        "no link abaixo\n" + url_base +
+                        reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+            remetente = settings.EMAIL_SEND_USER
+            destinatario = [self.request.POST.get('email')]
+            send_mail(assunto, mensagem, remetente, destinatario,
+                      fail_silently=False)
+            return reverse('sapl.base:autor_detail',
+                           kwargs={'pk': pk_autor})"""
 
 
 class RelatorioAtasView(FilterView):

@@ -15,3 +15,16 @@ AppConfig:
   - documentos_administrativos sequencia_numeracao painel_aberto
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
+
+TipoAutor:
+  {% trans 'Tipo Autor' %}:
+  - content_type descricao:7
+
+Autor:
+  {% trans 'Autor' %}:
+  - tipo:3  nome
+  - username:6 cargo
+
+AutorCreate:
+  {% trans 'Cadastro de Usuários Autores' %}:
+  - tipo:3 search_autor
