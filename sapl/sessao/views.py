@@ -442,6 +442,10 @@ class SessaoCrud(Crud):
         def get(self, request, *args, **kwargs):
             return RedirectView.get(self, request, *args, **kwargs)
 
+    class UpdateView(Crud.UpdateView):
+        def get_initial(self):
+            return {'sessao_legislativa': self.object.sessao_legislativa}
+
     class CreateView(Crud.CreateView):
 
         @property
@@ -449,9 +453,12 @@ class SessaoCrud(Crud):
             return self.search_url
 
         def get_initial(self):
-            legislatura = Legislatura.objects.order_by('-data_inicio')
+            legislatura = Legislatura.objects.order_by('-data_inicio').first()
             if legislatura:
-                return {'legislatura': legislatura[0]}
+                return {
+                    'legislatura': legislatura,
+                    'sessao_legislativa': legislatura.sessaoplenaria_set.first(
+                    )}
             else:
                 msg = _('Cadastre alguma legislatura antes de adicionar ' +
                         'uma sessão plenária!')
