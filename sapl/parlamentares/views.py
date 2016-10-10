@@ -203,7 +203,7 @@ class ParlamentarCrud(Crud):
 
         def take_legislatura_id(self):
             try:
-                return int(self.request.GET['periodo'])
+                return int(self.request.GET['pk'])
             except:
                 for l in Legislatura.objects.all():
                     if l.atual():
