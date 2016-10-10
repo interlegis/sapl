@@ -1,9 +1,8 @@
-import hashlib
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+import hashlib
 
-import magic
 from django import forms
 from django.apps import apps
 from django.conf import settings
@@ -14,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+import magic
 
 
 def normalize(txt):

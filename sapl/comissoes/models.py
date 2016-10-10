@@ -1,8 +1,10 @@
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import YES_NO_CHOICES
 
@@ -78,6 +80,8 @@ class Comissao(models.Model):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Comissão Ativa?'))
+
+    autor = GenericRelation(Autor)
 
     class Meta:
         verbose_name = _('Comissão')

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
@@ -12,6 +11,7 @@ from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -508,7 +508,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  'autoria__autor__partido',
+                  #'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
@@ -544,7 +544,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
-        self.filters['autoria__autor__partido'].label = 'Partido do Autor'
+        # self.filters['autoria__autor__partido'].label = 'Partido do Autor'
         self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
 
         row1 = to_row(
@@ -566,7 +566,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
             [('autoria__autor__tipo', 6),
-             ('autoria__autor__partido', 6)])
+             # ('autoria__autor__partido', 6)
+             ])
         row6 = to_row(
             [('relatoria__parlamentar_id', 6),
              ('local_origem_externa', 6)])
@@ -664,122 +665,6 @@ class AutoriaForm(ModelForm):
             raise ValidationError(msg)
 
         return self.cleaned_data
-
-
-class AutorForm(ModelForm):
-    senha = forms.CharField(
-        max_length=20,
-        label=_('Senha'),
-        required=True,
-        widget=forms.PasswordInput())
-
-    senha_confirma = forms.CharField(
-        max_length=20,
-        label=_('Confirmar Senha'),
-        required=True,
-        widget=forms.PasswordInput())
-
-    confirma_email = forms.EmailField(
-        required=True,
-        label=_('Confirmar Email'))
-
-    username = forms.CharField(
-        required=True,
-        max_length=50
-    )
-
-    class Meta:
-        model = Autor
-        fields = ['username',
-                  'senha',
-                  'email',
-                  'nome',
-                  'tipo',
-                  'cargo']
-        widgets = {'nome': forms.HiddenInput()}
-
-    def valida_igualdade(self, texto1, texto2, msg):
-        if texto1 != texto2:
-            raise ValidationError(msg)
-        return True
-
-    def valida_email_existente(self):
-        return get_user_model().objects.filter(
-            email=self.cleaned_data['email']).exists()
-
-    def clean(self):
-
-        if 'username' not in self.cleaned_data:
-            raise ValidationError(_('Favor informar o username'))
-
-        if ('senha' not in self.cleaned_data or
-                'senha_confirma' not in self.cleaned_data):
-            raise ValidationError(_('Favor informar as senhas'))
-
-        msg = _('As senhas não conferem.')
-        self.valida_igualdade(
-            self.cleaned_data['senha'],
-            self.cleaned_data['senha_confirma'],
-            msg)
-
-        if ('email' not in self.cleaned_data or
-                'confirma_email' not in self.cleaned_data):
-            raise ValidationError(_('Favor informar endereços de email'))
-
-        msg = _('Os emails não conferem.')
-        self.valida_igualdade(
-            self.cleaned_data['email'],
-            self.cleaned_data['confirma_email'],
-            msg)
-
-        email_existente = self.valida_email_existente()
-
-        if (Autor.objects.filter(
-           username=self.cleaned_data['username']).exists()):
-            raise ValidationError(_('Já existe um autor para este usuário'))
-
-        if email_existente:
-            msg = _('Este email já foi cadastrado.')
-            raise ValidationError(msg)
-
-        try:
-            validate_password(self.cleaned_data['senha'])
-        except ValidationError as error:
-            raise ValidationError(error)
-
-        try:
-            User.objects.get(
-                username=self.cleaned_data['username'],
-                email=self.cleaned_data['email'])
-        except ObjectDoesNotExist:
-            msg = _('Este nome de usuario não está cadastrado. ' +
-                    'Por favor, cadastre-o no Administrador do ' +
-                    'Sistema antes de adicioná-lo como Autor')
-            raise ValidationError(msg)
-
-        return self.cleaned_data
-
-    @transaction.atomic
-    def save(self, commit=False):
-
-        autor = super(AutorForm, self).save(commit)
-
-        u = User.objects.get(
-            username=autor.username,
-            email=autor.email)
-
-        u.set_password(self.cleaned_data['senha'])
-        u.is_active = False
-        u.save()
-
-        autor.user = u
-
-        autor.save()
-
-        grupo = Group.objects.filter(name='Autor')[0]
-        u.groups.add(grupo)
-
-        return autor
 
 
 class AcessorioEmLoteFilterSet(django_filters.FilterSet):

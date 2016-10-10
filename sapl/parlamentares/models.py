@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         intervalos_tem_intersecao,
                         restringe_tipos_de_arquivo_img)
@@ -261,6 +263,8 @@ class Parlamentar(models.Model):
         upload_to=foto_upload_path,
         verbose_name=_('Fotografia'),
         validators=[restringe_tipos_de_arquivo_img])
+
+    autor = GenericRelation(Autor)
 
     class Meta:
         verbose_name = _('Parlamentar')

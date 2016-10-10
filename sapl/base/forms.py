@@ -1,14 +1,23 @@
-import django_filters
+from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Fieldset, Layout
+from crispy_forms.layout import HTML, Button, Fieldset, Layout, Field, Div, Row
+from crispy_forms.templatetags.crispy_forms_field import css_class
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
-from django.core.exceptions import ValidationError
-from django.db import models
-from django.forms import ModelForm
+from django.contrib.auth.models import Group
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.contenttypes.fields import GenericRel
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.db import models, transaction
+from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.base.models import Autor, TipoAutor
+from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout,\
+    to_column
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
@@ -16,6 +25,199 @@ from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import AppConfig, CasaLegislativa
+
+
+class TipoAutorForm(ModelForm):
+
+    content_type = forms.ModelChoiceField(
+        queryset=ContentType.objects.all(),
+        label=TipoAutor._meta.get_field('content_type').verbose_name,
+        required=False)
+
+    class Meta:
+        model = TipoAutor
+        fields = ['descricao',
+                  'content_type', ]
+
+    def __init__(self, *args, **kwargs):
+
+        super(TipoAutorForm, self).__init__(*args, **kwargs)
+
+        # Models que apontaram uma GenericRelation com Autor
+        models_of_generic_relations = list(map(
+            lambda x: x.related_model,
+            filter(
+                lambda obj: obj.is_relation and
+                hasattr(obj, 'field') and
+                isinstance(obj, GenericRel),
+                Autor._meta.get_fields(include_hidden=True))
+        ))
+
+        content_types = ContentType.objects.get_for_models(
+            *models_of_generic_relations)
+
+        self.fields['content_type'].choices = [
+            ('', _('Outros (Especifique)'))] + [
+                (ct.pk, ct) for key, ct in content_types.items()]
+
+
+class AutorForm(ModelForm):
+    """senha = forms.CharField(
+        max_length=20,
+        label=_('Senha'),
+        required=True,
+        widget=forms.PasswordInput())
+
+    senha_confirma = forms.CharField(
+        max_length=20,
+        label=_('Confirmar Senha'),
+        required=True,
+        widget=forms.PasswordInput())
+
+    confirma_email = forms.EmailField(
+        required=True,
+        label=_('Confirmar Email'))
+
+    username = forms.CharField(
+        required=True,
+        max_length=50
+    )"""
+
+    q = forms.CharField(
+        max_length=50, required=False,
+        label='Pesquise o nome do Autor com o tipo Selecionado')
+    content_object = forms.ChoiceField(label='',
+                                       required=False,
+                                       widget=forms.RadioSelect())
+
+    class Meta:
+        model = Autor
+        fields = ['tipo',
+                  'nome',
+                  'content_object',
+                  'q']
+
+    def __init__(self, *args, **kwargs):
+
+        content_object = Div(
+
+            FieldWithButtons(
+                Field('q',
+                      placeholder=_('Pesquisar por possíveis autores para '
+                                    'o Tipo de Autor selecionado.')),
+                StrictButton(
+                    _('Filtrar'), css_class='btn-default btn-filtrar-autor',
+                    type='button')),
+
+
+
+
+            Field('content_object'),
+            css_class='hidden',
+            data_action='create',
+            data_application='AutorSearch',
+            data_field='content_object')
+
+        row1 = to_row([
+            ('tipo', 4),
+            ('nome', 8),
+            (content_object, 8),
+
+        ])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(row1)
+
+        super(AutorForm, self).__init__(*args, **kwargs)
+
+        self.fields['content_object'].choices = [('1', 'teste')]
+        if self.instance and self.instance.content_object:
+            self.fields['content_object'].choices = [
+                (self.instance.content_object.pk,
+                 self.instance.content_object)]
+
+    def valida_igualdade(self, texto1, texto2, msg):
+        if texto1 != texto2:
+            raise ValidationError(msg)
+        return True
+
+    def valida_email_existente(self):
+        return get_user_model().objects.filter(
+            email=self.cleaned_data['email']).exists()
+
+    def clea(self):
+
+        if 'username' not in self.cleaned_data:
+            raise ValidationError(_('Favor informar o username'))
+
+        if ('senha' not in self.cleaned_data or
+                'senha_confirma' not in self.cleaned_data):
+            raise ValidationError(_('Favor informar as senhas'))
+
+        msg = _('As senhas não conferem.')
+        self.valida_igualdade(
+            self.cleaned_data['senha'],
+            self.cleaned_data['senha_confirma'],
+            msg)
+
+        if ('email' not in self.cleaned_data or
+                'confirma_email' not in self.cleaned_data):
+            raise ValidationError(_('Favor informar endereços de email'))
+
+        msg = _('Os emails não conferem.')
+        self.valida_igualdade(
+            self.cleaned_data['email'],
+            self.cleaned_data['confirma_email'],
+            msg)
+
+        email_existente = self.valida_email_existente()
+
+        if (Autor.objects.filter(
+           username=self.cleaned_data['username']).exists()):
+            raise ValidationError(_('Já existe um autor para este usuário'))
+
+        if email_existente:
+            msg = _('Este email já foi cadastrado.')
+            raise ValidationError(msg)
+
+        try:
+            validate_password(self.cleaned_data['senha'])
+        except ValidationError as error:
+            raise ValidationError(error)
+
+        try:
+            get_user_model().objects.get(
+                username=self.cleaned_data['username'],
+                email=self.cleaned_data['email'])
+        except ObjectDoesNotExist:
+            msg = _('Este nome de usuario não está cadastrado. ' +
+                    'Por favor, cadastre-o no Administrador do ' +
+                    'Sistema antes de adicioná-lo como Autor')
+            raise ValidationError(msg)
+
+        return self.cleaned_data
+
+    @transaction.atomic
+    def sav(self, commit=False):
+
+        autor = super(AutorForm, self).save(commit)
+
+        u = get_user_model().objects.get(
+            username=autor.username,
+            email=autor.email)
+
+        u.set_password(self.cleaned_data['senha'])
+        u.is_active = False
+        u.save()
+
+        autor.user = u
+
+        autor.save()
+
+        grupo = Group.objects.filter(name='Autor')[0]
+        u.groups.add(grupo)
+
+        return autor
 
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):

@@ -31,6 +31,7 @@ import sapl.parlamentares.urls
 import sapl.protocoloadm.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
+import sapl.api.urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),
@@ -50,6 +51,8 @@ urlpatterns = [
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
     url(r'', include(sapl.base.urls)),
+
+    url(r'^api/', include(sapl.api.urls)),
 ]
 
 

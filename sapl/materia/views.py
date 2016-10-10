@@ -24,7 +24,8 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
 
-from sapl.base.models import AppConfig, CasaLegislativa
+from sapl.base.models import AppConfig, CasaLegislativa, Autor, TipoAutor
+from sapl.base.views import montar_row_autor
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -40,17 +41,17 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         permissoes_protocoloadm, permission_required_for_app)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    AutorForm, ConfirmarProposicaoForm, DocumentoAcessorioForm,
+                    ConfirmarProposicaoForm, DocumentoAcessorioForm,
                     MateriaLegislativaFilterSet,
                     PrimeiraTramitacaoEmLoteFilterSet, ProposicaoForm,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
-from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
+from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
                      Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,
-                     Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
+                     Relatoria, StatusTramitacao, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
 
@@ -69,20 +70,17 @@ TipoDocumentoCrud = CrudAux.build(
 TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
 
-TipoAutorCrud = CrudAux.build(
-    TipoAutor, 'regime_tramitacao')
-
 
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
     model_type_foreignkey = TipoMateriaLegislativa
-    """
-    Para manter a app compilacao isolada das outras aplicações,
-    este get foi implementado para tratar uma prerrogativa externa
-    de usuário.
-    """
 
     def get(self, request, *args, **kwargs):
+        """
+        Para manter a app compilacao isolada das outras aplicações,
+        este get foi implementado para tratar uma prerrogativa externa
+        de usuário.
+        """
         if AppConfig.attr('texto_articulado_materia'):
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
@@ -116,89 +114,6 @@ def recuperar_materia(request):
         response = JsonResponse({'numero': 1, 'ano': datetime.now().year})
 
     return response
-
-
-def montar_helper_autor(self):
-    autor_row = montar_row_autor('nome')
-    self.helper = FormHelper()
-    self.helper.layout = SaplFormLayout(*self.get_layout())
-
-    # Adiciona o novo campo 'autor' e mecanismo de busca
-    self.helper.layout[0][0].append(HTML(autor_label))
-    self.helper.layout[0][0].append(HTML(autor_modal))
-    self.helper.layout[0][1] = autor_row
-
-    # Adiciona espaço entre o novo campo e os botões
-    # self.helper.layout[0][4][1].append(HTML('<br /><br />'))
-
-    # Remove botões que estão fora do form
-    self.helper.layout[1].pop()
-
-    # Adiciona novos botões dentro do form
-    self.helper.layout[0][4][0].insert(2, form_actions(more=[
-        HTML('<a href="{{ view.cancel_url }}"'
-             ' class="btn btn-inverse">Cancelar</a>')]))
-
-
-class AutorCrud(CrudAux):
-    model = Autor
-    help_path = 'autor'
-
-    class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome']
-
-    class UpdateView(CrudAux.UpdateView):
-        layout_key = 'AutorCreate'
-
-        def __init__(self, *args, **kwargs):
-            montar_helper_autor(self)
-            super(UpdateView, self).__init__(*args, **kwargs)
-
-        def get_context_data(self, **kwargs):
-            context = super(UpdateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
-            return context
-
-    class CreateView(CrudAux.CreateView):
-        form_class = AutorForm
-        layout_key = 'AutorCreate'
-
-        def __init__(self, *args, **kwargs):
-            montar_helper_autor(self)
-            super(CreateView, self).__init__(*args, **kwargs)
-
-        def get_context_data(self, **kwargs):
-            context = super(CreateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
-            return context
-
-        def get_success_url(self):
-            pk_autor = Autor.objects.get(
-                email=self.request.POST.get('email')).id
-            kwargs = {}
-            user = get_user_model().objects.get(
-                email=self.request.POST.get('email'))
-            kwargs['token'] = default_token_generator.make_token(user)
-            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-            assunto = "SAPL - Confirmação de Conta"
-            full_url = self.request.get_raw_uri()
-            url_base = full_url[:full_url.find('sistema') - 1]
-
-            mensagem = ("Este e-mail foi utilizado para fazer cadastro no " +
-                        "SAPL com o perfil de Autor. Agora você pode " +
-                        "criar/editar/enviar Proposições.\n" +
-                        "Seu nome de usuário é: " +
-                        self.request.POST['username'] + "\n"
-                        "Caso você não tenha feito este cadastro, por favor " +
-                        "ignore esta mensagem. Caso tenha, clique " +
-                        "no link abaixo\n" + url_base +
-                        reverse('sapl.materia:confirmar_email', kwargs=kwargs))
-            remetente = settings.EMAIL_SEND_USER
-            destinatario = [self.request.POST.get('email')]
-            send_mail(assunto, mensagem, remetente, destinatario,
-                      fail_silently=False)
-            return reverse('sapl.materia:autor_detail',
-                           kwargs={'pk': pk_autor})
 
 
 class ConfirmarEmailView(TemplateView):
@@ -659,19 +574,6 @@ class TramitacaoCrud(MasterDetailCrud):
             else:
                 tramitacao.delete()
                 return HttpResponseRedirect(url)
-
-
-def montar_row_autor(name):
-    autor_row = to_row(
-        [(name, 0),
-         (Button('pesquisar',
-                 'Pesquisar Autor',
-                 css_class='btn btn-primary btn-sm'), 2),
-         (Button('limpar',
-                 'Limpar Autor',
-                 css_class='btn btn-primary btn-sm'), 10)])
-
-    return autor_row
 
 
 def montar_helper_documento_acessorio(self):
