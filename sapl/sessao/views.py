@@ -449,8 +449,14 @@ class SessaoCrud(Crud):
             return self.search_url
 
         def get_initial(self):
-            legislatura = Legislatura.objects.order_by('-data_inicio')[0]
-            return {'legislatura': legislatura}
+            legislatura = Legislatura.objects.order_by('-data_inicio')
+            if legislatura:
+                return {'legislatura': legislatura[0]}
+            else:
+                msg = _('Cadastre alguma legislatura antes de adicionar ' +
+                        'uma sessão plenária!')
+                messages.add_message(self.request, messages.ERROR, msg)
+                return {}
 
 
 class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,
