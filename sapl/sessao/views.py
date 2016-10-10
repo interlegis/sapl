@@ -31,7 +31,6 @@ from sapl.parlamentares.models import (Legislatura, Parlamentar,
                                        SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.sessao.serializers import SessaoPlenariaSerializer
 from sapl.utils import permission_required_for_app
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
@@ -2010,11 +2009,6 @@ class PautaSessaoDetailView(DetailView):
         context.update({'materias_ordem': materias_ordem})
 
         return self.render_to_response(context)
-
-
-class SessaoPlenariaView(generics.ListAPIView):
-    queryset = SessaoPlenaria.objects.all()
-    serializer_class = SessaoPlenariaSerializer
 
 
 class PautaExpedienteDetail(DetailView):

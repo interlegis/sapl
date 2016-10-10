@@ -11,7 +11,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView, ResumoView,
-                               SessaoCrud, SessaoPlenariaView,
+                               SessaoCrud,
                                TipoExpedienteCrud, TipoResultadoVotacaoCrud,
                                TipoSessaoCrud, VotacaoEditView,
                                VotacaoExpedienteEditView,
@@ -29,10 +29,6 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
 from .apps import AppConfig
 
 app_name = AppConfig.name
-
-sessao_rest = [
-    url(r'^sessao$', SessaoPlenariaView.as_view(), name='sessao_rest')
-]
 
 urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
@@ -58,7 +54,6 @@ urlpatterns = [
         name="reordenar_expediente"),
     url(r'^sessao/(?P<pk>\d+)/reordenar-ordem$', reordernar_materias_ordem,
         name="reordenar_ordem"),
-    url(r'^sessao/rest/', include(sessao_rest)),
     url(r'^sistema/sessao-plenaria/tipo/',
         include(TipoSessaoCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',
