@@ -289,7 +289,7 @@ urls_publicas_excecoes = {
     ],
     'post': [
         '/norma/pesquisa-resultado',
-        '/mesa-diretora/'  # tratamento de permissão interno.
+        '/mesa-diretora/',  # tratamento de permissão interno.
         '/sessao/1/resumo',
         '/sessao/pauta-sessao',
         '/sessao/pauta-sessao/1',
