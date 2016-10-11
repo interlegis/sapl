@@ -16,9 +16,6 @@ app_name = AppConfig.name
 
 
 urlpatterns = [
-    url(r'^sistema/', permission_required('base.view_tabelas_auxiliares')
-        (TemplateView.as_view(template_name='sistema.html'))),
-
     url(r'^sistema/ajuda/', TemplateView.as_view(template_name='ajuda.html')),
     url(r'^sistema/ajuda/(?P<topic>\w+)$', HelpView.as_view(), name='help_topic'),
     url(r'^sistema/ajuda/', TemplateView.as_view(template_name='ajuda/index.html'),
@@ -52,5 +49,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/atas$',
         RelatorioAtasView.as_view(),
         name='atas'),
+
+    url(r'^sistema/', permission_required('base.view_tabelas_auxiliares')
+        (TemplateView.as_view(template_name='sistema.html'))),
+
 
 ]
