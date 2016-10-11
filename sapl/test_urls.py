@@ -272,19 +272,33 @@ urls_publicas_excecoes = {
         '/sessao/pauta-sessao/1',
         '/sessao/pauta-sessao/pesquisar-pauta',
         '/sessao/pesquisar-sessao',
+        '/sessao/1/reordenar-expediente'
+        '/sessao/1/reordenar-ordem'
 
         '/proposicao/1/ta',  # FIXME Compilação deverá tratar
         '/materia/1/ta',
         '/norma/1/ta',
+
+        '/comissao/1/materias-em-tramitacao'
+
+        '/proposicao/'
+        '/proposicao/1'
+        '/proposicao/1/delete'
+        '/proposicao/1/edit'
+        '/protocoloadm/pesquisar-autor'
     ],
     'post': [
         '/norma/pesquisa-resultado',
         '/mesa-diretora/'  # tratamento de permissão interno.
-        'sessao/1/resumo',
+        '/sessao/1/resumo',
         '/sessao/pauta-sessao',
         '/sessao/pauta-sessao/1',
         '/sessao/pauta-sessao/1/expediente/',
         '/sessao/pauta-sessao/1/ordem/',
+        '/sessao/pesquisar-sessao'
+        '/sessao/1/reordenar-expediente'
+        '/sessao/1/reordenar-ordem'
+        '/sessao/pauta-sessao/pesquisar-pauta'
         '/sessao/pesquisar-sessao'
 
         '/comissao/1/materias-em-tramitacao',
@@ -294,6 +308,12 @@ urls_publicas_excecoes = {
         '/norma/1/ta',
         '/materia/confirmar/1/1',
         '/materia/pesquisar-materia'
+
+        '/proposicao/'
+        '/proposicao/1'
+        '/proposicao/1/delete'
+        '/proposicao/1/edit'
+        '/protocoloadm/pesquisar-autor'
 
     ]
 }
