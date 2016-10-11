@@ -3,12 +3,10 @@ from random import choice
 from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button
-from django.conf import settings
+from crispy_forms.layout import HTML
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
@@ -17,17 +15,15 @@ from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
 
-from sapl.base.models import AppConfig, CasaLegislativa, Autor, TipoAutor
-from sapl.base.views import montar_row_autor
+from sapl.base.models import AppConfig, Autor, CasaLegislativa, TipoAutor
 from sapl.compilacao.views import IntegracaoTaView
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, CrudDetailView, MasterDetailCrud,
@@ -37,8 +33,13 @@ from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
+<<<<<<< 3276eb12726b741df770d5a6ed2a9a1a83c15849
                         permissoes_autor, permissoes_materia,
                         permissoes_protocoloadm, permission_required_for_app)
+=======
+                        montar_row_autor, permissoes_autor, permissoes_materia,
+                        permissoes_protocoloadm)
+>>>>>>> Conc refatoração no Cada de Autor e Tipos de Autor
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ConfirmarProposicaoForm, DocumentoAcessorioForm,
@@ -48,13 +49,12 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
-from .models import (AcompanhamentoMateria, Anexada, Autoria,
-                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
-                     Numeracao, Orgao, Origem, Proposicao, RegimeTramitacao,
-                     Relatoria, StatusTramitacao, TipoDocumento,
-                     TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
-                     Tramitacao, UnidadeTramitacao)
-
+from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
+                     DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
+                     Origem, Proposicao, RegimeTramitacao, Relatoria,
+                     StatusTramitacao, TipoDocumento, TipoFimRelatoria,
+                     TipoMateriaLegislativa, TipoProposicao, Tramitacao,
+                     UnidadeTramitacao)
 
 OrigemCrud = Crud.build(Origem, '')
 

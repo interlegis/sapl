@@ -32,17 +32,20 @@ $(document).ready(function(){
         if (atualizar) {
           var radios = $("#div_id_autor_related .controls").html('');
           data.forEach(function (val, index) {
-            var html_radio = '<div class="radio"><label><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.pk+'">'+val.display+'</label></div>';
+            var html_radio = '<label class="radio"><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.pk+'">'+val.display+'</label>';
             radios.append(html_radio);
           });
+
           if (data.length > 1) {
             $('input[name=autor_related]').change(function(event){
-              $('#id_q').val(event.target.parentElement.textContent);
+              if (this.checked)
+                $('#id_q').val(event.target.parentElement.textContent);
               //$('input[name=autor_related]:not(:checked)').closest('.radio').remove();
             });
           }
           else {
-            $('input[name=autor_related]').prop('checked', 'checked')
+            $('input[name=autor_related]').prop('checked', 'checked');
+            $('input[name=autor_related]').closest('.radio').addClass('checked');
           }
         }
         else{
@@ -52,7 +55,6 @@ $(document).ready(function(){
         active('nome');
       });
   }
-
   $('#id_tipo').change(function(event) {
     if (event.target.selectedIndex == 0) {
       $('#id_nome, #id_q').val('');
@@ -68,6 +70,24 @@ $(document).ready(function(){
     var pk = $('#id_tipo').val();
     update_search(pk);
   });
+  $('input[name=action_user]').change(function(event) {
+    if (event.target.value == 'C')
+      $('.new_user_fields, #div_id_username').removeClass('hidden');
+    else if (event.target.value == 'N')
+      $('.new_user_fields, #div_id_username').addClass('hidden');
+    else {
+      $('#div_id_username').removeClass('hidden');
+      $('.new_user_fields').addClass('hidden');
+    }
+  });
+
+  $('input[name=action_user]:checked').trigger('change');
+  $('input[name=autor_related]').closest('.radio').remove();
+
+  var pk = $('#id_tipo').val();
+  if (pk)
+    update_search(pk, $('#id_q').val().length > 0)
+
 });
 
 

@@ -421,6 +421,7 @@ class ProtocoloMateriaForm(ModelForm):
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
+        self.fields['tipo_protocolo'].inline_class = True
 
 
 class DocumentoAcessorioAdministrativoForm(ModelForm):

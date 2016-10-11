@@ -1,3 +1,4 @@
+import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -6,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-import pytest
+from django.utils.translation import string_concat
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.materia.views import recuperar_materia
@@ -14,7 +15,6 @@ from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
-
 
 pytestmark = pytest.mark.django_db
 
@@ -335,7 +335,7 @@ urls_publicas_excecoes = {
 
 """
 # gerar uma instancia de teste para cada usuário não foi possível. São 500
-urls para cada operador. Isso fez com que o Travis estourasse o tempo de 
+urls para cada operador. Isso fez com que o Travis estourasse o tempo de
 processamento do teste... passando de 2hs... até outro modo, a estratégia de
 encapsular apenas as urls e testar em loop os operadores será mantida.
 
