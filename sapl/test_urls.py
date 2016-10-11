@@ -209,7 +209,7 @@ apps_url_patterns_prefixs_and_users = {
                   'operador_protocoloadm': ['/protocoloadm']},
         'prefixs': [
             '/protocoloadm',
-            '/docadm'
+            '/docadm',
             '/sistema'
         ]},
     'relatorios': {
@@ -317,7 +317,7 @@ urls_publicas_excecoes = {
     ]
 }
 
-
+@pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_permissions_urls_for_users_by_apps(url_item, client):
     key, url, var, app_name = url_item
