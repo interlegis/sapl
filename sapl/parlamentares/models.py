@@ -247,8 +247,11 @@ class Parlamentar(models.Model):
         max_length=100,
         blank=True,
         verbose_name=_('Locais de Atuação'))
-    ativo = models.BooleanField(db_index=True,
-                                verbose_name=_('Ativo na Casa?'))
+    ativo = models.BooleanField(
+        db_index=True,
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
         blank=True, verbose_name=_('Biografia'))
     # XXX Esse atribuito foi colocado aqui para não atrapalhar a migração
