@@ -4,6 +4,9 @@ from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
 
+import magic
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
 from django.conf import settings
@@ -15,11 +18,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-import magic
 from sapl.settings import BASE_DIR
 
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
+
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 
 
 def normalize(txt):
@@ -54,6 +58,41 @@ autor_modal = '''
               hidden="true" />
    </div>
 '''
+
+
+def montar_row_autor(name):
+    autor_row = to_row(
+        [(name, 0),
+         (Button('pesquisar',
+                 'Pesquisar Autor',
+                 css_class='btn btn-primary btn-sm'), 2),
+         (Button('limpar',
+                 'Limpar Autor',
+                 css_class='btn btn-primary btn-sm'), 10)])
+
+    return autor_row
+
+
+def montar_helper_autor(self):
+    autor_row = montar_row_autor('nome')
+    self.helper = FormHelper()
+    self.helper.layout = SaplFormLayout(*self.get_layout())
+
+    # Adiciona o novo campo 'autor' e mecanismo de busca
+    self.helper.layout[0][0].append(HTML(autor_label))
+    self.helper.layout[0][0].append(HTML(autor_modal))
+    self.helper.layout[0][1] = autor_row
+
+    # Adiciona espaço entre o novo campo e os botões
+    # self.helper.layout[0][4][1].append(HTML('<br /><br />'))
+
+    # Remove botões que estão fora do form
+    self.helper.layout[1].pop()
+
+    # Adiciona novos botões dentro do form
+    self.helper.layout[0][4][0].insert(2, form_actions(more=[
+        HTML('<a href="{{ view.cancel_url }}"'
+             ' class="btn btn-inverse">Cancelar</a>')]))
 
 
 class SaplGenericRelation(GenericRelation):

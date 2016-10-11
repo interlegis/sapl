@@ -15,11 +15,11 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 ProposicaoRecebida, ProposicaoTaView,
                                 ReceberProposicao, ReciboProposicaoView,
                                 RegimeTramitacaoCrud, RelatoriaCrud,
-                                StatusTramitacaoCrud,
-                                TipoDocumentoCrud, TipoFimRelatoriaCrud,
-                                TipoMateriaCrud, TipoProposicaoCrud,
-                                TramitacaoCrud, TramitacaoEmLoteView,
-                                UnidadeTramitacaoCrud, recuperar_materia)
+                                StatusTramitacaoCrud, TipoDocumentoCrud,
+                                TipoFimRelatoriaCrud, TipoMateriaCrud,
+                                TipoProposicaoCrud, TramitacaoCrud,
+                                TramitacaoEmLoteView, UnidadeTramitacaoCrud,
+                                recuperar_materia)
 
 from .apps import AppConfig
 

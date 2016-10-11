@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.views.generic.base import TemplateView
 from django.views.static import serve as view_static_server
 
+import sapl.api.urls
 import sapl.base.urls
 import sapl.comissoes.urls
 import sapl.compilacao.urls
@@ -31,7 +32,6 @@ import sapl.parlamentares.urls
 import sapl.protocoloadm.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
-import sapl.api.urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),

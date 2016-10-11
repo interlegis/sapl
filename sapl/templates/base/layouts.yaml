@@ -18,12 +18,12 @@ AppConfig:
 
 TipoAutor:
   {% trans 'Tipo Autor' %}:
-  - content_type descricao:7
+  - content_type:4 descricao
 
 Autor:
   {% trans 'Autor' %}:
   - tipo:3  nome
-  - username:6 cargo
+  - user:6 cargo
 
 AutorCreate:
   {% trans 'Cadastro de Usuários Autores' %}:

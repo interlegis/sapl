@@ -1,10 +1,8 @@
-from django.conf.urls import include, url
-from rest_framework.routers import DefaultRouter
+from django.conf.urls import url
 
 from sapl.api.views import TipoAutorContentOfModelContentTypeView
 
 from .apps import AppConfig
-
 
 app_name = AppConfig.name
 
