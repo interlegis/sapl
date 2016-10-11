@@ -6,9 +6,6 @@
 {% block sections_nav %} {% endblock %}
 
 {% block base_content %}
-  <h1><b>Pesquisar Pauta de Sessão</b></h1>
-  <br></br>
-
   {% if not filter_url %}
     {% crispy filter.form %}
   {% endif %}

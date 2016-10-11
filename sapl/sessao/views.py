@@ -2115,6 +2115,12 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     filterset_class = PautaSessaoFilterSet
     template_name = 'sessao/pauta_sessao_filter.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarPautaSessaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Pesquisar Pauta de Sessão')
+        return context
+
 
 def filtra_tramitacao_ordem_dia():
     lista = pega_ultima_tramitacao()
