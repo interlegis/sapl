@@ -544,15 +544,29 @@ class UnidadeTramitacao(models.Model):
         verbose_name_plural = _('Unidades de Tramitação')
 
     def __str__(self):
-        if not self.orgao and self.comissao:
-            return _('%(comissao)s') % {
-                'comissao': self.comissao}
-        if self.orgao and not self.comissao:
-            return _('%(orgao)s') % {
-                'orgao': self.orgao}
+        if self.orgao and self.comissao and self.parlamentar:
+            return _('%(comissao)s - %(orgao)s - %(parlamentar)s') % {
+                'comissao': self.comissao, 'orgao': self.orgao,
+                'parlamentar': self.parlamentar
+            }
+        elif self.orgao and self.comissao and not self.parlamentar:
+            return _('%(comissao)s - %(orgao)s') % {
+                'comissao': self.comissao, 'orgao': self.orgao
+            }
+        elif self.orgao and not self.comissao and self.parlamentar:
+            return _('%(orgao)s - %(parlamentar)s') % {
+                'orgao': self.orgao, 'parlamentar': self.parlamentar
+            }
+        elif not self.orgao and self.comissao and self.parlamentar:
+            return _('%(comissao)s - %(parlamentar)s') % {
+                'comissao': self.comissao, 'parlamentar': self.parlamentar
+            }
+        elif not self.orgao and self.comissao and not self.parlamentar:
+            return _('%(comissao)s') % {'comissao': self.comissao}
+        elif self.orgao and not self.comissao and not self.parlamentar:
+            return _('%(orgao)s') % {'orgao': self.orgao}
         else:
-            return _('%(orgao)s - %(comissao)s') % {
-                'orgao': xstr(self.orgao), 'comissao': xstr(self.comissao)}
+            return _('%(parlamentar)s') % {'parlamentar': self.parlamentar}
 
 
 class Tramitacao(models.Model):
