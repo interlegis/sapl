@@ -133,7 +133,10 @@ class Participacao(models.Model):  # ComposicaoComissao
     composicao = models.ForeignKey(Composicao, related_name='participacao_set')
     parlamentar = models.ForeignKey(Parlamentar)
     cargo = models.ForeignKey(CargoComissao)
-    titular = models.BooleanField(verbose_name=_('Titular'))
+    titular = models.BooleanField(
+        verbose_name=_('Titular'),
+        default=False,
+        choices=YES_NO_CHOICES)
     data_designacao = models.DateField(verbose_name=_('Data Designação'))
     data_desligamento = models.DateField(blank=True,
                                          null=True,
