@@ -13,8 +13,8 @@ from django.db import models
 from django.http.response import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -22,7 +22,6 @@ from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.utils import normalize
-
 
 logger = logging.getLogger(__name__)
 
@@ -882,9 +881,9 @@ class CrudAux(Crud):
     """
         Checa permissão para ver qualquer dado de tabela auxiliar
         a permissão base.view_tabelas_auxiliares está definada class Meta
-        do model sapl.base.models.AppConfig que, naturalmente é um arquivo 
-        de configuração geral e só pode ser acessado através das Tabelas 
-        Auxiliares... Com isso o script de geração de perfis acaba que por 
+        do model sapl.base.models.AppConfig que, naturalmente é um arquivo
+        de configuração geral e só pode ser acessado através das Tabelas
+        Auxiliares... Com isso o script de geração de perfis acaba que por
         criar essa permissão apenas para o perfil Operador Geral.
     """
     permission_required = ('base.view_tabelas_auxiliares',)
@@ -895,8 +894,8 @@ class CrudAux(Crud):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             """
-            Mantem as permissões individuais geradas pelo Crud através do 
-            Modelo e adiciona a obrigatoriedade de permissão para view 
+            Mantem as permissões individuais geradas pelo Crud através do
+            Modelo e adiciona a obrigatoriedade de permissão para view
             tabelas auxiliares.
             """
             self.permission_required = self.permission_required + \

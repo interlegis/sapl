@@ -26,7 +26,6 @@ PROJECT_DIR = Path(__file__).ancestor(2)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
@@ -34,6 +33,9 @@ ALLOWED_HOSTS = ['*']
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
@@ -48,7 +50,7 @@ SAPL_APPS = (
     'sapl.painel',
     'sapl.protocoloadm',
     'sapl.compilacao',
-		'sapl.api'
+    'sapl.api'
 )
 
 INSTALLED_APPS = (
@@ -72,8 +74,8 @@ INSTALLED_APPS = (
 
 ) + SAPL_APPS
 
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
+# if DEBUG:
+#    INSTALLED_APPS += ('debug_toolbar',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

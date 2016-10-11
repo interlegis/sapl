@@ -1,10 +1,7 @@
 from django.db.models import Q
 from django.http import Http404
-from rest_framework import mixins, viewsets
-from rest_framework.generics import ListAPIView, GenericAPIView,\
-    get_object_or_404
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.serializers import ChoiceSerializer
@@ -14,7 +11,8 @@ from sapl.utils import SaplGenericRelation
 
 class TipoAutorContentOfModelContentTypeView(ListAPIView):
     serializer_class = ChoiceSerializer
-    permission_classes = (AllowAny,)
+    # FIXME aplicar permissão correta de usuário
+    permission_classes = (IsAuthenticated,)
     queryset = TipoAutor.objects.all()
     model = TipoAutor
     pagination_class = None

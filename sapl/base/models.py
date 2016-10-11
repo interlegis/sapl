@@ -7,11 +7,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 
 from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
-
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -151,7 +150,9 @@ class TipoAutor(models.Model):
 
 class Autor(models.Model):
 
-    user = models.OneToOneField(get_settings_auth_user_model())
+    user = models.OneToOneField(get_settings_auth_user_model(),
+                                on_delete=models.SET_NULL,
+                                null=True)
 
     tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'))
 

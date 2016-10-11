@@ -1,17 +1,14 @@
 from datetime import datetime
 
+import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, User
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -508,7 +505,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  #'autoria__autor__partido',
+                  # 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',

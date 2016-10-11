@@ -1,23 +1,23 @@
-from crispy_forms.bootstrap import FieldWithButtons, StrictButton
+import django_filters
+from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Fieldset, Layout, Field, Div, Row
-from crispy_forms.templatetags.crispy_forms_field import css_class
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.fields import GenericRel
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.forms import ModelForm, widgets
+from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout,\
-    to_column
+from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
+                                      to_row)
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
@@ -25,6 +25,12 @@ from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import AppConfig, CasaLegislativa
+
+ACTION_CREATE_USERS_AUTOR_CHOICE = [
+    ('C', _('Criar novo Usuário')),
+    ('A', _('Associar um usuário existente')),
+    ('N', _('Autor sem Usuário de Acesso ao Sapl')),
+]
 
 
 class TipoAutorForm(ModelForm):
@@ -37,7 +43,7 @@ class TipoAutorForm(ModelForm):
     class Meta:
         model = TipoAutor
         fields = ['descricao',
-                  'content_type', ]
+                  'content_type']
 
     def __init__(self, *args, **kwargs):
 
@@ -61,47 +67,65 @@ class TipoAutorForm(ModelForm):
                 (ct.pk, ct) for key, ct in content_types.items()]
 
 
+class ChoiceWithoutValidationField(forms.ChoiceField):
+
+    def validate(self, value):
+        if self.required and not value:
+            raise ValidationError(
+                self.error_messages['required'], code='required')
+
+
 class AutorForm(ModelForm):
-    """senha = forms.CharField(
+    senha = forms.CharField(
         max_length=20,
         label=_('Senha'),
-        required=True,
+        required=False,
         widget=forms.PasswordInput())
 
     senha_confirma = forms.CharField(
         max_length=20,
         label=_('Confirmar Senha'),
-        required=True,
+        required=False,
         widget=forms.PasswordInput())
 
+    email = forms.EmailField(
+        required=False,
+        label=_('Email'))
+
     confirma_email = forms.EmailField(
-        required=True,
+        required=False,
         label=_('Confirmar Email'))
 
     username = forms.CharField(
-        required=True,
-        max_length=50
-    )"""
+        required=False,
+        max_length=50)
 
     q = forms.CharField(
         max_length=50, required=False,
         label='Pesquise o nome do Autor com o '
         'tipo Selecionado e marque o escolhido.')
-    autor_related = forms.ChoiceField(label='',
-                                      required=False,
-                                      widget=forms.RadioSelect())
+
+    autor_related = ChoiceWithoutValidationField(label='',
+                                                 required=False,
+                                                 widget=forms.RadioSelect())
+
+    action_user = forms.ChoiceField(
+        label=_('Usuário de acesso ao Sistema para este Autor'),
+        choices=ACTION_CREATE_USERS_AUTOR_CHOICE,
+        widget=forms.RadioSelect())
 
     class Meta:
         model = Autor
         fields = ['tipo',
                   'nome',
                   'autor_related',
-                  'q']
+                  'q',
+                  'action_user',
+                  'username']
 
     def __init__(self, *args, **kwargs):
 
         autor_related = Div(
-
             FieldWithButtons(
                 Field('q',
                       placeholder=_('Pesquisar por possíveis autores para '
@@ -109,110 +133,195 @@ class AutorForm(ModelForm):
                 StrictButton(
                     _('Filtrar'), css_class='btn-default btn-filtrar-autor',
                     type='button')),
+
+
             Field('autor_related'),
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
             data_field='autor_related')
 
-        row1 = to_row([
-            ('tipo', 4),
-            ('nome', 8),
-            (autor_related, 8),
+        autor_select = Row(to_column(('tipo', 4)),
+                           to_column(('nome', 8)),
+                           to_column((autor_related, 8)))
 
-        ])
+        row2 = Row(to_column((InlineRadios('action_user'), 8)),
+                   to_column(('username', 4)))
+        row3 = Row(to_column(('senha', 3)),
+                   to_column(('senha_confirma', 3)),
+                   to_column(('email', 3)),
+                   to_column(('confirma_email', 3)),
+                   css_class='new_user_fields hidden')
+
+        controle_acesso = Fieldset(
+            _('Controle de Acesso do Autor'),
+            row2, row3
+        )
 
         self.helper = FormHelper()
-        self.helper.layout = SaplFormLayout(row1)
+        self.helper.layout = SaplFormLayout(autor_select, controle_acesso)
 
         super(AutorForm, self).__init__(*args, **kwargs)
 
-        self.fields['autor_related'].choices = []
-        if self.instance and self.instance.autor_related:
-            self.fields['autor_related'].choices = [
-                (self.instance.autor_related.pk,
-                 self.instance.autor_related)]
+        self.fields['action_user'].initial = 'N'
+        self.fields['action_user'].inline_class = True
+
+        if self.instance.pk:
+            if self.instance.autor_related:
+                self.fields['autor_related'].choices = [
+                    (self.instance.autor_related.pk,
+                     self.instance.autor_related)]
+                self.fields['q'].initial = self.instance.nome
+
+            if self.instance.user:
+                self.fields['username'].initial = self.instance.user.username
+                self.fields['action_user'].initial = 'A'
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
             raise ValidationError(msg)
         return True
 
-    def valida_email_existente(self):
-        return get_user_model().objects.filter(
-            email=self.cleaned_data['email']).exists()
+    def clean(self):
+        User = get_user_model()
+        cd = self.cleaned_data
 
-    def clea(self):
+        if 'username' not in cd:
+            raise ValidationError(_('O username deve ser informado.'))
 
-        if 'username' not in self.cleaned_data:
-            raise ValidationError(_('Favor informar o username'))
+        if 'action_user' not in cd:
+            raise ValidationError(_('Informe se o Autor terá usuário '
+                                    'para acesso ao Sistema.'))
 
-        if ('senha' not in self.cleaned_data or
-                'senha_confirma' not in self.cleaned_data):
-            raise ValidationError(_('Favor informar as senhas'))
+        qs_user = User.objects.all()
+        qs_autor = Autor.objects.all()
 
-        msg = _('As senhas não conferem.')
-        self.valida_igualdade(
-            self.cleaned_data['senha'],
-            self.cleaned_data['senha_confirma'],
-            msg)
+        if self.instance.pk:
+            qs_autor = qs_autor.exclude(pk=self.instance.pk)
+            if self.instance.user:
+                qs_user = qs_user.exclude(pk=self.instance.user.pk)
 
-        if ('email' not in self.cleaned_data or
-                'confirma_email' not in self.cleaned_data):
-            raise ValidationError(_('Favor informar endereços de email'))
+        if cd['action_user'] == 'C':
+            if User.objects.filter(username=cd['username']).exists():
+                raise ValidationError(
+                    _('Já existe usuário com o username "%s". '
+                      'Para usá-lo você deve selecionar '
+                      '"Associar um usuário existente".') % cd['username'])
 
-        msg = _('Os emails não conferem.')
-        self.valida_igualdade(
-            self.cleaned_data['email'],
-            self.cleaned_data['confirma_email'],
-            msg)
+            if ('senha' not in cd or 'senha_confirma' not in cd or
+                    not cd['senha'] or not cd['senha_confirma']):
+                raise ValidationError(_(
+                    'A senha e sua confirmação devem ser informadas.'))
+            msg = _('As senhas não conferem.')
+            self.valida_igualdade(cd['senha'], cd['senha_confirma'], msg)
 
-        email_existente = self.valida_email_existente()
+            try:
+                validate_password(self.cleaned_data['senha'])
+            except ValidationError as error:
+                raise ValidationError(error)
 
-        if (Autor.objects.filter(
-           username=self.cleaned_data['username']).exists()):
-            raise ValidationError(_('Já existe um autor para este usuário'))
+            if ('email' not in cd or 'confirma_email' not in cd or
+                    not cd['email'] or not cd['confirma_email']):
+                raise ValidationError(_(
+                    'O email e sua confirmação devem ser informados.'))
+            msg = _('Os emails não conferem.')
+            self.valida_igualdade(cd['email'], cd['confirma_email'], msg)
 
-        if email_existente:
-            msg = _('Este email já foi cadastrado.')
-            raise ValidationError(msg)
+            if qs_user.filter(email=cd['email']).exists():
+                raise ValidationError(_('Este email já foi cadastrado.'))
 
-        try:
-            validate_password(self.cleaned_data['senha'])
-        except ValidationError as error:
-            raise ValidationError(error)
+            if qs_autor.filter(user__email=cd['email']).exists():
+                raise ValidationError(
+                    _('Já existe um Autor com este email.'))
 
-        try:
-            get_user_model().objects.get(
-                username=self.cleaned_data['username'],
-                email=self.cleaned_data['email'])
-        except ObjectDoesNotExist:
-            msg = _('Este nome de usuario não está cadastrado. ' +
-                    'Por favor, cadastre-o no Administrador do ' +
-                    'Sistema antes de adicioná-lo como Autor')
-            raise ValidationError(msg)
+        elif cd['action_user'] == 'A':
+            if not User.objects.filter(username=cd['username']).exists():
+                raise ValidationError(
+                    _('Não existe usuário com username "%s". '
+                      'Para usá-lo você deve selecionar '
+                      '"Criar novo Usuário".') % cd['username'])
+
+        if cd['action_user'] != 'N':
+            if qs_autor.filter(user__username=cd['username']).exists():
+                raise ValidationError(
+                    _('Já existe um Autor para este usuário.'))
+
+        """
+        'if' não é necessário por ser campo obrigatório e o framework já
+        mostrar a mensagem de obrigatório junto ao campo. mas foi colocado
+        ainda assim para renderizar um message.danger no topo do form.
+        """
+        if 'tipo' not in cd or not cd['tipo']:
+            raise ValidationError(
+                _('O Tipo do Autor deve ser selecionado.'))
+
+        tipo = cd['tipo']
+
+        if not tipo.content_type:
+            if 'nome' not in cd or not cd['nome']:
+                raise ValidationError(
+                    _('O Nome do Autor deve ser informado.'))
+        else:
+            if 'autor_related' not in cd or not cd['autor_related']:
+                raise ValidationError(
+                    _('Um registro de %s deve ser escolhido para ser '
+                      'vinculado ao cadastro de Autor') % tipo.descricao)
+
+            if not tipo.content_type.model_class().objects.filter(
+                    pk=cd['autor_related']).exists():
+                raise ValidationError(
+                    _('O Registro definido (%s-%s) não está na base de %s.'
+                      ) % (cd['autor_related'], cd['q'], tipo.descricao))
+
+            if qs_autor.filter(object_id=cd['autor_related']).exists():
+                autor = qs_autor.filter(object_id=cd['autor_related']).first()
+                raise ValidationError(
+                    _('Já existe um autor Cadastrado para %s'
+                      ) % autor.autor_related)
 
         return self.cleaned_data
 
     @transaction.atomic
-    def sav(self, commit=False):
-
+    def save(self, commit=False):
+        print('aqui')
         autor = super(AutorForm, self).save(commit)
 
-        u = get_user_model().objects.get(
-            username=autor.username,
-            email=autor.email)
+        user_old = autor.user if autor.user_id else None
 
-        u.set_password(self.cleaned_data['senha'])
-        u.is_active = False
-        u.save()
+        if self.cleaned_data['action_user'] == 'A':
+            u = get_user_model().objects.get(
+                username=self.cleaned_data['username'])
+            autor.user = u
+        elif self.cleaned_data['action_user'] == 'C':
+            u = get_user_model().objects.create(
+                username=self.cleaned_data['username'],
+                email=self.cleaned_data['email'])
+            u.set_password(self.cleaned_data['senha'])
+            # Define usuário como ativo em ambiente de desenvolvimento
+            # pode logar sem a necessidade de passar pela validação de email
+            u.is_active = settings.DEBUG
+            u.save()
+            autor.user = u
 
-        autor.user = u
+        if not autor.tipo.content_type:
+            autor.content_type = None
+            autor.object_id = None
+            autor.autor_related = None
+        else:
+            autor.autor_related = autor.tipo.content_type.model_class(
+            ).objects.get(pk=self.cleaned_data['autor_related'])
+            autor.nome = str(autor.autor_related)
 
         autor.save()
 
-        grupo = Group.objects.filter(name='Autor')[0]
-        u.groups.add(grupo)
+        if self.cleaned_data['action_user'] != 'N':
+            # FIXME melhorar captura de grupo de Autor, levando em conta
+            # tradução
+            grupo = Group.objects.filter(name='Autor')[0]
+            autor.user.groups.add(grupo)
+
+            if user_old and user_old != autor.user:
+                user_old.groups.remove(grupo)
 
         return autor
 
