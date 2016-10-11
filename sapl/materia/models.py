@@ -106,7 +106,10 @@ class MateriaLegislativa(models.Model):
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
-    em_tramitacao = models.BooleanField(verbose_name=_('Em Tramitação?'))
+    em_tramitacao = models.BooleanField(
+        verbose_name=_('Em Tramitação?'),
+        default=False,
+        choices=YES_NO_CHOICES)
     polemica = models.NullBooleanField(
         blank=True, verbose_name=_('Matéria Polêmica?'))
     objeto = models.CharField(
