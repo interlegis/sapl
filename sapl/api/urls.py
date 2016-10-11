@@ -1,10 +1,10 @@
+
 from django.conf import settings
 from django.conf.urls import url, include
 
 from sapl.api.views import AutorListView
 
 from .apps import AppConfig
-
 
 app_name = AppConfig.name
 

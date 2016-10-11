@@ -77,7 +77,7 @@ class AutorCrud(CrudAux):
             try:
                 kwargs = {}
                 user = self.object.user
-
+                
                 if user.is_active:
                     return reverse('sapl.base:autor_detail',
                                    kwargs={'pk': pk_autor})

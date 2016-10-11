@@ -37,7 +37,6 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         permissoes_protocoloadm, permission_required_for_app,
                         montar_row_autor)
 
-
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ConfirmarProposicaoForm, DocumentoAcessorioForm,
                     MateriaLegislativaFilterSet,
@@ -314,7 +313,7 @@ class ProposicaoCrud(Crud):
     TODO: Entre outros comportamento gerais, mesmo que um usuário tenha
     Perfil de Autor o Crud de proposição não deverá permitir acesso a
     proposições. O acesso só deve ser permitido se existe um Autor registrado
-    e vinculado ao usuário. Essa tarefa deve ser realizada nas Tabelas Aux. 
+    e vinculado ao usuário. Essa tarefa deve ser realizada nas Tabelas Aux.
     """
     model = Proposicao
     help_path = ''

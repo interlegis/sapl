@@ -1,7 +1,9 @@
+
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from crispy_forms.templatetags.crispy_forms_field import css_class
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -27,6 +29,12 @@ from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         SaplGenericRelation)
 
 from .models import AppConfig, CasaLegislativa
+
+ACTION_CREATE_USERS_AUTOR_CHOICE = [
+    ('C', _('Criar novo Usuário')),
+    ('A', _('Associar um usuário existente')),
+    ('N', _('Autor sem Usuário de Acesso ao Sapl')),
+]
 
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
@@ -161,6 +169,7 @@ class AutorForm(ModelForm):
                     'como o Sistema deve proceder com o usuário que está sendo'
                     ' desvinculado?'))
 
+
     class Meta:
         model = Autor
         fields = ['tipo',
@@ -181,8 +190,6 @@ class AutorForm(ModelForm):
                 StrictButton(
                     _('Filtrar'), css_class='btn-default btn-filtrar-autor',
                     type='button')),
-
-
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
@@ -199,6 +206,7 @@ class AutorForm(ModelForm):
 
         row2 = Row(to_column((InlineRadios('action_user'), 8)),
                    to_column((Div('username'), 4)))
+
         row3 = Row(to_column(('senha', 3)),
                    to_column(('senha_confirma', 3)),
                    to_column(('email', 3)),
