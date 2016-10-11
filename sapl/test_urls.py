@@ -285,6 +285,7 @@ urls_publicas_excecoes = {
         '/sessao/pauta-sessao/1',
         '/sessao/pauta-sessao/1/expediente/',
         '/sessao/pauta-sessao/1/ordem/',
+        '/sessao/pesquisar-sessao'
 
         '/comissao/1/materias-em-tramitacao',
 
@@ -324,7 +325,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
         como é o caso de PainelView que está na app 'sessao'
         mas é um redirecionamento para 'painel'... aqui é feita
         a troca da app a ser testada, por essas outras possíveis.
-        
+
         Este, até a ultima versão deste teste é o único tipo de view que
             possui restrição restrição simples, por permissão, e não por
             container, como é o caso de proposições que possui restrição
@@ -423,7 +424,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                             No teste de requisição "%s" a url (%s).
                             App (%s)
                             O usuário (%s) deveria ser redirecionado
-                            para tela de login.        
+                            para tela de login.
                             """ % (_type, url, app, username)
                     else:
                         assert btn_login not in content, """
@@ -434,10 +435,10 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                             invariavelmente pública, a adicione na variavel
                             abaixo localizada no arquivo que se encontra este
                             teste:
-                            
+
                                 urls_publicas_excecoes
-                                    
-                            
+
+
                             """ % (_type, url, app, username)
 
                 if username not in users_for_url_atual_app:
