@@ -20,7 +20,7 @@ AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
 
 TipoNormaCrud = CrudAux.build(
     TipoNormaJuridica, 'tipo_norma_juridica',
-    list_field_names=['equivalente_lexml', 'sigla', 'descricao'])
+    list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
 
 
 class NormaTaView(IntegracaoTaView):
