@@ -167,7 +167,6 @@ class ParlamentarCrud(Crud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):
-        form_class = ParlamentarCreateForm
         ordered_list = False
         list_field_names = [
             'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo']
@@ -183,6 +182,7 @@ class ParlamentarCrud(Crud):
         form_class = ParlamentarForm
 
     class CreateView(Crud.CreateView):
+        form_class = ParlamentarCreateForm
 
         @property
         def layout_key(self):
