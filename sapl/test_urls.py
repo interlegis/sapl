@@ -286,6 +286,16 @@ urls_publicas_excecoes = {
         '/proposicao/1/delete',
         '/proposicao/1/edit',
         '/protocoloadm/pesquisar-autor',
+
+        '/sistema/relatorios/presenca',
+        '/sistema/relatorios/materia-por-tramitacao',
+        '/sistema/relatorios/materia-por-autor',
+        '/sistema/relatorios/materia-por-ano-autor-tipo',
+        '/sistema/relatorios/historico-tramitacoes',
+        '/sistema/relatorios/atas',
+        '/sistema/relatorios/',
+        '/sistema/ajuda/1',
+        '/sistema/ajuda/',
     ],
     'post': [
         '/norma/pesquisa-resultado',
@@ -314,8 +324,19 @@ urls_publicas_excecoes = {
         '/proposicao/1/delete',
         '/proposicao/1/edit',
         '/protocoloadm/pesquisar-autor',
+
+        '/sistema/relatorios/presenca',
+        '/sistema/relatorios/materia-por-tramitacao',
+        '/sistema/relatorios/materia-por-autor',
+        '/sistema/relatorios/materia-por-ano-autor-tipo',
+        '/sistema/relatorios/historico-tramitacoes',
+        '/sistema/relatorios/atas',
+        '/sistema/relatorios/',
+        '/sistema/ajuda/1',
+        '/sistema/ajuda/',
     ]
 }
+
 
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('url_item', _lista_urls)
