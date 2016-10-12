@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _, string_concat
+
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
@@ -29,6 +30,7 @@ from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         SaplGenericRelation)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('C', _('Criar novo Usuário')),
@@ -190,15 +192,26 @@ class AutorForm(ModelForm):
                 StrictButton(
                     _('Filtrar'), css_class='btn-default btn-filtrar-autor',
                     type='button')),
+<<<<<<< 2a44eb455a5caa1a6edb588021e46fb34b1160e7
+=======
+
+
+>>>>>>> Alt backend de perm e pag de drf e ref layout topo
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
             data_field='autor_related')
 
+<<<<<<< 2a44eb455a5caa1a6edb588021e46fb34b1160e7
         autor_select = Row(to_column(('tipo', 3)),
                            Div(to_column(('nome', 5)),
                                to_column(('cargo', 4)), css_class="div_nome_cargo"),
                            to_column((autor_related, 9)),
+=======
+        autor_select = Row(to_column(('tipo', 4)),
+                           to_column(('nome', 8)),
+                           to_column((autor_related, 8)),
+>>>>>>> Alt backend de perm e pag de drf e ref layout topo
                            to_column((Div(
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
