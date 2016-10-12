@@ -15,17 +15,17 @@ class TipoAutorContentOfModelContentTypeView(ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = TipoAutor.objects.all()
     model = TipoAutor
-    pagination_class = None
 
     def get_queryset(self):
         queryset = ModelViewSet.get_queryset(self)
+
         if not self.kwargs['pk']:
-            return queryset
+            raise Http404()
 
         obj = get_object_or_404(queryset, pk=self.kwargs['pk'])
 
         if not obj.content_type:
-            raise Http404
+            raise Http404()
 
         q = self.request.GET.get('q', '').strip()
 
@@ -45,6 +45,6 @@ class TipoAutorContentOfModelContentTypeView(ListAPIView):
             for fs in fields_search:
                 q_filter |= Q(**{'%s__icontains' % fs: q})
 
-            return model_class.objects.filter(q_filter)[:10]
+            return model_class.objects.filter(q_filter)
         else:
-            return model_class.objects.all()[:10]
+            return model_class.objects.all()

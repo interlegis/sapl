@@ -1,4 +1,3 @@
-import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
@@ -14,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -25,6 +25,7 @@ from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('C', _('Criar novo Usuário')),
@@ -135,7 +136,6 @@ class AutorForm(ModelForm):
                     type='button')),
 
 
-            Field('autor_related'),
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
@@ -143,7 +143,11 @@ class AutorForm(ModelForm):
 
         autor_select = Row(to_column(('tipo', 4)),
                            to_column(('nome', 8)),
-                           to_column((autor_related, 8)))
+                           to_column((autor_related, 8)),
+                           to_column((Div(
+                               Field('autor_related'),
+                               css_class='radiogroup-autor-related hidden'),
+                               12)))
 
         row2 = Row(to_column((InlineRadios('action_user'), 8)),
                    to_column(('username', 4)))

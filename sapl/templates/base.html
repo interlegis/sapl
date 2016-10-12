@@ -42,7 +42,7 @@
           </div>
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li><a href="/" role="button" aria-haspopup="true" aria-expanded="false">Inicio<span class="caret"></span></a></li>
+              <li><a href="/" role="button" aria-haspopup="true" aria-expanded="false">Inicio</a></li>
 
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Institucional <span class="caret"></span></a>
@@ -156,8 +156,8 @@
         <div class="container">
           <div class="navbar-header">
             <a class="navbar-brand" href="/">
-              <img height="95" width="95" src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
-              alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
+              <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+              alt="Logo" class="img-responsive visible-md-inline-block visible-lg-inline-block" >
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
                 {% if nome %}
