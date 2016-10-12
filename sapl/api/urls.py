@@ -10,7 +10,7 @@ app_name = AppConfig.name
 # router = DefaultRouter()
 
 urlpatterns = [
-    url(r'^autor/possiveis/(?P<pk>[0-9]*)$',
+    url(r'^autor/possiveis-pelo-tipo/(?P<pk>[0-9]+)$',
         TipoAutorContentOfModelContentTypeView.as_view(),
         name='autores_possiveis_pelo_tipo'),
 ]

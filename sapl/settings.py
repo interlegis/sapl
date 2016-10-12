@@ -101,10 +101,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        # "rest_framework.permissions.IsAuthenticated",
+        "sapl.api.permissions.DjangoModelPermissions",
+    ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
     ),
-    "DEFAULT_PAGINATION_CLASS": "sapl.rest_pagination.StandardPagination",
+    "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.DjangoFilterBackend",
