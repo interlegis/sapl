@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import pytest
@@ -20,13 +21,13 @@ sapl_appconfs = [apps.get_app_config(n[5:]) for n in SAPL_APPS]
 _lista_urls = lista_urls()
 
 
-def create_perms_post_migrate(app):
+def create_perms_post_migrate(sapl_app_config):
 
     searched_perms = list()
     # The codenames and ctypes that should exist.
     ctypes = set()
 
-    for klass in list(app.get_models()):
+    for klass in list(sapl_app_config.get_models()):
         opts = klass._meta
         permissions = (
             ("list_" + opts.model_name,
@@ -257,6 +258,7 @@ def test_urlpatterns(url_item, admin_client):
         %s
         """ % (url, app_name, prefixs)
 
+
 urls_publicas_excecoes = {
     'get': [
         '/materia/confirmar/1/1',
@@ -351,6 +353,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             create_perms_post_migrate(app)
         # cria usuários de perfil do sapl
         cria_grupos_permissoes()
+
     users = get_user_model().objects.values_list('username', flat=True)
 
     app_labels = app_name.split('.')[1]
@@ -419,23 +422,28 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             app]['users']
 
         for username in users:
-            print(username, users_for_url_atual_app, url)
-
+            print(app_name, username, users_for_url_atual_app, url)
             client.login(username=username, password='interlegis')
 
             rg = None
+            rg_error_content = ''
             try:
                 if url not in urls_publicas_excecoes['get']:
                     rg = client.get(url, {}, follow=True)
-            except:
-                pass
+            except Exception as e:
+                rg_error_content = str(e)
 
             rp = None
+            rp_error_content = ''
             try:
                 if url not in urls_publicas_excecoes['post']:
-                    rp = client.post(url, {}, follow=True)
-            except:
-                pass
+                    with transaction.atomic():
+                        rp = client.post(url, {}, follow=True)
+            except Exception as e:
+                rp_error_content = str(e)
+
+            print(rg_error_content)
+            print(rp_error_content)
 
             """
             devido às urls serem incompletas ou com pks e outras valores
@@ -452,8 +460,8 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             """
 
             for _type, content in (
-                    ('get', str(rg.content if rg else '')),
-                    ('post', str(rp.content if rp else ''))):
+                    ('get', str(rg.content if rg else rg_error_content)),
+                    ('post', str(rp.content if rp else rp_error_content))):
 
                 if not content:
                     continue
@@ -490,5 +498,3 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                         if url.startswith(pr):
                             _assert_login(False)
                             break
-
-            client.get('/logout/', follow=True)
