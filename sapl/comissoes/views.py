@@ -30,6 +30,7 @@ class ParticipacaoCrud(MasterDetailCrud):
     public = [RP_DETAIL, ]
     ListView = None
     is_m2m = True
+    link_return_to_parent_field = True
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['composicao', 'parlamentar', 'cargo']

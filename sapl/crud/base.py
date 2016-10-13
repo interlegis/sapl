@@ -919,6 +919,7 @@ class CrudAux(Crud):
 
 class MasterDetailCrud(Crud):
     is_m2m = False
+    link_return_to_parent_field = False
 
     class BaseMixin(Crud.BaseMixin):
 
@@ -1145,11 +1146,14 @@ class MasterDetailCrud(Crud):
 
             pk = root_pk
 
-            namespace = parent_object._meta.app_config.name
-            return reverse('%s:%s' % (
-                namespace,
-                '%s_%s' % (parent_object._meta.model_name, ACTION_DETAIL)),
-                args=(pk,))
+            if obj.is_m2m:
+                namespace = parent_object._meta.app_config.name
+                return reverse('%s:%s' % (
+                    namespace,
+                    '%s_%s' % (parent_object._meta.model_name, ACTION_DETAIL)),
+                    args=(pk,))
+            else:
+                return self.resolve_url(ACTION_LIST, args=(pk,))
 
     class DetailView(Crud.DetailView):
         permission_required = RP_DETAIL,
@@ -1166,7 +1170,7 @@ class MasterDetailCrud(Crud):
             if not obj.ListView:
                 return ''
 
-            if not obj.ListView.permission_required or\
+            if obj.ListView.permission_required not in obj.public or\
                     self.request.user.has_perm(self.permission(RP_LIST)):
                 if '__' in obj.parent_field:
                     fields = obj.parent_field.split('__')
@@ -1262,6 +1266,8 @@ class MasterDetailCrud(Crud):
         @property
         def detail_root_detail_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.link_return_to_parent_field:
+                return ''
             if hasattr(obj, 'parent_field'):
                 parent_field = obj.parent_field.split('__')
                 if not obj.is_m2m or len(parent_field) > 1:
