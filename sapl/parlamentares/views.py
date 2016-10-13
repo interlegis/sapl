@@ -267,9 +267,14 @@ class MesaDiretoraView(FormView):
                 not SessaoLegislativa.objects.exists()):
             return self.validation(request)
 
-        mesa = SessaoLegislativa.objects.filter(
+        sessao = SessaoLegislativa.objects.filter(
             legislatura=Legislatura.objects.first()).first(
-        ).composicaomesa_set.all()
+        )
+
+        if sessao:
+            mesa = sessao.composicaomesa_set.all()
+        else:
+            mesa = []
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
