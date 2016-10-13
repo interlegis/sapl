@@ -11,7 +11,8 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
-from .forms import LegislaturaForm, ParlamentarCreateForm, ParlamentarForm
+from .forms import (FiliacaoForm, LegislaturaForm, ParlamentarCreateForm,
+                    ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -160,6 +161,12 @@ class FiliacaoCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         ordering = '-data'
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = FiliacaoForm
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = FiliacaoForm
 
 
 class ParlamentarCrud(Crud):
