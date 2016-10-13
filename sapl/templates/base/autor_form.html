@@ -55,7 +55,7 @@ $(document).ready(function(){
           }
 
           if (data.pagination.total_entries > 10)
-            radios.before('<div class="alert alert-info" role="alert"><strong>{% trans "Foram encontrados" %} '+data.pagination.total_entries+' {% trans "registros"%}</strong>'+'{% trans "mas será mostrado apenas os 10 primeiros resultados. Coloque mais informações no campo pesquisa para refinar sua busca."%}</div>');
+            radios.before('<div class="alert alert-info" role="alert"><strong>{% trans "Foram encontrados" %} '+data.pagination.total_entries+' {% trans "registros"%}</strong>'+' {% trans "mas será mostrado apenas os 10 primeiros resultados. Coloque mais informações no campo pesquisa para refinar sua busca."%}</div>');
           else if (data.pagination.total_entries == 0)
             radios.before('<div class="alert alert-info" role="alert"><strong>{% trans "Não foram encontrados registros com os termos de pesquisa informados." %}</div>');
         }
