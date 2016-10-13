@@ -3,16 +3,15 @@
 
 <div class="controls controls-radio {{ field_class }}"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
     {% include 'bootstrap3/layout/field_errors_block.html' %}
-
     {% for choice in field.field.choices %}
-        <label class="radio{% if field.field.inline_class %} radio-inline{% endif %}{% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked{% endif %}" for="id_{{ field.html_name }}_{{ forloop.counter }}">
-            <span class="icons">
-              <span class="first-icon"></span>
-              <span class="second-icon"></span>
-            </span>
 
-            <input type="radio"{% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>{{ choice.1|unlocalize }}
-        </label>
+      <label class="radio {% if inline_class %}radio-{{ inline_class }}{% endif %}{% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked{% endif %}" for="id_{{ field.html_name }}_{{ forloop.counter }}">
+          <span class="icons">
+            <span class="first-icon"></span>
+            <span class="second-icon"></span>
+          </span>
+          <input type="radio"{% if choice.0|stringformat:"s" == field.value|stringformat:"s" %} checked="checked"{% endif %} name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>{{ choice.1|unlocalize }}
+      </label>
     {% endfor %}
 
     {% include 'bootstrap3/layout/help_text.html' %}
