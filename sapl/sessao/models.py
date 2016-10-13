@@ -2,10 +2,12 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
-from sapl.utils import YES_NO_CHOICES, restringe_tipos_de_arquivo_txt
+from sapl.utils import YES_NO_CHOICES, restringe_tipos_de_arquivo_txt,\
+    SaplGenericRelation
 
 
 class CargoBancada(models.Model):
@@ -37,6 +39,11 @@ class Bancada(models.Model):
     data_extincao = models.DateField(blank=True, null=True,
                                      verbose_name=_('Data Extinção'))
     descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(Autor, fields_search=('nome',
+                                                      'descricao'))
 
     class Meta:
         verbose_name = _('Bancada')
@@ -340,6 +347,11 @@ class Bloco(models.Model):
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Dissolução'))
     descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(Autor, fields_search=('nome',
+                                                      'descricao'))
 
     class Meta:
         verbose_name = _('Bloco')

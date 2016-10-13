@@ -263,7 +263,8 @@ class Parlamentar(models.Model):
         verbose_name=_('Fotografia'),
         validators=[restringe_tipos_de_arquivo_img])
 
-    # campo conceitual de reversão genérica para o model Autor
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
     autor = SaplGenericRelation(Autor, fields_search=('nome_completo',
                                                       'nome_parlamentar'))
 
@@ -451,6 +452,11 @@ class Frente(models.Model):
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Dissolução'))
     descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(Autor, fields_search=('nome',
+                                                      'descricao'))
 
     class Meta:
         verbose_name = _('Frente')
