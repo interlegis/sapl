@@ -21,6 +21,7 @@ class LegislaturaForm(ModelForm):
     class Meta:
         model = Legislatura
         exclude = []
+        widgets = {'numero': forms.HiddenInput(), }
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -39,11 +40,18 @@ class LegislaturaCreateForm(LegislaturaForm):
 
     def clean(self):
         cleaned_data = super(LegislaturaCreateForm, self).clean()
-        numero = cleaned_data['numero']
-        if Legislatura.objects.filter(numero=numero).exists():
+        inicio = cleaned_data['data_inicio']
+        fim = cleaned_data['data_fim']
+        eleicao = cleaned_data['data_eleicao']
+        if Legislatura.objects.filter(
+                data_inicio__range=[inicio, fim]).exists() or \
+            Legislatura.objects.filter(
+                data_fim__range=[inicio, fim]).exists():
             raise ValidationError(
-                _('Já cadastrada uma legislatura com este número'))
-
+                _('Já existe uma legislatura neste intervalo de datas'))
+        if Legislatura.objects.filter(data_eleicao=eleicao):
+            raise ValidationError(
+                _('Esta data de eleição já foi cadastrada'))
         return cleaned_data
 
 
