@@ -11,7 +11,8 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
-from .forms import (FiliacaoForm, LegislaturaForm, ParlamentarCreateForm,
+from .forms import (FiliacaoForm, LegislaturaCreateForm,
+                    LegislaturaUpdateForm, ParlamentarCreateForm,
                     ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
@@ -149,8 +150,19 @@ class LegislaturaCrud(CrudAux):
     model = Legislatura
     help_path = 'tabelas_auxiliares#legislatura'
 
-    class BaseMixin(CrudAux.BaseMixin):
-        form_class = LegislaturaForm
+    class CreateView(CrudAux.CreateView):
+        form_class = LegislaturaCreateForm
+
+        def get_initial(self):
+            try:
+                ultima_legislatura = Legislatura.objects.latest('numero')
+                numero = ultima_legislatura.numero + 1
+            except Legislatura.DoesNotExist:
+                numero = 1
+            return {'numero': numero}
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = LegislaturaUpdateForm
 
 
 class FiliacaoCrud(MasterDetailCrud):
@@ -267,9 +279,14 @@ class MesaDiretoraView(FormView):
                 not SessaoLegislativa.objects.exists()):
             return self.validation(request)
 
-        mesa = SessaoLegislativa.objects.filter(
+        sessao = SessaoLegislativa.objects.filter(
             legislatura=Legislatura.objects.first()).first(
-        ).composicaomesa_set.all()
+        )
+
+        if sessao:
+            mesa = sessao.composicaomesa_set.all()
+        else:
+            mesa = []
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()

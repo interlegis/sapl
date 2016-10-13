@@ -757,7 +757,28 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
                            args=args)
 
         def has_permission(self):
-            return self.request.user.has_module_perms('materia')
+            perms = self.get_permission_required()
+            # Torna a view pública se não possuir conteudo
+            # no atributo permission_required
+            return self.request.user.has_module_perms('materia')\
+                if len(perms) else True
+
+        def permission(self, rad):
+            return '%s%s%s' % ('norma' if rad.endswith('_') else '',
+                               rad,
+                               self.model_name if rad.endswith('_') else '')
+
+        @property
+        def detail_create_url(self):
+            obj = self.crud if hasattr(self, 'crud') else self
+            if self.request.user.has_module_perms('materia'):
+                parent_field = obj.parent_field.split('__')[0]
+                parent_object = getattr(self.object, parent_field)
+
+                root_pk = parent_object.pk
+
+                return self.resolve_url(ACTION_CREATE, args=(root_pk,))
+            return ''
 
         @property
         def list_url(self):
@@ -801,6 +822,9 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
         @property
         def layout_key(self):
             return 'LegislacaoCitadaDetail'
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass
 
 
 class NumeracaoCrud(MasterDetailCrud):

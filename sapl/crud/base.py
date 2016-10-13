@@ -94,6 +94,7 @@ variáveis do crud:
     ordered_list = False desativa os clicks e controles de ord da listagem
     parent_field = parentesco reverso separado por '__'
     namespace
+    return_parent_field_url
 """
 
 
@@ -918,6 +919,7 @@ class CrudAux(Crud):
 
 class MasterDetailCrud(Crud):
     is_m2m = False
+    link_return_to_parent_field = False
 
     class BaseMixin(Crud.BaseMixin):
 
@@ -978,20 +980,23 @@ class MasterDetailCrud(Crud):
                         parent_object = getattr(parent_object, field)
                 else:
                     parent_object = getattr(self.object, obj.parent_field)
+
                 if not isinstance(parent_object, models.Model):
                     if parent_object.count() > 1:
                         if 'pkk' not in self.request.GET:
-                            raise Http404
+                            raise Http404()
                         root_pk = self.request.GET['pkk']
                         parent_object = parent_object.filter(id=root_pk)
 
                     parent_object = parent_object.first()
 
                     if not parent_object:
-                        raise Http404
+                        raise Http404()
+
                 root_pk = parent_object.pk
             else:
-                root_pk = self.kwargs['pk']  # in list and create
+                root_pk = self.kwargs['pk'] if 'pkk' not in self.request.GET\
+                    else self.request.GET['pkk']
             kwargs.setdefault('root_pk', root_pk)
             context = super(CrudBaseMixin, self).get_context_data(**kwargs)
 
@@ -1066,11 +1071,11 @@ class MasterDetailCrud(Crud):
             obj = self.crud if hasattr(self, 'crud') else self
             form = super(MasterDetailCrud.CreateView, self).get_form(
                 self.form_class)
-            if not obj.is_m2m:
-                parent_field = obj.parent_field.split('__')[0]
-                field = self.model._meta.get_field(parent_field)
+            parent_field = obj.parent_field.split('__')
+            if not obj.is_m2m or len(parent_field) > 1:
+                field = self.model._meta.get_field(parent_field[0])
                 parent = field.related_model.objects.get(pk=self.kwargs['pk'])
-                setattr(form.instance, parent_field, parent)
+                setattr(form.instance, parent_field[0], parent)
             return form
 
         def get_context_data(self, **kwargs):
@@ -1118,8 +1123,14 @@ class MasterDetailCrud(Crud):
 
         def get_success_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
-            parent_object = getattr(
-                self.get_object(), obj.parent_field)
+            if '__' in obj.parent_field:
+                fields = obj.parent_field.split('__')
+                parent_object = self.object
+                for field in fields:
+                    parent_object = getattr(parent_object, field)
+                    break
+            else:
+                parent_object = getattr(self.object, obj.parent_field)
             if not isinstance(parent_object, models.Model):
                 if parent_object.count() > 1:
                     if 'pkk' not in self.request.GET:
@@ -1134,7 +1145,15 @@ class MasterDetailCrud(Crud):
             root_pk = parent_object.pk
 
             pk = root_pk
-            return self.resolve_url(ACTION_LIST, args=(pk,))
+
+            if obj.is_m2m:
+                namespace = parent_object._meta.app_config.name
+                return reverse('%s:%s' % (
+                    namespace,
+                    '%s_%s' % (parent_object._meta.model_name, ACTION_DETAIL)),
+                    args=(pk,))
+            else:
+                return self.resolve_url(ACTION_LIST, args=(pk,))
 
     class DetailView(Crud.DetailView):
         permission_required = RP_DETAIL,
@@ -1147,7 +1166,11 @@ class MasterDetailCrud(Crud):
         @property
         def detail_list_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
-            if not obj.ListView.permission_required or\
+
+            if not obj.ListView:
+                return ''
+
+            if obj.ListView.permission_required not in obj.public or\
                     self.request.user.has_perm(self.permission(RP_LIST)):
                 if '__' in obj.parent_field:
                     fields = obj.parent_field.split('__')
@@ -1197,8 +1220,20 @@ class MasterDetailCrud(Crud):
                     if not parent_object:
                         raise Http404
                 root_pk = parent_object.pk
-                pk = root_pk
-                return self.resolve_url(ACTION_CREATE, args=(pk,))
+
+                url = self.resolve_url(ACTION_CREATE, args=(root_pk,))
+                if not obj.is_m2m:
+                    return url
+                else:
+                    if '__' in obj.parent_field:
+                        fields = obj.parent_field.split('__')
+                        parent_object = self.object
+                        for field in fields:
+                            parent_object = getattr(parent_object, field)
+                    else:
+                        parent_object = getattr(self.object, obj.parent_field)
+
+                    return url + '?pkk=' + str(parent_object.pk)
             else:
                 return ''
 
@@ -1208,29 +1243,61 @@ class MasterDetailCrud(Crud):
             if hasattr(obj, 'model_set') and obj.model_set\
                     and self.request.user.has_perm(
                         self.permission_set(RP_ADD)):
-                root_pk = self.object .pk
+                root_pk = self.object.pk
                 pk = root_pk
-                return self.resolve_url_set(ACTION_CREATE, args=(pk,))
+
+                url = self.resolve_url_set(ACTION_CREATE, args=(pk,))
+                if not obj.is_m2m:
+                    return url
+                else:
+                    if '__' in obj.parent_field:
+                        fields = obj.parent_field.split('__')
+                        parent_object = self.object
+                        for field in fields:
+                            parent_object = getattr(parent_object, field)
+                    else:
+                        parent_object = getattr(self.object, obj.parent_field)
+
+                    return url + '?pkk=' + str(parent_object.pk)
+
             else:
                 return ''
 
         @property
         def detail_root_detail_url(self):
-            """
-            Implementar retorno para o parent_field imediato no caso de
-            edição em cascata de MasterDetailDetail...
-            """
+            obj = self.crud if hasattr(self, 'crud') else self
+            if not obj.link_return_to_parent_field:
+                return ''
+            if hasattr(obj, 'parent_field'):
+                parent_field = obj.parent_field.split('__')
+                if not obj.is_m2m or len(parent_field) > 1:
+                    field = self.model._meta.get_field(parent_field[0])
+
+                    if isinstance(getattr(
+                            self.object, parent_field[0]), models.Model):
+                        parent_object = getattr(self.object, parent_field[0])
+
+                        root_pk = parent_object.pk
+                        pk = root_pk
+
+                        namespace = parent_object._meta.app_config.name
+                        return reverse('%s:%s' % (
+                            namespace,
+                            '%s_%s' % (parent_object._meta.model_name,
+                                       ACTION_DETAIL)),
+                                       args=(pk,))
             return ''
 
+        @property
+        def detail_root_detail_verbose_name(self):
             obj = self.crud if hasattr(self, 'crud') else self
             if hasattr(obj, 'parent_field'):
-                # parent_field = obj.parent_field.split('__')[0]
+                parent_field = obj.parent_field.split('__')
+                if not obj.is_m2m or len(parent_field) > 1:
+                    field = self.model._meta.get_field(parent_field[0])
 
-                root_pk = self.object .pk
-                pk = root_pk
-                return self.resolve_url(ACTION_DELETE, args=(pk,))
-            else:
-                return ''
+                    return field.verbose_name
+            return ''
 
     @classonlymethod
     def build(cls, model, parent_field, help_path,
