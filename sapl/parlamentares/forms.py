@@ -16,42 +16,65 @@ class ImageThumbnailFileInput(ClearableFileInput):
     template_name = 'floppyforms/image_thumbnail.html'
 
 
+def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
+
+    # Verifica se data de eleição < inicio < fim
+    if inicio >= fim or eleicao >= inicio:
+        msg_error = _('A data início deve ser menor que a ' +
+                      'data fim, e a data eleição deve ser ' +
+                      'menor que a data início')
+        return [False, msg_error]
+
+    # Verifica se há alguma data cadastrada no intervalo de tempo desejado
+    if Legislatura.objects.filter(
+            data_inicio__range=[inicio, fim]).exclude(pk=pk).exists()\
+        or Legislatura.objects.filter(
+            data_fim__range=[inicio, fim]).exclude(pk=pk).exists():
+        msg_error = _('Já existe uma legislatura neste intervalo de datas')
+        return [False, msg_error]
+
+    # Verifica se há alguma outra data de eleição cadastrada
+    if Legislatura.objects.filter(
+            data_eleicao=eleicao).exclude(pk=pk).exists():
+        msg_error = _('Esta data de eleição já foi cadastrada')
+        return [False, msg_error]
+
+    return [True, '']
+
+
 class LegislaturaForm(ModelForm):
 
     class Meta:
         model = Legislatura
         exclude = []
-        widgets = {'numero': forms.HiddenInput(), }
-
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        data_inicio = cleaned_data['data_inicio']
-        data_fim = cleaned_data['data_fim']
-        data_eleicao = cleaned_data['data_eleicao']
-
-        if data_inicio >= data_fim or data_eleicao >= data_inicio:
-            raise ValidationError(_('A data início deve ser menor que a ' +
-                                    'data fim, e a data eleição deve ser ' +
-                                    'menor que a data início'))
-        return cleaned_data
 
 
 class LegislaturaCreateForm(LegislaturaForm):
 
     def clean(self):
-        cleaned_data = super(LegislaturaCreateForm, self).clean()
+        cleaned_data = self.cleaned_data
+        eleicao = cleaned_data['data_eleicao']
         inicio = cleaned_data['data_inicio']
         fim = cleaned_data['data_fim']
+
+        valida_datas = validar_datas_legislatura(eleicao, inicio, fim)
+        if not valida_datas[0]:
+            raise ValidationError(valida_datas[1])
+        return cleaned_data
+
+
+class LegislaturaUpdateForm(LegislaturaCreateForm):
+
+    def clean(self):
+        cleaned_data = super(LegislaturaCreateForm, self).clean()
         eleicao = cleaned_data['data_eleicao']
-        if Legislatura.objects.filter(
-                data_inicio__range=[inicio, fim]).exists() or \
-            Legislatura.objects.filter(
-                data_fim__range=[inicio, fim]).exists():
-            raise ValidationError(
-                _('Já existe uma legislatura neste intervalo de datas'))
-        if Legislatura.objects.filter(data_eleicao=eleicao):
-            raise ValidationError(
-                _('Esta data de eleição já foi cadastrada'))
+        inicio = cleaned_data['data_inicio']
+        fim = cleaned_data['data_fim']
+
+        valida_datas = validar_datas_legislatura(
+            eleicao, inicio, fim, pk=self.instance.pk)
+        if not valida_datas[0]:
+            raise ValidationError(valida_datas[1])
         return cleaned_data
 
 

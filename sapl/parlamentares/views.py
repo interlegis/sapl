@@ -3,7 +3,6 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
-from django.views.generic.edit import ModelFormMixin
 
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -12,8 +11,9 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
-from .forms import (FiliacaoForm, LegislaturaForm, LegislaturaCreateForm,
-                    ParlamentarCreateForm, ParlamentarForm)
+from .forms import (FiliacaoForm, LegislaturaCreateForm,
+                    LegislaturaUpdateForm, ParlamentarCreateForm,
+                    ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -161,17 +161,8 @@ class LegislaturaCrud(CrudAux):
                 numero = 1
             return {'numero': numero}
 
-        def form_valid(self, form):
-            self.object = form.save()
-            queryset = Legislatura.objects.all().order_by('data_inicio')
-            for i, obj in enumerate(queryset):
-                obj.numero = i + 1
-                obj.save()
-
-            return super(ModelFormMixin, self).form_valid(form)
-
     class UpdateView(CrudAux.UpdateView):
-        form_class = LegislaturaForm
+        form_class = LegislaturaUpdateForm
 
 
 class FiliacaoCrud(MasterDetailCrud):
