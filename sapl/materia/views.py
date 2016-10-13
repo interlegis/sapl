@@ -31,12 +31,13 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, CrudDetailView, MasterDetailCrud,
                             make_pagination)
+from sapl.materia import apps
 from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm)
+                        permissoes_protocoloadm, permission_required_for_app)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AutorForm, ConfirmarProposicaoForm, DocumentoAcessorioForm,
@@ -52,6 +53,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autor, Autoria,
                      Relatoria, StatusTramitacao, TipoAutor, TipoDocumento,
                      TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
                      Tramitacao, UnidadeTramitacao)
+
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -103,6 +105,7 @@ class ProposicaoTaView(IntegracaoTaView):
             return self.get_redirect_deactivated()
 
 
+@permission_required_for_app(app_label=apps.AppConfig.label)
 def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     materia = MateriaLegislativa.objects.filter(tipo=tipo).last()

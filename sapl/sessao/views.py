@@ -16,7 +16,6 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
-from rest_framework import generics
 
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -29,6 +28,7 @@ from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import (Legislatura, Parlamentar,
                                        SessaoLegislativa)
+from sapl.sessao import apps
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import permission_required_for_app
@@ -44,6 +44,7 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
+
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
@@ -83,6 +84,7 @@ def reordernar_materias_ordem(request, pk):
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
 
+@permission_required_for_app(app_label=apps.AppConfig.label)
 def abrir_votacao_expediente_view(request, pk, spk):
     existe_votacao_aberta = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
@@ -99,6 +101,7 @@ def abrir_votacao_expediente_view(request, pk, spk):
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
+@permission_required_for_app(app_label=apps.AppConfig.label)
 def abrir_votacao_ordem_view(request, pk, spk):
     existe_votacao_aberta = OrdemDia.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
@@ -442,6 +445,7 @@ class SessaoCrud(Crud):
             return RedirectView.get(self, request, *args, **kwargs)
 
     class UpdateView(Crud.UpdateView):
+
         def get_initial(self):
             return {'sessao_legislativa': self.object.sessao_legislativa}
 
