@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 import pytest
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
+from sapl.materia.views import recuperar_materia
 from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
 from scripts.lista_urls import lista_urls
 
@@ -152,7 +153,8 @@ apps_url_patterns_prefixs_and_users = {
         'prefixs': [
             '/sistema',
             '/login',
-            '/logout'
+            '/logout',
+            '/ajuda'
         ]},
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],
@@ -260,72 +262,39 @@ def test_urlpatterns(url_item, admin_client):
 
 
 urls_publicas_excecoes = {
-    'get': [
-        '/materia/confirmar/1/1',
-        '/materia/pesquisar-materia',
-        '/mesa-diretora/',
-        '/norma/pesquisa',
+    'all': {
         '/sessao/1/expediente',
         '/sessao/1/mesa',
         '/sessao/1/presenca',
         '/sessao/1/presencaordemdia',
-        '/sessao/1/resumo',
-        '/sessao/pauta-sessao',
-        '/sessao/pauta-sessao/1',
-        '/sessao/pauta-sessao/pesquisar-pauta',
-        '/sessao/pesquisar-sessao',
         '/sessao/1/reordenar-expediente',
         '/sessao/1/reordenar-ordem',
+        '/sessao/1/resumo',
 
-        '/proposicao/1/ta',  # FIXME Compilação deverá tratar
-        '/materia/1/ta',
-        '/norma/1/ta',
+        '/sessao/pauta-sessao',
+        '/sessao/pauta-sessao/1',
+        '/sessao/pauta-sessao/1/ordem/',
+        '/sessao/pauta-sessao/1/expediente/',
+        '/sessao/pauta-sessao/pesquisar-pauta',
 
-        '/comissao/1/materias-em-tramitacao',
+        '/sessao/pesquisar-sessao',
+        '/sessao/sessao-legislativa-legislatura-ajax/',
 
-        '/proposicao/',
-        '/proposicao/1',
-        '/proposicao/1/delete',
-        '/proposicao/1/edit',
+        # Usado na ed de Sessão Plenária, mas irrelevante ser acesso restrito
+        '/sessao/recuperar-numero-sessao/',
+
+        # irrelevante o acesso restrito.
+        '/sessao/recuperar-materia/',
+
+        # FIXME deve ser retirado de protocolo
         '/protocoloadm/pesquisar-autor',
 
-        '/sistema/relatorios/presenca',
-        '/sistema/relatorios/materia-por-tramitacao',
-        '/sistema/relatorios/materia-por-autor',
-        '/sistema/relatorios/materia-por-ano-autor-tipo',
-        '/sistema/relatorios/historico-tramitacoes',
-        '/sistema/relatorios/atas',
-        '/sistema/relatorios/',
-        '/sistema/ajuda/1',
-        '/sistema/ajuda/',
-    ],
-    'post': [
-        '/norma/pesquisa-resultado',
-        '/mesa-diretora/',  # tratamento de permissão interno.
-        '/sessao/1/resumo',
-        '/sessao/pauta-sessao',
-        '/sessao/pauta-sessao/1',
-        '/sessao/pauta-sessao/1/expediente/',
-        '/sessao/pauta-sessao/1/ordem/',
-        '/sessao/pesquisar-sessao',
-        '/sessao/1/reordenar-expediente',
-        '/sessao/1/reordenar-ordem',
-        '/sessao/pauta-sessao/pesquisar-pauta',
-        '/sessao/pesquisar-sessao',
-
-        '/comissao/1/materias-em-tramitacao',
-
+        # FIXME Compilação deverá tratar
         '/proposicao/1/ta',
         '/materia/1/ta',
         '/norma/1/ta',
-        '/materia/confirmar/1/1',
-        '/materia/pesquisar-materia',
 
-        '/proposicao/',
-        '/proposicao/1',
-        '/proposicao/1/delete',
-        '/proposicao/1/edit',
-        '/protocoloadm/pesquisar-autor',
+        '/comissao/1/materias-em-tramitacao',
 
         '/sistema/relatorios/presenca',
         '/sistema/relatorios/materia-por-tramitacao',
@@ -336,15 +305,67 @@ urls_publicas_excecoes = {
         '/sistema/relatorios/',
         '/sistema/ajuda/1',
         '/sistema/ajuda/',
+        '/ajuda/',
+
+        '/materia/confirmar/1/1',
+        '/materia/pesquisar-materia',
+
+        # usado na edição de matérias mas com restrição irrelevante
+        '/materia/recuperar_materia',
+
+        '/mesa-diretora/',  # tratamento de permissão interno.
+        '/norma/pesquisa',
+        '/norma/pesquisa-resultado',
+
+        # FIXME Retirar da lista de exceções quando proposição refatorada
+        '/proposicao/',
+        '/proposicao/1',
+        '/proposicao/create',
+        '/proposicao/1/edit',
+        '/proposicao/1/delete',
+
+    },
+    'get': [
+
+    ],
+    'post': [
+
     ]
 }
+
+"""
+# gerar uma instancia de teste para cada usuário não foi possível. São 500
+urls para cada operador. Isso fez com que o Travis estourasse o tempo de 
+processamento do teste... passando de 2hs... até outro modo, a estratégia de
+encapsular apenas as urls e testar em loop os operadores será mantida.
+
+operadores = ["operador_protocoloadm",
+              "operador_comissoes",
+              "operador_materia",
+              "operador_norma",
+              "operador_sessao",
+              "operador_painel",
+              "operador_geral",
+              "operador_autor",
+              "operador_administrativo", ]
+
+__lista_urls = []
+for item in _lista_urls:
+    for oper in operadores:
+        __lista_urls.append((oper, item))"""
 
 
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_permissions_urls_for_users_by_apps(url_item, client):
+
+    # username, url_item = request_com_oper_na_url
     key, url, var, app_name = url_item
+
     url = '/' + (url % {v: 1 for v in var})
+
+    if url in urls_publicas_excecoes['all']:
+        return
 
     if not get_user_model().objects.exists():
         for app in sapl_appconfs:
@@ -354,7 +375,8 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
         # cria usuários de perfil do sapl
         cria_grupos_permissoes()
 
-    users = get_user_model().objects.values_list('username', flat=True)
+    users = get_user_model().objects.order_by(
+        'username').values_list('username', flat=True)
 
     app_labels = app_name.split('.')[1]
 
@@ -469,24 +491,27 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                 def _assert_login(_in):
                     if _in:
                         assert btn_login in content, """
-                            No teste de requisição "%s" a url (%s).
-                            App (%s)
-                            O usuário (%s) deveria ser redirecionado
-                            para tela de login.
-                            """ % (_type, url, app, username)
-                    else:
-                        assert btn_login not in content, """
-                            No teste de requisição "%s" a url (%s).
-                            App (%s)
-                            O usuário (%s) não deveria ser redirecionado
-                            para tela de login. Se essa é uma url
-                            invariavelmente pública, a adicione na variavel
-                            abaixo localizada no arquivo que se encontra este
-                            teste:
+            No teste de requisição "%s" a url (%s). App (%s)
+            O usuário (%s) deveria ser redirecionado para tela de login.
+            Observe que o teste é suspenso no primeiro usuário que o erro
+            foi encontrado. Resolver especificamente para o usuário citado,
+            não significa que estará resolvido para todos os outros.
+            Se essa é uma url invariavelmente pública, a adicione na variavel
+            abaixo localizada no arquivo que se encontra este teste:
 
                                 urls_publicas_excecoes
+            """ % (_type, url, app, username)
+                    else:
+                        assert btn_login not in content, """
+            No teste de requisição "%s" a url (%s). App (%s)
+            O usuário (%s) não deveria ser redirecionado para tela de login.
+            Observe que o teste é suspenso no primeiro usuário que o erro
+            foi encontrado. Resolver especificamente para o usuário citado,
+            não significa que estará resolvido para todos os outros.
+            Se essa é uma url invariavelmente pública, a adicione na variavel
+            abaixo localizada no arquivo que se encontra este teste:
 
-
+                                urls_publicas_excecoes
                             """ % (_type, url, app, username)
 
                 if username not in users_for_url_atual_app:
