@@ -3,80 +3,87 @@
 {% block actions %} {% endblock %}
 
 {% block detail_content %}
-	<form method="POST">
-		{% csrf_token %}
-		<fieldset class="form-group">
-			<legend>Escolha da Legislatura e da Sessão Legislativa</legend>
-	    <div class="row">
-	      <div class="col-md-6">
-	        <label>Escolha uma Legislatura</label>
-	        <select name="legislatura" class="form-control" onChange="form.submit();">
-	          {% for l in legislaturas %}
-	          	<option value="{{l.id}}" {% if l == legislatura_selecionada %} selected {% endif %}>
-	          		{{l}}
-	          	</option>
-	          {% endfor %}
-	        </select>
-	      </div>
-	      <div class="col-md-6">
-	        <label>Escolha uma Sessão Legislativa</label>
-	        <select name="sessao" class="form-control" onChange="form.submit();">
-	          {% for s in sessoes %}
-	          	<option value="{{s.id}}" {% if s == sessao_selecionada %} selected {% endif %}>
-	          		{{s}}
-	          	</option>
-	          {% endfor %}
-	        </select>
-	      </div>
-	    </div>
-		</fieldset>
-		<br />
-		<fieldset class="form-group">
-			<legend>Escolha da Composição da Mesa Diretora</legend>
-	    <div class="row">
-	      <div class="col-md-4">
-	        <label>Composição da Mesa Diretora</label>
-	        <select multiple size="5" class="form-control" name="composicao_mesa">
-	          {% for p in composicao_mesa %}
-		          <option value="{{p.parlamentar.id}}:{{p.cargo.id}}">
-		          	{{p.parlamentar}} || {{p.cargo}}
-		          </option>
-	          {% endfor %}
-	        </select>
-	      </div>
+	{% if sessoes|length == 0 %}
+		<div class="alert alert-danger alert-dismissible fade in" role="alert">
+			<b>{{legislatura_selecionada}}</b> não possui nenhuma Sessão Legislativa cadastrada.<br />
+			Clique <a href="{% url 'sapl.parlamentares:sessaolegislativa_create' %}">aqui</a> para cadastrar uma nova.
+		</div>
+	{% else %}
+		<form method="POST">
+			{% csrf_token %}
+			<fieldset class="form-group">
+				<legend>Escolha da Legislatura e da Sessão Legislativa</legend>
+		    <div class="row">
+		      <div class="col-md-6">
+		        <label>Escolha uma Legislatura</label>
+		        <select name="legislatura" class="form-control" onChange="form.submit();">
+		          {% for l in legislaturas %}
+		          	<option value="{{l.id}}" {% if l == legislatura_selecionada %} selected {% endif %}>
+		          		{{l}}
+		          	</option>
+		          {% endfor %}
+		        </select>
+		      </div>
+		      <div class="col-md-6">
+		        <label>Escolha uma Sessão Legislativa</label>
+		        <select name="sessao" class="form-control" onChange="form.submit();">
+		          {% for s in sessoes %}
+		          	<option value="{{s.id}}" {% if s == sessao_selecionada %} selected {% endif %}>
+		          		{{s}}
+		          	</option>
+		          {% endfor %}
+		        </select>
+		      </div>
+		    </div>
+			</fieldset>
+			<br />
+			<fieldset class="form-group">
+				<legend>Escolha da Composição da Mesa Diretora</legend>
+		    <div class="row">
+		      <div class="col-md-4">
+		        <label>Composição da Mesa Diretora</label>
+		        <select multiple size="5" class="form-control" name="composicao_mesa">
+		          {% for p in composicao_mesa %}
+			          <option value="{{p.parlamentar.id}}:{{p.cargo.id}}">
+			          	{{p.parlamentar}} || {{p.cargo}}
+			          </option>
+		          {% endfor %}
+		        </select>
+		      </div>
 
-	      <div class="col-md-4" align="center">
-					<br /><br />
-	        {% if cargos_vagos %}
-	        	{% if perms.parlamentares.add_cargomesa %}
-	        		<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />
-	        	{% endif %}
-	        {% endif %}
-	        <br />
-	        <br />
-	        {% if perms.parlamentares.add_composicaomesa %}
-	        	<input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
-	        {% endif %}
-	      </div>
+		      <div class="col-md-4" align="center">
+						<br /><br />
+		        {% if cargos_vagos %}
+		        	{% if perms.parlamentares.add_cargomesa %}
+		        		<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />
+		        	{% endif %}
+		        {% endif %}
+		        <br />
+		        <br />
+		        {% if perms.parlamentares.add_composicaomesa %}
+		        	<input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
+		        {% endif %}
+		      </div>
 
-	      {% if cargos_vagos %}
-	      <div class="col-md-4">
-	        <label>Parlamentare | Cargo</label>
-	        <select class="form-control" name="parlamentar" id="parlamentar">
-	          {% for p in parlamentares %}
-	          	<option value="{{p.id}}">{{p.nome_completo}}</option>
-	          {% endfor %}
-	        </select>
-					<br />
-	        <select class="form-control" name="cargo" id="cargo">
-	          {% for c in cargos_vagos %}
-	          	<option value="{{c.id}}">{{c}}</option>
-	          {% endfor %}
-	        </select>
-	      </div>
-	      {% endif %}
+		      {% if cargos_vagos %}
+		      <div class="col-md-4">
+		        <label>Parlamentare | Cargo</label>
+		        <select class="form-control" name="parlamentar" id="parlamentar">
+		          {% for p in parlamentares %}
+		          	<option value="{{p.id}}">{{p.nome_completo}}</option>
+		          {% endfor %}
+		        </select>
+						<br />
+		        <select class="form-control" name="cargo" id="cargo">
+		          {% for c in cargos_vagos %}
+		          	<option value="{{c.id}}">{{c}}</option>
+		          {% endfor %}
+		        </select>
+		      </div>
+		      {% endif %}
 
-	    </div>
-		</fieldset>
-	</form>
+		    </div>
+			</fieldset>
+		</form>
+	{% endif %}
 {% endblock detail_content %}
