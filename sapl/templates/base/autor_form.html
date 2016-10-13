@@ -13,13 +13,13 @@ $(document).ready(function(){
   var active = function(str) {
     if (str == 'nome') {
       $('#id_nome, #id_q').val('');
-      $('#div_id_nome').removeClass('hidden');
+      $('.div_nome_cargo').removeClass('hidden');
       $("#div_id_autor_related .controls").html('');
       $("[data-application='AutorSearch'], .radiogroup-autor-related").addClass('hidden');
     }
     else {
       $('#id_nome').val('');
-      $('#div_id_nome').addClass('hidden');
+      $('.div_nome_cargo').addClass('hidden');
       $("#div_id_autor_related .alert").remove();
       $("[data-application='AutorSearch'], .radiogroup-autor-related").removeClass('hidden');
     }

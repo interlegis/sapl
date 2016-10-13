@@ -1,6 +1,7 @@
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
+from crispy_forms.templatetags.crispy_forms_field import css_class
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -138,6 +139,7 @@ class AutorForm(ModelForm):
         model = Autor
         fields = ['tipo',
                   'nome',
+                  'cargo',
                   'autor_related',
                   'q',
                   'action_user',
@@ -160,9 +162,10 @@ class AutorForm(ModelForm):
             data_application='AutorSearch',
             data_field='autor_related')
 
-        autor_select = Row(to_column(('tipo', 4)),
-                           to_column(('nome', 8)),
-                           to_column((autor_related, 8)),
+        autor_select = Row(to_column(('tipo', 3)),
+                           Div(to_column(('nome', 5)),
+                               to_column(('cargo', 4)), css_class="div_nome_cargo"),
+                           to_column((autor_related, 9)),
                            to_column((Div(
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
@@ -205,7 +208,14 @@ class AutorForm(ModelForm):
                 self.fields['username'].label = string_concat(
                     self.fields['username'].label,
                     ' (', self.instance.user.username, ')')
+                self.fields['status_user'].label = string_concat(
+                    self.fields['status_user'].label,
+                    ' (', self.instance.user.username, ')')
             self.fields['username'].widget.attrs.update({
+                'data': self.instance.user.username
+                if self.instance.user else ''})
+
+            self.fields['status_user'].widget.attrs.update({
                 'data': self.instance.user.username
                 if self.instance.user else ''})
 
@@ -227,10 +237,10 @@ class AutorForm(ModelForm):
 
         if self.instance.pk and self.instance.user_id:
             if self.instance.user.username != cd['username']:
-                if 'status_user' not in cd or cd['status_user']:
+                if 'status_user' not in cd or not cd['status_user']:
                     raise ValidationError(
                         _('Foi trocado ou removido o usuário deste Autor, '
-                          'mas não foi informado com se deve proceder com o '
+                          'mas não foi informado como se deve proceder com o '
                           'usuário que está sendo desvinculado?'))
 
         qs_user = User.objects.all()
