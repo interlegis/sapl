@@ -29,6 +29,7 @@ NATUREZA_PROCESSO = [('', 'Ambos'),
 def ANO_CHOICES():
     return [('', '---------')] + RANGE_ANOS
 
+
 EM_TRAMITACAO = [('', 'Tanto Faz'),
                  (0, 'Sim'),
                  (1, 'Não')]

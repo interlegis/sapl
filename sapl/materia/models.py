@@ -7,7 +7,11 @@ from sapl.comissoes.models import Comissao
 from sapl.parlamentares.models import Parlamentar, Partido
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         get_settings_auth_user_model,
-                        restringe_tipos_de_arquivo_txt, xstr)
+                        restringe_tipos_de_arquivo_txt)
+
+
+EM_TRAMITACAO = [(1, 'Sim'),
+                 (0, 'Não')]
 
 
 def grupo_autor():
@@ -109,7 +113,7 @@ class MateriaLegislativa(models.Model):
     em_tramitacao = models.BooleanField(
         verbose_name=_('Em Tramitação?'),
         default=False,
-        choices=YES_NO_CHOICES)
+        choices=EM_TRAMITACAO)
     polemica = models.NullBooleanField(
         blank=True, verbose_name=_('Matéria Polêmica?'))
     objeto = models.CharField(
