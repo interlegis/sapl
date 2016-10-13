@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.views.generic import ListView
 
-from sapl.crud.base import Crud, CrudAux, MasterDetailCrud
+from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, RP_DETAIL, RP_LIST
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
@@ -27,39 +27,29 @@ TipoComissaoCrud = CrudAux.build(
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
     parent_field = 'composicao__comissao'
+    public = [RP_DETAIL, ]
+    ListView = None
+    is_m2m = True
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['composicao', 'parlamentar', 'cargo']
-
-    class DetailView(MasterDetailCrud.DetailView):
-        permission_required = []
 
 
 class ComposicaoCrud(MasterDetailCrud):
     model = Composicao
     parent_field = 'comissao'
     model_set = 'participacao_set'
-
-    class ListView(MasterDetailCrud.ListView):
-        permission_required = []
-
-    class DetailView(MasterDetailCrud.DetailView):
-        permission_required = []
+    public = [RP_LIST, RP_DETAIL, ]
 
 
 class ComissaoCrud(Crud):
     model = Comissao
     help_path = 'modulo_comissoes'
+    public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
         ordering = '-ativa', 'sigla'
-
-    class ListView(Crud.ListView):
-        permission_required = []
-
-    class DetailView(Crud.DetailView):
-        permission_required = []
 
 
 class MateriasTramitacaoListView(ListView):
