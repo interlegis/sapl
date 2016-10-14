@@ -15,7 +15,7 @@ from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
 from sapl.base.apps import AppConfig as AppsAppConfig
-from sapl.base.models import AppConfig
+from sapl.base.models import AppConfig, Autor
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
@@ -26,7 +26,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm)
-from .models import (Autor, DocumentoAcessorioAdministrativo,
+from .models import (DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
@@ -585,6 +585,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         pass
 
 
+"""
 def get_nome_autor(request):
     nome_autor = ''
     if request.method == 'GET':
@@ -598,19 +599,19 @@ def get_nome_autor(request):
         except ObjectDoesNotExist:
             pass
     return HttpResponse("{\"nome\":\"" + nome_autor + "\"}",
-                        content_type="application/json; charset=utf-8")
+                        content_type="application/json; charset=utf-8")"""
 
-
+"""
 def pesquisa_autores(request):
     q = ''
     if request.method == 'GET':
         q = request.GET.get('q', '')
 
-    """autor = Autor.objects.filter(
+    autor = Autor.objects.filter(
         Q(nome__icontains=q) |
         Q(parlamentar__nome_parlamentar__icontains=q) |
         Q(comissao__nome__icontains=q)
-    )"""
+    )
 
     autor = Autor.objects.filter(nome__icontains=q)
 
@@ -633,3 +634,4 @@ def pesquisa_autores(request):
                                    sort_keys=True,
                                    ensure_ascii=False),
                         content_type="application/json; charset=utf-8")
+"""
