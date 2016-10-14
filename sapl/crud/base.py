@@ -234,14 +234,13 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             if hasattr(obj, 'public'):
                 self.permission_required = list(
                     set(self.permission_required) - set(obj.public))
-
-            self.permission_required = tuple((
-                self.permission(pr) for pr in self.permission_required))
-
-            if not hasattr(obj, 'públic'):
+            else:
                 obj.public = list(
                     set(self.permission_required) -
                     set((RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE)))
+
+            self.permission_required = tuple((
+                self.permission(pr) for pr in self.permission_required))
 
         else:
             obj.public = []
