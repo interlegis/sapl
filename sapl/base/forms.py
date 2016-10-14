@@ -228,9 +228,6 @@ class AutorForm(ModelForm):
         User = get_user_model()
         cd = self.cleaned_data
 
-        if 'username' not in cd or not cd['username']:
-            raise ValidationError(_('O username deve ser informado.'))
-
         if 'action_user' not in cd or not cd['action_user']:
             raise ValidationError(_('Informe se o Autor terá usuário '
                                     'vinculado para acesso ao Sistema.'))
@@ -292,6 +289,10 @@ class AutorForm(ModelForm):
                       '"Criar novo Usuário".') % cd['username'])
 
         if cd['action_user'] != 'N':
+
+            if 'username' not in cd or not cd['username']:
+                raise ValidationError(_('O username deve ser informado.'))
+
             if qs_autor.filter(user__username=cd['username']).exists():
                 raise ValidationError(
                     _('Já existe um Autor para este usuário.'))
@@ -333,7 +334,6 @@ class AutorForm(ModelForm):
 
     @transaction.atomic
     def save(self, commit=False):
-        print('aqui')
         autor = super(AutorForm, self).save(commit)
 
         user_old = autor.user if autor.user_id else None
@@ -349,6 +349,7 @@ class AutorForm(ModelForm):
             u.set_password(self.cleaned_data['senha'])
             # Define usuário como ativo em ambiente de desenvolvimento
             # pode logar sem a necessidade de passar pela validação de email
+            # troque par False para testar o envio de email em desenvolvimento
             u.is_active = settings.DEBUG
             u.save()
         autor.user = u
@@ -384,7 +385,7 @@ class AutorForm(ModelForm):
 
                 elif self.cleaned_data['status_user'] == 'R':
                     user_old.groups.remove(grupo)
-            else:
+            elif user_old:
                 user_old.groups.remove(grupo)
 
         return autor

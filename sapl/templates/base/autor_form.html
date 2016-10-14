@@ -26,19 +26,20 @@ $(document).ready(function(){
   }
   var update_search = function(pk, atualizar=true) {
     var q = $('#id_q').val();
-    var url = '{% url 'sapl.api:autores_possiveis_pelo_tipo' 0 %}'
-    url = url.replace('0', pk);
+
+    var url = '{% url 'sapl.api:autor_list'%}'
 
     var formData = {
-          'q'      : q,
-          'format' : 'json',
+          'q'         : q,
+          'tipo'      : pk,
+          'provaveis' : ''
     }
     $.get(url, formData).done(function(data) {
         active('pesquisa');
         if (atualizar) {
           var radios = $("#div_id_autor_related .controls").html('');
           data.models.forEach(function (val, index) {
-            var html_radio = '<label class="radio"><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.pk+'">'+val.display+'</label>';
+            var html_radio = '<label class="radio"><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.value+'">'+val.text+'</label>';
             radios.append(html_radio);
           });
 
@@ -66,6 +67,7 @@ $(document).ready(function(){
         active('nome');
       });
   }
+
   $('#id_tipo').change(function(event) {
     if (event.target.selectedIndex == 0) {
       $('#id_nome, #id_q').val('');
@@ -77,10 +79,12 @@ $(document).ready(function(){
       update_search(pk, false)
     }
   });
+
   $('.btn-filtrar-autor').click(function(event) {
     var pk = $('#id_tipo').val();
     update_search(pk);
   });
+
   $('input[name=action_user]').change(function(event) {
     if (!this.checked)
       return;
@@ -115,10 +119,9 @@ $(document).ready(function(){
             || (event.target.value == 'C' && username.attr('data') != ''))
           $('.radiogroup-status').removeClass('hidden');
       }
-
     }
-
   });
+
   $('input[name=username]').keyup(function(event) {
     if (!flag_create)
       if (this.getAttribute('data') != '' && this.value != this.getAttribute('data'))

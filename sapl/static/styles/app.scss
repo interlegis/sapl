@@ -24,12 +24,6 @@ nav {
           background-color: $link-hover-color;
         }
       }
-      &:first-child {
-        & > a {
-          padding-left: 0px;
-          padding-right: 0px;
-        }
-      }
       &:nth-child(2) {
         & > .dropdown-menu {
           right: auto;

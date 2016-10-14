@@ -1,5 +1,5 @@
-import json
 from datetime import date, datetime
+import json
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
@@ -30,6 +30,7 @@ from .models import (Autor, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, Protocolo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -605,11 +606,13 @@ def pesquisa_autores(request):
     if request.method == 'GET':
         q = request.GET.get('q', '')
 
-    autor = Autor.objects.filter(
+    """autor = Autor.objects.filter(
         Q(nome__icontains=q) |
         Q(parlamentar__nome_parlamentar__icontains=q) |
         Q(comissao__nome__icontains=q)
-    )
+    )"""
+
+    autor = Autor.objects.filter(nome__icontains=q)
 
     autores = []
 
