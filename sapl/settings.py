@@ -75,12 +75,12 @@ INSTALLED_APPS = (
     'floppyforms',
     'sass_processor',
     'rest_framework',
-    'rest_framework_docs',
+
 
 ) + SAPL_APPS
 
-# if DEBUG:
-#    INSTALLED_APPS += ('debug_toolbar',)
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

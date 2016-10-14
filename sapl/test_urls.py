@@ -1,4 +1,3 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -6,8 +5,9 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import string_concat
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import pytest
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.materia.views import recuperar_materia
@@ -15,6 +15,7 @@ from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -148,6 +149,10 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
                     """ % (url, app_name)
 
 apps_url_patterns_prefixs_and_users = {
+    'api': {
+        'prefixs': [
+            '/api/',
+        ]},
     'base': {
         'users': {'operador_geral': ['/sistema']},
         'prefixs': [
@@ -434,7 +439,6 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
 
         assert app in apps_url_patterns_prefixs_and_users, """
             O app_label (%s) associado a url (%s) não está na base de testes.
-            %s
             """ % (app_name, url)
 
         if 'users' not in apps_url_patterns_prefixs_and_users[app]:
