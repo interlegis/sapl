@@ -51,8 +51,8 @@
 
           <div class="col-md-6">
             <label>Unidade Destino*</label>
-            <option></option>
             <select name="unidade_tramitacao_destino" class="form-control" required="True">
+              <option></option>
               {% for u in unidade_destino %} <option value="{{u.id}}">{{u}}</option> {% endfor %}
             </select>
           </div>

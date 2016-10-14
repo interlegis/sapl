@@ -856,8 +856,8 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = MateriaLegislativa
-        fields = ['tipo', 'data_apresentacao',
-                  'tramitacao__unidade_tramitacao_local', 'tramitacao__status']
+        fields = ['tipo', 'data_apresentacao', 'tramitacao__status',
+                  'tramitacao__unidade_tramitacao_destino']
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoEmLoteFilterSet, self).__init__(
@@ -865,15 +865,17 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+        self.filters['tramitacao__unidade_tramitacao_destino'
+                     ].label = 'Unidade Destino (Último Destino)'
         self.form.fields['tipo'].required = True
         self.form.fields['data_apresentacao'].required = True
         self.form.fields['tramitacao__status'].required = True
         self.form.fields[
-            'tramitacao__unidade_tramitacao_local'].required = True
+            'tramitacao__unidade_tramitacao_destino'].required = True
 
         row1 = to_row([
             ('tipo', 4),
-            ('tramitacao__unidade_tramitacao_local', 4),
+            ('tramitacao__unidade_tramitacao_destino', 4),
             ('tramitacao__status', 4)])
         row2 = to_row([('data_apresentacao', 12)])
 
