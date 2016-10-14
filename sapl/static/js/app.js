@@ -135,7 +135,7 @@ function autorModal() {
       });
     });
 
-    function get_nome_autor(fieldname) {
+    /*function get_nome_autor(fieldname) {
       if ($(fieldname).length > 0) { // se campo existir
         if ($(fieldname).val() != "") { // e não for vazio
           var id = $(fieldname).val();
@@ -147,7 +147,7 @@ function autorModal() {
     }
 
     get_nome_autor("#id_autor");
-    get_nome_autor("#id_autoria__autor");
+    get_nome_autor("#id_autoria__autor");*/
 }
 
 $(document).ready(function(){
