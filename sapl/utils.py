@@ -1,9 +1,9 @@
-import hashlib
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+import hashlib
+import logging
 
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -17,8 +17,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
+from sapl.settings import BASE_DIR
+
+
+sapl_logger = logging.getLogger(BASE_DIR.name)
 
 
 def normalize(txt):
@@ -91,10 +96,57 @@ def montar_helper_autor(self):
 
 
 class SaplGenericRelation(GenericRelation):
+    """
+    Extenção da class GenericRelation para implmentar o atributo fields_search
+
+    fields_search é uma tupla de tuplas de dois strings no padrão de construção
+        de campos porém com [Field Lookups][ref_1]
+
+        exemplo:
+            [No Model Parlamentar em][ref_2] existe a implementação dessa
+            classe no atributo autor. Parlamentar possui três informações
+            relevantes para buscas realacionadas a Autor:
+
+                - nome_completo;
+                - nome_parlamentar; e
+                - filiacao__partido__sigla
+
+            que devem ser pesquisados, coincidentemente
+            pelo FieldLookup __icontains
+
+            portanto a estrutura de fields_search seria:
+                fields_search=(
+                    ('nome_completo', '__icontains'),
+                    ('nome_parlamentar', '__icontains'),
+                    ('filiacao__partido__sigla', '__icontains'),
+                )
+
+
+    [ref_1]: https://docs.djangoproject.com/el/1.10/topics/db/queries/#field-lookups
+    [ref_2]: https://github.com/interlegis/sapl/blob/master/sapl/parlamentares/models.py
+    """
 
     def __init__(self, to, fields_search=(), **kwargs):
 
-        assert fields_search
+        assert 'related_query_name' in kwargs, _(
+            'SaplGenericRelation não pode ser instanciada sem '
+            'related_query_name.')
+
+        assert fields_search, _(
+            'SaplGenericRelation não pode ser instanciada sem fields_search.')
+
+        for field in fields_search:
+            # descomente para ver todas os campos que são elementos de busca
+            #print(kwargs['related_query_name'], field)
+
+            assert isinstance(field, (tuple, list)), _(
+                'fields_search deve ser um array de tuplas ou listas.')
+
+            assert len(field) == 2, _(
+                'cada tupla de fields_search deve possuir duas strins')
+
+            # TODO implementar assert para validar campos do Model e lookups
+
         self.fields_search = fields_search
         super().__init__(to, **kwargs)
 

@@ -3,33 +3,9 @@ from django.db.models import Q
 from django_filters.filters import MethodFilter, ModelChoiceFilter
 from rest_framework.filters import FilterSet
 
+from sapl.base.forms import autores_models_generic_relations
 from sapl.base.models import Autor, TipoAutor
 from sapl.utils import SaplGenericRelation
-
-
-def autores_models_generic_relations():
-    models_of_generic_relations = list(map(
-        lambda x: x.related_model,
-        filter(
-            lambda obj: obj.is_relation and
-            hasattr(obj, 'field') and
-            isinstance(obj, GenericRel),
-
-            Autor._meta.get_fields(include_hidden=True))
-    ))
-
-    models = list(map(
-        lambda x: (x,
-                   list(filter(
-                       lambda field: (
-                           isinstance(
-                               field, SaplGenericRelation) and
-                           field.related_model == Autor),
-                       x._meta.get_fields(include_hidden=True)))),
-        models_of_generic_relations
-    ))
-
-    return models
 
 
 class AutorChoiceFilterSet(FilterSet):

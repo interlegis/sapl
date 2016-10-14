@@ -32,7 +32,7 @@ $(document).ready(function(){
     var formData = {
           'q'         : q,
           'tipo'      : pk,
-          'provaveis' : ''
+          'tr' : '2' // tipo_resultado = 2 - api fornecerá possíveis Autores
     }
     $.get(url, formData).done(function(data) {
         active('pesquisa');
