@@ -23,7 +23,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
-                        RangeWidgetOverride, autor_label, autor_modal)
+                        RangeWidgetOverride, autor_label, autor_modal,
+                        SaplGenericRelation)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -42,6 +43,31 @@ STATUS_USER_CHOICE = [
             ' desvinculado')),
     ('X', _('Excluir Usuário')),
 ]
+
+
+def autores_models_generic_relations():
+    models_of_generic_relations = list(map(
+        lambda x: x.related_model,
+        filter(
+            lambda obj: obj.is_relation and
+            hasattr(obj, 'field') and
+            isinstance(obj, GenericRel),
+
+            Autor._meta.get_fields(include_hidden=True))
+    ))
+
+    models = list(map(
+        lambda x: (x,
+                   list(filter(
+                       lambda field: (
+                           isinstance(
+                               field, SaplGenericRelation) and
+                           field.related_model == Autor),
+                       x._meta.get_fields(include_hidden=True)))),
+        models_of_generic_relations
+    ))
+
+    return models
 
 
 class TipoAutorForm(ModelForm):

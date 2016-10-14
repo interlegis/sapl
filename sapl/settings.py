@@ -13,12 +13,16 @@ Quick-start development settings - unsuitable for production
 See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
+import logging
+import sys
+
 from decouple import config
 from dj_database_url import parse as db_url
 from unipath import Path
 
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
@@ -222,10 +226,41 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
     'bower_components', 'bootstrap-sass', 'assets', 'stylesheets'),
 )
 
+# suprime texto de ajuda default do django-filter
+FILTERS_HELP_TEXT_FILTER = False
+
+
 # FIXME update cripy-forms and remove this
 # hack to suppress many annoying warnings from crispy_forms
 # see sapl.temp_suppress_crispy_form_warnings
 LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
-# suprime texto de ajuda default do django-filter
-FILTERS_HELP_TEXT_FILTER = False
+
+LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
+if DEBUG and LOGGING_CONSOLE:
+    # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
+    # LOGGING['handlers']['console']['level'] = 'DEBUG'
+    LOGGING['loggers']['django']['level'] = 'DEBUG'
+    LOGGING.update({
+        'formatters': {
+            'verbose': {
+                'format': '%(levelname)s %(asctime)s %(pathname)s '
+                '%(funcName)s %(message)s'
+            },
+            'simple': {
+                'format': '%(levelname)s %(message)s'
+            },
+        },
+    })
+    LOGGING['handlers']['console']['formatter'] = 'verbose'
+    LOGGING['loggers'][BASE_DIR.name] = {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    }
+
+
+def excepthook(*args):
+    logging.getLogger(BASE_DIR.name).error(
+        'Uncaught exception:', exc_info=args)
+
+sys.excepthook = excepthook
