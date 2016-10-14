@@ -10,6 +10,7 @@ from django.conf.urls import url
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models.fields.related import ForeignKey
 from django.http.response import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
@@ -1028,10 +1029,17 @@ class MasterDetailCrud(Crud):
             parent_model = None
             if '__' in obj.parent_field:
                 fields = obj.parent_field.split('__')
-                parent_model = self.model
+                parent_model = pm = self.model
                 for field in fields:
-                    parent_model = getattr(
-                        parent_model, field).field.related_model
+                    pm = getattr(pm, field)
+                    if isinstance(pm.field, ForeignKey):
+                        parent_model = getattr(
+                            parent_model, field).field.related_model
+                    else:
+                        parent_model = getattr(
+                            parent_model, field).rel.related_model
+                    pm = parent_model
+
             else:
                 parent_model = getattr(
                     self.model, obj.parent_field).field.related_model
