@@ -52,7 +52,7 @@ urlpatterns = [
     #   so that base /sistema/ url doesn't capture its children
     url(r'', include(sapl.base.urls)),
 
-    url(r'^api/', include(sapl.api.urls)),
+    url(r'', include(sapl.api.urls)),
 ]
 
 

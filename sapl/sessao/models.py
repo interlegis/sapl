@@ -42,8 +42,13 @@ class Bancada(models.Model):
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
-    autor = SaplGenericRelation(Autor, fields_search=('nome',
-                                                      'descricao'))
+    autor = SaplGenericRelation(Autor, related_query_name='bancada_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('descricao', '__icontains'),
+                                    ('partido__sigla', '__icontains'),
+                                    ('partido__nome', '__icontains'),
+                                ))
 
     class Meta:
         verbose_name = _('Bancada')
@@ -350,8 +355,14 @@ class Bloco(models.Model):
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
-    autor = SaplGenericRelation(Autor, fields_search=('nome',
-                                                      'descricao'))
+    autor = SaplGenericRelation(Autor,
+                                related_query_name='bloco_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('descricao', '__icontains'),
+                                    ('partidos__sigla', '__icontains'),
+                                    ('partidos__nome', '__icontains'),
+                                ))
 
     class Meta:
         verbose_name = _('Bloco')

@@ -80,14 +80,19 @@ class Comissao(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Comissão Ativa?'))
 
-    autor = SaplGenericRelation(Autor, fields_search=('nome', 'sigla'))
+    autor = SaplGenericRelation(Autor,
+                                related_query_name='comissao_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('sigla', '__icontains')
+                                ))
 
     class Meta:
         verbose_name = _('Comissão')
         verbose_name_plural = _('Comissões')
 
     def __str__(self):
-        return self.nome
+        return self.sigla + ' - ' + self.nome
 
 
 class Periodo(models.Model):  # PeriodoCompComissao
