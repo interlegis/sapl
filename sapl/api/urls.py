@@ -17,8 +17,8 @@ urlpatterns_api = [
     url(r'^autor',
         AutorListView.as_view(),
         name='autor_list'),
+    url(r'^docs', include('rest_framework_docs.urls')),
 ]
-
 urlpatterns = [
     url(r'^api/', include(urlpatterns_api))
 ]
