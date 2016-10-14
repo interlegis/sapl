@@ -265,8 +265,15 @@ class Parlamentar(models.Model):
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
-    autor = SaplGenericRelation(Autor, fields_search=('nome_completo',
-                                                      'nome_parlamentar'))
+    autor = SaplGenericRelation(
+        Autor,
+        related_query_name='parlamentar_set',
+        fields_search=(
+            # na primeira posição dever ser campo simples sem __
+            ('nome_completo', '__icontains'),
+            ('nome_parlamentar', '__icontains'),
+            ('filiacao__partido__sigla', '__icontains'),
+        ))
 
     class Meta:
         verbose_name = _('Parlamentar')
@@ -455,8 +462,15 @@ class Frente(models.Model):
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
-    autor = SaplGenericRelation(Autor, fields_search=('nome',
-                                                      'descricao'))
+    autor = SaplGenericRelation(
+        Autor,
+        related_query_name='frente_set',
+        fields_search=(
+            ('nome', '__icontains'),
+            ('descricao', '__icontains'),
+            ('parlamentares__filiacao__partido__sigla', '__icontains'),
+            ('parlamentares__filiacao__partido__nome', '__icontains'),
+        ))
 
     class Meta:
         verbose_name = _('Frente')

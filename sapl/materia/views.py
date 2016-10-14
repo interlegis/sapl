@@ -33,13 +33,10 @@ from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-<<<<<<< 3276eb12726b741df770d5a6ed2a9a1a83c15849
                         permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm, permission_required_for_app)
-=======
-                        montar_row_autor, permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm)
->>>>>>> Conc refatoração no Cada de Autor e Tipos de Autor
+                        permissoes_protocoloadm, permission_required_for_app,
+                        montar_row_autor)
+
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ConfirmarProposicaoForm, DocumentoAcessorioForm,
