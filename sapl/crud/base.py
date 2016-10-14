@@ -238,6 +238,14 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             self.permission_required = tuple((
                 self.permission(pr) for pr in self.permission_required))
 
+            if not hasattr(obj, 'públic'):
+                obj.public = list(
+                    set(self.permission_required) -
+                    set((RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE)))
+
+        else:
+            obj.public = []
+
     @classmethod
     def url_name(cls, suffix):
         return '%s_%s' % (cls.model._meta.model_name, suffix)
