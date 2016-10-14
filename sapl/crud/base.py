@@ -10,6 +10,7 @@ from django.conf.urls import url
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models.fields.related import ForeignKey
 from django.http.response import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
@@ -21,10 +22,11 @@ from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
+from sapl.settings import BASE_DIR
 from sapl.utils import normalize
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(BASE_DIR.name)
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
@@ -882,9 +884,9 @@ class CrudAux(Crud):
     """
         Checa permissão para ver qualquer dado de tabela auxiliar
         a permissão base.view_tabelas_auxiliares está definada class Meta
-        do model sapl.base.models.AppConfig que, naturalmente é um arquivo 
-        de configuração geral e só pode ser acessado através das Tabelas 
-        Auxiliares... Com isso o script de geração de perfis acaba que por 
+        do model sapl.base.models.AppConfig que, naturalmente é um arquivo
+        de configuração geral e só pode ser acessado através das Tabelas
+        Auxiliares... Com isso o script de geração de perfis acaba que por
         criar essa permissão apenas para o perfil Operador Geral.
     """
     permission_required = ('base.view_tabelas_auxiliares',)
@@ -895,8 +897,8 @@ class CrudAux(Crud):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             """
-            Mantem as permissões individuais geradas pelo Crud através do 
-            Modelo e adiciona a obrigatoriedade de permissão para view 
+            Mantem as permissões individuais geradas pelo Crud através do
+            Modelo e adiciona a obrigatoriedade de permissão para view
             tabelas auxiliares.
             """
             self.permission_required = self.permission_required + \
@@ -1027,10 +1029,17 @@ class MasterDetailCrud(Crud):
             parent_model = None
             if '__' in obj.parent_field:
                 fields = obj.parent_field.split('__')
-                parent_model = self.model
+                parent_model = pm = self.model
                 for field in fields:
-                    parent_model = getattr(
-                        parent_model, field).field.related_model
+                    pm = getattr(pm, field)
+                    if isinstance(pm.field, ForeignKey):
+                        parent_model = getattr(
+                            parent_model, field).field.related_model
+                    else:
+                        parent_model = getattr(
+                            parent_model, field).rel.related_model
+                    pm = parent_model
+
             else:
                 parent_model = getattr(
                     self.model, obj.parent_field).field.related_model

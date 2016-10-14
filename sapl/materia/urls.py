@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
-                                AutorCrud, AutoriaCrud, ConfirmarEmailView,
+                                AutoriaCrud, ConfirmarEmailView,
                                 ConfirmarProposicao, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
@@ -15,11 +15,11 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 ProposicaoRecebida, ProposicaoTaView,
                                 ReceberProposicao, ReciboProposicaoView,
                                 RegimeTramitacaoCrud, RelatoriaCrud,
-                                StatusTramitacaoCrud, TipoAutorCrud,
-                                TipoDocumentoCrud, TipoFimRelatoriaCrud,
-                                TipoMateriaCrud, TipoProposicaoCrud,
-                                TramitacaoCrud, TramitacaoEmLoteView,
-                                UnidadeTramitacaoCrud, recuperar_materia)
+                                StatusTramitacaoCrud, TipoDocumentoCrud,
+                                TipoFimRelatoriaCrud, TipoMateriaCrud,
+                                TipoProposicaoCrud, TramitacaoCrud,
+                                TramitacaoEmLoteView, UnidadeTramitacaoCrud,
+                                recuperar_materia)
 
 from .apps import AppConfig
 
@@ -78,6 +78,8 @@ urlpatterns_proposicao = [
         name='proposicao-devolvida'),
     url(r'^proposicao/confirmar/(?P<pk>\d+)', ConfirmarProposicao.as_view(),
         name='proposicao-confirmar'),
+    url(r'^sistema/proposicao/tipo/',
+        include(TipoProposicaoCrud.get_urls())),
 
     url(r'^proposicao/(?P<pk>[0-9]+)/ta$',
         ProposicaoTaView.as_view(), name='proposicao_ta'),
@@ -89,7 +91,6 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/tipo/', include(TipoMateriaCrud.get_urls())),
     url(r'^sistema/materia/regime-tramitacao/',
         include(RegimeTramitacaoCrud.get_urls())),
-    url(r'^sistema/materia/tipo-autor/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/materia/tipo-documento/',
         include(TipoDocumentoCrud.get_urls())),
     url(r'^sistema/materia/tipo-fim-relatoria/',
@@ -97,7 +98,6 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/unidade-tramitacao/',
         include(UnidadeTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/origem/', include(OrigemCrud.get_urls())),
-    url(r'^sistema/materia/autor/', include(AutorCrud.get_urls())),
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),

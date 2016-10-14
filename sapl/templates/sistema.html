@@ -3,10 +3,12 @@
 
 {% block base_content %}
 
-	<h2>Configuração Inicial</h2>
+	<h2>Configuração Gerais</h2>
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.base:casalegislativa_list' %}" class="btn btn-link">Casa Legislativa</a></div>
+    <div class="col-md-6"><a href="{% url 'sapl.base:autor_list' %}" class="btn btn-link">Autor</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.base:appconfig_list' %}" class="btn btn-link">Configurações da Aplicação</a></div>
+    <div class="col-md-6"><a href="{% url 'sapl.base:tipoautor_list' %}" class="btn btn-link">Tipo de Autor</a></div>
   </div>
 	<hr />
 
@@ -49,7 +51,6 @@
 	<h2>Módulo Proposições</h2>
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.materia:tipoproposicao_list' %}" class="btn btn-link">Tipo de Proposição</a></div>
-    <div class="col-md-6"><a href="{% url 'sapl.materia:autor_list' %}" class="btn btn-link">Autor</a></div>
   </div>
 	<hr />
 
@@ -57,12 +58,10 @@
   <div class="row">
     <div class="col-md-6"><a href="{% url 'sapl.materia:tipomaterialegislativa_list' %}" class="btn btn-link">Tipo de Matéria Legislativa</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:regimetramitacao_list' %}" class="btn btn-link">Regime de Tramitação</a></div>
-    <div class="col-md-6"><a href="{% url 'sapl.materia:tipoautor_list' %}" class="btn btn-link">Tipo de Autor</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:tipodocumento_list' %}" class="btn btn-link">Tipo de Documento</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:tipofimrelatoria_list' %}" class="btn btn-link">Tipo de fim de Relatoria</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:unidadetramitacao_list' %}" class="btn btn-link">Unidade de Tramitação</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:origem_list' %}" class="btn btn-link">Origem</a></div>
-    <div class="col-md-6"><a href="{% url 'sapl.materia:autor_list' %}" class="btn btn-link">Autor</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:statustramitacao_list' %}" class="btn btn-link">Status da Tramitação</a></div>
     <div class="col-md-6"><a href="{% url 'sapl.materia:orgao_list' %}" class="btn btn-link">Órgão</a></div>
   </div>

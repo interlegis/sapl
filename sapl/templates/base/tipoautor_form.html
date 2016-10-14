@@ -1,0 +1,20 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% block extra_js %}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+  $('#id_content_type').change(function(event) {
+    if (event.target.selectedIndex == 0)
+      $('#id_descricao').val('');
+    else
+      $('#id_descricao').val(this[event.target.selectedIndex].text);
+  });
+});
+
+
+</script>
+
+{% endblock %}

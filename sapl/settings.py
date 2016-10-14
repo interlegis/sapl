@@ -13,6 +13,9 @@ Quick-start development settings - unsuitable for production
 See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
+import logging
+import sys
+
 from decouple import config
 from dj_database_url import parse as db_url
 from unipath import Path
@@ -20,13 +23,13 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
+
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
@@ -34,6 +37,9 @@ ALLOWED_HOSTS = ['*']
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
@@ -48,6 +54,7 @@ SAPL_APPS = (
     'sapl.painel',
     'sapl.protocoloadm',
     'sapl.compilacao',
+    'sapl.api'
 )
 
 INSTALLED_APPS = (
@@ -68,11 +75,12 @@ INSTALLED_APPS = (
     'floppyforms',
     'sass_processor',
     'rest_framework',
+    'rest_framework_docs',
 
 ) + SAPL_APPS
 
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
+# if DEBUG:
+#    INSTALLED_APPS += ('debug_toolbar',)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -85,6 +93,32 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": (
+        "rest_framework.renderers.JSONRenderer",
+        #"rest_framework.renderers.BrowsableAPIRenderer",
+    ),
+    "DEFAULT_PARSER_CLASSES": (
+        "rest_framework.parsers.JSONParser",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "sapl.api.permissions.DjangoModelPermissions",
+    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+    "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
+    "DEFAULT_FILTER_BACKENDS": (
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.DjangoFilterBackend",
+    ),
+}
+
 
 ROOT_URLCONF = 'sapl.urls'
 
@@ -193,10 +227,41 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
     'bower_components', 'bootstrap-sass', 'assets', 'stylesheets'),
 )
 
+# suprime texto de ajuda default do django-filter
+FILTERS_HELP_TEXT_FILTER = False
+
+
 # FIXME update cripy-forms and remove this
 # hack to suppress many annoying warnings from crispy_forms
 # see sapl.temp_suppress_crispy_form_warnings
 LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
-# suprime texto de ajuda default do django-filter
-FILTERS_HELP_TEXT_FILTER = False
+
+LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
+if DEBUG and LOGGING_CONSOLE:
+    # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
+    # LOGGING['handlers']['console']['level'] = 'DEBUG'
+    LOGGING['loggers']['django']['level'] = 'DEBUG'
+    LOGGING.update({
+        'formatters': {
+            'verbose': {
+                'format': '%(levelname)s %(asctime)s %(pathname)s '
+                '%(funcName)s %(message)s'
+            },
+            'simple': {
+                'format': '%(levelname)s %(message)s'
+            },
+        },
+    })
+    LOGGING['handlers']['console']['formatter'] = 'verbose'
+    LOGGING['loggers'][BASE_DIR.name] = {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    }
+
+
+def excepthook(*args):
+    logging.getLogger(BASE_DIR.name).error(
+        'Uncaught exception:', exc_info=args)
+
+sys.excepthook = excepthook

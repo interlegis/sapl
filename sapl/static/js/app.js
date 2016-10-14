@@ -90,28 +90,25 @@ function autorModal() {
     $("#pesquisar").click(function() {
         var query = $("#q").val()
 
-        $.get("/protocoloadm/pesquisar-autor?q="+ query, function(
-          data, status){
 
-          $("#div-resultado").children().remove();
+        $.get("/api/autor?q=" + query, function(data, status) {
+            $("#div-resultado").children().remove();
+            if (data.pagination.total_entries == 0) {
+                $("#selecionar").attr("hidden", "hidden");
+                $("#div-resultado").html(
+                    "<span class='alert'><strong>Nenhum resultado</strong></span>");
+                return;
+            }
 
-          if (data.length == 0) {
-            $("#selecionar").attr("hidden", "hidden");
-            $("#div-resultado").html(
-              "<span class='alert'><strong>Nenhum resultado</strong></span>");
-            return;
-          }
+            var select = $(
+                '<select id="resultados" \
+                style="min-width: 90%; max-width:90%;" size="5"/>');
 
-          var select = $(
-            '<select id="resultados" \
-            style="min-width: 90%; max-width:90%;" size="5"/>');
+            data.models.forEach(function(item, index) {
+                select.append($("<option>").attr('value', item.value).text(item.text));
+            });
 
-          for (i = 0; i < data.length; i++) {
-              id = data[i][0];
-              nome = data[i][1];
 
-              select.append($("<option>").attr('value',id).text(nome));
-          }
 
           $("#div-resultado").append("<br/>").append(select);
           $("#selecionar").removeAttr("hidden", "hidden");
@@ -138,7 +135,7 @@ function autorModal() {
       });
     });
 
-    function get_nome_autor(fieldname) {
+    /*function get_nome_autor(fieldname) {
       if ($(fieldname).length > 0) { // se campo existir
         if ($(fieldname).val() != "") { // e não for vazio
           var id = $(fieldname).val();
@@ -150,7 +147,7 @@ function autorModal() {
     }
 
     get_nome_autor("#id_autor");
-    get_nome_autor("#id_autoria__autor");
+    get_nome_autor("#id_autoria__autor");*/
 }
 
 $(document).ready(function(){

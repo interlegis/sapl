@@ -17,7 +17,7 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-                                     TramitacaoAdmCrud, pesquisa_autores)
+                                     TramitacaoAdmCrud)
 
 from .apps import AppConfig
 
@@ -70,11 +70,11 @@ urlpatterns_sistema = [
     url(r'^sistema/status-tramitacao-adm/',
         include(StatusTramitacaoAdministrativoCrud.get_urls())),
 
-    # FIXME: Usado para pesquisar autor
+    # FIXME: Usado para pesquisar autor- SOLUÇÃO-foi transformado em api/autor
     # Melhor forma de fazer?
     # Deve mudar de app?
-    url(r'^protocoloadm/pesquisar-autor',
-        pesquisa_autores, name='pesquisar_autor'),
+    # url(r'^protocoloadm/pesquisar-autor',
+    #    pesquisa_autores, name='pesquisar_autor'),
 ]
 
 urlpatterns = (urlpatterns_documento_administrativo +

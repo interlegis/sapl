@@ -120,8 +120,16 @@ class InicializaGruposAutorizacoes():
         for p in perms_autor:
             grupo.permissions.add(p)
 
-        nome_usuario = 'operador_autor'
-        self.cria_usuario(nome_usuario, grupo)
+        """
+        Mesmo para teste, um usuário com perfil Autor criado via /admin
+        não deverá ser criado pois esse é um papel do operador_geral fazer
+        nas tabelas auxiliares.
+        A tentativa de acesso a qualquer container (hoje apenas proposições)
+        do SAPL de Usuários com perfil Autor mas sem um Autor cadastrado
+        nas tabelas auxiliares será negado e notificado via front-end.
+        """
+        # nome_usuario = 'operador_autor'
+        # self.cria_usuario(nome_usuario, grupo)
 
     def __call__(self):
         self.cria_grupos_permissoes()
