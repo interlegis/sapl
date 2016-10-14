@@ -20,7 +20,8 @@ class AutorListView(ListAPIView):
 
     - tr          - tipo do resultado
                     Prepera Lista de Autores para 3 cenários distintos
-                    -default = 0 
+
+                    - default = 1
 
                   = 1 -> para (value, text) usados geralmente
                       em combobox, radiobox, checkbox, etc com pesquisa básica
@@ -40,12 +41,12 @@ class AutorListView(ListAPIView):
                          django-filter
 
     - tipo      - chave primária do Tipo de Autor a ser filtrado
+
     - q         - busca textual no nome do Autor ou em  fields_search
                   declarados no field SaplGenericRelation das GenericFks
-
-                      A busca textual acontece via django-filter se não
-                      estiver presente a variável `provaveis`. Em caso
-                      contrário, o django-filter é desativado e a busca é feita
+                      A busca textual acontece via django-filter com a 
+                      variável `tr` igual 1 ou 3. Em caso contrário,
+                      o django-filter é desativado e a busca é feita
                       no model do ContentType associado ao tipo.
 
     Outros campos
