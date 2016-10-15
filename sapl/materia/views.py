@@ -1336,6 +1336,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         context = super(PrimeiraTramitacaoEmLoteView,
                         self).get_context_data(**kwargs)
 
+        context['subnav_template_name'] = 'materia/em_lote/subnav_em_lote.yaml'
+
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context

@@ -1,6 +1,10 @@
-import yaml
 from django import template
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
+import yaml
+
+from sapl.utils import sapl_logger
+
 
 register = template.Library()
 
@@ -28,7 +32,7 @@ def subnav(context, path=None):
         if obj:
             root_pk = obj.pk
 
-    if root_pk:
+    if root_pk or 'subnav_template_name' in context:
         request = context['request']
 
         """
@@ -64,7 +68,11 @@ def subnav(context, path=None):
             menu = yaml.load(rendered)
             resolve_urls_inplace(menu, root_pk, rm, context)
         except Exception as e:
-            print(e)
+            sapl_logger.error(_("""Erro na conversão do yaml %s. App: %s.
+                                    Erro:
+                                      %s
+                                """) % (
+                yaml_path, rm.app_name, str(e)))
 
     return {'menu': menu}
 
@@ -81,6 +89,7 @@ def resolve_urls_inplace(menu, pk, rm, context):
         return list_active
     else:
         if 'url' in menu:
+
             url_name = menu['url']
 
             if 'check_permission' in menu and not context[
@@ -88,16 +97,27 @@ def resolve_urls_inplace(menu, pk, rm, context):
                 menu['url'] = ''
                 menu['active'] = ''
             else:
-                menu['url'] = reverse(
-                    '%s:%s' % (rm.app_name, menu['url']), kwargs={'pk': pk})
+                if ':' in url_name:
+                    try:
+                        menu['url'] = reverse('%s' % menu['url'],
+                                              kwargs={'pk': pk})
+                    except:
+                        menu['url'] = reverse('%s' % menu['url'])
+                else:
+                    try:
+                        menu['url'] = reverse('%s:%s' % (
+                            rm.app_name, menu['url']), kwargs={'pk': pk})
+                    except:
+                        menu['url'] = reverse('%s:%s' % (
+                            rm.app_name, menu['url']))
+
                 menu['active'] = 'active'\
                     if context['request'].path == menu['url'] else ''
-
                 if not menu['active']:
                     """
                     Se não encontrada diretamente,
                     procura a url acionada dentro do crud, caso seja um.
-                    Serve para manter o active no suvnav correto ao acionar
+                    Serve para manter o active no subnav correto ao acionar
                     as funcionalidades diretas do MasterDetailCrud, como:
                     - visualização de detalhes, adição, edição, remoção.
                     """
