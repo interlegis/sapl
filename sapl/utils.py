@@ -18,7 +18,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-<<<<<<< 2783b194c573b2b8182c47369b2d251ae6cf8880
 import magic
 from sapl.settings import BASE_DIR
 
