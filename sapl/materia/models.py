@@ -3,8 +3,9 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.parlamentares.models import Parlamentar, Partido
+from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt)
@@ -143,6 +144,12 @@ class MateriaLegislativa(models.Model):
         verbose_name=_('Texto Original (PDF)'),
         validators=[restringe_tipos_de_arquivo_txt])
 
+    autores = models.ManyToManyField(
+        Autor,
+        through='Autoria',
+        through_fields=('materia', 'autor'),
+        symmetrical=False,)
+
     class Meta:
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
@@ -151,6 +158,22 @@ class MateriaLegislativa(models.Model):
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
+
+
+class Autoria(models.Model):
+    autor = models.ForeignKey(Autor, verbose_name=_('Autor'))
+    materia = models.ForeignKey(
+        MateriaLegislativa, verbose_name=_('Matéria Legislativa'))
+    primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
+                                         choices=YES_NO_CHOICES)
+
+    class Meta:
+        verbose_name = _('Autoria')
+        verbose_name_plural = _('Autorias')
+
+    def __str__(self):
+        return _('%(autor)s - %(materia)s') % {
+            'autor': self.autor, 'materia': self.materia}
 
 
 class AcompanhamentoMateria(models.Model):
@@ -202,68 +225,6 @@ class AssuntoMateria(models.Model):
 
     def __str__(self):
         return self.assunto
-
-
-class TipoAutor(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
-
-    class Meta:
-        verbose_name = _('Tipo de Autor')
-        verbose_name_plural = _('Tipos de Autor')
-
-    def __str__(self):
-        return self.descricao
-
-
-class Autor(models.Model):
-    user = models.ForeignKey(
-        get_settings_auth_user_model(), blank=True, null=True)
-    partido = models.ForeignKey(Partido, blank=True, null=True)
-    comissao = models.ForeignKey(Comissao, blank=True, null=True)
-    parlamentar = models.ForeignKey(Parlamentar, blank=True, null=True)
-    tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo'))
-    nome = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Autor'))
-    cargo = models.CharField(max_length=50, blank=True)
-    username = models.CharField(
-        max_length=50,
-        blank=True,
-        verbose_name=_('Nome de Usuário'))
-    email = models.EmailField(
-        verbose_name=_('Email'))
-
-    class Meta:
-        verbose_name = _('Autor')
-        verbose_name_plural = _('Autores')
-
-    def __str__(self):
-        if str(self.tipo) == 'Parlamentar' and self.parlamentar:
-            return self.parlamentar.nome_parlamentar
-        elif str(self.tipo) == 'Comissao' and self.comissao:
-            return str(self.comissao)
-        elif str(self.tipo) == 'Partido' and self.partido:
-            return str(self.partido)
-        else:
-            if str(self.cargo):
-                return _('%(nome)s - %(cargo)s') % {
-                    'nome': self.nome, 'cargo': self.cargo}
-            else:
-                return str(self.nome)
-
-
-class Autoria(models.Model):
-    autor = models.ForeignKey(Autor, verbose_name=_('Autor'))
-    materia = models.ForeignKey(MateriaLegislativa)
-    primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
-                                         choices=YES_NO_CHOICES)
-
-    class Meta:
-        verbose_name = _('Autoria')
-        verbose_name_plural = _('Autorias')
-
-    def __str__(self):
-        return _('%(autor)s - %(materia)s') % {
-            'autor': self.autor, 'materia': self.materia}
 
 
 class DespachoInicial(models.Model):
