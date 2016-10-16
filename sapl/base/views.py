@@ -77,6 +77,11 @@ class AutorCrud(CrudAux):
             try:
                 kwargs = {}
                 user = self.object.user
+
+                if user.is_active:
+                    return reverse('sapl.base:autor_detail',
+                                   kwargs={'pk': pk_autor})
+
                 kwargs['token'] = default_token_generator.make_token(user)
                 kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
                 assunto = "SAPL - Confirmação de Conta"
