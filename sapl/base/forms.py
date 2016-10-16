@@ -368,6 +368,9 @@ class AutorForm(ModelForm):
         if self.cleaned_data['action_user'] == 'A':
             u = get_user_model().objects.get(
                 username=self.cleaned_data['username'])
+            if not u.is_active:
+                u.is_active = settings.DEBUG
+                u.save()
         elif self.cleaned_data['action_user'] == 'C':
             u = get_user_model().objects.create(
                 username=self.cleaned_data['username'],
