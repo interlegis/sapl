@@ -1,4 +1,6 @@
 from django.contrib.auth.models import Group
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -8,7 +10,8 @@ from sapl.comissoes.models import Comissao
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         get_settings_auth_user_model,
-                        restringe_tipos_de_arquivo_txt)
+                        restringe_tipos_de_arquivo_txt, SaplGenericRelation,
+                        SaplGenericForeignKey)
 
 
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -23,6 +26,38 @@ def grupo_autor():
     return grupo.id
 
 
+class TipoProposicao(models.Model):
+    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+
+    conteudo = models.ForeignKey(ContentType, default=None,
+                                 verbose_name=_('Definição de Tipo'))
+    object_id = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
+    tipo_conteudo_related = SaplGenericForeignKey(
+        'conteudo', 'object_id', verbose_name=_('Seleção de Tipo'))
+
+    """materia_ou_documento = models.CharField(
+        max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
+    modelo = models.CharField(max_length=50, verbose_name=_('Modelo XML'))
+
+    # mutually exclusive (depend on materia_ou_documento)
+    tipo_materia = models.ForeignKey(
+        TipoMateriaLegislativa,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo de Matéria'))
+    tipo_documento = models.ForeignKey(
+        TipoDocumento, blank=True, null=True,
+        verbose_name=_('Tipo de Documento'))"""
+
+    class Meta:
+        verbose_name = _('Tipo de Proposição')
+        verbose_name_plural = _('Tipos de Proposições')
+
+    def __str__(self):
+        return self.descricao
+
+
 class TipoMateriaLegislativa(models.Model):
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição '))
@@ -30,6 +65,14 @@ class TipoMateriaLegislativa(models.Model):
     num_automatica = models.BooleanField(default=False)
     # XXX o que é isso ?
     quorum_minimo_votacao = models.PositiveIntegerField(blank=True, null=True)
+
+    tipo_proposicao = SaplGenericRelation(
+        TipoProposicao,
+        related_query_name='tipomaterialegislativa_set',
+        fields_search=(
+            ('descricao', '__icontains'),
+            ('sigla', '__icontains')
+        ))
 
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
@@ -246,6 +289,13 @@ class TipoDocumento(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Tipo Documento'))
 
+    tipo_proposicao = SaplGenericRelation(
+        TipoProposicao,
+        related_query_name='tipodocumento_set',
+        fields_search=(
+            ('descricao', '__icontains'),
+        ))
+
     class Meta:
         verbose_name = _('Tipo de Documento')
         verbose_name_plural = _('Tipos de Documento')
@@ -396,32 +446,6 @@ class Parecer(models.Model):
         return _('%(relatoria)s - %(tipo)s') % {
             'relatoria': self.relatoria, 'tipo': self.tipo_apresentacao
         }
-
-
-class TipoProposicao(models.Model):
-    MAT_OU_DOC_CHOICES = Choices(('M', 'materia', _('Matéria')),
-                                 ('D', 'documento', _('Documento')))
-
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
-    materia_ou_documento = models.CharField(
-        max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
-    modelo = models.CharField(max_length=50, verbose_name=_('Modelo XML'))
-
-    # mutually exclusive (depend on materia_ou_documento)
-    tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa,
-        blank=True,
-        null=True,
-        verbose_name=_('Tipo Matéria'))
-    tipo_documento = models.ForeignKey(
-        TipoDocumento, blank=True, null=True, verbose_name=_('Tipo Documento'))
-
-    class Meta:
-        verbose_name = _('Tipo de Proposição')
-        verbose_name_plural = _('Tipos de Proposições')
-
-    def __str__(self):
-        return self.descricao
 
 
 class Proposicao(models.Model):

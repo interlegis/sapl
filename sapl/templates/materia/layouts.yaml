@@ -74,9 +74,10 @@ Relatoria:
 
 TipoProposicao:
   {% trans 'Tipo Proposição' %}:
-  - descricao
-  - materia_ou_documento  tipo_documento
-  - modelo
+  - descricao conteudo
+  - tipo_conteudo_related
+
+
 
 ProposicaoCreate:
   {% trans 'Proposição' %}:

@@ -29,7 +29,8 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             Crud, CrudAux, CrudDetailView, MasterDetailCrud,
                             make_pagination)
 from sapl.materia import apps
-from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
+from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
+    TipoProposicaoForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
@@ -125,9 +126,24 @@ class ConfirmarEmailView(TemplateView):
 
 
 OrgaoCrud = CrudAux.build(Orgao, 'orgao')
-TipoProposicaoCrud = CrudAux.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
 UnidadeTramitacaoCrud = CrudAux.build(UnidadeTramitacao, 'unidade_tramitacao')
+
+
+class TipoProposicaoCrud(CrudAux):
+    model = TipoProposicao
+    help_text = 'tipo_proposicao'
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ["descricao", "conteudo", 'tipo_conteudo_related']
+
+    class CreateView(CrudAux.CreateView):
+        form_class = TipoProposicaoForm
+        layout_key = None
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = TipoProposicaoForm
+        layout_key = None
 
 
 def criar_materia_proposicao(proposicao):

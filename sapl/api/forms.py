@@ -1,25 +1,15 @@
-from django.contrib.contenttypes.fields import GenericRel
 from django.db.models import Q
 from django_filters.filters import MethodFilter, ModelChoiceFilter
 from rest_framework.filters import FilterSet
 
-from sapl.base.forms import autores_models_generic_relations
 from sapl.base.models import Autor, TipoAutor
-from sapl.utils import SaplGenericRelation
+from sapl.utils import generic_relations_for_model
 
 
-class AutorChoiceFilterSet(FilterSet):
+class SaplGenericRelationSearchFilterSet(FilterSet):
     q = MethodFilter()
-    tipo = ModelChoiceFilter(queryset=TipoAutor.objects.all())
-
-    class Meta:
-        model = Autor
-        fields = ['q',
-                  'tipo',
-                  'nome', ]
 
     def filter_q(self, queryset, value):
-
         query = value.split(' ')
         if query:
             q = Q()
@@ -30,11 +20,11 @@ class AutorChoiceFilterSet(FilterSet):
 
                 order_by = []
 
-                for gr in autores_models_generic_relations():
+                for gr in generic_relations_for_model(self._meta.model):
                     model = gr[0]
                     sgr = gr[1]
                     for item in sgr:
-                        if item.related_model != Autor:
+                        if item.related_model != self._meta.model:
                             continue
                         flag_order_by = True
                         for field in item.fields_search:
@@ -55,3 +45,14 @@ class AutorChoiceFilterSet(FilterSet):
                 queryset = queryset.filter(q).order_by(*order_by)
 
         return queryset
+
+
+class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
+    q = MethodFilter()
+    tipo = ModelChoiceFilter(queryset=TipoAutor.objects.all())
+
+    class Meta:
+        model = Autor
+        fields = ['q',
+                  'tipo',
+                  'nome', ]

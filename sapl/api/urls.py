@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.conf.urls import url, include
 
-from sapl.api.views import AutorListView
+from sapl.api.views import AutorListView, ModelChoiceView
 
 from .apps import AppConfig
 
@@ -16,9 +16,12 @@ app_name = AppConfig.name
 
 urlpatterns_api = [
     # url(r'^$', api_root),
-    url(r'^autor',
-        AutorListView.as_view(),
-        name='autor_list'),
+    url(r'^autor', AutorListView.as_view(), name='autor_list'),
+
+    url(r'^model/(?P<content_type>\d+)$',
+        ModelChoiceView.as_view(), name='model_list'),
+
+
 ]
 
 if settings.DEBUG:

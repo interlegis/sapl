@@ -1,0 +1,36 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+aaa
+{% block extra_js %}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+  var initial_select = $("input[name=tipo_conteudo_related]").val();
+  $("input[name=tipo_conteudo_related]").remove();
+  $('#id_conteudo').change(function(event) {
+    var pk = this[event.target.selectedIndex].value;
+
+    var url = '{% url 'sapl.api:model_list' 0 %}'
+    url = url.replace('0', pk)
+
+    $.get(url).done(function(data) {
+      var radios = $("#div_id_tipo_conteudo_related_radio .controls").html('');
+      data.models.forEach(function (val, index) {
+        var html_radio = '<label class="radio'+(initial_select==val.value?' checked':'')+'"><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="tipo_conteudo_related" id="id_tipo_conteudo_related_'+index+'" value="'+val.value+'"'+(initial_select?' checked="checked"':'')+'>'+val.text+'</label>';
+        radios.append(html_radio);
+      });
+      initial_select='';
+
+
+
+    });
+  });
+  $('#id_conteudo').trigger('change');
+
+});
+
+
+</script>
+
+{% endblock %}

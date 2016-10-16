@@ -27,7 +27,8 @@ from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal,
-                        SaplGenericRelation)
+                        SaplGenericRelation, models_with_gr_for_model,
+                        ChoiceWithoutValidationField)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -55,31 +56,6 @@ STATUS_USER_CHOICE = [
 ]
 
 
-def autores_models_generic_relations():
-    models_of_generic_relations = list(map(
-        lambda x: x.related_model,
-        filter(
-            lambda obj: obj.is_relation and
-            hasattr(obj, 'field') and
-            isinstance(obj, GenericRel),
-
-            Autor._meta.get_fields(include_hidden=True))
-    ))
-
-    models = list(map(
-        lambda x: (x,
-                   list(filter(
-                       lambda field: (
-                           isinstance(
-                               field, SaplGenericRelation) and
-                           field.related_model == Autor),
-                       x._meta.get_fields(include_hidden=True)))),
-        models_of_generic_relations
-    ))
-
-    return models
-
-
 class TipoAutorForm(ModelForm):
 
     content_type = forms.ModelChoiceField(
@@ -96,30 +72,12 @@ class TipoAutorForm(ModelForm):
 
         super(TipoAutorForm, self).__init__(*args, **kwargs)
 
-        # Models que apontaram uma GenericRelation com Autor
-        models_of_generic_relations = list(map(
-            lambda x: x.related_model,
-            filter(
-                lambda obj: obj.is_relation and
-                hasattr(obj, 'field') and
-                isinstance(obj, GenericRel),
-                Autor._meta.get_fields(include_hidden=True))
-        ))
-
         content_types = ContentType.objects.get_for_models(
-            *models_of_generic_relations)
+            *models_with_gr_for_model(Autor))
 
         self.fields['content_type'].choices = [
             ('', _('Outros (Especifique)'))] + [
                 (ct.pk, ct) for key, ct in content_types.items()]
-
-
-class ChoiceWithoutValidationField(forms.ChoiceField):
-
-    def validate(self, value):
-        if self.required and not value:
-            raise ValidationError(
-                self.error_messages['required'], code='required')
 
 
 class AutorForm(ModelForm):

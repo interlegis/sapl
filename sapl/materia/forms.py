@@ -2,23 +2,29 @@ from datetime import datetime
 
 import django_filters
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
+    Div, Field
 from django import forms
+from django.contrib.contenttypes.fields import GenericRel
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, to_row, to_column,\
+    SaplFormLayout
+from sapl.materia.models import TipoProposicao
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
-                        autor_modal)
+                        autor_modal, models_with_gr_for_model,
+                        ChoiceWithoutValidationField)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
@@ -767,3 +773,80 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
                      row1, row2, form_actions(save_label='Pesquisar')))
+
+
+class TipoProposicaoForm(ModelForm):
+
+    conteudo = forms.ModelChoiceField(
+        queryset=ContentType.objects.all(),
+        label=TipoProposicao._meta.get_field('conteudo').verbose_name,
+        required=True)
+
+    tipo_conteudo_related_radio = ChoiceWithoutValidationField(
+        label="Seleção de Tipo",
+        required=True,
+        widget=forms.RadioSelect())
+
+    tipo_conteudo_related = forms.IntegerField(
+        widget=forms.HiddenInput())
+
+    class Meta:
+        model = TipoProposicao
+        fields = ['descricao',
+                  'conteudo',
+                  'tipo_conteudo_related_radio',
+                  'tipo_conteudo_related']
+
+        widgets = {'tipo_conteudo_related': forms.HiddenInput()}
+
+    def __init__(self, *args, **kwargs):
+
+        tipo_select = Row(to_column(('descricao', 5)),
+                          to_column(('conteudo', 7)),
+                          to_column(('tipo_conteudo_related_radio', 12)))
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(tipo_select)
+
+        super(TipoProposicaoForm, self).__init__(*args, **kwargs)
+
+        content_types = ContentType.objects.get_for_models(
+            *models_with_gr_for_model(TipoProposicao))
+
+        self.fields['conteudo'].choices = [
+            (ct.pk, ct) for k, ct in content_types.items()]
+        self.fields['conteudo'].choices.sort(key=lambda x: str(x[1]))
+
+        if self.instance.pk:
+            self.fields[
+                'tipo_conteudo_related'].initial = self.instance.object_id
+
+    def clean(self):
+        cd = self.cleaned_data
+
+        conteudo = cd['conteudo']
+
+        if 'tipo_conteudo_related' not in cd or not cd['tipo_conteudo_related']:
+            raise ValidationError(
+                _('Seleção de Tipo não definida'))
+
+        if not conteudo.model_class().objects.filter(
+                pk=cd['tipo_conteudo_related']).exists():
+            raise ValidationError(
+                _('O Registro definido (%s) não está na base de %s.'
+                  ) % (cd['tipo_conteudo_related'], cd['q'], conteudo))
+
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=False):
+        tipo_proposicao = super(TipoProposicaoForm, self).save(commit)
+
+        assert tipo_proposicao.conteudo
+
+        tipo_proposicao.tipo_conteudo_related = \
+            tipo_proposicao.conteudo.model_class(
+            ).objects.get(pk=self.cleaned_data['tipo_conteudo_related'])
+
+        tipo_proposicao.save()
+        return tipo_proposicao

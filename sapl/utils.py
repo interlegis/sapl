@@ -13,13 +13,15 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.fields import GenericRelation, GenericRel,\
+    GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 import magic
+
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
 
 
@@ -93,6 +95,13 @@ def montar_helper_autor(self):
     self.helper.layout[0][4][0].insert(2, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
              ' class="btn btn-inverse">Cancelar</a>')]))
+
+
+class SaplGenericForeignKey(GenericForeignKey):
+
+    def __init__(self, ct_field='content_type', fk_field='object_id', for_concrete_model=True, verbose_name=''):
+        super().__init__(ct_field, fk_field, for_concrete_model)
+        self.verbose_name = verbose_name
 
 
 class SaplGenericRelation(GenericRelation):
@@ -462,3 +471,52 @@ def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
             break
         md5.update(data)
     return 'P' + md5.hexdigest() + '/' + pk
+
+
+class ChoiceWithoutValidationField(forms.ChoiceField):
+
+    def validate(self, value):
+        if self.required and not value:
+            raise ValidationError(
+                self.error_messages['required'], code='required')
+
+
+def models_with_gr_for_model(model):
+    return list(map(
+        lambda x: x.related_model,
+        filter(
+            lambda obj: obj.is_relation and
+            hasattr(obj, 'field') and
+            isinstance(obj, GenericRel),
+
+            model._meta.get_fields(include_hidden=True))
+    ))
+
+
+def generic_relations_for_model(model):
+    """
+    Esta função retorna uma lista de tuplas de dois elementos, onde o primeiro
+    elemento é um model qualquer que implementa SaplGenericRelation (SGR), o 
+    segundo elemento é uma lista de todas as SGR's que pode haver dentro do
+    model retornado na primeira posição da tupla.
+
+    Exemplo: No Sapl, o model Parlamentar tem apenas uma SGR para Autor. 
+                Se no Sapl existisse apenas essa SGR, o resultado dessa função
+                seria:
+                    [   #Uma Lista de tuplas
+                        (   # cada tupla com dois elementos
+                            sapl.parlamentares.models.Parlamentar, 
+                            [<sapl.utils.SaplGenericRelation: autor>]
+                        ),
+                    ]
+    """
+    return list(map(
+        lambda x: (x,
+                   list(filter(
+                       lambda field: (
+                           isinstance(
+                               field, SaplGenericRelation) and
+                           field.related_model == model),
+                       x._meta.get_fields(include_hidden=True)))),
+        models_with_gr_for_model(model)
+    ))

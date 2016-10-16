@@ -16,10 +16,16 @@ class ChoiceSerializer(serializers.Serializer):
         return obj[0]
 
 
-class AutorChoiceSerializer(ChoiceSerializer):
+class ModelChoiceSerializer(ChoiceSerializer):
 
     def get_text(self, obj):
-        return obj.nome
+        return str(obj)
+
+    def get_value(self, obj):
+        return obj.id
+
+
+class AutorChoiceSerializer(ModelChoiceSerializer):
 
     def get_value(self, obj):
         return obj.id

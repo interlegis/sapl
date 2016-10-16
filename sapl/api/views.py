@@ -1,4 +1,5 @@
 
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
@@ -10,9 +11,26 @@ from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.forms import AutorChoiceFilterSet
 from sapl.api.serializers import ChoiceSerializer, AutorSerializer,\
-    AutorChoiceSerializer
+    AutorChoiceSerializer, ModelChoiceSerializer
 from sapl.base.models import Autor, TipoAutor
 from sapl.utils import SaplGenericRelation, sapl_logger
+
+
+class ModelChoiceView(ListAPIView):
+
+    # FIXME aplicar permissão correta de usuário
+    permission_classes = (AllowAny,)
+    serializer_class = ModelChoiceSerializer
+
+    def get_queryset(self):
+
+        try:
+            ct = ContentType.objects.get_for_id(self.kwargs['content_type'])
+
+        except:
+            raise Http404
+
+        return ct.model_class().objects.all()
 
 
 class AutorListView(ListAPIView):
@@ -60,7 +78,6 @@ class AutorListView(ListAPIView):
 
     # FIXME aplicar permissão correta de usuário
     permission_classes = (AllowAny,)
-    serializer_class = AutorSerializer
     queryset = Autor.objects.all()
     model = Autor
 
