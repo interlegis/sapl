@@ -1,6 +1,7 @@
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
 
@@ -323,13 +324,31 @@ class MesaDiretoraView(FormView):
                     AppConfig.label, ComposicaoMesa._meta.model_name)):
 
             composicao = ComposicaoMesa()
-            composicao.sessao_legislativa = SessaoLegislativa.objects.get(
-                id=int(request.POST['sessao']))
-            composicao.parlamentar = Parlamentar.objects.get(
-                id=int(request.POST['parlamentar']))
-            composicao.cargo = CargoMesa.objects.get(
-                id=int(request.POST['cargo']))
-            composicao.save()
+
+            try:
+                composicao.sessao_legislativa = SessaoLegislativa.objects.get(
+                    id=int(request.POST['sessao']))
+            except MultiValueDictKeyError:
+                messages.error(request, _(
+                    'Nenhuma sessão foi inserida!'))
+                return self.get(request)
+
+            try:
+                composicao.parlamentar = Parlamentar.objects.get(
+                    id=int(request.POST['parlamentar']))
+            except MultiValueDictKeyError:
+                messages.error(request, _(
+                    'Nenhum parlamentar foi inserido!'))
+                return self.get(request)
+
+            try:
+                composicao.cargo = CargoMesa.objects.get(
+                    id=int(request.POST['cargo']))
+                composicao.save()
+            except MultiValueDictKeyError:
+                messages.error(request, _(
+                    'Nenhum cargo foi inserido!'))
+                return self.get(request)
 
             messages.success(request, _(
                 'Parlamentar adicionado com sucesso!'))
