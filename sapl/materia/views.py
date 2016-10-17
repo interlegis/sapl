@@ -30,7 +30,7 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             make_pagination)
 from sapl.materia import apps
 from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
-    TipoProposicaoForm
+    TipoProposicaoForm, ProposicaoCreateForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
@@ -41,7 +41,7 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ConfirmarProposicaoForm, DocumentoAcessorioForm,
                     MateriaLegislativaFilterSet,
-                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoOldForm,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
@@ -325,6 +325,48 @@ class ConfirmarProposicao(PermissionRequiredMixin, CreateView):
 
 
 class ProposicaoCrud(Crud):
+    model = Proposicao
+    help_path = ''
+    container_field = 'autor__user'
+
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = ['data_envio', 'descricao',
+                            'tipo', 'data_recebimento']
+
+    class ListView(Crud.ListView):
+        ordering = ['-data_envio', 'descricao']
+
+        def get_rows(self, object_list):
+
+            for obj in object_list:
+                if obj.data_envio is None:
+                    obj.data_envio = 'Em elaboração...'
+                else:
+                    obj.data_envio = obj.data_envio.strftime("%d/%m/%Y %H:%M")
+                if obj.data_recebimento is None:
+                    obj.data_recebimento = 'Não recebida'
+                else:
+                    obj.data_recebimento = obj.data_recebimento.strftime(
+                        "%d/%m/%Y %H:%M")
+
+            return [self._as_row(obj) for obj in object_list]
+
+    class CreateView(Crud.CreateView):
+        form_class = ProposicaoCreateForm
+        layout_key = None
+
+        def get_success_url(self):
+
+            tipo_texto = self.request.POST.get('tipo_texto', '')
+
+            if tipo_texto != 'T':
+                return Crud.CreateView.get_success_url(self)
+            else:
+                return reverse('sapl.materia:proposicao_ta',
+                               kwargs={'pk': self.object.pk})
+
+
+class ProposicaoOldCrud(Crud):
     """
     TODO: Entre outros comportamento gerais, mesmo que um usuário tenha
     Perfil de Autor o Crud de proposição não deverá permitir acesso a
@@ -339,7 +381,7 @@ class ProposicaoCrud(Crud):
                             'tipo', 'data_recebimento']
 
     class CreateView(Crud.CreateView):
-        form_class = ProposicaoForm
+        form_class = ProposicaoOldForm
 
         @property
         def layout_key(self):
@@ -366,7 +408,7 @@ class ProposicaoCrud(Crud):
                 return {'autor': autor_id}
 
     class UpdateView(Crud.UpdateView):
-        form_class = ProposicaoForm
+        form_class = ProposicaoOldForm
 
         def get_initial(self):
             initial = self.initial.copy()

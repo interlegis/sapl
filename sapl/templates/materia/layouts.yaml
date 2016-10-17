@@ -77,17 +77,6 @@ TipoProposicao:
   - descricao conteudo
   - tipo_conteudo_related
 
-
-
-ProposicaoCreate:
-  {% trans 'Proposição' %}:
-  - tipo  data_envio
-  - descricao
-  {% trans 'Materia' %}:
-  - tipo_materia numero_materia ano_materia
-  {% trans 'Complemento' %}:
-  - texto_original
-
 Proposicao:
   {% trans 'Proposição' %}:
   - tipo  data_envio

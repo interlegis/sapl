@@ -1,4 +1,4 @@
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions, BasePermission
 
 
 class DjangoModelPermissions(DjangoModelPermissions):

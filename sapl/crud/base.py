@@ -7,11 +7,14 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.conf.urls import url
+from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.fields.related import ForeignKey
 from django.http.response import Http404
+from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -193,6 +196,24 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 
                 if not self.model.objects.filter(**params).exists():
                     raise Http404()
+        elif self.container_field:
+            container = self.container_field.split('__')
+
+            if len(container) > 1:
+                # TODO: implementar caso o user for o próprio o container
+                container_model = getattr(
+                    self.model, container[0]).field.related_model
+
+                params = {}
+                params['__'.join(
+                    container[1:])] = request.user.pk
+
+                if not container_model.objects.filter(**params).exists():
+                    messages.error(
+                        request,
+                        'O Usuário (%s) não possui registro de %s.' % (
+                            request.user, container_model._meta.verbose_name))
+                    return redirect('/')
 
         return super(PermissionRequiredMixin, self).dispatch(
             request, *args, **kwargs)
@@ -585,7 +606,7 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
         return super(CrudCreateView, self).get_context_data(**kwargs)
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
+        self.object = form.instance
         try:
             self.object.owner = self.request.user
             self.object.modifier = self.request.user
@@ -596,6 +617,7 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
             container = self.container_field.split('__')
 
             if len(container) > 1:
+                # TODO: implementar caso o user for próprio o container
                 container_model = getattr(
                     self.model, container[0]).field.related_model
 
@@ -773,7 +795,7 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
     permission_required = (RP_CHANGE, )
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
+        self.object = form.instance
         try:
             self.object.modifier = self.request.user
         except:

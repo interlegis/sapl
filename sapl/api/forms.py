@@ -56,3 +56,7 @@ class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
         fields = ['q',
                   'tipo',
                   'nome', ]
+
+    def filter_q(self, queryset, value):
+        return SaplGenericRelationSearchFilterSet.filter_q(
+            self, queryset, value).order_by('nome')

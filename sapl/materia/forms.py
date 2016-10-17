@@ -1,6 +1,9 @@
+from cProfile import label
 from datetime import datetime
 
 import django_filters
+from crispy_forms.bootstrap import InlineRadios, InlineField, Alert,\
+    InlineCheckboxes
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
     Div, Field
@@ -10,9 +13,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import Max
-from django.forms import ModelForm
+from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
 
+from sapl import base
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import form_actions, to_row, to_column,\
@@ -87,7 +91,7 @@ class UnidadeTramitacaoForm(ModelForm):
         return cleaned_data
 
 
-class ProposicaoForm(ModelForm):
+class ProposicaoOldForm(ModelForm):
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Matéria Vinculada'),
@@ -135,7 +139,7 @@ class ProposicaoForm(ModelForm):
         return cleaned_data
 
     def save(self, commit=False):
-        proposicao = super(ProposicaoForm, self).save(commit)
+        proposicao = super(ProposicaoOldForm, self).save(commit)
         if 'materia' in self.cleaned_data:
             proposicao.materia = self.cleaned_data['materia']
         proposicao.save()
@@ -784,11 +788,12 @@ class TipoProposicaoForm(ModelForm):
 
     tipo_conteudo_related_radio = ChoiceWithoutValidationField(
         label="Seleção de Tipo",
-        required=True,
+        required=False,
         widget=forms.RadioSelect())
 
     tipo_conteudo_related = forms.IntegerField(
-        widget=forms.HiddenInput())
+        widget=forms.HiddenInput(),
+        required=True)
 
     class Meta:
         model = TipoProposicao
@@ -801,9 +806,10 @@ class TipoProposicaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        tipo_select = Row(to_column(('descricao', 5)),
-                          to_column(('conteudo', 7)),
-                          to_column(('tipo_conteudo_related_radio', 12)))
+        tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
+                               to_column(('descricao', 5)),
+                               to_column(('conteudo', 7)),
+                               to_column(('tipo_conteudo_related_radio', 12)))
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
@@ -840,6 +846,7 @@ class TipoProposicaoForm(ModelForm):
 
     @transaction.atomic
     def save(self, commit=False):
+
         tipo_proposicao = super(TipoProposicaoForm, self).save(commit)
 
         assert tipo_proposicao.conteudo
@@ -849,4 +856,108 @@ class TipoProposicaoForm(ModelForm):
             ).objects.get(pk=self.cleaned_data['tipo_conteudo_related'])
 
         tipo_proposicao.save()
+
         return tipo_proposicao
+
+
+class ProposicaoCreateForm(forms.ModelForm):
+
+    TIPO_TEXTO_CHOICE = [
+        ('D', _('Arquivo Digital')),
+        ('T', _('Texto Articulado'))
+    ]
+
+    tipo_materia = forms.ModelChoiceField(
+        label=TipoMateriaLegislativa._meta.verbose_name,
+        required=False,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione')
+
+    numero_materia = forms.CharField(
+        label='Número', required=False)
+
+    ano_materia = forms.CharField(
+        label='Ano', required=False)
+
+    tipo_texto = forms.MultipleChoiceField(
+        label=_('Tipo do Texto da Proposição'),
+        required=False,
+        choices=TIPO_TEXTO_CHOICE,
+        widget=widgets.CheckboxSelectMultiple())
+
+    class Meta:
+        model = Proposicao
+        fields = ['tipo',
+                  'descricao',
+                  'texto_original',
+
+                  'tipo_materia',
+                  'numero_materia',
+                  'ano_materia',
+                  'tipo_texto']
+
+    def __init__(self, *args, **kwargs):
+        self.texto_articulado_proposicao = base.models.AppConfig.attr(
+            'texto_articulado_proposicao')
+
+        if not self.texto_articulado_proposicao:
+            self.tipo_texto = None
+            self.TIPO_TEXTO_CHOICE = None
+            if 'tipo_texto' in self.Meta.fields:
+                self.Meta.fields.remove('tipo_texto')
+
+        fields = [
+            to_column((Fieldset(
+                TipoProposicao._meta.verbose_name, Field('tipo')), 3)),
+            Fieldset(_('Vincular a Matéria Legislativa Existente'),
+                     to_column(('tipo_materia', 4)),
+                     to_column(('numero_materia', 4)),
+                     to_column(('ano_materia', 4))
+                     ),
+
+            to_column(
+                (Alert('teste',
+                       css_class="ementa_materia hidden alert-info",
+                       dismiss=False), 12)),
+            to_column(('descricao', 12)),
+        ]
+
+        if self.texto_articulado_proposicao:
+            fields.append(
+                to_column((InlineCheckboxes('tipo_texto'), 5)),)
+
+        fields.append(
+            to_column(('texto_original', 7)),)
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(*fields)
+
+        super(ProposicaoCreateForm, self).__init__(*args, **kwargs)
+
+    def clean_texto_original(self):
+        texto_original = self.cleaned_data.get('texto_original', False)
+        if texto_original:
+            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+            return texto_original
+
+    def clean(self):
+        cd = self.cleaned_data
+
+        tm, am, nm = (cd.get('tipo_materia', ''),
+                      cd.get('ano_materia', ''),
+                      cd.get('numero_materia', ''))
+
+        if tm and am and nm:
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    tipo_id=tm,
+                    ano=am,
+                    numero=nm
+                )
+            except ObjectDoesNotExist:
+                msg = _('Matéria Vinculada não existe!')
+                raise ValidationError(msg)
+            else:
+                cd['materia'] = materia
+        return cd

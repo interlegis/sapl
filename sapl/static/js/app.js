@@ -104,7 +104,7 @@ function autorModal() {
                 '<select id="resultados" \
                 style="min-width: 90%; max-width:90%;" size="5"/>');
 
-            data.models.forEach(function(item, index) {
+            data.results.forEach(function(item, index) {
                 select.append($("<option>").attr('value', item.value).text(item.text));
             });
 

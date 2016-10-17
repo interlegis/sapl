@@ -49,6 +49,7 @@ class AutorCrud(CrudAux):
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['tipo', 'nome', 'user__username']
+        ordering = ('tipo__descricao', )
 
     class DeleteView(CrudAux.DeleteView):
 
@@ -64,10 +65,6 @@ class AutorCrud(CrudAux):
     class UpdateView(CrudAux.UpdateView):
         layout_key = None
         form_class = AutorForm
-
-        def form_valid(self, form):
-            # devido a implement do form o form_valid do Crud deve ser pulado
-            return super(CrudAux.UpdateView, self).form_valid(form)
 
         def get_success_url(self):
 
@@ -110,10 +107,6 @@ class AutorCrud(CrudAux):
     class CreateView(CrudAux.CreateView):
         form_class = AutorForm
         layout_key = None
-
-        def form_valid(self, form):
-            # devido a implement do form o form_valid do Crud deve ser pulado
-            return super(CrudAux.CreateView, self).form_valid(form)
 
         def get_success_url(self):
             pk_autor = self.object.id

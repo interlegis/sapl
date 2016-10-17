@@ -53,6 +53,7 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
+        unique_together = (('conteudo', 'object_id'), )
 
     def __str__(self):
         return self.descricao
@@ -460,7 +461,7 @@ class Proposicao(models.Model):
     data_devolucao = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Devolução'))
 
-    descricao = models.TextField(max_length=100, verbose_name=_('Descrição'))
+    descricao = models.TextField(verbose_name=_('Descrição'))
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
@@ -489,6 +490,8 @@ class Proposicao(models.Model):
 
     texto_original = models.FileField(
         upload_to=texto_upload_path,
+        blank=True,
+        null=True,
         verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])
 
