@@ -77,6 +77,17 @@ h6, .h6 {
   }
 }
 
+.btn-default {
+  &.btn-excluir {
+    color: $btn-danger-bg;
+    &:hover {
+      color: $btn-danger-color;
+      border-color: lighten($btn-danger-bg, 5%);
+      background-color: lighten($btn-danger-bg, 5%);
+    }
+  }
+}
+
 // #### CRUD DETAIL ########################################
 p.control-label {
   font-weight: bold;
@@ -131,12 +142,6 @@ body {
 // #### pagination ########################################
 .pagination {
   padding-top: 25px;
-}
-
-// #### conserta radios e checkboxes escondidas pelo drunken parrot ############
-// FIXME ajustar após solução definitiva
-.checkbox input, .radio input {
-    display: initial;
 }
 
 .modal {
