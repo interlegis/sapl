@@ -1,6 +1,8 @@
+
 from django.db.models import Q
 from django_filters.filters import MethodFilter, ModelChoiceFilter
 from rest_framework.filters import FilterSet
+
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.utils import generic_relations_for_model
@@ -10,6 +12,7 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
     q = MethodFilter()
 
     def filter_q(self, queryset, value):
+
         query = value.split(' ')
         if query:
             q = Q()
@@ -25,6 +28,7 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
                     sgr = gr[1]
                     for item in sgr:
                         if item.related_model != self._meta.model:
+
                             continue
                         flag_order_by = True
                         for field in item.fields_search:

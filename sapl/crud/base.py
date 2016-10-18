@@ -9,7 +9,6 @@ from django import forms
 from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.fields.related import ForeignKey
@@ -17,8 +16,8 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -27,6 +26,7 @@ from django.views.generic.list import MultipleObjectMixin
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.settings import BASE_DIR
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(BASE_DIR.name)
 

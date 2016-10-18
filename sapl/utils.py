@@ -4,7 +4,6 @@ from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
 
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms

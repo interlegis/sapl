@@ -1,10 +1,13 @@
 
+
 from django.contrib.contenttypes.models import ContentType
+
 from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
+
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet
@@ -58,6 +61,7 @@ class AutorListView(ListAPIView):
                       de Autores mas feito para Possíveis Autores armazenados
                       segundo o ContentType associado ao Tipo de Autor via
                       relacionamento genérico.
+
                       Busca feita sem django-filter processada no get_queryset
                       -> processo no cadastro de autores para seleção e busca
                           dos possíveis autores
@@ -122,7 +126,6 @@ class AutorListView(ListAPIView):
             self.permission_classes = (IsAuthenticated,)
 
         return ListAPIView.get(self, request, *args, **kwargs)
-
 
     def get_queryset(self):
         queryset = ListAPIView.get_queryset(self)

@@ -1,12 +1,12 @@
-
 from django.conf import settings
 from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
 
-from sapl.api.views import AutorListView, ModelChoiceView,\
-    MateriaLegislativaViewSet
+from sapl.api.views import MateriaLegislativaViewSet, AutorListView,\
+    ModelChoiceView
 
 from .apps import AppConfig
+
 
 app_name = AppConfig.name
 
@@ -17,11 +17,12 @@ urlpatterns_router = router.urls
 
 
 urlpatterns_api = [
-    # url(r'^$', api_root),
+
     url(r'^autor', AutorListView.as_view(), name='autor_list'),
 
     url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
         ModelChoiceView.as_view(), name='model_list'),
+
 ]
 
 if settings.DEBUG:

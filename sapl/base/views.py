@@ -13,7 +13,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.base.forms import AutorForm, TipoAutorForm
+
+from sapl.base.forms import AutorForm, TipoAutorForm, AutorFormForAdmin
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
@@ -49,7 +51,6 @@ class AutorCrud(CrudAux):
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['tipo', 'nome', 'user__username']
-        ordering = ('tipo__descricao', )
 
     class DeleteView(CrudAux.DeleteView):
 
@@ -66,6 +67,11 @@ class AutorCrud(CrudAux):
         layout_key = None
         form_class = AutorForm
 
+        def get(self, request, *args, **kwargs):
+            if request.user.is_superuser:
+                self.form_class = AutorFormForAdmin
+            return CrudAux.UpdateView.get(self, request, *args, **kwargs)
+
         def get_success_url(self):
 
             # FIXME try except - testar envio de emails
@@ -74,7 +80,7 @@ class AutorCrud(CrudAux):
             try:
                 kwargs = {}
                 user = self.object.user
-                
+
                 if user.is_active:
                     return reverse('sapl.base:autor_detail',
                                    kwargs={'pk': pk_autor})
@@ -107,6 +113,11 @@ class AutorCrud(CrudAux):
     class CreateView(CrudAux.CreateView):
         form_class = AutorForm
         layout_key = None
+
+        def get(self, request, *args, **kwargs):
+            if request.user.is_superuser:
+                self.form_class = AutorFormForAdmin
+            return CrudAux.CreateView.get(self, request, *args, **kwargs)
 
         def get_success_url(self):
             pk_autor = self.object.id

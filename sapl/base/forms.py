@@ -27,8 +27,10 @@ from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal,
+
                         SaplGenericRelation, models_with_gr_for_model,
                         ChoiceWithoutValidationField)
+
 
 from .models import AppConfig, CasaLegislativa
 
@@ -120,16 +122,6 @@ class AutorForm(ModelForm):
         choices=ACTION_CREATE_USERS_AUTOR_CHOICE,
         widget=forms.RadioSelect())
 
-    status_user = forms.ChoiceField(
-        label=_('Bloqueio do Usuário Existente'),
-        choices=STATUS_USER_CHOICE,
-        widget=forms.RadioSelect(),
-        required=False,
-        help_text=_('Se vc está trocando ou removendo o usuário deste Autor, '
-                    'como o Sistema deve proceder com o usuário que está sendo'
-                    ' desvinculado?'))
-
-
     class Meta:
         model = Autor
         fields = ['tipo',
@@ -150,7 +142,6 @@ class AutorForm(ModelForm):
                 StrictButton(
                     _('Filtrar'), css_class='btn-default btn-filtrar-autor',
                     type='button')),
-
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
@@ -160,7 +151,6 @@ class AutorForm(ModelForm):
                            Div(to_column(('nome', 5)),
                                to_column(('cargo', 4)), css_class="div_nome_cargo"),
                            to_column((autor_related, 9)),
-
                            to_column((Div(
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
@@ -175,13 +165,17 @@ class AutorForm(ModelForm):
                    to_column(('confirma_email', 3)),
                    css_class='new_user_fields hidden')
 
-        row4 = Row(to_column((Div(InlineRadios('status_user'),
-                                  css_class='radiogroup-status hidden'), 12)))
+        row4 = Row(to_column((
+            Div(InlineRadios('status_user'),
+                css_class='radiogroup-status hidden'),
+            12))) if 'status_user' in self.Meta.fields else None
 
-        controle_acesso = Fieldset(
-            _('Controle de Acesso do Autor'),
-            row2, row3, row4
-        )
+        controle_acesso = [row2, row3]
+
+        if row4:
+            controle_acesso.append(row4)
+        controle_acesso = Fieldset(_('Controle de Acesso do Autor'),
+                                   *controle_acesso)
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(autor_select, controle_acesso)
@@ -195,26 +189,33 @@ class AutorForm(ModelForm):
                 self.fields['autor_related'].choices = [
                     (self.instance.autor_related.pk,
                      self.instance.autor_related)]
-                self.fields['autor_related'].initial = self.instance.object_id
+
                 self.fields['q'].initial = ''
+
+            self.fields['autor_related'].initial = self.instance.autor_related
 
             if self.instance.user:
                 self.fields['username'].initial = self.instance.user.username
                 self.fields['action_user'].initial = 'A'
-                self.fields['status_user'].initial = 'R'
+
                 self.fields['username'].label = string_concat(
                     self.fields['username'].label,
                     ' (', self.instance.user.username, ')')
-                self.fields['status_user'].label = string_concat(
-                    self.fields['status_user'].label,
-                    ' (', self.instance.user.username, ')')
+
+                if 'status_user' in self.Meta.fields:
+                    self.fields['status_user'].initial = 'R'
+                    self.fields['status_user'].label = string_concat(
+                        self.fields['status_user'].label,
+                        ' (', self.instance.user.username, ')')
+
             self.fields['username'].widget.attrs.update({
                 'data': self.instance.user.username
                 if self.instance.user else ''})
 
-            self.fields['status_user'].widget.attrs.update({
-                'data': self.instance.user.username
-                if self.instance.user else ''})
+            if 'status_user' in self.Meta.fields:
+                self.fields['status_user'].widget.attrs.update({
+                    'data': self.instance.user.username
+                    if self.instance.user else ''})
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
@@ -229,13 +230,14 @@ class AutorForm(ModelForm):
             raise ValidationError(_('Informe se o Autor terá usuário '
                                     'vinculado para acesso ao Sistema.'))
 
-        if self.instance.pk and self.instance.user_id:
-            if self.instance.user.username != cd['username']:
-                if 'status_user' not in cd or not cd['status_user']:
-                    raise ValidationError(
-                        _('Foi trocado ou removido o usuário deste Autor, '
-                          'mas não foi informado como se deve proceder com o '
-                          'usuário que está sendo desvinculado?'))
+        if 'status_user' in self.Meta.fields:
+            if self.instance.pk and self.instance.user_id:
+                if self.instance.user.username != cd['username']:
+                    if 'status_user' not in cd or not cd['status_user']:
+                        raise ValidationError(
+                            _('Foi trocado ou removido o usuário deste Autor, '
+                              'mas não foi informado como se deve proceder '
+                              'com o usuário que está sendo desvinculado?'))
 
         qs_user = User.objects.all()
         qs_autor = Autor.objects.all()
@@ -374,21 +376,47 @@ class AutorForm(ModelForm):
                 user_old.groups.remove(grupo)
 
         else:
-            if 'status_user' in self.cleaned_data and user_old:
-                if self.cleaned_data['status_user'] == 'X':
-                    user_old.delete()
+            if 'status_user' in self.Meta.fields:
+                if 'status_user' in self.cleaned_data and user_old:
+                    if self.cleaned_data['status_user'] == 'X':
+                        user_old.delete()
 
-                elif self.cleaned_data['status_user'] == 'D':
-                    user_old.groups.remove(grupo)
-                    user_old.is_active = False
-                    user_old.save()
+                    elif self.cleaned_data['status_user'] == 'D':
+                        user_old.groups.remove(grupo)
+                        user_old.is_active = False
+                        user_old.save()
 
-                elif self.cleaned_data['status_user'] == 'R':
+                    elif self.cleaned_data['status_user'] == 'R':
+                        user_old.groups.remove(grupo)
+                elif user_old:
                     user_old.groups.remove(grupo)
-            elif user_old:
+            else:
+
                 user_old.groups.remove(grupo)
 
         return autor
+
+
+class AutorFormForAdmin(AutorForm):
+    status_user = forms.ChoiceField(
+        label=_('Bloqueio do Usuário Existente'),
+        choices=STATUS_USER_CHOICE,
+        widget=forms.RadioSelect(),
+        required=False,
+        help_text=_('Se vc está trocando ou removendo o usuário deste Autor, '
+                    'como o Sistema deve proceder com o usuário que está sendo'
+                    ' desvinculado?'))
+
+    class Meta:
+        model = Autor
+        fields = ['tipo',
+                  'nome',
+                  'cargo',
+                  'autor_related',
+                  'q',
+                  'action_user',
+                  'username',
+                  'status_user']
 
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):

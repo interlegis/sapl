@@ -1,20 +1,18 @@
-from cProfile import label
+
 from datetime import datetime
 
-import django_filters
-from crispy_forms.bootstrap import InlineRadios, InlineField, Alert,\
-    InlineCheckboxes
+from crispy_forms.bootstrap import Alert, InlineCheckboxes
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
-    Div, Field
+    Field
 from django import forms
-from django.contrib.contenttypes.fields import GenericRel
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl import base
 from sapl.base.models import Autor
