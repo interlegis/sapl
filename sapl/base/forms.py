@@ -225,7 +225,10 @@ class AutorForm(ModelForm):
                 self.fields['autor_related'].choices = [
                     (self.instance.autor_related.pk,
                      self.instance.autor_related)]
-                self.fields['q'].initial = self.instance.nome
+                self.fields['q'].initial = ''
+
+                self.fields[
+                    'autor_related'].initial = self.instance.autor_related
 
             if self.instance.user:
                 self.fields['username'].initial = self.instance.user.username
