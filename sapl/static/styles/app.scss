@@ -50,7 +50,6 @@ nav {
     font-size: 24px;
     img.img-responsive {
       height: 95px;
-      width: 95px;
       margin-right: $navbar-padding-horizontal;
     }
     small {
@@ -415,34 +414,30 @@ p {
 /* FIM TEMPLATE AJUDA */
 
 @media (max-width: 1199px) {
-  /*.nav > li > a {
-      padding: $grid-gutter-width $grid-gutter-width / 3;
-  }*/
-
   .masthead {
-    .vcenter {
-      padding: 10px;
-    }
-    .nav {
-      margin-top: 65px;
-    }
     .navbar-brand {
-      color: $headings-color;
-      font-size: 20px;
+      font-size: 22px;
       img.img-responsive {
         height: 60px;
         width: 60px;
         margin-right: $navbar-padding-horizontal / 2;
       }
-      small {
-        color: #93A4AA;
-        font-size: 75%;
-        line-height: 25px;
-      }
     }
   }
-
+  .navbar-nav > li > a {
+     padding-left: $grid-gutter-width / 2.8;
+     padding-right:  $grid-gutter-width / 2.8;
+  }
 }
+
+@media (max-width: 1091px) {
+  .navbar-nav > li > a {
+     padding-left: $grid-gutter-width / 4;
+     padding-right:  $grid-gutter-width / 4;
+  }
+}
+
+
 
 @media (min-width: 1092px) and (max-width: 1199px) {
   .container {

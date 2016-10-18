@@ -40,6 +40,7 @@ $(document).ready(function(){
         if (atualizar) {
           var radios = $("#div_id_autor_related .controls").html('');
           data.results.forEach(function (val, index) {
+
             var html_radio = '<div class="radio"><label><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.value+'" style="display:none;">'+val.text+'</label></div>';
             radios.append(html_radio);
           });
