@@ -50,11 +50,11 @@
                 {% if m.registrovotacao_set.exists %}
                     <strong>Data Votação:</strong>
                     {% if m.registrovotacao_set.last.ordem %}
-                      <a href="{% url 'sapl.sessao:sessaoplenaria_detail' m.registrovotacao_set.last.ordem.sessao_plenaria_id %}">
+                      <a href="{% url 'sapl.sessao:ordemdia_list' m.registrovotacao_set.last.ordem.sessao_plenaria_id %}">
                         {{ m.registrovotacao_set.last.ordem.data_ordem }}
                       </a>
                     {% elif m.registrovotacao_set.last.expediente %}
-                      <a href="{% url 'sapl.sessao:sessaoplenaria_detail' m.registrovotacao_set.last.expediente.sessao_plenaria_id %}">
+                      <a href="{% url 'sapl.sessao:expedientemateria_list' m.registrovotacao_set.last.expediente.sessao_plenaria_id %}">
                         {{ m.registrovotacao_set.last.expediente.data_ordem }}
                       </a>
                     {% endif %}
