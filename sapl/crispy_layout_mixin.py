@@ -138,8 +138,9 @@ class CrispyLayoutFormMixin:
             # simply return None if there is no get_form on super
             pass
         else:
-            form.helper = FormHelper()
-            form.helper.layout = SaplFormLayout(*self.get_layout())
+            if self.layout_key:
+                form.helper = FormHelper()
+                form.helper.layout = SaplFormLayout(*self.get_layout())
             return form
 
     @property

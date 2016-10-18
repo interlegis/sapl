@@ -4,9 +4,9 @@ from bs4 import BeautifulSoup
 from django.http import Http404, HttpResponse
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base.models import CasaLegislativa
+from sapl.base.models import CasaLegislativa, Autor
 from sapl.comissoes.models import Comissao
-from sapl.materia.models import (Autor, Autoria, MateriaLegislativa, Numeracao,
+from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
                                  Tramitacao, UnidadeTramitacao)
 from sapl.parlamentares.models import (CargoMesa, ComposicaoMesa, Filiacao,
                                        Parlamentar)
@@ -102,12 +102,8 @@ def get_materias(mats):
         dic['txt_ementa'] = materia.ementa
 
         autores = Autoria.objects.filter(materia=materia)
-        dic['nom_autor'] = " "
-        for autoria in autores:
-            if autoria.autor.parlamentar:
-                dic['nom_autor'] = autoria.autor.parlamentar.nome_completo
-            elif autoria.autor.comissao:
-                dic['nom_autor'] = autoria.autor.comissao.nome
+        dic['nom_autor'] = ', '.join(
+            [str(autoria.autor) for autoria in autores])
 
         des_status = ''
         txt_tramitacao = ''

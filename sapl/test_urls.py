@@ -5,6 +5,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import string_concat
+from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import pytest
 
@@ -148,6 +149,10 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
                     """ % (url, app_name)
 
 apps_url_patterns_prefixs_and_users = {
+    'api': {
+        'prefixs': [
+            '/api/',
+        ]},
     'base': {
         'users': {'operador_geral': ['/sistema']},
         'prefixs': [
@@ -335,7 +340,7 @@ urls_publicas_excecoes = {
 
 """
 # gerar uma instancia de teste para cada usuário não foi possível. São 500
-urls para cada operador. Isso fez com que o Travis estourasse o tempo de 
+urls para cada operador. Isso fez com que o Travis estourasse o tempo de
 processamento do teste... passando de 2hs... até outro modo, a estratégia de
 encapsular apenas as urls e testar em loop os operadores será mantida.
 
@@ -434,7 +439,6 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
 
         assert app in apps_url_patterns_prefixs_and_users, """
             O app_label (%s) associado a url (%s) não está na base de testes.
-            %s
             """ % (app_name, url)
 
         if 'users' not in apps_url_patterns_prefixs_and_users[app]:

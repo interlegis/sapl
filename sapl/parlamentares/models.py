@@ -4,8 +4,9 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
-                        intervalos_tem_intersecao,
+                        SaplGenericRelation, intervalos_tem_intersecao,
                         restringe_tipos_de_arquivo_img)
 
 
@@ -262,6 +263,18 @@ class Parlamentar(models.Model):
         verbose_name=_('Fotografia'),
         validators=[restringe_tipos_de_arquivo_img])
 
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(
+        Autor,
+        related_query_name='parlamentar_set',
+        fields_search=(
+            # na primeira posição dever ser campo simples sem __
+            ('nome_completo', '__icontains'),
+            ('nome_parlamentar', '__icontains'),
+            ('filiacao__partido__sigla', '__icontains'),
+        ))
+
     class Meta:
         verbose_name = _('Parlamentar')
         verbose_name_plural = _('Parlamentares')
@@ -446,6 +459,18 @@ class Frente(models.Model):
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Dissolução'))
     descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(
+        Autor,
+        related_query_name='frente_set',
+        fields_search=(
+            ('nome', '__icontains'),
+            ('descricao', '__icontains'),
+            ('parlamentares__filiacao__partido__sigla', '__icontains'),
+            ('parlamentares__filiacao__partido__nome', '__icontains'),
+        ))
 
     class Meta:
         verbose_name = _('Frente')

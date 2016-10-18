@@ -212,7 +212,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  'autoria__autor__partido',
+                  # 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'em_tramitacao',
@@ -231,7 +231,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
-        self.filters['autoria__autor__partido'].label = 'Partido do Autor'
+        # self.filters['autoria__autor__partido'].label = 'Partido do Autor'
         self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
 
         row1 = to_row(
@@ -253,7 +253,8 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
             [('autoria__autor__tipo', 6),
-             ('autoria__autor__partido', 6)])
+             # ('autoria__autor__partido', 6)
+             ])
         row6 = to_row(
             [('relatoria__parlamentar_id', 6),
              ('local_origem_externa', 6)])

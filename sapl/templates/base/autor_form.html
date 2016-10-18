@@ -1,0 +1,154 @@
+
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% block extra_js %}
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+  var flag_create = false;
+  if (location.href.indexOf('create') > 0) {
+    $('.radiogroup-status').remove();
+    flag_create = true
+  }
+  var active = function(str, atualizar=true) {
+    if (str == 'nome') {
+      if (atualizar)
+        $('#id_nome, #id_q, #id_cargo').val('');
+      $('.div_nome_cargo').removeClass('hidden');
+      $("#div_id_autor_related .controls").html('');
+      $("[data-application='AutorSearch'], .radiogroup-autor-related").addClass('hidden');
+    }
+    else {
+      $('#id_nome, #id_cargo').val('');
+      $('.div_nome_cargo').addClass('hidden');
+      $("#div_id_autor_related .alert").remove();
+      $("[data-application='AutorSearch'], .radiogroup-autor-related").removeClass('hidden');
+    }
+  }
+  var update_search = function(pk, atualizar=true) {
+    var q = $('#id_q').val();
+
+    var url = '{% url 'sapl.api:autor_list'%}'
+
+    var formData = {
+          'q'         : q,
+          'tipo'      : pk,
+          'tr' : '2' // tipo_resultado = 2 - api fornecerá possíveis Autores
+    }
+    $.get(url, formData).done(function(data) {
+        active('pesquisa');
+        if (atualizar) {
+          var radios = $("#div_id_autor_related .controls").html('');
+          data.models.forEach(function (val, index) {
+
+            var html_radio = '<div class="radio"><label><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="autor_related" id="id_autor_related_'+index+'" value="'+val.value+'" style="display:none;">'+val.text+'</label></div>';
+            radios.append(html_radio);
+          });
+
+          if (data.models.length > 1) {
+            $('input[name=autor_related]').change(function(event){
+              if (this.checked)
+                $('#id_q').val(event.target.parentElement.textContent);
+              //$('input[name=autor_related]:not(:checked)').closest('.radio').remove();
+            });
+          }
+          else {
+            $('input[name=autor_related]').prop('checked', 'checked');
+            $('input[name=autor_related]').closest('.radio').addClass('checked');
+          }
+
+          if (data.pagination.total_entries > 10)
+            radios.before('<div class="alert alert-info" role="alert"><strong>{% trans "Foram encontrados" %} '+data.pagination.total_entries+' {% trans "registros"%}</strong>'+' {% trans "mas será mostrado apenas os 10 primeiros resultados. Coloque mais informações no campo pesquisa para refinar sua busca."%}</div>');
+          else if (data.pagination.total_entries == 0)
+            radios.before('<div class="alert alert-info" role="alert"><strong>{% trans "Não foram encontrados registros com os termos de pesquisa informados." %}</div>');
+        }
+        else{
+          $('#id_nome, #id_q').val('');
+          if ($('input[name=autor_related]').length == 1 ) {
+            $('input[name=autor_related]').prop('checked', 'checked');
+            $('input[name=autor_related]').closest('.radio').addClass('checked');
+          }
+
+        }
+      }).fail(function(data) {
+        active('nome', atualizar);
+      });
+  }
+
+  $('#id_tipo').change(function(event) {
+    if (event.target.selectedIndex == 0) {
+      $('#id_nome, #id_q').val('');
+      active('nome');
+    }
+    else {
+      var pk = this[event.target.selectedIndex].value;
+      $('input[name=autor_related]').closest('.radio').remove();
+      update_search(pk, false)
+    }
+  });
+
+  $('.btn-filtrar-autor').click(function(event) {
+    var pk = $('#id_tipo').val();
+    update_search(pk);
+  });
+
+  $('input[name=action_user]').change(function(event) {
+    if (!this.checked)
+      return;
+
+    $('#div_id_username input').prop('readonly', '');
+
+    if (event.target.value == 'C') {
+      $('.new_user_fields, #div_id_username').removeClass('hidden');
+      $('input[name=username]').val('');
+    }
+    else if (event.target.value == 'N') {
+      $('.new_user_fields').addClass('hidden');
+      if ($('input[name=username]').attr('data') != '')
+        $('.radiogroup-status').removeClass('hidden');
+
+      if (flag_create) {
+        $('#div_id_username').addClass('hidden');
+      }
+      else {
+        $('#div_id_username input').prop('readonly', 'readonly');
+      }
+    }
+    else {
+      $('.radiogroup-status').addClass('hidden');
+      $('#div_id_username').removeClass('hidden');
+      $('.new_user_fields').addClass('hidden');
+    }
+    if (!flag_create) {
+      var username = $('input[name=username]');
+      if (username.length == 1) {
+        if ((event.target.value == 'A' && username.attr('data') != '' && username[0].value != username.attr('data'))
+            || (event.target.value == 'C' && username.attr('data') != ''))
+          $('.radiogroup-status').removeClass('hidden');
+      }
+    }
+  });
+
+  $('input[name=username]').keyup(function(event) {
+    if (!flag_create)
+      if (this.getAttribute('data') != '' && this.value != this.getAttribute('data'))
+        $('.radiogroup-status').removeClass('hidden');
+      else
+          $('.radiogroup-status').addClass('hidden');
+  });
+
+  $('input[name=action_user]:checked').trigger('change');
+  if (flag_create)
+    $('input[name=autor_related]').closest('.radio').remove();
+
+  var pk = $('#id_tipo').val();
+  if (pk)
+    update_search(pk, $('#id_q').val().length > 0)
+
+});
+
+
+</script>
+
+{% endblock %}
