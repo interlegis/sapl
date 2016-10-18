@@ -150,9 +150,21 @@ function autorModal() {
     get_nome_autor("#id_autoria__autor");*/
 }
 
+
+var customsFront = function() {
+    $('[type=radio], [type=checkbox]').each(function() {
+        var $controls = $(this).closest('.controls')
+        $controls && !$controls.hasClass('controls-radio-checkbox') && $controls.addClass('controls-radio-checkbox')
+    });
+
+}
+
 $(document).ready(function(){
     refreshDatePicker();
     refreshMask();
     autorModal();
     initTinymce("texto-rico");
+
+
+    customsFront();
 });
