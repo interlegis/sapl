@@ -11,10 +11,9 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView, ResumoView,
-                               SessaoCrud,
-                               TipoExpedienteCrud, TipoResultadoVotacaoCrud,
-                               TipoSessaoCrud, VotacaoEditView,
-                               VotacaoExpedienteEditView,
+                               SessaoCrud, TipoExpedienteCrud,
+                               TipoResultadoVotacaoCrud, TipoSessaoCrud,
+                               VotacaoEditView, VotacaoExpedienteEditView,
                                VotacaoExpedienteView, VotacaoNominalEditView,
                                VotacaoNominalExpedienteEditView,
                                VotacaoNominalExpedienteView,
@@ -29,6 +28,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
 from .apps import AppConfig
 
 app_name = AppConfig.name
+
 
 urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +

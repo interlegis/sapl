@@ -10,6 +10,7 @@ if True:
     from django.contrib.auth import get_user_model
     from django.contrib.auth.models import Group, Permission
     from django.contrib.contenttypes.models import ContentType
+    from sapl.base.models import Autor
 
 
 class InicializaGruposAutorizacoes():
@@ -108,20 +109,23 @@ class InicializaGruposAutorizacoes():
         self.cria_usuario(nome_usuario, grupo_geral)
 
         # Autor
-        perms_autor = []
-        perms_autor.append(Permission.objects.get(name='Can add Proposição'))
-        perms_autor.append(
-            Permission.objects.get(name='Can change Proposição'))
-        perms_autor.append(
-            Permission.objects.get(name='Can delete Proposição'))
-
-        # Configura Permissoes Autor
         grupo = self.cria_ou_reseta_grupo('Autor')
-        for p in perms_autor:
-            grupo.permissions.add(p)
 
-        nome_usuario = 'operador_autor'
-        self.cria_usuario(nome_usuario, grupo)
+        list(map(lambda permissao: grupo.permissions.add(permissao),
+                 list(Permission.objects.filter(
+                     content_type=ContentType.objects.get_by_natural_key(
+                         app_label='materia', model='proposicao')))))
+
+        """
+        Mesmo para teste, um usuário com perfil Autor criado via /admin
+        não deverá ser criado pois esse é um papel do operador_geral fazer
+        nas tabelas auxiliares.
+        A tentativa de acesso a qualquer container (hoje apenas proposições)
+        do SAPL de Usuários com perfil Autor mas sem um Autor cadastrado
+        nas tabelas auxiliares será negado e notificado via front-end.
+        """
+        # nome_usuario = 'operador_autor'
+        # self.cria_usuario(nome_usuario, grupo)
 
     def __call__(self):
         self.cria_grupos_permissoes()

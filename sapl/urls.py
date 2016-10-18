@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.views.generic.base import TemplateView
 from django.views.static import serve as view_static_server
 
+import sapl.api.urls
 import sapl.base.urls
 import sapl.comissoes.urls
 import sapl.compilacao.urls
@@ -50,6 +51,8 @@ urlpatterns = [
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
     url(r'', include(sapl.base.urls)),
+
+    url(r'', include(sapl.api.urls)),
 ]
 
 

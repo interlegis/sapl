@@ -13,6 +13,7 @@ django-floppyforms==1.6.2
 django-model-utils==2.5
 django-sass-processor==0.4.6
 djangorestframework
+drfdocs
 easy-thumbnails==2.3
 git+git://github.com/interlegis/trml2pdf.git
 libsass==0.11.1

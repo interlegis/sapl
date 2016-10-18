@@ -59,14 +59,13 @@ class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Proposicao
     list_field_names = ['tipo', 'descricao']
-    parent_field = 'autor__parlamentar'
+    parent_field = 'autor__parlamentar_set'
     namespace = AppConfig.name
 
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
 
         def get_queryset(self):
             return super().get_queryset().filter(
-                autor__parlamentar_id=self.kwargs['pk'],
                 data_envio__isnull=False)
 
 

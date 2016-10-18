@@ -1,12 +1,20 @@
 
+from django.conf import settings
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+from sapl.base.forms import AutorForm, TipoAutorForm
+from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
@@ -24,6 +32,120 @@ from .models import AppConfig, CasaLegislativa
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class TipoAutorCrud(CrudAux):
+    model = TipoAutor
+    help_path = 'tipo-autor'
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ['descricao', 'content_type']
+        form_class = TipoAutorForm
+
+
+class AutorCrud(CrudAux):
+    model = Autor
+    help_path = 'autor'
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ['tipo', 'nome', 'user__username']
+
+    class DeleteView(CrudAux.DeleteView):
+
+        def delete(self, *args, **kwargs):
+            self.object = self.get_object()
+
+            # FIXME melhorar captura de grupo de Autor, levando em conta trad
+            grupo = Group.objects.filter(name='Autor')[0]
+            self.object.user.groups.remove(grupo)
+
+            return CrudAux.DeleteView.delete(self, *args, **kwargs)
+
+    class UpdateView(CrudAux.UpdateView):
+        layout_key = None
+        form_class = AutorForm
+
+        def form_valid(self, form):
+            # devido a implement do form o form_valid do Crud deve ser pulado
+            return super(CrudAux.UpdateView, self).form_valid(form)
+
+        def get_success_url(self):
+
+            # FIXME try except - testar envio de emails
+
+            pk_autor = self.object.id
+            try:
+                kwargs = {}
+                user = self.object.user
+
+                if user.is_active:
+                    return reverse('sapl.base:autor_detail',
+                                   kwargs={'pk': pk_autor})
+
+                kwargs['token'] = default_token_generator.make_token(user)
+                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+                assunto = "SAPL - Confirmação de Conta"
+                full_url = self.request.get_raw_uri()
+                url_base = full_url[:full_url.find('sistema') - 1]
+
+                mensagem = (
+                    "Este e-mail foi utilizado para fazer cadastro no " +
+                    "SAPL com o perfil de Autor. Agora você pode " +
+                    "criar/editar/enviar Proposições.\n" +
+                    "Seu nome de usuário é: " +
+                    self.request.POST['username'] + "\n"
+                    "Caso você não tenha feito este cadastro, por favor " +
+                    "ignore esta mensagem. Caso tenha, clique " +
+                    "no link abaixo\n" + url_base +
+                    reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+                remetente = [settings.EMAIL_SEND_USER]
+                destinatario = [user.email]
+                send_mail(assunto, mensagem, remetente, destinatario,
+                          fail_silently=False)
+            except:
+                pass
+            return reverse('sapl.base:autor_detail',
+                           kwargs={'pk': pk_autor})
+
+    class CreateView(CrudAux.CreateView):
+        form_class = AutorForm
+        layout_key = None
+
+        def form_valid(self, form):
+            # devido a implement do form o form_valid do Crud deve ser pulado
+            return super(CrudAux.CreateView, self).form_valid(form)
+
+        def get_success_url(self):
+            pk_autor = self.object.id
+            try:
+                # FIXME try except - testar envio de emails
+                kwargs = {}
+                user = self.object.user
+                kwargs['token'] = default_token_generator.make_token(user)
+                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+                assunto = "SAPL - Confirmação de Conta"
+                full_url = self.request.get_raw_uri()
+                url_base = full_url[:full_url.find('sistema') - 1]
+
+                mensagem = (
+                    "Este e-mail foi utilizado para fazer cadastro no " +
+                    "SAPL com o perfil de Autor. Agora você pode " +
+                    "criar/editar/enviar Proposições.\n" +
+                    "Seu nome de usuário é: " +
+                    self.request.POST['username'] + "\n"
+                    "Caso você não tenha feito este cadastro, por favor " +
+                    "ignore esta mensagem. Caso tenha, clique " +
+                    "no link abaixo\n" + url_base +
+                    reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+                remetente = settings.EMAIL_SEND_USER
+                destinatario = [user.email]
+                send_mail(assunto, mensagem, remetente, destinatario,
+                          fail_silently=False)
+            except:
+                pass
+
+            return reverse('sapl.base:autor_detail',
+                           kwargs={'pk': pk_autor})
 
 
 class RelatorioAtasView(FilterView):
