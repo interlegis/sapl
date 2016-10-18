@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.base.forms import AutorForm, TipoAutorForm
+from sapl.base.forms import AutorForm, TipoAutorForm, AutorFormForAdmin
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
@@ -69,6 +69,11 @@ class AutorCrud(CrudAux):
             # devido a implement do form o form_valid do Crud deve ser pulado
             return super(CrudAux.UpdateView, self).form_valid(form)
 
+        def get(self, request, *args, **kwargs):
+            if request.user.is_superuser:
+                self.form_class = AutorFormForAdmin
+            return CrudAux.UpdateView.get(self, request, *args, **kwargs)
+
         def get_success_url(self):
 
             # FIXME try except - testar envio de emails
@@ -114,6 +119,11 @@ class AutorCrud(CrudAux):
         def form_valid(self, form):
             # devido a implement do form o form_valid do Crud deve ser pulado
             return super(CrudAux.CreateView, self).form_valid(form)
+
+        def get(self, request, *args, **kwargs):
+            if request.user.is_superuser:
+                self.form_class = AutorFormForAdmin
+            return CrudAux.CreateView.get(self, request, *args, **kwargs)
 
         def get_success_url(self):
             pk_autor = self.object.id
