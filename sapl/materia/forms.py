@@ -858,7 +858,7 @@ class TipoProposicaoForm(ModelForm):
         return tipo_proposicao
 
 
-class ProposicaoCreateForm(forms.ModelForm):
+class ProposicaoForm(forms.ModelForm):
 
     TIPO_TEXTO_CHOICE = [
         ('D', _('Arquivo Digital')),
@@ -930,7 +930,15 @@ class ProposicaoCreateForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(*fields)
 
-        super(ProposicaoCreateForm, self).__init__(*args, **kwargs)
+        super(ProposicaoForm, self).__init__(*args, **kwargs)
+
+        if self.instance.pk:
+            if self.texto_articulado_proposicao:
+                self.fields['tipo_texto'].initial = []
+                if self.instance.texto_original:
+                    self.fields['tipo_texto'].initial.append('D')
+                if self.instance.texto_articulado:
+                    self.fields['tipo_texto'].initial.append('T')
 
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)

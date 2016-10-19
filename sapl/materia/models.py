@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey,\
+    GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -7,6 +8,7 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
+from sapl.compilacao.models import TextoArticulado
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         get_settings_auth_user_model,
@@ -494,6 +496,9 @@ class Proposicao(models.Model):
         null=True,
         verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])
+
+    texto_articulado = GenericRelation(
+        TextoArticulado, related_query_name='texto_articulado')
 
     class Meta:
         verbose_name = _('Proposição')

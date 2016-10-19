@@ -113,6 +113,16 @@ h6, .h6 {
   }
 }
 
+.controls-file {
+  padding: 10px;
+  border: 1px solid #d6e1e5;
+  border-radius: 4px;
+
+  label.checkbox-inline {
+    margin: 0px;
+    display: block;
+  }
+}
 .controls-radio-checkbox {
   padding: 0px;
   border: 1px solid #d6e1e5;
@@ -142,7 +152,7 @@ h6, .h6 {
   .checkbox, .radio, .checkbox-inline, .radio-inline  {
       margin: 0;
     &:hover {
-      background-color: #d6e1e5;;
+      background-color: #d6e1e5;
     }
   }
 }
@@ -168,6 +178,7 @@ p.control-label {
   color: $legend-color;
   border: 0;
   border-bottom: 1px solid $legend-border-color;
+  clear: both;
 }
 
 // #### footer ###########################################

@@ -77,36 +77,33 @@ class AutorCrud(CrudAux):
             # FIXME try except - testar envio de emails
 
             pk_autor = self.object.id
-            try:
-                kwargs = {}
-                user = self.object.user
+            kwargs = {}
+            user = self.object.user
 
-                if user.is_active:
-                    return reverse('sapl.base:autor_detail',
-                                   kwargs={'pk': pk_autor})
+            """if user.is_active:
+                return reverse('sapl.base:autor_detail',
+                               kwargs={'pk': pk_autor})"""
 
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
+            kwargs['token'] = default_token_generator.make_token(user)
+            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+            assunto = "SAPL - Confirmação de Conta"
+            full_url = self.request.get_raw_uri()
+            url_base = full_url[:full_url.find('sistema') - 1]
 
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.materia:confirmar_email', kwargs=kwargs))
-                remetente = [settings.EMAIL_SEND_USER]
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
-            except:
-                pass
+            mensagem = (
+                "Este e-mail foi utilizado para fazer cadastro no " +
+                "SAPL com o perfil de Autor. Agora você pode " +
+                "criar/editar/enviar Proposições.\n" +
+                "Seu nome de usuário é: " +
+                self.request.POST['username'] + "\n"
+                "Caso você não tenha feito este cadastro, por favor " +
+                "ignore esta mensagem. Caso tenha, clique " +
+                "no link abaixo\n" + url_base +
+                reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+            remetente = [settings.EMAIL_SEND_USER]
+            destinatario = [user.email]
+            send_mail(assunto, mensagem, remetente, destinatario,
+                      fail_silently=False)
             return reverse('sapl.base:autor_detail',
                            kwargs={'pk': pk_autor})
 
@@ -121,32 +118,29 @@ class AutorCrud(CrudAux):
 
         def get_success_url(self):
             pk_autor = self.object.id
-            try:
-                # FIXME try except - testar envio de emails
-                kwargs = {}
-                user = self.object.user
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
+            # FIXME try except - testar envio de emails
+            kwargs = {}
+            user = self.object.user
+            kwargs['token'] = default_token_generator.make_token(user)
+            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+            assunto = "SAPL - Confirmação de Conta"
+            full_url = self.request.get_raw_uri()
+            url_base = full_url[:full_url.find('sistema') - 1]
 
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.materia:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
-            except:
-                pass
+            mensagem = (
+                "Este e-mail foi utilizado para fazer cadastro no " +
+                "SAPL com o perfil de Autor. Agora você pode " +
+                "criar/editar/enviar Proposições.\n" +
+                "Seu nome de usuário é: " +
+                self.request.POST['username'] + "\n"
+                "Caso você não tenha feito este cadastro, por favor " +
+                "ignore esta mensagem. Caso tenha, clique " +
+                "no link abaixo\n" + url_base +
+                reverse('sapl.materia:confirmar_email', kwargs=kwargs))
+            remetente = settings.EMAIL_SEND_USER
+            destinatario = [user.email]
+            send_mail(assunto, mensagem, remetente, destinatario,
+                      fail_silently=False)
 
             return reverse('sapl.base:autor_detail',
                            kwargs={'pk': pk_autor})

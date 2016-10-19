@@ -200,7 +200,6 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
             container = self.container_field.split('__')
 
             if len(container) > 1:
-                # TODO: implementar caso o user for o próprio o container
                 container_model = getattr(
                     self.model, container[0]).field.related_model
 
@@ -211,9 +210,12 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
                 if not container_model.objects.filter(**params).exists():
                     messages.error(
                         request,
-                        'O Usuário (%s) não possui registro de %s.' % (
+                        'O Usuário (%s) não está registrado como (%s).' % (
                             request.user, container_model._meta.verbose_name))
                     return redirect('/')
+            else:
+                # TODO: implementar caso o user for o próprio o container
+                pass
 
         return super(PermissionRequiredMixin, self).dispatch(
             request, *args, **kwargs)

@@ -2,30 +2,29 @@
 {% load i18n %}
 {% load common_tags %}
 
-{% block actions %}
+{% block editions %}
   <div class="actions btn-group pull-right" role="group">
     {% if proposicao.data_envio %}
-      {% if perms|get_change_perm:view and not object.data_recebimento %}
-        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar Proposição' %}</a>
-      {% endif %}
 
-      {% if perms|get_delete_perm:view and not object.data_recebimento %}
-        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Retornar Proposição Enviada' %}</a>
+      {% if not object.data_recebimento %}
+        <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
+        <a href="{{ view.detail_url }}?action=return" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
+      {% else %}
+        <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Homologação do Protocolo" %}</a>
       {% endif %}
 
     {% else %}
-      {% if perms|get_change_perm:view and not object.data_recebimento %}
-        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Enviar/Editar Proposição' %}</a>
-      {% endif %}
+      <a href="{{ view.detail_url }}?action=send" class="btn btn-default">{% trans 'Enviar' %}</a>
+      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+      <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
 
-      {% if perms|get_delete_perm:view and not object.data_recebimento %}
-        <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir Proposição' %}</a>
-      {% endif %}
+
+
     {% endif %}
   </div>
-{% endblock actions %}
+{% endblock editions %}
 {% block extra_msg %}
   {% if proposicao.data_envio and not proposicao.data_recebimento %}
-    <b><p align="center"><a href="" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">[Imprimir Recibo]</a></p></b>
+    <b><p align="center"></p></b>
   {% endif %}
 {% endblock extra_msg %}
