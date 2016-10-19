@@ -103,12 +103,19 @@ class ProposicaoTaView(IntegracaoTaView):
 @permission_required_for_app(app_label=apps.AppConfig.label)
 def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
-    materia = MateriaLegislativa.objects.filter(tipo=tipo).last()
+    ano = request.GET.get('ano', '')
+
+    param = {'tipo': tipo}
+    param['data_apresentacao__year'] = ano if ano else datetime.now().year
+
+    materia = MateriaLegislativa.objects.filter(**param).order_by(
+        'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
     if materia:
-        response = JsonResponse({'numero': materia.numero + 1,
-                                 'ano': datetime.now().year})
+        response = JsonResponse({'numero': materia[0] + 1,
+                                 'ano': materia[1]})
     else:
-        response = JsonResponse({'numero': 1, 'ano': datetime.now().year})
+        response = JsonResponse(
+            {'numero': 1, 'ano': ano if ano else datetime.now().year})
 
     return response
 
@@ -314,7 +321,7 @@ class ProposicaoCrud(Crud):
     TODO: Entre outros comportamento gerais, mesmo que um usuário tenha
     Perfil de Autor o Crud de proposição não deverá permitir acesso a
     proposições. O acesso só deve ser permitido se existe um Autor registrado
-    e vinculado ao usuário. Essa tarefa deve ser realizada nas Tabelas Aux. 
+    e vinculado ao usuário. Essa tarefa deve ser realizada nas Tabelas Aux.
     """
     model = Proposicao
     help_path = ''

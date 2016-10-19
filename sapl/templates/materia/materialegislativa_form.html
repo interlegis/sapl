@@ -9,9 +9,10 @@
 
   function recuperar_numero_ano() {
     var tipo = $("#id_tipo").val()
+    var ano = $("#id_ano").val()
 
     if (tipo) {
-      $.get("/materia/recuperar-materia",{tipo: tipo},
+      $.get("/materia/recuperar-materia",{tipo: tipo, ano: ano},
                                         function(data, status) {
                                           $("#id_numero").val(data.numero);
                                           $("#id_ano").val(data.ano);
@@ -19,7 +20,7 @@
                                         });
     }
   }
-  $("#id_tipo").change(recuperar_numero_ano);
+  $("#id_tipo, #id_ano").change(recuperar_numero_ano);
 </script>
 
 {% endblock %}

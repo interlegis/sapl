@@ -21,7 +21,7 @@ TipoFimRelatoria:
 
 MateriaLegislativa:
   {% trans 'Identificação Básica' %}:
-  - tipo  numero  ano
+  - tipo ano numero
   - data_apresentacao  numero_protocolo  tipo_apresentacao
   - texto_original
   {% trans 'Outras Informações' %}:
