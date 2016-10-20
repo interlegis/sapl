@@ -60,7 +60,7 @@ if REQUEST.txt_check=='1':
   REQUEST=context.REQUEST
   for materia in context.zsql.materia_obter_zsql(cod_materia=cod_mat):
         dic={}
-	dic['titulo']="INDICAÃÃO: "+str(materia.num_ident_basica)+" "+str(materia.ano_ident_basica)
+        dic['titulo']="INDICAÇÃO: "+str(materia.num_ident_basica)+" "+str(materia.ano_ident_basica)
 	dic['materia']=str(materia.num_ident_basica)+"/"+str(materia.ano_ident_basica)
 	dic['dat_apresentacao']=materia.dat_apresentacao
 	dic['txt_ementa']=materia.txt_ementa
