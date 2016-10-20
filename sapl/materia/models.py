@@ -3,6 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey,\
     GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.deletion import PROTECT
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -452,7 +453,7 @@ class Parecer(models.Model):
 
 
 class Proposicao(models.Model):
-    autor = models.ForeignKey(Autor, null=True, blank=True)
+    autor = models.ForeignKey(Autor, null=True, blank=True, on_delete=PROTECT)
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
 
     # XXX data_envio was not null, but actual data said otherwise!!!

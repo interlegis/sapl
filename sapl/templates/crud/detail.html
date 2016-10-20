@@ -5,31 +5,38 @@
 
   <div class="context-actions clearfix">
     {% block actions %}
-      <div class="actions btn-group btn-group-sm" role="group">
-        {% if view.list_url %}
-          <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
-        {% endif %}
-        {% if view.search_url %}
-          <a href="{{ view.search_url }}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
-        {% endif %}
-        {% if view.create_url %}
-          <a href="{{ view.create_url }}" class="btn btn-default">
-            {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
-          </a>
-        {% endif %}
+
+      {% block sub_actions %}
+
+        <div class="actions btn-group btn-group-sm" role="group">
+          {% if view.list_url %}
+            <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
+          {% endif %}
+          {% if view.search_url %}
+            <a href="{{ view.search_url }}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+          {% endif %}
+          {% if view.create_url %}
+            <a href="{{ view.create_url }}" class="btn btn-default">
+              {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+            </a>
+          {% endif %}
+        </div>
+      {% endblock sub_actions %}
+
+      <div class="editons pull-right">
+        {% block editions %}
+          {% if view.update_url or view.delete_url %}
+            <div class="actions btn-group" role="group">
+              {% if view.update_url %}
+                <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+              {% endif %}
+              {% if view.delete_url %}
+                <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endblock %}
       </div>
-      {% block editions %}
-        {% if view.update_url or view.delete_url %}
-          <div class="actions btn-group pull-right" role="group">
-            {% if view.update_url %}
-              <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
-            {% endif %}
-            {% if view.delete_url %}
-              <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
-            {% endif %}
-          </div>
-        {% endif %}
-      {% endblock %}
 
     {% endblock actions %}
   </div>

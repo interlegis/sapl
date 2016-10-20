@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm, widgets
+from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
@@ -44,19 +45,8 @@ def em_tramitacao():
             (False, 'Não')]
 
 
-class ConfirmarProposicaoForm(ModelForm):
-
-    class Meta:
-        model = Proposicao
-        exclude = ['texto_original', 'descricao', 'tipo']
-
-
-class ReceberProposicaoForm(ModelForm):
+class ReceberProposicaoForm(Form):
     cod_hash = forms.CharField(label='Código do Documento', required=True)
-
-    class Meta:
-        model = Proposicao
-        exclude = ['texto_original', 'descricao', 'tipo']
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('cod_hash', 12)])
@@ -933,11 +923,11 @@ class ProposicaoForm(forms.ModelForm):
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
         if self.instance.pk:
+            self.fields['tipo_texto'].initial = []
+            if self.instance.texto_original:
+                self.fields['tipo_texto'].initial.append('D')
             if self.texto_articulado_proposicao:
-                self.fields['tipo_texto'].initial = []
-                if self.instance.texto_original:
-                    self.fields['tipo_texto'].initial.append('D')
-                if self.instance.texto_articulado:
+                if self.instance.texto_articulado.exists():
                     self.fields['tipo_texto'].initial.append('T')
 
     def clean_texto_original(self):

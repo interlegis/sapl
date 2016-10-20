@@ -2,29 +2,39 @@
 {% load i18n %}
 {% load common_tags %}
 
-{% block editions %}
-  <div class="actions btn-group pull-right" role="group">
-    {% if proposicao.data_envio %}
+{% block sub_actions %}{{block.super}}
+{% endblock sub_actions%}
 
+{% block editions %}
+  {% if proposicao.data_envio %}
+    <div class="actions btn-group btn-group-sm" role="group">
+      {% if proposicao.texto_articulado.exists %}
+        <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' proposicao.pk%}">{% trans "Texto Eletrônico" %}</a>
+      {% endif %}
+      {% if proposicao.texto_original %}
+        <a class="btn btn-success" href="{{ proposicao.texto_original.url }}">{% trans "Texto Original" %}</a>
+      {% endif %}
+    </div>
+
+    <div class="actions btn-group" role="group">
       {% if not object.data_recebimento %}
         <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
         <a href="{{ view.detail_url }}?action=return" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
       {% else %}
         <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Homologação do Protocolo" %}</a>
       {% endif %}
+    </div>
 
-    {% else %}
-      <a href="{{ view.detail_url }}?action=send" class="btn btn-default">{% trans 'Enviar' %}</a>
+  {% else %}
+
+    <div class="actions btn-group" role="group">
+      <a href="{{ view.detail_url }}?action=send" class="btn btn-primary">{% trans 'Enviar' %}</a>
+    </div>
+
+    <div class="actions btn-group" role="group">
       <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
       <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
-
-
-
-    {% endif %}
-  </div>
-{% endblock editions %}
-{% block extra_msg %}
-  {% if proposicao.data_envio and not proposicao.data_recebimento %}
-    <b><p align="center"></p></b>
+    </div>
   {% endif %}
-{% endblock extra_msg %}
+
+{% endblock editions %}

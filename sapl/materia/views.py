@@ -21,15 +21,16 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
+from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-from sapl.base.models import AppConfig, Autor, CasaLegislativa, TipoAutor
+from sapl.base.models import Autor, CasaLegislativa, TipoAutor
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, CrudDetailView, MasterDetailCrud,
-                            make_pagination)
+                            make_pagination, PermissionRequiredForAppCrudMixin)
 from sapl.materia import apps
 from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
     TipoProposicaoForm, ProposicaoForm
@@ -39,9 +40,10 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         permissoes_autor, permissoes_materia,
                         permissoes_protocoloadm, permission_required_for_app,
                         montar_row_autor)
+import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    ConfirmarProposicaoForm, DocumentoAcessorioForm,
+                    DocumentoAcessorioForm,
                     MateriaLegislativaFilterSet,
                     PrimeiraTramitacaoEmLoteFilterSet, ProposicaoOldForm,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
@@ -81,7 +83,7 @@ class MateriaTaView(IntegracaoTaView):
         este get foi implementado para tratar uma prerrogativa externa
         de usuário.
         """
-        if AppConfig.attr('texto_articulado_materia'):
+        if sapl.base.models.AppConfig.attr('texto_articulado_materia'):
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
@@ -90,6 +92,9 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
+    # TODO implmentar o mapa de fields e utiliza-lo em IntegracaoTaView
+    fields = {
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -97,7 +102,7 @@ class ProposicaoTaView(IntegracaoTaView):
         este get foi implementado para tratar uma prerrogativa externa
         de usuário.
         """
-        if AppConfig.attr('texto_articulado_proposicao'):
+        if sapl.base.models.AppConfig.attr('texto_articulado_proposicao'):
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
@@ -250,17 +255,13 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
         return context
 
 
-class ReceberProposicao(PermissionRequiredMixin, CreateView):
+class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
+    app_label = sapl.protocoloadm.apps.AppConfig.label
     template_name = "materia/receber_proposicao.html"
     form_class = ReceberProposicaoForm
-    permission_required = permissoes_protocoloadm()
-
-    def get_context_data(self, **kwargs):
-        context = super(ReceberProposicao, self).get_context_data(**kwargs)
-        context.update({'form': self.get_form()})
-        return context
 
     def post(self, request, *args, **kwargs):
+
         form = ReceberProposicaoForm(request.POST)
 
         if form.is_valid():
@@ -274,19 +275,16 @@ class ReceberProposicao(PermissionRequiredMixin, CreateView):
                         reverse('sapl.materia:proposicao-confirmar',
                                 kwargs={'pk': proposicao.pk}))
 
-            msg = 'Proposição não encontrada!'
-            return self.render_to_response({'form': form, 'msg': msg})
-        else:
-            return self.render_to_response({'form': form})
+            messages.error(request, _('Proposição não encontrada!'))
+        return self.form_invalid(form)
 
     def get_success_url(self):
         return reverse('sapl.materia:receber-proposicao')
 
 
-class ConfirmarProposicao(PermissionRequiredMixin, CreateView):
+class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, TemplateView):
+    app_label = sapl.protocoloadm.apps.AppConfig.label
     template_name = "materia/confirmar_proposicao.html"
-    form_class = ConfirmarProposicaoForm
-    permission_required = permissoes_protocoloadm()
 
     def get_context_data(self, **kwargs):
         context = super(ConfirmarProposicao, self).get_context_data(**kwargs)
@@ -360,8 +358,13 @@ class ProposicaoCrud(Crud):
                                         kwargs={'pk': kwargs['pk']}))
             return super().post(self, request, *args, **kwargs)
 
-    class DetailView(BaseLocalMixin, Crud.DetailView):
+    class DetailView(Crud.DetailView):
         layout_key = 'Proposicao'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
 
         def get(self, request, *args, **kwargs):
             action = request.GET.get('action', '')
@@ -378,6 +381,10 @@ class ProposicaoCrud(Crud):
                         msg_error = _('Proposição já foi enviada e recebida.')
                     elif p.data_envio:
                         msg_error = _('Proposição já foi enviada.')
+                    elif not p.texto_original and\
+                            not p.texto_articulado.exists():
+                        msg_error = _('Proposição não possui nenhum tipo de '
+                                      'Texto associado.')
                     else:
                         p.data_envio = datetime.now()
                         p.save()
@@ -444,7 +451,25 @@ class ProposicaoCrud(Crud):
                     return False
             return True
 
+        def get_success_url(self):
+
+            tipo_texto = self.request.POST.get('tipo_texto', '')
+
+            if tipo_texto == 'T':
+                messages.info(self.request,
+                              _('Sempre que uma Proposição é inclusa ou '
+                                'alterada e a opção "Texto Articulado " for '
+                                'marcada, você será redirecionado para o '
+                                'Texto Eletrônico. Use a opção "Editar Texto" '
+                                'para construir seu texto.'))
+                return reverse('sapl.materia:proposicao_ta',
+                               kwargs={'pk': self.object.pk})
+            else:
+                return Crud.UpdateView.get_success_url(self)
+
     class CreateView(Crud.CreateView):
+        form_class = ProposicaoForm
+        layout_key = None
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -456,6 +481,12 @@ class ProposicaoCrud(Crud):
             tipo_texto = self.request.POST.get('tipo_texto', '')
 
             if tipo_texto == 'T':
+                messages.info(self.request,
+                              _('Sempre que uma Proposição é inclusa ou '
+                                'alterada e a opção "Texto Articulado " for '
+                                'marcada, você será redirecionado para o '
+                                'Texto Eletrônico. Use a opção "Editar Texto" '
+                                'para construir seu texto.'))
                 return reverse('sapl.materia:proposicao_ta',
                                kwargs={'pk': self.object.pk})
             else:
