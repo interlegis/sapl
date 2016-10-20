@@ -420,7 +420,7 @@ class AutorForm(ModelForm):
                         user_old.groups.remove(grupo)
                 elif user_old:
                     user_old.groups.remove(grupo)
-            else:
+            elif user_old:
                 user_old.groups.remove(grupo)
 
         return autor
