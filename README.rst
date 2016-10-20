@@ -1,7 +1,6 @@
 .. image:: https://travis-ci.org/interlegis/sapl.svg?branch=master
  :target: https://travis-ci.org/interlegis/sapl
 
-[![Code Climate](https://codeclimate.com/github/interlegis/sapl/badges/gpa.svg)](https://codeclimate.com/github/interlegis/sapl)
 
 ***********************************************
 SAPL - Sistema de Apoio ao Processo Legislativo
