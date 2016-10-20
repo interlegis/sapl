@@ -120,18 +120,6 @@ def recuperar_materia(request):
     return response
 
 
-class ConfirmarEmailView(TemplateView):
-    template_name = "confirma_email.html"
-
-    def get(self, request, *args, **kwargs):
-        uid = urlsafe_base64_decode(self.kwargs['uidb64'])
-        user = get_user_model().objects.get(id=uid)
-        user.is_active = True
-        user.save()
-        context = self.get_context_data(**kwargs)
-        return self.render_to_response(context)
-
-
 OrgaoCrud = CrudAux.build(Orgao, 'orgao')
 TipoProposicaoCrud = CrudAux.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
