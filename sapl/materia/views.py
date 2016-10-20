@@ -123,7 +123,6 @@ def recuperar_materia(request):
 OrgaoCrud = CrudAux.build(Orgao, 'orgao')
 TipoProposicaoCrud = CrudAux.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
-UnidadeTramitacaoCrud = CrudAux.build(UnidadeTramitacao, 'unidade_tramitacao')
 
 
 def criar_materia_proposicao(proposicao):
@@ -302,6 +301,32 @@ class ConfirmarProposicao(PermissionRequiredMixin, CreateView):
                 proposicao.save()
                 return HttpResponseRedirect(
                     reverse('sapl.materia:proposicao-devolvida'))
+
+
+class UnidadeTramitacaoCrud(CrudAux):
+    model = UnidadeTramitacao
+    help_path = 'unidade_tramitacao'
+
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = ['comissao', 'orgao', 'parlamentar']
+
+    class ListView(Crud.ListView):
+        template_name = "crud/list.html"
+
+        def get_headers(self):
+            return [_('Unidade de Tramitação')]
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            for row in context['rows']:
+                if row[0][0]:  # Comissão
+                    pass
+                elif row[1][0]:  # Órgão
+                    row[0] = (row[1][0], row[0][1])
+                elif row[2][0]:  # Parlamentar
+                    row[0] = (row[2][0], row[0][1])
+                row[1], row[2] = ('', ''), ('', '')
+            return context
 
 
 class ProposicaoCrud(Crud):
@@ -518,7 +543,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
-                            'unidade_tramitacao_destino', 'status']
+                            'mitacao_destino', 'status']
         ordered_list = False
         ordering = '-data_tramitacao',
 
