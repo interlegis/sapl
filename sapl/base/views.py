@@ -69,9 +69,11 @@ class AutorCrud(CrudAux):
         def delete(self, *args, **kwargs):
             self.object = self.get_object()
 
-            # FIXME melhorar captura de grupo de Autor, levando em conta trad
-            grupo = Group.objects.filter(name='Autor')[0]
-            self.object.user.groups.remove(grupo)
+            if self.object.user:
+                # FIXME melhorar captura de grupo de Autor, levando em conta
+                # trad
+                grupo = Group.objects.filter(name='Autor')[0]
+                self.object.user.groups.remove(grupo)
 
             return CrudAux.DeleteView.delete(self, *args, **kwargs)
 
@@ -174,7 +176,7 @@ class AutorCrud(CrudAux):
                     "ignore esta mensagem. Caso tenha, clique " +
                     "no link abaixo\n" + url_base +
                     reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
+                remetente = [settings.EMAIL_SEND_USER]
                 destinatario = [user.email]
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)

@@ -303,12 +303,13 @@ class AutorForm(ModelForm):
             msg = _('Os emails não conferem.')
             self.valida_igualdade(cd['email'], cd['confirma_email'], msg)
 
-            if qs_user.filter(email=cd['email']).exists():
-                raise ValidationError(_('Este email já foi cadastrado.'))
+            if not settings.DEBUG:
+                if qs_user.filter(email=cd['email']).exists():
+                    raise ValidationError(_('Este email já foi cadastrado.'))
 
-            if qs_autor.filter(user__email=cd['email']).exists():
-                raise ValidationError(
-                    _('Já existe um Autor com este email.'))
+                if qs_autor.filter(user__email=cd['email']).exists():
+                    raise ValidationError(
+                        _('Já existe um Autor com este email.'))
 
         elif cd['action_user'] == 'A':
             if not User.objects.filter(username=cd['username']).exists():
