@@ -159,7 +159,8 @@ apps_url_patterns_prefixs_and_users = {
             '/sistema',
             '/login',
             '/logout',
-            '/ajuda'
+            '/ajuda',
+            '/email',
         ]},
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],
@@ -312,7 +313,7 @@ urls_publicas_excecoes = {
         '/sistema/ajuda/',
         '/ajuda/',
 
-        '/materia/confirmar/1/1',
+        '/email/validate/1/1',
         '/materia/pesquisar-materia',
 
         # usado na edição de matérias mas com restrição irrelevante

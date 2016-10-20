@@ -3,7 +3,7 @@ from django.contrib.auth import views
 from django.contrib.auth.decorators import permission_required
 from django.views.generic.base import TemplateView
 
-from sapl.base.views import AutorCrud, TipoAutorCrud
+from sapl.base.views import AutorCrud, TipoAutorCrud, ConfirmarEmailView
 
 from .apps import AppConfig
 from .forms import LoginForm
@@ -51,6 +51,11 @@ urlpatterns = [
     url(r'^sistema/relatorios/atas$',
         RelatorioAtasView.as_view(),
         name='atas'),
+
+    url(r'^email/validate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
+        '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',
+        ConfirmarEmailView.as_view(), name='confirmar_email'),
+
 
     # todos os sublink s de sistema devem vir acima deste
     url(r'^sistema/', permission_required('base.view_tabelas_auxiliares')

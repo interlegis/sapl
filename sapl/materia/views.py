@@ -106,26 +106,21 @@ class ProposicaoTaView(IntegracaoTaView):
 @permission_required_for_app(app_label=apps.AppConfig.label)
 def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
-    materia = MateriaLegislativa.objects.filter(tipo=tipo).last()
+    ano = request.GET.get('ano', '')
+
+    param = {'tipo': tipo}
+    param['data_apresentacao__year'] = ano if ano else datetime.now().year
+
+    materia = MateriaLegislativa.objects.filter(**param).order_by(
+        'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
     if materia:
-        response = JsonResponse({'numero': materia.numero + 1,
-                                 'ano': datetime.now().year})
+        response = JsonResponse({'numero': materia[0] + 1,
+                                 'ano': materia[1]})
     else:
-        response = JsonResponse({'numero': 1, 'ano': datetime.now().year})
+        response = JsonResponse(
+            {'numero': 1, 'ano': ano if ano else datetime.now().year})
 
     return response
-
-
-class ConfirmarEmailView(TemplateView):
-    template_name = "confirma_email.html"
-
-    def get(self, request, *args, **kwargs):
-        uid = urlsafe_base64_decode(self.kwargs['uidb64'])
-        user = get_user_model().objects.get(id=uid)
-        user.is_active = True
-        user.save()
-        context = self.get_context_data(**kwargs)
-        return self.render_to_response(context)
 
 
 OrgaoCrud = CrudAux.build(Orgao, 'orgao')

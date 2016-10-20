@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
-                                AutoriaCrud, ConfirmarEmailView,
+                                AutoriaCrud,
                                 ConfirmarProposicao, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
@@ -39,9 +39,6 @@ urlpatterns_materia = [
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
         MateriaTaView.as_view(), name='materia_ta'),
 
-    url(r'^materia/confirmar/(?P<uidb64>[0-9A-Za-z_\-]+)/'
-        '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',
-        ConfirmarEmailView.as_view(), name='confirmar_email'),
 
     url(r'^materia/pesquisar-materia$',
         MateriaLegislativaPesquisaView.as_view(), name='pesquisar_materia'),

@@ -31,7 +31,7 @@ Instalar as seguintes dependências do sistema::
     sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz \
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
-    libssl-dev libffi-dev libxslt1-dev python3-setuptools curl
+    libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools curl
 
     sudo easy_install3 pip lxml
 

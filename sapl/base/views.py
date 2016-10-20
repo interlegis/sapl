@@ -1,5 +1,6 @@
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -8,7 +9,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
@@ -21,6 +22,7 @@ from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
+from sapl.utils import sapl_logger
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
@@ -34,6 +36,18 @@ from .models import AppConfig, CasaLegislativa
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class ConfirmarEmailView(TemplateView):
+    template_name = "email/confirma.html"
+
+    def get(self, request, *args, **kwargs):
+        uid = urlsafe_base64_decode(self.kwargs['uidb64'])
+        user = get_user_model().objects.get(id=uid)
+        user.is_active = True
+        user.save()
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
 
 
 class TipoAutorCrud(CrudAux):
@@ -57,9 +71,11 @@ class AutorCrud(CrudAux):
         def delete(self, *args, **kwargs):
             self.object = self.get_object()
 
-            # FIXME melhorar captura de grupo de Autor, levando em conta trad
-            grupo = Group.objects.filter(name='Autor')[0]
-            self.object.user.groups.remove(grupo)
+            if self.object.user:
+                # FIXME melhorar captura de grupo de Autor, levando em conta
+                # trad
+                grupo = Group.objects.filter(name='Autor')[0]
+                self.object.user.groups.remove(grupo)
 
             return CrudAux.DeleteView.delete(self, *args, **kwargs)
 
@@ -67,49 +83,64 @@ class AutorCrud(CrudAux):
         layout_key = None
         form_class = AutorForm
 
+        def form_valid(self, form):
+            # devido a implement do form o form_valid do Crud deve ser pulado
+            return super(CrudAux.UpdateView, self).form_valid(form)
+
+        def post(self, request, *args, **kwargs):
+            if request.user.is_superuser:
+                self.form_class = AutorFormForAdmin
+            return CrudAux.UpdateView.post(self, request, *args, **kwargs)
+
         def get(self, request, *args, **kwargs):
             if request.user.is_superuser:
                 self.form_class = AutorFormForAdmin
             return CrudAux.UpdateView.get(self, request, *args, **kwargs)
 
         def get_success_url(self):
-
-            # FIXME try except - testar envio de emails
-
             pk_autor = self.object.id
-            kwargs = {}
-            user = self.object.user
+            url_reverse = reverse('sapl.base:autor_detail',
+                                  kwargs={'pk': pk_autor})
+            try:
+                kwargs = {}
+                user = self.object.user
 
-            """if user.is_active:
-                return reverse('sapl.base:autor_detail',
-                               kwargs={'pk': pk_autor})"""
+                if not user:
+                    return url_reverse
 
-            kwargs['token'] = default_token_generator.make_token(user)
-            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-            assunto = "SAPL - Confirmação de Conta"
-            full_url = self.request.get_raw_uri()
-            url_base = full_url[:full_url.find('sistema') - 1]
+                kwargs['token'] = default_token_generator.make_token(user)
+                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+                assunto = "SAPL - Confirmação de Conta"
+                full_url = self.request.get_raw_uri()
+                url_base = full_url[:full_url.find('sistema') - 1]
 
-            mensagem = (
-                "Este e-mail foi utilizado para fazer cadastro no " +
-                "SAPL com o perfil de Autor. Agora você pode " +
-                "criar/editar/enviar Proposições.\n" +
-                "Seu nome de usuário é: " +
-                self.request.POST['username'] + "\n"
-                "Caso você não tenha feito este cadastro, por favor " +
-                "ignore esta mensagem. Caso tenha, clique " +
-                "no link abaixo\n" + url_base +
-                reverse('sapl.materia:confirmar_email', kwargs=kwargs))
-            remetente = [settings.EMAIL_SEND_USER]
-            destinatario = [user.email]
-            send_mail(assunto, mensagem, remetente, destinatario,
-                      fail_silently=False)
-            return reverse('sapl.base:autor_detail',
-                           kwargs={'pk': pk_autor})
+                mensagem = (
+                    "Este e-mail foi utilizado para fazer cadastro no " +
+                    "SAPL com o perfil de Autor. Agora você pode " +
+                    "criar/editar/enviar Proposições.\n" +
+                    "Seu nome de usuário é: " +
+                    self.request.POST['username'] + "\n"
+                    "Caso você não tenha feito este cadastro, por favor " +
+                    "ignore esta mensagem. Caso tenha, clique " +
+                    "no link abaixo\n" + url_base +
+                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
+                remetente = [settings.EMAIL_SEND_USER]
+                destinatario = [user.email]
+                send_mail(assunto, mensagem, remetente, destinatario,
+                          fail_silently=False)
+            except:
+                sapl_logger.error(
+                    _('Erro no envio de email na edição de Autores.'))
+            return url_reverse
 
     class CreateView(CrudAux.CreateView):
         form_class = AutorForm
         layout_key = None
+
+        def post(self, request, *args, **kwargs):
+            if request.user.is_superuser:
+                self.form_class = AutorFormForAdmin
+            return CrudAux.CreateView.post(self, request, *args, **kwargs)
 
         def get(self, request, *args, **kwargs):
             if request.user.is_superuser:
@@ -118,32 +149,39 @@ class AutorCrud(CrudAux):
 
         def get_success_url(self):
             pk_autor = self.object.id
-            # FIXME try except - testar envio de emails
-            kwargs = {}
-            user = self.object.user
-            kwargs['token'] = default_token_generator.make_token(user)
-            kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-            assunto = "SAPL - Confirmação de Conta"
-            full_url = self.request.get_raw_uri()
-            url_base = full_url[:full_url.find('sistema') - 1]
+            url_reverse = reverse('sapl.base:autor_detail',
+                                  kwargs={'pk': pk_autor})
+            try:
+                kwargs = {}
+                user = self.object.user
 
-            mensagem = (
-                "Este e-mail foi utilizado para fazer cadastro no " +
-                "SAPL com o perfil de Autor. Agora você pode " +
-                "criar/editar/enviar Proposições.\n" +
-                "Seu nome de usuário é: " +
-                self.request.POST['username'] + "\n"
-                "Caso você não tenha feito este cadastro, por favor " +
-                "ignore esta mensagem. Caso tenha, clique " +
-                "no link abaixo\n" + url_base +
-                reverse('sapl.materia:confirmar_email', kwargs=kwargs))
-            remetente = settings.EMAIL_SEND_USER
-            destinatario = [user.email]
-            send_mail(assunto, mensagem, remetente, destinatario,
-                      fail_silently=False)
+                if not user:
+                    return url_reverse
 
-            return reverse('sapl.base:autor_detail',
-                           kwargs={'pk': pk_autor})
+                kwargs['token'] = default_token_generator.make_token(user)
+                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
+                assunto = "SAPL - Confirmação de Conta"
+                full_url = self.request.get_raw_uri()
+                url_base = full_url[:full_url.find('sistema') - 1]
+
+                mensagem = (
+                    "Este e-mail foi utilizado para fazer cadastro no " +
+                    "SAPL com o perfil de Autor. Agora você pode " +
+                    "criar/editar/enviar Proposições.\n" +
+                    "Seu nome de usuário é: " +
+                    self.request.POST['username'] + "\n"
+                    "Caso você não tenha feito este cadastro, por favor " +
+                    "ignore esta mensagem. Caso tenha, clique " +
+                    "no link abaixo\n" + url_base +
+                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
+                remetente = [settings.EMAIL_SEND_USER]
+                destinatario = [user.email]
+                send_mail(assunto, mensagem, remetente, destinatario,
+                          fail_silently=False)
+            except:
+                sapl_logger.error(
+                    _('Erro no envio de email na criação de Autores.'))
+            return url_reverse
 
 
 class RelatorioAtasView(FilterView):
