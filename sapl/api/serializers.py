@@ -1,8 +1,6 @@
-from django.contrib.contenttypes.fields import GenericRel
 from rest_framework import serializers
 
 from sapl.base.models import Autor
-from sapl.utils import SaplGenericRelation
 
 
 class ChoiceSerializer(serializers.Serializer):

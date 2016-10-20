@@ -1,9 +1,10 @@
+import hashlib
+import logging
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
-import hashlib
-import logging
 
+import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -17,10 +18,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-import magic
-from sapl.settings import BASE_DIR
 
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
+from sapl.settings import BASE_DIR
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -121,8 +121,10 @@ class SaplGenericRelation(GenericRelation):
                 )
 
 
-    [ref_1]: https://docs.djangoproject.com/el/1.10/topics/db/queries/#field-lookups
-    [ref_2]: https://github.com/interlegis/sapl/blob/master/sapl/parlamentares/models.py
+    [ref_1]: https://docs.djangoproject.com/el/1.10/topics/db/queries/
+             #field-lookups
+    [ref_2]: https://github.com/interlegis/sapl/blob/master/sapl/
+             parlamentares/models.py
     """
 
     def __init__(self, to, fields_search=(), **kwargs):
@@ -136,7 +138,7 @@ class SaplGenericRelation(GenericRelation):
 
         for field in fields_search:
             # descomente para ver todas os campos que são elementos de busca
-            #print(kwargs['related_query_name'], field)
+            # print(kwargs['related_query_name'], field)
 
             assert isinstance(field, (tuple, list)), _(
                 'fields_search deve ser um array de tuplas ou listas.')

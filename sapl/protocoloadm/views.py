@@ -1,13 +1,11 @@
 from datetime import date, datetime
-import json
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Max, Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import Max
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
@@ -15,7 +13,7 @@ from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
 from sapl.base.apps import AppConfig as AppsAppConfig
-from sapl.base.models import AppConfig, Autor
+from sapl.base.models import AppConfig
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
@@ -26,11 +24,9 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm)
-from .models import (DocumentoAcessorioAdministrativo,
-                     DocumentoAdministrativo, Protocolo,
-                     StatusTramitacaoAdministrativo,
+from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
+                     Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')

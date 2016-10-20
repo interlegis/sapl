@@ -1,11 +1,9 @@
-from django.contrib.contenttypes.fields import GenericRel
 from django.db.models import Q
 from django_filters.filters import MethodFilter, ModelChoiceFilter
 from rest_framework.filters import FilterSet
 
 from sapl.base.forms import autores_models_generic_relations
 from sapl.base.models import Autor, TipoAutor
-from sapl.utils import SaplGenericRelation
 
 
 class AutorChoiceFilterSet(FilterSet):
@@ -31,7 +29,7 @@ class AutorChoiceFilterSet(FilterSet):
                 order_by = []
 
                 for gr in autores_models_generic_relations():
-                    model = gr[0]
+                    # model = gr[0]
                     sgr = gr[1]
                     for item in sgr:
                         if item.related_model != Autor:

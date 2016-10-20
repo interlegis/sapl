@@ -5,7 +5,6 @@ from string import ascii_letters, digits
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
-from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -15,7 +14,6 @@ from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
-from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -33,10 +31,9 @@ from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
+                        montar_row_autor, permission_required_for_app,
                         permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm, permission_required_for_app,
-                        montar_row_autor)
-
+                        permissoes_protocoloadm)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ConfirmarProposicaoForm, DocumentoAcessorioForm,

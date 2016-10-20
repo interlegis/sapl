@@ -3,7 +3,7 @@ from django.contrib.auth import views
 from django.contrib.auth.decorators import permission_required
 from django.views.generic.base import TemplateView
 
-from sapl.base.views import AutorCrud, TipoAutorCrud, ConfirmarEmailView
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 
 from .apps import AppConfig
 from .forms import LoginForm

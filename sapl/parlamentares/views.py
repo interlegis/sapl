@@ -12,9 +12,8 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
-from .forms import (FiliacaoForm, LegislaturaCreateForm,
-                    LegislaturaUpdateForm, ParlamentarCreateForm,
-                    ParlamentarForm)
+from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
+                    ParlamentarCreateForm, ParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,

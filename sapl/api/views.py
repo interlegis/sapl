@@ -1,14 +1,13 @@
-
 from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from sapl.api.forms import AutorChoiceFilterSet
-from sapl.api.serializers import ChoiceSerializer, AutorSerializer,\
-    AutorChoiceSerializer
+from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
+                                  ChoiceSerializer)
 from sapl.base.models import Autor, TipoAutor
 from sapl.utils import SaplGenericRelation, sapl_logger
 
@@ -32,7 +31,7 @@ class AutorListView(ListAPIView):
                       em combobox, radiobox, checkbox, etc com pesquisa básica
                       de Autores mas feito para Possíveis Autores armazenados
                       segundo o ContentType associado ao Tipo de Autor via
-                      relacionamento genérico. 
+                      relacionamento genérico.
                       Busca feita sem django-filter processada no get_queryset
                       -> processo no cadastro de autores para seleção e busca
                           dos possíveis autores
@@ -44,7 +43,7 @@ class AutorListView(ListAPIView):
 
     - q         - busca textual no nome do Autor ou em  fields_search
                   declarados no field SaplGenericRelation das GenericFks
-                      A busca textual acontece via django-filter com a 
+                      A busca textual acontece via django-filter com a
                       variável `tr` igual 1 ou 3. Em caso contrário,
                       o django-filter é desativado e a busca é feita
                       no model do ContentType associado ao tipo.

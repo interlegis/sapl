@@ -7,9 +7,7 @@ from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt)
-
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
