@@ -567,7 +567,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
-            [('autoria__autor__tipo', 6),
+            [('autoria__autor__tipo', 12),
              # ('autoria__autor__partido', 6)
              ])
         row6 = to_row(
