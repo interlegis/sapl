@@ -12,3 +12,9 @@
     {% crispy form %}
   {% endif %}
 {% endblock %}
+
+{% block extra_js %}
+  <script language="Javascript">
+    $("#id_comissao").attr("disabled", true);
+  </script>
+{% endblock extra_js %}
