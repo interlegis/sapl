@@ -540,7 +540,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
-                            'mitacao_destino', 'status']
+                            'unidade_tramitacao_destino', 'status']
         ordered_list = False
         ordering = '-data_tramitacao',
 
