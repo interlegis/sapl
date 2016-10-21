@@ -168,8 +168,6 @@ class TramitacaoAdministrativo(models.Model):
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
-        blank=True,
-        null=True,
         related_name='adm_tramitacoes_destino',
         verbose_name=_('Unidade Destino'))
     texto = models.TextField(
