@@ -82,7 +82,7 @@ Proposicao:
   - tipo  data_envio
   - descricao
   {% trans 'Materia' %}:
-  - materia
+  - materia_de_vinculo
   {% trans 'Complemento' %}:
   - texto_original
 

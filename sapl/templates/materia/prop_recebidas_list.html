@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 {% load i18n %}
-
-{% block sections_nav %} {% include 'materia/subnav_prop.html'%} {% endblock sections_nav %}
-
 {% block base_content %}
   <fieldset>
   <legend>Proposições Incorporadas</legend>
@@ -27,10 +24,11 @@
               <td>{{ prop.descricao }}</td>
               <td>{{ prop.autor }}</td>
               <td>
-                {% if prop.materia_gerada %}
-                  <a href="{% url 'sapl.materia:materialegislativa_detail' prop.materia_gerada.pk %}">{{ prop.materia_gerada.tipo.sigla }} {{ prop.materia_gerada.numero }}/{{ prop.materia_gerada.ano }}</a>
-                {% elif prop.documento_gerado %}
-                  <a href="{% url 'sapl.materia:documentoacessorio_detail' prop.documento_gerado.pk %}">{{ prop.documento_gerado.materia.tipo.sigla }} {{ prop.documento_gerado.materia.numero }}/{{ prop.documento_gerado.materia.ano }}</a>
+                {{ MateriaLegislativa.Meta}}
+                {% if prop.content_type.model == 'materialegislativa' %}
+                  <a href="{% url 'sapl.materia:materialegislativa_detail' prop.object_id %}">{{ prop.conteudo_gerado_related.tipo.sigla }} {{ prop.conteudo_gerado_related.numero }}/{{ prop.conteudo_gerado_related.ano }}</a>
+                {% elif prop.content_type.model == 'documentoacessorio' %}
+                  <a href="{% url 'sapl.materia:documentoacessorio_detail' prop.object_id %}">{{ prop.conteudo_gerado_related.materia.tipo.sigla }} {{ prop.conteudo_gerado_related.materia.numero }}/{{ prop.conteudo_gerado_related.materia.ano }}</a>
                 {% endif %}
               </td>
             </tr>

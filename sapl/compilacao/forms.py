@@ -631,9 +631,9 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         self.helper = FormHelper()
 
         if not editor_type:
-            label_cancel = _('Ir para o Editor Sequencial')
+            cancel_label = _('Ir para o Editor Sequencial')
             self.helper.layout = SaplFormLayout(
-                *layout, label_cancel=label_cancel)
+                *layout, cancel_label=cancel_label)
 
         elif editor_type == "get_form_base":
             getattr(self, "actions_" + editor_type)(
@@ -644,11 +644,11 @@ class DispositivoEdicaoBasicaForm(ModelForm):
     def actions_get_form_base(self, layout,
                               inst,
                               texto_articulado_do_editor=None):
-        label_cancel = _('Fechar')
+        cancel_label = _('Fechar')
 
         more = [
             HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
-                 label_cancel),
+                 cancel_label),
         ]
 
         btns_excluir = []
@@ -860,7 +860,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Ir para o Editor Sequencial'))
+            cancel_label=_('Ir para o Editor Sequencial'))
 
         super(DispositivoEdicaoVigenciaForm, self).__init__(*args, **kwargs)
 
@@ -951,7 +951,7 @@ class DispositivoDefinidorVigenciaForm(Form):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Ir para o Editor Sequencial'))
+            cancel_label=_('Ir para o Editor Sequencial'))
 
         pk = kwargs.pop('pk')
         super(DispositivoDefinidorVigenciaForm, self).__init__(*args, **kwargs)
@@ -1090,7 +1090,7 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
-            label_cancel=_('Ir para o Editor Sequencial'))
+            cancel_label=_('Ir para o Editor Sequencial'))
 
         super(DispositivoEdicaoAlteracaoForm, self).__init__(*args, **kwargs)
 

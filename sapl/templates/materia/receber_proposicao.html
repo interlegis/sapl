@@ -1,9 +1,0 @@
-{% extends "crud/form.html" %}
-{% load i18n %}
-
-{% block sections_nav %} {% include 'materia/subnav_prop.html'%} {% endblock sections_nav %}
-
-{% load crispy_forms_tags %}
-{% block extra_msg %}
-  <p align="center"><font size="4" color="red"><b>{{msg}}</b></font></p>
-{% endblock %}

@@ -676,4 +676,5 @@ class ConfiguracoesAppForm(ModelForm):
                   'painel_aberto',
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',
-                  'texto_articulado_norma']
+                  'texto_articulado_norma',
+                  'proposicao_incorporacao_obrigatoria']

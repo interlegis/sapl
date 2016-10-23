@@ -1,0 +1,9 @@
+{% load i18n common_tags %}
+- title: {% trans 'Receber Proposição' %}
+  url: receber-proposicao
+- title: {% trans 'Proposições Não Recebidas' %}
+  url: proposicao-pendente
+- title: {% trans 'Proposições Não Incorporadas' %}
+  url: proposicao-devolvida
+- title: {% trans 'Proposições Incorporadas' %}
+  url: proposicao-recebida

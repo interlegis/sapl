@@ -3,6 +3,7 @@ from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
+import re
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
@@ -519,3 +520,35 @@ def generic_relations_for_model(model):
                        x._meta.get_fields(include_hidden=True)))),
         models_with_gr_for_model(model)
     ))
+
+
+def texto_upload_path(instance, filename):
+    """
+    O path gerado por essa função leva em conta a pk de instance.
+    isso não é possível naturalmente em uma inclusão pois a implementação
+    do django framework chama essa função antes do metodo save
+
+    Por outro lado a forma como vinha sendo formada os paths para os arquivos
+    são improdutivas e inconsistentes. Exemplo: usava se o valor de __str__
+    do model Proposicao que retornava a descrição da proposição, não retorna
+    mais, para uma pasta formar o path do texto_original.
+    Ora, o resultado do __str__ citado é totalmente impróprio para ser o nome
+    de uma pasta.
+
+    Para colocar a pk no path, a solução encontrada foi implementar o método
+    save nas classes que possuem atributo do tipo FileField, implementação esta
+    que guarda o FileField em uma variável independente e temporária para savar
+    o object sem o arquivo e, logo em seguida, salvá-lo novamente com o arquivo
+    Ou seja, nas inclusões que já acomparem um arquivo, haverá dois saves,
+    um para armazenar toda a informação e recuperar o pk, e outro logo em
+    seguida para armazenar o arquivo.
+    """
+
+    filename = re.sub('[^a-zA-Z0-9]', '-', filename).strip('-').lower()
+    filename = re.sub('[-]+', '-', filename)
+    path = './sapl/%(model_name)s/%(pk)s/%(filename)s' % {
+        'model_name': instance._meta.model_name,
+        'pk': instance.pk,
+        'filename': filename}
+
+    return path

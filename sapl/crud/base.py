@@ -636,7 +636,8 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
                 if not container_data:
                     raise Exception(
                         _('Não é permitido adicionar um registro '
-                          'sem estar em um Container'))
+                          'sem estar em um Container %s'
+                          ) % container_model._meta.verbose_name)
 
                 if hasattr(self, 'crud') and\
                         hasattr(self.crud, 'is_m2m') and self.crud.is_m2m:

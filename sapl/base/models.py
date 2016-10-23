@@ -7,10 +7,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -84,6 +85,13 @@ class ProblemaMigracao(models.Model):
 
 
 class AppConfig(models.Model):
+
+    POLITICA_PROTOCOLO_CHOICES = (
+        ('O', _('Sempre Gerar Protocolo')),
+        ('C', _('Perguntar se é pra gerar protocolo ao incorporar')),
+        ('N', _('Nunca Protocolar ao incorporar uma proposição')),
+    )
+
     documentos_administrativos = models.CharField(
         max_length=1,
         verbose_name=_('Ostensivo/Restritivo'),
@@ -109,6 +117,10 @@ class AppConfig(models.Model):
     texto_articulado_norma = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Normas'),
         choices=YES_NO_CHOICES, default=True)
+
+    proposicao_incorporacao_obrigatoria = models.CharField(
+        verbose_name=_('Regra de incorporação de proposições e protocolo'),
+        max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')

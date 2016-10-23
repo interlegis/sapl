@@ -51,7 +51,7 @@
               <div id="div_id_{{ column.id }}" class="form-group">
                 <p class="control-label">{{ column.verbose_name }}</p>
                 <div class="controls">
-                <!-- TODO Transformar os links em URLs diretamente no CRUD -->
+                  {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
                   {% if column.text|url %}
                     <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
                   {% else %}
@@ -87,7 +87,7 @@
             <td>
               {% if href %}
               <a href="{{ href }}">{{ value }}</a>
-              {% elif value != 'core.Cep.None' %}
+              {% elif 'None' not in value %}
                 {{ value|safe }}
               {% endif %}
             </td>

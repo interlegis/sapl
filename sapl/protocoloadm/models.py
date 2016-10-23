@@ -7,7 +7,7 @@ from model_utils import Choices
 from sapl.base.models import Autor
 from sapl.materia.models import (TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.utils import RANGE_ANOS, YES_NO_CHOICES
+from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -22,8 +22,29 @@ class TipoDocumentoAdministrativo(models.Model):
         return self.descricao
 
 
+"""
+uuid4 + filenames diversos apesar de tornar url de um arquivo praticamente
+impossível de ser localizado não está controlando o acesso.
+Exemplo: o SAPL está configurado para ser docs adm restritivo porém 
+alguem resolve perga o link e mostrar o tal arquivo para um amigo, ou um
+vizinho de departamento que não possui acesso... ou mesmo alguem que nem ao
+menos está logado... este arquivo estará livre
+
+outro caso, um funcionário bem intencionado, mas com um computador infectado
+que consegue pegar todos os links da página que ele está acessando e esse
+funcionário possui permissão para ver arquivos de docs administrativos. 
+Consequentemente os arquivos se tornarão públicos pois podem ser acessados
+via url sem controle de acesso.
+
+* foi aberta uma issue no github para rever a questão de arquivos privados:
+https://github.com/interlegis/sapl/issues/751
+
+a solução dela deverá dar o correto tratamento a essa questão.
+
+
 def texto_upload_path(instance, filename):
     return '/'.join([instance._meta.model_name, str(uuid4()), filename])
+"""
 
 
 class DocumentoAdministrativo(models.Model):

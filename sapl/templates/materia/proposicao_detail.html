@@ -1,40 +1,127 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
-{% load common_tags %}
+{% load i18n common_tags %}
 
 {% block sub_actions %}{{block.super}}
+  <div class="actions btn-group btn-group-sm {%block sub_actions_pull%}{% endblock%}" role="group">
+    {% if object.texto_articulado.exists %}
+      <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico" %}</a>
+    {% endif %}
+    {% if object.texto_original %}
+      <a class="btn btn-success" href="{{ object.texto_original.url }}">{% trans "Texto Original" %}</a>
+    {% endif %}
+  </div>
 {% endblock sub_actions%}
 
 {% block editions %}
-  {% if proposicao.data_envio %}
-    <div class="actions btn-group btn-group-sm" role="group">
-      {% if proposicao.texto_articulado.exists %}
-        <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' proposicao.pk%}">{% trans "Texto Eletrônico" %}</a>
-      {% endif %}
-      {% if proposicao.texto_original %}
-        <a class="btn btn-success" href="{{ proposicao.texto_original.url }}">{% trans "Texto Original" %}</a>
-      {% endif %}
-    </div>
 
-    <div class="actions btn-group" role="group">
-      {% if not object.data_recebimento %}
+  {% if object.data_envio %}
+    {% block editions_actions_return %}
+      <div class="actions btn-group" role="group">
         <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
-        <a href="{{ view.detail_url }}?action=return" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
-      {% else %}
-        <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Homologação do Protocolo" %}</a>
-      {% endif %}
-    </div>
+        {% if not object.data_recebimento %}
+          <a href="{{ view.detail_url }}?action=return" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
+        {% endif %}
+      </div>
+      {% endblock %}
 
   {% else %}
 
-    <div class="actions btn-group" role="group">
-      <a href="{{ view.detail_url }}?action=send" class="btn btn-primary">{% trans 'Enviar' %}</a>
-    </div>
+    {% block editions_actions_send %}
+      <div class="actions btn-group" role="group">
+        <a href="{{ view.detail_url }}?action=send" class="btn btn-primary">{% trans 'Enviar' %}</a>
+      </div>
 
-    <div class="actions btn-group" role="group">
-      <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
-      <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
-    </div>
+      <div class="actions btn-group" role="group">
+        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+        <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+      </div>
+    {% endblock %}
   {% endif %}
 
 {% endblock editions %}
+
+
+{% block detail_content %}
+
+
+  <h2 class="legend">{% model_verbose_name 'sapl.materia.models.Proposicao' %}</h2>
+
+  <div class="row-fluid">
+
+      <div class="col-sm-3">
+        <div id="div_id_tipo" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'tipo'%}</p>
+          <div class="controls">
+              <div class="form-control-static">{{object.tipo}}</div>
+          </div>
+        </div>
+      </div>
+      {% if object.data_devolucao %}
+
+        <div class="col-sm-9">
+          <div class="alert alert-danger alert-dismissible fade in" role="alert">
+            <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao|date:"DATETIME_FORMAT"}}</strong>
+            <div >{% trans "Justificativa:" %} {{object.justificativa_devolucao}}</div>
+          </div>
+        </div>
+
+      {% else %}
+
+        {% if object.data_envio %}
+          <div class="col-sm-3">
+            <div id="div_id_data_envio" class="form-group">
+            <p class="control-label">{%field_verbose_name object 'data_envio'%}</p>
+              <div class="controls">
+                  <div class="form-control-static">{{object.data_envio}}</div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if object.data_recebimento %}
+          <div class="col-sm-3">
+            <div id="div_id_data_envio" class="form-group">
+            <p class="control-label">{%field_verbose_name object 'data_recebimento'%}</p>
+              <div class="controls">
+                  <div class="form-control-static">{{object.data_recebimento}}</div>
+              </div>
+            </div>
+          </div>
+        {% elif object.data_envio %}
+          <div class="col-sm-6">
+            <div class="alert alert-info alert-dismissible fade in" role="alert">
+              <div >{% trans "Proposição aguardando recebimento" %}</div>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+  </div>
+
+  <div class="row-fluid">
+      <div class="col-sm-12">
+        <div id="div_id_descricao" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'descricao'%}</p>
+          <div class="controls">
+              <div class="form-control-static">{{object.descricao}}</div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  {% if object.materia_de_vinculo %}
+    <h2 class="legend">{% trans "Vínculo com a Matéria Legislativa" %}</h2>
+    <div class="row-fluid">
+      <div class="col-sm-12">
+        <div id="div_id_materia_de_vinculo" class="form-group">
+          <div class="controls">
+              <div class="form-control-static">{{object.materia_de_vinculo}}</div>
+              <div class="alert alert-info alert-dismissible fade in" role="alert">
+                <div >{{object.materia_de_vinculo.ementa}}</div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+{% endblock detail_content %}

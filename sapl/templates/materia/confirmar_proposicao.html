@@ -1,32 +1,21 @@
-{% extends "base.html" %}
-{% load i18n crispy_forms_tags %}
+{% extends "materia/proposicao_form.html" %}
+{% load i18n crispy_forms_tags common_tags %}
 
 {% block base_content %}
-  <style>
-    table {
-       border-collapse: collapse;
-    }
 
-    table, th, td {
-       border: 2px solid black;
-    }
-  </style>
-  <fieldset>
-    <legend>Confirmar recebimento de Proposição</legend>
-    <table class="table table-striped">
-      <tr><td><b>Tipo: </b>{{proposicao.tipo}}</td></tr>
-      <tr><td><b>Autor: </b>{{proposicao.autor}}</td></tr>
-      <tr><td><b>Descrição: </b>{{proposicao.descricao}}</td></tr>
-      <tr><td><b>Data de Envio: </b>{{proposicao.data_envio|date:'d/m/Y H:i:s'}}</td></tr>
-    </table>
+<div class="context-actions clearfix">
+  {% block actions %}{{block.super}}
+    <div class="actions btn-group btn-group-sm pull-right" role="group">
+      {% if object.texto_articulado.exists %}
+        <a class="btn btn-default" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico da Proposição" %}</a>
+      {% endif %}
+      {% if object.texto_original %}
+        <a class="btn btn-default" href="{{ object.texto_original.url }}">{% trans "Texto Original da Proposição" %}</a>
+      {% endif %}
+    </div>
+  {% endblock actions%}
+</div>
 
-    <form method="POST">
-      {% csrf_token %}
-      <div align="center">
-        <input type="submit" value="Devolver ao autor" name="devolver" class="btn btn-danger">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <input type="submit" value="Incorporar" name="incorporar" class="btn btn-primary">
-      </div>
-    </form>
-  </fieldset>
+{{block.super}}
+
 {% endblock %}

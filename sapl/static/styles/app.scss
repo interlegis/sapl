@@ -180,7 +180,9 @@ p.control-label {
   border-bottom: 1px solid $legend-border-color;
   clear: both;
 }
-
+.grid-gutter-width-right {
+  margin-right: $grid-gutter-width / 2;
+}
 // #### footer ###########################################
 // based on http://getbootstrap.com/examples/sticky-footer
 

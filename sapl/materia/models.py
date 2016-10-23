@@ -1,3 +1,6 @@
+import datetime
+import re
+
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericForeignKey,\
     GenericRelation
@@ -12,9 +15,8 @@ from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import TextoArticulado
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt, SaplGenericRelation,
-                        SaplGenericForeignKey)
+                        SaplGenericForeignKey, texto_upload_path)
 
 
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -32,6 +34,8 @@ def grupo_autor():
 class TipoProposicao(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
+    # FIXME - para a rotina de migração - estes campos mudaram
+    # retire o comentário quando resolver
     conteudo = models.ForeignKey(ContentType, default=None,
                                  verbose_name=_('Definição de Tipo'))
     object_id = models.PositiveIntegerField(
@@ -107,14 +111,6 @@ class Origem(models.Model):
 
     def __str__(self):
         return self.nome
-
-
-def get_materia_media_path(instance, subpath, filename):
-    return './sapl/materia/%s/%s/%s' % (instance, subpath, filename)
-
-
-def texto_upload_path(instance, filename):
-    return get_materia_media_path(instance, 'materia', filename)
 
 
 TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
@@ -205,6 +201,23 @@ class MateriaLegislativa(models.Model):
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.texto_original:
+            texto_original = self.texto_original
+            self.texto_original = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.texto_original = texto_original
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class Autoria(models.Model):
@@ -334,6 +347,23 @@ class DocumentoAcessorio(models.Model):
             'nome': self.nome,
             'data': self.data,
             'autor': self.autor}
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class MateriaAssunto(models.Model):
@@ -469,8 +499,29 @@ class Proposicao(models.Model):
         max_length=200,
         blank=True,
         verbose_name=_('Justificativa da Devolução'))
+
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           default=None, blank=True, null=True,
+                                           choices=RANGE_ANOS)
+
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
+
+    """
+    FIXME Campo não é necessário na modelagem e implementação atual para o
+    módulo de proposições. 
+    E - Enviada é tratado pela condição do campo data_envio - se None n enviado
+        se possui uma data, enviada
+    R - Recebida é uma condição do campo data_recebimento - se None não receb.
+        se possui uma data, enviada, recebida e incorporada
+    I - A incorporação é automática ao ser recebida
+
+    e ainda possui a condição de Devolvida onde o campo data_devolucao é
+    direfente de None, fornecedo a informação para o usuário da data que o
+    responsável devolveu bem como a justificativa da devolução.
+    Essa informação fica disponível para o Autor até que ele envie novamente
+    sua proposição ou resolva excluir.
+    """
     # ind_enviado and ind_devolvido collapsed as char field (status)
     status = models.CharField(blank=True,
                               max_length=1,
@@ -478,19 +529,6 @@ class Proposicao(models.Model):
                                        ('R', 'Recebida'),
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
-    # mutually exclusive (depend on tipo.materia_ou_documento)
-    materia = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'),
-        related_name=_('materia_vinculada'))
-
-    # Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
-    # de uma já existente
-    materia_gerada = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True,
-        related_name=_('materia_gerada'))
-    documento_gerado = models.ForeignKey(
-        DocumentoAcessorio, blank=True, null=True)
-
     texto_original = models.FileField(
         upload_to=texto_upload_path,
         blank=True,
@@ -501,12 +539,57 @@ class Proposicao(models.Model):
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
 
+    # FIXME - para a rotina de migração - este campo mudou
+    # retire o comentário quando resolver
+    materia_de_vinculo = models.ForeignKey(
+        MateriaLegislativa, blank=True, null=True,
+        verbose_name=_('Matéria anexadora'),
+        related_name=_('proposicao_set'))
+
+    # FIXME - para a rotina de migração - estes campos mudaram
+    # retire o comentário quando resolver
+    content_type = models.ForeignKey(
+        ContentType, default=None, blank=True, null=True,
+        verbose_name=_('Tipo de Material Gerado'))
+    object_id = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
+    conteudo_gerado_related = SaplGenericForeignKey(
+        'content_type', 'object_id', verbose_name=_('Conteúdo Gerado'))
+
+    """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
+    # de uma já existente
+    materia_gerada = models.ForeignKey(
+        MateriaLegislativa, blank=True, null=True,
+        related_name=_('materia_gerada'))
+    documento_gerado = models.ForeignKey(
+        DocumentoAcessorio, blank=True, null=True)"""
+
     class Meta:
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
+        unique_together = (('content_type', 'object_id'), )
 
     def __str__(self):
-        return self.descricao
+        return '%s %s/%s' % (Proposicao._meta.verbose_name,
+                             self.numero_proposicao,
+                             self.ano)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.texto_original:
+            texto_original = self.texto_original
+            self.texto_original = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.texto_original = texto_original
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class StatusTramitacao(models.Model):

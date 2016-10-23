@@ -80,7 +80,7 @@
           <td>
             {% if href %}
             <a href="{{ href }}">{{ value }}</a>
-            {% elif valu != 'core.Cep.None' %}
+            {% elif 'None' in value %}
               {{ value|safe }}
             {% endif %}
           </td>
