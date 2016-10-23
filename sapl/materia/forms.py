@@ -1098,20 +1098,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                        css_class="ementa_materia hidden alert-info",
                        dismiss=False), 12))))
 
-        submit_incorporar = Submit('incorporar', _('Incorporar'))
-        itens_incorporacao = ['regime_tramitacao']
+        itens_incorporacao = [to_column(('regime_tramitacao', 4))]
         if self.proposicao_incorporacao_obrigatoria == 'C':
-            itens_incorporacao.append(InlineRadios('gerar_protocolo'))
+            itens_incorporacao.append(to_column((InlineRadios(
+                'gerar_protocolo'), 4)))
 
         if self.proposicao_incorporacao_obrigatoria != 'N':
-            itens_incorporacao.append('numero_de_paginas')
+            itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
+
+        itens_incorporacao.append(FormActions(Submit(
+            'incorporar', _('Incorporar'), css_class='pull-right')))
 
         fields.append(
-            Fieldset(
-                _('Registro de Incorporação'),
-                *[to_column((itens, 4)) for itens in itens_incorporacao],
-                FormActions(submit_incorporar, css_class='pull-right')
-            ))
+            Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
 
         fields.append(
             Fieldset(
@@ -1119,7 +1118,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 'justificativa_devolucao',
                 FormActions(Submit(
                     'devolver', _('Devolver'),
-                    css_class='btn-danger'), css_class='pull-right')
+                    css_class='btn-danger pull-right'))
             ))
         self.helper = FormHelper()
         self.helper.layout = Layout(*fields)
