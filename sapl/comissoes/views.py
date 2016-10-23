@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.views.generic import ListView
 
-from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, RP_DETAIL, RP_LIST
+from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
 from .models import (CargoComissao, Comissao, Composicao, Participacao,

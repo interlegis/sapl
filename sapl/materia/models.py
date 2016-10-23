@@ -509,7 +509,7 @@ class Proposicao(models.Model):
 
     """
     FIXME Campo não é necessário na modelagem e implementação atual para o
-    módulo de proposições. 
+    módulo de proposições.
     E - Enviada é tratado pela condição do campo data_envio - se None n enviado
         se possui uma data, enviada
     R - Recebida é uma condição do campo data_recebimento - se None não receb.

@@ -45,7 +45,6 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
-
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')

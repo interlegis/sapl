@@ -4,6 +4,7 @@ import os
 
 from crispy_forms.bootstrap import Alert, InlineCheckboxes, FormActions,\
     InlineRadios
+import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
     Field, Submit
@@ -16,7 +17,6 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -33,10 +33,10 @@ from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
                         ChoiceWithoutValidationField, YES_NO_CHOICES)
 import sapl
 
-from .models import (AcompanhamentoMateria, Anexada, Autoria,
-                     DespachoInicial, DocumentoAcessorio, MateriaLegislativa,
-                     Numeracao, Proposicao, Relatoria, TipoMateriaLegislativa,
-                     Tramitacao, UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
+                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
+                     Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao,
+                     UnidadeTramitacao)
 
 
 def ANO_CHOICES():
@@ -499,6 +499,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
+    em_tramitacao = django_filters.ChoiceFilter(required=False,
+                                                label=u'Ano da Matéria',
+                                                choices=em_tramitacao)
+
     class Meta:
         model = MateriaLegislativa
         fields = ['numero',
@@ -565,7 +569,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
-            [('autoria__autor__tipo', 6),
+            [('autoria__autor__tipo', 12),
              # ('autoria__autor__partido', 6)
              ])
         row6 = to_row(
@@ -1177,11 +1181,11 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         self.instance.save()
 
-        """ 
+        """
         TipoProposicao possui conteúdo genérico para a modelegam de tipos
         relacionados e, a esta modelagem, qual o objeto que está associado.
         Porem, cada registro a ser gerado pode possuir uma estrutura diferente,
-        é os casos básicos já implementados, 
+        é os casos básicos já implementados,
         TipoDocumento e TipoMateriaLegislativa, que são modelos utilizados
         em DocumentoAcessorio e MateriaLegislativa geradas,
         por sua vez a partir de uma Proposição.
@@ -1243,13 +1247,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             Solução pode passar pela parametrização em TipoProposicao que
             possibilite abrir ou não espaço, dado o Tipo, para quem está
             incorporando a proposição rediga o nome do Autor do Doc Acessório.
-            
+
             """
             doc.autor = str(proposicao.autor)
             doc.tipo = proposicao.tipo.tipo_conteudo_related
 
             doc.ementa = proposicao.descricao
-            """ FIXME verificar questão de nome e data de documento, 
+            """ FIXME verificar questão de nome e data de documento,
             doc acessório. Possivelmente pode possuir data anterior a
             data de envio e/ou recebimento dada a incorporação.
             """
@@ -1281,8 +1285,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         """
         apesar de TipoProposicao estar com conteudo e tipo conteudo genérico,
-        aqui na incorporação de proposições, para gerar protocolo, cada caso 
-        possível de conteudo em tipo de proposição deverá ser tratado 
+        aqui na incorporação de proposições, para gerar protocolo, cada caso
+        possível de conteudo em tipo de proposição deverá ser tratado
         isoladamente justamente por Protocolo não estar generalizado com
         GenericForeignKey
         """

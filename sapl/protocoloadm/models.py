@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from sapl.base.models import Autor
+
 from sapl.materia.models import (TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
@@ -25,14 +26,14 @@ class TipoDocumentoAdministrativo(models.Model):
 """
 uuid4 + filenames diversos apesar de tornar url de um arquivo praticamente
 impossível de ser localizado não está controlando o acesso.
-Exemplo: o SAPL está configurado para ser docs adm restritivo porém 
+Exemplo: o SAPL está configurado para ser docs adm restritivo porém
 alguem resolve perga o link e mostrar o tal arquivo para um amigo, ou um
 vizinho de departamento que não possui acesso... ou mesmo alguem que nem ao
 menos está logado... este arquivo estará livre
 
 outro caso, um funcionário bem intencionado, mas com um computador infectado
 que consegue pegar todos os links da página que ele está acessando e esse
-funcionário possui permissão para ver arquivos de docs administrativos. 
+funcionário possui permissão para ver arquivos de docs administrativos.
 Consequentemente os arquivos se tornarão públicos pois podem ser acessados
 via url sem controle de acesso.
 
@@ -190,8 +191,6 @@ class TramitacaoAdministrativo(models.Model):
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
-        blank=True,
-        null=True,
         related_name='adm_tramitacoes_destino',
         verbose_name=_('Unidade Destino'))
     texto = models.TextField(

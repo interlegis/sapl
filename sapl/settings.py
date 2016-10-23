@@ -23,7 +23,6 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
-
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
@@ -98,7 +97,7 @@ MIDDLEWARE_CLASSES = (
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
-        #"rest_framework.renderers.BrowsableAPIRenderer",
+        # "rest_framework.renderers.BrowsableAPIRenderer",
     ),
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",

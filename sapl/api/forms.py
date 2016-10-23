@@ -1,9 +1,6 @@
-
 from django.db.models import Q
 from django_filters.filters import MethodFilter, ModelChoiceFilter
 from rest_framework.filters import FilterSet
-
-
 from sapl.base.models import Autor, TipoAutor
 from sapl.utils import generic_relations_for_model
 

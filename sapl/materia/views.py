@@ -5,7 +5,6 @@ from string import ascii_letters, digits
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
-from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist,\
     PermissionDenied
@@ -37,10 +36,12 @@ from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
+                        montar_row_autor, permission_required_for_app,
                         permissoes_autor, permissoes_materia,
                         permissoes_protocoloadm, permission_required_for_app,
                         montar_row_autor)
 import sapl
+
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm,
@@ -130,7 +131,6 @@ def recuperar_materia(request):
 
 OrgaoCrud = CrudAux.build(Orgao, 'orgao')
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
-UnidadeTramitacaoCrud = CrudAux.build(UnidadeTramitacao, 'unidade_tramitacao')
 
 
 class TipoProposicaoCrud(CrudAux):
@@ -339,6 +339,32 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['subnav_template_name'] = ''
         return context
+
+
+class UnidadeTramitacaoCrud(CrudAux):
+    model = UnidadeTramitacao
+    help_path = 'unidade_tramitacao'
+
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = ['comissao', 'orgao', 'parlamentar']
+
+    class ListView(Crud.ListView):
+        template_name = "crud/list.html"
+
+        def get_headers(self):
+            return [_('Unidade de Tramitação')]
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            for row in context['rows']:
+                if row[0][0]:  # Comissão
+                    pass
+                elif row[1][0]:  # Órgão
+                    row[0] = (row[1][0], row[0][1])
+                elif row[2][0]:  # Parlamentar
+                    row[0] = (row[2][0], row[0][1])
+                row[1], row[2] = ('', ''), ('', '')
+            return context
 
 
 class ProposicaoCrud(Crud):

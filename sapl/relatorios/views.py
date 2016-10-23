@@ -1,10 +1,12 @@
 from datetime import datetime
 
 from bs4 import BeautifulSoup
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base.models import CasaLegislativa, Autor
+from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
                                  Tramitacao, UnidadeTramitacao)
@@ -783,7 +785,10 @@ def relatorio_sessao_plenaria(request, pk):
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
-    sessao = SessaoPlenaria.objects.get(id=pk)
+    try:
+        sessao = SessaoPlenaria.objects.get(id=pk)
+    except ObjectDoesNotExist:
+        raise Http404('Essa página não existe')
 
     (inf_basicas_dic,
      lst_mesa,

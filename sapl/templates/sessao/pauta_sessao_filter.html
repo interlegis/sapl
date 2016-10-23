@@ -24,7 +24,7 @@
         {% for s in page_obj %}
           <tr>
             <td><a href="{% url 'sapl.sessao:pauta_sessao_detail' s.id %}"><strong>{{s}}</strong></br></a></td><td>
-					  <a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' s.id %}"><img src="{% static 'img/file.png' %}"></a>
+					  <a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' s.id %}"><img height="30" width="30" src="{% static 'img/pdflogo.png' %}"></a>
 				    </td>
           </tr>
         {% endfor %}

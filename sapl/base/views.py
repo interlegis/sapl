@@ -9,12 +9,10 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
-
-
 from sapl.base.forms import AutorForm, TipoAutorForm, AutorFormForAdmin
 
 from sapl.base.models import Autor, TipoAutor

@@ -7,7 +7,6 @@ from sapl.api.views import MateriaLegislativaViewSet, AutorListView,\
 
 from .apps import AppConfig
 
-
 app_name = AppConfig.name
 
 
