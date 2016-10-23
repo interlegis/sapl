@@ -306,9 +306,13 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
         # FIXME redirecionamento trival,
         # ainda por implementar se será para protocolo ou para doc resultante
 
-        messages.success(self.request, _('Devolução efetuada com sucesso.'))
+        msgs = self.object.results['messages']
 
-        return reverse('sapl.materia:receber-proposicao')
+        for key, value in msgs.items():
+            for item in value:
+                getattr(messages, key)(self.request, item)
+
+        return self.object.results['url']
 
     def get_object(self, queryset=None):
         try:
@@ -579,6 +583,21 @@ class ReciboProposicaoView(TemplateView):
                             proposicao.texto_original.path,
                             self.kwargs['pk'])})
         return context
+
+    def get(self, request, *args, **kwargs):
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+
+        if proposicao.data_envio:
+            return TemplateView.get(self, request, *args, **kwargs)
+
+        if not proposicao.data_envio and not proposicao.data_devolucao:
+            messages.error(request, _('Não é possível gerar recebo para uma '
+                                      'Proposição ainda não enviada.'))
+        elif proposicao.data_devolucao:
+            messages.error(request, _('Não é possível gerar recibo.'))
+
+        return redirect(reverse('sapl.materia:proposicao_detail',
+                                kwargs={'pk': proposicao.pk}))
 
 
 class RelatoriaCrud(MasterDetailCrud):

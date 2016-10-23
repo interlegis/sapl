@@ -120,6 +120,7 @@ class Protocolo(models.Model):
                                            verbose_name=_('Ano do Protocolo'))
     data = models.DateField()
     hora = models.TimeField()
+    # TODO transformar campo timestamp em auto_now_add
     timestamp = models.DateTimeField()
     tipo_protocolo = models.PositiveIntegerField(
         verbose_name=_('Tipo de Protocolo'))

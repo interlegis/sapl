@@ -6,6 +6,13 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def clear_field_autor_in_protocolo(apps, schema_editor):
+    Protocolo = apps.get_model("protocoloadm", "Protocolo")
+    for p in Protocolo.objects.all():
+        p.autor = None
+        p.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -13,14 +20,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(clear_field_autor_in_protocolo),
         migrations.AlterField(
             model_name='documentoadministrativo',
             name='autor',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='base.Autor'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='base.Autor'),
         ),
         migrations.AlterField(
             model_name='protocolo',
             name='autor',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='base.Autor'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='base.Autor'),
         ),
     ]

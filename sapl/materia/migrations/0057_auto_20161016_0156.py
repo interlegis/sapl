@@ -6,14 +6,20 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def clear_model_tipo_proposicao(apps, schema_editor):
+    TipoProposicao = apps.get_model("materia", "TipoProposicao")
+    TipoProposicao.objects.all().delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('materia', '0056_merge'),
+        ('materia', '0056_remove_tipo_proposicao'),
     ]
 
     operations = [
+        migrations.RunPython(clear_model_tipo_proposicao),
         migrations.RemoveField(
             model_name='tipoproposicao',
             name='materia_ou_documento',
@@ -33,6 +39,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tipoproposicao',
             name='conteudo',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType', verbose_name='Conteúdo'),
+            field=models.ForeignKey(
+                default=None, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType', verbose_name='Conteúdo'),
         ),
     ]

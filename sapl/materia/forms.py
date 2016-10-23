@@ -1,10 +1,9 @@
 
-from datetime import datetime
+from datetime import datetime, date
 import os
 
 from crispy_forms.bootstrap import Alert, InlineCheckboxes, FormActions,\
     InlineRadios
-import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
     Field, Submit
@@ -12,11 +11,13 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
+from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -1172,6 +1173,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.instance.data_recebimento = None
             self.instance.data_envio = None
             self.instance.save()
+
+            self.instance.results = {
+                'messages': {
+                    'success': [_('Devolução efetuada com sucesso.'), ]
+                },
+                'url': reverse('sapl.materia:receber-proposicao')
+            }
             return self.instance
 
         elif 'incorporar' in self.data:
@@ -1194,7 +1202,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         deverá contar também com uma implementação particular aqui no código
         abaixo.
         """
-
+        self.instance.results = {
+            'messages': {
+                'success': [_('Proposição incorporada com sucesso'), ]
+            },
+            'url': reverse('sapl.materia:receber-proposicao')
+        }
         proposicao = self.instance
         conteudo_gerado = None
 
@@ -1220,12 +1233,20 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             materia.save()
             conteudo_gerado = materia
 
+            self.instance.results['messages']['success'].append(_(
+                'Matéria Legislativa registrada com sucesso (%s)'
+            ) % str(materia))
+
             # autoria
             autoria = Autoria()
             autoria.autor = proposicao.autor
             autoria.materia = materia
             autoria.primeiro_autor = True
             autoria.save()
+
+            self.instance.results['messages']['success'].append(_(
+                'Autoria registrada para (%s)'
+            ) % str(autoria.autor))
 
             # Matéria de vinlculo
             if proposicao.materia_de_vinculo:
@@ -1235,20 +1256,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 anexada.data_anexacao = datetime.now()
                 anexada.save()
 
+                self.instance.results['messages']['success'].append(_(
+                    'Matéria anexada a (%s)'
+                ) % str(anexada.materia_principal))
+
+            self.instance.results['url'] = reverse(
+                'sapl.materia:materialegislativa_detail',
+                kwargs={'pk': materia.pk})
+
         elif self.instance.tipo.conteudo.model_class() == TipoDocumento:
 
             # dados básicos
             doc = DocumentoAcessorio()
             doc.materia = proposicao.materia_de_vinculo
-            """
-            FIXME Esta forma de registrar autoria é falha.
-            Dificilmente o usuário que possui perfil de Autor será o autor
-            de um Documento Acessório.
-            Solução pode passar pela parametrização em TipoProposicao que
-            possibilite abrir ou não espaço, dado o Tipo, para quem está
-            incorporando a proposição rediga o nome do Autor do Doc Acessório.
-
-            """
             doc.autor = str(proposicao.autor)
             doc.tipo = proposicao.tipo.tipo_conteudo_related
 
@@ -1266,6 +1286,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             doc.save()
             conteudo_gerado = doc
 
+            self.instance.results['messages']['success'].append(_(
+                'Documento Acessório registrado com sucesso e anexado (%s)'
+            ) % str(doc.materia))
+
+            self.instance.results['url'] = reverse(
+                'sapl.materia:documentoacessorio_detail',
+                kwargs={'pk': doc.pk})
+
         proposicao.conteudo_gerado_related = conteudo_gerado
         proposicao.save()
 
@@ -1275,7 +1303,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         # ocorre se proposicao_incorporacao_obrigatoria == 'C' (condicional)
         # and gerar_protocolo == False
-        if 'gerar_protocolo' in cd or not cd['gerar_protocolo']:
+        if 'gerar_protocolo' not in cd or cd['gerar_protocolo'] == 'False':
             return self.instance
 
         # resta a opção proposicao_incorporacao_obrigatoria == 'C'
@@ -1291,8 +1319,50 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         GenericForeignKey
         """
 
-        # FIXME - Implementar protocolo
-        # protocolo = Protocolo()
-        # protocolo.ano =
+        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        if numeracao == 'A':
+            nm = Protocolo.objects.filter(
+                ano=date.today().year).aggregate(Max('numero'))
+        elif numeracao == 'U':
+            nm = Protocolo.objects.all().aggregate(Max('numero'))
+
+        protocolo = Protocolo()
+        protocolo.numero = (nm['numero__max'] + 1) if nm['numero__max'] else 1
+        protocolo.ano = date.today().year
+        protocolo.data = date.today()
+        protocolo.hora = datetime.now().time()
+
+        # TODO transformar campo timestamp  em auto_now_add
+        protocolo.timestamp = datetime.now()
+        protocolo.tipo_protocolo = '1'
+
+        # 1 Processo Legislativo
+        # 0 Processo Administrativo
+        protocolo.tipo_processo = '1'
+        protocolo.interessado = str(proposicao.autor)
+        protocolo.autor = proposicao.autor
+        protocolo.numero_paginas = cd['numero_de_paginas']
+        protocolo.anulado = False
+
+        if self.instance.tipo.conteudo.model_class() == TipoMateriaLegislativa:
+            protocolo.tipo_materia = proposicao.tipo.tipo_conteudo_related
+        elif self.instance.tipo.conteudo.model_class() == TipoDocumento:
+            protocolo.tipo_documento = proposicao.tipo.tipo_conteudo_related
+
+        protocolo.save()
+
+        self.instance.results['messages']['success'].append(_(
+            'Protocolo realizado com sucesso'))
+
+        # FIXME qdo protocoloadm estiver homologado, verifique a necessidade
+        # de redirecionamento para o protocolo.
+
+        """
+        self.instance.results['url'] = reverse(
+            'sapl.protocoloadm:...',
+            kwargs={'pk': protocolo.pk})
+        """
+        conteudo_gerado.numero_protocolo = protocolo.numero
+        conteudo_gerado.save()
 
         return self.instance
