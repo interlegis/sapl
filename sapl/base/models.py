@@ -7,10 +7,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -84,6 +85,13 @@ class ProblemaMigracao(models.Model):
 
 
 class AppConfig(models.Model):
+
+    POLITICA_PROTOCOLO_CHOICES = (
+        ('O', _('Sempre Gerar Protocolo')),
+        ('C', _('Perguntar se é pra gerar protocolo ao incorporar')),
+        ('N', _('Nunca Protocolar ao incorporar uma proposição')),
+    )
+
     documentos_administrativos = models.CharField(
         max_length=1,
         verbose_name=_('Ostensivo/Restritivo'),
@@ -109,6 +117,10 @@ class AppConfig(models.Model):
     texto_articulado_norma = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Normas'),
         choices=YES_NO_CHOICES, default=True)
+
+    proposicao_incorporacao_obrigatoria = models.CharField(
+        verbose_name=_('Regra de incorporação de proposições e protocolo'),
+        max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
@@ -191,98 +203,3 @@ class Autor(models.Model):
             return str(self.partido)
         else:
         """
-
-
-def create_proxy_permissions(
-        app_config, verbosity=2, interactive=True,
-        using=DEFAULT_DB_ALIAS, **kwargs):
-    if not app_config.models_module:
-        return
-
-    # print(app_config)
-
-    try:
-        Permission = apps.get_model('auth', 'Permission')
-    except LookupError:
-        return
-
-    if not router.allow_migrate_model(using, Permission):
-        return
-
-    from django.contrib.contenttypes.models import ContentType
-
-    permission_name_max_length = Permission._meta.get_field('name').max_length
-
-    # This will hold the permissions we're looking for as
-    # (content_type, (codename, name))
-    searched_perms = list()
-    # The codenames and ctypes that should exist.
-    ctypes = set()
-    for klass in list(app_config.get_models()):
-        opts = klass._meta
-        permissions = (
-            ("list_" + opts.model_name,
-             string_concat(
-                 _('Visualizaçao da lista de'), ' ',
-                 opts.verbose_name_plural)),
-            ("detail_" + opts.model_name,
-             string_concat(
-                 _('Visualização dos detalhes de'), ' ',
-                 opts.verbose_name_plural)),
-        )
-        opts.permissions = tuple(
-            set(list(permissions) + list(opts.permissions)))
-
-        if opts.proxy:
-            # Force looking up the content types in the current database
-            # before creating foreign keys to them.
-            app_label, model = opts.app_label, opts.model_name
-
-            try:
-                ctype = ContentType.objects.db_manager(
-                    using).get_by_natural_key(app_label, model)
-            except:
-                ctype = ContentType.objects.db_manager(
-                    using).create(app_label=app_label, model=model)
-        else:
-            ctype = ContentType.objects.db_manager(using).get_for_model(klass)
-
-        ctypes.add(ctype)
-        for perm in _get_all_permissions(klass._meta, ctype):
-            searched_perms.append((ctype, perm))
-
-    # Find all the Permissions that have a content_type for a model we're
-    # looking for.  We don't need to check for codenames since we already have
-    # a list of the ones we're going to create.
-    all_perms = set(Permission.objects.using(using).filter(
-        content_type__in=ctypes,
-    ).values_list(
-        "content_type", "codename"
-    ))
-
-    perms = [
-        Permission(codename=codename, name=name, content_type=ct)
-        for ct, (codename, name) in searched_perms
-        if (ct.pk, codename) not in all_perms
-    ]
-    # Validate the permissions before bulk_creation to avoid cryptic database
-    # error when the name is longer than 255 characters
-    for perm in perms:
-        if len(perm.name) > permission_name_max_length:
-            raise exceptions.ValidationError(
-                'The permission name %s of %s.%s '
-                'is longer than %s characters' % (
-                    perm.name,
-                    perm.content_type.app_label,
-                    perm.content_type.model,
-                    permission_name_max_length,
-                )
-            )
-    Permission.objects.using(using).bulk_create(perms)
-    if verbosity >= 2:
-        for perm in perms:
-            print("Adding permission '%s'" % perm)
-
-models.signals.post_migrate.connect(
-    receiver=create_proxy_permissions,
-    dispatch_uid="django.contrib.auth.management.create_permissions")

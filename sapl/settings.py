@@ -104,8 +104,6 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
         "sapl.api.permissions.DjangoModelPermissions",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -178,10 +176,12 @@ LANGUAGES = (
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_L10N = False
-USE_TZ = True
+USE_TZ = False
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'
 SHORT_DATE_FORMAT = 'd/m/Y'
+DATETIME_FORMAT = 'd/m/Y H:i:s'
+SHORT_DATETIME_FORMAT = 'd/m/Y H:i'
 DATE_INPUT_FORMATS = ('%d/%m/%Y', '%m-%d-%Y', '%Y-%m-%d')
 
 LOCALE_PATHS = (

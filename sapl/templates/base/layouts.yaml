@@ -12,7 +12,11 @@ CasaLegislativa:
 
 AppConfig:
   {% trans 'Configurações da Aplicação' %}:
-  - documentos_administrativos sequencia_numeracao painel_aberto
+  - documentos_administrativos  painel_aberto
+
+  {% trans 'Proposições e Protocolo' %}:
+  - sequencia_numeracao proposicao_incorporacao_obrigatoria
+
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
 

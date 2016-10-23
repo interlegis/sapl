@@ -6,39 +6,47 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist,\
+    PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import JsonResponse
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, Http404
 from django.shortcuts import redirect
 from django.template import Context, loader
+from django.utils import dateformat, formats
+from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
+from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-from sapl.base.models import AppConfig, Autor, CasaLegislativa, TipoAutor
+from sapl.base.models import Autor, CasaLegislativa, TipoAutor
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, CrudDetailView, MasterDetailCrud,
-                            make_pagination)
+                            make_pagination, PermissionRequiredForAppCrudMixin)
 from sapl.materia import apps
-from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm
+from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
+    TipoProposicaoForm, ProposicaoForm, ConfirmarProposicaoForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor, permission_required_for_app,
                         permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm)
+                        permissoes_protocoloadm, permission_required_for_app,
+                        montar_row_autor)
+import sapl
+
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    ConfirmarProposicaoForm, DocumentoAcessorioForm,
+                    DocumentoAcessorioForm,
                     MateriaLegislativaFilterSet,
-                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoOldForm,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
@@ -49,6 +57,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
+
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -75,7 +84,7 @@ class MateriaTaView(IntegracaoTaView):
         este get foi implementado para tratar uma prerrogativa externa
         de usuário.
         """
-        if AppConfig.attr('texto_articulado_materia'):
+        if sapl.base.models.AppConfig.attr('texto_articulado_materia'):
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
@@ -84,6 +93,9 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
+    # TODO implmentar o mapa de fields e utiliza-lo em IntegracaoTaView
+    fields = {
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -91,7 +103,7 @@ class ProposicaoTaView(IntegracaoTaView):
         este get foi implementado para tratar uma prerrogativa externa
         de usuário.
         """
-        if AppConfig.attr('texto_articulado_proposicao'):
+        if sapl.base.models.AppConfig.attr('texto_articulado_proposicao'):
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
@@ -118,8 +130,23 @@ def recuperar_materia(request):
 
 
 OrgaoCrud = CrudAux.build(Orgao, 'orgao')
-TipoProposicaoCrud = CrudAux.build(TipoProposicao, 'tipo_proposicao')
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
+
+
+class TipoProposicaoCrud(CrudAux):
+    model = TipoProposicao
+    help_text = 'tipo_proposicao'
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ["descricao", "conteudo", 'tipo_conteudo_related']
+
+    class CreateView(CrudAux.CreateView):
+        form_class = TipoProposicaoForm
+        layout_key = None
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = TipoProposicaoForm
+        layout_key = None
 
 
 def criar_materia_proposicao(proposicao):
@@ -168,7 +195,7 @@ class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return Proposicao.objects.filter(
-            data_envio__isnull=False,
+            data_envio__isnull=True,
             data_recebimento__isnull=True,
             data_devolucao__isnull=False)
 
@@ -179,6 +206,7 @@ class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição devolvida.'
+        context['subnav_template_name'] = 'materia/subnav_prop.yaml'
         return context
 
 
@@ -202,6 +230,8 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
+
+        context['subnav_template_name'] = 'materia/subnav_prop.yaml'
         return context
 
 
@@ -225,79 +255,94 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição recebida.'
+        context['subnav_template_name'] = 'materia/subnav_prop.yaml'
         return context
 
 
-class ReceberProposicao(PermissionRequiredMixin, CreateView):
-    template_name = "materia/receber_proposicao.html"
+class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
+    app_label = sapl.protocoloadm.apps.AppConfig.label
+    template_name = "crud/form.html"
     form_class = ReceberProposicaoForm
-    permission_required = permissoes_protocoloadm()
-
-    def get_context_data(self, **kwargs):
-        context = super(ReceberProposicao, self).get_context_data(**kwargs)
-        context.update({'form': self.get_form()})
-        return context
 
     def post(self, request, *args, **kwargs):
+
         form = ReceberProposicaoForm(request.POST)
 
         if form.is_valid():
-            proposicoes = Proposicao.objects.filter(data_envio__isnull=False)
+            proposicoes = Proposicao.objects.filter(
+                data_envio__isnull=False, data_recebimento__isnull=True)
 
             for proposicao in proposicoes:
-                hasher = gerar_hash_arquivo(proposicao.texto_original.path,
-                                            str(proposicao.pk))
+                # FIXME implementar hash para texto eletrônico
+                hasher = gerar_hash_arquivo(
+                    proposicao.texto_original.path,
+                    str(proposicao.pk)) if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
-                                kwargs={'pk': proposicao.pk}))
+                                kwargs={
+                                    'hash': hasher.split('/')[0][1:],
+                                    'pk': proposicao.pk}))
 
-            msg = 'Proposição não encontrada!'
-            return self.render_to_response({'form': form, 'msg': msg})
-        else:
-            return self.render_to_response({'form': form})
+            messages.error(request, _('Proposição não encontrada!'))
+        return self.form_invalid(form)
 
     def get_success_url(self):
         return reverse('sapl.materia:receber-proposicao')
 
-
-class ConfirmarProposicao(PermissionRequiredMixin, CreateView):
-    template_name = "materia/confirmar_proposicao.html"
-    form_class = ConfirmarProposicaoForm
-    permission_required = permissoes_protocoloadm()
-
     def get_context_data(self, **kwargs):
-        context = super(ConfirmarProposicao, self).get_context_data(**kwargs)
-        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
-        context.update({'form': self.get_form(), 'proposicao': proposicao})
+        context = super(ReceberProposicao, self).get_context_data(**kwargs)
+        context['subnav_template_name'] = 'materia/subnav_prop.yaml'
         return context
 
-    def post(self, request, *args, **kwargs):
-        form = ConfirmarProposicaoForm(request.POST)
-        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
 
-        if form.is_valid():
-            if 'incorporar' in request.POST:
-                proposicao.data_recebimento = datetime.now()
-                if proposicao.tipo.descricao == 'Parecer':
-                    documento = criar_doc_proposicao(proposicao)
-                    proposicao.documento_gerado = documento
-                    proposicao.save()
-                    return HttpResponseRedirect(
-                        reverse('sapl.materia:documentoacessorio_update',
-                                kwargs={'pk': documento.pk}))
-                else:
-                    materia = criar_materia_proposicao(proposicao)
-                    proposicao.materia_gerada = materia
-                    proposicao.save()
-                    return HttpResponseRedirect(
-                        reverse('sapl.materia:materialegislativa_update',
-                                kwargs={'pk': materia.pk}))
-            else:
-                proposicao.data_devolucao = datetime.now()
-                proposicao.save()
-                return HttpResponseRedirect(
-                    reverse('sapl.materia:proposicao-devolvida'))
+class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
+    app_label = sapl.protocoloadm.apps.AppConfig.label
+    template_name = "materia/confirmar_proposicao.html"
+    model = Proposicao
+    form_class = ConfirmarProposicaoForm
+
+    def get_success_url(self):
+        # FIXME redirecionamento trival,
+        # ainda por implementar se será para protocolo ou para doc resultante
+
+        msgs = self.object.results['messages']
+
+        for key, value in msgs.items():
+            for item in value:
+                getattr(messages, key)(self.request, item)
+
+        return self.object.results['url']
+
+    def get_object(self, queryset=None):
+        try:
+            """Não deve haver acesso na rotina de confirmação a proposições:
+            já recebidas -> data_recebimento != None
+            não enviadas -> data_envio == None
+            """
+            proposicao = Proposicao.objects.get(pk=self.kwargs['pk'],
+                                                data_envio__isnull=False,
+                                                data_recebimento__isnull=True)
+            self.object = None
+            # FIXME implementar hash para texto eletrônico
+            hasher = gerar_hash_arquivo(
+                proposicao.texto_original.path,
+                str(proposicao.pk)) if proposicao.texto_original else None
+
+            if hasher == 'P%s/%s' % (self.kwargs['hash'], proposicao.pk):
+                self.object = proposicao
+        except:
+            raise Http404()
+
+        if not self.object:
+            raise Http404()
+
+        return self.object
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['subnav_template_name'] = ''
+        return context
 
 
 class UnidadeTramitacaoCrud(CrudAux):
@@ -327,96 +372,173 @@ class UnidadeTramitacaoCrud(CrudAux):
 
 
 class ProposicaoCrud(Crud):
-    """
-    TODO: Entre outros comportamento gerais, mesmo que um usuário tenha
-    Perfil de Autor o Crud de proposição não deverá permitir acesso a
-    proposições. O acesso só deve ser permitido se existe um Autor registrado
-    e vinculado ao usuário. Essa tarefa deve ser realizada nas Tabelas Aux.
-    """
     model = Proposicao
     help_path = ''
+    container_field = 'autor__user'
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['data_envio', 'descricao',
-                            'tipo', 'data_recebimento']
+        list_field_names = ['data_envio', 'data_recebimento', 'descricao',
+                            'tipo']
+
+    class BaseLocalMixin:
+        form_class = ProposicaoForm
+        layout_key = None
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+        def get(self, request, *args, **kwargs):
+
+            if not self._action_is_valid(request, *args, **kwargs):
+                return redirect(reverse('sapl.materia:proposicao_detail',
+                                        kwargs={'pk': kwargs['pk']}))
+            return super().get(self, request, *args, **kwargs)
+
+        def post(self, request, *args, **kwargs):
+
+            if not self._action_is_valid(request, *args, **kwargs):
+                return redirect(reverse('sapl.materia:proposicao_detail',
+                                        kwargs={'pk': kwargs['pk']}))
+            return super().post(self, request, *args, **kwargs)
+
+    class DetailView(Crud.DetailView):
+        layout_key = 'Proposicao'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+        def get(self, request, *args, **kwargs):
+            action = request.GET.get('action', '')
+
+            if not action:
+                return Crud.DetailView.get(self, request, *args, **kwargs)
+
+            p = Proposicao.objects.get(id=kwargs['pk'])
+
+            msg_error = ''
+            if p:
+                if action == 'send':
+                    if p.data_envio and p.data_recebimento:
+                        msg_error = _('Proposição já foi enviada e recebida.')
+                    elif p.data_envio:
+                        msg_error = _('Proposição já foi enviada.')
+                    elif not p.texto_original and\
+                            not p.texto_articulado.exists():
+                        msg_error = _('Proposição não possui nenhum tipo de '
+                                      'Texto associado.')
+                    else:
+                        p.data_devolucao = None
+                        p.data_envio = datetime.now()
+                        p.save()
+                        messages.success(request, _(
+                            'Proposição enviada com sucesso.'))
+
+                elif action == 'return':
+                    if not p.data_envio:
+                        msg_error = _('Proposição ainda não foi enviada.')
+                    elif p.data_recebimento:
+                        msg_error = _('Proposição já foi recebida, não é '
+                                      'possível retorná-la.')
+                    else:
+                        p.data_envio = None
+                        p.save()
+                        messages.success(request, _(
+                            'Proposição Retornada com sucesso.'))
+
+                if msg_error:
+                    messages.error(request, msg_error)
+
+            # retornar redirecionando para limpar a variavel action
+            return redirect(reverse('sapl.materia:proposicao_detail',
+                                    kwargs={'pk': kwargs['pk']}))
+
+    class DeleteView(BaseLocalMixin, Crud.DeleteView):
+
+        def _action_is_valid(self, request, *args, **kwargs):
+            proposicao = Proposicao.objects.filter(
+                id=kwargs['pk']).values_list(
+                    'data_envio', 'data_recebimento')
+
+            if proposicao:
+                if proposicao[0][0] and proposicao[0][1]:
+                    msg = _('Proposição já foi enviada e recebida.'
+                            'Não pode mais ser excluida.')
+                elif proposicao[0][0] and not proposicao[0][1]:
+                    msg = _('Proposição já foi enviada mas ainda não recebida '
+                            'pelo protocolo. Use a opção Recuperar Proposição '
+                            'para depois excluí-la.')
+
+                if proposicao[0][0] or proposicao[0][1]:
+                    messages.error(request, msg)
+                    return False
+            return True
+
+    class UpdateView(BaseLocalMixin, Crud.UpdateView):
+
+        def _action_is_valid(self, request, *args, **kwargs):
+
+            proposicao = Proposicao.objects.filter(
+                id=kwargs['pk']).values_list(
+                    'data_envio', 'data_recebimento')
+
+            if proposicao:
+                if proposicao[0][0] and proposicao[0][1]:
+                    msg = _('Proposição já foi enviada e recebida.'
+                            'Não pode mais ser editada')
+                elif proposicao[0][0] and not proposicao[0][1]:
+                    msg = _('Proposição já foi enviada mas ainda não recebida '
+                            'pelo protocolo. Use a opção Recuperar Proposição '
+                            'para voltar para edição.')
+
+                if proposicao[0][0] or proposicao[0][1]:
+                    messages.error(request, msg)
+                    return False
+            return True
+
+        def get_success_url(self):
+
+            tipo_texto = self.request.POST.get('tipo_texto', '')
+
+            if tipo_texto == 'T':
+                messages.info(self.request,
+                              _('Sempre que uma Proposição é inclusa ou '
+                                'alterada e a opção "Texto Articulado " for '
+                                'marcada, você será redirecionado para o '
+                                'Texto Eletrônico. Use a opção "Editar Texto" '
+                                'para construir seu texto.'))
+                return reverse('sapl.materia:proposicao_ta',
+                               kwargs={'pk': self.object.pk})
+            else:
+                return Crud.UpdateView.get_success_url(self)
 
     class CreateView(Crud.CreateView):
         form_class = ProposicaoForm
-
-        @property
-        def layout_key(self):
-            return 'ProposicaoCreate'
-
-        def get_initial(self):
-            try:
-                autor_id = Autor.objects.get(user=self.request.user).id
-            except MultipleObjectsReturned:
-                msg = _('Este usuário está relacionado a mais de um autor. ' +
-                        'Operação cancelada')
-                messages.add_message(self.request, messages.ERROR, msg)
-                return redirect(self.get_success_url())
-            except ObjectDoesNotExist:
-                # FIXME: Pensar em uma melhor forma
-                tipo = TipoAutor.objects.get(name='Externo')
-
-                autor_id = Autor.objects.create(
-                    user=self.request.user,
-                    nome=str(self.request.user),
-                    tipo=tipo).id
-                return {'autor': autor_id}
-            else:
-                return {'autor': autor_id}
-
-    class UpdateView(Crud.UpdateView):
-        form_class = ProposicaoForm
-
-        def get_initial(self):
-            initial = self.initial.copy()
-            if self.object.materia:
-                initial['tipo_materia'] = self.object.materia.tipo.id
-                initial['numero_materia'] = self.object.materia.numero
-                initial['ano_materia'] = self.object.materia.ano
-            return initial
-
-        @property
-        def layout_key(self):
-            return 'ProposicaoCreate'
-
-        def has_permission(self):
-            perms = self.get_permission_required()
-            if not self.request.user.has_perms(perms):
-                return False
-
-            if (Proposicao.objects.filter(
-               id=self.kwargs['pk'],
-               autor__user_id=self.request.user.id).exists()):
-                proposicao = Proposicao.objects.get(
-                    id=self.kwargs['pk'],
-                    autor__user_id=self.request.user.id)
-                if (not proposicao.data_recebimento or
-                        proposicao.data_devolucao):
-                    return True
-                else:
-                    msg = _('Essa proposição já foi recebida. ' +
-                            'Não pode mais ser editada')
-                    messages.add_message(self.request, messages.ERROR, msg)
-                    return False
-
-    class DetailView(Crud.DetailView):
-
-        def has_permission(self):
-            perms = self.get_permission_required()
-            if not self.request.user.has_perms(perms):
-                return False
-
-            return (Proposicao.objects.filter(
-                id=self.kwargs['pk'],
-                autor__user_id=self.request.user.id).exists())
+        layout_key = None
 
         def get_context_data(self, **kwargs):
-            context = CrudDetailView.get_context_data(self, **kwargs)
+            context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
             return context
+
+        def get_success_url(self):
+
+            tipo_texto = self.request.POST.get('tipo_texto', '')
+
+            if tipo_texto == 'T':
+                messages.info(self.request,
+                              _('Sempre que uma Proposição é inclusa ou '
+                                'alterada e a opção "Texto Articulado " for '
+                                'marcada, você será redirecionado para o '
+                                'Texto Eletrônico. Use a opção "Editar Texto" '
+                                'para construir seu texto.'))
+                return reverse('sapl.materia:proposicao_ta',
+                               kwargs={'pk': self.object.pk})
+            else:
+                return Crud.CreateView.get_success_url(self)
 
     class ListView(Crud.ListView):
         ordering = ['-data_envio', 'descricao']
@@ -427,59 +549,16 @@ class ProposicaoCrud(Crud):
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
-                    obj.data_envio = obj.data_envio.strftime("%d/%m/%Y %H:%M")
+                    obj.data_envio = formats.date_format(
+                        obj.data_envio, "DATETIME_FORMAT")
+
                 if obj.data_recebimento is None:
                     obj.data_recebimento = 'Não recebida'
                 else:
-                    obj.data_recebimento = obj.data_recebimento.strftime(
-                        "%d/%m/%Y %H:%M")
+                    obj.data_envio = formats.date_format(
+                        obj.data_recebimento, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
-
-        def get_queryset(self):
-            # Só tem acesso as Proposicoes criadas por ele que ainda nao foram
-            # recebidas ou foram devolvidas
-            lista = Proposicao.objects.filter(
-                autor__user_id=self.request.user.id)
-            lista = lista.filter(
-                Q(data_recebimento__isnull=True) |
-                Q(data_devolucao__isnull=False))
-
-            return lista
-
-    class DeleteView(Crud.DeleteView):
-
-        def has_permission(self):
-            perms = self.get_permission_required()
-            if not self.request.user.has_perms(perms):
-                return False
-
-            return (Proposicao.objects.filter(
-                id=self.kwargs['pk'],
-                autor__user_id=self.request.user.id).exists())
-
-        def delete(self, request, *args, **kwargs):
-            proposicao = Proposicao.objects.get(id=self.kwargs['pk'])
-
-            if not proposicao.data_envio or proposicao.data_devolucao:
-                proposicao.delete()
-                return HttpResponseRedirect(
-                    reverse('sapl.materia:proposicao_list'))
-
-            elif not proposicao.data_recebimento:
-                proposicao.data_envio = None
-                proposicao.save()
-                return HttpResponseRedirect(
-                    reverse('sapl.materia:proposicao_detail',
-                            kwargs={'pk': proposicao.pk}))
-
-            else:
-                msg = _('Essa proposição já foi recebida. ' +
-                        'Não pode mais ser excluída/recuperada')
-                messages.add_message(self.request, messages.ERROR, msg)
-                return HttpResponseRedirect(
-                    reverse('sapl.materia:proposicao_detail',
-                            kwargs={'pk': proposicao.pk}))
 
 
 class ReciboProposicaoView(TemplateView):
@@ -504,6 +583,21 @@ class ReciboProposicaoView(TemplateView):
                             proposicao.texto_original.path,
                             self.kwargs['pk'])})
         return context
+
+    def get(self, request, *args, **kwargs):
+        proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+
+        if proposicao.data_envio:
+            return TemplateView.get(self, request, *args, **kwargs)
+
+        if not proposicao.data_envio and not proposicao.data_devolucao:
+            messages.error(request, _('Não é possível gerar recebo para uma '
+                                      'Proposição ainda não enviada.'))
+        elif proposicao.data_devolucao:
+            messages.error(request, _('Não é possível gerar recibo.'))
+
+        return redirect(reverse('sapl.materia:proposicao_detail',
+                                kwargs={'pk': proposicao.pk}))
 
 
 class RelatoriaCrud(MasterDetailCrud):

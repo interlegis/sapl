@@ -50,14 +50,19 @@ urlpatterns_protocolo = [
         ProtocoloPesquisaView.as_view(), name='protocolo'),
     url(r'^protocoloadm/protocolo-list$',
         ProtocoloListView.as_view(), name='protocolo_list'),
-    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/protocolo-mostrar$',
-        ProtocoloMostrarView.as_view(), name='protocolo_mostrar'),
     url(r'^protocoloadm/anular-protocolo',
         AnularProtocoloAdmView.as_view(), name='anular_protocolo'),
     url(r'^protocoloadm/protocolar-doc',
         ProtocoloDocumentoView.as_view(), name='protocolar_doc'),
     url(r'^protocoloadm/protocolar-mat',
         ProtocoloMateriaView.as_view(), name='protocolar_mat'),
+
+    # FIXME estas urls com pk e ano não fazem sentido
+    # se vai buscar por pk não precisa de nenhuma outra informação
+    # mas veja, apesar de chamar de pk aqui nas urls
+    # usou-se dentro da view como paramentro para ano.
+    url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/protocolo-mostrar$',
+        ProtocoloMostrarView.as_view(), name='protocolo_mostrar'),
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/comprovante$',
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
     url(r'^protocoloadm/(?P<pk>\d+)/(?P<ano>\d+)/criar-documento$',

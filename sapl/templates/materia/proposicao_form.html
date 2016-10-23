@@ -5,35 +5,34 @@
    <script type="text/javascript">
 
     $(document).ready(function(){
-      if($("#id_data_envio").val() != ''){
-        $("#submit-id-excluir").val('Retornar proposição enviada');
-      }else{
-        $("#submit-id-excluir").val('Excluir proposição');
-      }
-    });
 
- 		function disable_fields() {
-			$("#id_tipo_materia").attr("disabled", "disabled");
-			$("#id_numero_materia").attr("disabled", "disabled");
-			$("#id_ano_materia").attr("disabled", "disabled");
-			$("#id_data_envio").attr("disabled", "disabled");
- 		}
+    	$("input[name=tipo_texto]").change(function(event) {
+        if (this.value == 'D' && this.checked)
+          $("#div_id_texto_original").removeClass('hidden');
+        else if (this.value == 'D' && !this.checked)
+          $("#div_id_texto_original").addClass('hidden');
+      });
 
- 		function enable_fields() {
-			$("#id_tipo_materia").removeAttr('disabled');
-			$("#id_numero_materia").removeAttr('disabled');
-			$("#id_ano_materia").removeAttr('disabled');
- 		}
+      $("select[name=tipo_materia], input[name=numero_materia], input[name=ano_materia]").change(function(event) {
+        var url = '{% url 'sapl.api:materialegislativa-list'%}'
 
-  	$(function () {
-  		disable_fields();
-  		$("#id_tipo").change(function() {
-  			if ($('#id_tipo option:selected').text() == 'Parecer') { // parecer
-  				enable_fields();
-  			}else {
-  				disable_fields();
-  			}
+        var formData = {
+              'tipo'   : $("select[name=tipo_materia]").val(),
+              'ano'    : $("input[name=ano_materia]").val(),
+              'numero' : $("input[name=numero_materia]").val(),
+        }
+        if (formData.tipo == '' || formData.ano == '' || formData.numero == '')
+          return;
+        $.get(url, formData).done(function(data) {
+          if (data.pagination.total_entries == 1)
+            $(".ementa_materia").html(data.results[0].ementa).removeClass('hidden');
+          else
+            $(".ementa_materia").html('').addClass('hidden');
+        });
   		});
+
+      $("input[name=tipo_texto], select[name=tipo_materia]").trigger('change');
+
     });
 	</script>
 {% endblock %}

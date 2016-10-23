@@ -6,7 +6,7 @@ from model_utils import Choices
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
-from sapl.utils import RANGE_ANOS, YES_NO_CHOICES
+from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
 
 
 class AssuntoNorma(models.Model):
@@ -53,14 +53,6 @@ class TipoNormaJuridica(models.Model):
 
     def __str__(self):
         return self.descricao
-
-
-def get_norma_media_path(instance, subpath, filename):
-    return './sapl/norma/%s/%s/%s' % (instance, subpath, filename)
-
-
-def texto_upload_path(instance, filename):
-    return get_norma_media_path(instance, instance.ano, filename)
 
 
 class NormaJuridica(models.Model):
@@ -123,6 +115,23 @@ class NormaJuridica(models.Model):
             'tipo': self.tipo,
             'numero': self.numero,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.texto_integral:
+            texto_integral = self.texto_integral
+            self.texto_integral = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.texto_integral = texto_integral
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class AssuntoNormaRelationship(models.Model):

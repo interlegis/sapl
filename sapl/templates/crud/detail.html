@@ -5,29 +5,39 @@
 
   <div class="context-actions clearfix">
     {% block actions %}
-      <div class="actions btn-group btn-group-sm" role="group">
-        {% if view.list_url %}
-          <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
-        {% endif %}
-        {% if view.search_url %}
-          <a href="{{ view.search_url }}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
-        {% endif %}
-        {% if view.create_url %}
-          <a href="{{ view.create_url }}" class="btn btn-default">
-            {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
-          </a>
-        {% endif %}
-      </div>
-      {% if view.update_url or view.delete_url %}
-        <div class="actions btn-group pull-right" role="group">
-          {% if view.update_url %}
-            <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+
+      {% block sub_actions %}
+
+        <div class="actions btn-group btn-group-sm" role="group">
+          {% if view.list_url %}
+            <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
           {% endif %}
-          {% if view.delete_url %}
-            <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+          {% if view.search_url %}
+            <a href="{{ view.search_url }}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+          {% endif %}
+          {% if view.create_url %}
+            <a href="{{ view.create_url }}" class="btn btn-default">
+              {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+            </a>
           {% endif %}
         </div>
-      {% endif %}
+      {% endblock sub_actions %}
+
+      <div class="editons pull-right">
+        {% block editions %}
+          {% if view.update_url or view.delete_url %}
+            <div class="actions btn-group" role="group">
+              {% if view.update_url %}
+                <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+              {% endif %}
+              {% if view.delete_url %}
+                <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endblock %}
+      </div>
+
     {% endblock actions %}
   </div>
 
@@ -41,7 +51,7 @@
               <div id="div_id_{{ column.id }}" class="form-group">
                 <p class="control-label">{{ column.verbose_name }}</p>
                 <div class="controls">
-                <!-- TODO Transformar os links em URLs diretamente no CRUD -->
+                  {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
                   {% if column.text|url %}
                     <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
                   {% else %}
@@ -77,7 +87,7 @@
             <td>
               {% if href %}
               <a href="{{ href }}">{{ value }}</a>
-              {% elif value != 'core.Cep.None' %}
+              {% elif 'None' not in value %}
                 {{ value|safe }}
               {% endif %}
             </td>

@@ -1,15 +1,41 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.viewsets import GenericViewSet
 
 from sapl.api.forms import AutorChoiceFilterSet
-from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
-                                  ChoiceSerializer)
+from sapl.api.serializers import ChoiceSerializer, AutorSerializer,\
+    AutorChoiceSerializer, ModelChoiceSerializer, MateriaLegislativaSerializer
+
 from sapl.base.models import Autor, TipoAutor
+from sapl.materia.models import MateriaLegislativa
 from sapl.utils import SaplGenericRelation, sapl_logger
+
+
+class ModelChoiceView(ListAPIView):
+
+    # FIXME aplicar permissão correta de usuário
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ModelChoiceSerializer
+
+    def get(self, request, *args, **kwargs):
+        self.model = ContentType.objects.get_for_id(
+            self.kwargs['content_type']).model_class()
+
+        pagination = request.GET.get('pagination', '')
+
+        if pagination == 'False':
+            self.pagination_class = None
+
+        return ListAPIView.get(self, request, *args, **kwargs)
+
+    def get_queryset(self):
+        return self.model.objects.all()
 
 
 class AutorListView(ListAPIView):
@@ -32,6 +58,10 @@ class AutorListView(ListAPIView):
                       de Autores mas feito para Possíveis Autores armazenados
                       segundo o ContentType associado ao Tipo de Autor via
                       relacionamento genérico.
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
                       Busca feita sem django-filter processada no get_queryset
                       -> processo no cadastro de autores para seleção e busca
                           dos possíveis autores
@@ -56,8 +86,7 @@ class AutorListView(ListAPIView):
     TR_AUTOR_SERIALIZER = 3
 
     # FIXME aplicar permissão correta de usuário
-    permission_classes = (AllowAny,)
-    serializer_class = AutorSerializer
+    permission_classes = (IsAuthenticated,)
     queryset = Autor.objects.all()
     model = Autor
 
@@ -166,3 +195,14 @@ class AutorListView(ListAPIView):
         if tipos.count() > 1:
             r.sort(key=lambda x: x[1].upper())
         return r
+
+
+class MateriaLegislativaViewSet(ListModelMixin,
+                                RetrieveModelMixin,
+                                GenericViewSet):
+
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MateriaLegislativaSerializer
+    queryset = MateriaLegislativa.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('numero', 'ano', 'tipo', )

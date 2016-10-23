@@ -1,7 +1,8 @@
-import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
+from crispy_forms.templatetags.crispy_forms_field import css_class
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -13,6 +14,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _, string_concat
+
+import django_filters
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 
@@ -23,10 +27,19 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
-                        RangeWidgetOverride, SaplGenericRelation, autor_label,
-                        autor_modal)
+                        RangeWidgetOverride, autor_label, autor_modal,
+
+                        SaplGenericRelation, models_with_gr_for_model,
+                        ChoiceWithoutValidationField)
 
 from .models import AppConfig, CasaLegislativa
+
+ACTION_CREATE_USERS_AUTOR_CHOICE = [
+    ('C', _('Criar novo Usuário')),
+    ('A', _('Associar um usuário existente')),
+    ('N', _('Autor sem Usuário de Acesso ao Sapl')),
+]
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('C', _('Criar novo Usuário')),
@@ -42,31 +55,6 @@ STATUS_USER_CHOICE = [
             ' desvinculado')),
     ('X', _('Excluir Usuário')),
 ]
-
-
-def autores_models_generic_relations():
-    models_of_generic_relations = list(map(
-        lambda x: x.related_model,
-        filter(
-            lambda obj: obj.is_relation and
-            hasattr(obj, 'field') and
-            isinstance(obj, GenericRel),
-
-            Autor._meta.get_fields(include_hidden=True))
-    ))
-
-    models = list(map(
-        lambda x: (x,
-                   list(filter(
-                       lambda field: (
-                           isinstance(
-                               field, SaplGenericRelation) and
-                           field.related_model == Autor),
-                       x._meta.get_fields(include_hidden=True)))),
-        models_of_generic_relations
-    ))
-
-    return models
 
 
 class TipoAutorForm(ModelForm):
@@ -85,30 +73,12 @@ class TipoAutorForm(ModelForm):
 
         super(TipoAutorForm, self).__init__(*args, **kwargs)
 
-        # Models que apontaram uma GenericRelation com Autor
-        models_of_generic_relations = list(map(
-            lambda x: x.related_model,
-            filter(
-                lambda obj: obj.is_relation and
-                hasattr(obj, 'field') and
-                isinstance(obj, GenericRel),
-                Autor._meta.get_fields(include_hidden=True))
-        ))
-
         content_types = ContentType.objects.get_for_models(
-            *models_of_generic_relations)
+            *models_with_gr_for_model(Autor))
 
         self.fields['content_type'].choices = [
             ('', _('Outros (Especifique)'))] + [
                 (ct.pk, ct) for key, ct in content_types.items()]
-
-
-class ChoiceWithoutValidationField(forms.ChoiceField):
-
-    def validate(self, value):
-        if self.required and not value:
-            raise ValidationError(
-                self.error_messages['required'], code='required')
 
 
 class AutorForm(ModelForm):
@@ -171,8 +141,6 @@ class AutorForm(ModelForm):
                 StrictButton(
                     _('Filtrar'), css_class='btn-default btn-filtrar-autor',
                     type='button')),
-
-
             css_class='hidden',
             data_action='create',
             data_application='AutorSearch',
@@ -190,6 +158,7 @@ class AutorForm(ModelForm):
 
         row2 = Row(to_column((InlineRadios('action_user'), 8)),
                    to_column((Div('username'), 4)))
+
         row3 = Row(to_column(('senha', 3)),
                    to_column(('senha_confirma', 3)),
                    to_column(('email', 3)),
@@ -220,6 +189,7 @@ class AutorForm(ModelForm):
                 self.fields['autor_related'].choices = [
                     (self.instance.autor_related.pk,
                      self.instance.autor_related)]
+
                 self.fields['q'].initial = ''
 
             self.fields['autor_related'].initial = self.instance.autor_related
@@ -706,4 +676,5 @@ class ConfiguracoesAppForm(ModelForm):
                   'painel_aberto',
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',
-                  'texto_articulado_norma']
+                  'texto_articulado_norma',
+                  'proposicao_incorporacao_obrigatoria']

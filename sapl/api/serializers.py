@@ -1,6 +1,6 @@
 from rest_framework import serializers
-
 from sapl.base.models import Autor
+from sapl.materia.models import MateriaLegislativa
 
 
 class ChoiceSerializer(serializers.Serializer):
@@ -14,28 +14,39 @@ class ChoiceSerializer(serializers.Serializer):
         return obj[0]
 
 
-class AutorChoiceSerializer(ChoiceSerializer):
+class ModelChoiceSerializer(ChoiceSerializer):
 
     def get_text(self, obj):
-        return obj.nome
+        return str(obj)
 
     def get_value(self, obj):
         return obj.id
+
+
+class ModelChoiceObjectRelatedField(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return ModelChoiceSerializer(value).data
+
+
+class AutorChoiceSerializer(ModelChoiceSerializer):
+
+    def get_text(self, obj):
+        return obj.nome
 
     class Meta:
         model = Autor
         fields = ['id', 'nome']
 
 
-class AutorObjectRelatedField(serializers.RelatedField):
-
-    def to_representation(self, value):
-        return str(value)
-
-
 class AutorSerializer(serializers.ModelSerializer):
-    autor_related = AutorObjectRelatedField(read_only=True)
+    autor_related = ModelChoiceObjectRelatedField(read_only=True)
 
     class Meta:
         model = Autor
-        fields = ['id', 'tipo', 'nome', 'object_id', 'autor_related', 'user']
+
+
+class MateriaLegislativaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MateriaLegislativa

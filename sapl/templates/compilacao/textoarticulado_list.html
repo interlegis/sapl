@@ -32,7 +32,7 @@
           <td><a href="{% url 'sapl.compilacao:ta_detail' ta.pk %}">{{ ta.tipo_ta }}</a></td>
           <td>{{ ta.numero }}</td>
           <td>{{ ta.ano }}</td>
-          <td>{{ ta.data }}</td>
+          <td>{{ ta.data|date:"D d M Y" }}</td>
           <td>{{ ta.ementa|safe }}</td>
         </tr>
       {% endfor %}

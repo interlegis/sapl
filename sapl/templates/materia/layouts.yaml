@@ -74,25 +74,15 @@ Relatoria:
 
 TipoProposicao:
   {% trans 'Tipo Proposição' %}:
-  - descricao
-  - materia_ou_documento  tipo_documento
-  - modelo
-
-ProposicaoCreate:
-  {% trans 'Proposição' %}:
-  - tipo  data_envio
-  - descricao
-  {% trans 'Materia' %}:
-  - tipo_materia numero_materia ano_materia
-  {% trans 'Complemento' %}:
-  - texto_original
+  - descricao conteudo
+  - tipo_conteudo_related
 
 Proposicao:
   {% trans 'Proposição' %}:
   - tipo  data_envio
   - descricao
   {% trans 'Materia' %}:
-  - materia
+  - materia_de_vinculo
   {% trans 'Complemento' %}:
   - texto_original
 

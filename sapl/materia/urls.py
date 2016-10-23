@@ -72,7 +72,8 @@ urlpatterns_proposicao = [
         name='proposicao-recebida'),
     url(r'^proposicao/devolvida/', ProposicaoDevolvida.as_view(),
         name='proposicao-devolvida'),
-    url(r'^proposicao/confirmar/(?P<pk>\d+)', ConfirmarProposicao.as_view(),
+    url(r'^proposicao/confirmar/P(?P<hash>[0-9A-Fa-f]+)/'
+        '(?P<pk>\d+)', ConfirmarProposicao.as_view(),
         name='proposicao-confirmar'),
     url(r'^sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),

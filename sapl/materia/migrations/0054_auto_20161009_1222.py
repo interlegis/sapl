@@ -6,6 +6,13 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def clear_model_autoria(apps, schema_editor):
+    Autoria = apps.get_model("materia", "Autoria")
+    Autoria.objects.all().delete()
+    Proposicao = apps.get_model("materia", "Proposicao")
+    Proposicao.objects.all().delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +21,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(clear_model_autoria),
         migrations.RemoveField(
             model_name='autor',
             name='comissao',
@@ -37,12 +45,14 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='autoria',
             name='autor',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='base.Autor', verbose_name='Autor'),
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE, to='base.Autor', verbose_name='Autor'),
         ),
         migrations.AlterField(
             model_name='proposicao',
             name='autor',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='base.Autor'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='base.Autor'),
         ),
         migrations.DeleteModel(
             name='Autor',

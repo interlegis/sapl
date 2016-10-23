@@ -4,6 +4,10 @@ from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
 
+import hashlib
+import logging
+import re
+
 import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
@@ -13,11 +17,14 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.fields import GenericRelation, GenericRel,\
+    GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+
+import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
@@ -92,6 +99,13 @@ def montar_helper_autor(self):
     self.helper.layout[0][4][0].insert(2, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
              ' class="btn btn-inverse">Cancelar</a>')]))
+
+
+class SaplGenericForeignKey(GenericForeignKey):
+
+    def __init__(self, ct_field='content_type', fk_field='object_id', for_concrete_model=True, verbose_name=''):
+        super().__init__(ct_field, fk_field, for_concrete_model)
+        self.verbose_name = verbose_name
 
 
 class SaplGenericRelation(GenericRelation):
@@ -463,3 +477,84 @@ def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
             break
         md5.update(data)
     return 'P' + md5.hexdigest() + '/' + pk
+
+
+class ChoiceWithoutValidationField(forms.ChoiceField):
+
+    def validate(self, value):
+        if self.required and not value:
+            raise ValidationError(
+                self.error_messages['required'], code='required')
+
+
+def models_with_gr_for_model(model):
+    return list(map(
+        lambda x: x.related_model,
+        filter(
+            lambda obj: obj.is_relation and
+            hasattr(obj, 'field') and
+            isinstance(obj, GenericRel),
+
+            model._meta.get_fields(include_hidden=True))
+    ))
+
+
+def generic_relations_for_model(model):
+    """
+    Esta função retorna uma lista de tuplas de dois elementos, onde o primeiro
+    elemento é um model qualquer que implementa SaplGenericRelation (SGR), o
+    segundo elemento é uma lista de todas as SGR's que pode haver dentro do
+    model retornado na primeira posição da tupla.
+
+    Exemplo: No Sapl, o model Parlamentar tem apenas uma SGR para Autor.
+                Se no Sapl existisse apenas essa SGR, o resultado dessa função
+                seria:
+                    [   #Uma Lista de tuplas
+                        (   # cada tupla com dois elementos
+                            sapl.parlamentares.models.Parlamentar,
+                            [<sapl.utils.SaplGenericRelation: autor>]
+                        ),
+                    ]
+    """
+    return list(map(
+        lambda x: (x,
+                   list(filter(
+                       lambda field: (
+                           isinstance(
+                               field, SaplGenericRelation) and
+                           field.related_model == model),
+                       x._meta.get_fields(include_hidden=True)))),
+        models_with_gr_for_model(model)
+    ))
+
+
+def texto_upload_path(instance, filename):
+    """
+    O path gerado por essa função leva em conta a pk de instance.
+    isso não é possível naturalmente em uma inclusão pois a implementação
+    do django framework chama essa função antes do metodo save
+
+    Por outro lado a forma como vinha sendo formada os paths para os arquivos
+    são improdutivas e inconsistentes. Exemplo: usava se o valor de __str__
+    do model Proposicao que retornava a descrição da proposição, não retorna
+    mais, para uma pasta formar o path do texto_original.
+    Ora, o resultado do __str__ citado é totalmente impróprio para ser o nome
+    de uma pasta.
+
+    Para colocar a pk no path, a solução encontrada foi implementar o método
+    save nas classes que possuem atributo do tipo FileField, implementação esta
+    que guarda o FileField em uma variável independente e temporária para savar
+    o object sem o arquivo e, logo em seguida, salvá-lo novamente com o arquivo
+    Ou seja, nas inclusões que já acomparem um arquivo, haverá dois saves,
+    um para armazenar toda a informação e recuperar o pk, e outro logo em
+    seguida para armazenar o arquivo.
+    """
+
+    filename = re.sub('[^a-zA-Z0-9]', '-', filename).strip('-').lower()
+    filename = re.sub('[-]+', '-', filename)
+    path = './sapl/%(model_name)s/%(pk)s/%(filename)s' % {
+        'model_name': instance._meta.model_name,
+        'pk': instance.pk,
+        'filename': filename}
+
+    return path

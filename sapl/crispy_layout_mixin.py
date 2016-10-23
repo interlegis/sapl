@@ -1,12 +1,12 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -40,11 +40,19 @@ def form_actions(more=[], save_label=_('Salvar')):
 
 class SaplFormLayout(Layout):
 
-    def __init__(self, *fields, label_cancel=_('Cancelar')):
-        buttons = form_actions(more=[
-            HTML('<a href="{{ view.cancel_url }}"'
-                 ' class="btn btn-inverse">%s</a>' % label_cancel)])
-        _fields = list(to_fieldsets(fields)) + [to_row([(buttons, 12)])]
+    def __init__(self, *fields, cancel_label=_('Cancelar'),
+                 save_label=_('Salvar'), actions=None):
+
+        buttons = actions
+        if not buttons:
+            buttons = form_actions(save_label=save_label, more=[
+                HTML('<a href="{{ view.cancel_url }}"'
+                     ' class="btn btn-inverse">%s</a>' % cancel_label)
+                if cancel_label else None])
+
+        _fields = list(to_fieldsets(fields))
+        if buttons:
+            _fields += [to_row([(buttons, 12)])]
         super(SaplFormLayout, self).__init__(*_fields)
 
 
@@ -62,9 +70,11 @@ def get_field_display(obj, fieldname):
     else:
         value = getattr(obj, fieldname)
 
+    str_type = str(type(value))
+
     if value is None:
         display = ''
-    elif 'date' in str(type(value)):
+    elif 'date' in str_type:
         display = formats.date_format(value, "SHORT_DATE_FORMAT")
     elif 'bool' in str(type(value)):
         display = _('Sim') if value else _('Não')
