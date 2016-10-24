@@ -102,35 +102,13 @@ def create_proxy_permissions(
             print("Adding permission '%s'" % perm)
 
 
-def run_sql_organizers(
-        app_config, verbosity=2, interactive=True,
-        using=DEFAULT_DB_ALIAS, **kwargs):
-    """with connection.cursor() as cursor:
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-
-        try:
-            cursor.execute(line)"""
-
-    print('aqui run_sql_organizer', app_config)
-
-"""    update protocoloadm_protocolo set autor_id = null;
-delete from materia_autoria;
-delete from materia_proposicao;
-
-delete from materia_tipoproposicao;
-"""
-
-
 class AppConfig(django.apps.AppConfig):
     name = 'sapl.base'
     label = 'base'
     verbose_name = _('Dados Básicos')
 
     def ready(self):
-        pre_migrate.connect(run_sql_organizers, self)
+        #pre_migrate.connect(run_sql_organizers, self)
 
         post_migrate.connect(
             receiver=create_proxy_permissions,

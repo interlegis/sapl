@@ -1,9 +1,10 @@
-import yaml
 from django import template
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+import yaml
 
 from sapl.utils import sapl_logger
+
 
 register = template.Library()
 
@@ -55,14 +56,18 @@ def subnav(context, path=None):
         if not yaml_path:
             return
 
-        try:
             """
             Por padrão, são carragados dois Loaders,
             filesystem.Loader - busca em TEMPLATE_DIRS do projeto atual
             app_directories.Loader - busca em todas apps instaladas
             A função nativa abaixo busca em todos os Loaders Configurados.
             """
+        try:
             yaml_template = template.loader.get_template(yaml_path)
+        except:
+            return
+
+        try:
             rendered = yaml_template.render()
             menu = yaml.load(rendered)
             resolve_urls_inplace(menu, root_pk, rm, context)

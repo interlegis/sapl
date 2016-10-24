@@ -1164,6 +1164,7 @@ class MasterDetailCrud(Crud):
 
             return context
 
+        @property
         def cancel_url(self):
             if self.list_url:
                 return self.list_url
