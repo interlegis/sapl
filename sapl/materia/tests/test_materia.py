@@ -1,8 +1,9 @@
-import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
+import pytest
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
@@ -14,6 +15,7 @@ from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
                                  Tramitacao, UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
+from sapl.utils import models_with_gr_for_model
 
 
 def make_unidade_tramitacao(descricao):
@@ -446,24 +448,34 @@ def test_proposicao_submit(admin_client):
     file_content = 'file_content'
     texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
 
-    response = admin_client.post(reverse('sapl.materia:proposicao_create'),
-                                 {'tipo': mommy.make(TipoProposicao, pk=3).pk,
-                                  'descricao': 'Teste proposição',
-                                  'justificativa_devolucao': '  ',
-                                  'status': 'E',
-                                  'autor': autor.pk,
-                                  'texto_original': texto,
-                                  'salvar': 'salvar',
-                                  },
-                                 follow=True)
+    mcts = ContentType.objects.get_for_models(
+        *models_with_gr_for_model(TipoProposicao))
 
-    assert response.status_code == 200
+    for pk, mct in enumerate(mcts):
+        tipo_conteudo_related = mommy.make(mct, pk=pk)
 
-    proposicao = Proposicao.objects.first()
+        response = admin_client.post(
+            reverse('sapl.materia:proposicao_create'),
+            {'tipo': mommy.make(
+                TipoProposicao, pk=3,
+                tipo_conteudo_related=tipo_conteudo_related).pk,
+             'descricao': 'Teste proposição',
+             'justificativa_devolucao': '  ',
+             'status': 'E',
+             'autor': autor.pk,
+             'texto_original': texto,
+             'salvar': 'salvar',
+             },
+            follow=True)
 
-    assert proposicao is not None
-    assert proposicao.descricao == 'Teste proposição'
-    assert proposicao.tipo.pk == 3
+        assert response.status_code == 200
+
+        proposicao = Proposicao.objects.first()
+
+        assert proposicao is not None
+        assert proposicao.descricao == 'Teste proposição'
+        assert proposicao.tipo.pk == 3
+        assert proposicao.tipo.tipo_conteudo_related.pk == pk
 
 
 @pytest.mark.django_db(transaction=False)
