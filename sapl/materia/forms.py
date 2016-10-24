@@ -1021,11 +1021,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         required=False, queryset=RegimeTramitacao.objects.all())
 
     gerar_protocolo = forms.ChoiceField(
-        label=_('Gerar Protocolo na incorporação?'),
+        required=False,
+        label=_(
+            'Gerar Protocolo na incorporação?'),
         choices=YES_NO_CHOICES,
         widget=widgets.RadioSelect())
 
-    numero_de_paginas = forms.IntegerField(required=False,
+    numero_de_paginas = forms.IntegerField(required=False, min_value=0,
                                            label=_('Número de Páginas'),)
 
     class Meta:
@@ -1052,13 +1054,11 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 'proposicao_incorporacao_obrigatoria')
 
         if self.proposicao_incorporacao_obrigatoria != 'C':
-            self.gerar_protocolo.required = False
             if 'gerar_protocolo' in self._meta.fields:
                 self._meta.fields.remove('gerar_protocolo')
         else:
             if 'gerar_protocolo' not in self._meta.fields:
                 self._meta.fields.append('gerar_protocolo')
-                self.gerar_protocolo.required = False  # FIXME True
 
         if self.proposicao_incorporacao_obrigatoria == 'N':
             if 'numero_de_paginas' in self._meta.fields:
@@ -1106,8 +1106,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if self.proposicao_incorporacao_obrigatoria != 'N':
             itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
 
-        itens_incorporacao.append(FormActions(Submit(
-            'incorporar', _('Incorporar'), css_class='pull-right')))
+        itens_incorporacao.append(to_column((FormActions(Submit(
+            'incorporar', _('Incorporar'), css_class='pull-right')), 12)))
 
         fields.append(
             Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
@@ -1115,10 +1115,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields.append(
             Fieldset(
                 _('Registro de Devolução'),
-                'justificativa_devolucao',
-                FormActions(Submit(
+                to_column(('justificativa_devolucao', 12)),
+                to_column((FormActions(Submit(
                     'devolver', _('Devolver'),
-                    css_class='btn-danger pull-right'))
+                    css_class='btn-danger pull-right')), 12))
             ))
         self.helper = FormHelper()
         self.helper.layout = Layout(*fields)
@@ -1141,10 +1141,15 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if 'incorporar' in self.data:
             cd = ProposicaoForm.clean(self)
 
-            # FIXME em caso de incorporação validar regime e numero de páginas
+            if self.instance.tipo.conteudo.model_class() ==\
+                    TipoMateriaLegislativa:
+                if 'regime_tramitacao' not in cd or\
+                        not cd['regime_tramitacao']:
+                    raise ValidationError(
+                        _('Regimente de Tramitação deve ser informado.'))
 
-            if self.instance.tipo.conteudo.model_class() == TipoDocumento and\
-                    not cd['materia_de_vinculo']:
+            elif self.instance.tipo.conteudo.model_class() == TipoDocumento\
+                    and not cd['materia_de_vinculo']:
 
                 raise ValidationError(
                     _('Documentos não podem ser incorporados sem definir '
@@ -1163,6 +1168,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 _('Dados de Confirmação invalidos.'))
         return cd
 
+    @transaction.atomic
     def save(self, commit=False):
         # TODO Implementar workflow entre protocolo e autores
         cd = self.cleaned_data
