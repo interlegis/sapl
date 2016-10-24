@@ -104,9 +104,8 @@ def get_materias(mats):
             + " " + str(materia.numero) + "/" + str(materia.ano)
         dic['txt_ementa'] = materia.ementa
 
-        autores = Autoria.objects.filter(materia=materia)
         dic['nom_autor'] = ', '.join(
-            [str(autoria.autor) for autoria in autores])
+            [str(autor) for autor in materia.autores.all()])
 
         des_status = ''
         txt_tramitacao = ''
@@ -203,18 +202,8 @@ def get_capa_processo(prot):
         dic['nom_autor'] = " "
         dic['titulo'] = " "
 
-        if p.autor is not None:
-            for autor in Autor.objects.filter(id=p.autor.id):
-                if autor.tipo == 'Parlamentar':
-                    for parlamentar in Parlamentar.objects.filter(
-                            id=p.autor.parlamentar.id):
-                        dic['nom_autor'] = parlamentar.nome_completo or ' '
-                elif autor.tipo == 'Comissao':
-                    for comissao in Comissao.objects.filter(
-                            id=p.autor.comissao.id):
-                        dic['nom_autor'] = comissao.nome or ' '
-                else:
-                    dic['nom_autor'] = autor.nome or ' '
+        if p.autor:
+            dic['nom_autor'] = str(p.autor or ' ')
         else:
             dic['nom_autor'] = p.interessado
 
@@ -432,19 +421,11 @@ def get_espelho(mats):
         dic['dat_apresentacao'] = str(m.data_apresentacao)
         dic['txt_ementa'] = m.ementa
 
-        dic['nom_autor'] = ' '
+        dic['nom_autor'] = []
         for autoria in Autoria.objects.filter(materia=m, primeiro_autor=True):
-            for autor in Autor.objects.filter(id=autoria.autor.id):
-                if autor.tipo == 'Parlamentar':
-                    for parlamentar in Parlamentar.objects.filter(
-                            id=autor.parlamentar.id):
-                        dic['nom_autor'] = parlamentar.nome_completo
-                elif autor.tipo == 'Comissao':
-                    for comissao in Comissao.objects.filter(
-                            id=autor.comissao.id):
-                        dic['nom_autor'] = str(comissao)
-                else:
-                    dic['nom_autor'] = autor.nome
+            dic['nom_autor'].append(str(autoria.autor))
+
+        dic['nom_autor'] = ', '.join(dic['nom_autor'])
 
         des_status = ''
         txt_tramitacao = ''
@@ -945,13 +926,7 @@ def get_etiqueta_protocolos(prots):
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado
 
-        dic['nom_autor'] = ' '
-
-        if p.autor:
-            if p.autor.parlamentar:
-                dic['nom_autor'] = p.autor.parlamentar.nome_completo
-            elif p.autor.comissao:
-                dic['nom_autor'] = p.autor.comissao.nome
+        dic['nom_autor'] = str(p.autor or ' ')
 
         dic['natureza'] = ''
         if p.tipo_processo == 0:
