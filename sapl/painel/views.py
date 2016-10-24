@@ -87,7 +87,7 @@ def get_materia_aberta(pk):
             sessao_plenaria_id=pk, votacao_aberta=True).last()
         return materia
     except ObjectDoesNotExist:
-        return False
+        return None
 
 
 def get_last_materia(pk):
@@ -169,7 +169,7 @@ def get_materia_expediente_aberta(pk):
             sessao_plenaria_id=pk, votacao_aberta=True).last()
         return materia
     except ObjectDoesNotExist:
-        return False
+        return None
 
 
 def get_last_materia_expediente(pk):
@@ -243,7 +243,7 @@ def get_presentes_expediente(pk, response, materia):
 
 # ##########################GENERAL FUNCTIONS#############################
 
-def response_null_materia(response):
+def response_nenhuma_materia(response):
     response.update({
         'status_painel': 'FECHADO',
         'msg_painel': str(_('Nenhuma matéria disponivel para votação.'))
@@ -389,4 +389,4 @@ def get_dados_painel(request, pk):
             return JsonResponse(get_presentes(pk, response,
                                               ultimo_expediente))
     else:
-        return response_null_materia(response)
+        return response_nenhuma_materia(response)
