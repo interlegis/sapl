@@ -16,8 +16,8 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -26,6 +26,7 @@ from django.views.generic.list import MultipleObjectMixin
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.settings import BASE_DIR
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(BASE_DIR.name)
 
@@ -1123,7 +1124,9 @@ class MasterDetailCrud(Crud):
                 self, **kwargs)
 
             params = {'pk': self.kwargs['pk']}
+
             if self.container_field:
+                # FIXME refatorar para parent_field com '__'
                 parent_model = getattr(
                     self.model, obj.parent_field).field.related_model
 
@@ -1132,19 +1135,66 @@ class MasterDetailCrud(Crud):
                     params['__'.join(container[1:])] = self.request.user.pk
 
                 try:
-                    parent = parent_model.objects.get(**params)
+                    parent_object = parent_model.objects.get(**params)
                 except:
                     raise Http404()
             else:
-                parent_field = obj.parent_field.split('__')[0]
+                parent_model = self.model
+                parent_object = None
+                if '__' in obj.parent_field:
+                    fields = obj.parent_field.split('__')
+                    for field in fields:
+                        if parent_model == self.model:
+                            parent_model = getattr(
+                                parent_model, field).field.related_model
+                            parent_object = parent_model.objects.get(**params)
+                        else:
+                            parent_object = getattr(parent_object, field)
 
-                field = self.model._meta.get_field(parent_field)
-                parent = field.related_model.objects.get(**params)
-            if parent:
+                else:
+                    parent_model = getattr(
+                        parent_model, obj.parent_field).field.related_model
+                    parent_object = parent_model.objects.get(**params)
+
+                context['root_pk'] = parent_object.pk
+
+            if parent_object:
                 context['title'] = '%s <small>(%s)</small>' % (
-                    context['title'], parent)
+                    context['title'], parent_object)
 
             return context
+
+        def cancel_url(self):
+            if self.list_url:
+                return self.list_url
+            obj = self.crud if hasattr(self, 'crud') else self
+
+            params = {'pk': self.kwargs['pk']}
+
+            parent_model = self.model
+            parent_object = None
+            if '__' in obj.parent_field:
+                fields = obj.parent_field.split('__')
+                for field in fields:
+                    if parent_model == self.model:
+                        parent_model = getattr(
+                            parent_model, field).field.related_model
+                        parent_object = parent_model.objects.get(**params)
+                    else:
+                        parent_object = getattr(parent_object, field)
+                    break
+
+            else:
+                parent_model = getattr(
+                    parent_model, obj.parent_field).field.related_model
+                parent_object = parent_model.objects.get(**params)
+
+            return reverse(
+                '%s:%s' % (parent_model._meta.app_config.name,
+                           '%s_%s' % (
+                               parent_model._meta.model_name,
+                               ACTION_DETAIL)),
+                kwargs={'pk': parent_object.pk})
 
     class UpdateView(Crud.UpdateView):
         permission_required = RP_CHANGE,
