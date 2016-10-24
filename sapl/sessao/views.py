@@ -91,7 +91,7 @@ def abrir_votacao_expediente_view(request, pk, spk):
     if existe_votacao_aberta:
         msg = _('Já existe uma matéria com votação aberta. Para abrir '
                 'outra, termine ou feche a votação existente.')
-        raise ValidationError(msg)
+        messages.add_message(request, messages.INFO, msg)
     else:
         expediente = ExpedienteMateria.objects.get(id=pk)
         expediente.votacao_aberta = True
@@ -108,7 +108,7 @@ def abrir_votacao_ordem_view(request, pk, spk):
     if existe_votacao_aberta:
         msg = _('Já existe uma matéria com votação aberta. Para abrir '
                 'outra, termine ou feche a votação existente.')
-        raise ValidationError(msg)
+        messages.add_message(request, messages.INFO, msg)
     else:
         ordem = OrdemDia.objects.get(id=pk)
         ordem.votacao_aberta = True
