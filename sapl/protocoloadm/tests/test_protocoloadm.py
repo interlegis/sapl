@@ -1,9 +1,10 @@
 import datetime
 
-import pytest
 from django.core.urlresolvers import reverse
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+import pytest
 
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import AnularProcoloAdmForm
@@ -147,13 +148,14 @@ def test_create_tramitacao(admin_client):
             'sapl.protocoloadm:tramitacaoadministrativo_create',
             kwargs={'pk': documento_adm.pk}),
         {'unidade_tramitacao_local': unidade_tramitacao_destino_2.pk,
+         'unidade_tramitacao_destino': unidade_tramitacao_local_1.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
          'data_tramitacao': datetime.date(2016, 8, 21)},
         follow=True)
 
-    msg = _('A origem da nova tramitação deve ser igual ao '
-            'destino  da última adicionada!')
+    msg = force_text(_('A origem da nova tramitação deve ser igual ao '
+                       'destino  da última adicionada!'))
 
     # Verifica se a origem da nova tramitacao é igual ao destino da última
     assert msg in response.context_data[
@@ -164,6 +166,7 @@ def test_create_tramitacao(admin_client):
             'sapl.protocoloadm:tramitacaoadministrativo_create',
             kwargs={'pk': documento_adm.pk}),
         {'unidade_tramitacao_local': unidade_tramitacao_destino_1.pk,
+         'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
          'data_tramitacao': datetime.date(2016, 8, 20)},
@@ -181,14 +184,15 @@ def test_create_tramitacao(admin_client):
             'sapl.protocoloadm:tramitacaoadministrativo_create',
             kwargs={'pk': documento_adm.pk}),
         {'unidade_tramitacao_local': unidade_tramitacao_destino_1.pk,
+         'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
          'data_tramitacao': datetime.date.today() + datetime.timedelta(
              days=1)},
         follow=True)
 
-    msg = _('A data de tramitação deve ser ' +
-            'menor ou igual a data de hoje!')
+    msg = force_text(_('A data de tramitação deve ser ' +
+                       'menor ou igual a data de hoje!'))
 
     # Verifica se a data da tramitação é menor do que a data de hoje
     assert msg in response.context_data[
@@ -199,14 +203,15 @@ def test_create_tramitacao(admin_client):
             'sapl.protocoloadm:tramitacaoadministrativo_create',
             kwargs={'pk': documento_adm.pk}),
         {'unidade_tramitacao_local': unidade_tramitacao_destino_1.pk,
+         'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
          'data_tramitacao': datetime.date(2016, 8, 21),
          'data_encaminhamento': datetime.date(2016, 8, 20)},
         follow=True)
 
-    msg = _('A data de encaminhamento deve ser ' +
-            'maior que a data de tramitação!')
+    msg = force_text(_('A data de encaminhamento deve ser ' +
+                       'maior que a data de tramitação!'))
 
     # Verifica se a data da encaminhamento é menor do que a data de tramitacao
     assert msg in response.context_data[
@@ -217,6 +222,7 @@ def test_create_tramitacao(admin_client):
             'sapl.protocoloadm:tramitacaoadministrativo_create',
             kwargs={'pk': documento_adm.pk}),
         {'unidade_tramitacao_local': unidade_tramitacao_destino_1.pk,
+         'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
          'data_tramitacao': datetime.date(2016, 8, 21),
@@ -235,6 +241,7 @@ def test_create_tramitacao(admin_client):
             'sapl.protocoloadm:tramitacaoadministrativo_create',
             kwargs={'pk': documento_adm.pk}),
         {'unidade_tramitacao_local': unidade_tramitacao_destino_1.pk,
+         'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
          'data_tramitacao': datetime.date(2016, 8, 21)},
