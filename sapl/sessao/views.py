@@ -467,6 +467,12 @@ class SessaoCrud(Crud):
                 messages.add_message(self.request, messages.ERROR, msg)
                 return {}
 
+    class DeleteView(Crud.DeleteView, RedirectView):
+
+        def get_success_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'sessaoplenaria_list'))
+
 
 class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,
                             FormMixin,
