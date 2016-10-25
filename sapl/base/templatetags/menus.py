@@ -11,6 +11,15 @@ register = template.Library()
 
 @register.inclusion_tag('menus/subnav.html', takes_context=True)
 def subnav(context, path=None):
+    return nav_run(context, path)
+
+
+@register.inclusion_tag('menus/nav.html', takes_context=True)
+def navbar(context, path=None):
+    return nav_run(context, path)
+
+
+def nav_run(context, path=None):
     """Renderiza sub navegação para objetos no padrão Mestre Detalhe
 
     Existem três possíveis fontes de busca do yaml
@@ -32,7 +41,7 @@ def subnav(context, path=None):
         if obj:
             root_pk = obj.pk
 
-    if root_pk or 'subnav_template_name' in context:
+    if root_pk or 'subnav_template_name' in context or path:
         request = context['request']
 
         """
@@ -106,14 +115,20 @@ def resolve_urls_inplace(menu, pk, rm, context):
                         menu['url'] = reverse('%s' % menu['url'],
                                               kwargs={'pk': pk})
                     except:
-                        menu['url'] = reverse('%s' % menu['url'])
+                        try:
+                            menu['url'] = reverse('%s' % menu['url'])
+                        except:
+                            pass
                 else:
                     try:
                         menu['url'] = reverse('%s:%s' % (
                             rm.app_name, menu['url']), kwargs={'pk': pk})
                     except:
-                        menu['url'] = reverse('%s:%s' % (
-                            rm.app_name, menu['url']))
+                        try:
+                            menu['url'] = reverse('%s:%s' % (
+                                rm.app_name, menu['url']))
+                        except:
+                            pass
 
                 menu['active'] = 'active'\
                     if context['request'].path == menu['url'] else ''
@@ -125,17 +140,21 @@ def resolve_urls_inplace(menu, pk, rm, context):
                     as funcionalidades diretas do MasterDetailCrud, como:
                     - visualização de detalhes, adição, edição, remoção.
                     """
-
-                    view = context['view']
-                    if hasattr(view, '__class__') and\
-                            hasattr(view.__class__, 'crud'):
-                        urls = view.__class__.crud.get_urls()
-                        for u in urls:
-                            if (u.name == url_name or
-                                    'urls_extras' in menu and
-                                    u.name in menu['urls_extras']):
-                                menu['active'] = 'active'
-                                break
+                    if 'view' in context:
+                        view = context['view']
+                        if hasattr(view, '__class__') and\
+                                hasattr(view.__class__, 'crud'):
+                            urls = view.__class__.crud.get_urls()
+                            for u in urls:
+                                if (u.name == url_name or
+                                        'urls_extras' in menu and
+                                        u.name in menu['urls_extras']):
+                                    menu['active'] = 'active'
+                                    break
+        elif 'check_permission' in menu and not context[
+                'request'].user.has_perm(menu['check_permission']):
+            menu['active'] = ''
+            del menu['children']
 
         if 'children' in menu:
             menu['active'] = resolve_urls_inplace(

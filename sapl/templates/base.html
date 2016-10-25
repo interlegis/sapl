@@ -41,84 +41,9 @@
             </button>
           </div>
           <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-              <li><a href="/" role="button" aria-haspopup="true" aria-expanded="false">Inicio</a></li>
 
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Institucional <span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.parlamentares:mesa_diretora' %}">Mesa Diretora</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.comissoes:comissao_list' %}">Comissões</a></li>
-                    <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Bancadas</a></li> -->
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.parlamentares:parlamentar_list' %}">Parlamentares</a></li>
-                  </ul>
-                </li>
-              {% if perms.protocoloadm %}
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Protocolo <span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:protocolo' %}">Pesquisar Protocolo</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:receber-proposicao' %}">Receber Proposições</a></li>
-                    <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="/materia">Protocolo Legislativo</a></li> -->
-                    {# <li class="nav__sub-item"><a class="nav__sub-link" href="">Protocolo Geral</a></li> #}
-                    {# <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:proposicao' %}">Proposições</a></li> #}
-                  </ul>
-              </li>
-              {% endif %}
+            {% block sections_navbar %} {% navbar 'navbar.yaml' %}{% endblock sections_navbar %}
 
-            {% if user|get_doc_adm_template_perms %}
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documentos Administrativos <span class="caret"></span></a>
-                <ul class="dropdown-menu">
-                  <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}">Pesquisar Documento Administrativo</a></li>
-                </ul>
-            </li>
-            {% endif %}
-
-
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Atividade Legislativa <span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    {% if perms.materia.add_proposicao %}
-                      <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:proposicao_list' %}">Proposições</a></li>
-                    {% endif %}
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:pesquisar_materia' %}">Matérias Legislativas</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.sessao:pesquisar_sessao' %}">Sessões Plenárias</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.sessao:pesquisar_pauta' %}">Pautas das Sessões</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:primeira_tramitacao_em_lote' %}">Tramitação em Lote</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.materia:acessorio_em_lote' %}">Acessório em Lote</a></li>
-                    <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Atas das Sessões</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Reuniões das Comissões</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Impressos</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Relatórios</a></li> -->
-                  </ul>
-                </li>
-
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans 'Legislação'%} <span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="{% url 'sapl.norma:norma_pesquisa'%}">{% trans 'Pesquisar Normas Jurídicas'%}</a></li>
-                    <!-- <li class="nav__sub-item"><a class="nav__sub-link" href="#">Índice de Assuntos</a></li> -->
-                  </ul>
-                </li>
-              {% if perms.base.menu_sistemas %}
-                <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Sistema <span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    {% if perms.base.view_tabelas_auxiliares %}<li class="nav__sub-item"><a class="nav__sub-link" href="/sistema">Tabelas Auxiliares</a></li>{%endif%}
-<!--                <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Publicador LexML</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Gerenciar Usuários</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Backup e Restauração</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Migração de Dados</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Sobre</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">ZopeEdit Windows</a></li>
-                    <li class="nav__sub-item"><a class="nav__sub-link" href="#">Troca de Senha</a></li> -->
-                  </ul>
-                </li>
-              {% endif %}
-
-            </ul>
             <ul class="nav navbar-nav navbar-right" id="autenticacao">
               <li class="dropdown pesquisa">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% static 'img/search.png' %}"><span class="caret"></span></a>
@@ -286,7 +211,7 @@
 
       <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
-      
+
       <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/checkbox.js' %}"></script>
       <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
 
