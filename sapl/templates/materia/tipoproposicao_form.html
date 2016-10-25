@@ -8,7 +8,7 @@ aaa
 $(document).ready(function(){
   var initial_select = $("input[name=tipo_conteudo_related]").val();
   $("input[name=tipo_conteudo_related]").remove();
-  $('#id_conteudo').change(function(event) {
+  $('#id_content_type').change(function(event) {
     var pk = this[event.target.selectedIndex].value;
     var url = '{% url 'sapl.api:model_list' 0 ''%}'
     url = url.replace('0', pk) + '?pagination=False'
@@ -27,7 +27,7 @@ $(document).ready(function(){
 
     });
   });
-  $('#id_conteudo').trigger('change');
+  $('#id_content_type').trigger('change');
   $("#div_id_tipo_conteudo_related_radio .controls").addClass('controls-radio-checkbox');
 });
 
