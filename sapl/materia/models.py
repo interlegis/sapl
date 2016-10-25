@@ -417,6 +417,13 @@ class Orgao(models.Model):
     telefone = models.CharField(
         max_length=50, blank=True, verbose_name=_('Telefone'))
 
+    autor = SaplGenericRelation(Autor,
+                                related_query_name='orgao_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('sigla', '__icontains')
+                                ))
+
     class Meta:
         verbose_name = _('Órgão')
         verbose_name_plural = _('Órgãos')
