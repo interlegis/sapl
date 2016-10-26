@@ -1299,13 +1299,16 @@ class VotacaoNominalView(SessaoPermissionMixin):
     def get(self, request, *args, **kwargs):
         ordem_id = kwargs['mid']
         ordem = OrdemDia.objects.get(id=ordem_id)
+        total = PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=ordem.sessao_plenaria_id).count()
 
         materia = {'materia': ordem.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(ordem.observacao))}
         context = {'materia': materia, 'object': self.get_object(),
                    'parlamentares': self.get_parlamentares(),
-                   'tipos': self.get_tipos_votacao()}
+                   'tipos': self.get_tipos_votacao(),
+                   'total': total}
 
         return self.render_to_response(context)
 
@@ -1501,13 +1504,16 @@ class VotacaoNominalExpedienteView(SessaoPermissionMixin):
     def get(self, request, *args, **kwargs):
         expediente_id = kwargs['mid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
+        total = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=expediente.sessao_plenaria_id).count()
 
         materia = {'materia': expediente.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(expediente.observacao))}
         context = {'materia': materia, 'object': self.get_object(),
                    'parlamentares': self.get_parlamentares(),
-                   'tipos': self.get_tipos_votacao()}
+                   'tipos': self.get_tipos_votacao(),
+                   'total': total}
 
         return self.render_to_response(context)
 
