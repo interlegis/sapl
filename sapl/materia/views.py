@@ -138,7 +138,8 @@ class TipoProposicaoCrud(CrudAux):
     help_text = 'tipo_proposicao'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ["descricao", "conteudo", 'tipo_conteudo_related']
+        list_field_names = [
+            "descricao", "content_type", 'tipo_conteudo_related']
 
     class CreateView(CrudAux.CreateView):
         form_class = TipoProposicaoForm

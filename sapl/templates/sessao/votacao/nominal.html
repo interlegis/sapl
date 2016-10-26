@@ -13,45 +13,60 @@
 			Ementa: {{materia.ementa|safe}}
 		</div>
 		<br />
-		<fieldset class="form-group">
-			<legend>Votos</legend>
-      <div class="row">
-        {% for parlamentar in parlamentares %}
-        <div class="col-md-6">{{parlamentar.nome_parlamentar}}</div>
-        <div class="col-md-6">
-          <select id="voto_parlamentar" name="voto_parlamentar" class="form-control">
-            <option value="sim:{{parlamentar.id}}">Sim</option>
-            <option value="nao:{{parlamentar.id}}">Não</option>
-            <option value="abstencao:{{parlamentar.id}}">Abstenção</option>
-            <option value="nao_votou:{{parlamentar.id}}">Não Votou</option>
-          </select>
-        </div>
-        {% endfor %}
-      </div>
+		{% if total == 0 %}
+			<div class="alert alert-info alert-dismissible fade in" role="alert">
+				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
+			</div>
+			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' object.pk %}" class="btn btn-warning">Voltar</a>
+		{% else %}
+			<fieldset class="form-group">
+				<legend>Votos</legend>
+	      <div class="row">
+	        {% for parlamentar in parlamentares %}
+	        <div class="col-md-6">{{parlamentar.nome_parlamentar}}</div>
+	        <div class="col-md-6">
+	          <select id="voto_parlamentar" name="voto_parlamentar" class="form-control">
+	            <option value="sim:{{parlamentar.id}}">Sim</option>
+	            <option value="nao:{{parlamentar.id}}">Não</option>
+	            <option value="abstencao:{{parlamentar.id}}">Abstenção</option>
+	            <option value="nao_votou:{{parlamentar.id}}">Não Votou</option>
+	          </select>
+	        </div>
+	        {% endfor %}
+	      </div>
+			</fieldset>
+
+	    <div class="row">
+	      <div class="col-md-12">
+	        Resultado da Votação
+	        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
+	          {% for tipo in tipos %}
+	          <option value="{{tipo.id}}">{{tipo.nome}}</option>
+	          {% endfor %}
+	        </select>
+	      </div>
+	    </div>
+
+			<br />
+	    <div class="row">
+	      <div class="col-md-12">
+	        Observações<br/>
+	        <textarea id="observacao" name="observacao" style="width:100%;" rows="7"></textarea>
+	      </div>
+	    </div>
+
+			<br /><br />
+			<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />
+			<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
 		</fieldset>
-
-    <div class="row">
-      <div class="col-md-12">
-        Resultado da Votação
-        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
-          {% for tipo in tipos %}
-          <option value="{{tipo.id}}">{{tipo.nome}}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-
-		<br />
-    <div class="row">
-      <div class="col-md-12">
-        Observações<br/>
-        <textarea id="observacao" name="observacao" style="width:100%;" rows="7"></textarea>
-      </div>
-    </div>
-
-		<br /><br />
-		<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />
-		<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
-	</fieldset>
-</form>
+	</form>
+	{% endif %}
 {% endblock detail_content %}
+
+{% block extra_js %}
+	<script>
+		function voltar() {
+			window.history.back();
+		}
+	</script>
+{% endblock extra_js%}

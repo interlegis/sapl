@@ -36,12 +36,12 @@ class TipoProposicao(models.Model):
 
     # FIXME - para a rotina de migração - estes campos mudaram
     # retire o comentário quando resolver
-    conteudo = models.ForeignKey(ContentType, default=None,
-                                 verbose_name=_('Definição de Tipo'))
+    content_type = models.ForeignKey(ContentType, default=None,
+                                     verbose_name=_('Definição de Tipo'))
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
     tipo_conteudo_related = SaplGenericForeignKey(
-        'conteudo', 'object_id', verbose_name=_('Seleção de Tipo'))
+        'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
 
     """materia_ou_documento = models.CharField(
         max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
@@ -60,7 +60,7 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
-        unique_together = (('conteudo', 'object_id'), )
+        unique_together = (('content_type', 'object_id'), )
 
     def __str__(self):
         return self.descricao
@@ -416,6 +416,13 @@ class Orgao(models.Model):
         max_length=100, blank=True, verbose_name=_('Endereço'))
     telefone = models.CharField(
         max_length=50, blank=True, verbose_name=_('Telefone'))
+
+    autor = SaplGenericRelation(Autor,
+                                related_query_name='orgao_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('sigla', '__icontains')
+                                ))
 
     class Meta:
         verbose_name = _('Órgão')

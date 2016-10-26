@@ -10,21 +10,24 @@
 	<form method="POST">
 	  {% csrf_token %}
 
-    <div class="row">
-      <div class="col-md-6">Presença</div>
-      <div class="col-md-6">Parlamentar</div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-12"><input type="checkbox" onClick="checkAll(this)" /> Marcar/Desmarcar Todos</div>
-    </div>
-
-		{% for parlamentar, check in view.get_presencas %}
-	    <div class="row">
-	      <div class="col-md-6"><input type="checkbox" name="presenca" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/></div>
-	      <div class="col-md-6"><label for="parlamentar">{{ parlamentar }}</label></div>
-	    </div>
-		{% endfor %}
+		<div class="controls">
+			<div class="checkbox">
+				<label for="id_check_all">
+					<input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
+				</label>
+			</div>
+		</div>
+		<br />
+		<div class="controls">
+			{% for parlamentar, check in view.get_presencas %}
+		    <div class="checkbox">
+					<label for="id_presenca_{{forloop.counter}}">
+						<input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
+						{{ parlamentar }}
+					</label>
+		    </div>
+			{% endfor %}
+		</div>
 
 		<br />
 		<input type="submit" value="Salvar" class="btn btn-primary" />
@@ -37,11 +40,11 @@
     </br>
 
     {% for parlamentar, check in view.get_presencas %}
-        {% if check %}
-            <div class="row">
-              <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar }}</label></div>
-            </div>
-        {% endif %}
+      {% if check %}
+        <div class="row">
+          <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar }}</label></div>
+        </div>
+      {% endif %}
     {% endfor %}
 
 {% endif %}
@@ -51,11 +54,11 @@
 
 {% block extra_js %}
 	<script language="JavaScript">
-		function checkAll(source) {
-		  checkboxes = document.getElementsByName('presenca');
-		  for(var i=0, n=checkboxes.length;i<n;i++) {
-		    checkboxes[i].checked = source.checked;
-		  }
+		function checkAll(event) {
+			$('[name=presenca]').each(function() {
+				$(this).prop('checked', event.target.checked ? 'checked': null);
+				$(this).trigger('click');
+			});
 		}
 	</script>
 {% endblock %}

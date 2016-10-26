@@ -778,9 +778,9 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
 class TipoProposicaoForm(ModelForm):
 
-    conteudo = forms.ModelChoiceField(
+    content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.all(),
-        label=TipoProposicao._meta.get_field('conteudo').verbose_name,
+        label=TipoProposicao._meta.get_field('content_type').verbose_name,
         required=True)
 
     tipo_conteudo_related_radio = ChoiceWithoutValidationField(
@@ -795,7 +795,7 @@ class TipoProposicaoForm(ModelForm):
     class Meta:
         model = TipoProposicao
         fields = ['descricao',
-                  'conteudo',
+                  'content_type',
                   'tipo_conteudo_related_radio',
                   'tipo_conteudo_related']
 
@@ -805,7 +805,7 @@ class TipoProposicaoForm(ModelForm):
 
         tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
                                to_column(('descricao', 5)),
-                               to_column(('conteudo', 7)),
+                               to_column(('content_type', 7)),
                                to_column(('tipo_conteudo_related_radio', 12)))
 
         self.helper = FormHelper()
@@ -816,9 +816,9 @@ class TipoProposicaoForm(ModelForm):
         content_types = ContentType.objects.get_for_models(
             *models_with_gr_for_model(TipoProposicao))
 
-        self.fields['conteudo'].choices = [
+        self.fields['content_type'].choices = [
             (ct.pk, ct) for k, ct in content_types.items()]
-        self.fields['conteudo'].choices.sort(key=lambda x: str(x[1]))
+        self.fields['content_type'].choices.sort(key=lambda x: str(x[1]))
 
         if self.instance.pk:
             self.fields[
@@ -827,17 +827,17 @@ class TipoProposicaoForm(ModelForm):
     def clean(self):
         cd = self.cleaned_data
 
-        conteudo = cd['conteudo']
+        content_type = cd['content_type']
 
         if 'tipo_conteudo_related' not in cd or not cd['tipo_conteudo_related']:
             raise ValidationError(
                 _('Seleção de Tipo não definida'))
 
-        if not conteudo.model_class().objects.filter(
+        if not content_type.model_class().objects.filter(
                 pk=cd['tipo_conteudo_related']).exists():
             raise ValidationError(
                 _('O Registro definido (%s) não está na base de %s.'
-                  ) % (cd['tipo_conteudo_related'], cd['q'], conteudo))
+                  ) % (cd['tipo_conteudo_related'], cd['q'], content_type))
 
         return self.cleaned_data
 
@@ -846,10 +846,10 @@ class TipoProposicaoForm(ModelForm):
 
         tipo_proposicao = super(TipoProposicaoForm, self).save(commit)
 
-        assert tipo_proposicao.conteudo
+        assert tipo_proposicao.content_type
 
         tipo_proposicao.tipo_conteudo_related = \
-            tipo_proposicao.conteudo.model_class(
+            tipo_proposicao.content_type.model_class(
             ).objects.get(pk=self.cleaned_data['tipo_conteudo_related'])
 
         tipo_proposicao.save()
@@ -1090,7 +1090,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                          'sem anexação se for possível para esta '
                          'Proposição. Não sendo, a rotina de incorporação '
                          'não permitirá estes campos serem vazios.'
-                         ) % self.instance.tipo.conteudo,
+                         ) % self.instance.tipo.content_type,
                        css_class="alert-info",
                        dismiss=False), 5)),
                 to_column(
@@ -1141,14 +1141,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if 'incorporar' in self.data:
             cd = ProposicaoForm.clean(self)
 
-            if self.instance.tipo.conteudo.model_class() ==\
+            if self.instance.tipo.content_type.model_class() ==\
                     TipoMateriaLegislativa:
                 if 'regime_tramitacao' not in cd or\
                         not cd['regime_tramitacao']:
                     raise ValidationError(
                         _('Regimente de Tramitação deve ser informado.'))
 
-            elif self.instance.tipo.conteudo.model_class() == TipoDocumento\
+            elif self.instance.tipo.content_type.model_class() == TipoDocumento\
                     and not cd['materia_de_vinculo']:
 
                 raise ValidationError(
@@ -1216,7 +1216,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         proposicao = self.instance
         conteudo_gerado = None
 
-        if self.instance.tipo.conteudo.model_class() == TipoMateriaLegislativa:
+        if self.instance.tipo.content_type.model_class() == TipoMateriaLegislativa:
             numero__max = MateriaLegislativa.objects.filter(
                 tipo=proposicao.tipo.tipo_conteudo_related,
                 ano=datetime.now().year).aggregate(Max('numero'))
@@ -1269,7 +1269,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 'sapl.materia:materialegislativa_detail',
                 kwargs={'pk': materia.pk})
 
-        elif self.instance.tipo.conteudo.model_class() == TipoDocumento:
+        elif self.instance.tipo.content_type.model_class() == TipoDocumento:
 
             # dados básicos
             doc = DocumentoAcessorio()
@@ -1349,9 +1349,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.numero_paginas = cd['numero_de_paginas']
         protocolo.anulado = False
 
-        if self.instance.tipo.conteudo.model_class() == TipoMateriaLegislativa:
+        if self.instance.tipo.content_type.model_class() == TipoMateriaLegislativa:
             protocolo.tipo_materia = proposicao.tipo.tipo_conteudo_related
-        elif self.instance.tipo.conteudo.model_class() == TipoDocumento:
+        elif self.instance.tipo.content_type.model_class() == TipoDocumento:
             protocolo.tipo_documento = proposicao.tipo.tipo_conteudo_related
 
         protocolo.save()
