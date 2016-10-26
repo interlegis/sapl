@@ -143,6 +143,13 @@ class AssuntoNormaRelationship(models.Model):
             ('assunto', 'norma'),
         )
 
+    class Meta:
+        verbose_name = _('Assunto')
+        verbose_name_plural = _('Assuntos')
+
+    def __str__(self):
+        return self.assunto
+
 
 class LegislacaoCitada(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
