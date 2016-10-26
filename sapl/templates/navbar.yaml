@@ -13,7 +13,7 @@
       url: sapl.parlamentares:parlamentar_list
 
 - title: {% trans 'Protocolo' %}
-  check_permission: protolcoloadm.list_protocolo
+  check_permission: protocoloadm.list_protocolo
   children:
     - title: {% trans 'Pesquisar Protocolo' %}
       url: sapl.protocoloadm:protocolo
