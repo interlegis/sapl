@@ -136,8 +136,8 @@ class NormaJuridica(models.Model):
 
 
 class AssuntoNormaRelationship(models.Model):
-    assunto = models.ForeignKey(AssuntoNorma)
-    norma = models.ForeignKey(NormaJuridica)
+    assunto = models.ForeignKey(AssuntoNorma, verbose_name=_('Assunto'))
+    norma = models.ForeignKey(NormaJuridica, verbose_name=_('Norma'))
 
     class Meta:
         unique_together = (
