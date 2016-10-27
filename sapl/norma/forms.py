@@ -12,7 +12,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import AssuntoNormaRelationship, NormaJuridica
+from .models import AssuntoNorma, AssuntoNormaRelationship, NormaJuridica
 
 
 def get_esferas():
@@ -101,6 +101,13 @@ class NormaJuridicaPesquisaForm(ModelForm):
 
     numero = forms.IntegerField(required=False)
 
+    assunto = forms.ModelChoiceField(
+        label='Assunto',
+        required=False,
+        queryset=AssuntoNorma.objects.all(),
+        empty_label='Selecione'
+    )
+
     class Meta:
         model = NormaJuridica
         fields = ['tipo',
@@ -109,25 +116,20 @@ class NormaJuridicaPesquisaForm(ModelForm):
                   'periodo_inicial',
                   'periodo_final',
                   'publicacao_inicial',
-                  'publicacao_final']
+                  'publicacao_final',
+                  'assunto']
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row(
-            [('tipo', 12)])
+        row1 = to_row([('tipo', 12)])
 
-        row2 = to_row(
-            [('numero', 6), ('ano', 6)])
+        row2 = to_row([('numero', 6), ('ano', 6)])
 
-        row3 = to_row(
-            [('periodo_inicial', 6), ('periodo_final', 6)])
+        row3 = to_row([('periodo_inicial', 6), ('periodo_final', 6)])
 
-        row4 = to_row(
-            [('publicacao_inicial', 6), ('publicacao_final', 6)])
+        row4 = to_row([('publicacao_inicial', 6), ('publicacao_final', 6)])
 
-        row5 = to_row(
-            [('em_vigencia', 6),
-             ('ordenacao', 6)])
+        row5 = to_row([('em_vigencia', 4), ('ordenacao', 4), ('assunto', 4)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(

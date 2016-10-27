@@ -135,6 +135,8 @@ class NormaPesquisaView(FormView):
             kwargs['ordenacao'] = form.data['ordenacao']
         if form.data['em_vigencia']:
             kwargs['em_vigencia'] = form.data['em_vigencia']
+        if form.data['assunto']:
+            kwargs['assunto'] = form.data['assunto']
 
         request.session['kwargs'] = kwargs
         return redirect('sapl.norma:list_pesquisa_norma')
@@ -201,6 +203,9 @@ class PesquisaNormaListView(ListView):
 
         if 'ano' in kwargs:
             normas = normas.filter(ano=kwargs['ano'])
+
+        if 'assunto' in kwargs:
+            normas = normas.filter(assuntos=kwargs['assunto'])
 
         return normas
 
