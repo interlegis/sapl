@@ -5,8 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 import pytest
 
-from sapl.base import SAPL_GROUPS
-from sapl.base.map_rules import rules_patterns
+from sapl.rules import SAPL_GROUPS
+from sapl.rules.map_rules import rules_patterns
 from sapl.test_urls import create_perms_post_migrate
 
 

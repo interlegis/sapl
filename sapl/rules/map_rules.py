@@ -1,11 +1,6 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base import SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_GERAL,\
-    SAPL_GROUP_PROTOCOLO, SAPL_GROUP_COMISSOES, SAPL_GROUP_MATERIA,\
-    SAPL_GROUP_ANONYMOUS, SAPL_GROUP_LOGIN_SOCIAL, SAPL_GROUP_NORMA,\
-    SAPL_GROUP_AUTOR, SAPL_GROUP_PAINEL, SAPL_GROUP_SESSAO,\
-    SAPL_GROUP_PARLAMENTAR
 from sapl.base import models as base
 from sapl.comissoes import models as comissoes
 from sapl.compilacao import models as compilacao
@@ -16,7 +11,13 @@ from sapl.norma import models as norma
 from sapl.painel import models as painel
 from sapl.parlamentares import models as parlamentares
 from sapl.protocoloadm import models as protocoloadm
+from sapl.rules import SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_GERAL,\
+    SAPL_GROUP_PROTOCOLO, SAPL_GROUP_COMISSOES, SAPL_GROUP_MATERIA,\
+    SAPL_GROUP_ANONYMOUS, SAPL_GROUP_LOGIN_SOCIAL, SAPL_GROUP_NORMA,\
+    SAPL_GROUP_AUTOR, SAPL_GROUP_PAINEL, SAPL_GROUP_SESSAO,\
+    SAPL_GROUP_PARLAMENTAR
 from sapl.sessao import models as sessao
+
 
 # RP = Radicao de Permissão
 __base__ = [RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE]

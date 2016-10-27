@@ -53,7 +53,10 @@ SAPL_APPS = (
     'sapl.painel',
     'sapl.protocoloadm',
     'sapl.compilacao',
-    'sapl.api'
+    'sapl.api',
+
+    'sapl.rules'
+
 )
 
 INSTALLED_APPS = (
