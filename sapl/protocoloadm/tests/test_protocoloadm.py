@@ -1,10 +1,10 @@
 import datetime
 
+import pytest
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
-import pytest
 
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import AnularProcoloAdmForm

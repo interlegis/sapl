@@ -12,12 +12,11 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
-from sapl.protocoloadm.apps import AppConfig
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
-                        permissoes_protocoloadm, permission_required_for_app)
-import sapl
+                        permissoes_protocoloadm)
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -27,7 +26,6 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -49,7 +47,8 @@ class DocumentoAdministrativoMixin:
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
-        return self.request.user.has_module_perms(sapl.base.models.AppConfig.label)
+        return self.request.user.has_module_perms(
+            sapl.base.models.AppConfig.label)
 
 
 class DocumentoAdministrativoCrud(Crud):

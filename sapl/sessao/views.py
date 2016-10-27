@@ -2,7 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.http import JsonResponse

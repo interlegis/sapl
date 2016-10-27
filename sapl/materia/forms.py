@@ -1,12 +1,13 @@
 
-from datetime import datetime, date
 import os
+from datetime import date, datetime
 
-from crispy_forms.bootstrap import Alert, InlineCheckboxes, FormActions,\
-    InlineRadios
+import django_filters
+from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
+                                    InlineRadios)
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
-    Field, Submit
+from crispy_forms.layout import (HTML, Button, Column, Field, Fieldset, Layout,
+                                 Submit)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -17,22 +18,21 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.crispy_layout_mixin import form_actions, to_row, to_column,\
-    SaplFormLayout
-from sapl.materia.models import TipoProposicao, RegimeTramitacao, TipoDocumento
+from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
+                                      to_row)
+from sapl.materia.models import RegimeTramitacao, TipoDocumento, TipoProposicao
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
-                        autor_modal, models_with_gr_for_model,
-                        ChoiceWithoutValidationField, YES_NO_CHOICES)
-import sapl
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        ChoiceWithoutValidationField, RangeWidgetOverride,
+                        autor_label, autor_modal, models_with_gr_for_model)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao,
@@ -829,7 +829,8 @@ class TipoProposicaoForm(ModelForm):
 
         content_type = cd['content_type']
 
-        if 'tipo_conteudo_related' not in cd or not cd['tipo_conteudo_related']:
+        if 'tipo_conteudo_related' not in cd or not cd[
+           'tipo_conteudo_related']:
             raise ValidationError(
                 _('Seleção de Tipo não definida'))
 
@@ -951,11 +952,14 @@ class ProposicaoForm(forms.ModelForm):
 
             if self.instance.materia_de_vinculo:
                 self.fields[
-                    'tipo_materia'].initial = self.instance.materia_de_vinculo.tipo
+                    'tipo_materia'
+                    ].initial = self.instance.materia_de_vinculo.tipo
                 self.fields[
-                    'numero_materia'].initial = self.instance.materia_de_vinculo.numero
+                    'numero_materia'
+                    ].initial = self.instance.materia_de_vinculo.numero
                 self.fields[
-                    'ano_materia'].initial = self.instance.materia_de_vinculo.ano
+                    'ano_materia'
+                    ].initial = self.instance.materia_de_vinculo.ano
 
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
@@ -1128,11 +1132,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         if self.instance.materia_de_vinculo:
             self.fields[
-                'tipo_materia'].initial = self.instance.materia_de_vinculo.tipo
+                'tipo_materia'
+                ].initial = self.instance.materia_de_vinculo.tipo
             self.fields[
-                'numero_materia'].initial = self.instance.materia_de_vinculo.numero
+                'numero_materia'
+                ].initial = self.instance.materia_de_vinculo.numero
             self.fields[
-                'ano_materia'].initial = self.instance.materia_de_vinculo.ano
+                'ano_materia'
+                ].initial = self.instance.materia_de_vinculo.ano
 
         if self.proposicao_incorporacao_obrigatoria == 'C':
             self.fields['gerar_protocolo'].initial = True
@@ -1148,8 +1155,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                     raise ValidationError(
                         _('Regimente de Tramitação deve ser informado.'))
 
-            elif self.instance.tipo.content_type.model_class() == TipoDocumento\
-                    and not cd['materia_de_vinculo']:
+            elif self.instance.tipo.content_type.model_class(
+                 ) == TipoDocumento and not cd['materia_de_vinculo']:
 
                 raise ValidationError(
                     _('Documentos não podem ser incorporados sem definir '
@@ -1216,7 +1223,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         proposicao = self.instance
         conteudo_gerado = None
 
-        if self.instance.tipo.content_type.model_class() == TipoMateriaLegislativa:
+        if self.instance.tipo.content_type.model_class(
+           ) == TipoMateriaLegislativa:
             numero__max = MateriaLegislativa.objects.filter(
                 tipo=proposicao.tipo.tipo_conteudo_related,
                 ano=datetime.now().year).aggregate(Max('numero'))
@@ -1349,7 +1357,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.numero_paginas = cd['numero_de_paginas']
         protocolo.anulado = False
 
-        if self.instance.tipo.content_type.model_class() == TipoMateriaLegislativa:
+        if self.instance.tipo.content_type.model_class(
+           ) == TipoMateriaLegislativa:
             protocolo.tipo_materia = proposicao.tipo.tipo_conteudo_related
         elif self.instance.tipo.content_type.model_class() == TipoDocumento:
             protocolo.tipo_documento = proposicao.tipo.tipo_conteudo_related

@@ -1,19 +1,20 @@
 from builtins import LookupError
 
+import django
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
-from django.db import router, models
-from django.db.models.signals import post_migrate
+from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-import django
-from sapl.rules import SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,\
-    SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA, SAPL_GROUP_PAINEL,\
-    SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO
+from django.utils.translation import string_concat
+
+from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
+                        SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
+                        SAPL_GROUP_PAINEL, SAPL_GROUP_PROTOCOLO,
+                        SAPL_GROUP_SESSAO)
 
 
 class AppConfig(django.apps.AppConfig):
@@ -131,7 +132,8 @@ def update_groups(app_config, verbosity=2, interactive=True,
         def associar(self, g, model, tipo):
             for t in tipo:
                 content_type = ContentType.objects.get_by_natural_key(
-                    app_label=model._meta.app_label, model=model._meta.model_name)
+                    app_label=model._meta.app_label,
+                    model=model._meta.model_name)
 
                 codename = (t[1:] + model._meta.model_name)\
                     if t[0] == '.' and t[-1] == '_' else t
@@ -185,7 +187,8 @@ def update_groups(app_config, verbosity=2, interactive=True,
             if not isinstance(groups_name, list):
                 groups_name = [groups_name, ]
             for group_name in groups_name:
-                if not group_name or user.groups.filter(name=group_name).exists():
+                if not group_name or user.groups.filter(
+                        name=group_name).exists():
                     continue
                 g = Group.objects.get_or_create(name=group_name)[0]
                 user.groups.add(g)

@@ -143,8 +143,6 @@ class AssuntoNormaRelationship(models.Model):
         unique_together = (
             ('assunto', 'norma'),
         )
-
-    class Meta:
         verbose_name = _('Assunto')
         verbose_name_plural = _('Assuntos')
 

@@ -19,14 +19,12 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, Orador,
                                 SessaoPlenariaPresenca, TipoExpediente)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import UF
-import sapl
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
-
 
 uf_dic = dict(UF)
 

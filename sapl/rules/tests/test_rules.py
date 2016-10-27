@@ -1,14 +1,13 @@
+import pytest
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
-import pytest
 
 from sapl.rules import SAPL_GROUPS
 from sapl.rules.map_rules import rules_patterns
 from sapl.test_urls import create_perms_post_migrate
-
 
 sapl_appconfs = [apps.get_app_config(n[5:]) for n in settings.SAPL_APPS]
 

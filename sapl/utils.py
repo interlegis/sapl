@@ -1,12 +1,11 @@
+import hashlib
+import logging
+import re
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
-import hashlib
-import hashlib
-import logging
-import logging
-import re
 
+import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -15,18 +14,15 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation, GenericRel,\
-    GenericForeignKey
+from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
+                                                GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-import magic
-import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
-
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -102,7 +98,12 @@ def montar_helper_autor(self):
 
 class SaplGenericForeignKey(GenericForeignKey):
 
-    def __init__(self, ct_field='content_type', fk_field='object_id', for_concrete_model=True, verbose_name=''):
+    def __init__(
+            self,
+            ct_field='content_type',
+            fk_field='object_id',
+            for_concrete_model=True,
+            verbose_name=''):
         super().__init__(ct_field, fk_field, for_concrete_model)
         self.verbose_name = verbose_name
 

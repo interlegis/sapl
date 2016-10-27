@@ -6,49 +6,43 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist,\
-    PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import JsonResponse
-from django.http.response import HttpResponseRedirect, Http404
+from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import Context, loader
-from django.utils import dateformat, formats
-from django.utils.http import urlsafe_base64_decode
+from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-from sapl.base.models import Autor, CasaLegislativa, TipoAutor
+import sapl
+from sapl.base.models import Autor, CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
-                            Crud, CrudAux, CrudDetailView, MasterDetailCrud,
-                            make_pagination, PermissionRequiredForAppCrudMixin)
+                            Crud, CrudAux, MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia import apps
-from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
-    TipoProposicaoForm, ProposicaoForm, ConfirmarProposicaoForm
+from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
+                                LegislacaoCitadaForm, ProposicaoForm,
+                                TipoProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor, permission_required_for_app,
                         permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm, permission_required_for_app,
-                        montar_row_autor)
-import sapl
-
+                        permissoes_protocoloadm)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    DocumentoAcessorioForm,
-                    MateriaLegislativaFilterSet,
-                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoOldForm,
-                    ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
-                    filtra_tramitacao_destino,
+                    DocumentoAcessorioForm, MateriaLegislativaFilterSet,
+                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
+                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
@@ -57,7 +51,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, '')
 
