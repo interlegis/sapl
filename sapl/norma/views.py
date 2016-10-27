@@ -11,7 +11,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.norma.forms import NormaJuridicaForm
 
-from .forms import NormaJuridicaPesquisaForm
+from .forms import AssuntoNormaRelationshipForm, NormaJuridicaPesquisaForm
 from .models import (AssuntoNorma, AssuntoNormaRelationship, NormaJuridica,
                      TipoNormaJuridica)
 
@@ -50,6 +50,12 @@ class AssuntoNormaRelationshipCrud(MasterDetailCrud):
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['assunto']
         ordering = 'assunto'
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AssuntoNormaRelationshipForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AssuntoNormaRelationshipForm
 
 
 class NormaCrud(Crud):

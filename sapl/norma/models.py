@@ -148,7 +148,7 @@ class AssuntoNormaRelationship(models.Model):
         verbose_name_plural = _('Assuntos')
 
     def __str__(self):
-        return self.assunto
+        return self.assunto.assunto
 
 
 class LegislacaoCitada(models.Model):

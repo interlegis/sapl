@@ -8,12 +8,11 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import (AssuntoNormaRelationship, MateriaLegislativa,
-                                 TipoMateriaLegislativa)
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import NormaJuridica
+from .models import AssuntoNormaRelationship, NormaJuridica
 
 
 def get_esferas():
@@ -37,18 +36,18 @@ class AssuntoNormaRelationshipForm(ModelForm):
         model = AssuntoNormaRelationship
         fields = ['assunto']
 
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        import ipdb; ipdb.set_trace()
-        # try:
-        #     comissao = Comissao.objects.get(id=self.initial['comissao'])
-        # except ObjectDoesNotExist:
-        #     msg = _('A localização atual deve ser uma comissão.')
-        #     raise ValidationError(msg)
-        # else:
-        #     cleaned_data['comissao'] = comissao
-
-        return cleaned_data
+    def save(self, commit=False):
+        norma_assunto = super(AssuntoNormaRelationshipForm, self).save(commit)
+        try:
+            AssuntoNormaRelationship.objects.get(
+                norma=norma_assunto.norma,
+                assunto=norma_assunto.assunto)
+        except ObjectDoesNotExist:
+            norma_assunto.save()
+        else:
+            raise forms.ValidationError(
+                "Esse Assunto já está anexado nesta Norma Jurídica.")
+        return norma_assunto
 
 
 # TODO termos, pesquisa textual, assunto(M2M)
