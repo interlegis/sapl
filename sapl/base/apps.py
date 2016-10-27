@@ -3,7 +3,7 @@ from builtins import LookupError
 from django.apps import apps
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
-from django.db import router
+from django.db import router, models
 from django.db.models.signals import pre_migrate, post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import string_concat
@@ -109,7 +109,7 @@ class AppConfig(django.apps.AppConfig):
 
     def ready(self):
         #pre_migrate.connect(run_sql_organizers, self)
-
-        post_migrate.connect(
-            receiver=create_proxy_permissions,
-            dispatch_uid="django.contrib.auth.management.create_permissions")
+        pass
+models.signals.post_migrate.connect(
+    receiver=create_proxy_permissions,
+    dispatch_uid="django.contrib.auth.management.create_permissions")
