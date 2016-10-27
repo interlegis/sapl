@@ -36,7 +36,8 @@ rules_group_administrativo = {
 rules_group_protocolo = {
     'group': SAPL_GROUP_PROTOCOLO,
     'rules': [
-        (protocoloadm.Protocolo, __base__),
+        (protocoloadm.Protocolo, __base__ + [
+            'action_anular_protocolo']),
         (protocoloadm.DocumentoAdministrativo, __listdetailchange__),
         (protocoloadm.DocumentoAcessorioAdministrativo, __listdetailchange__),
 

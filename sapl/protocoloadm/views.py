@@ -12,12 +12,12 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.base.apps import AppConfig as AppsAppConfig
-from sapl.base.models import AppConfig
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
+from sapl.protocoloadm.apps import AppConfig
 from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
-                        permissoes_protocoloadm)
+                        permissoes_protocoloadm, permission_required_for_app)
+import sapl
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -27,6 +27,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -44,11 +45,11 @@ DocumentoAcessorioAdministrativoCrud = Crud.build(
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = AppConfig.objects.last()
+        app_config = sapl.base.models.AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
-        return self.request.user.has_module_perms(AppsAppConfig.label)
+        return self.request.user.has_module_perms(sapl.base.models.AppConfig.label)
 
 
 class DocumentoAdministrativoCrud(Crud):
@@ -82,7 +83,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
     model = Protocolo
     filterset_class = ProtocoloFilterSet
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.list_protocolo',)
 
     def get_filterset_kwargs(self, filterset_class):
         super(ProtocoloPesquisaView,
@@ -143,7 +144,7 @@ class ProtocoloListView(PermissionRequiredMixin, ListView):
     context_object_name = 'protocolos'
     model = Protocolo
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.list_protocolo',)
 
     def get_queryset(self):
         kwargs = self.request.session['kwargs']
@@ -204,7 +205,8 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f = form.save(commit=False)
 
         try:
-            numeracao = AppConfig.objects.last().sequencia_numeracao
+            numeracao = sapl.base.models.AppConfig.objects.last(
+            ).sequencia_numeracao
         except AttributeError:
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
@@ -326,7 +328,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
     def form_valid(self, form):
         try:
-            numeracao = AppConfig.objects.last().sequencia_numeracao
+            numeracao = sapl.base.models.AppConfig.objects.last(
+            ).sequencia_numeracao
         except AttributeError:
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')

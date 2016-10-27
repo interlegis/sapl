@@ -153,6 +153,9 @@ class Protocolo(models.Model):
     class Meta:
         verbose_name = _('Protocolo')
         verbose_name_plural = _('Protocolos')
+        permissions = (
+            ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
+        )
 
 
 class StatusTramitacaoAdministrativo(models.Model):

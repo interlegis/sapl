@@ -1,14 +1,12 @@
-import hashlib
-import logging
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
-
 import hashlib
+import hashlib
+import logging
 import logging
 import re
 
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -23,11 +21,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-
+import magic
 import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
+
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
