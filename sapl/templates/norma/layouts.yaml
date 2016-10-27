@@ -1,4 +1,9 @@
 {% load i18n %}
+
+AssuntoNormaRelationship:
+  {% trans 'Assunto Norma Jurídica' %}:
+    - assunto
+
 AssuntoNorma:
   {% trans 'Assunto Norma Jurídica' %}:
   - assunto  descricao
@@ -17,6 +22,7 @@ NormaJuridica:
   - ementa
   - indexacao
   - observacao
+  - assuntos
 
 NormaJuridicaCreate:
   {% trans 'Identificação Básica' %}:

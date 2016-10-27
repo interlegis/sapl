@@ -12,7 +12,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import NormaJuridica
+from .models import AssuntoNormaRelationship, NormaJuridica
 
 
 def get_esferas():
@@ -28,6 +28,26 @@ YES_NO_CHOICES = [('', '---------'),
 ORDENACAO_CHOICES = [('', '---------'),
                      ('tipo,ano,numero', _('Tipo/Ano/Número')),
                      ('data,tipo,ano,numero', _('Data/Tipo/Ano/Número'))]
+
+
+class AssuntoNormaRelationshipForm(ModelForm):
+
+    class Meta:
+        model = AssuntoNormaRelationship
+        fields = ['assunto']
+
+    def save(self, commit=False):
+        norma_assunto = super(AssuntoNormaRelationshipForm, self).save(commit)
+        try:
+            AssuntoNormaRelationship.objects.get(
+                norma=norma_assunto.norma,
+                assunto=norma_assunto.assunto)
+        except ObjectDoesNotExist:
+            norma_assunto.save()
+        else:
+            raise forms.ValidationError(
+                "Esse Assunto já está anexado nesta Norma Jurídica.")
+        return norma_assunto
 
 
 # TODO termos, pesquisa textual, assunto(M2M)

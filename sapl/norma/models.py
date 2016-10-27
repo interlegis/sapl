@@ -98,6 +98,7 @@ class NormaJuridica(models.Model):
     # XXX was a CharField (attention on migrate)
     assuntos = models.ManyToManyField(
         AssuntoNorma,
+        verbose_name=_('Assuntos'),
         through='AssuntoNormaRelationship')
     data_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
@@ -135,13 +136,20 @@ class NormaJuridica(models.Model):
 
 
 class AssuntoNormaRelationship(models.Model):
-    assunto = models.ForeignKey(AssuntoNorma)
-    norma = models.ForeignKey(NormaJuridica)
+    assunto = models.ForeignKey(AssuntoNorma, verbose_name=_('Assunto'))
+    norma = models.ForeignKey(NormaJuridica, verbose_name=_('Norma'))
 
     class Meta:
         unique_together = (
             ('assunto', 'norma'),
         )
+
+    class Meta:
+        verbose_name = _('Assunto')
+        verbose_name_plural = _('Assuntos')
+
+    def __str__(self):
+        return self.assunto.assunto
 
 
 class LegislacaoCitada(models.Model):
