@@ -22,6 +22,7 @@ NormaJuridica:
   - ementa
   - indexacao
   - observacao
+  - assuntos
 
 NormaJuridicaCreate:
   {% trans 'Identificação Básica' %}:
