@@ -35,7 +35,8 @@ rules_group_protocolo = {
     'rules': [
         (protocoloadm.Protocolo, __base__ + [
             'action_anular_protocolo']),
-        (protocoloadm.DocumentoAdministrativo, __listdetailchange__),
+        (protocoloadm.DocumentoAdministrativo,
+         [RP_ADD] + __listdetailchange__),
         (protocoloadm.DocumentoAcessorioAdministrativo, __listdetailchange__),
 
         (materia.MateriaLegislativa, __listdetailchange__),

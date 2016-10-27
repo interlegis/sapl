@@ -16,8 +16,8 @@
 	<br />
 
 	<strong>Documento Vinculado:</strong></br>
-	<a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.numero protocolo.ano %}" class="btn btn-primary">Criar Documento</a>
+	<a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>
 	&nbsp;&nbsp;&nbsp;&nbsp;
-	<a href="{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.numero protocolo.ano %}" target="popup" class="btn btn-primary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=800, height=600')">Comprovante
+	<a target="popup" class="btn btn-primary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk%}','Comprovante','width=800, height=600')">Comprovante
 	</a>
 {% endblock detail_content %}

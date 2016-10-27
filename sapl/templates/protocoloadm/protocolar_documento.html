@@ -2,6 +2,15 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
+
+{% block actions %}
+
+  {{ block.super }}
+  <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
+    <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+  </div>
+{% endblock %}
+
 {% block detail_content %}
 	{% crispy form %}
 {% endblock detail_content %}

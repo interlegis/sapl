@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
@@ -9,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -19,6 +19,7 @@ from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
+
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 
@@ -131,7 +132,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisar Protocolo'),
+            Fieldset('',
                      row1, row2,
                      row3,
                      HTML(autor_label),
@@ -313,7 +314,7 @@ class ProtocoloDocumentForm(ModelForm):
         empty_label='Selecione',
     )
 
-    num_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
+    numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
     assunto = forms.CharField(
         widget=forms.Textarea, label='Assunto', required=True)
 
@@ -327,7 +328,7 @@ class ProtocoloDocumentForm(ModelForm):
         model = Protocolo
         fields = ['tipo_protocolo',
                   'tipo_documento',
-                  'num_paginas',
+                  'numero_paginas',
                   'assunto',
                   'interessado',
                   'observacao',
@@ -339,7 +340,7 @@ class ProtocoloDocumentForm(ModelForm):
             [(InlineRadios('tipo_protocolo'), 12)])
         row2 = to_row(
             [('tipo_documento', 6),
-             ('num_paginas', 6)])
+             ('numero_paginas', 6)])
         row3 = to_row(
             [('assunto', 12)])
         row4 = to_row(

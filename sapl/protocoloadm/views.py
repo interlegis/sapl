@@ -31,9 +31,9 @@ TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
 
 
-ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
+#ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
-ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+#ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
 DocumentoAcessorioAdministrativoCrud = Crud.build(
@@ -109,6 +109,8 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
 
+        context['title'] = _('Pesquisa de Protocolos')
+
         return context
 
     def get(self, request, *args, **kwargs):
@@ -166,7 +168,7 @@ class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = AnularProcoloAdmForm
     form_valid_message = _('Protocolo anulado com sucesso!')
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.action_anular_protocolo', )
 
     def get_success_url(self):
         return reverse('sapl.protocoloadm:protocolo')
@@ -195,10 +197,11 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.add_protocolo', )
 
     def get_success_url(self):
-        return reverse('sapl.protocoloadm:protocolo')
+        return reverse('sapl.protocoloadm:protocolo_mostrar',
+                       kwargs={'pk': self.object.id})
 
     def form_valid(self, form):
         f = form.save(commit=False)
@@ -231,31 +234,28 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
+        self.object = f
         return redirect(self.get_success_url())
 
 
 class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
     template_name = "protocoloadm/criar_documento.html"
     form_class = DocumentoAdministrativoForm
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.add_documentoadministrativo',)
 
     def get_initial(self):
-        numero = self.kwargs['pk']
-        ano = self.kwargs['ano']
-        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         return self.criar_documento(protocolo)
 
     def get_success_url(self):
         return reverse('sapl.protocoloadm:protocolo_mostrar',
-                       kwargs={'pk': self.kwargs['pk'],
-                               'ano': self.kwargs['ano']})
+                       kwargs={'pk': self.kwargs['pk']})
 
     def criar_documento(self, protocolo):
 
-        numero = Protocolo.objects.filter(
-            tipo_documento=protocolo.tipo_documento,
-            ano=protocolo.ano,
-            anulado=False).aggregate(Max('numero'))
+        numero_max = DocumentoAdministrativo.objects.filter(
+            tipo=protocolo.tipo_documento
+        ).aggregate(Max('numero'))['numero__max']
 
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
@@ -264,24 +264,18 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['numero_protocolo'] = protocolo.numero
         doc['assunto'] = protocolo.assunto_ementa
         doc['interessado'] = protocolo.interessado
-        doc['numero'] = numero['numero__max']
-        if doc['numero'] is None:
-            doc['numero'] = 1
-        else:
-            doc['numero'] = doc['numero'] + 1
+        doc['numero'] = numero_max + 1 if numero_max else 1
         return doc
 
 
 class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 
     template_name = "protocoloadm/protocolo_mostrar.html"
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
         context = super(ProtocoloMostrarView, self).get_context_data(**kwargs)
-        numero = self.kwargs['pk']
-        ano = self.kwargs['ano']
-        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         context['protocolo'] = protocolo
         return context
 
@@ -289,16 +283,14 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 class ComprovanteProtocoloView(PermissionRequiredMixin, TemplateView):
 
     template_name = "protocoloadm/comprovante.html"
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
         context = super(ComprovanteProtocoloView, self).get_context_data(
             **kwargs)
-        numero = self.kwargs['pk']
-        ano = self.kwargs['ano']
-        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         # numero is string, padd with zeros left via .zfill()
-        base64_data = create_barcode(numero.zfill(6))
+        base64_data = create_barcode(str(protocolo.numero).zfill(6))
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
         autenticacao = _("** NULO **")
@@ -320,7 +312,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     template_name = "protocoloadm/protocolar_materia.html"
     form_class = ProtocoloMateriaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.add_protocolo',)
 
     def get_success_url(self):
         return reverse('sapl.protocoloadm:protocolo')
