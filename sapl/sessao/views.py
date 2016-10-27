@@ -1867,7 +1867,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
                 materia_id=materia_id,
                 expediente_id=expediente_id)
         except MultipleObjectsReturned:
-            votacao = RegistroVotacao.objects.get(
+            votacao = RegistroVotacao.objects.filter(
                 materia_id=materia_id,
                 expediente_id=expediente_id).last()
         votacao_existente = {'observacao': sub(
@@ -1888,9 +1888,14 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['mid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                expediente_id=expediente_id).delete()
+            try:
+                RegistroVotacao.objects.get(
+                    materia_id=materia_id,
+                    expediente_id=expediente_id).delete()
+            except MultipleObjectsReturned:
+                RegistroVotacao.objects.filter(
+                    materia_id=materia_id,
+                    expediente_id=expediente_id).last().delete()
 
             expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,
