@@ -50,6 +50,7 @@ def test_models_in_rules_patterns(model_item):
 @pytest.mark.parametrize('model_item', sapl_models)
 def test_permission_exists(model_item):
 
+    print(model_item)
     create_perms_post_migrate(model_item._meta.app_config)
 
     for rules_group in rules_patterns:

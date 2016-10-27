@@ -693,6 +693,18 @@ class Dispositivo(BaseModel, TimestampedMixin):
              'ta_publicado',
              'publicacao',),
         )
+        permissions = (
+            ('change_dispositivo_edicao_dinamica', _(
+                'Permissão de edição de dispositivos originais '
+                'via editor dinâmico.')),
+            ('change_dispositivo_edicao_avancada', _(
+                'Permissão de edição de dispositivos originais '
+                'via formulários de edição avançada.')),
+            ('change_dispositivo_registros_compilacao', _(
+                'Permissão de registro de compilação via editor dinâmico.')),
+            ('change_dispositivo_notificacoes', _(
+                'Permissão de acesso às notificações de pendências.')),
+        )
 
     def __str__(self):
         return '%(rotulo)s' % {
