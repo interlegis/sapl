@@ -11,8 +11,8 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.norma.forms import NormaJuridicaForm
 
-from .forms import AssuntoNormaRelationshipForm, NormaJuridicaPesquisaForm
-from .models import (AssuntoNorma, AssuntoNormaRelationship, NormaJuridica,
+from .forms import NormaJuridicaPesquisaForm
+from .models import (AssuntoNorma, NormaJuridica,
                      TipoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -39,23 +39,6 @@ class NormaTaView(IntegracaoTaView):
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
-
-
-class AssuntoNormaRelationshipCrud(MasterDetailCrud):
-    model = AssuntoNormaRelationship
-    parent_field = 'norma'
-    help_path = ''
-    public = [RP_LIST, RP_DETAIL]
-
-    class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['assunto']
-        ordering = 'assunto'
-
-    class CreateView(MasterDetailCrud.CreateView):
-        form_class = AssuntoNormaRelationshipForm
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = AssuntoNormaRelationshipForm
 
 
 class NormaCrud(Crud):

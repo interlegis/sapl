@@ -97,9 +97,8 @@ class NormaJuridica(models.Model):
         choices=YES_NO_CHOICES)
     # XXX was a CharField (attention on migrate)
     assuntos = models.ManyToManyField(
-        AssuntoNorma,
-        verbose_name=_('Assuntos'),
-        through='AssuntoNormaRelationship')
+        AssuntoNorma, blank=True,
+        verbose_name=_('Assuntos'))
     data_vigencia = models.DateField(blank=True, null=True)
     timestamp = models.DateTimeField()
 
@@ -133,21 +132,6 @@ class NormaJuridica(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
-
-
-class AssuntoNormaRelationship(models.Model):
-    assunto = models.ForeignKey(AssuntoNorma, verbose_name=_('Assunto'))
-    norma = models.ForeignKey(NormaJuridica, verbose_name=_('Norma'))
-
-    class Meta:
-        unique_together = (
-            ('assunto', 'norma'),
-        )
-        verbose_name = _('Assunto')
-        verbose_name_plural = _('Assuntos')
-
-    def __str__(self):
-        return self.assunto.assunto
 
 
 class LegislacaoCitada(models.Model):

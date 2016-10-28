@@ -86,7 +86,6 @@ rules_group_norma = {
     'group': SAPL_GROUP_NORMA,
     'rules': [
         (norma.NormaJuridica, __base__),
-        (norma.AssuntoNormaRelationship, __base__),
         (norma.VinculoNormaJuridica, __base__),
 
         # Publicacao está com permissão apenas para norma e não para matéria

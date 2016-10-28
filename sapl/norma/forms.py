@@ -4,7 +4,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.forms import ModelForm
+from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -12,7 +12,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import AssuntoNorma, AssuntoNormaRelationship, NormaJuridica
+from .models import AssuntoNorma, NormaJuridica
 
 
 def get_esferas():
@@ -28,26 +28,6 @@ YES_NO_CHOICES = [('', '---------'),
 ORDENACAO_CHOICES = [('', '---------'),
                      ('tipo,ano,numero', _('Tipo/Ano/Número')),
                      ('data,tipo,ano,numero', _('Data/Tipo/Ano/Número'))]
-
-
-class AssuntoNormaRelationshipForm(ModelForm):
-
-    class Meta:
-        model = AssuntoNormaRelationship
-        fields = ['assunto']
-
-    def save(self, commit=False):
-        norma_assunto = super(AssuntoNormaRelationshipForm, self).save(commit)
-        try:
-            AssuntoNormaRelationship.objects.get(
-                norma=norma_assunto.norma,
-                assunto=norma_assunto.assunto)
-        except ObjectDoesNotExist:
-            norma_assunto.save()
-        else:
-            raise forms.ValidationError(
-                "Esse Assunto já está anexado nesta Norma Jurídica.")
-        return norma_assunto
 
 
 # TODO termos, pesquisa textual, assunto(M2M)
@@ -177,7 +157,9 @@ class NormaJuridicaForm(ModelForm):
                   'ementa',
                   'indexacao',
                   'observacao',
-                  'texto_integral']
+                  'texto_integral',
+                  'assuntos']
+        widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
     def clean(self):
         cleaned_data = self.cleaned_data
