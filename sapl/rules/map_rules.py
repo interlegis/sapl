@@ -44,7 +44,7 @@ rules_group_protocolo = {
         (materia.Anexada, __base__),
         (materia.Autoria, __base__),
 
-        (materia.Proposicao, [RP_CHANGE]),
+        (materia.Proposicao, __listdetailchange__),
     ]
 }
 

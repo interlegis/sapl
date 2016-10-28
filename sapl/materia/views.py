@@ -20,7 +20,6 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
@@ -35,9 +34,8 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor, permission_required_for_app,
-                        permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm)
+                        montar_row_autor, permission_required_for_app)
+import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
@@ -51,6 +49,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
+
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -185,7 +184,7 @@ class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('materia.list_proposicao', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -209,7 +208,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio', 'autor', 'tipo', 'descricao']
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('materia.list_proposicao', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -234,7 +233,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('materia.list_proposicao', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -557,7 +556,7 @@ class ProposicaoCrud(Crud):
 
 class ReciboProposicaoView(TemplateView):
     template_name = "materia/recibo_proposicao.html"
-    permission_required = permissoes_autor()
+    permission_required = ('materia.detail_proposicao', )
 
     def has_permission(self):
         perms = self.get_permission_required()
@@ -909,7 +908,7 @@ class MateriaLegislativaCrud(Crud):
 class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
     template_name = "materia/documento_acessorio.html"
     form_class = DocumentoAcessorioForm
-    permission_required = permissoes_materia()
+    permission_required = ('materia.add_documentoacessorio', )
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -943,8 +942,7 @@ class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
         return reverse('sapl.materia:documento_acessorio', kwargs={'pk': pk})
 
 
-class AcompanhamentoConfirmarView(PermissionRequiredMixin, TemplateView):
-    permission_required = permissoes_materia()
+class AcompanhamentoConfirmarView(TemplateView):
 
     def get_redirect_url(self):
         return reverse('sapl.sessao:list_pauta_sessao')
@@ -961,8 +959,7 @@ class AcompanhamentoConfirmarView(PermissionRequiredMixin, TemplateView):
         return HttpResponseRedirect(self.get_redirect_url())
 
 
-class AcompanhamentoExcluirView(PermissionRequiredMixin, TemplateView):
-    permission_required = permissoes_materia()
+class AcompanhamentoExcluirView(TemplateView):
 
     def get_redirect_url(self):
         return reverse('sapl.sessao:list_pauta_sessao')
@@ -1038,9 +1035,8 @@ class MateriaLegislativaPesquisaView(FilterView):
         return context
 
 
-class AcompanhamentoMateriaView(PermissionRequiredMixin, CreateView):
+class AcompanhamentoMateriaView(CreateView):
     template_name = "materia/acompanhamento_materia.html"
-    permission_required = permissoes_materia()
 
     def get_random_chars(self):
         s = ascii_letters + digits
@@ -1296,7 +1292,7 @@ def do_envia_email_tramitacao(request, materia):
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/em_lote/acessorio.html'
-    permission_required = permissoes_materia()
+    permission_required = ('materia.add_documentoacessorio',)
 
     def get_context_data(self, **kwargs):
         context = super(DocumentoAcessorioEmLoteView,
@@ -1340,7 +1336,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
     template_name = 'materia/em_lote/tramitacao.html'
-    permission_required = permissoes_materia()
+    permission_required = ('materia.add_tramitacao', )
 
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,

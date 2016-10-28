@@ -12,11 +12,10 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-import sapl
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
-from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
-                        permissoes_protocoloadm)
+from sapl.utils import (create_barcode, get_client_ip)
+import sapl
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -26,6 +25,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -362,7 +362,7 @@ class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
-    permission_required = permissoes_adm()
+    permission_required = ('protocoloadm.list_documentoadministrativo', )
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
@@ -420,7 +420,7 @@ class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
 
 class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
     template_name = "protocoloadm/detail_doc_adm.html"
-    permission_required = permissoes_adm()
+    permission_required = ('protocoloadm.detail_documentoadministrativo', )
 
     def get(self, request, *args, **kwargs):
         documento = DocumentoAdministrativo.objects.get(
@@ -462,7 +462,8 @@ class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
 class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
                                                FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
-    permission_required = permissoes_adm()
+    permission_required = (
+        'protocoloadm.change_documentoacessorioadministrativo', )
 
     def get(self, request, *args, **kwargs):
         doc = DocumentoAdministrativo.objects.get(
@@ -510,7 +511,8 @@ class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
 
 class DocumentoAcessorioAdministrativoView(PermissionRequiredMixin, FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo.html"
-    permission_required = permissoes_adm()
+    permission_required = (
+        'protocoloadm.add_documentoacessorioadministrativo', )
 
     def get(self, request, *args, **kwargs):
         form = DocumentoAcessorioAdministrativoForm()

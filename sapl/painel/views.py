@@ -12,7 +12,6 @@ from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
-from sapl.utils import permissoes_painel
 
 from .models import Cronometro
 
