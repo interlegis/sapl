@@ -1,8 +1,7 @@
 
-import os
 from datetime import date, datetime
+import os
 
-import django_filters
 from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
                                     InlineRadios)
 from crispy_forms.helper import FormHelper
@@ -18,8 +17,8 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -33,6 +32,7 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao,
@@ -82,66 +82,6 @@ class UnidadeTramitacaoForm(ModelForm):
             msg = _('Somente um campo deve preenchido!')
             raise ValidationError(msg)
         return cleaned_data
-
-
-class ProposicaoOldForm(ModelForm):
-
-    tipo_materia = forms.ModelChoiceField(
-        label=_('Matéria Vinculada'),
-        required=False,
-        queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-    )
-
-    numero_materia = forms.CharField(
-        label='Número', required=False)
-
-    ano_materia = forms.CharField(
-        label='Ano', required=False)
-
-    def clean_texto_original(self):
-        texto_original = self.cleaned_data.get('texto_original', False)
-        if texto_original:
-            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
-            return texto_original
-
-    def clean_data_envio(self):
-        data_envio = self.cleaned_data.get('data_envio') or None
-        if (not data_envio) and len(self.initial) > 1:
-            data_envio = datetime.now()
-        return data_envio
-
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        if 'tipo' in cleaned_data:
-            if cleaned_data['tipo'].descricao == 'Parecer':
-                if self.instance.materia:
-                    cleaned_data['materia'] = self.instance.materia
-                else:
-                    try:
-                        materia = MateriaLegislativa.objects.get(
-                            tipo_id=cleaned_data['tipo_materia'],
-                            ano=cleaned_data['ano_materia'],
-                            numero=cleaned_data['numero_materia'])
-                    except ObjectDoesNotExist:
-                        msg = _('Matéria adicionada não existe!')
-                        raise ValidationError(msg)
-                    else:
-                        cleaned_data['materia'] = materia
-        return cleaned_data
-
-    def save(self, commit=False):
-        proposicao = super(ProposicaoOldForm, self).save(commit)
-        if 'materia' in self.cleaned_data:
-            proposicao.materia = self.cleaned_data['materia']
-        proposicao.save()
-        return proposicao
-
-    class Meta:
-        model = Proposicao
-        fields = ['tipo', 'data_envio', 'descricao', 'texto_original', 'autor']
-        widgets = {'autor': forms.HiddenInput()}
 
 
 class AcompanhamentoMateriaForm(ModelForm):
@@ -953,13 +893,13 @@ class ProposicaoForm(forms.ModelForm):
             if self.instance.materia_de_vinculo:
                 self.fields[
                     'tipo_materia'
-                    ].initial = self.instance.materia_de_vinculo.tipo
+                ].initial = self.instance.materia_de_vinculo.tipo
                 self.fields[
                     'numero_materia'
-                    ].initial = self.instance.materia_de_vinculo.numero
+                ].initial = self.instance.materia_de_vinculo.numero
                 self.fields[
                     'ano_materia'
-                    ].initial = self.instance.materia_de_vinculo.ano
+                ].initial = self.instance.materia_de_vinculo.ano
 
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
@@ -1133,13 +1073,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if self.instance.materia_de_vinculo:
             self.fields[
                 'tipo_materia'
-                ].initial = self.instance.materia_de_vinculo.tipo
+            ].initial = self.instance.materia_de_vinculo.tipo
             self.fields[
                 'numero_materia'
-                ].initial = self.instance.materia_de_vinculo.numero
+            ].initial = self.instance.materia_de_vinculo.numero
             self.fields[
                 'ano_materia'
-                ].initial = self.instance.materia_de_vinculo.ano
+            ].initial = self.instance.materia_de_vinculo.ano
 
         if self.proposicao_incorporacao_obrigatoria == 'C':
             self.fields['gerar_protocolo'].initial = True
@@ -1156,7 +1096,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                         _('Regimente de Tramitação deve ser informado.'))
 
             elif self.instance.tipo.content_type.model_class(
-                 ) == TipoDocumento and not cd['materia_de_vinculo']:
+            ) == TipoDocumento and not cd['materia_de_vinculo']:
 
                 raise ValidationError(
                     _('Documentos não podem ser incorporados sem definir '
@@ -1224,7 +1164,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         conteudo_gerado = None
 
         if self.instance.tipo.content_type.model_class(
-           ) == TipoMateriaLegislativa:
+        ) == TipoMateriaLegislativa:
             numero__max = MateriaLegislativa.objects.filter(
                 tipo=proposicao.tipo.tipo_conteudo_related,
                 ano=datetime.now().year).aggregate(Max('numero'))
@@ -1358,7 +1298,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.anulado = False
 
         if self.instance.tipo.content_type.model_class(
-           ) == TipoMateriaLegislativa:
+        ) == TipoMateriaLegislativa:
             protocolo.tipo_materia = proposicao.tipo.tipo_conteudo_related
         elif self.instance.tipo.content_type.model_class() == TipoDocumento:
             protocolo.tipo_documento = proposicao.tipo.tipo_conteudo_related

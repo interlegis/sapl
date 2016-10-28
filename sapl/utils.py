@@ -395,17 +395,16 @@ def permissoes(nome_grupo, app_label):
     except:
         pass
     return set(lista_permissoes)
-"""
 
 
 def permission_required_for_app(app_label, login_url=None,
                                 raise_exception=False):
-    """
+    
     Decorator for views that checks whether a user has a particular permission
     enabled, redirecting to the log-in page if necessary.
     If the raise_exception parameter is given the PermissionDenied exception
     is raised.
-    """
+   
     def check_perms(user):
         if user.has_module_perms(app_label):
             return True
@@ -416,7 +415,6 @@ def permission_required_for_app(app_label, login_url=None,
         return False
     return user_passes_test(check_perms, login_url=login_url)
 
-"""
 def permissoes_materia():
     return permissoes('Operador de Matéria', 'materia')
 

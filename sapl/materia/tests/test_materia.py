@@ -1,9 +1,9 @@
-import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
+import pytest
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
@@ -452,7 +452,7 @@ def test_proposicao_submit(admin_client):
         *models_with_gr_for_model(TipoProposicao))
 
     for pk, mct in enumerate(mcts):
-        tipo_conteudo_related = mommy.make(mct, pk=pk)
+        tipo_conteudo_related = mommy.make(mct, pk=pk + 1)
 
         response = admin_client.post(
             reverse('sapl.materia:proposicao_create'),
@@ -475,7 +475,7 @@ def test_proposicao_submit(admin_client):
         assert proposicao is not None
         assert proposicao.descricao == 'Teste proposição'
         assert proposicao.tipo.pk == 3
-        assert proposicao.tipo.tipo_conteudo_related.pk == pk
+        assert proposicao.tipo.tipo_conteudo_related.pk == pk + 1
 
 
 @pytest.mark.django_db(transaction=False)

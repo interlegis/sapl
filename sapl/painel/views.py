@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud.base import Crud
+from sapl.painel.apps import AppConfig
 from sapl.painel.models import Painel
 from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
@@ -15,11 +16,14 @@ from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
 
 from .models import Cronometro
 
+
 CronometroPainelCrud = Crud.build(Cronometro, '')
+
+# FIXME mudar lógica
 
 
 def check_permission(user):
-    return user.has_perms(permissoes_painel())
+    return user.has_module_perms(AppConfig.label)
 
 
 @user_passes_test(check_permission)

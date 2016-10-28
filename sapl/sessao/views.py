@@ -2,6 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -28,10 +29,9 @@ from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import (Legislatura, Parlamentar,
                                        SessaoLegislativa)
-from sapl.sessao import apps
+
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import permission_required_for_app
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
@@ -44,6 +44,7 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
+
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
@@ -83,7 +84,7 @@ def reordernar_materias_ordem(request, pk):
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
 
-@permission_required_for_app(app_label=apps.AppConfig.label)
+@permission_required('sessao.change_expedientemateria')
 def abrir_votacao_expediente_view(request, pk, spk):
     existe_votacao_aberta = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
@@ -100,7 +101,7 @@ def abrir_votacao_expediente_view(request, pk, spk):
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
-@permission_required_for_app(app_label=apps.AppConfig.label)
+@permission_required('sessao.change_ordemdia')
 def abrir_votacao_ordem_view(request, pk, spk):
     existe_votacao_aberta = OrdemDia.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
@@ -523,13 +524,11 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
             _('Presença'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required(
+        'sessao.add_sessaoplenariapresenca'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
-
-        if not self.request.user.has_module_perms(AppConfig.label):
-            return self.form_invalid(form)
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
@@ -603,7 +602,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
             _('Presença Ordem do Dia'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.add_presencaordemdia'))
     def post(self, request, *args, **kwargs):
 
         self.object = self.get_object()
@@ -683,7 +682,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
         return self.render_to_response(context)
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.change_ordemdia'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
@@ -785,7 +784,7 @@ class MesaView(FormMixin, DetailView):
             _('Mesa Diretora'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.change_integrantemesa'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = MesaForm(request.POST)
@@ -1040,7 +1039,7 @@ class ExpedienteView(FormMixin, DetailView):
             _('Expediente Diversos'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.add_expedientesessao'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = ExpedienteForm(request.POST)
