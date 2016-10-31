@@ -47,8 +47,7 @@ class DocumentoAdministrativoMixin:
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
-        return self.request.user.has_module_perms(
-            sapl.base.models.AppConfig.label)
+        return super().has_permission()
 
 
 class DocumentoAdministrativoCrud(Crud):
@@ -60,10 +59,10 @@ class DocumentoAdministrativoCrud(Crud):
                             'numero_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
-    class ListView(Crud.ListView, DocumentoAdministrativoMixin):
+    class ListView(DocumentoAdministrativoMixin, Crud.ListView):
         pass
 
-    class DetailView(Crud.DetailView, DocumentoAdministrativoMixin):
+    class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         pass
 
 
@@ -356,9 +355,9 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
-class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
-                                           FilterView,
-                                           DocumentoAdministrativoMixin):
+class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
+                                           PermissionRequiredMixin,
+                                           FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
@@ -565,65 +564,13 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
 
-    class ListView(MasterDetailCrud.ListView, DocumentoAdministrativoMixin):
+    class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
-    class DetailView(MasterDetailCrud.DetailView,
-                     DocumentoAdministrativoMixin):
+    class DetailView(DocumentoAdministrativoMixin,
+                     MasterDetailCrud.DetailView):
         pass
-
-
-"""
-def get_nome_autor(request):
-    nome_autor = ''
-    if request.method == 'GET':
-        id = request.GET.get('id', '')
-        try:
-            autor = Autor.objects.get(pk=id)
-            if autor.parlamentar:
-                nome_autor = autor.parlamentar.nome_parlamentar
-            elif autor.comissao:
-                nome_autor = autor.comissao.nome
-        except ObjectDoesNotExist:
-            pass
-    return HttpResponse("{\"nome\":\"" + nome_autor + "\"}",
-                        content_type="application/json; charset=utf-8")"""
-
-"""
-def pesquisa_autores(request):
-    q = ''
-    if request.method == 'GET':
-        q = request.GET.get('q', '')
-
-    autor = Autor.objects.filter(
-        Q(nome__icontains=q) |
-        Q(parlamentar__nome_parlamentar__icontains=q) |
-        Q(comissao__nome__icontains=q)
-    )
-
-    autor = Autor.objects.filter(nome__icontains=q)
-
-    autores = []
-
-    for a in autor:
-        nome = ''
-        if a.nome:
-            nome = a.nome
-        elif a.parlamentar:
-            nome = a.parlamentar.nome_parlamentar
-        elif a.comissao:
-            nome = a.comissao.nome
-
-        autores.append((a.id, nome))
-
-    autores = sorted(autores, key=lambda x: x[1])
-
-    return HttpResponse(json.dumps(autores,
-                                   sort_keys=True,
-                                   ensure_ascii=False),
-                        content_type="application/json; charset=utf-8")
-"""
