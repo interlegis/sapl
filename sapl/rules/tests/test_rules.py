@@ -6,8 +6,12 @@ from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 import pytest
 
+from sapl.base.models import CasaLegislativa, ProblemaMigracao
+from sapl.compilacao.models import TipoDispositivo,\
+    PerfilEstruturalTextoArticulado, TipoDispositivoRelationship
+from sapl.materia.models import AcompanhamentoMateria
 from sapl.rules import SAPL_GROUPS
-from sapl.rules.map_rules import rules_patterns
+from sapl.rules import map_rules
 from sapl.test_urls import create_perms_post_migrate
 from scripts.lista_permissions_in_decorators import \
     lista_permissions_in_decorators
@@ -26,7 +30,7 @@ sapl_models.reverse()
 def test_groups_in_rules_patterns(group_item):
 
     test = False
-    for rules_group in rules_patterns:
+    for rules_group in map_rules.rules_patterns:
         if rules_group['group'] == group_item:
             test = True
 
@@ -37,7 +41,7 @@ def test_groups_in_rules_patterns(group_item):
 def test_models_in_rules_patterns(model_item):
 
     test = False
-    for rules_group in rules_patterns:
+    for rules_group in map_rules.rules_patterns:
         rules_model = rules_group['rules']
         for rm in rules_model:
             if rm[0] == model_item:
@@ -49,6 +53,68 @@ def test_models_in_rules_patterns(model_item):
                        str(model_item),
                        model_item._meta.verbose_name)
 
+# __falsos_positivos__
+__fp__in__test_permission_of_models_in_rules_patterns = {
+    map_rules.RP_ADD: [CasaLegislativa,
+                       ProblemaMigracao,
+                       TipoDispositivo,
+                       TipoDispositivoRelationship,
+                       PerfilEstruturalTextoArticulado],
+
+    map_rules.RP_CHANGE: [ProblemaMigracao,
+                          AcompanhamentoMateria,
+                          TipoDispositivo,
+                          TipoDispositivoRelationship,
+                          PerfilEstruturalTextoArticulado],
+
+    map_rules.RP_DELETE: [CasaLegislativa,
+                          ProblemaMigracao,
+                          TipoDispositivo,
+                          TipoDispositivoRelationship,
+                          PerfilEstruturalTextoArticulado],
+
+    map_rules.RP_LIST: [ProblemaMigracao,
+                        AcompanhamentoMateria,
+                        TipoDispositivo,
+                        TipoDispositivoRelationship,
+                        PerfilEstruturalTextoArticulado],
+
+    map_rules.RP_DETAIL: [ProblemaMigracao,
+                          AcompanhamentoMateria,
+                          TipoDispositivo,
+                          TipoDispositivoRelationship,
+                          PerfilEstruturalTextoArticulado]
+
+}
+
+
+@pytest.mark.parametrize('model_item', sapl_models)
+def test_permission_of_models_in_rules_patterns(model_item):
+
+    permissions = map_rules.__base__ + list(map(lambda x: x[0],
+                                                model_item._meta.permissions))
+
+    __fp__ = __fp__in__test_permission_of_models_in_rules_patterns
+    for perm in permissions:
+        if perm in __fp__ and model_item in __fp__[perm]:
+            continue
+
+        test = False
+        for rules_group in map_rules.rules_patterns:
+            rules_model = rules_group['rules']
+            for rm in rules_model:
+                model = rm[0]
+                rules = rm[1]
+                if model == model_item:
+                    if perm in rules:
+                        test = True
+                        break
+
+        assert test, _('A permissão (%s) do model (%s) não foi adicionado em '
+                       'nenhum grupo padrão para regras de acesso.') % (
+                           perm,
+                           str(model_item))
+
 
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('model_item', sapl_models)
@@ -57,7 +123,7 @@ def test_permission_of_rules_exists(model_item):
     print(model_item)
     create_perms_post_migrate(model_item._meta.app_config)
 
-    for rules_group in rules_patterns:
+    for rules_group in map_rules.rules_patterns:
         rules_model = rules_group['rules']
         for rm in rules_model:
             model = rm[0]
@@ -77,7 +143,8 @@ def test_permission_of_rules_exists(model_item):
                     content_type=content_type,
                     codename=codename).exists()
 
-                assert p, _('Permissão (%s) no model (%s) não existe.') % (
+                assert p, _('Permissão (%s) associada ao model (%s) '
+                            'não está em _meta.permissions.') % (
                     codename,
                     model_item)
 

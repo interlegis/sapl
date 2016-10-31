@@ -205,8 +205,8 @@ rules_group_geral = {
         (comissoes.TipoComissao, __base__),
         (comissoes.Periodo, __base__),
 
-        (materia.AssuntoMateria, []),  # não há implementação
-        (materia.MateriaAssunto, []),  # não há implementação
+        (materia.AssuntoMateria, __base__),  # não há implementação
+        (materia.MateriaAssunto, __base__),  # não há implementação
         (materia.TipoProposicao, __base__),
         (materia.TipoMateriaLegislativa, __base__),
         (materia.RegimeTramitacao, __base__),
