@@ -88,11 +88,18 @@ __fp__in__test_permission_of_models_in_rules_patterns = {
 }
 
 
+@pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('model_item', sapl_models)
 def test_permission_of_models_in_rules_patterns(model_item):
 
-    permissions = map_rules.__base__ + list(map(lambda x: x[0],
-                                                model_item._meta.permissions))
+    create_perms_post_migrate(model_item._meta.app_config)
+    permissions = map_rules.__base__ + list(
+        filter(
+            lambda perm: not perm.startswith(
+                'detail_') and not perm.startswith('list_'),
+            map(lambda x: x[0],
+                model_item._meta.permissions))
+    )
 
     __fp__ = __fp__in__test_permission_of_models_in_rules_patterns
     for perm in permissions:
