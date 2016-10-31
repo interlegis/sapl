@@ -9,6 +9,8 @@ import pytest
 from sapl.rules import SAPL_GROUPS
 from sapl.rules.map_rules import rules_patterns
 from sapl.test_urls import create_perms_post_migrate
+from scripts.lista_permissions_in_decorators import \
+    lista_permissions_in_decorators
 from scripts.lista_urls import lista_urls
 
 
@@ -152,3 +154,29 @@ def test_permission_required_of_views_exists(url_item):
                 assert p, _('Permissão (%s) na view (%s) não existe.') % (
                     codename,
                     view)
+
+
+_lista_permissions_in_decorators = lista_permissions_in_decorators()
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('permission', _lista_permissions_in_decorators)
+def test_permission_required_of_decorators(permission):
+    """
+    testa se, nos decorators permission_required com ou sem method_decorator
+    as permissões fixas escritas manualmente realmente exitem em Permission
+    """
+
+    for app in sapl_appconfs:
+        # readequa permissões dos models adicionando
+        # list e detail permissions
+        create_perms_post_migrate(app)
+
+    codename = permission[0].split('.')
+    p = Permission.objects.filter(
+        content_type__app_label=codename[0],
+        codename=codename[1]).exists()
+
+    assert p, _('Permissão (%s) na view (%s) não existe.') % (
+        permission[0],
+        permission[1])
