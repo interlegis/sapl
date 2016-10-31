@@ -21,7 +21,10 @@ from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
 def recupera_anos():
     try:
         anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
-        anos = [(k.year, k.year) for k in anos_list]
+        # a listagem deve ser em ordem descrescente, mas por algum motivo
+        # a adicao de .order_by acima depois do all() nao surte efeito
+        # apos a adicao do .dates(), por isso o reversed() abaixo
+        anos = [(k.year, k.year) for k in reversed(anos_list)]
         return anos
     except:
         return []
