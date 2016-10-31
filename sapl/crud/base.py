@@ -16,25 +16,24 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
+from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE,
+                                  RP_DETAIL, RP_LIST)
 from sapl.settings import BASE_DIR
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(BASE_DIR.name)
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
-
-# RP - Radical das permissões para "..."
-RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE =\
-    '.list_', '.detail_', '.add_', '.change_', '.delete_',
 
 
 def _form_invalid_message(msg):
