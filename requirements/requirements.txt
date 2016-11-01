@@ -8,7 +8,7 @@ django-compressor==2.0
 django-crispy-forms==1.6.0
 django-extensions==1.6.7
 django-extra-views==0.8.0
-django-filter==0.11.0
+django-filter==0.15.3
 django-floppyforms==1.6.2
 django-model-utils==2.5
 django-sass-processor==0.4.6
