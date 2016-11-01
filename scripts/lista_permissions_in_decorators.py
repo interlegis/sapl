@@ -2,7 +2,6 @@ import ast
 import inspect
 import os
 
-
 if __name__ == '__main__':
 
     import django

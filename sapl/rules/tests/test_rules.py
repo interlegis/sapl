@@ -7,11 +7,11 @@ from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import CasaLegislativa, ProblemaMigracao
-from sapl.compilacao.models import TipoDispositivo,\
-    PerfilEstruturalTextoArticulado, TipoDispositivoRelationship
+from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
+                                    TipoDispositivo,
+                                    TipoDispositivoRelationship)
 from sapl.materia.models import AcompanhamentoMateria
-from sapl.rules import SAPL_GROUPS
-from sapl.rules import map_rules
+from sapl.rules import SAPL_GROUPS, map_rules
 from sapl.test_urls import create_perms_post_migrate
 from scripts.lista_permissions_in_decorators import \
     lista_permissions_in_decorators

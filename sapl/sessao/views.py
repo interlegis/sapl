@@ -70,7 +70,7 @@ def reordernar_materias_expediente(request, pk):
 def reordernar_materias_ordem(request, pk):
     ordens = OrdemDia.objects.filter(
         sessao_plenaria_id=pk)
-    for ordem_num, o in enumerate(ordens,1):
+    for ordem_num, o in enumerate(ordens, 1):
         o.numero_ordem = ordem_num
         o.save()
 

@@ -84,7 +84,7 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
-    # TODO implmentar o mapa de fields e utiliza-lo em IntegracaoTaView
+    # TODO implementar o mapa de fields e utiliza-lo em IntegracaoTaView
     fields = {
     }
 

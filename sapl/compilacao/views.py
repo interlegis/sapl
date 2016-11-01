@@ -53,8 +53,7 @@ TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = Crud.build(
-    TipoDispositivo, 'tipo_dispositivo')
+TipoDispositivoCrud = Crud.build(TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)
 
