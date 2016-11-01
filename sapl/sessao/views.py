@@ -59,11 +59,9 @@ TipoResultadoVotacaoCrud = CrudAux.build(
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=pk)
-    exp_num = 1
-    for e in expedientes:
+    for exp_num, e in enumerate(expedientes, 1):
         e.numero_ordem = exp_num
         e.save()
-        exp_num += 1
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
@@ -72,11 +70,9 @@ def reordernar_materias_expediente(request, pk):
 def reordernar_materias_ordem(request, pk):
     ordens = OrdemDia.objects.filter(
         sessao_plenaria_id=pk)
-    ordem_num = 1
-    for o in ordens:
+    for ordem_num, o in enumerate(ordens,1):
         o.numero_ordem = ordem_num
         o.save()
-        ordem_num += 1
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
