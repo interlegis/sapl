@@ -1,29 +1,25 @@
-from datetime import date
-from functools import wraps
-from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
 import re
+from datetime import date
+from functools import wraps
+from unicodedata import normalize as unicodedata_normalize
 
+import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
-
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -399,12 +395,12 @@ def permissoes(nome_grupo, app_label):
 
 def permission_required_for_app(app_label, login_url=None,
                                 raise_exception=False):
-    
+
     Decorator for views that checks whether a user has a particular permission
     enabled, redirecting to the log-in page if necessary.
     If the raise_exception parameter is given the PermissionDenied exception
     is raised.
-   
+
     def check_perms(user):
         if user.has_module_perms(app_label):
             return True

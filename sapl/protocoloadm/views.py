@@ -12,10 +12,10 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
-from sapl.utils import (create_barcode, get_client_ip)
-import sapl
+from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -26,14 +26,13 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
 
 
-#ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
+# ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
-#ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+# ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
 DocumentoAcessorioAdministrativoCrud = Crud.build(

@@ -1,7 +1,8 @@
 
-from datetime import date, datetime
 import os
+from datetime import date, datetime
 
+import django_filters
 from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
                                     InlineRadios)
 from crispy_forms.helper import FormHelper
@@ -17,8 +18,8 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -32,7 +33,6 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
-import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao,
