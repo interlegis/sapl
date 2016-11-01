@@ -1,11 +1,10 @@
-import hashlib
-import logging
-import re
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+import hashlib
+import logging
+import re
 
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -17,9 +16,12 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+import django_filters
+import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
+
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -464,6 +466,50 @@ def permissao_tb_aux(self):
         return False
 
 """
+
+
+class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
+
+    choices = (
+        ('', 'Selecione'),
+        ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
+        ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
+        ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
+        ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
+    )
+    order_by_mapping = {
+        '': [],
+        'dataC': ['data_apresentacao', 'tipo__sigla', 'ano', 'numero'],
+        'dataD': ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero'],
+        'tipoC': ['tipo__sigla', 'ano', 'numero', 'data_apresentacao'],
+        'tipoD': ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao'],
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = self.choices
+        super(MateriaPesquisaOrderingFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        return super().filter(qs, self.order_by_mapping[value[0]])
+
+
+class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
+
+    choices = (('', 'Selecione...'),
+               ('CRE', 'Ordem Crescente'),
+               ('DEC', 'Ordem Decrescente'),)
+    order_by_mapping = {
+        '': [],
+        'CRE': ['ano', 'numero'],
+        'DEC': ['-ano', '-numero'],
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = self.choices
+        super(AnoNumeroOrderingFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        return super().filter(qs, self.order_by_mapping[value[0]])
 
 
 def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
