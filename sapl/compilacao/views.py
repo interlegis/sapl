@@ -1,7 +1,7 @@
-import logging
-import sys
 from collections import OrderedDict
 from datetime import datetime, timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -20,8 +20,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -46,14 +46,15 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
-from sapl.crud.base import Crud, CrudListView, make_pagination
+from sapl.crud.base import Crud, CrudListView, make_pagination, CrudAux
 from sapl.settings import BASE_DIR
 
-TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
-TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
-TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
-VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = Crud.build(TipoDispositivo, 'tipo_dispositivo')
+TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
+TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = CrudAux.build(
+    TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)
 
@@ -84,6 +85,24 @@ def choice_models_in_extenal_views():
                     ct[0].pk,
                     item.model._meta.verbose_name_plural))
     return result
+
+
+def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
+    yield None, '-------------'
+
+    if not id_tipo_ta:
+        return
+
+    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
+
+    integrations_view_names = get_integrations_view_names()
+    for item in integrations_view_names:
+        if hasattr(item, 'model_type_foreignkey'):
+            if (tipo_ta.content_type.model == item.model.__name__.lower() and
+                    tipo_ta.content_type.app_label ==
+                    item.model._meta.app_label):
+                for i in item.model_type_foreignkey.objects.all():
+                    yield i.pk, i
 
 
 class IntegracaoTaView(TemplateView):
@@ -159,32 +178,12 @@ class IntegracaoTaView(TemplateView):
 
         ta.save()
 
-        return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
-                                        kwargs={'ta_id': ta.pk}))
-
-        """msg = messages.error if not request.user.is_anonymous(
-        ) else messages.info
-
-        msg(request,
-            _('A funcionalidade de Textos Articulados está desativada.'))
-
-        if not request.user.is_anonymous():
-            msg(
-                request,
-                _('Para ativá-la, os Tipos de Textos devem ser criados.'))
-
-            msg(request,
-                _('Sua tela foi redirecionada para a tela de '
-                  'cadastro de Textos Articulados.'))
-
-            return redirect(to=reverse_lazy('sapl.compilacao:tipo_ta_list',
-                                            kwargs={}))
+        if Dispositivo.objects.filter(ta_id=ta.pk).exists():
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
+                                            kwargs={'ta_id': ta.pk}))
         else:
-
-        return redirect(to=reverse_lazy(
-            '%s:%s_detail' % (
-                item._meta.app_config.name, item._meta.model_name),
-            kwargs={'pk': item.pk}))"""
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text_edit',
+                                            kwargs={'ta_id': ta.pk}))
 
     def import_pattern(self):
 
@@ -537,24 +536,6 @@ class VideMixin(DispositivoSuccessUrlMixin):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(VideMixin, self).dispatch(*args, **kwargs)
-
-
-def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
-    yield None, '-------------'
-
-    if not id_tipo_ta:
-        return
-
-    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
-
-    integrations_view_names = get_integrations_view_names()
-    for item in integrations_view_names:
-        if hasattr(item, 'model_type_foreignkey'):
-            if (tipo_ta.content_type.model == item.model.__name__.lower() and
-                    tipo_ta.content_type.app_label ==
-                    item.model._meta.app_label):
-                for i in item.model_type_foreignkey.objects.all():
-                    yield i.pk, i
 
 
 class VideCreateView(VideMixin, CreateView):
@@ -1719,6 +1700,12 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                             class_css__in=classes_ja_inseridas)
 
                 for td in otds:
+
+                    if td.dispositivo_de_alteracao:
+                        if not self.request.user.has_perm(
+                                'compilacao.'
+                                'change_dispositivo_registros_compilacao'):
+                            continue
 
                     if paradentro and not td.permitido_inserir_in(
                         tipb,
