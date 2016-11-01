@@ -84,7 +84,7 @@ class NormaJuridicaPesquisaForm(ModelForm):
     ano = forms.ModelChoiceField(
         label='Ano',
         required=False,
-        queryset=NormaJuridica.objects.order_by('ano').values_list(
+        queryset=NormaJuridica.objects.order_by('-ano').values_list(
             'ano', flat=True).distinct(),
         empty_label='Selecione'
     )
