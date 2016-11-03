@@ -3,6 +3,7 @@ from datetime import date, datetime
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.http import HttpResponseRedirect
@@ -14,7 +15,7 @@ from django_filters.views import FilterView
 
 import sapl
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
-from sapl.materia.models import TipoMateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
@@ -274,6 +275,24 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ProtocoloMostrarView, self).get_context_data(**kwargs)
         protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+
+        if protocolo.tipo_materia:
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    numero_protocolo=protocolo.numero, ano=protocolo.ano)
+            except ObjectDoesNotExist:
+                context['materia'] = None
+            else:
+                context['materia'] = materia
+        elif protocolo.tipo_documento:
+            try:
+                documento = DocumentoAdministrativo.objects.get(
+                    numero_protocolo=protocolo.numero, ano=protocolo.ano)
+            except ObjectDoesNotExist:
+                context['documento'] = None
+            else:
+                context['documento'] = documento
+
         context['protocolo'] = protocolo
         return context
 

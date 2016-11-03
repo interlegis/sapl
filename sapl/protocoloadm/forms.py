@@ -553,6 +553,10 @@ class DocumentoAdministrativoForm(ModelForm):
                   'texto_integral',
                   ]
 
+    def save(self, commit=True):
+        documento = super(DocumentoAdministrativoForm, self).save(commit)
+        return documento
+
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(

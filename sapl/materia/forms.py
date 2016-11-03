@@ -72,13 +72,13 @@ class MateriaSimplificadaForm(ModelForm):
     class Meta:
         model = MateriaLegislativa
         fields = ['tipo', 'numero', 'ano', 'data_apresentacao',
-                  'numero_origem_externa', 'regime_tramitacao',
+                  'numero_protocolo', 'regime_tramitacao',
                   'em_tramitacao', 'ementa', 'texto_original']
 
     def __init__(self, *args, **kwargs):
 
         row1 = to_row([('tipo', 6), ('numero', 3), ('ano', 3)])
-        row2 = to_row([('data_apresentacao', 6), ('numero_origem_externa', 6)])
+        row2 = to_row([('data_apresentacao', 6), ('numero_protocolo', 6)])
         row3 = to_row([('regime_tramitacao', 6), ('em_tramitacao', 6)])
         row4 = to_row([('ementa', 12)])
         row5 = to_row([('texto_original', 12)])

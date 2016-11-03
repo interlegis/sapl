@@ -1,7 +1,6 @@
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
-
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -87,8 +86,7 @@ class CriarProtocoloMateriaView(CreateView):
         context['form'].fields['numero'].initial = protocolo.numero
         context['form'].fields['ano'].initial = protocolo.ano
         context['form'].fields['data_apresentacao'].initial = protocolo.data
-        context['form'].fields[
-            'numero_origem_externa'].initial = protocolo.numero
+        context['form'].fields['numero_protocolo'].initial = protocolo.numero
         context['form'].fields['ementa'].initial = protocolo.observacao
 
         return context

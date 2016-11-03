@@ -15,13 +15,26 @@
 
 	<br />
 
-	<strong>Documento Vinculado:</strong></br>
+	<strong>Documento Vinculado:</strong>
 
 	{% if protocolo.tipo_documento %}
-		<a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>
+		{% if documento %}
+			<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' documento.pk %}"> {{documento}} </a>
+			</br>
+		{% else %}
+			<br />
+			<a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>
+		{% endif %}
 	{% elif protocolo.tipo_materia %}
-		<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>
+		{% if materia %}
+			<a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}"> {{materia}} </a>
+			</br>
+		{% else %}
+			<br />
+			<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>
+		{% endif %}
 	{% endif %}
+
 
 	&nbsp;&nbsp;&nbsp;&nbsp;
 	<a target="popup" class="btn btn-primary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk%}','Comprovante','width=800, height=600')">Comprovante
