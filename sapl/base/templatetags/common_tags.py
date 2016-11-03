@@ -3,6 +3,7 @@ from django import template
 
 from sapl.base.models import AppConfig
 from sapl.parlamentares.models import Filiacao
+
 register = template.Library()
 
 

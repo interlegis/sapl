@@ -28,11 +28,11 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia import apps
 from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, ProposicaoForm,
                                 TipoProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
+from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
@@ -40,8 +40,9 @@ import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
-                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
-                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
+                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
+                    ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
@@ -67,9 +68,49 @@ TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
 
 
+class CriarProtocoloMateriaView(CreateView):
+    template_name = "crud/form.html"
+    form_class = MateriaSimplificadaForm
+    form_valid_message = _('Matéria cadastrada com sucesso!')
+
+    def get_success_url(self, materia):
+        return reverse('sapl.materia:materialegislativa_detail', kwargs={
+            'pk': materia.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            CriarProtocoloMateriaView, self).get_context_data(**kwargs)
+
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+
+        context['form'].fields['tipo'].initial = protocolo.tipo_materia
+        context['form'].fields['numero'].initial = protocolo.numero
+        context['form'].fields['ano'].initial = protocolo.ano
+        context['form'].fields['data_apresentacao'].initial = protocolo.data
+        context['form'].fields[
+            'numero_origem_externa'].initial = protocolo.numero
+        context['form'].fields['ementa'].initial = protocolo.observacao
+
+        return context
+
+    def form_valid(self, form):
+        materia = form.save()
+        return redirect(self.get_success_url(materia))
+
+
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
     model_type_foreignkey = TipoMateriaLegislativa
+    map_fields = {
+        'data': 'data_apresentacao',
+        'ementa': 'ementa',
+        'observacao': None,
+        'numero': 'numero',
+        'ano': 'ano',
+    }
+    map_funcs = {
+        'publicacao_func': False
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -86,8 +127,15 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
-    # TODO implmentar o mapa de fields e utiliza-lo em IntegracaoTaView
-    fields = {
+    map_fields = {
+        'data': 'data_recebimento',
+        'ementa': 'descricao',
+        'observacao': None,
+        'numero': 'numero_proposicao',
+        'ano': 'ano',
+    }
+    map_funcs = {
+        'publicacao_func': False
     }
 
     def get(self, request, *args, **kwargs):

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
@@ -8,18 +9,16 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import UnidadeTramitacao
-from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
-                        autor_modal)
+from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
+                        RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
-
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 
@@ -69,6 +68,8 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         widget=forms.Select(
             attrs={'class': 'selector'}))
 
+    o = AnoNumeroOrderingFilter()
+
     class Meta:
         model = Protocolo
         fields = ['numero',
@@ -76,25 +77,6 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                   'data',
                   'tipo_materia',
                   ]
-
-        order_by = (
-            ('', 'Selecione'),
-            ('CRE', 'Ordem Crescente'),
-            ('DEC', 'Ordem Decrescente'),
-        )
-
-    order_by_mapping = {
-        '': [],
-        'CRE': ['ano', 'numero'],
-        'DEC': ['-ano', '-numero'],
-    }
-
-    def get_order_by(self, order_value):
-        if order_value in self.order_by_mapping:
-            return self.order_by_mapping[order_value]
-        else:
-            return super(ProtocoloFilterSet,
-                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
@@ -163,6 +145,8 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     interessado = django_filters.CharFilter(lookup_expr='icontains')
 
+    o = AnoNumeroOrderingFilter()
+
     class Meta:
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -171,25 +155,6 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                   'data',
                   'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
-
-        order_by = (
-            ('', 'Selecione'),
-            ('CRE', 'Ordem Crescente'),
-            ('DEC', 'Ordem Decrescente'),
-        )
-
-    order_by_mapping = {
-        '': [],
-        'CRE': ['ano', 'numero'],
-        'DEC': ['-ano', '-numero'],
-    }
-
-    def get_order_by(self, order_value):
-        if order_value in self.order_by_mapping:
-            return self.order_by_mapping[order_value]
-        else:
-            return super(DocumentoAdministrativoFilterSet,
-                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(DocumentoAdministrativoFilterSet, self).__init__(*args, **kwargs)

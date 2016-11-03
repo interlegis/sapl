@@ -5,11 +5,13 @@
 
 {% block base_content %}
   {% block actions %}
-    <div class="actions btn-group pull-right" role="group">
-      <a href="{{ view.create_url }}" class="btn btn-default">
-        {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.TipoTextoArticulado'%}
-      </a>
-    </div>
+    {% if perms.compilacao.add_tipotextoarticulado %}
+      <div class="actions btn-group pull-right" role="group">
+        <a href="{{ view.create_url }}" class="btn btn-default">
+          {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.TipoTextoArticulado'%}
+        </a>
+      </div>
+    {% endif %}
   {% endblock actions %}
 
   {% if not object_list %}

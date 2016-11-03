@@ -16,7 +16,6 @@ from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
 
 from .models import Cronometro
 
-
 CronometroPainelCrud = Crud.build(Cronometro, '')
 
 # FIXME mudar lógica

@@ -1,7 +1,8 @@
 
-from datetime import date, datetime
 import os
+from datetime import date, datetime
 
+import django_filters
 from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
                                     InlineRadios)
 from crispy_forms.helper import FormHelper
@@ -17,22 +18,23 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import RegimeTramitacao, TipoDocumento, TipoProposicao
+from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
+                                 TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        ChoiceWithoutValidationField, RangeWidgetOverride,
+                        ChoiceWithoutValidationField,
+                        MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
-import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao,
@@ -63,6 +65,33 @@ class ReceberProposicaoForm(Form):
             )
         )
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
+
+
+class MateriaSimplificadaForm(ModelForm):
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'numero', 'ano', 'data_apresentacao',
+                  'numero_origem_externa', 'regime_tramitacao',
+                  'em_tramitacao', 'ementa', 'texto_original']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([('tipo', 6), ('numero', 3), ('ano', 3)])
+        row2 = to_row([('data_apresentacao', 6), ('numero_origem_externa', 6)])
+        row3 = to_row([('regime_tramitacao', 6), ('em_tramitacao', 6)])
+        row4 = to_row([('ementa', 12)])
+        row5 = to_row([('texto_original', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Formulário Simplificado'),
+                row1, row2, row3, row4, row5,
+                form_actions(save_label='Salvar')
+            )
+        )
+        super(MateriaSimplificadaForm, self).__init__(*args, **kwargs)
 
 
 class UnidadeTramitacaoForm(ModelForm):
@@ -444,6 +473,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                                                 label=u'Ano da Matéria',
                                                 choices=em_tramitacao)
 
+    o = MateriaPesquisaOrderingFilter()
+
     class Meta:
         model = MateriaLegislativa
         fields = ['numero',
@@ -453,36 +484,13 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  # 'autoria__autor__partido',
+                  # FIXME 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
                   'em_tramitacao',
                   ]
-
-        order_by = (
-            ('', 'Selecione'),
-            ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
-            ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
-            ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
-            ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
-        )
-
-    order_by_mapping = {
-        '': [],
-        'dataC': ['data_apresentacao', 'tipo__sigla', 'ano', 'numero'],
-        'dataD': ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero'],
-        'tipoC': ['tipo__sigla', 'ano', 'numero', 'data_apresentacao'],
-        'tipoD': ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao'],
-    }
-
-    def get_order_by(self, order_value):
-        if order_value in self.order_by_mapping:
-            return self.order_by_mapping[order_value]
-        else:
-            return super(MateriaLegislativaFilterSet,
-                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)

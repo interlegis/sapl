@@ -12,10 +12,10 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import TipoMateriaLegislativa
-from sapl.utils import (create_barcode, get_client_ip)
-import sapl
+from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -26,14 +26,13 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
-
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
 
 
-#ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
+# ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
-#ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+# ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
 DocumentoAcessorioAdministrativoCrud = Crud.build(
@@ -47,8 +46,7 @@ class DocumentoAdministrativoMixin:
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
-        return self.request.user.has_module_perms(
-            sapl.base.models.AppConfig.label)
+        return super().has_permission()
 
 
 class DocumentoAdministrativoCrud(Crud):
@@ -60,10 +58,10 @@ class DocumentoAdministrativoCrud(Crud):
                             'numero_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
-    class ListView(Crud.ListView, DocumentoAdministrativoMixin):
+    class ListView(DocumentoAdministrativoMixin, Crud.ListView):
         pass
 
-    class DetailView(Crud.DetailView, DocumentoAdministrativoMixin):
+    class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         pass
 
 
@@ -314,8 +312,9 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     form_valid_message = _('Matéria cadastrada com sucesso!')
     permission_required = ('protocoloadm.add_protocolo',)
 
-    def get_success_url(self):
-        return reverse('sapl.protocoloadm:protocolo')
+    def get_success_url(self, protocolo):
+        return reverse('sapl.protocoloadm:materia_continuar', kwargs={
+            'pk': protocolo.pk})
 
     def form_valid(self, form):
         try:
@@ -353,12 +352,25 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
         protocolo.save()
-        return redirect(self.get_success_url())
+        return redirect(self.get_success_url(protocolo))
 
 
-class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
-                                           FilterView,
-                                           DocumentoAdministrativoMixin):
+class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
+
+    template_name = "protocoloadm/MateriaTemplate.html"
+    permission_required = ('protocoloadm.detail_protocolo', )
+
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloMateriaTemplateView, self).get_context_data(
+            **kwargs)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        context.update({'protocolo': protocolo})
+        return context
+
+
+class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
+                                           PermissionRequiredMixin,
+                                           FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
@@ -565,65 +577,13 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
 
-    class ListView(MasterDetailCrud.ListView, DocumentoAdministrativoMixin):
+    class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
-    class DetailView(MasterDetailCrud.DetailView,
-                     DocumentoAdministrativoMixin):
+    class DetailView(DocumentoAdministrativoMixin,
+                     MasterDetailCrud.DetailView):
         pass
-
-
-"""
-def get_nome_autor(request):
-    nome_autor = ''
-    if request.method == 'GET':
-        id = request.GET.get('id', '')
-        try:
-            autor = Autor.objects.get(pk=id)
-            if autor.parlamentar:
-                nome_autor = autor.parlamentar.nome_parlamentar
-            elif autor.comissao:
-                nome_autor = autor.comissao.nome
-        except ObjectDoesNotExist:
-            pass
-    return HttpResponse("{\"nome\":\"" + nome_autor + "\"}",
-                        content_type="application/json; charset=utf-8")"""
-
-"""
-def pesquisa_autores(request):
-    q = ''
-    if request.method == 'GET':
-        q = request.GET.get('q', '')
-
-    autor = Autor.objects.filter(
-        Q(nome__icontains=q) |
-        Q(parlamentar__nome_parlamentar__icontains=q) |
-        Q(comissao__nome__icontains=q)
-    )
-
-    autor = Autor.objects.filter(nome__icontains=q)
-
-    autores = []
-
-    for a in autor:
-        nome = ''
-        if a.nome:
-            nome = a.nome
-        elif a.parlamentar:
-            nome = a.parlamentar.nome_parlamentar
-        elif a.comissao:
-            nome = a.comissao.nome
-
-        autores.append((a.id, nome))
-
-    autores = sorted(autores, key=lambda x: x[1])
-
-    return HttpResponse(json.dumps(autores,
-                                   sort_keys=True,
-                                   ensure_ascii=False),
-                        content_type="application/json; charset=utf-8")
-"""

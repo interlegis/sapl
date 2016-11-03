@@ -9,8 +9,9 @@
   <div class="clearfix">
     {% block actions %}
       <div class="actions btn-group pull-right" role="group">
-        <a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_edit' object.pk %}">{% trans 'Editar' %}</a>
-        <a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_delete' object.pk %}">{% trans 'Excluir' %}</a>
+        {% if perms.compilacao.change_tipotextoarticulado %}<a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_edit' object.pk %}">{% trans 'Editar' %}</a>{% endif %}
+        {% if perms.compilacao.delete_tipotextoarticulado %}<a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_delete' object.pk %}">{% trans 'Excluir' %}</a>{% endif %}
+
       </div>
     {% endblock actions %}
   </div>

@@ -28,6 +28,17 @@ TipoNormaCrud = CrudAux.build(
 class NormaTaView(IntegracaoTaView):
     model = NormaJuridica
     model_type_foreignkey = TipoNormaJuridica
+    map_fields = {
+        'data': 'data',
+        'ementa': 'ementa',
+        'observacao': 'observacao',
+        'numero': 'numero',
+        'ano': 'ano',
+    }
+
+    map_funcs = {
+        'publicacao_func': True
+    }
 
     def get(self, request, *args, **kwargs):
         """

@@ -64,8 +64,7 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
 
         def get_queryset(self):
-            return super().get_queryset().filter(
-                data_envio__isnull=False)
+            return super().get_queryset().filter(data_envio__isnull=False)
 
 
 class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
