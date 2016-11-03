@@ -190,8 +190,8 @@ class NormaJuridicaForm(ModelForm):
             return texto_integral
 
     def save(self, commit=False):
-        norma = super(NormaJuridicaForm, self).save(commit)
+        norma = self.instance
         norma.timestamp = datetime.now()
         norma.materia = self.cleaned_data['materia']
-        norma.save()
+        norma = super(NormaJuridicaForm, self).save(commit=True)
         return norma
