@@ -47,15 +47,15 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
-from sapl.crud.base import CrudAux, CrudListView, make_pagination
+from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
 
 
-TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
-TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
-TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
-VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = CrudAux.build(
+TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
+TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = Crud.build(
     TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)
