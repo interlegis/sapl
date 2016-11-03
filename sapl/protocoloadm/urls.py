@@ -10,6 +10,7 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      DocumentoAdministrativoCrud,
                                      PesquisarDocumentoAdministrativoView,
                                      ProtocoloDocumentoView,
+                                     ProtocoloMateriaTemplateView,
                                      ProtocoloMateriaView,
                                      ProtocoloMostrarView,
                                      ProtocoloPesquisaView,
@@ -60,6 +61,8 @@ urlpatterns_protocolo = [
 
 
 
+    url(r'^protocoloadm/(?P<pk>\d+)/continuar$',
+        ProtocoloMateriaTemplateView.as_view(), name='materia_continuar'),
 
 
     url(r'^protocoloadm/anular-protocolo',

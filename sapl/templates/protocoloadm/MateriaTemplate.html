@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n common_tags%}
+
+{% block base_content %}
+<b>Matéria procololada com sucesso!</b>
+<br />
+<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' protocolo.pk%}">Imprimir Etiqueta</a>
+<a target="popup" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk%}','Comprovante','width=800, height=600')">Comprovante
+</a>
+<br />
+<a href="" class="btn btn-primary">Criar Matéria</a>
+<br />
+<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' protocolo.pk%}">Continuar</a>
+{% endblock base_content %}
