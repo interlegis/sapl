@@ -490,7 +490,8 @@ class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
         super(MateriaPesquisaOrderingFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
-        return super().filter(qs, self.order_by_mapping[value[0]])
+        _value = self.order_by_mapping[value[0]] if value else value
+        return super().filter(qs, _value)
 
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
@@ -509,7 +510,8 @@ class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
         super(AnoNumeroOrderingFilter, self).__init__(*args, **kwargs)
 
     def filter(self, qs, value):
-        return super().filter(qs, self.order_by_mapping[value[0]])
+        _value = self.order_by_mapping[value[0]] if value else value
+        return super().filter(qs, _value)
 
 
 def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
