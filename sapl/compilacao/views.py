@@ -1,7 +1,7 @@
-from collections import OrderedDict
-from datetime import datetime, timedelta
 import logging
 import sys
+from collections import OrderedDict
+from datetime import datetime, timedelta
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -20,8 +20,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -46,7 +46,7 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
-from sapl.crud.base import Crud, CrudListView, make_pagination, CrudAux
+from sapl.crud.base import CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
 
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
@@ -110,7 +110,8 @@ class IntegracaoTaView(TemplateView):
     def get_redirect_deactivated(self):
         messages.error(
             self.request,
-            _('O modulo de Textos Articulados está desativado.'))
+            _('O modulo de Textos Articulados para %s está desativado.'
+              ) % self.model._meta.verbose_name_plural)
         return redirect('/')
 
     def get(self, request,  *args, **kwargs):
@@ -125,6 +126,25 @@ class IntegracaoTaView(TemplateView):
                       'Dispositivos, entre outras informações iniciais.'),
                     str(e)))
             return self.get_redirect_deactivated()
+
+        assert hasattr(self, 'map_fields'), _(
+            """
+                O mapa dos campos não foi definido. Ele deve seguir a estrutura
+                de chaves abaixo:
+
+                    map_fields = {
+                        'data': 'data',
+                        'ementa': 'ementa',
+                        'observacao': 'observacao',
+                        'numero': 'numero',
+                        'ano': 'ano',
+                    }
+
+                Caso o model de integração não possua um dos campos,
+                implemente, ou passe `None` para as chaves que são fixas.
+            """)
+
+        mf = self.map_fields
 
         item = get_object_or_404(self.model, pk=kwargs['pk'])
         related_object_type = ContentType.objects.get_for_model(item)
@@ -146,35 +166,15 @@ class IntegracaoTaView(TemplateView):
         else:
             ta = ta[0]
 
-        if hasattr(item, 'ementa') and item.ementa:
-            ta.ementa = item.ementa
-        else:
-            ta.ementa = _('Integração com %s sem ementa.') % item
-
-        if hasattr(item, 'observacao') and item.observacao:
-            ta.observacao = item.observacao
-        else:
-            ta.observacao = _('Integração com %s sem observacao.') % item
-
-        if hasattr(item, 'numero') and item.numero:
-            ta.numero = item.numero
-        else:
-            ta.numero = int('%s%s%s' % (
-                int(datetime.now().year),
-                int(datetime.now().month),
-                int(datetime.now().day)))
-
-        if hasattr(item, 'ano') and item.ano:
-            ta.ano = item.ano
-        else:
-            ta.ano = datetime.now().year
-
-        if hasattr(item, 'data_apresentacao'):
-            ta.data = item.data_apresentacao
-        elif hasattr(item, 'data'):
-            ta.data = item.data
-        else:
-            ta.data = datetime.now()
+        ta.data = getattr(item, mf['data'],  datetime.now())
+        ta.ementa = getattr(
+            item, mf['ementa'], _('Integração com %s sem ementa.') % item)
+        ta.observacao = getattr(item, mf['observacao'], '')
+        ta.numero = getattr(item, mf['numero'], int('%s%s%s' % (
+            int(datetime.now().year),
+            int(datetime.now().month),
+            int(datetime.now().day))))
+        ta.ano = getattr(item, mf['ano'], datetime.now().year)
 
         ta.save()
 
@@ -691,39 +691,6 @@ class TextView(CompMixin, ListView):
     def get(self, request, *args, **kwargs):
         ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
         self.object = ta
-        if ta.content_object:
-            item = ta.content_object
-            self.object = item
-            if hasattr(item, 'ementa') and item.ementa:
-                ta.ementa = item.ementa
-            else:
-                ta.ementa = _('Integração com %s sem ementa.') % item
-
-            if hasattr(item, 'observacao') and item.observacao:
-                ta.observacao = item.observacao
-            else:
-                ta.observacao = _('Integração com %s sem observacao.') % item
-
-            if hasattr(item, 'numero') and item.numero:
-                ta.numero = item.numero
-            else:
-                ta.numero = int('%s%s%s' % (
-                    int(datetime.now().year),
-                    int(datetime.now().month),
-                    int(datetime.now().day)))
-
-            if hasattr(item, 'ano') and item.ano:
-                ta.ano = item.ano
-            else:
-                ta.ano = datetime.now().year
-
-            if hasattr(item, 'data_apresentacao'):
-                ta.data = item.data_apresentacao
-            elif hasattr(item, 'data'):
-                ta.data = item.data
-            else:
-                ta.data = datetime.now()
-            ta.save()
 
         return super(TextView, self).get(request, *args, **kwargs)
 
