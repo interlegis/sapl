@@ -4,7 +4,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
                                 AutoriaCrud, ConfirmarProposicao,
-                                DespachoInicialCrud, DocumentoAcessorioCrud,
+                                CriarProtocoloMateriaView, DespachoInicialCrud,
+                                DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
                                 LegislacaoCitadaCrud, MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
@@ -34,6 +35,10 @@ urlpatterns_materia = [
                               TramitacaoCrud.get_urls() +
                               RelatoriaCrud.get_urls() +
                               DocumentoAcessorioCrud.get_urls())),
+
+    url(r'^materia/(?P<pk>[0-9]+)/create_simplificado$',
+        CriarProtocoloMateriaView.as_view(),
+        name='materia_create_simplificado'),
     url(r'^materia/recuperar-materia', recuperar_materia),
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
         MateriaTaView.as_view(), name='materia_ta'),

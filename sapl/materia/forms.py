@@ -24,7 +24,8 @@ from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import RegimeTramitacao, TipoDocumento, TipoProposicao
+from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
+                                 TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
@@ -64,6 +65,33 @@ class ReceberProposicaoForm(Form):
             )
         )
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
+
+
+class MateriaSimplificadaForm(ModelForm):
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'numero', 'ano', 'data_apresentacao',
+                  'numero_origem_externa', 'regime_tramitacao',
+                  'em_tramitacao', 'ementa', 'texto_original']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([('tipo', 6), ('numero', 3), ('ano', 3)])
+        row2 = to_row([('data_apresentacao', 6), ('numero_origem_externa', 6)])
+        row3 = to_row([('regime_tramitacao', 6), ('em_tramitacao', 6)])
+        row4 = to_row([('ementa', 12)])
+        row5 = to_row([('texto_original', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Formulário Simplificado'),
+                row1, row2, row3, row4, row5,
+                form_actions(save_label='Salvar')
+            )
+        )
+        super(MateriaSimplificadaForm, self).__init__(*args, **kwargs)
 
 
 class UnidadeTramitacaoForm(ModelForm):

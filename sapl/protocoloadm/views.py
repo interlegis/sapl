@@ -312,8 +312,9 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     form_valid_message = _('Matéria cadastrada com sucesso!')
     permission_required = ('protocoloadm.add_protocolo',)
 
-    def get_success_url(self):
-        return reverse('sapl.protocoloadm:protocolo')
+    def get_success_url(self, protocolo):
+        return reverse('sapl.protocoloadm:materia_continuar', kwargs={
+            'pk': protocolo.pk})
 
     def form_valid(self, form):
         try:
@@ -351,7 +352,20 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
         protocolo.save()
-        return redirect(self.get_success_url())
+        return redirect(self.get_success_url(protocolo))
+
+
+class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
+
+    template_name = "protocoloadm/MateriaTemplate.html"
+    permission_required = ('protocoloadm.detail_protocolo', )
+
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloMateriaTemplateView, self).get_context_data(
+            **kwargs)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        context.update({'protocolo': protocolo})
+        return context
 
 
 class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
