@@ -81,6 +81,12 @@ class TipoTextoArticulado(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Participação Social'))
 
+    publicacao_func = models.NullBooleanField(
+        default=True,
+        blank=True, null=True,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Histórico de Publicação'))
+
     class Meta:
         verbose_name = _('Tipo de Texto Articulado')
         verbose_name_plural = _('Tipos de Texto Articulados')

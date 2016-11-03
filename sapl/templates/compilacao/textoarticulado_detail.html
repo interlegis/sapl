@@ -13,7 +13,7 @@
           <a href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
         {%endif%}
       </li>
-      {% if perms.compilacao.list_publicacao %}
+      {% if object.tipo_ta.publicacao_func %}
         <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
       {% endif %}
       {% if perms.compilacao.view_dispositivo_notificacoes %}

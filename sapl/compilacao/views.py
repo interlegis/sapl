@@ -119,6 +119,15 @@ class IntegracaoTaView(TemplateView):
         try:
             if settings.DEBUG or not TipoDispositivo.objects.exists():
                 self.import_pattern()
+
+                if hasattr(self, 'map_funcs'):
+                    tipo_ta = TipoTextoArticulado.objects.get(
+                        content_type=ContentType.objects.get_for_model(self.model))
+
+                    for key, value in self.map_funcs.items():
+                        setattr(tipo_ta, key, value)
+                    tipo_ta.save()
+
         except Exception as e:
             logger.error(
                 string_concat(
@@ -144,7 +153,7 @@ class IntegracaoTaView(TemplateView):
                 implemente, ou passe `None` para as chaves que são fixas.
             """)
 
-        mf = self.map_fields
+        map_fields = self.map_fields
 
         item = get_object_or_404(self.model, pk=kwargs['pk'])
         related_object_type = ContentType.objects.get_for_model(item)
@@ -166,15 +175,16 @@ class IntegracaoTaView(TemplateView):
         else:
             ta = ta[0]
 
-        ta.data = getattr(item, mf['data'],  datetime.now())
+        ta.data = getattr(item, map_fields['data'],  datetime.now())
         ta.ementa = getattr(
-            item, mf['ementa'], _('Integração com %s sem ementa.') % item)
-        ta.observacao = getattr(item, mf['observacao'], '')
-        ta.numero = getattr(item, mf['numero'], int('%s%s%s' % (
+            item, map_fields['ementa'], _(
+                'Integração com %s sem ementa.') % item)
+        ta.observacao = getattr(item, map_fields['observacao'], '')
+        ta.numero = getattr(item, map_fields['numero'], int('%s%s%s' % (
             int(datetime.now().year),
             int(datetime.now().month),
             int(datetime.now().day))))
-        ta.ano = getattr(item, mf['ano'], datetime.now().year)
+        ta.ano = getattr(item, map_fields['ano'], datetime.now().year)
 
         ta.save()
 

@@ -36,6 +36,10 @@ class NormaTaView(IntegracaoTaView):
         'ano': 'ano',
     }
 
+    map_funcs = {
+        'publicacao_func': True
+    }
+
     def get(self, request, *args, **kwargs):
         """
         Para manter a app compilacao isolada das outras aplicações,

@@ -42,10 +42,18 @@ class TipoTaForm(ModelForm):
         label=TipoTextoArticulado._meta.get_field(
             'descricao').verbose_name)
 
-    participacao_social = forms.NullBooleanField(
+    participacao_social = forms.ChoiceField(
         label=TipoTextoArticulado._meta.get_field(
             'participacao_social').verbose_name,
-        widget=forms.Select(choices=YES_NO_CHOICES),
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect(),
+        required=True)
+
+    publicacao_func = forms.ChoiceField(
+        label=TipoTextoArticulado._meta.get_field(
+            'publicacao_func').verbose_name,
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect(),
         required=True)
 
     class Meta:
@@ -54,21 +62,27 @@ class TipoTaForm(ModelForm):
                   'descricao',
                   'content_type',
                   'participacao_social',
+                  'publicacao_func'
                   ]
 
     def __init__(self, *args, **kwargs):
 
         row1 = to_row([
-            ('sigla', 2),
-            ('descricao', 4),
-            ('content_type', 3),
-            ('participacao_social', 3),
+            ('sigla', 3),
+            ('descricao', 5),
+            ('content_type', 4),
+        ])
+        row2 = to_row([
+            (InlineRadios('participacao_social'), 3),
+            (InlineRadios('publicacao_func'), 3),
         ])
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
-                     row1, css_class="col-md-12"))
+                     row1, css_class="col-md-12"),
+            Fieldset(_('Funcionalidades'),
+                     row2, css_class="col-md-12"))
         super(TipoTaForm, self).__init__(*args, **kwargs)
 
 

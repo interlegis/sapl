@@ -21,7 +21,6 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
@@ -37,6 +36,7 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
+import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
@@ -51,6 +51,7 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
+
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -107,6 +108,9 @@ class MateriaTaView(IntegracaoTaView):
         'numero': 'numero',
         'ano': 'ano',
     }
+    map_funcs = {
+        'publicacao_func': False
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -129,6 +133,9 @@ class ProposicaoTaView(IntegracaoTaView):
         'observacao': None,
         'numero': 'numero_proposicao',
         'ano': 'ano',
+    }
+    map_funcs = {
+        'publicacao_func': False
     }
 
     def get(self, request, *args, **kwargs):
