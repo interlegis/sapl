@@ -2,13 +2,24 @@
 {% load i18n common_tags%}
 
 {% block base_content %}
-<b>Matéria procololada com sucesso!</b>
-<br />
-<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' protocolo.pk%}">Imprimir Etiqueta</a>
-<a target="popup" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk%}','Comprovante','width=800, height=600')">Comprovante
-</a>
-<br />
-<a href="" class="btn btn-primary">Criar Matéria</a>
-<br />
-<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' protocolo.pk%}">Continuar</a>
+<div class="alert alert-success alert-dismissible fade in" role="alert">
+	<p align="center"><b><font color="green">Matéria procololada com sucesso!</font></b></p>
+</div>
+
+<div align="center">
+	<a href="" class="btn btn-warning">Criar Matéria</a>
+	<br /><br />
+
+	<div class="row">
+		<div class="col-md-6">
+			<a onclick="window.open('{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=400, height=200')"class="btn btn-secondary">Imprimir Etiqueta</a>
+		</div>
+		<div class="col-md-6">
+			<a target="popup" class="btn btn-secondary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk %}','Comprovante','width=800, height=700')">Imprimir Comprovante</a>
+		</div>
+	</div>
+
+	<br />
+	<a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-primary">Continuar</a>
+</div>
 {% endblock base_content %}
