@@ -104,7 +104,7 @@ class MateriaTaView(IntegracaoTaView):
     map_fields = {
         'data': 'data_apresentacao',
         'ementa': 'ementa',
-        'observacao': 'observacao',
+        'observacao': None,
         'numero': 'numero',
         'ano': 'ano',
     }

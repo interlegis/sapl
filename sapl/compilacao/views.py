@@ -7,10 +7,11 @@ from braces.views import FormMessagesMixin
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.db import connection, transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
@@ -48,6 +49,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
@@ -122,7 +124,8 @@ class IntegracaoTaView(TemplateView):
 
                 if hasattr(self, 'map_funcs'):
                     tipo_ta = TipoTextoArticulado.objects.get(
-                        content_type=ContentType.objects.get_for_model(self.model))
+                        content_type=ContentType.objects.get_for_model(
+                            self.model))
 
                     for key, value in self.map_funcs.items():
                         setattr(tipo_ta, key, value)
@@ -175,16 +178,27 @@ class IntegracaoTaView(TemplateView):
         else:
             ta = ta[0]
 
-        ta.data = getattr(item, map_fields['data'],  datetime.now())
+        ta.data = getattr(item, map_fields['data']
+                          if map_fields['data'] else 'xxx',  datetime.now())
+
         ta.ementa = getattr(
-            item, map_fields['ementa'], _(
+            item, map_fields['ementa']
+            if map_fields['ementa'] else 'xxx', _(
                 'Integração com %s sem ementa.') % item)
-        ta.observacao = getattr(item, map_fields['observacao'], '')
-        ta.numero = getattr(item, map_fields['numero'], int('%s%s%s' % (
-            int(datetime.now().year),
-            int(datetime.now().month),
-            int(datetime.now().day))))
-        ta.ano = getattr(item, map_fields['ano'], datetime.now().year)
+
+        ta.observacao = getattr(
+            item, map_fields['observacao']
+            if map_fields['observacao'] else 'xxx', '')
+
+        ta.numero = getattr(
+            item, map_fields['numero']
+            if map_fields['numero'] else 'xxx', int('%s%s%s' % (
+                int(datetime.now().year),
+                int(datetime.now().month),
+                int(datetime.now().day))))
+
+        ta.ano = getattr(item, map_fields['ano']
+                         if map_fields['ano'] else 'xxx', datetime.now().year)
 
         ta.save()
 
@@ -200,7 +214,7 @@ class IntegracaoTaView(TemplateView):
         from unipath import Path
 
         compilacao_app = Path(__file__).ancestor(1)
-        print(compilacao_app)
+        # print(compilacao_app)
         with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
             lines = f.readlines()
             lines = [line.rstrip('\n') for line in lines]
@@ -260,6 +274,11 @@ class IntegracaoTaView(TemplateView):
 
 
 class CompMixin:
+
+    @property
+    def ta(self):
+        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        return ta
 
     def get_context_data(self, **kwargs):
         context = super(CompMixin, self).get_context_data(**kwargs)
@@ -585,20 +604,38 @@ class VideDeleteView(VideMixin, TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class PublicacaoListView(CompMixin, ListView):
+class PublicacaoMixin(PermissionRequiredMixin, CompMixin):
+
+    def has_permission(self):
+        perms = self.get_permission_required()
+        # Torna a view pública se não possuir conteudo
+        # no atributo permission_required
+        return self.request.user.has_perms(perms) if len(perms) else True
+
+    def dispatch(self, request, *args, **kwargs):
+        ta = self.ta
+        if not ta.tipo_ta.publicacao_func:
+            messages.error(request, _(
+                'A funcionalidade de %s está desativada para %s.') % (
+                TipoTextoArticulado._meta.get_field(
+                    'publicacao_func').verbose_name,
+                ta.tipo_ta.descricao))
+            return redirect(reverse('sapl.compilacao:ta_text',
+                                    kwargs={'ta_id': self.kwargs['ta_id']}))
+
+        return PermissionRequiredMixin.dispatch(self, request, *args, **kwargs)
+
+
+class PublicacaoListView(PublicacaoMixin, ListView):
     model = Publicacao
     verbose_name = model._meta.verbose_name
+    permission_required = []
 
     @property
     def title(self):
         return _('%s de %s' % (
             self.model._meta.verbose_name_plural,
             self.ta))
-
-    @property
-    def ta(self):
-        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
-        return ta
 
     @property
     def create_url(self):
@@ -616,12 +653,13 @@ class PublicacaoListView(CompMixin, ListView):
         return context
 
 
-class PublicacaoCreateView(CompMixin, FormMessagesMixin, CreateView):
+class PublicacaoCreateView(PublicacaoMixin, FormMessagesMixin, CreateView):
     model = Publicacao
     form_class = PublicacaoForm
     template_name = "crud/form.html"
     form_valid_message = _('Registro criado com sucesso!')
     form_invalid_message = _('O registro não foi criado.')
+    permission_required = 'add_publicacao',
 
     def get_success_url(self):
         return reverse_lazy(
@@ -640,14 +678,16 @@ class PublicacaoCreateView(CompMixin, FormMessagesMixin, CreateView):
         return {'ta': self.kwargs['ta_id']}
 
 
-class PublicacaoDetailView(CompMixin, DetailView):
+class PublicacaoDetailView(PublicacaoMixin, DetailView):
     model = Publicacao
+    permission_required = 'detail_publicacao'
 
 
-class PublicacaoUpdateView(CompMixin, UpdateView):
+class PublicacaoUpdateView(PublicacaoMixin, UpdateView):
     model = Publicacao
     form_class = PublicacaoForm
     template_name = "crud/form.html"
+    permission_required = 'change_publicacao'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -668,9 +708,10 @@ class PublicacaoUpdateView(CompMixin, UpdateView):
         return self.get_success_url()
 
 
-class PublicacaoDeleteView(CompMixin, DeleteView):
+class PublicacaoDeleteView(PublicacaoMixin, DeleteView):
     model = Publicacao
     template_name = "crud/confirm_delete.html"
+    permission_required = 'delete_publicacao'
 
     @property
     def detail_url(self):
