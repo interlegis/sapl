@@ -21,6 +21,7 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
+TIPOS_PROTOCOLO_CREATE = [('0', 'Enviado'), ('1', 'Recebido')]
 
 NATUREZA_PROCESSO = [('', 'Ambos'),
                      ('0', 'Administrativo'),
@@ -270,7 +271,7 @@ class ProtocoloDocumentForm(ModelForm):
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
-                                       choices=TIPOS_PROTOCOLO,)
+                                       choices=TIPOS_PROTOCOLO_CREATE,)
 
     tipo_documento = forms.ModelChoiceField(
         label=_('Tipo de Documento'),
@@ -330,11 +331,6 @@ class ProtocoloDocumentForm(ModelForm):
 
 
 class ProtocoloMateriaForm(ModelForm):
-
-    tipo_protocolo = forms.ChoiceField(required=True,
-                                       label='Tipo de Protocolo',
-                                       choices=TIPOS_PROTOCOLO,)
-
     autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     def clean_autor(self):
@@ -349,8 +345,7 @@ class ProtocoloMateriaForm(ModelForm):
 
     class Meta:
         model = Protocolo
-        fields = ['tipo_protocolo',
-                  'tipo_materia',
+        fields = ['tipo_materia',
                   'numero_paginas',
                   'autor',
                   'observacao']
@@ -358,11 +353,9 @@ class ProtocoloMateriaForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [(InlineRadios('tipo_protocolo'), 12)])
-        row2 = to_row(
             [('tipo_materia', 4),
              ('numero_paginas', 4)])
-        row3 = to_row(
+        row2 = to_row(
             [('autor', 0),
              (Button('pesquisar',
                      'Pesquisar Autor',
@@ -370,25 +363,23 @@ class ProtocoloMateriaForm(ModelForm):
              (Button('limpar',
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
-        row4 = to_row(
+        row3 = to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
+                      HTML(autor_label),
+                      HTML(autor_modal),
                      row2,
-                     HTML(autor_label),
-                     HTML(autor_modal),
                      row3,
-                     row4,
                      form_actions(save_label='Protocolar Matéria')
                      )
         )
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
-        self.fields['tipo_protocolo'].inline_class = True
 
 
 class DocumentoAcessorioAdministrativoForm(ModelForm):

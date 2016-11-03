@@ -119,7 +119,7 @@ class Protocolo(models.Model):
     # TODO transformar campo timestamp em auto_now_add
     timestamp = models.DateTimeField()
     tipo_protocolo = models.PositiveIntegerField(
-        verbose_name=_('Tipo de Protocolo'))
+        blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
         max_length=60, blank=True, verbose_name=_('Interessado'))

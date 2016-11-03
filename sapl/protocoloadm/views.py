@@ -361,7 +361,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.data = datetime.now().strftime("%Y-%m-%d")
         protocolo.hora = datetime.now().strftime("%H:%M")
         protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        protocolo.tipo_protocolo = self.request.POST['tipo_protocolo']
         protocolo.tipo_processo = '0'  # TODO validar o significado
         if form.cleaned_data['autor']:
             protocolo.autor = form.cleaned_data['autor']
