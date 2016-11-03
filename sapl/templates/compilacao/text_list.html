@@ -9,17 +9,17 @@
   {{block.super}}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
-
+{% block extra_sections_nav %}{% endblock %}
 {% block base_content %}
-  {% block actions %}
-    <div class="clearfix">
-      <div class="actions btn-group pull-right" role="group">
-		{% if user.is_authenticated %}
-		  <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
-	    {% endif %}
+	{% if perms.compilacao.change_dispositivo_edicao_dinamica %}
+    {% block actions %}
+      <div class="clearfix">
+        <div class="actions btn-group pull-right" role="group">
+  		  <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        </div>
       </div>
-    </div>
-  {% endblock actions %}
+    {% endblock actions %}
+  {% endif %}
 
   {% block detail_content %}
     {{block.super}}

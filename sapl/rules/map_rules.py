@@ -137,10 +137,11 @@ rules_group_norma = {
         (compilacao.Vide, __base__),
         (compilacao.Nota, __base__),
         (compilacao.Dispositivo, __base__ + [
-            'change_dispositivo_notificacoes',
+            'view_dispositivo_notificacoes',
             'change_dispositivo_edicao_dinamica',
             'change_dispositivo_edicao_avancada',
-            'change_dispositivo_registros_compilacao'
+            'change_dispositivo_registros_compilacao',
+            'change_dispositivo_de_vigencia_global'
         ])
     ]
 }

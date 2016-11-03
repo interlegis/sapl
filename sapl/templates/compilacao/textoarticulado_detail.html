@@ -8,14 +8,20 @@
     {%if object %}
       <li>
         {% if object.content_object%}
-          <a href="{% url object|urldetail_content_type object.content_object.pk %}" title="{% trans 'Ir para '%}{{object.content_object}}">Início</a>
+          <a href="{% url object|urldetail_content_type object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
         {%else%}
           <a href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
         {%endif%}
       </li>
-      <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
-      <li><a href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
-      <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
+      {% if perms.compilacao.list_publicacao %}
+        <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
+      {% endif %}
+      {% if perms.compilacao.view_dispositivo_notificacoes %}
+        <li><a href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
+      {% endif %}
+      {% block extra_sections_nav %}
+        <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
+      {% endblock %}
     {% endif %}
   </ul>
 {% endblock %}
@@ -25,8 +31,10 @@
   {% block actions %}
     <div class="clearfix">
       <div class="actions btn-group pull-right" role="group">
-        {% if user.is_authenticated %}
+        {% if perms.compilacao.change_textoarticulado %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+        {% endif %}
+        {% if perms.compilacao.change_dispositivo_edicao_dinamica %}
           <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
         {% endif %}
 	  </div>

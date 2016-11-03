@@ -46,14 +46,15 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
-from sapl.crud.base import Crud, CrudListView, make_pagination
+from sapl.crud.base import CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
 
-TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
-TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
-TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
-VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = Crud.build(TipoDispositivo, 'tipo_dispositivo')
+TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
+TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = CrudAux.build(
+    TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)
 
@@ -86,12 +87,31 @@ def choice_models_in_extenal_views():
     return result
 
 
+def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
+    yield None, '-------------'
+
+    if not id_tipo_ta:
+        return
+
+    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
+
+    integrations_view_names = get_integrations_view_names()
+    for item in integrations_view_names:
+        if hasattr(item, 'model_type_foreignkey'):
+            if (tipo_ta.content_type.model == item.model.__name__.lower() and
+                    tipo_ta.content_type.app_label ==
+                    item.model._meta.app_label):
+                for i in item.model_type_foreignkey.objects.all():
+                    yield i.pk, i
+
+
 class IntegracaoTaView(TemplateView):
 
     def get_redirect_deactivated(self):
         messages.error(
             self.request,
-            _('O modulo de Textos Articulados está desativado.'))
+            _('O modulo de Textos Articulados para %s está desativado.'
+              ) % self.model._meta.verbose_name_plural)
         return redirect('/')
 
     def get(self, request,  *args, **kwargs):
@@ -106,6 +126,25 @@ class IntegracaoTaView(TemplateView):
                       'Dispositivos, entre outras informações iniciais.'),
                     str(e)))
             return self.get_redirect_deactivated()
+
+        assert hasattr(self, 'map_fields'), _(
+            """
+                O mapa dos campos não foi definido. Ele deve seguir a estrutura
+                de chaves abaixo:
+
+                    map_fields = {
+                        'data': 'data',
+                        'ementa': 'ementa',
+                        'observacao': 'observacao',
+                        'numero': 'numero',
+                        'ano': 'ano',
+                    }
+
+                Caso o model de integração não possua um dos campos,
+                implemente, ou passe `None` para as chaves que são fixas.
+            """)
+
+        mf = self.map_fields
 
         item = get_object_or_404(self.model, pk=kwargs['pk'])
         related_object_type = ContentType.objects.get_for_model(item)
@@ -127,64 +166,24 @@ class IntegracaoTaView(TemplateView):
         else:
             ta = ta[0]
 
-        if hasattr(item, 'ementa') and item.ementa:
-            ta.ementa = item.ementa
-        else:
-            ta.ementa = _('Integração com %s sem ementa.') % item
-
-        if hasattr(item, 'observacao') and item.observacao:
-            ta.observacao = item.observacao
-        else:
-            ta.observacao = _('Integração com %s sem observacao.') % item
-
-        if hasattr(item, 'numero') and item.numero:
-            ta.numero = item.numero
-        else:
-            ta.numero = int('%s%s%s' % (
-                int(datetime.now().year),
-                int(datetime.now().month),
-                int(datetime.now().day)))
-
-        if hasattr(item, 'ano') and item.ano:
-            ta.ano = item.ano
-        else:
-            ta.ano = datetime.now().year
-
-        if hasattr(item, 'data_apresentacao'):
-            ta.data = item.data_apresentacao
-        elif hasattr(item, 'data'):
-            ta.data = item.data
-        else:
-            ta.data = datetime.now()
+        ta.data = getattr(item, mf['data'],  datetime.now())
+        ta.ementa = getattr(
+            item, mf['ementa'], _('Integração com %s sem ementa.') % item)
+        ta.observacao = getattr(item, mf['observacao'], '')
+        ta.numero = getattr(item, mf['numero'], int('%s%s%s' % (
+            int(datetime.now().year),
+            int(datetime.now().month),
+            int(datetime.now().day))))
+        ta.ano = getattr(item, mf['ano'], datetime.now().year)
 
         ta.save()
 
-        return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
-                                        kwargs={'ta_id': ta.pk}))
-
-        """msg = messages.error if not request.user.is_anonymous(
-        ) else messages.info
-
-        msg(request,
-            _('A funcionalidade de Textos Articulados está desativada.'))
-
-        if not request.user.is_anonymous():
-            msg(
-                request,
-                _('Para ativá-la, os Tipos de Textos devem ser criados.'))
-
-            msg(request,
-                _('Sua tela foi redirecionada para a tela de '
-                  'cadastro de Textos Articulados.'))
-
-            return redirect(to=reverse_lazy('sapl.compilacao:tipo_ta_list',
-                                            kwargs={}))
+        if Dispositivo.objects.filter(ta_id=ta.pk).exists():
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
+                                            kwargs={'ta_id': ta.pk}))
         else:
-
-        return redirect(to=reverse_lazy(
-            '%s:%s_detail' % (
-                item._meta.app_config.name, item._meta.model_name),
-            kwargs={'pk': item.pk}))"""
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text_edit',
+                                            kwargs={'ta_id': ta.pk}))
 
     def import_pattern(self):
 
@@ -539,24 +538,6 @@ class VideMixin(DispositivoSuccessUrlMixin):
         return super(VideMixin, self).dispatch(*args, **kwargs)
 
 
-def choice_model_type_foreignkey_in_extenal_views(id_tipo_ta=None):
-    yield None, '-------------'
-
-    if not id_tipo_ta:
-        return
-
-    tipo_ta = TipoTextoArticulado.objects.get(pk=id_tipo_ta)
-
-    integrations_view_names = get_integrations_view_names()
-    for item in integrations_view_names:
-        if hasattr(item, 'model_type_foreignkey'):
-            if (tipo_ta.content_type.model == item.model.__name__.lower() and
-                    tipo_ta.content_type.app_label ==
-                    item.model._meta.app_label):
-                for i in item.model_type_foreignkey.objects.all():
-                    yield i.pk, i
-
-
 class VideCreateView(VideMixin, CreateView):
     model = Vide
     template_name = 'compilacao/ajax_form.html'
@@ -710,39 +691,6 @@ class TextView(CompMixin, ListView):
     def get(self, request, *args, **kwargs):
         ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
         self.object = ta
-        if ta.content_object:
-            item = ta.content_object
-            self.object = item
-            if hasattr(item, 'ementa') and item.ementa:
-                ta.ementa = item.ementa
-            else:
-                ta.ementa = _('Integração com %s sem ementa.') % item
-
-            if hasattr(item, 'observacao') and item.observacao:
-                ta.observacao = item.observacao
-            else:
-                ta.observacao = _('Integração com %s sem observacao.') % item
-
-            if hasattr(item, 'numero') and item.numero:
-                ta.numero = item.numero
-            else:
-                ta.numero = int('%s%s%s' % (
-                    int(datetime.now().year),
-                    int(datetime.now().month),
-                    int(datetime.now().day)))
-
-            if hasattr(item, 'ano') and item.ano:
-                ta.ano = item.ano
-            else:
-                ta.ano = datetime.now().year
-
-            if hasattr(item, 'data_apresentacao'):
-                ta.data = item.data_apresentacao
-            elif hasattr(item, 'data'):
-                ta.data = item.data
-            else:
-                ta.data = datetime.now()
-            ta.save()
 
         return super(TextView, self).get(request, *args, **kwargs)
 
@@ -1719,6 +1667,12 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                             class_css__in=classes_ja_inseridas)
 
                 for td in otds:
+
+                    if td.dispositivo_de_alteracao:
+                        if not self.request.user.has_perm(
+                                'compilacao.'
+                                'change_dispositivo_registros_compilacao'):
+                            continue
 
                     if paradentro and not td.permitido_inserir_in(
                         tipb,

@@ -635,7 +635,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     ta = models.ForeignKey(
         TextoArticulado,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='dispositivos_set',
         verbose_name=_('Texto Articulado'))
     ta_publicado = models.ForeignKey(
@@ -702,8 +702,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 'via formulários de edição avançada.')),
             ('change_dispositivo_registros_compilacao', _(
                 'Permissão de registro de compilação via editor dinâmico.')),
-            ('change_dispositivo_notificacoes', _(
+            ('view_dispositivo_notificacoes', _(
                 'Permissão de acesso às notificações de pendências.')),
+            ('change_dispositivo_de_vigencia_global', _(
+                'Permissão alteração global do dispositivo de vigência')),
         )
 
     def __str__(self):
@@ -1260,7 +1262,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                     disps[0].get_numero_completo())
                 # dispositivo.transform_in_next()
             else:
-                dispositivo.set_numero_completo([1, 0, 0, 0, 0, 0, ])
+                dispositivo.set_numero_completo([0, 0, 0, 0, 0, 0, ])
         else:
             if ';' in tipo_base.rotulo_prefixo_texto:
 

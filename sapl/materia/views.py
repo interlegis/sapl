@@ -68,6 +68,13 @@ TipoFimRelatoriaCrud = CrudAux.build(
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
     model_type_foreignkey = TipoMateriaLegislativa
+    map_fields = {
+        'data': 'data_apresentacao',
+        'ementa': 'ementa',
+        'observacao': 'observacao',
+        'numero': 'numero',
+        'ano': 'ano',
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -84,8 +91,12 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
-    # TODO implementar o mapa de fields e utiliza-lo em IntegracaoTaView
-    fields = {
+    map_fields = {
+        'data': 'data_recebimento',
+        'ementa': 'descricao',
+        'observacao': None,
+        'numero': 'numero_proposicao',
+        'ano': 'ano',
     }
 
     def get(self, request, *args, **kwargs):
