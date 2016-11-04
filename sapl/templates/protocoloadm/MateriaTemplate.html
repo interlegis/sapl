@@ -7,10 +7,8 @@
 </div>
 
 <div align="center">
-	<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-warning">Criar Matéria</a>
-	<br /><br />
 
-	<div class="row">
+	<div class="row" style="width:50%;">
 		<div class="col-md-6">
 			<a onclick="window.open('{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=400, height=200')"class="btn btn-secondary">Imprimir Etiqueta</a>
 		</div>
@@ -19,7 +17,13 @@
 		</div>
 	</div>
 
-	<br />
-	<a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-primary">Continuar</a>
+	<div class="row" style="width:50%;">
+		<div class="col-md-6">
+			<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-warning">Criar Matéria</a>
+		</div>
+		<div class="col-md-6">
+			<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' protocolo.pk %}" class="btn btn-primary">Continuar</a>
+		</div>
+	</div>
 </div>
 {% endblock base_content %}
