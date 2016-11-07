@@ -1,8 +1,10 @@
+from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
+from django.http.response import Http404
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 
@@ -82,7 +84,7 @@ class TipoTextoArticulado(models.Model):
         verbose_name=_('Participação Social'))
 
     publicacao_func = models.NullBooleanField(
-        default=True,
+        default=False,
         blank=True, null=True,
         choices=YES_NO_CHOICES,
         verbose_name=_('Histórico de Publicação'))
@@ -99,6 +101,25 @@ PARTICIPACAO_SOCIAL_CHOICES = [
     (None, _('Padrão definido no Tipo')),
     (True, _('Sim')),
     (False, _('Não'))]
+
+
+STATUS_TA_PRIVATE = 99  # Só os donos podem ver
+STATUS_TA_EDITION = 89
+STATUS_TA_IMMUTABLE_RESTRICT = 79
+
+STATUS_TA_IMMUTABLE_PUBLIC = 69
+
+STATUS_TA_PUBLIC = 0
+
+PRIVACIDADE_STATUS = (
+    (STATUS_TA_PRIVATE, _('Privado')),  # só dono ve e edita
+    # só quem tem permissão para ver
+    (STATUS_TA_IMMUTABLE_RESTRICT, _('Imotável Restrito')),
+    # só quem tem permissão para ver
+    (STATUS_TA_IMMUTABLE_PUBLIC, _('Imutável Público')),
+    (STATUS_TA_EDITION, _('Em Edição')),  # só quem tem permissão para editar
+    (STATUS_TA_PUBLIC, _('Público')),  # visualização pública
+)
 
 
 class TextoArticulado(TimestampedMixin):
@@ -124,10 +145,35 @@ class TextoArticulado(TimestampedMixin):
         blank=True, null=True, default=None)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    owners = models.ManyToManyField(
+        get_settings_auth_user_model(),
+        blank=True, verbose_name=_('Donos do Texto Articulado'))
+
+    editable_only_by_owners = models.BooleanField(
+        choices=YES_NO_CHOICES,
+        default=True,
+        verbose_name=_('Editável apenas pelos donos do Texto Articulado'))
+
+    editing_locked = models.BooleanField(
+        choices=YES_NO_CHOICES,
+        default=True,
+        verbose_name=_('Texto Articulado em Edição'))
+
+    privacidade = models.IntegerField(
+        _('Privacidade'),
+        choices=PRIVACIDADE_STATUS,
+        default=STATUS_TA_PRIVATE)
+
     class Meta:
         verbose_name = _('Texto Articulado')
         verbose_name_plural = _('Textos Articulados')
         ordering = ['-data', '-numero']
+        permissions = (
+            ('view_restricted_textoarticulado',
+             _('Pode ver qualquer Texto Articulado')),
+            ('lock_unlock_textoarticulado',
+             _('Pode bloquear/desbloquear edição de Texto Articulado')),
+        )
 
     def __str__(self):
         if self.content_object:
@@ -137,6 +183,102 @@ class TextoArticulado(TimestampedMixin):
                 'tipo': self.tipo_ta,
                 'numero': self.numero,
                 'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+
+    def hash(self):
+        from django.core import serializers
+        import hashlib
+        data = serializers.serialize(
+            "xml", Dispositivo.objects.filter(
+                Q(ta_id=self.id) | Q(ta_publicado_id=self.id)))
+        md5 = hashlib.md5()
+        md5.update(data.encode('utf-8'))
+        return md5.hexdigest()
+
+    def can_use_dynamic_editing(self, user):
+        return not self.editing_locked and\
+            (not self.editable_only_by_owners and
+             user.has_perm(
+                 'compilacao.change_dispositivo_edicao_dinamica') or
+             self.editable_only_by_owners and user in self.owners.all() and
+             user.has_perm(
+                 'compilacao.change_your_dispositivo_edicao_dinamica'))
+
+    def has_view_permission(self, request):
+        if self.privacidade in (STATUS_TA_IMMUTABLE_PUBLIC, STATUS_TA_PUBLIC):
+            return True
+
+        if request.user in self.owners.all():
+            return True
+
+        if self.privacidade == STATUS_TA_RESTRICT and\
+                request.user.has_perm(
+                    'compilacao.view_restricted_textoarticulado'):
+            return True
+
+        elif self.privacidade == STATUS_TA_EDITION:
+            if request.user.has_perm(
+                    'compilacao.change_dispositivo_edicao_dinamica'):
+                return True
+            else:
+                messages.error(request, _(
+                    'Este Texto Articulado está em edição.'))
+
+        elif self.privacidade == STATUS_TA_PRIVATE:
+            if request.user in self.owners.all():
+                return True
+            else:
+                raise Http404()
+
+        return False
+
+    def has_edit_permission(self, request):
+
+        if self.privacidade == STATUS_TA_PRIVATE:
+            if request.user not in self.owners.all():
+                raise Http404()
+
+            if not self.can_use_dynamic_editing(request.user):
+                messages.error(request, _(
+                    'Usuário sem permissão para edição.'))
+                return False
+            else:
+                return True
+
+        if self.privacidade == STATUS_TA_IMMUTABLE_RESTRICT:
+            messages.error(request, _(
+                'A edição deste Texto Articulado está bloqueada. '
+                'Este documento é imutável e de acesso é restrito.'))
+            return False
+
+        if self.privacidade == STATUS_TA_IMMUTABLE_PUBLIC:
+            messages.error(request, _(
+                'A edição deste Texto Articulado está bloqueada. '
+                'Este documento é imutável.'))
+            return False
+
+        if self.editing_locked and\
+            self.privacidade in (STATUS_TA_PUBLIC, STATUS_TA_EDITION) and\
+                not request.user.has_perm(
+                    'compilacao.lock_unlock_textoarticulado'):
+            messages.error(request, _(
+                'A edição deste Texto Articulado está bloqueada. '
+                'É necessário acessar com usuário que possui '
+                'permissão de desbloqueio.'))
+            return False
+
+        if not request.user.has_perm(
+                'compilacao.change_dispositivo_edicao_dinamica'):
+            messages.error(request, _(
+                'Usuário sem permissão para edição.'))
+            return False
+
+        if self.editable_only_by_owners and\
+                request.user not in self.owners.all():
+            messages.error(request, _(
+                'Apenas usuários donos do Texto Articulado podem editá-lo.'))
+            return False
+
+        return True
 
     def reagrupar_ordem_de_dispositivos(self):
 
@@ -703,6 +845,9 @@ class Dispositivo(BaseModel, TimestampedMixin):
             ('change_dispositivo_edicao_dinamica', _(
                 'Permissão de edição de dispositivos originais '
                 'via editor dinâmico.')),
+            ('change_your_dispositivo_edicao_dinamica', _(
+                'Permissão de edição de dispositivos originais '
+                'via editor dinâmico desde que seja dono.')),
             ('change_dispositivo_edicao_avancada', _(
                 'Permissão de edição de dispositivos originais '
                 'via formulários de edição avançada.')),

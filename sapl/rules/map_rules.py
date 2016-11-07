@@ -84,6 +84,7 @@ rules_group_protocolo = {
         (materia.Autoria, __base__),
 
         (materia.Proposicao, __listdetailchange__),
+        (compilacao.TextoArticulado, ['view_restricted_textoarticulado'])
     ]
 }
 
@@ -117,8 +118,8 @@ rules_group_materia = {
             # quando testes forem feitos para permtir que matérias possam
             # ser vinculadas a outras matérias via registro de compilação.
             # Normalmente emendas e/ou projetos substitutivos podem alterar
-            # uma matéria original. Fazer esse registro de compilação
-            # oferecia um autografo eletrônico pronto ser convertido em Norma.
+            # uma matéria original. Fazer esse registro de compilação ofereceria
+            # um autografo eletrônico pronto para ser convertido em Norma.
         ])
     ]
 }
@@ -175,7 +176,7 @@ rules_group_autor = {
     'rules': [
         (materia.Proposicao, __base__),
         (compilacao.Dispositivo, __base__ + [
-            'change_dispositivo_edicao_dinamica',
+            'change_your_dispositivo_edicao_dinamica',
         ])
     ]
 }
@@ -258,12 +259,18 @@ rules_group_geral = {
         # este model é um espelho do model integrado e sua edição pode
         # confundir Autores, operadores de matéria e/ou norma.
         # Por isso está adicionado apenas para o operador geral
-        (compilacao.TextoArticulado, __base__),
+        (compilacao.TextoArticulado, __base__ + ['lock_unlock_textoarticulado']),
 
         # estes tres models são complexos e a principio apenas o admin tem perm
         (compilacao.TipoDispositivo, []),
         (compilacao.TipoDispositivoRelationship, []),
         (compilacao.PerfilEstruturalTextoArticulado, []),
+
+
+
+
+
+
     ]
 }
 
