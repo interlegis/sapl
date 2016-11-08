@@ -1,13 +1,9 @@
-from uuid import uuid4
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from sapl.base.models import Autor
-
-from sapl.materia.models import (TipoMateriaLegislativa,
-                                 UnidadeTramitacao)
+from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
 
 
@@ -123,7 +119,7 @@ class Protocolo(models.Model):
     # TODO transformar campo timestamp em auto_now_add
     timestamp = models.DateTimeField()
     tipo_protocolo = models.PositiveIntegerField(
-        verbose_name=_('Tipo de Protocolo'))
+        blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
         max_length=60, blank=True, verbose_name=_('Interessado'))
@@ -153,6 +149,9 @@ class Protocolo(models.Model):
     class Meta:
         verbose_name = _('Protocolo')
         verbose_name_plural = _('Protocolos')
+        permissions = (
+            ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
+        )
 
 
 class StatusTramitacaoAdministrativo(models.Model):

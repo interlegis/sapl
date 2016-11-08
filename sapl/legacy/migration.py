@@ -4,26 +4,31 @@ import pkg_resources
 import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models
-from django.db.models import CharField, TextField
+from django.db.models import CharField, TextField, ProtectedError
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import ProblemaMigracao
+from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
 from sapl.comissoes.models import Composicao, Participacao
-from sapl.materia.models import StatusTramitacao, TipoProposicao, Tramitacao
-from sapl.norma.models import AssuntoNormaRelationship, NormaJuridica
+from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
+                                 TipoMateriaLegislativa, TipoProposicao,
+                                 Tramitacao)
+from sapl.norma.models import AssuntoNorma, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import StatusTramitacaoAdministrativo
-from sapl.sessao.models import OrdemDia, SessaoPlenaria
+from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
+from sapl.utils import normalize
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
 appconfs = [apps.get_app_config(n) for n in [
     'parlamentares',
     'comissoes',
+    'base',
     'materia',
     'norma',
     'sessao',
@@ -31,6 +36,7 @@ appconfs = [apps.get_app_config(n) for n in [
     'protocoloadm', ]]
 
 unique_constraints = []
+one_to_one_constraints = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
@@ -118,6 +124,9 @@ def get_fk_related(field, value, label=None):
                 else:
                     value = None
             else:
+                if field.model._meta.label == 'sessao.RegistroVotacao' and \
+                        field.name == 'ordem':
+                    return value
                 value = make_stub(field.related_model, value)
                 descricao = 'stub criado para entrada orfã!'
                 warn(msg + ' => ' + descricao)
@@ -155,18 +164,33 @@ def delete_constraints(model):
     cursor = exec_sql("SELECT conname FROM pg_constraint WHERE conrelid = "
                       "(SELECT oid FROM pg_class WHERE relname LIKE "
                       "'%s') and contype = 'u';" % (table))
-    result = cursor.fetchone()
+    result = ()
+    result = cursor.fetchall()
     # se existir um resultado, unique constraint será deletado
-    if result:
-        warn('Excluindo unique constraint de nome %s' % result)
-        args = model._meta.unique_together[0]
-        args_list = list(args)
-        unique_constraints.append([table, result[0], args_list, model])
+    for r in result:
+        if r[0].endswith('key'):
+            words_list = r[0].split('_')
+            one_to_one_constraints.append([table, r[0], words_list, model])
+        else:
+            args = None
+            args_list = []
+            if model._meta.unique_together:
+                args = model._meta.unique_together[0]
+                args_list = list(args)
+            unique_constraints.append([table, r[0], args_list, model])
+        warn('Excluindo unique constraint de nome %s' % r[0])
         exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
-                 (table, result[0]))
+                 (table, r[0]))
 
 
 def recreate_constraints():
+    if one_to_one_constraints:
+        for constraint in one_to_one_constraints:
+            table, name, args, model = constraint
+            args_string = ''
+            args_string = "(" + "_".join(map(str, args[2:-1])) + ")"
+            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                     (table, name, args_string))
     if unique_constraints:
         for constraint in unique_constraints:
             table, name, args, model = constraint
@@ -178,6 +202,7 @@ def recreate_constraints():
             args_string += "(" + ', '.join(map(str, args)) + ")"
             exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
                      (table, name, args_string))
+    one_to_one_constraints.clear()
     unique_constraints.clear()
 
 
@@ -272,21 +297,58 @@ class DataMigrator:
                     self.data_mudada.setdefault('nome_campo', []).\
                         append(field.name)
                 if field_type == 'CharField' or field_type == 'TextField':
-                    if value is None:
+                    if value is None or value == 'None':
                         value = ''
+                if field.model._meta.label == 'sessao.RegistroVotacao' and \
+                        field.name == 'ordem' and \
+                        not isinstance(value, OrdemDia):
+                    try:
+                        new_value = ExpedienteMateria.objects.get(pk=value)
+                        setattr(new, 'expediente', new_value)
+                        setattr(new, field.name, None)
+                        continue
+                    except ObjectDoesNotExist:
+                        msg = 'FK [%s] não encontrada para valor %s ' \
+                            '(em %s %s)' % (
+                                field.name, value,
+                                field.model.__name__, label or '---')
+                        value = make_stub(field.related_model, value)
+                        descricao = 'stub criado para entrada orfã!'
+                        warn(msg + ' => ' + descricao)
+                        save_relation(value, [field.name], msg, descricao,
+                                      eh_stub=True)
+                setattr(new, field.name, value)
+            elif field.model.__name__ == 'TipoAutor' and \
+                    field.name == 'content_type':
+                try:
+                    value = field.related_model.objects.get(
+                        model=normalize(new.descricao.lower()).replace(' ',
+                                                                       ''))
+                except ObjectDoesNotExist:
+                    value = None
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs):
         # warning: model/app migration order is of utmost importance
-
         self.to_delete = []
         ProblemaMigracao.objects.all().delete()
+        User.objects.all().delete()
+
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
         # exclude logically deleted in legacy base
         info('Deletando models com ind_excluido...')
         for obj in self.to_delete:
-            obj.delete()
+            try:
+                obj.delete()
+            except ProtectedError:
+                msg = 'A entrada de PK %s da model %s não pode ser excluida' %\
+                    (obj.pk, obj._meta.model_name)
+                descricao = 'Um ou mais objetos protegidos '
+                warn(msg + ' => ' + descricao)
+                save_relation(obj=obj, problema=msg,
+                              descricao=descricao, eh_stub=False)
+
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
             pass
@@ -299,7 +361,13 @@ class DataMigrator:
                                  if model in self.field_renames)
             self._do_migrate(models_to_migrate)
         elif isinstance(obj, ModelBase):
-            self.migrate_model(obj)
+            # A migração vai pular TipoProposicao e só vai migrar essa model
+            # antes de migrar Proposicao. Isso deve acontecer por causa da
+            # GenericRelation existente em TipoProposicao.
+            if not obj.__name__ == 'TipoProposicao':
+                if obj.__name__ == 'Proposicao':
+                    self.migrate_model(TipoProposicao)
+                self.migrate_model(obj)
         elif hasattr(obj, '__iter__'):
             for item in obj:
                 self._do_migrate(item)
@@ -316,7 +384,11 @@ class DataMigrator:
 
         # Clear all model entries
         # They may have been created in a previous migration attempt
-        model.objects.all().delete()
+        try:
+            model.objects.all().delete()
+        except ProtectedError:
+            Proposicao.objects.all().delete()
+            model.objects.all().delete()
         delete_constraints(model)
 
         # setup migration strategy for tables with or without a pk
@@ -416,13 +488,12 @@ def adjust_sessaoplenaria(new, old):
 
 
 def adjust_tipoproposicao(new, old):
-    if new.materia_ou_documento == 'M':
-        field = TipoProposicao.tipo_materia.field
-        value = get_fk_related(field=field, value=old.tip_mat_ou_doc)
-    elif new.materia_ou_documento == 'D':
-        field = TipoProposicao.tipo_documento.field
-        value = get_fk_related(field=field, value=old.tip_mat_ou_doc)
-    setattr(new, field.name, value)
+    if old.ind_mat_ou_doc == 'M':
+        new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
+            pk=old.tip_mat_ou_doc)
+    elif old.ind_mat_ou_doc == 'D':
+        new.tipo_conteudo_related = TipoDocumento.objects.get(
+            pk=old.tip_mat_ou_doc)
 
 
 def adjust_statustramitacao(new, old):
@@ -455,15 +526,24 @@ def adjust_normajuridica_antes_salvar(new, old):
 
 def adjust_normajuridica_depois_salvar(new, old):
     # Ajusta relação M2M
-    lista_ids_assunto = old.cod_assunto.split(',')
-    for id_assunto in lista_ids_assunto:
-        relacao = AssuntoNormaRelationship()
-        relacao.assunto_id = int(id_assunto)
-        relacao.norma_id = new.pk
-        relacao.save()
+    lista_pks_assunto = old.cod_assunto.split(',')
+    for pk_assunto in lista_pks_assunto:
+        new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
+
+
+def adjust_autor(new, old):
+    new.autor_related = TipoAutor.objects.get(pk=old.tip_autor)
+    if old.col_username:
+        if not User.objects.filter(username=old.col_username).exists():
+            user = User(username=old.col_username, password=12345)
+            user.save()
+            new.user = user
+        else:
+            new.user = User.objects.filter(username=old.col_username)[0]
 
 
 AJUSTE_ANTES_SALVAR = {
+    Autor: adjust_autor,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     OrdemDia: adjust_ordemdia,
     Parlamentar: adjust_parlamentar,

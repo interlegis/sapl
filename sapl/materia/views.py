@@ -5,48 +5,45 @@ from string import ascii_letters, digits
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist,\
-    PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import JsonResponse
-from django.http.response import HttpResponseRedirect, Http404
-from django.shortcuts import redirect
+from django.http.response import Http404, HttpResponseRedirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template import Context, loader
-from django.utils import dateformat, formats
-from django.utils.http import urlsafe_base64_decode
+from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-from sapl.base.models import Autor, CasaLegislativa, TipoAutor
+from sapl.base.models import Autor, CasaLegislativa
+from sapl.compilacao.models import STATUS_TA_PRIVATE, STATUS_TA_EDITION,\
+    STATUS_TA_IMMUTABLE_RESTRICT
+
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
-                            Crud, CrudAux, CrudDetailView, MasterDetailCrud,
-                            make_pagination, PermissionRequiredForAppCrudMixin)
-from sapl.materia import apps
-from sapl.materia.forms import AnexadaForm, LegislacaoCitadaForm,\
-    TipoProposicaoForm, ProposicaoForm, ConfirmarProposicaoForm
+                            Crud, CrudAux, MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, make_pagination)
+from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
+                                LegislacaoCitadaForm, ProposicaoForm,
+                                TipoProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
+from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor, permission_required_for_app,
-                        permissoes_autor, permissoes_materia,
-                        permissoes_protocoloadm, permission_required_for_app,
                         montar_row_autor)
 import sapl
 
-
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    DocumentoAcessorioForm,
-                    MateriaLegislativaFilterSet,
-                    PrimeiraTramitacaoEmLoteFilterSet, ProposicaoOldForm,
+                    DocumentoAcessorioForm, MateriaLegislativaFilterSet,
+                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
@@ -74,9 +71,52 @@ TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
 
 
+class CriarProtocoloMateriaView(CreateView):
+    template_name = "crud/form.html"
+    form_class = MateriaSimplificadaForm
+    form_valid_message = _('Matéria cadastrada com sucesso!')
+
+    def get_success_url(self, materia):
+        return reverse('sapl.materia:materialegislativa_detail', kwargs={
+            'pk': materia.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            CriarProtocoloMateriaView, self).get_context_data(**kwargs)
+
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+
+        context['form'].fields['tipo'].initial = protocolo.tipo_materia
+        context['form'].fields['numero'].initial = protocolo.numero
+        context['form'].fields['ano'].initial = protocolo.ano
+        context['form'].fields['data_apresentacao'].initial = protocolo.data
+        context['form'].fields['numero_protocolo'].initial = protocolo.numero
+        context['form'].fields['ementa'].initial = protocolo.observacao
+
+        return context
+
+    def form_valid(self, form):
+        materia = form.save()
+        return redirect(self.get_success_url(materia))
+
+
 class MateriaTaView(IntegracaoTaView):
     model = MateriaLegislativa
     model_type_foreignkey = TipoMateriaLegislativa
+    map_fields = {
+        'data': 'data_apresentacao',
+        'ementa': 'ementa',
+        'observacao': None,
+        'numero': 'numero',
+        'ano': 'ano',
+    }
+    map_funcs = {
+        'publicacao_func': False,
+    }
+    ta_values = {
+        'editable_only_by_owners': False,
+        'editing_locked': False,
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -93,8 +133,20 @@ class MateriaTaView(IntegracaoTaView):
 class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
-    # TODO implmentar o mapa de fields e utiliza-lo em IntegracaoTaView
-    fields = {
+    map_fields = {
+        'data': 'data_envio',
+        'ementa': 'descricao',
+        'observacao': None,
+        'numero': 'numero_proposicao',
+        'ano': 'ano',
+    }
+    map_funcs = {
+        'publicacao_func': False
+    }
+    ta_values = {
+        'editable_only_by_owners': True,
+        'editing_locked': False,
+        'privacidade': STATUS_TA_PRIVATE
     }
 
     def get(self, request, *args, **kwargs):
@@ -104,12 +156,19 @@ class ProposicaoTaView(IntegracaoTaView):
         de usuário.
         """
         if sapl.base.models.AppConfig.attr('texto_articulado_proposicao'):
+
+            proposicao = get_object_or_404(self.model, pk=kwargs['pk'])
+
+            if not proposicao.data_envio and\
+                    request.user != proposicao.autor.user:
+                raise Http404()
+
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
 
 
-@permission_required_for_app(app_label=apps.AppConfig.label)
+@permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
@@ -192,7 +251,7 @@ class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('materia.list_proposicao', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -216,7 +275,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio', 'autor', 'tipo', 'descricao']
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('materia.list_proposicao', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -241,7 +300,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('materia.list_proposicao', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -274,10 +333,14 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                 data_envio__isnull=False, data_recebimento__isnull=True)
 
             for proposicao in proposicoes:
-                # FIXME implementar hash para texto eletrônico
-                hasher = gerar_hash_arquivo(
-                    proposicao.texto_original.path,
-                    str(proposicao.pk)) if proposicao.texto_original else None
+                if proposicao.texto_articulado.exists():
+                    ta = proposicao.texto_articulado.first()
+                    # FIXME hash para textos articulados
+                    hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
+                else:
+                    hasher = gerar_hash_arquivo(
+                        proposicao.texto_original.path,
+                        str(proposicao.pk)) if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
@@ -304,9 +367,6 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     form_class = ConfirmarProposicaoForm
 
     def get_success_url(self):
-        # FIXME redirecionamento trival,
-        # ainda por implementar se será para protocolo ou para doc resultante
-
         msgs = self.object.results['messages']
 
         for key, value in msgs.items():
@@ -326,9 +386,15 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
                                                 data_recebimento__isnull=True)
             self.object = None
             # FIXME implementar hash para texto eletrônico
-            hasher = gerar_hash_arquivo(
-                proposicao.texto_original.path,
-                str(proposicao.pk)) if proposicao.texto_original else None
+
+            if proposicao.texto_articulado.exists():
+                ta = proposicao.texto_articulado.first()
+                # FIXME hash para textos articulados
+                hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
+            else:
+                hasher = gerar_hash_arquivo(
+                    proposicao.texto_original.path,
+                    str(proposicao.pk)) if proposicao.texto_original else None
 
             if hasher == 'P%s/%s' % (self.kwargs['hash'], proposicao.pk):
                 self.object = proposicao
@@ -435,6 +501,13 @@ class ProposicaoCrud(Crud):
                         p.data_devolucao = None
                         p.data_envio = datetime.now()
                         p.save()
+
+                        if p.texto_articulado.exists():
+                            ta = p.texto_articulado.first()
+                            ta.privacidade = STATUS_TA_IMMUTABLE_RESTRICT
+                            ta.editing_locked = True
+                            ta.save()
+
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
 
@@ -447,6 +520,11 @@ class ProposicaoCrud(Crud):
                     else:
                         p.data_envio = None
                         p.save()
+                        if p.texto_articulado.exists():
+                            ta = p.texto_articulado.first()
+                            ta.privacidade = STATUS_TA_PRIVATE
+                            ta.editing_locked = False
+                            ta.save()
                         messages.success(request, _(
                             'Proposição Retornada com sucesso.'))
 
@@ -508,9 +586,8 @@ class ProposicaoCrud(Crud):
                 messages.info(self.request,
                               _('Sempre que uma Proposição é inclusa ou '
                                 'alterada e a opção "Texto Articulado " for '
-                                'marcada, você será redirecionado para o '
-                                'Texto Eletrônico. Use a opção "Editar Texto" '
-                                'para construir seu texto.'))
+                                'marcada, você será redirecionado para a '
+                                'edição do Texto Eletrônico.'))
                 return reverse('sapl.materia:proposicao_ta',
                                kwargs={'pk': self.object.pk})
             else:
@@ -564,7 +641,7 @@ class ProposicaoCrud(Crud):
 
 class ReciboProposicaoView(TemplateView):
     template_name = "materia/recibo_proposicao.html"
-    permission_required = permissoes_autor()
+    permission_required = ('materia.detail_proposicao', )
 
     def has_permission(self):
         perms = self.get_permission_required()
@@ -579,10 +656,18 @@ class ReciboProposicaoView(TemplateView):
         context = super(ReciboProposicaoView, self).get_context_data(
             **kwargs)
         proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+
+        if proposicao.texto_original:
+            _hash = gerar_hash_arquivo(
+                proposicao.texto_original.path,
+                self.kwargs['pk'])
+        elif proposicao.texto_articulado.exists():
+            ta = proposicao.texto_articulado.first()
+            # FIXME hash para textos articulados
+            _hash = 'P' + ta.hash() + '/' + str(proposicao.id)
+
         context.update({'proposicao': proposicao,
-                        'hash': gerar_hash_arquivo(
-                            proposicao.texto_original.path,
-                            self.kwargs['pk'])})
+                        'hash': _hash})
         return context
 
     def get(self, request, *args, **kwargs):
@@ -592,7 +677,7 @@ class ReciboProposicaoView(TemplateView):
             return TemplateView.get(self, request, *args, **kwargs)
 
         if not proposicao.data_envio and not proposicao.data_devolucao:
-            messages.error(request, _('Não é possível gerar recebo para uma '
+            messages.error(request, _('Não é possível gerar recibo para uma '
                                       'Proposição ainda não enviada.'))
         elif proposicao.data_devolucao:
             messages.error(request, _('Não é possível gerar recibo.'))
@@ -916,7 +1001,7 @@ class MateriaLegislativaCrud(Crud):
 class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
     template_name = "materia/documento_acessorio.html"
     form_class = DocumentoAcessorioForm
-    permission_required = permissoes_materia()
+    permission_required = ('materia.add_documentoacessorio', )
 
     def get(self, request, *args, **kwargs):
         materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
@@ -950,8 +1035,7 @@ class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
         return reverse('sapl.materia:documento_acessorio', kwargs={'pk': pk})
 
 
-class AcompanhamentoConfirmarView(PermissionRequiredMixin, TemplateView):
-    permission_required = permissoes_materia()
+class AcompanhamentoConfirmarView(TemplateView):
 
     def get_redirect_url(self):
         return reverse('sapl.sessao:list_pauta_sessao')
@@ -968,8 +1052,7 @@ class AcompanhamentoConfirmarView(PermissionRequiredMixin, TemplateView):
         return HttpResponseRedirect(self.get_redirect_url())
 
 
-class AcompanhamentoExcluirView(PermissionRequiredMixin, TemplateView):
-    permission_required = permissoes_materia()
+class AcompanhamentoExcluirView(TemplateView):
 
     def get_redirect_url(self):
         return reverse('sapl.sessao:list_pauta_sessao')
@@ -1045,9 +1128,8 @@ class MateriaLegislativaPesquisaView(FilterView):
         return context
 
 
-class AcompanhamentoMateriaView(PermissionRequiredMixin, CreateView):
+class AcompanhamentoMateriaView(CreateView):
     template_name = "materia/acompanhamento_materia.html"
-    permission_required = permissoes_materia()
 
     def get_random_chars(self):
         s = ascii_letters + digits
@@ -1303,7 +1385,7 @@ def do_envia_email_tramitacao(request, materia):
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/em_lote/acessorio.html'
-    permission_required = permissoes_materia()
+    permission_required = ('materia.add_documentoacessorio',)
 
     def get_context_data(self, **kwargs):
         context = super(DocumentoAcessorioEmLoteView,
@@ -1347,7 +1429,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
     template_name = 'materia/em_lote/tramitacao.html'
-    permission_required = permissoes_materia()
+    permission_required = ('materia.add_tramitacao', )
 
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,

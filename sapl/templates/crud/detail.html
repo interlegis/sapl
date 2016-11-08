@@ -21,6 +21,15 @@
             </a>
           {% endif %}
         </div>
+          {% if view.extras_url %}
+            <div class="actions btn-group btn-group-sm" role="group">
+          {% for url, css_class, text in view.extras_url %}
+            <a href="{{url}}" class="btn btn-default {{css_class}}">
+                  {{text}}
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
       {% endblock sub_actions %}
 
       <div class="editons pull-right">
@@ -41,30 +50,32 @@
     {% endblock actions %}
   </div>
 
-  {% block detail_content %}
-    {% for fieldset in view.layout_display %}
-      <h2 class="legend">{{ fieldset.legend }}</h2>
-      {% for row in fieldset.rows %}
-        <div class="row-fluid">
-          {% for column in row %}
-            <div class="col-sm-{{ column.span }}">
-              <div id="div_id_{{ column.id }}" class="form-group">
-                <p class="control-label">{{ column.verbose_name }}</p>
-                <div class="controls">
-                  {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
-                  {% if column.text|url %}
-                    <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
-                  {% else %}
-                    <div class="form-control-static">{{ column.text|safe }}</div>
-                  {% endif %}
+  <div class="container-detail clearfix">
+    {% block detail_content %}
+      {% for fieldset in view.layout_display %}
+        <h2 class="legend">{{ fieldset.legend }}</h2>
+        {% for row in fieldset.rows %}
+          <div class="row-fluid">
+            {% for column in row %}
+              <div class="col-sm-{{ column.span }}">
+                <div id="div_id_{{ column.id }}" class="form-group">
+                  <p class="control-label">{{ column.verbose_name }}</p>
+                  <div class="controls">
+                    {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
+                    {% if column.text|url %}
+                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
+                    {% else %}
+                      <div class="form-control-static">{{ column.text|safe }}</div>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
-            </div>
-          {% endfor %}
-        </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
       {% endfor %}
-    {% endfor %}
-  {% endblock detail_content %}
+    {% endblock detail_content %}
+  </div>
 
   {% block table_content %}
     <div class="container-table">

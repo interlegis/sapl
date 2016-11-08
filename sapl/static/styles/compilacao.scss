@@ -1513,8 +1513,13 @@ a:link:after, a:visited:after {
 }
 
 @media print {
-  .cp .vigencias, .toggle-topbar, .menu-icon, .button {
+  .cp .vigencias, .toggle-topbar, .menu-icon, .button, .tipo-vigencias, .dne {
     display:none;
   }
-
+  #btn_font_menos, #btn_font_mais {
+    display:none;
+  }
+  .container {
+    width: 100%;
+  }
 }

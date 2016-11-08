@@ -53,7 +53,10 @@ SAPL_APPS = (
     'sapl.painel',
     'sapl.protocoloadm',
     'sapl.compilacao',
-    'sapl.api'
+    'sapl.api',
+
+    'sapl.rules'
+
 )
 
 INSTALLED_APPS = (
@@ -129,8 +132,8 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                "django.core.context_processors.media",
-                "django.core.context_processors.static",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
                 'django.contrib.messages.context_processors.messages',
                 'sapl.context_processors.parliament_info',
             ],

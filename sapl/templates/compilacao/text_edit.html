@@ -11,18 +11,24 @@
 {% endblock %}
 
 {% block title%}
-  <h1>{{object }}. <small><i>{% trans 'Texto Multivigente em Edição' %}</i></small></h1>
+  <h1 class="page-header">{{object }}. <small><i>{% trans 'Texto Multivigente em Edição' %}</i></small></h1>
 {% endblock %}
 
 {% block actions %}
-  <div class="clearfix">
-    <div class="actions btn-toolbar pull-right" role="toolbar">
-      <div class="actions btn-group" role="group">
-        <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
-        {% include 'compilacao/textoarticulado_menu_config.html' %}
+  {% if perms.compilacao.change_textoarticulado %}
+    <div class="clearfix">
+      <div class="actions btn-toolbar pull-right" role="toolbar">
+        <div class="actions btn-group" role="group">
+          {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
+                <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default btn-excluir">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Bloquear Edição' %}{% endif %}</a>
+          {% endif %}
+
+          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+          {% include 'compilacao/textoarticulado_menu_config.html' %}
+        </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 {% endblock actions %}
 
 {% block base_content %}{{block.super}}

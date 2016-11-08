@@ -9,8 +9,8 @@
   <div class="clearfix">
     {% block actions %}
       <div class="actions btn-group pull-right" role="group">
-        <a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_edit' object.pk %}">{% trans 'Editar' %}</a>
-        <a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_delete' object.pk %}">{% trans 'Excluir' %}</a>
+        {% if perms.compilacao.change_tipotextoarticulado %}<a class="btn btn-default" href="{% url 'sapl.compilacao:tipo_ta_edit' object.pk %}">{% trans 'Editar' %}</a>{% endif %}
+        {% if perms.compilacao.delete_tipotextoarticulado %}<a class="btn btn-default btn-excluir" href="{% url 'sapl.compilacao:tipo_ta_delete' object.pk %}">{% trans 'Excluir' %}</a>{% endif %}
       </div>
     {% endblock actions %}
   </div>
@@ -19,33 +19,43 @@
     <fieldset>
       <legend>{%trans 'Identificação Básica'%}</legend>
       <div class="row">
-        <div class="col-md-2">
+        <div class="col-md-3">
           <div id="div_id_tipo" class="holder">
             <label>{% field_verbose_name object 'sigla' %}</label>
             <p>{{ object.sigla}}</p>
           </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-5">
           <div id="div_id_numero" class="holder">
             <label>{% field_verbose_name object 'descricao' %}</label>
             <p>{{ object.descricao}}</p>
           </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
           <div id="div_id_ano" class="holder">
             <label>{% field_verbose_name object 'content_type' %}</label>
             <p>{{ object.content_type|default:""}}</p>
           </div>
         </div>
-        <div class="col-md-3">
-          <div id="div_id_ano" class="holder">
-            <label>{% field_verbose_name object 'participacao_social' %}</label>
-            <p>{{ object.get_participacao_social_display}}</p>
-          </div>
+    </fieldset>
+    <fieldset>
+    <legend>{%trans 'Funcionalidades'%}</legend>
+    <div class="row">
+      <div class="col-md-3">
+        <div id="div_id_ano" class="holder">
+          <label>{% field_verbose_name object 'participacao_social' %}</label>
+          <p>{{ object.get_participacao_social_display}}</p>
         </div>
       </div>
+      <div class="col-md-3">
+        <div id="div_id_ano" class="holder">
+          <label>{% field_verbose_name object 'publicacao_func' %}</label>
+          <p>{{ object.get_publicacao_func_display}}</p>
+        </div>
+      </div>
+    </div>
     </fieldset>
   {% endblock detail_content %}
 {% endblock base_content %}

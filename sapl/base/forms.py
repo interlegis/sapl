@@ -1,22 +1,17 @@
+import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
-from crispy_forms.templatetags.crispy_forms_field import css_class
-
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.contenttypes.fields import GenericRel
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _, string_concat
-
-import django_filters
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 
@@ -26,11 +21,9 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, ImageThumbnailFileInput,
-                        RangeWidgetOverride, autor_label, autor_modal,
-
-                        SaplGenericRelation, models_with_gr_for_model,
-                        ChoiceWithoutValidationField)
+from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
+                        ImageThumbnailFileInput, RangeWidgetOverride,
+                        autor_label, autor_modal, models_with_gr_for_model)
 
 from .models import AppConfig, CasaLegislativa
 

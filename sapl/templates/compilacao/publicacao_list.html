@@ -5,11 +5,13 @@
 
 {% block base_content %}
 
-  <div class="actions btn-group pull-right" role="group">
-    <a href="{{ view.create_url }}" class="btn btn-default">
-      {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.Publicacao'%}
-    </a>
-  </div>
+  {% if perms.compilacao.add_publicacao %}
+    <div class="actions btn-group pull-right" role="group">
+      <a href="{{ view.create_url }}" class="btn btn-default">
+        {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.Publicacao'%}
+      </a>
+    </div>
+  {% endif %}
 
   {% if not object_list %}
     <p>{{ NO_ENTRIES_MSG }}</p>

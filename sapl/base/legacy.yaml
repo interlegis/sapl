@@ -1,0 +1,8 @@
+TipoAutor:
+  descricao: des_tipo_autor
+
+Autor:
+  nome: nom_autor
+  cargo: des_cargo
+  tipo: tip_autor
+  username: col_username

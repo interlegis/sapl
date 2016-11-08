@@ -1,13 +1,11 @@
 import hashlib
 import logging
+import re
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
 
-import hashlib
-import logging
-import re
-
+import django_filters
 import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
@@ -15,16 +13,11 @@ from django import forms
 from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation, GenericRel,\
-    GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
+                                                GenericRelation)
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
-
-import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
@@ -103,7 +96,12 @@ def montar_helper_autor(self):
 
 class SaplGenericForeignKey(GenericForeignKey):
 
-    def __init__(self, ct_field='content_type', fk_field='object_id', for_concrete_model=True, verbose_name=''):
+    def __init__(
+            self,
+            ct_field='content_type',
+            fk_field='object_id',
+            for_concrete_model=True,
+            verbose_name=''):
         super().__init__(ct_field, fk_field, for_concrete_model)
         self.verbose_name = verbose_name
 
@@ -383,7 +381,7 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     menor_fim = min(a_fim, b_fim)
     return maior_inicio <= menor_fim
 
-
+"""
 def permissoes(nome_grupo, app_label):
     lista_permissoes = []
     try:
@@ -398,12 +396,12 @@ def permissoes(nome_grupo, app_label):
 
 def permission_required_for_app(app_label, login_url=None,
                                 raise_exception=False):
-    """
+
     Decorator for views that checks whether a user has a particular permission
     enabled, redirecting to the log-in page if necessary.
     If the raise_exception parameter is given the PermissionDenied exception
     is raised.
-    """
+
     def check_perms(user):
         if user.has_module_perms(app_label):
             return True
@@ -413,7 +411,6 @@ def permission_required_for_app(app_label, login_url=None,
         # As the last resort, show the login form
         return False
     return user_passes_test(check_perms, login_url=login_url)
-
 
 def permissoes_materia():
     return permissoes('Operador de Matéria', 'materia')
@@ -466,6 +463,54 @@ def permissao_tb_aux(self):
         return True
     else:
         return False
+
+"""
+
+
+class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
+
+    choices = (
+        ('', 'Selecione'),
+        ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
+        ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
+        ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
+        ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
+    )
+    order_by_mapping = {
+        '': [],
+        'dataC': ['data_apresentacao', 'tipo__sigla', 'ano', 'numero'],
+        'dataD': ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero'],
+        'tipoC': ['tipo__sigla', 'ano', 'numero', 'data_apresentacao'],
+        'tipoD': ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao'],
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = self.choices
+        super(MateriaPesquisaOrderingFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        _value = self.order_by_mapping[value[0]] if value else value
+        return super().filter(qs, _value)
+
+
+class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
+
+    choices = (('', 'Selecione...'),
+               ('CRE', 'Ordem Crescente'),
+               ('DEC', 'Ordem Decrescente'),)
+    order_by_mapping = {
+        '': [],
+        'CRE': ['ano', 'numero'],
+        'DEC': ['-ano', '-numero'],
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = self.choices
+        super(AnoNumeroOrderingFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        _value = self.order_by_mapping[value[0]] if value else value
+        return super().filter(qs, _value)
 
 
 def gerar_hash_arquivo(arquivo, pk, block_size=2**20):

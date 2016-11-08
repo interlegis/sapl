@@ -8,12 +8,14 @@
   {% endblock detail_content %}
 
   {% block actions %}
-    <div class="actions btn-group pull-right clearfix" role="group">
-      <a href="{{ view.create_url }}" class="btn btn-default">
-        {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.TextoArticulado'%}
-      </a>
-      {% include 'compilacao/textoarticulado_menu_config.html' %}
-    </div>
+    {% if perms.compilacao.add_textoarticulado %}
+      <div class="actions btn-group pull-right clearfix" role="group">
+        <a href="{{ view.create_url }}" class="btn btn-default">
+          {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.TextoArticulado'%}
+        </a>
+        {% include 'compilacao/textoarticulado_menu_config.html' %}
+      </div>
+    {% endif %}
   {% endblock actions %}
 
   <table class="table table-striped table-hover">

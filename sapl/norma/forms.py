@@ -4,7 +4,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.forms import ModelForm
+from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -12,7 +12,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS
 
-from .models import NormaJuridica
+from .models import AssuntoNorma, NormaJuridica
 
 
 def get_esferas():
@@ -64,7 +64,7 @@ class NormaJuridicaPesquisaForm(ModelForm):
     ano = forms.ModelChoiceField(
         label='Ano',
         required=False,
-        queryset=NormaJuridica.objects.order_by('ano').values_list(
+        queryset=NormaJuridica.objects.order_by('-ano').values_list(
             'ano', flat=True).distinct(),
         empty_label='Selecione'
     )
@@ -81,6 +81,13 @@ class NormaJuridicaPesquisaForm(ModelForm):
 
     numero = forms.IntegerField(required=False)
 
+    assunto = forms.ModelChoiceField(
+        label='Assunto',
+        required=False,
+        queryset=AssuntoNorma.objects.all(),
+        empty_label='Selecione'
+    )
+
     class Meta:
         model = NormaJuridica
         fields = ['tipo',
@@ -89,25 +96,20 @@ class NormaJuridicaPesquisaForm(ModelForm):
                   'periodo_inicial',
                   'periodo_final',
                   'publicacao_inicial',
-                  'publicacao_final']
+                  'publicacao_final',
+                  'assunto']
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row(
-            [('tipo', 12)])
+        row1 = to_row([('tipo', 12)])
 
-        row2 = to_row(
-            [('numero', 6), ('ano', 6)])
+        row2 = to_row([('numero', 6), ('ano', 6)])
 
-        row3 = to_row(
-            [('periodo_inicial', 6), ('periodo_final', 6)])
+        row3 = to_row([('periodo_inicial', 6), ('periodo_final', 6)])
 
-        row4 = to_row(
-            [('publicacao_inicial', 6), ('publicacao_final', 6)])
+        row4 = to_row([('publicacao_inicial', 6), ('publicacao_final', 6)])
 
-        row5 = to_row(
-            [('em_vigencia', 6),
-             ('ordenacao', 6)])
+        row5 = to_row([('em_vigencia', 4), ('ordenacao', 4), ('assunto', 4)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -155,7 +157,9 @@ class NormaJuridicaForm(ModelForm):
                   'ementa',
                   'indexacao',
                   'observacao',
-                  'texto_integral']
+                  'texto_integral',
+                  'assuntos']
+        widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -186,8 +190,8 @@ class NormaJuridicaForm(ModelForm):
             return texto_integral
 
     def save(self, commit=False):
-        norma = super(NormaJuridicaForm, self).save(commit)
+        norma = self.instance
         norma.timestamp = datetime.now()
         norma.materia = self.cleaned_data['materia']
-        norma.save()
+        norma = super(NormaJuridicaForm, self).save(commit=True)
         return norma

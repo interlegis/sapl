@@ -13,14 +13,15 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import UnidadeTramitacao
-from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
-                        autor_modal)
+from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
+                        RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
+TIPOS_PROTOCOLO_CREATE = [('0', 'Enviado'), ('1', 'Recebido')]
 
 NATUREZA_PROCESSO = [('', 'Ambos'),
                      ('0', 'Administrativo'),
@@ -68,6 +69,8 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         widget=forms.Select(
             attrs={'class': 'selector'}))
 
+    o = AnoNumeroOrderingFilter()
+
     class Meta:
         model = Protocolo
         fields = ['numero',
@@ -75,25 +78,6 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                   'data',
                   'tipo_materia',
                   ]
-
-        order_by = (
-            ('', 'Selecione'),
-            ('CRE', 'Ordem Crescente'),
-            ('DEC', 'Ordem Decrescente'),
-        )
-
-    order_by_mapping = {
-        '': [],
-        'CRE': ['ano', 'numero'],
-        'DEC': ['-ano', '-numero'],
-    }
-
-    def get_order_by(self, order_value):
-        if order_value in self.order_by_mapping:
-            return self.order_by_mapping[order_value]
-        else:
-            return super(ProtocoloFilterSet,
-                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
@@ -131,7 +115,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisar Protocolo'),
+            Fieldset('',
                      row1, row2,
                      row3,
                      HTML(autor_label),
@@ -162,6 +146,8 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     interessado = django_filters.CharFilter(lookup_expr='icontains')
 
+    o = AnoNumeroOrderingFilter()
+
     class Meta:
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -170,25 +156,6 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                   'data',
                   'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
-
-        order_by = (
-            ('', 'Selecione'),
-            ('CRE', 'Ordem Crescente'),
-            ('DEC', 'Ordem Decrescente'),
-        )
-
-    order_by_mapping = {
-        '': [],
-        'CRE': ['ano', 'numero'],
-        'DEC': ['-ano', '-numero'],
-    }
-
-    def get_order_by(self, order_value):
-        if order_value in self.order_by_mapping:
-            return self.order_by_mapping[order_value]
-        else:
-            return super(DocumentoAdministrativoFilterSet,
-                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(DocumentoAdministrativoFilterSet, self).__init__(*args, **kwargs)
@@ -304,7 +271,7 @@ class ProtocoloDocumentForm(ModelForm):
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
-                                       choices=TIPOS_PROTOCOLO,)
+                                       choices=TIPOS_PROTOCOLO_CREATE,)
 
     tipo_documento = forms.ModelChoiceField(
         label=_('Tipo de Documento'),
@@ -313,7 +280,7 @@ class ProtocoloDocumentForm(ModelForm):
         empty_label='Selecione',
     )
 
-    num_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
+    numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
     assunto = forms.CharField(
         widget=forms.Textarea, label='Assunto', required=True)
 
@@ -327,7 +294,7 @@ class ProtocoloDocumentForm(ModelForm):
         model = Protocolo
         fields = ['tipo_protocolo',
                   'tipo_documento',
-                  'num_paginas',
+                  'numero_paginas',
                   'assunto',
                   'interessado',
                   'observacao',
@@ -339,7 +306,7 @@ class ProtocoloDocumentForm(ModelForm):
             [(InlineRadios('tipo_protocolo'), 12)])
         row2 = to_row(
             [('tipo_documento', 6),
-             ('num_paginas', 6)])
+             ('numero_paginas', 6)])
         row3 = to_row(
             [('assunto', 12)])
         row4 = to_row(
@@ -364,11 +331,6 @@ class ProtocoloDocumentForm(ModelForm):
 
 
 class ProtocoloMateriaForm(ModelForm):
-
-    tipo_protocolo = forms.ChoiceField(required=True,
-                                       label='Tipo de Protocolo',
-                                       choices=TIPOS_PROTOCOLO,)
-
     autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     def clean_autor(self):
@@ -383,8 +345,7 @@ class ProtocoloMateriaForm(ModelForm):
 
     class Meta:
         model = Protocolo
-        fields = ['tipo_protocolo',
-                  'tipo_materia',
+        fields = ['tipo_materia',
                   'numero_paginas',
                   'autor',
                   'observacao']
@@ -392,11 +353,9 @@ class ProtocoloMateriaForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [(InlineRadios('tipo_protocolo'), 12)])
-        row2 = to_row(
             [('tipo_materia', 4),
              ('numero_paginas', 4)])
-        row3 = to_row(
+        row2 = to_row(
             [('autor', 0),
              (Button('pesquisar',
                      'Pesquisar Autor',
@@ -404,25 +363,23 @@ class ProtocoloMateriaForm(ModelForm):
              (Button('limpar',
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
-        row4 = to_row(
+        row3 = to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
+                      HTML(autor_label),
+                      HTML(autor_modal),
                      row2,
-                     HTML(autor_label),
-                     HTML(autor_modal),
                      row3,
-                     row4,
                      form_actions(save_label='Protocolar Matéria')
                      )
         )
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
-        self.fields['tipo_protocolo'].inline_class = True
 
 
 class DocumentoAcessorioAdministrativoForm(ModelForm):
@@ -586,6 +543,10 @@ class DocumentoAdministrativoForm(ModelForm):
                   'observacao',
                   'texto_integral',
                   ]
+
+    def save(self, commit=True):
+        documento = super(DocumentoAdministrativoForm, self).save(commit)
+        return documento
 
     def __init__(self, *args, **kwargs):
 

@@ -3,6 +3,7 @@ from datetime import date, datetime
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.http import HttpResponseRedirect
@@ -12,12 +13,10 @@ from django.views.generic import CreateView, DetailView, FormView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
-from sapl.base.apps import AppConfig as AppsAppConfig
-from sapl.base.models import AppConfig
+import sapl
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
-from sapl.materia.models import TipoMateriaLegislativa
-from sapl.utils import (create_barcode, get_client_ip, permissoes_adm,
-                        permissoes_protocoloadm)
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.utils import create_barcode, get_client_ip
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -32,9 +31,9 @@ TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
 
 
-ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
+# ProtocoloDocumentoCrud = Crud.build(Protocolo, '')
 # FIXME precisa de uma chave diferente para o layout
-ProtocoloMateriaCrud = Crud.build(Protocolo, '')
+# ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
 DocumentoAcessorioAdministrativoCrud = Crud.build(
@@ -44,11 +43,11 @@ DocumentoAcessorioAdministrativoCrud = Crud.build(
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = AppConfig.objects.last()
+        app_config = sapl.base.models.AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
-        return self.request.user.has_module_perms(AppsAppConfig.label)
+        return super().has_permission()
 
 
 class DocumentoAdministrativoCrud(Crud):
@@ -60,10 +59,10 @@ class DocumentoAdministrativoCrud(Crud):
                             'numero_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
-    class ListView(Crud.ListView, DocumentoAdministrativoMixin):
+    class ListView(DocumentoAdministrativoMixin, Crud.ListView):
         pass
 
-    class DetailView(Crud.DetailView, DocumentoAdministrativoMixin):
+    class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         pass
 
 
@@ -82,7 +81,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
     model = Protocolo
     filterset_class = ProtocoloFilterSet
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.list_protocolo',)
 
     def get_filterset_kwargs(self, filterset_class):
         super(ProtocoloPesquisaView,
@@ -108,6 +107,8 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
+
+        context['title'] = _('Pesquisa de Protocolos')
 
         return context
 
@@ -143,7 +144,7 @@ class ProtocoloListView(PermissionRequiredMixin, ListView):
     context_object_name = 'protocolos'
     model = Protocolo
     paginate_by = 10
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.list_protocolo',)
 
     def get_queryset(self):
         kwargs = self.request.session['kwargs']
@@ -166,7 +167,7 @@ class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = AnularProcoloAdmForm
     form_valid_message = _('Protocolo anulado com sucesso!')
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.action_anular_protocolo', )
 
     def get_success_url(self):
         return reverse('sapl.protocoloadm:protocolo')
@@ -195,16 +196,18 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     template_name = "protocoloadm/protocolar_documento.html"
     form_class = ProtocoloDocumentForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.add_protocolo', )
 
     def get_success_url(self):
-        return reverse('sapl.protocoloadm:protocolo')
+        return reverse('sapl.protocoloadm:protocolo_mostrar',
+                       kwargs={'pk': self.object.id})
 
     def form_valid(self, form):
         f = form.save(commit=False)
 
         try:
-            numeracao = AppConfig.objects.last().sequencia_numeracao
+            numeracao = sapl.base.models.AppConfig.objects.last(
+            ).sequencia_numeracao
         except AttributeError:
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
@@ -230,31 +233,28 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
+        self.object = f
         return redirect(self.get_success_url())
 
 
 class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
     template_name = "protocoloadm/criar_documento.html"
     form_class = DocumentoAdministrativoForm
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.add_documentoadministrativo',)
 
     def get_initial(self):
-        numero = self.kwargs['pk']
-        ano = self.kwargs['ano']
-        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         return self.criar_documento(protocolo)
 
     def get_success_url(self):
         return reverse('sapl.protocoloadm:protocolo_mostrar',
-                       kwargs={'pk': self.kwargs['pk'],
-                               'ano': self.kwargs['ano']})
+                       kwargs={'pk': self.kwargs['pk']})
 
     def criar_documento(self, protocolo):
 
-        numero = Protocolo.objects.filter(
-            tipo_documento=protocolo.tipo_documento,
-            ano=protocolo.ano,
-            anulado=False).aggregate(Max('numero'))
+        numero_max = DocumentoAdministrativo.objects.filter(
+            tipo=protocolo.tipo_documento
+        ).aggregate(Max('numero'))['numero__max']
 
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
@@ -263,24 +263,36 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['numero_protocolo'] = protocolo.numero
         doc['assunto'] = protocolo.assunto_ementa
         doc['interessado'] = protocolo.interessado
-        doc['numero'] = numero['numero__max']
-        if doc['numero'] is None:
-            doc['numero'] = 1
-        else:
-            doc['numero'] = doc['numero'] + 1
+        doc['numero'] = numero_max + 1 if numero_max else 1
         return doc
 
 
 class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 
     template_name = "protocoloadm/protocolo_mostrar.html"
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
         context = super(ProtocoloMostrarView, self).get_context_data(**kwargs)
-        numero = self.kwargs['pk']
-        ano = self.kwargs['ano']
-        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+
+        if protocolo.tipo_materia:
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    numero_protocolo=protocolo.numero, ano=protocolo.ano)
+            except ObjectDoesNotExist:
+                context['materia'] = None
+            else:
+                context['materia'] = materia
+        elif protocolo.tipo_documento:
+            try:
+                documento = DocumentoAdministrativo.objects.get(
+                    numero_protocolo=protocolo.numero, ano=protocolo.ano)
+            except ObjectDoesNotExist:
+                context['documento'] = None
+            else:
+                context['documento'] = documento
+
         context['protocolo'] = protocolo
         return context
 
@@ -288,16 +300,14 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 class ComprovanteProtocoloView(PermissionRequiredMixin, TemplateView):
 
     template_name = "protocoloadm/comprovante.html"
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
         context = super(ComprovanteProtocoloView, self).get_context_data(
             **kwargs)
-        numero = self.kwargs['pk']
-        ano = self.kwargs['ano']
-        protocolo = Protocolo.objects.get(ano=ano, numero=numero)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         # numero is string, padd with zeros left via .zfill()
-        base64_data = create_barcode(numero.zfill(6))
+        base64_data = create_barcode(str(protocolo.numero).zfill(6))
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
         autenticacao = _("** NULO **")
@@ -319,14 +329,16 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     template_name = "protocoloadm/protocolar_materia.html"
     form_class = ProtocoloMateriaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
-    permission_required = permissoes_protocoloadm()
+    permission_required = ('protocoloadm.add_protocolo',)
 
-    def get_success_url(self):
-        return reverse('sapl.protocoloadm:protocolo')
+    def get_success_url(self, protocolo):
+        return reverse('sapl.protocoloadm:materia_continuar', kwargs={
+            'pk': protocolo.pk})
 
     def form_valid(self, form):
         try:
-            numeracao = AppConfig.objects.last().sequencia_numeracao
+            numeracao = sapl.base.models.AppConfig.objects.last(
+            ).sequencia_numeracao
         except AttributeError:
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
@@ -349,7 +361,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.data = datetime.now().strftime("%Y-%m-%d")
         protocolo.hora = datetime.now().strftime("%H:%M")
         protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        protocolo.tipo_protocolo = self.request.POST['tipo_protocolo']
         protocolo.tipo_processo = '0'  # TODO validar o significado
         if form.cleaned_data['autor']:
             protocolo.autor = form.cleaned_data['autor']
@@ -359,16 +370,29 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
         protocolo.save()
-        return redirect(self.get_success_url())
+        return redirect(self.get_success_url(protocolo))
 
 
-class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
-                                           FilterView,
-                                           DocumentoAdministrativoMixin):
+class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
+
+    template_name = "protocoloadm/MateriaTemplate.html"
+    permission_required = ('protocoloadm.detail_protocolo', )
+
+    def get_context_data(self, **kwargs):
+        context = super(ProtocoloMateriaTemplateView, self).get_context_data(
+            **kwargs)
+        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        context.update({'protocolo': protocolo})
+        return context
+
+
+class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
+                                           PermissionRequiredMixin,
+                                           FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
-    permission_required = permissoes_adm()
+    permission_required = ('protocoloadm.list_documentoadministrativo', )
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
@@ -426,7 +450,7 @@ class PesquisarDocumentoAdministrativoView(PermissionRequiredMixin,
 
 class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
     template_name = "protocoloadm/detail_doc_adm.html"
-    permission_required = permissoes_adm()
+    permission_required = ('protocoloadm.detail_documentoadministrativo', )
 
     def get(self, request, *args, **kwargs):
         documento = DocumentoAdministrativo.objects.get(
@@ -468,7 +492,8 @@ class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
 class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
                                                FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
-    permission_required = permissoes_adm()
+    permission_required = (
+        'protocoloadm.change_documentoacessorioadministrativo', )
 
     def get(self, request, *args, **kwargs):
         doc = DocumentoAdministrativo.objects.get(
@@ -516,7 +541,8 @@ class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
 
 class DocumentoAcessorioAdministrativoView(PermissionRequiredMixin, FormView):
     template_name = "protocoloadm/documento_acessorio_administrativo.html"
-    permission_required = permissoes_adm()
+    permission_required = (
+        'protocoloadm.add_documentoacessorioadministrativo', )
 
     def get(self, request, *args, **kwargs):
         form = DocumentoAcessorioAdministrativoForm()
@@ -569,65 +595,13 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
 
-    class ListView(MasterDetailCrud.ListView, DocumentoAdministrativoMixin):
+    class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
 
-    class DetailView(MasterDetailCrud.DetailView,
-                     DocumentoAdministrativoMixin):
+    class DetailView(DocumentoAdministrativoMixin,
+                     MasterDetailCrud.DetailView):
         pass
-
-
-"""
-def get_nome_autor(request):
-    nome_autor = ''
-    if request.method == 'GET':
-        id = request.GET.get('id', '')
-        try:
-            autor = Autor.objects.get(pk=id)
-            if autor.parlamentar:
-                nome_autor = autor.parlamentar.nome_parlamentar
-            elif autor.comissao:
-                nome_autor = autor.comissao.nome
-        except ObjectDoesNotExist:
-            pass
-    return HttpResponse("{\"nome\":\"" + nome_autor + "\"}",
-                        content_type="application/json; charset=utf-8")"""
-
-"""
-def pesquisa_autores(request):
-    q = ''
-    if request.method == 'GET':
-        q = request.GET.get('q', '')
-
-    autor = Autor.objects.filter(
-        Q(nome__icontains=q) |
-        Q(parlamentar__nome_parlamentar__icontains=q) |
-        Q(comissao__nome__icontains=q)
-    )
-
-    autor = Autor.objects.filter(nome__icontains=q)
-
-    autores = []
-
-    for a in autor:
-        nome = ''
-        if a.nome:
-            nome = a.nome
-        elif a.parlamentar:
-            nome = a.parlamentar.nome_parlamentar
-        elif a.comissao:
-            nome = a.comissao.nome
-
-        autores.append((a.id, nome))
-
-    autores = sorted(autores, key=lambda x: x[1])
-
-    return HttpResponse(json.dumps(autores,
-                                   sort_keys=True,
-                                   ensure_ascii=False),
-                        content_type="application/json; charset=utf-8")
-"""

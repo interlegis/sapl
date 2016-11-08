@@ -7,11 +7,13 @@ from django.views.generic.base import RedirectView
 
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
-from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, make_pagination
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            MasterDetailCrud, make_pagination)
 from sapl.norma.forms import NormaJuridicaForm
 
 from .forms import NormaJuridicaPesquisaForm
-from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
+from .models import (AssuntoNorma, NormaJuridica,
+                     TipoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
@@ -26,6 +28,17 @@ TipoNormaCrud = CrudAux.build(
 class NormaTaView(IntegracaoTaView):
     model = NormaJuridica
     model_type_foreignkey = TipoNormaJuridica
+    map_fields = {
+        'data': 'data',
+        'ementa': 'ementa',
+        'observacao': 'observacao',
+        'numero': 'numero',
+        'ano': 'ano',
+    }
+
+    map_funcs = {
+        'publicacao_func': True
+    }
 
     def get(self, request, *args, **kwargs):
         """
@@ -116,6 +129,8 @@ class NormaPesquisaView(FormView):
             kwargs['ordenacao'] = form.data['ordenacao']
         if form.data['em_vigencia']:
             kwargs['em_vigencia'] = form.data['em_vigencia']
+        if form.data['assunto']:
+            kwargs['assunto'] = form.data['assunto']
 
         request.session['kwargs'] = kwargs
         return redirect('sapl.norma:list_pesquisa_norma')
@@ -182,6 +197,9 @@ class PesquisaNormaListView(ListView):
 
         if 'ano' in kwargs:
             normas = normas.filter(ano=kwargs['ano'])
+
+        if 'assunto' in kwargs:
+            normas = normas.filter(assuntos=kwargs['assunto'])
 
         return normas
 

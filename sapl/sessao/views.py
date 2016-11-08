@@ -2,6 +2,7 @@ from datetime import datetime
 from re import sub
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import (ObjectDoesNotExist, MultipleObjectsReturned,
                                     ValidationError)
 from django.core.urlresolvers import reverse
@@ -61,11 +62,9 @@ TipoResultadoVotacaoCrud = CrudAux.build(
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=pk)
-    exp_num = 1
-    for e in expedientes:
+    for exp_num, e in enumerate(expedientes, 1):
         e.numero_ordem = exp_num
         e.save()
-        exp_num += 1
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
@@ -74,17 +73,15 @@ def reordernar_materias_expediente(request, pk):
 def reordernar_materias_ordem(request, pk):
     ordens = OrdemDia.objects.filter(
         sessao_plenaria_id=pk)
-    ordem_num = 1
-    for o in ordens:
+    for ordem_num, o in enumerate(ordens, 1):
         o.numero_ordem = ordem_num
         o.save()
-        ordem_num += 1
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
 
-@permission_required_for_app(app_label=apps.AppConfig.label)
+@permission_required('sessao.change_expedientemateria')
 def abrir_votacao_expediente_view(request, pk, spk):
     existe_votacao_aberta = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
@@ -101,7 +98,7 @@ def abrir_votacao_expediente_view(request, pk, spk):
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
-@permission_required_for_app(app_label=apps.AppConfig.label)
+@permission_required('sessao.change_ordemdia')
 def abrir_votacao_ordem_view(request, pk, spk):
     existe_votacao_aberta = OrdemDia.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
@@ -524,13 +521,11 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
             _('Presença'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required(
+        'sessao.add_sessaoplenariapresenca'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
-
-        if not self.request.user.has_module_perms(AppConfig.label):
-            return self.form_invalid(form)
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
@@ -604,7 +599,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
             _('Presença Ordem do Dia'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.add_presencaordemdia'))
     def post(self, request, *args, **kwargs):
 
         self.object = self.get_object()
@@ -684,7 +679,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
         return self.render_to_response(context)
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.change_ordemdia'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
@@ -786,7 +781,7 @@ class MesaView(FormMixin, DetailView):
             _('Mesa Diretora'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.change_integrantemesa'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = MesaForm(request.POST)
@@ -1041,7 +1036,7 @@ class ExpedienteView(FormMixin, DetailView):
             _('Expediente Diversos'), self.object)
         return context
 
-    @method_decorator(permission_required_for_app(AppConfig.label))
+    @method_decorator(permission_required('sessao.add_expedientesessao'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = ExpedienteForm(request.POST)

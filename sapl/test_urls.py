@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
-from scripts.inicializa_grupos_autorizacoes import cria_grupos_permissoes
+from sapl.rules.apps import AppConfig, update_groups
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
@@ -376,7 +376,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             # list e detail permissions
             create_perms_post_migrate(app)
         # cria usuários de perfil do sapl
-        cria_grupos_permissoes()
+        update_groups(AppConfig)
 
     users = get_user_model().objects.order_by(
         'username').values_list('username', flat=True)

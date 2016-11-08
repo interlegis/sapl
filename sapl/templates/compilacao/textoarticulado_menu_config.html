@@ -4,11 +4,15 @@
     <i class="fa fa-cog fa-1x fa-fw"></i>
   </button>
   <ul class="dropdown-menu" role="menu">
-    <li><a href="{% url 'sapl.compilacao:tipo_ta_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoTextoArticulado'%}</a></li>
-    <li><a href="{% url 'sapl.compilacao:tipopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoPublicacao'%}</a></li>
-    <li><a href="{% url 'sapl.compilacao:veiculopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.VeiculoPublicacao'%}</a></li>
-    <li><a href="{% url 'sapl.compilacao:tiponota_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoNota'%}</a></li>
-    <li><a href="{% url 'sapl.compilacao:tipovide_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoVide'%}</a></li>
-    <li><a href="{% url 'sapl.compilacao:tipodispositivo_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoDispositivo'%}</a></li>
-    <li><a href="#">TODO: Perfil Estrutural de Textos Articulados</a></li>
+
+    {% if perms.compilacao.list_tipotextoarticulado %}<li><a href="{% url 'sapl.compilacao:tipo_ta_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoTextoArticulado'%}</a></li>{% endif %}
+    {% if perms.compilacao.list_tipo_publicacao %}<li><a href="{% url 'sapl.compilacao:tipopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoPublicacao'%}</a></li>{% endif %}
+    {% if perms.compilacao.list_veiculopublicacao %}<li><a href="{% url 'sapl.compilacao:veiculopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.VeiculoPublicacao'%}</a></li>{% endif %}
+    {% if perms.compilacao.list_tiponota %}<li><a href="{% url 'sapl.compilacao:tiponota_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoNota'%}</a></li>{% endif %}
+    {% if perms.compilacao.list_tipovide %}<li><a href="{% url 'sapl.compilacao:tipovide_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoVide'%}</a></li>{% endif %}
+
+    {% if user.is_superuser %}
+      <li><a href="{% url 'sapl.compilacao:tipodispositivo_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoDispositivo'%}</a></li>
+      <li><a href="#">TODO: Perfil Estrutural de Textos Articulados</a></li>
+    {% endif %}
   </ul>

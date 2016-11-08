@@ -37,6 +37,11 @@ MateriaLegislativa:
   tipo: tip_id_basica
   tipo_origem_externa: tip_origem_externa
 
+Autoria:
+  autor: cod_autor
+  materia: cod_materia
+  primeiro_autor: ind_primeiro_autor
+
 AcompanhamentoMateria (AcompMateria):
   email: end_email
   hash: txt_hash
@@ -51,24 +56,6 @@ Anexada:
 AssuntoMateria:
   assunto: des_assunto
   dispositivo: des_dispositivo
-
-TipoAutor:
-  descricao: des_tipo_autor
-
-Autor:
-  cargo: des_cargo
-  comissao: cod_comissao
-  nome: nom_autor
-  parlamentar: cod_parlamentar
-  partido: cod_partido
-  tipo: tip_autor
-  username: col_username
-  user:
-
-Autoria:
-  autor: cod_autor
-  materia: cod_materia
-  primeiro_autor: ind_primeiro_autor
 
 DespachoInicial:
   comissao: cod_comissao

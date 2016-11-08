@@ -91,7 +91,8 @@ def get_field_display(obj, fieldname):
         else:
             display = ''
     elif 'ManyRelatedManager' in str(type(value))\
-            or 'RelatedManager' in str(type(value)):
+            or 'RelatedManager' in str(type(value))\
+            or 'GenericRelatedObjectManager' in str(type(value)):
         display = '<ul>'
         for v in value.all():
             display += '<li>%s</li>' % str(v)

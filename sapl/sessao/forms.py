@@ -12,7 +12,9 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
-from sapl.utils import RANGE_DIAS_MES, RANGE_MESES, autor_label, autor_modal
+from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
+                        MateriaPesquisaOrderingFilter, autor_label,
+                        autor_modal)
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
                      OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca)
@@ -21,7 +23,10 @@ from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
 def recupera_anos():
     try:
         anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
-        anos = [(k.year, k.year) for k in anos_list]
+        # a listagem deve ser em ordem descrescente, mas por algum motivo
+        # a adicao de .order_by acima depois do all() nao surte efeito
+        # apos a adicao do .dates(), por isso o reversed() abaixo
+        anos = [(k.year, k.year) for k in reversed(anos_list)]
         return anos
     except:
         return []
@@ -203,6 +208,8 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
 class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 
+    o = MateriaPesquisaOrderingFilter()
+
     class Meta:
         model = MateriaLegislativa
         fields = ['numero',
@@ -212,19 +219,11 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  # 'autoria__autor__partido',
+                  # FIXME 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'em_tramitacao',
                   ]
-
-        order_by = (
-            ('', 'Selecione'),
-            ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
-            ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
-            ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
-            ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
-        )
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)

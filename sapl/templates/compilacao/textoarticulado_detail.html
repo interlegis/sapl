@@ -7,15 +7,23 @@
   <ul class="nav nav-pills navbar-right">
     {%if object %}
       <li>
-        {% if object.content_object%}
-          <a href="{% url object|urldetail_content_type object.content_object.pk %}" title="{% trans 'Ir para '%}{{object.content_object}}">Início</a>
+        {% if request.GET.back_type == 'history' and object.content_object %}
+          <a href="javascript:window.history.back()" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
+        {% elif object.content_object%}
+          <a href="{% url object|urldetail_content_type object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
         {%else%}
           <a href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
         {%endif%}
       </li>
-      <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
-      <li><a href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
-      <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
+      {% if object.tipo_ta.publicacao_func %}
+        <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
+      {% endif %}
+      {% if perms.compilacao.view_dispositivo_notificacoes %}
+        <li><a href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
+      {% endif %}
+      {% block extra_sections_nav %}
+        <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
+      {% endblock %}
     {% endif %}
   </ul>
 {% endblock %}
@@ -24,11 +32,18 @@
 
   {% block actions %}
     <div class="clearfix">
+
       <div class="actions btn-group pull-right" role="group">
-        {% if user.is_authenticated %}
-          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
-          <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default btn-excluir">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Bloquear Edição' %}{% endif %}</a>
         {% endif %}
+        {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
+          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+        {% endif %}
+        {% if object|can_use_dynamic_editing:user %}
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        {% endif %}
+
 	  </div>
     </div>
   {% endblock actions %}
@@ -74,14 +89,14 @@
             </div>
           </div>
         </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div id="div_id_ementa" class="holder">
-                <label>{% field_verbose_name object 'ementa' %}</label>
-                <p>{{ object.ementa|safe}}</p>
-              </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div id="div_id_ementa" class="holder">
+              <label>{% field_verbose_name object 'ementa' %}</label>
+              <p>{{ object.ementa|safe}}</p>
             </div>
           </div>
+        </div>
     </fieldset>
   {% endblock detail_content %}
 {% endblock base_content %}

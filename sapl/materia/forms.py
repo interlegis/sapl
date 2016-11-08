@@ -1,12 +1,12 @@
 
-from datetime import datetime, date
+from datetime import date, datetime
 import os
 
-from crispy_forms.bootstrap import Alert, InlineCheckboxes, FormActions,\
-    InlineRadios
+from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
+                                    InlineRadios)
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Row,\
-    Field, Submit
+from crispy_forms.layout import (HTML, Button, Column, Field, Fieldset, Layout,
+                                 Submit)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -21,21 +21,25 @@ import django_filters
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.crispy_layout_mixin import form_actions, to_row, to_column,\
-    SaplFormLayout
-from sapl.materia.models import TipoProposicao, RegimeTramitacao, TipoDocumento
+from sapl.compilacao.models import STATUS_TA_PRIVATE,\
+    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado
+from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
+                                      to_row)
+from sapl.materia.models import TipoProposicao, MateriaLegislativa,\
+    RegimeTramitacao, TipoDocumento
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, RangeWidgetOverride, autor_label,
-                        autor_modal, models_with_gr_for_model,
-                        ChoiceWithoutValidationField, YES_NO_CHOICES)
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        ChoiceWithoutValidationField,
+                        MateriaPesquisaOrderingFilter, RangeWidgetOverride,
+                        autor_label, autor_modal, models_with_gr_for_model)
 import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
+                     DocumentoAcessorio, Numeracao,
                      Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao,
                      UnidadeTramitacao)
 
@@ -65,6 +69,33 @@ class ReceberProposicaoForm(Form):
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
 
 
+class MateriaSimplificadaForm(ModelForm):
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'numero', 'ano', 'data_apresentacao',
+                  'numero_protocolo', 'regime_tramitacao',
+                  'em_tramitacao', 'ementa', 'texto_original']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([('tipo', 6), ('numero', 3), ('ano', 3)])
+        row2 = to_row([('data_apresentacao', 6), ('numero_protocolo', 6)])
+        row3 = to_row([('regime_tramitacao', 6), ('em_tramitacao', 6)])
+        row4 = to_row([('ementa', 12)])
+        row5 = to_row([('texto_original', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Formulário Simplificado'),
+                row1, row2, row3, row4, row5,
+                form_actions(save_label='Salvar')
+            )
+        )
+        super(MateriaSimplificadaForm, self).__init__(*args, **kwargs)
+
+
 class UnidadeTramitacaoForm(ModelForm):
 
     class Meta:
@@ -82,66 +113,6 @@ class UnidadeTramitacaoForm(ModelForm):
             msg = _('Somente um campo deve preenchido!')
             raise ValidationError(msg)
         return cleaned_data
-
-
-class ProposicaoOldForm(ModelForm):
-
-    tipo_materia = forms.ModelChoiceField(
-        label=_('Matéria Vinculada'),
-        required=False,
-        queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-    )
-
-    numero_materia = forms.CharField(
-        label='Número', required=False)
-
-    ano_materia = forms.CharField(
-        label='Ano', required=False)
-
-    def clean_texto_original(self):
-        texto_original = self.cleaned_data.get('texto_original', False)
-        if texto_original:
-            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
-            return texto_original
-
-    def clean_data_envio(self):
-        data_envio = self.cleaned_data.get('data_envio') or None
-        if (not data_envio) and len(self.initial) > 1:
-            data_envio = datetime.now()
-        return data_envio
-
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        if 'tipo' in cleaned_data:
-            if cleaned_data['tipo'].descricao == 'Parecer':
-                if self.instance.materia:
-                    cleaned_data['materia'] = self.instance.materia
-                else:
-                    try:
-                        materia = MateriaLegislativa.objects.get(
-                            tipo_id=cleaned_data['tipo_materia'],
-                            ano=cleaned_data['ano_materia'],
-                            numero=cleaned_data['numero_materia'])
-                    except ObjectDoesNotExist:
-                        msg = _('Matéria adicionada não existe!')
-                        raise ValidationError(msg)
-                    else:
-                        cleaned_data['materia'] = materia
-        return cleaned_data
-
-    def save(self, commit=False):
-        proposicao = super(ProposicaoOldForm, self).save(commit)
-        if 'materia' in self.cleaned_data:
-            proposicao.materia = self.cleaned_data['materia']
-        proposicao.save()
-        return proposicao
-
-    class Meta:
-        model = Proposicao
-        fields = ['tipo', 'data_envio', 'descricao', 'texto_original', 'autor']
-        widgets = {'autor': forms.HiddenInput()}
 
 
 class AcompanhamentoMateriaForm(ModelForm):
@@ -504,6 +475,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                                                 label=u'Ano da Matéria',
                                                 choices=em_tramitacao)
 
+    o = MateriaPesquisaOrderingFilter()
+
     class Meta:
         model = MateriaLegislativa
         fields = ['numero',
@@ -513,36 +486,13 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
-                  # 'autoria__autor__partido',
+                  # FIXME 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
                   'em_tramitacao',
                   ]
-
-        order_by = (
-            ('', 'Selecione'),
-            ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
-            ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
-            ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
-            ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
-        )
-
-    order_by_mapping = {
-        '': [],
-        'dataC': ['data_apresentacao', 'tipo__sigla', 'ano', 'numero'],
-        'dataD': ['-data_apresentacao', '-tipo__sigla', '-ano', '-numero'],
-        'tipoC': ['tipo__sigla', 'ano', 'numero', 'data_apresentacao'],
-        'tipoD': ['-tipo__sigla', '-ano', '-numero', '-data_apresentacao'],
-    }
-
-    def get_order_by(self, order_value):
-        if order_value in self.order_by_mapping:
-            return self.order_by_mapping[order_value]
-        else:
-            return super(MateriaLegislativaFilterSet,
-                         self).get_order_by(order_value)
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
@@ -829,7 +779,8 @@ class TipoProposicaoForm(ModelForm):
 
         content_type = cd['content_type']
 
-        if 'tipo_conteudo_related' not in cd or not cd['tipo_conteudo_related']:
+        if 'tipo_conteudo_related' not in cd or not cd[
+           'tipo_conteudo_related']:
             raise ValidationError(
                 _('Seleção de Tipo não definida'))
 
@@ -951,11 +902,14 @@ class ProposicaoForm(forms.ModelForm):
 
             if self.instance.materia_de_vinculo:
                 self.fields[
-                    'tipo_materia'].initial = self.instance.materia_de_vinculo.tipo
+                    'tipo_materia'
+                ].initial = self.instance.materia_de_vinculo.tipo
                 self.fields[
-                    'numero_materia'].initial = self.instance.materia_de_vinculo.numero
+                    'numero_materia'
+                ].initial = self.instance.materia_de_vinculo.numero
                 self.fields[
-                    'ano_materia'].initial = self.instance.materia_de_vinculo.ano
+                    'ano_materia'
+                ].initial = self.instance.materia_de_vinculo.ano
 
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
@@ -1128,11 +1082,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         if self.instance.materia_de_vinculo:
             self.fields[
-                'tipo_materia'].initial = self.instance.materia_de_vinculo.tipo
+                'tipo_materia'
+            ].initial = self.instance.materia_de_vinculo.tipo
             self.fields[
-                'numero_materia'].initial = self.instance.materia_de_vinculo.numero
+                'numero_materia'
+            ].initial = self.instance.materia_de_vinculo.numero
             self.fields[
-                'ano_materia'].initial = self.instance.materia_de_vinculo.ano
+                'ano_materia'
+            ].initial = self.instance.materia_de_vinculo.ano
 
         if self.proposicao_incorporacao_obrigatoria == 'C':
             self.fields['gerar_protocolo'].initial = True
@@ -1148,8 +1105,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                     raise ValidationError(
                         _('Regimente de Tramitação deve ser informado.'))
 
-            elif self.instance.tipo.content_type.model_class() == TipoDocumento\
-                    and not cd['materia_de_vinculo']:
+            elif self.instance.tipo.content_type.model_class(
+            ) == TipoDocumento and not cd['materia_de_vinculo']:
 
                 raise ValidationError(
                     _('Documentos não podem ser incorporados sem definir '
@@ -1179,6 +1136,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.instance.data_envio = None
             self.instance.save()
 
+            if self.instance.texto_articulado.exists():
+                ta = self.instance.texto_articulado.first()
+                ta.privacidade = STATUS_TA_PRIVATE
+                ta.editing_locked = False
+                ta.save()
+
             self.instance.results = {
                 'messages': {
                     'success': [_('Devolução efetuada com sucesso.'), ]
@@ -1191,6 +1154,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.instance.justificativa_devolucao = ''
             self.instance.data_devolucao = None
             self.instance.data_recebimento = datetime.now()
+
+            if self.instance.texto_articulado.exists():
+                ta = self.instance.texto_articulado.first()
+                ta.privacidade = STATUS_TA_IMMUTABLE_PUBLIC
+                ta.editing_locked = True
+                ta.save()
 
         self.instance.save()
 
@@ -1216,7 +1185,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         proposicao = self.instance
         conteudo_gerado = None
 
-        if self.instance.tipo.content_type.model_class() == TipoMateriaLegislativa:
+        if self.instance.tipo.content_type.model_class(
+        ) == TipoMateriaLegislativa:
             numero__max = MateriaLegislativa.objects.filter(
                 tipo=proposicao.tipo.tipo_conteudo_related,
                 ano=datetime.now().year).aggregate(Max('numero'))
@@ -1231,12 +1201,25 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             materia.data_apresentacao = datetime.now()
             materia.em_tramitacao = True
             materia.regime_tramitacao = cd['regime_tramitacao']
-            materia.texto_original = File(
-                proposicao.texto_original,
-                os.path.basename(proposicao.texto_original.path))
-            materia.texto_articulo = proposicao.texto_articulado
+
+            if proposicao.texto_original:
+                materia.texto_original = File(
+                    proposicao.texto_original,
+                    os.path.basename(proposicao.texto_original.path))
+
             materia.save()
             conteudo_gerado = materia
+
+            if proposicao.texto_articulado.exists():
+                ta = proposicao.texto_articulado.first()
+
+                ta.id = None
+                ta.content_object = materia
+                ta.save()
+
+                pass
+                # FIXME - gerar texto_articulado da materia com base na prop.
+                # materia.texto_articulo = proposicao.texto_articulado
 
             self.instance.results['messages']['success'].append(_(
                 'Matéria Legislativa registrada com sucesso (%s)'
@@ -1349,7 +1332,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.numero_paginas = cd['numero_de_paginas']
         protocolo.anulado = False
 
-        if self.instance.tipo.content_type.model_class() == TipoMateriaLegislativa:
+        if self.instance.tipo.content_type.model_class(
+        ) == TipoMateriaLegislativa:
             protocolo.tipo_materia = proposicao.tipo.tipo_conteudo_related
         elif self.instance.tipo.content_type.model_class() == TipoDocumento:
             protocolo.tipo_documento = proposicao.tipo.tipo_conteudo_related
