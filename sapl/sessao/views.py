@@ -3,8 +3,7 @@ from re import sub
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.core.exceptions import (ObjectDoesNotExist, MultipleObjectsReturned,
-                                    ValidationError)
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
@@ -30,10 +29,8 @@ from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import (Legislatura, Parlamentar,
                                        SessaoLegislativa)
-from sapl.sessao import apps
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import permission_required_for_app
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
@@ -2202,7 +2199,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
-
+        import ipdb; ipdb.set_trace()
         for m in marcadas:
             try:
                 tipo_votacao = request.POST['tipo_votacao_%s' % m]
