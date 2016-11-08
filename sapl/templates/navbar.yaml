@@ -45,7 +45,7 @@
 - title: {% trans 'Normas Jurídicas' %}
   children:
     - title: {% trans 'Pesquisar Normas Jurídicas' %}
-      url: sapl.norma:normajuridica_list
+      url: sapl.norma:pesquisar_norma
 
 - title: {% trans 'Sistema' %}
   check_permission: base.menu_sistemas
