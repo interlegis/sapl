@@ -17,7 +17,7 @@ from sapl.comissoes.models import Composicao, Participacao
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import AssuntoNormaRelationship, NormaJuridica
+from sapl.norma.models import AssuntoNorma, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
@@ -526,12 +526,9 @@ def adjust_normajuridica_antes_salvar(new, old):
 
 def adjust_normajuridica_depois_salvar(new, old):
     # Ajusta relação M2M
-    lista_ids_assunto = old.cod_assunto.split(',')
-    for id_assunto in lista_ids_assunto:
-        relacao = AssuntoNormaRelationship()
-        relacao.assunto_id = int(id_assunto)
-        relacao.norma_id = new.pk
-        relacao.save()
+    lista_pks_assunto = old.cod_assunto.split(',')
+    for pk_assunto in lista_pks_assunto:
+        new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
 
 
 def adjust_autor(new, old):
