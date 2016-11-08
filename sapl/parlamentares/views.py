@@ -54,6 +54,12 @@ class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     help_path = 'relatoria_parlamentar'
     namespace = AppConfig.name
 
+    class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
+
+        @classmethod
+        def url_name(cls, suffix):
+            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
+
 
 class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Proposicao
@@ -61,10 +67,31 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     parent_field = 'autor__parlamentar_set'
     namespace = AppConfig.name
 
+    class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
+
+        @classmethod
+        def url_name(cls, suffix):
+            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
+
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
 
         def get_queryset(self):
-            return super().get_queryset().filter(data_envio__isnull=False)
+            return super().get_queryset().filter(
+                data_envio__isnull=False,
+                data_recebimento__isnull=False)
+
+    class DetailView(CrudBaseForListAndDetailExternalAppView.DetailView):
+
+        @property
+        def extras_url(self):
+
+            if self.object.texto_articulado.exists():
+                ta = self.object.texto_articulado.first()
+                yield (str(reverse_lazy(
+                    'sapl.compilacao:ta_text',
+                    kwargs={'ta_id': ta.pk})) + '?back_type=history',
+                    'btn-success',
+                    _('Texto Eletrônico'))
 
 
 class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
@@ -73,6 +100,12 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     namespace = AppConfig.name
     list_field_names = ['composicao__comissao__nome', 'cargo__nome', (
         'composicao__periodo__data_inicio', 'composicao__periodo__data_fim')]
+
+    class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
+
+        @classmethod
+        def url_name(cls, suffix):
+            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
 
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
         ordering = ('-composicao__periodo')

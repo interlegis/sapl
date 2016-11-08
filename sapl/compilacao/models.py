@@ -210,7 +210,7 @@ class TextoArticulado(TimestampedMixin):
         if request.user in self.owners.all():
             return True
 
-        if self.privacidade == STATUS_TA_RESTRICT and\
+        if self.privacidade == STATUS_TA_IMMUTABLE_RESTRICT and\
                 request.user.has_perm(
                     'compilacao.view_restricted_textoarticulado'):
             return True

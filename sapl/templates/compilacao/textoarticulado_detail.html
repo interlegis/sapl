@@ -7,7 +7,9 @@
   <ul class="nav nav-pills navbar-right">
     {%if object %}
       <li>
-        {% if object.content_object%}
+        {% if request.GET.back_type == 'history' and object.content_object %}
+          <a href="javascript:window.history.back()" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
+        {% elif object.content_object%}
           <a href="{% url object|urldetail_content_type object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
         {%else%}
           <a href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
