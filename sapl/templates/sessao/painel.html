@@ -11,7 +11,6 @@
 
 
 {% block detail_content %}
-	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
 
   <div class="row">
     <!--<div class="col-md-6"><a href="{% url 'sapl.painel:painel_principal' pk %}" class="btn btn-primary btn-sm active">Iniciar painel presidente</a></div> -->
@@ -95,8 +94,6 @@ $(function() {
 
 	startTime();
 
-	var audioAlertFinish = document.getElementById("audio");
-
 	$('#discurso').prop('disabled', true);
 	$('#aparte').prop('disabled', true);
 	$('#ordem').prop('disabled', true);
@@ -107,8 +104,6 @@ $(function() {
         startAt: 60 * 5 * 1000,
         stopAt: 0,
         milliseconds: false
-	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
 	});
 
     $('#discursoStart').click(function() {
@@ -153,8 +148,6 @@ $(function() {
         startAt: 60 * 3 * 1000,
         stopAt: 0,
         milliseconds: false
-	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
 	});
 
 	$('#aparteStart').click(function(){
@@ -198,8 +191,6 @@ $(function() {
         startAt: 60 * 2 * 1000,
         stopAt: 0,
         milliseconds: false
-	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
 	});
 
     $('#ordemStart').click(function() {

@@ -21,7 +21,6 @@
         ul, li {
           list-style-type: none;
         }
-
         #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao{
           font-family: Verdana;
         }
@@ -29,6 +28,8 @@
     </style>
   </head>
   <body>
+    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
+
     <h1 id="title"></h1>
     <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' sessao_id %}">
 
@@ -82,13 +83,11 @@
 
   <script type="text/javascript">
      $(document).ready(function() {
-
          //TODO: replace by a fancy jQuery clock
          function checkTime(i) {
              if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
                 return i;
          }
-
          function startTime() {
              var today=new Date();
              var h=today.getHours();
@@ -101,8 +100,9 @@
                  startTime()
              }, 500);
          }
-
          startTime();
+
+        var audioAlertFinish = document.getElementById("audio");
 
         $('#cronometro_discurso').runner({
           autostart: false,
@@ -110,6 +110,8 @@
           startAt: 5 * 60 * 1000, // 5 minutes
           stopAt: 0,
           milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
         });
 
         $('#cronometro_aparte').runner({
@@ -118,6 +120,8 @@
           startAt: 3 * 60 * 1000, // 3 minutes
           stopAt: 0,
           milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+            audioAlertFinish.play();
         });
 
         $('#cronometro_ordem').runner({
@@ -126,11 +130,13 @@
           startAt: 2 * 60 * 1000, // 2 minutes
           stopAt: 0,
           milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
         });
 
-    var discurso_previous = '';
-    var aparte_previous = '';
-    var ordem_previous = '';
+    var discurso_previous;
+    var ordem_previous;
+    var aparte_previous;
 
     var counter = 1;
     (function poll() {
@@ -138,29 +144,21 @@
            url: $("#json_url").val(),
            type: "GET",
            success: function(data) {
-
-
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-
               if (data["status_painel"] === "FECHADO") {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
                 return;
               }
-
-
               var presentes = $("#parlamentares");
               presentes.children().remove();
-
               if (data["presentes_ordem_dia"] != null) {
                 presentes_ordem_dia = data["presentes_ordem_dia"];
               }
               else if (data["presentes_expediente"] != null){
                 presentes_ordem_dia = data["presentes_expediente"]
               }
-
-
               if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
                   if(data["tipo_votacao"] == "Nominal") {
                       jQuery.each(data["votos"], function(index, parlamentar) {
@@ -172,18 +170,14 @@
                   $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
                 });
               }
-
             //console.debug(presentes_ordem_dia)
-
             var votacao = $("#votacao")
-
             if (data["num_presentes_ordem_dia"] != null) {
               num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
             }
             else if (data["num_presentes_expediente"] != null){
               num_presentes_ordem_dia = data["num_presentes_expediente"]
             }
-
             votacao.children().remove()
             votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
             votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
@@ -191,29 +185,38 @@
             votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
             votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
 
-
               var discurso_current = data["cronometro_discurso"];
+              if (!discurso_previous){
+                discurso_previous = ''
+              }
+
               if (discurso_current != discurso_previous) {
                 $('#cronometro_discurso').runner(discurso_current);
                 discurso_previous = discurso_current;
               }
 
               var aparte_current = data["cronometro_aparte"];
+              if (!aparte_previous){
+                aparte_previous = ''
+              }
+
               if (aparte_current != aparte_previous) {
                 $('#cronometro_aparte').runner(aparte_current);
                 aparte_previous = aparte_current;
               }
 
               var ordem_current = data["cronometro_ordem"];
+              if (!ordem_previous){
+                ordem_previous = ''
+              }
+
               if (ordem_current != ordem_previous) {
                 $('#cronometro_ordem').runner(ordem_current);
                 ordem_previous = ordem_current;
               }
-
               $("#materia_legislativa_texto").text(data["materia_legislativa_texto"])
               $("#observacao_materia").text(data["observacao_materia"])
               $("#resultado_votacao").text(data["tipo_resultado"])
-
            },
            error: function(err) {
               console.error(err);
