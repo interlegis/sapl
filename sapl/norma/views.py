@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, ListView
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView

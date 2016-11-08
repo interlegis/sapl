@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 
 from sapl.norma.views import (AssuntoNormaCrud, NormaCrud, NormaPesquisaView,
-                              TipoNormaCrud)
+                              TipoNormaCrud, NormaTaView)
 
 from .apps import AppConfig
 
