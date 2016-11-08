@@ -1,6 +1,7 @@
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -11,7 +12,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template import Context, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
@@ -21,6 +22,9 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 from sapl.base.models import Autor, CasaLegislativa
+from sapl.compilacao.models import STATUS_TA_PRIVATE, STATUS_TA_EDITION,\
+    STATUS_TA_IMMUTABLE_RESTRICT
+
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -107,7 +111,11 @@ class MateriaTaView(IntegracaoTaView):
         'ano': 'ano',
     }
     map_funcs = {
-        'publicacao_func': False
+        'publicacao_func': False,
+    }
+    ta_values = {
+        'editable_only_by_owners': False,
+        'editing_locked': False,
     }
 
     def get(self, request, *args, **kwargs):
@@ -126,7 +134,7 @@ class ProposicaoTaView(IntegracaoTaView):
     model = Proposicao
     model_type_foreignkey = TipoProposicao
     map_fields = {
-        'data': 'data_recebimento',
+        'data': 'data_envio',
         'ementa': 'descricao',
         'observacao': None,
         'numero': 'numero_proposicao',
@@ -134,6 +142,11 @@ class ProposicaoTaView(IntegracaoTaView):
     }
     map_funcs = {
         'publicacao_func': False
+    }
+    ta_values = {
+        'editable_only_by_owners': True,
+        'editing_locked': False,
+        'privacidade': STATUS_TA_PRIVATE
     }
 
     def get(self, request, *args, **kwargs):
@@ -143,6 +156,13 @@ class ProposicaoTaView(IntegracaoTaView):
         de usuário.
         """
         if sapl.base.models.AppConfig.attr('texto_articulado_proposicao'):
+
+            proposicao = get_object_or_404(self.model, pk=kwargs['pk'])
+
+            if not proposicao.data_envio and\
+                    request.user != proposicao.autor.user:
+                raise Http404()
+
             return IntegracaoTaView.get(self, request, *args, **kwargs)
         else:
             return self.get_redirect_deactivated()
@@ -313,10 +333,14 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                 data_envio__isnull=False, data_recebimento__isnull=True)
 
             for proposicao in proposicoes:
-                # FIXME implementar hash para texto eletrônico
-                hasher = gerar_hash_arquivo(
-                    proposicao.texto_original.path,
-                    str(proposicao.pk)) if proposicao.texto_original else None
+                if proposicao.texto_articulado.exists():
+                    ta = proposicao.texto_articulado.first()
+                    # FIXME hash para textos articulados
+                    hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
+                else:
+                    hasher = gerar_hash_arquivo(
+                        proposicao.texto_original.path,
+                        str(proposicao.pk)) if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
@@ -343,9 +367,6 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     form_class = ConfirmarProposicaoForm
 
     def get_success_url(self):
-        # FIXME redirecionamento trival,
-        # ainda por implementar se será para protocolo ou para doc resultante
-
         msgs = self.object.results['messages']
 
         for key, value in msgs.items():
@@ -365,9 +386,15 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
                                                 data_recebimento__isnull=True)
             self.object = None
             # FIXME implementar hash para texto eletrônico
-            hasher = gerar_hash_arquivo(
-                proposicao.texto_original.path,
-                str(proposicao.pk)) if proposicao.texto_original else None
+
+            if proposicao.texto_articulado.exists():
+                ta = proposicao.texto_articulado.first()
+                # FIXME hash para textos articulados
+                hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
+            else:
+                hasher = gerar_hash_arquivo(
+                    proposicao.texto_original.path,
+                    str(proposicao.pk)) if proposicao.texto_original else None
 
             if hasher == 'P%s/%s' % (self.kwargs['hash'], proposicao.pk):
                 self.object = proposicao
@@ -474,6 +501,13 @@ class ProposicaoCrud(Crud):
                         p.data_devolucao = None
                         p.data_envio = datetime.now()
                         p.save()
+
+                        if p.texto_articulado.exists():
+                            ta = p.texto_articulado.first()
+                            ta.privacidade = STATUS_TA_IMMUTABLE_RESTRICT
+                            ta.editing_locked = True
+                            ta.save()
+
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
 
@@ -486,6 +520,11 @@ class ProposicaoCrud(Crud):
                     else:
                         p.data_envio = None
                         p.save()
+                        if p.texto_articulado.exists():
+                            ta = p.texto_articulado.first()
+                            ta.privacidade = STATUS_TA_PRIVATE
+                            ta.editing_locked = False
+                            ta.save()
                         messages.success(request, _(
                             'Proposição Retornada com sucesso.'))
 
@@ -547,9 +586,8 @@ class ProposicaoCrud(Crud):
                 messages.info(self.request,
                               _('Sempre que uma Proposição é inclusa ou '
                                 'alterada e a opção "Texto Articulado " for '
-                                'marcada, você será redirecionado para o '
-                                'Texto Eletrônico. Use a opção "Editar Texto" '
-                                'para construir seu texto.'))
+                                'marcada, você será redirecionado para a '
+                                'edição do Texto Eletrônico.'))
                 return reverse('sapl.materia:proposicao_ta',
                                kwargs={'pk': self.object.pk})
             else:
@@ -618,10 +656,18 @@ class ReciboProposicaoView(TemplateView):
         context = super(ReciboProposicaoView, self).get_context_data(
             **kwargs)
         proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+
+        if proposicao.texto_original:
+            _hash = gerar_hash_arquivo(
+                proposicao.texto_original.path,
+                self.kwargs['pk'])
+        elif proposicao.texto_articulado.exists():
+            ta = proposicao.texto_articulado.first()
+            # FIXME hash para textos articulados
+            _hash = 'P' + ta.hash() + '/' + str(proposicao.id)
+
         context.update({'proposicao': proposicao,
-                        'hash': gerar_hash_arquivo(
-                            proposicao.texto_original.path,
-                            self.kwargs['pk'])})
+                        'hash': _hash})
         return context
 
     def get(self, request, *args, **kwargs):
@@ -631,7 +677,7 @@ class ReciboProposicaoView(TemplateView):
             return TemplateView.get(self, request, *args, **kwargs)
 
         if not proposicao.data_envio and not proposicao.data_devolucao:
-            messages.error(request, _('Não é possível gerar recebo para uma '
+            messages.error(request, _('Não é possível gerar recibo para uma '
                                       'Proposição ainda não enviada.'))
         elif proposicao.data_devolucao:
             messages.error(request, _('Não é possível gerar recibo.'))

@@ -11,6 +11,13 @@
 {% endblock %}
 {% block extra_sections_nav %}{% endblock %}
 {% block base_content %}
+
+  {% block actions %}
+    {{block.super}}
+  {% endblock %}
+
+  {% comment %}
+
 	{% if perms.compilacao.change_dispositivo_edicao_dinamica %}
     {% block actions %}
       <div class="clearfix">
@@ -20,6 +27,7 @@
       </div>
     {% endblock actions %}
   {% endif %}
+  {% endcomment %}
 
   {% block detail_content %}
     {{block.super}}

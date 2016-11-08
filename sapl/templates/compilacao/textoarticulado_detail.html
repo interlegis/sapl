@@ -7,7 +7,9 @@
   <ul class="nav nav-pills navbar-right">
     {%if object %}
       <li>
-        {% if object.content_object%}
+        {% if request.GET.back_type == 'history' and object.content_object %}
+          <a href="javascript:window.history.back()" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
+        {% elif object.content_object%}
           <a href="{% url object|urldetail_content_type object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object.content_object}}">{% trans 'Voltar para '%}{{object.content_object}}</a>
         {%else%}
           <a href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
@@ -30,13 +32,18 @@
 
   {% block actions %}
     <div class="clearfix">
+
       <div class="actions btn-group pull-right" role="group">
-        {% if perms.compilacao.change_textoarticulado %}
+        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default btn-excluir">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Bloquear Edição' %}{% endif %}</a>
+        {% endif %}
+        {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
         {% endif %}
-        {% if perms.compilacao.change_dispositivo_edicao_dinamica %}
-          <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        {% if object|can_use_dynamic_editing:user %}
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
         {% endif %}
+
 	  </div>
     </div>
   {% endblock actions %}
@@ -82,14 +89,14 @@
             </div>
           </div>
         </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div id="div_id_ementa" class="holder">
-                <label>{% field_verbose_name object 'ementa' %}</label>
-                <p>{{ object.ementa|safe}}</p>
-              </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div id="div_id_ementa" class="holder">
+              <label>{% field_verbose_name object 'ementa' %}</label>
+              <p>{{ object.ementa|safe}}</p>
             </div>
           </div>
+        </div>
     </fieldset>
   {% endblock detail_content %}
 {% endblock base_content %}

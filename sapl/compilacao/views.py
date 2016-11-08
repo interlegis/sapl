@@ -7,7 +7,6 @@ from braces.views import FormMessagesMixin
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
@@ -19,7 +18,6 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
-from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
@@ -44,7 +42,8 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     Publicacao, TextoArticulado,
                                     TipoDispositivo, TipoNota, TipoPublicacao,
                                     TipoTextoArticulado, TipoVide,
-                                    VeiculoPublicacao, Vide)
+                                    VeiculoPublicacao, Vide, STATUS_TA_EDITION,
+                                    STATUS_TA_PRIVATE, STATUS_TA_PUBLIC)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT)
 from sapl.crud.base import Crud, CrudListView, make_pagination
@@ -157,6 +156,7 @@ class IntegracaoTaView(TemplateView):
             """)
 
         map_fields = self.map_fields
+        ta_values = getattr(self, 'ta_values', {})
 
         item = get_object_or_404(self.model, pk=kwargs['pk'])
         related_object_type = ContentType.objects.get_for_model(item)
@@ -168,18 +168,30 @@ class IntegracaoTaView(TemplateView):
         tipo_ta = TipoTextoArticulado.objects.filter(
             content_type=related_object_type)
 
-        if not ta.exists():
+        ta_exists = bool(ta.exists())
+        if not ta_exists:
             ta = TextoArticulado()
             tipo_ta = TipoTextoArticulado.objects.filter(
                 content_type=related_object_type)[:1]
             if tipo_ta.exists():
                 ta.tipo_ta = tipo_ta[0]
             ta.content_object = item
+
+            ta.privacidade = ta_values.get('privacidade', STATUS_TA_EDITION)
+
+            ta.editing_locked = ta_values.get('editing_locked', False)
+            ta.editable_only_by_owners = ta_values.get(
+                'editable_only_by_owners', False)
+
         else:
             ta = ta[0]
 
-        ta.data = getattr(item, map_fields['data']
-                          if map_fields['data'] else 'xxx',  datetime.now())
+        if not ta.data:
+            ta.data = getattr(item, map_fields['data']
+                              if map_fields['data'] else 'xxx',
+                              datetime.now())
+            if not ta.data:
+                ta.data = datetime.now()
 
         ta.ementa = getattr(
             item, map_fields['ementa']
@@ -202,11 +214,17 @@ class IntegracaoTaView(TemplateView):
 
         ta.save()
 
-        if Dispositivo.objects.filter(ta_id=ta.pk).exists():
-            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
+        if not ta_exists:
+            if ta.editable_only_by_owners and\
+                    not self.request.user.is_anonymous():
+                ta.owners.add(self.request.user)
+
+        if not Dispositivo.objects.filter(ta_id=ta.pk).exists() and\
+                ta.can_use_dynamic_editing(self.request.user):
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text_edit',
                                             kwargs={'ta_id': ta.pk}))
         else:
-            return redirect(to=reverse_lazy('sapl.compilacao:ta_text_edit',
+            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
                                             kwargs={'ta_id': ta.pk}))
 
     def import_pattern(self):
@@ -284,7 +302,8 @@ class CompMixin(PermissionRequiredMixin):
 
     @property
     def ta(self):
-        ta = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        ta = TextoArticulado.objects.get(
+            pk=self.kwargs.get('ta_id', self.kwargs.get('pk', 0)))
         return ta
 
     def get_context_data(self, **kwargs):
@@ -407,9 +426,25 @@ class TaListView(CompMixin, ListView):
             page_obj.number, paginator.num_pages)
         return context
 
+    def get_queryset(self):
+        qs = ListView.get_queryset(self)
+
+        qs = qs.exclude(
+            ~Q(owners=self.request.user.id),
+            privacidade=STATUS_TA_PRIVATE)
+
+        return qs
+
 
 class TaDetailView(CompMixin, DetailView):
     model = TextoArticulado
+
+    def has_permission(self):
+        self.object = self.ta
+        if self.object.has_view_permission(self.request):
+            return CompMixin.has_permission(self)
+        else:
+            return False
 
     @property
     def title(self):
@@ -736,9 +771,9 @@ class TextView(CompMixin, ListView):
     fim_vigencia = None
     ta_vigencia = None
 
-    def get(self, request, *args, **kwargs):
+    def has_permission(self):
         self.object = self.ta
-        return super(TextView, self).get(request, *args, **kwargs)
+        return self.object.has_view_permission(self.request)
 
     def get_context_data(self, **kwargs):
         context = super(TextView, self).get_context_data(**kwargs)
@@ -931,7 +966,42 @@ class DispositivoView(TextView):
 
 class TextEditView(CompMixin, TemplateView):
     template_name = 'compilacao/text_edit.html'
-    permission_required = 'compilacao.change_dispositivo_edicao_dinamica'
+
+    def has_permission(self):
+        self.object = self.ta
+        return self.object.has_edit_permission(self.request)
+
+    def get(self, request, *args, **kwargs):
+
+        if self.object.editing_locked:
+            if 'unlock' not in request.GET:
+                messages.error(
+                    request, _(
+                        'A edição deste Texto Articulado está bloqueada.'))
+                return redirect(to=reverse_lazy(
+                    'sapl.compilacao:ta_text', kwargs={
+                        'ta_id': self.object.id}))
+            else:
+                # TODO - implementar logging de ação de usuário
+                self.object.editing_locked = False
+                self.object.privacidade = STATUS_TA_EDITION
+                self.object.save()
+                messages.success(request, _(
+                    'Texto Articulado desbloqueado com sucesso.'))
+        else:
+            if 'lock' in request.GET:
+                # TODO - implementar logging de ação de usuário
+                self.object.editing_locked = True
+                self.object.privacidade = STATUS_TA_PUBLIC
+                self.object.save()
+                messages.success(request, _(
+                    'Texto Articulado bloqueado com sucesso.'))
+
+                return redirect(to=reverse_lazy(
+                    'sapl.compilacao:ta_text', kwargs={
+                        'ta_id': self.object.id}))
+
+        return TemplateView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         dispositivo_id = int(self.kwargs['dispositivo_id']) \
@@ -2421,8 +2491,6 @@ class DispositivoDinamicEditView(
     template_name = 'compilacao/text_edit_bloco.html'
     model = Dispositivo
     form_class = DispositivoEdicaoBasicaForm
-    contador = -1
-    permission_required = 'compilacao.change_dispositivo_edicao_dinamica',
 
     def get_initial(self):
         initial = UpdateView.get_initial(self)

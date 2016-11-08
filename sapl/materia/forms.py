@@ -1,8 +1,7 @@
 
-import os
 from datetime import date, datetime
+import os
 
-import django_filters
 from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
                                     InlineRadios)
 from crispy_forms.helper import FormHelper
@@ -18,10 +17,12 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
+from sapl.compilacao.models import STATUS_TA_PRIVATE,\
+    STATUS_TA_IMMUTABLE_PUBLIC
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
@@ -35,6 +36,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaLegislativa, Numeracao,
@@ -1134,6 +1136,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.instance.data_envio = None
             self.instance.save()
 
+            if self.instance.texto_articulado.exists():
+                ta = self.instance.texto_articulado.first()
+                ta.privacidade = STATUS_TA_PRIVATE
+                ta.editing_locked = False
+                ta.save()
+
             self.instance.results = {
                 'messages': {
                     'success': [_('Devolução efetuada com sucesso.'), ]
@@ -1146,6 +1154,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.instance.justificativa_devolucao = ''
             self.instance.data_devolucao = None
             self.instance.data_recebimento = datetime.now()
+
+            if self.instance.texto_articulado.exists():
+                ta = self.instance.texto_articulado.first()
+                ta.privacidade = STATUS_TA_IMMUTABLE_PUBLIC
+                ta.editing_locked = True
+                ta.save()
 
         self.instance.save()
 
@@ -1187,10 +1201,17 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             materia.data_apresentacao = datetime.now()
             materia.em_tramitacao = True
             materia.regime_tramitacao = cd['regime_tramitacao']
-            materia.texto_original = File(
-                proposicao.texto_original,
-                os.path.basename(proposicao.texto_original.path))
-            materia.texto_articulo = proposicao.texto_articulado
+
+            if proposicao.texto_original:
+                materia.texto_original = File(
+                    proposicao.texto_original,
+                    os.path.basename(proposicao.texto_original.path))
+
+            if proposicao.texto_articulado.exists():
+                pass
+                # FIXME - gerar texto_articulado da materia com base na prop.
+                # materia.texto_articulo = proposicao.texto_articulado
+
             materia.save()
             conteudo_gerado = materia
 

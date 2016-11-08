@@ -295,3 +295,7 @@ def urldetail_content_type(obj):
 @register.filter
 def list(obj):
     return [obj, ]
+
+@register.filter
+def can_use_dynamic_editing(texto_articulado, user):
+    return texto_articulado.can_use_dynamic_editing(user)
