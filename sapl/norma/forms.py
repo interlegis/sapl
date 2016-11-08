@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import ANO_CHOICES, RANGE_ANOS, RangeWidgetOverride
+from sapl.utils import RANGE_ANOS, RangeWidgetOverride
 
 from .models import AssuntoNorma, NormaJuridica
 
@@ -43,7 +43,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label=u'Ano',
-                                      choices=ANO_CHOICES)
+                                      choices=RANGE_ANOS)
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
