@@ -775,6 +775,11 @@ class TextView(CompMixin, ListView):
         self.object = self.ta
         return self.object.has_view_permission(self.request)
 
+    def get(self, request, *args, **kwargs):
+        if 'print' in request.GET:
+            self.template_name = 'compilacao/text_list__print_version.html'
+        return ListView.get(self, request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(TextView, self).get_context_data(**kwargs)
 

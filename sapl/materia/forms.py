@@ -22,11 +22,11 @@ import django_filters
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import STATUS_TA_PRIVATE,\
-    STATUS_TA_IMMUTABLE_PUBLIC
+    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
-                                 TipoDocumento, TipoProposicao)
+from sapl.materia.models import TipoProposicao, MateriaLegislativa,\
+    RegimeTramitacao, TipoDocumento
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
@@ -39,7 +39,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
 import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao,
+                     DocumentoAcessorio, Numeracao,
                      Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao,
                      UnidadeTramitacao)
 
@@ -1207,13 +1207,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                     proposicao.texto_original,
                     os.path.basename(proposicao.texto_original.path))
 
+            materia.save()
+            conteudo_gerado = materia
+
             if proposicao.texto_articulado.exists():
+                ta = proposicao.texto_articulado.first()
+
+                ta.id = None
+                ta.content_object = materia
+                ta.save()
+
                 pass
                 # FIXME - gerar texto_articulado da materia com base na prop.
                 # materia.texto_articulo = proposicao.texto_articulado
-
-            materia.save()
-            conteudo_gerado = materia
 
             self.instance.results['messages']['success'].append(_(
                 'Matéria Legislativa registrada com sucesso (%s)'

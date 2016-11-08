@@ -9,7 +9,9 @@
   {{block.super}}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
-{% block extra_sections_nav %}{% endblock %}
+{% block extra_sections_nav %}
+        <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}?print">{% trans 'Versão para Impressão' %}</a></li>
+{% endblock %}
 {% block base_content %}
 
   {% block actions %}

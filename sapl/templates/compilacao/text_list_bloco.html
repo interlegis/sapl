@@ -44,18 +44,18 @@
               {% endif %}
             </a>
           {% endif %}
-          {% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
-            {% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
-              <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">
-                <ul class="btns-action">
-                  {% if perms.compilacao.change_dispositivo %}<li><a href = "{% url 'sapl.compilacao:ta_text_edit' dpt.ta.pk%}#{{dpt.pk}}" class="btn-action" title="{% trans 'Editar Dispositivo'%}">Ed</a></li>{% endif %}
-                  {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adicionar Nota'%}">N</a></li>{% endif %}
-                  {% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adicionar Vide'%}">V</a></li>{% endif %}
-                </ul>
-                <div class="dne-form clearfix"></div>
-              </div>
+            {% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
+              {% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
+                <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">
+                  <ul class="btns-action">
+                    {% if perms.compilacao.change_dispositivo %}<li><a href = "{% url 'sapl.compilacao:ta_text_edit' dpt.ta.pk%}#{{dpt.pk}}" class="btn-action" title="{% trans 'Editar Dispositivo'%}">Ed</a></li>{% endif %}
+                    {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adicionar Nota'%}">N</a></li>{% endif %}
+                    {% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adicionar Vide'%}">V</a></li>{% endif %}
+                  </ul>
+                  <div class="dne-form clearfix"></div>
+                </div>
+              {% endif %}
             {% endif %}
-          {% endif %}
         </div>
 
         {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}

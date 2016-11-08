@@ -1,0 +1,21 @@
+{% extends "compilacao/text_list.html" %}
+{% load i18n %}
+{% load compilacao_filters %}
+{% load common_tags %}
+{% load staticfiles %}
+{% load sass_tags %}
+
+{% block navigation %}{% endblock %}
+{% block sections_nav %}{% endblock %}
+{% block extra_sections_nav %}{% endblock %}
+{% block actions %}{% endblock %}
+{% block dsp_actions %}{% endblock %}
+
+{% block detail_content %}{% endblock %}
+{% block footer_container %}{% endblock %}
+
+
+{% block foot_js %}{{block.super}}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+{% endblock %}
