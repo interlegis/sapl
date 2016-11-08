@@ -11,7 +11,7 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 
-from .forms import NormaFilterSet
+from .forms import NormaFilterSet, NormaJuridicaForm
 from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')

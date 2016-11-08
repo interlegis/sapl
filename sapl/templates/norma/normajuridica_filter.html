@@ -5,7 +5,9 @@
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
     <a href="{% url 'sapl.norma:normajuridica_create' %}" class="btn btn-default">
+      {% if perms.norma.add_normajuridica %}
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Norma Jurídica {% endblocktrans %}
+      {% endif %}  
     </a>
   {% if filter_url %}
       <a href="{% url 'sapl.norma:pesquisar_norma' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
