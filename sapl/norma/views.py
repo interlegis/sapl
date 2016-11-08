@@ -4,12 +4,12 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.views.generic import FormView, ListView
 from django.views.generic.base import RedirectView
+from django_filters.views import FilterView
 
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
-from sapl.norma.forms import NormaJuridicaForm
 
 from .forms import NormaFilterSet
 from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
