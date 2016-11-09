@@ -34,6 +34,8 @@ ORDENACAO_CHOICES = [('', '---------'),
 
 class NormaFilterSet(django_filters.FilterSet):
 
+    RANGE_ANOS.insert(0, ('', 'Selecione'))
+
     filter_overrides = {models.DateField: {
         'filter_class': django_filters.DateFromToRangeFilter,
         'extra': lambda f: {
