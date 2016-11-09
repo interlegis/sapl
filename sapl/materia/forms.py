@@ -472,7 +472,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
-                                                label=u'Ano da Matéria',
+                                                label=u'Em tramitação',
                                                 choices=em_tramitacao)
 
     o = MateriaPesquisaOrderingFilter()
