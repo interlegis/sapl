@@ -18,5 +18,5 @@ urlpatterns = [
     url(r'^sistema/norma/assunto/', include(AssuntoNormaCrud.get_urls())),
 
     url(r'^norma/pesquisar$',
-        NormaPesquisaView.as_view(), name='pesquisar_norma'),
+        NormaPesquisaView.as_view(), name='norma_pesquisa'),
 ]

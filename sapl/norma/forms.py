@@ -50,7 +50,7 @@ class NormaFilterSet(django_filters.FilterSet):
     class Meta:
         model = NormaJuridica
         fields = ['tipo', 'numero', 'ano', 'data',
-                  'data_publicacao', 'ementa']
+                  'data_publicacao', 'ementa', 'assuntos']
 
     def __init__(self, *args, **kwargs):
         super(NormaFilterSet, self).__init__(*args, **kwargs)
@@ -59,12 +59,14 @@ class NormaFilterSet(django_filters.FilterSet):
         row2 = to_row([('numero', 6), ('ano', 6)])
         row3 = to_row([('ementa', 12)])
         row4 = to_row([('data', 6), ('data_publicacao', 6)])
+        row5 = to_row([('assuntos', 12)])
+
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
-                     row1, row2, row3, row4,
+                     row1, row2, row3, row4, row5,
                      form_actions(save_label='Pesquisar'))
         )
 

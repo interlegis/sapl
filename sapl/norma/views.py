@@ -36,6 +36,7 @@ class NormaPesquisaView(FilterView):
         context['title'] = _('Pesquisar Norma Jurídica')
 
         qr = self.request.GET.copy()
+
         if 'page' in qr:
             del qr['page']
 
