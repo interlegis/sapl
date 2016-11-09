@@ -45,7 +45,8 @@ from sapl.compilacao.models import (Dispositivo, Nota,
                                     VeiculoPublicacao, Vide, STATUS_TA_EDITION,
                                     STATUS_TA_PRIVATE, STATUS_TA_PUBLIC)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
-                                   DISPOSITIVO_SELECT_RELATED_EDIT)
+                                   DISPOSITIVO_SELECT_RELATED_EDIT,
+                                   get_integrations_view_names)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
 
@@ -58,19 +59,6 @@ TipoDispositivoCrud = Crud.build(
     TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)
-
-
-def get_integrations_view_names():
-    result = []
-    modules = sys.modules
-    for key, value in modules.items():
-        if key.endswith('.views'):
-            for v in value.__dict__.values():
-                if hasattr(v, '__bases__'):
-                    for base in v.__bases__:
-                        if base == IntegracaoTaView:
-                            result.append(v)
-    return result
 
 
 def choice_models_in_extenal_views():
@@ -165,54 +153,35 @@ class IntegracaoTaView(TemplateView):
             object_id=item.pk,
             content_type=related_object_type)
 
-        tipo_ta = TipoTextoArticulado.objects.filter(
-            content_type=related_object_type)
-
         ta_exists = bool(ta.exists())
-        if not ta_exists:
-            ta = TextoArticulado()
-            tipo_ta = TipoTextoArticulado.objects.filter(
-                content_type=related_object_type)[:1]
-            if tipo_ta.exists():
-                ta.tipo_ta = tipo_ta[0]
-            ta.content_object = item
+        if (ta_exists or
+                (request.user.has_perm(
+                    'compilacao.change_dispositivo_edicao_dinamica') and
+                 ta_values.get('privacidade', STATUS_TA_EDITION
+                               ) != STATUS_TA_PRIVATE) or
+                (request.user.has_perm(
+                    'compilacao.change_your_dispositivo_edicao_dinamica') and
+                 ta_values.get('privacidade', STATUS_TA_EDITION
+                               ) == STATUS_TA_PUBLIC)):
+            """
+            o texto articulado será criado/atualizado se:
+                - texto articulado já foi criado.
 
-            ta.privacidade = ta_values.get('privacidade', STATUS_TA_EDITION)
+                - não foi criado e o usuário possui permissão para criar
+                  desde que o texto não seja um texto privado pois a permissão
+                  para criar textos privados é diferente.
 
-            ta.editing_locked = ta_values.get('editing_locked', False)
-            ta.editable_only_by_owners = ta_values.get(
-                'editable_only_by_owners', False)
-
+                - não foi criado e o usuário possui permissão para criar desde
+                  que o texto seja privado e a permissão seja específica para
+                  textos privados.
+            """
+            pass
         else:
-            ta = ta[0]
+            messages.info(request, _('%s não possui %s.') % (
+                item, TextoArticulado._meta.verbose_name))
+            return redirect('/message')
 
-        if not ta.data:
-            ta.data = getattr(item, map_fields['data']
-                              if map_fields['data'] else 'xxx',
-                              datetime.now())
-            if not ta.data:
-                ta.data = datetime.now()
-
-        ta.ementa = getattr(
-            item, map_fields['ementa']
-            if map_fields['ementa'] else 'xxx', _(
-                'Integração com %s sem ementa.') % item)
-
-        ta.observacao = getattr(
-            item, map_fields['observacao']
-            if map_fields['observacao'] else 'xxx', '')
-
-        ta.numero = getattr(
-            item, map_fields['numero']
-            if map_fields['numero'] else 'xxx', int('%s%s%s' % (
-                int(datetime.now().year),
-                int(datetime.now().month),
-                int(datetime.now().day))))
-
-        ta.ano = getattr(item, map_fields['ano']
-                         if map_fields['ano'] else 'xxx', datetime.now().year)
-
-        ta.save()
+        ta = TextoArticulado.update_or_create(self, item)
 
         if not ta_exists:
             if ta.editable_only_by_owners and\

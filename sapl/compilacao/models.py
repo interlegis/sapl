@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -6,9 +8,11 @@ from django.db.models import F, Q
 from django.db.models.aggregates import Max
 from django.http.response import Http404
 from django.template import defaultfilters
+from django.utils.decorators import classonlymethod
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.compilacao.utils import int_to_letter, int_to_roman
+from sapl.compilacao.utils import int_to_letter, int_to_roman,\
+    get_integrations_view_names
 from sapl.utils import YES_NO_CHOICES, get_settings_auth_user_model
 
 
@@ -279,6 +283,129 @@ class TextoArticulado(TimestampedMixin):
             return False
 
         return True
+
+    @classonlymethod
+    def update_or_create(cls, view_integracao, obj):
+
+        map_fields = view_integracao.map_fields
+        ta_values = getattr(view_integracao, 'ta_values', {})
+
+        related_object_type = ContentType.objects.get_for_model(obj)
+        ta = TextoArticulado.objects.filter(
+            object_id=obj.pk,
+            content_type=related_object_type)
+
+        ta_exists = bool(ta.exists())
+
+        if not ta_exists:
+            tipo_ta = TipoTextoArticulado.objects.filter(
+                content_type=related_object_type).first()
+
+            ta = TextoArticulado()
+            ta.tipo_ta = tipo_ta
+            ta.content_object = obj
+
+            ta.privacidade = ta_values.get('privacidade', STATUS_TA_EDITION)
+            ta.editing_locked = ta_values.get('editing_locked', False)
+            ta.editable_only_by_owners = ta_values.get(
+                'editable_only_by_owners', False)
+
+        else:
+            ta = ta[0]
+
+        if not ta.data:
+            ta.data = getattr(obj, map_fields['data']
+                              if map_fields['data'] else 'xxx',
+                              datetime.now())
+            if not ta.data:
+                ta.data = datetime.now()
+
+        ta.ementa = getattr(
+            obj, map_fields['ementa']
+            if map_fields['ementa'] else 'xxx', _(
+                'Integração com %s sem ementa.') % obj)
+
+        ta.observacao = getattr(
+            obj, map_fields['observacao']
+            if map_fields['observacao'] else 'xxx', '')
+
+        ta.numero = getattr(
+            obj, map_fields['numero']
+            if map_fields['numero'] else 'xxx', int('%s%s%s' % (
+                int(datetime.now().year),
+                int(datetime.now().month),
+                int(datetime.now().day))))
+
+        ta.ano = getattr(obj, map_fields['ano']
+                         if map_fields['ano'] else 'xxx', datetime.now().year)
+
+        ta.save()
+        return ta
+
+    def clone_for(self, obj):
+        # O clone gera um texto válido original dada a base self,
+        # mesmo sendo esta base um texto compilado.
+        # Os dispositivos a clonar será com base no texto compilado
+
+        assert self.tipo_ta and self.tipo_ta.content_type, _(
+            'Não é permitido chamar o método clone_for '
+            'para Textos Articulados independentes.')
+
+        view_integracao = list(filter(lambda x:
+                                      x.model == obj._meta.model,
+                                      get_integrations_view_names()))
+
+        assert len(view_integracao) > 0, _(
+            'Não é permitido chamar o método clone_for '
+            'se não existe integração.')
+
+        assert len(view_integracao) == 1, _(
+            'Não é permitido haver mais de uma integração para um Model.')
+
+        view_integracao = view_integracao[0]
+
+        ta = TextoArticulado.update_or_create(view_integracao, obj)
+
+        dispositivos = Dispositivo.objects.filter(ta=self).order_by('ordem')
+
+        map_ids = {}
+        for d in dispositivos:
+            id_old = d.id
+
+            # TODO
+            # validar isso: é o suficiente para pegar apenas o texto válido?
+            # exemplo:
+            #  quando uma matéria for alterada por uma emenda
+            #  ao usar esta função para gerar uma norma deve vir apenas
+            #  o texto válido, compilado...
+            if d.dispositivo_subsequente:
+                continue
+
+            d.id = None
+            d.inicio_vigencia = ta.data
+            d.fim_vigencia = None
+            d.inicio_eficacia = ta.data
+            d.fim_eficacia = None
+            d.publicacao = None
+            d.ta = ta
+            d.ta_publicado = None
+            d.dispositivo_subsequente = None
+            d.dispositivo_substituido = None
+            d.dispositivo_vigencia = None
+            d.dispositivo_atualizador = None
+            d.save()
+            map_ids[id_old] = d.id
+
+        dispositivos = Dispositivo.objects.filter(ta=ta).order_by('ordem')
+
+        for d in dispositivos:
+            if not d.dispositivo_pai:
+                continue
+
+            d.dispositivo_pai_id = map_ids[d.dispositivo_pai_id]
+            d.save()
+
+        return ta
 
     def reagrupar_ordem_de_dispositivos(self):
 
