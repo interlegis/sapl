@@ -22,7 +22,7 @@ import django_filters
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import STATUS_TA_PRIVATE,\
-    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado
+    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado, STATUS_TA_PUBLIC
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import TipoProposicao, MateriaLegislativa,\
@@ -472,7 +472,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
-                                                label=u'Ano da Matéria',
+                                                label=u'Em tramitação',
                                                 choices=em_tramitacao)
 
     o = MateriaPesquisaOrderingFilter()
@@ -1212,14 +1212,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
             if proposicao.texto_articulado.exists():
                 ta = proposicao.texto_articulado.first()
-
-                ta.id = None
-                ta.content_object = materia
-                ta.save()
-
-                pass
-                # FIXME - gerar texto_articulado da materia com base na prop.
-                # materia.texto_articulo = proposicao.texto_articulado
+                ta_materia = ta.clone_for(materia)
+                ta_materia.editing_locked = True
+                ta_materia.privacidade = STATUS_TA_IMMUTABLE_PUBLIC
+                ta_materia.save()
 
             self.instance.results['messages']['success'].append(_(
                 'Matéria Legislativa registrada com sucesso (%s)'

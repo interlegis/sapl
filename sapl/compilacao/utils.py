@@ -1,3 +1,4 @@
+import sys
 
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
@@ -51,4 +52,17 @@ def int_to_letter(int_value):
         int_value = int(int_value / 26) - 1
         result = chr(rest + 65) + result
     result = chr(int_value + 65) + result
+    return result
+
+
+def get_integrations_view_names():
+    result = []
+    modules = sys.modules
+    for key, value in modules.items():
+        if key.endswith('.views'):
+            for v in value.__dict__.values():
+                if hasattr(v, '__bases__'):
+                    for base in v.__bases__:
+                        if 'IntegracaoTaView' in str(base):
+                            result.append(v)
     return result

@@ -190,24 +190,20 @@ Instalação e configuração das dependências do projeto
 
    http://localhost:8000/
 
-Instruções para criação dos grupos de perfis de usuários e os usuários de testes
+Instruções para criação do super usuário e de usuários de testes
 ===========================================================================
 
 * Criar super usuário do django-contrib-admin (Será solicitado alguns dados para criação)::
 
    ./manage.py createsuperuser
 
-Os perfis semânticos do SAPL devem ser criados manualmente através da execução de um script que gera esses perfis e adiciona um usuário padrão em cada perfil. Para testar o comportamento de cada perfil é necessário executar este script:
+* `Os perfis semânticos do SAPL <https://github.com/interlegis/sapl/blob/master/sapl/rules/__init__.py>`_ são fixos e atualizados a cada execução do comando:
 
-* Execute::
+   ./manage.py migrate
 
-   ./manage.py shell_plus
+    * Os perfis fixos não aceitam customização via admin, porém outros grupos podem ser criados. O SAPL não interferirá no conjunto de permissões definidas em grupos customizados e se comportará diante de usuários segundo seus grupos e suas permissões.
 
-* Será aberto um prompt do python customizado com diversas funcionalidades do django e do sapl. Execute dentro do prompt::
-
-   %run scripts/inicializa_grupos_autorizacoes.py
-
-* Os usuários criados, todos com senha "interlegis", serão::
+* Os usuários de testes de perfil são criados apenas se o SAPL estiver rodando em modo DEBUG=True. Todos com senha "interlegis", serão::
 
     operador_administrativo
     operador_protocoloadm
@@ -217,7 +213,6 @@ Os perfis semânticos do SAPL devem ser criados manualmente através da execuç�
     operador_sessao
     operador_painel
     operador_geral
-    operador_autor
 
 Instruções para Tradução
 ========================
