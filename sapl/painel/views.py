@@ -286,10 +286,14 @@ def get_votos_nominal(response, materia):
     elif materia.tipo_votacao == 3:
         tipo_votacao = 'Secreta'
 
-    try:
-        registro = RegistroVotacao.objects.get(
-            ordem=materia, materia=materia.materia)
-    except ObjectDoesNotExist:
+    if type(materia) == OrdemDia:
+        registro = RegistroVotacao.objects.filter(
+            ordem=materia, materia=materia.materia).last()
+    else:
+        registro = RegistroVotacao.objects.filter(
+            expediente=materia, materia=materia.materia).last()
+
+    if not registro:
         response.update({
             'numero_votos_sim': 0,
             'numero_votos_nao': 0,
@@ -340,7 +344,7 @@ def get_votos_nominal(response, materia):
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': registro.tipo_resultado_votacao.nome,
             'votos': votos
-        })        
+        })
 
     return response
 
@@ -378,7 +382,7 @@ def get_dados_painel(request, pk):
         # Se alguma ordem E algum expediente já tiver sido votado...
         if ultima_ordem_votada and ultimo_expediente_votado:
             # Verifica se o último resultado é um uma ordem do dia
-            if ultima_ordem_votada >= ultimo_expediente_votado:
+            if ultima_ordem_votada.pk >= ultimo_expediente_votado.pk:
                 if ultima_ordem_votada.tipo_votacao in [1, 3]:
                     return JsonResponse(
                         get_votos(get_presentes(
