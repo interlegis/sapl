@@ -1,19 +1,30 @@
-# Settings for data migration from mysql legacy to new postgres database
+import os
+
+from decouple import Config, RepositoryEnv, AutoConfig
+from dj_database_url import parse as db_url
 
 from .settings import *  # flake8: noqa
+
+
+config = AutoConfig()
+config.config = Config(RepositoryEnv(os.path.abspath('sapl/legacy/.env')))
+
 
 INSTALLED_APPS += (
     'sapl.legacy',  # legacy reversed model definitions
 )
 
-DATABASES['legacy'] = {
+DATABASES['legacy'] = config('DATABASE_URL', cast=db_url,)
+
+"""DATABASES['legacy'] = {
     'ENGINE': 'django.db.backends.mysql',
-    'NAME': 'sapl25',
+    'NAME': 'legacy_interlegis',
     'USER': 'root',
-    'PASSWORD': 'admin',
-    'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+    'PASSWORD': '',
+    'HOST': '',   # Or an IP Address that your DB is hosted on
     'PORT': '3306',
 }
+"""
 
 DATABASE_ROUTERS = ['sapl.legacy.router.LegacyRouter', ]
 
