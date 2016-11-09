@@ -197,17 +197,13 @@ Instruções para criação do super usuário e de usuários de testes
 
    ./manage.py createsuperuser
 
-* `Os perfis semânticos do SAPL <https://github.com/interlegis/sapl/blob/master/sapl/rules/__init__.py>`_)
-são fixos e atualizados a cada execução do comando:
+* `Os perfis semânticos do SAPL <https://github.com/interlegis/sapl/blob/master/sapl/rules/__init__.py>`_ são fixos e atualizados a cada execução do comando:
 
    ./manage.py migrate
 
-    * Os perfis fixos não aceitam customização via admin, porém outros grupos podem ser criados.
-O SAPL não interferirá no conjunto de permissões definidas em grupos customizados
-e se comportará diante de usuários segundo seus grupose suas permissões.
+    * Os perfis fixos não aceitam customização via admin, porém outros grupos podem ser criados. O SAPL não interferirá no conjunto de permissões definidas em grupos customizados e se comportará diante de usuários segundo seus grupos e suas permissões.
 
-* Os usuários de testes de perfil são criados apenas se o SAPL estiver
-rodando em modo DEBUG=True. Todos com senha "interlegis", serão::
+* Os usuários de testes de perfil são criados apenas se o SAPL estiver rodando em modo DEBUG=True. Todos com senha "interlegis", serão::
 
     operador_administrativo
     operador_protocoloadm
