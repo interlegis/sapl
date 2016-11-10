@@ -50,9 +50,13 @@
     			</tr>
     		{% endfor %}
     	</table>
+      {% include "paginacao.html" %}
     {% else  %}
       <br /><br />
       <h2>Nenhuma norma encontrada com essas especificações</h2>
     {% endif %}
   {% endif %}
 {% endblock detail_content %}
+
+{% block table_content %}
+{% endblock table_content %}
