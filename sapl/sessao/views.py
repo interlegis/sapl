@@ -2199,7 +2199,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
-        import ipdb; ipdb.set_trace()
+
         for m in marcadas:
             try:
                 tipo_votacao = request.POST['tipo_votacao_%s' % m]

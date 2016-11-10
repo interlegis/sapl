@@ -88,12 +88,6 @@ def get_materia_aberta(pk):
         sessao_plenaria_id=pk, votacao_aberta=True).last()
 
 
-def get_last_materia_ordem_dia_votada(pk):
-    return OrdemDia.objects.filter(
-        sessao_plenaria_id=pk,
-        resultado__isnull=False).exclude(resultado__exact='').last()
-
-
 def get_presentes(pk, response, materia):
     filiacao = Filiacao.objects.filter(
         data_desfiliacao__isnull=True, parlamentar__ativo=True)
@@ -160,12 +154,6 @@ def get_presentes(pk, response, materia):
 def get_materia_expediente_aberta(pk):
     return ExpedienteMateria.objects.filter(
         sessao_plenaria_id=pk, votacao_aberta=True).last()
-
-
-def get_last_materia_expediente_votado(pk):
-    return ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=pk,
-        resultado__isnull=False).exclude(resultado__exact='').last()
 
 
 def get_presentes_expediente(pk, response, materia):
@@ -373,8 +361,15 @@ def get_dados_painel(request, pk):
     elif expediente:
         return JsonResponse(get_presentes_expediente(pk, response, expediente))
 
-    ultima_ordem_votada = get_last_materia_ordem_dia_votada(pk)
-    ultimo_expediente_votado = get_last_materia_expediente_votado(pk)
+    # Ultimo voto em ordem e ultimo voto em expediente
+    last_ordem_voto = RegistroVotacao.objects.filter(
+        ordem__sessao_plenaria=sessao).last()
+    last_expediente_voto = RegistroVotacao.objects.filter(
+        expediente__sessao_plenaria=sessao).last()
+
+    # Ultimas materias votadas
+    ultima_ordem_votada = last_ordem_voto.ordem
+    ultimo_expediente_votado = last_expediente_voto.expediente
 
     # Caso não tenha nenhuma votação aberta
     if ultima_ordem_votada or ultimo_expediente_votado:
@@ -382,7 +377,7 @@ def get_dados_painel(request, pk):
         # Se alguma ordem E algum expediente já tiver sido votado...
         if ultima_ordem_votada and ultimo_expediente_votado:
             # Verifica se o último resultado é um uma ordem do dia
-            if ultima_ordem_votada.pk >= ultimo_expediente_votado.pk:
+            if last_ordem_voto.pk >= last_expediente_voto.pk:
                 if ultima_ordem_votada.tipo_votacao in [1, 3]:
                     return JsonResponse(
                         get_votos(get_presentes(
