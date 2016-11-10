@@ -162,7 +162,7 @@ class IntegracaoTaView(TemplateView):
                 (request.user.has_perm(
                     'compilacao.change_your_dispositivo_edicao_dinamica') and
                  ta_values.get('privacidade', STATUS_TA_EDITION
-                               ) == STATUS_TA_PUBLIC)):
+                               ) == STATUS_TA_PRIVATE)):
             """
             o texto articulado será criado/atualizado se:
                 - texto articulado já foi criado.
