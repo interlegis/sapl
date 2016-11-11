@@ -34,8 +34,6 @@ Instalar as seguintes dependências do sistema::
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools curl
 
-    sudo easy_install3 pip lxml
-
     sudo -i
     curl -sL https://deb.nodesource.com/setup_5.x | bash -
     exit
@@ -221,7 +219,7 @@ Instruções para Importação da base mysql 2.5
 Criar um arquivo `sapl/legacy/.env` com o seguinte conteúdo (parametros de acesso ao banco 2.5)::
 
   DATABASE_URL = mysql://[usuario do mysql]:[senha do myuysql]@[host]:[porta]/[banco]
-  
+
 o conteúdo do arquivo será semelhante a isso::
 
   DATABASE_URL = mysql://sapl:sapl@localhost:3306/interlegis
