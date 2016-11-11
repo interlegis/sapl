@@ -22,7 +22,8 @@ import django_filters
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import STATUS_TA_PRIVATE,\
-    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado, STATUS_TA_PUBLIC
+    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado, STATUS_TA_PUBLIC,\
+    PerfilEstruturalTextoArticulado
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import TipoProposicao, MateriaLegislativa,\
@@ -747,16 +748,20 @@ class TipoProposicaoForm(ModelForm):
         fields = ['descricao',
                   'content_type',
                   'tipo_conteudo_related_radio',
-                  'tipo_conteudo_related']
+                  'tipo_conteudo_related',
+                  'perfis']
 
-        widgets = {'tipo_conteudo_related': forms.HiddenInput()}
+        widgets = {'tipo_conteudo_related': forms.HiddenInput(),
+                   'perfis': widgets.CheckboxSelectMultiple()}
 
     def __init__(self, *args, **kwargs):
 
         tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
                                to_column(('descricao', 5)),
                                to_column(('content_type', 7)),
-                               to_column(('tipo_conteudo_related_radio', 12)))
+                               to_column(('tipo_conteudo_related_radio', 6)),
+
+                               to_column(('perfis', 6)))
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
@@ -795,7 +800,7 @@ class TipoProposicaoForm(ModelForm):
     @transaction.atomic
     def save(self, commit=False):
 
-        tipo_proposicao = super(TipoProposicaoForm, self).save(commit)
+        tipo_proposicao = self.instance
 
         assert tipo_proposicao.content_type
 
@@ -803,9 +808,7 @@ class TipoProposicaoForm(ModelForm):
             tipo_proposicao.content_type.model_class(
             ).objects.get(pk=self.cleaned_data['tipo_conteudo_related'])
 
-        tipo_proposicao.save()
-
-        return tipo_proposicao
+        return super().save(True)
 
 
 class ProposicaoForm(forms.ModelForm):

@@ -6,7 +6,7 @@ aaa
 <script type="text/javascript">
 
 $(document).ready(function(){
-  var initial_select = $("input[name=tipo_conteudo_related]").val();
+  var initial_select = parseInt($("input[name=tipo_conteudo_related]").val());
   $("input[name=tipo_conteudo_related]").remove();
   $('#id_content_type').change(function(event) {
     var pk = this[event.target.selectedIndex].value;
@@ -18,8 +18,8 @@ $(document).ready(function(){
       data.forEach(function (val, index) {
         var html_radio = '<div class="radio'+(initial_select==val.value?' checked':'')+'"> <label><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="tipo_conteudo_related" id="id_tipo_conteudo_related_'+index+'" value="'+val.value+'"'+(initial_select?' checked="checked"':'')+' style="display:none;">'+val.text+'</label></div>';
 
-        if (val === initial_select)
-          initial_select='';
+        if (val.value === initial_select)
+          initial_select=0;
         radios.append(html_radio);
       });
     });

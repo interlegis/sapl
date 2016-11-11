@@ -8,7 +8,8 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.models import TextoArticulado
+from sapl.compilacao.models import TextoArticulado,\
+    PerfilEstruturalTextoArticulado
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
@@ -38,19 +39,17 @@ class TipoProposicao(models.Model):
     tipo_conteudo_related = SaplGenericForeignKey(
         'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
 
-    """materia_ou_documento = models.CharField(
-        max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
-    modelo = models.CharField(max_length=50, verbose_name=_('Modelo XML'))
-
-    # mutually exclusive (depend on materia_ou_documento)
-    tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa,
-        blank=True,
-        null=True,
-        verbose_name=_('Tipo de Matéria'))
-    tipo_documento = models.ForeignKey(
-        TipoDocumento, blank=True, null=True,
-        verbose_name=_('Tipo de Documento'))"""
+    perfis = models.ManyToManyField(
+        PerfilEstruturalTextoArticulado,
+        blank=True, verbose_name=_('Perfis Estruturais de Textos Articulados'),
+        help_text=_("""
+                    Mesmo que em Configurações da Aplicação nas
+                    Tabelas Auxiliares esteja definido que Proposições possam
+                    utilizar Textos Articulados, ao gerar uma proposição,
+                    a solução de Textos Articulados será disponibilizada se
+                    o Tipo escolhido para a Proposição estiver associada a ao
+                    menos um Perfil Estrutural de Texto Articulado.
+                    """))
 
     class Meta:
         verbose_name = _('Tipo de Proposição')
