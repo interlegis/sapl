@@ -834,7 +834,7 @@ class ProposicaoForm(forms.ModelForm):
         label=_('Tipo do Texto da Proposição'),
         required=False,
         choices=TIPO_TEXTO_CHOICE,
-        widget=widgets.CheckboxSelectMultiple())
+        widget=widgets.RadioSelect())
 
     materia_de_vinculo = forms.ModelChoiceField(
         queryset=MateriaLegislativa.objects.all(),
@@ -885,7 +885,7 @@ class ProposicaoForm(forms.ModelForm):
 
         if self.texto_articulado_proposicao:
             fields.append(
-                to_column((InlineCheckboxes('tipo_texto'), 5)),)
+                to_column((InlineRadios('tipo_texto'), 5)),)
 
         fields.append(to_column((
             'texto_original', 7 if self.texto_articulado_proposicao else 12)))

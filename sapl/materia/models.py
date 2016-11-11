@@ -47,7 +47,7 @@ class TipoProposicao(models.Model):
                     Tabelas Auxiliares esteja definido que Proposições possam
                     utilizar Textos Articulados, ao gerar uma proposição,
                     a solução de Textos Articulados será disponibilizada se
-                    o Tipo escolhido para a Proposição estiver associada a ao
+                    o Tipo escolhido para a Proposição estiver associado a ao
                     menos um Perfil Estrutural de Texto Articulado.
                     """))
 

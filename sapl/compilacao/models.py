@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
+from django.db.models.deletion import PROTECT
 from django.http.response import Http404
 from django.template import defaultfilters
 from django.utils.decorators import classonlymethod
@@ -657,39 +658,49 @@ class TipoDispositivo(BaseModel):
     def permitido_inserir_in(
             self, pai_relativo, include_relative_autos=True, perfil_pk=None):
 
+        perfil = PerfilEstruturalTextoArticulado.objects.all()
         if not perfil_pk:
-            perfis = PerfilEstruturalTextoArticulado.objects.filter(
-                padrao=True)[:1]
+            perfil = perfil.filter(padrao=True)
 
-            if not perfis.exists():
-                return False
+        else:
+            perfil = perfil.filter(pk=perfil_pk)
 
-            perfil_pk = perfis[0].pk
+        if not perfil.exists():
+            return False
 
-        pp = self.possiveis_pais.filter(pai=pai_relativo, perfil_id=perfil_pk)
-        if pp.exists():
-            if not include_relative_autos:
-                if pp[0].filho_de_insercao_automatica:
-                    return False
-            return True
+        perfil = perfil[0]
+
+        while perfil:
+            pp = self.possiveis_pais.filter(pai=pai_relativo, perfil=perfil)
+            if pp.exists():
+                if not include_relative_autos:
+                    if pp[0].filho_de_insercao_automatica:
+                        return False
+                return True
+            perfil = perfil.parent
         return False
 
     def permitido_variacao(
             self, base, perfil_pk=None):
 
+        perfil = PerfilEstruturalTextoArticulado.objects.all()
         if not perfil_pk:
-            perfis = PerfilEstruturalTextoArticulado.objects.filter(
-                padrao=True)[:1]
+            perfil = perfil.filter(padrao=True)
 
-            if not perfis.exists():
-                return False
+        else:
+            perfil = perfil.filter(pk=perfil_pk)
 
-            perfil_pk = perfis[0].pk
+        if not perfil.exists():
+            return False
 
-        pp = self.possiveis_pais.filter(pai=base, perfil_id=perfil_pk)
-        if pp.exists():
-            if pp[0].permitir_variacao:
-                return True
+        perfil = perfil[0]
+
+        while perfil:
+            pp = self.possiveis_pais.filter(pai=base, perfil=perfil)
+            if pp.exists():
+                if pp[0].permitir_variacao:
+                    return True
+            perfil = perfil.parent
         return False
 
 
@@ -700,6 +711,13 @@ class PerfilEstruturalTextoArticulado(BaseModel):
     padrao = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES, verbose_name=_('Padrão'))
+
+    parent = models.ForeignKey(
+        'self',
+        blank=True, null=True, default=None,
+        related_name='perfil_parent_set',
+        on_delete=PROTECT,
+        verbose_name=_('Perfil Herdado'))
 
     class Meta:
         verbose_name = _('Perfil Estrutural de Texto Articulado')
