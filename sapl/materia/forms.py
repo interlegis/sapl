@@ -1,12 +1,13 @@
 
 from datetime import date, datetime
+from itertools import chain
 import os
 
 from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
                                     InlineRadios)
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Field, Fieldset, Layout,
-                                 Submit)
+                                 Submit, Div)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -16,6 +17,10 @@ from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
+from django.forms.widgets import Select
+from django.utils.encoding import force_text
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
@@ -757,8 +762,8 @@ class TipoProposicaoForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
-                               to_column(('descricao', 5)),
-                               to_column(('content_type', 7)),
+                               Div(to_column(('descricao', 5)),
+                                   to_column(('content_type', 7)), css_class='clearfix'),
                                to_column(('tipo_conteudo_related_radio', 6)),
 
                                to_column(('perfis', 6)))
@@ -811,6 +816,44 @@ class TipoProposicaoForm(ModelForm):
         return super().save(True)
 
 
+class TipoProposicaoSelect(Select):
+
+    def render_tipo_option(self, selected_choices, option_value, option_label,
+                           data_has_perfil=False):
+        if option_value is None:
+            option_value = ''
+        option_value = force_text(option_value)
+        if option_value in selected_choices:
+            selected_html = mark_safe(' selected="selected"')
+            if not self.allow_multiple_selected:
+                # Only allow for a single selection.
+                selected_choices.remove(option_value)
+        else:
+            selected_html = ''
+        return format_html('<option value="{}"{} data-has-perfil={}>{}</option>',
+                           option_value,
+                           selected_html,
+                           str(data_has_perfil),
+                           force_text(option_label))
+
+    def render_options(self, choices, selected_choices):
+        # Normalize to strings.
+        selected_choices = set(force_text(v) for v in selected_choices)
+        output = []
+        output.append(
+            self.render_tipo_option(
+                selected_choices, '', self.choices.field.empty_label))
+
+        for tipo in self.choices.queryset.all():
+            output.append(
+                self.render_tipo_option(
+                    selected_choices,
+                    str(tipo.pk),
+                    str(tipo),
+                    data_has_perfil=tipo.perfis.exists()))
+        return '\n'.join(output)
+
+
 class ProposicaoForm(forms.ModelForm):
 
     TIPO_TEXTO_CHOICE = [
@@ -830,7 +873,7 @@ class ProposicaoForm(forms.ModelForm):
     ano_materia = forms.CharField(
         label='Ano', required=False)
 
-    tipo_texto = forms.MultipleChoiceField(
+    tipo_texto = forms.ChoiceField(
         label=_('Tipo do Texto da Proposição'),
         required=False,
         choices=TIPO_TEXTO_CHOICE,
@@ -854,7 +897,8 @@ class ProposicaoForm(forms.ModelForm):
                   'tipo_texto']
 
         widgets = {
-            'descricao': widgets.Textarea(attrs={'rows': 4})}
+            'descricao': widgets.Textarea(attrs={'rows': 4}),
+            'tipo': TipoProposicaoSelect()}
 
     def __init__(self, *args, **kwargs):
         self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
@@ -896,12 +940,12 @@ class ProposicaoForm(forms.ModelForm):
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
         if self.instance.pk:
-            self.fields['tipo_texto'].initial = []
+            self.fields['tipo_texto'].initial = ''
             if self.instance.texto_original:
-                self.fields['tipo_texto'].initial.append('D')
+                self.fields['tipo_texto'].initial = 'D'
             if self.texto_articulado_proposicao:
                 if self.instance.texto_articulado.exists():
-                    self.fields['tipo_texto'].initial.append('T')
+                    self.fields['tipo_texto'].initial = 'T'
 
             if self.instance.materia_de_vinculo:
                 self.fields[
@@ -944,6 +988,14 @@ class ProposicaoForm(forms.ModelForm):
     def save(self, commit=True):
 
         if self.instance.pk:
+            if 'tipo_texto' in self.cleaned_data:
+                if self.cleaned_data['tipo_texto'] in ['T', ''] and\
+                        self.instance.texto_original:
+                    self.instance.texto_original.delete()
+
+                if self.cleaned_data['tipo_texto'] in ['D', '']:
+                    self.instance.texto_articulado.all().delete()
+
             return super().save(commit)
 
         self.instance.ano = datetime.now().year

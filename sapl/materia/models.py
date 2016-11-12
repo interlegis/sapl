@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.deletion import PROTECT
+from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -14,6 +17,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -564,6 +568,17 @@ class Proposicao(models.Model):
         related_name=_('materia_gerada'))
     documento_gerado = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True)"""
+
+    @property
+    def perfis(self):
+        return self.tipo.perfis.all()
+
+    @property
+    def title_type(self):
+        return '%s nº _____ %s' % (
+            self.tipo, formats.date_format(
+                self.data_envio if self.data_envio else datetime.now(),
+                "\d\e d \d\e F \d\e Y"))
 
     class Meta:
         verbose_name = _('Proposição')

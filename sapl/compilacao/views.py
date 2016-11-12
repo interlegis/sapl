@@ -1638,9 +1638,6 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                  'action': 'json_add_prior',
                  'itens': []}]
 
-            if request and 'perfil_estrutural' not in request.session:
-                self.set_perfil_in_session(request)
-
             perfil_pk = request.session['perfil_estrutural']
 
             prox_possivel = Dispositivo.objects.filter(
@@ -2222,42 +2219,47 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         return JsonResponse(data, safe=False)
 
-    def get_queryset_perfil_estrutural(self):
-        perfis = PerfilEstruturalTextoArticulado.objects.all()
-        return perfis
-
     def json_get_perfis(self, context):
-
-        if 'perfil_pk' in self.request.GET:
-            self.set_perfil_in_session(
-                self.request, self.request.GET['perfil_pk'])
-        elif 'perfil_estrutural' not in self.request.session:
-            self.set_perfil_in_session(request=self.request)
-
         data = {'pk': self.kwargs['dispositivo_id'],
                 'pai': [self.kwargs['dispositivo_id'], ]}
 
         return data
 
-    def set_perfil_in_session(self, request=None, perfil_id=0):
-        if not request:
-            return None
+    def update_perfis(self):
+        qs = PerfilEstruturalTextoArticulado.objects.all()
+        request = self.request
 
-        if perfil_id:
-            perfil = PerfilEstruturalTextoArticulado.objects.get(
-                pk=perfil_id)
-            request.session['perfil_estrutural'] = perfil.pk
-            return perfil.pk
+        ta = None
+        if hasattr(self, 'object') and isinstance(self.object, Dispositivo):
+            ta = self.object.ta
+        elif hasattr(self, 'object') and isinstance(
+                self.object, TextoArticulado):
+            ta = self.object
         else:
-            perfis = PerfilEstruturalTextoArticulado.objects.filter(
-                padrao=True)[:1]
+            ta_id = self.kwargs.get('ta_id', 0)
+            if ta_id:
+                ta = TextoArticulado.objects.get(pk=ta_id)
 
-            if not perfis.exists():
-                request.session.pop('perfil_estrutural')
+        if ta:
+            if ta.content_object and hasattr(ta.content_object, 'perfis'):
+                qs = ta.content_object.perfis
             else:
-                request.session['perfil_estrutural'] = perfis[0].pk
-                return perfis[0].pk
-        return None
+                qs = ta.tipo_ta.perfis.all()
+
+        perfil_get = request.GET.get('perfil_pk', 0)
+        if perfil_get and qs.filter(id=perfil_get).exists():
+            request.session['perfil_estrutural'] = int(perfil_get)
+            return qs
+
+        perfil_session = request.session.get('perfil_estrutural', perfil_get)
+        if perfil_session and qs.filter(id=perfil_session).exists():
+            request.session['perfil_estrutural'] = int(perfil_session)
+            return qs
+
+        if qs.exists():
+            request.session['perfil_estrutural'] = qs.first().id
+
+        return qs
 
     def json_add_next_registra_inclusao(
             self, context, local_add='json_add_next'):
@@ -2500,6 +2502,9 @@ class DispositivoDinamicEditView(
             self.template_name = 'compilacao/text_edit_bloco.html'
             return TextEditView.get(self, request, *args, **kwargs)
 
+        self.object = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
+        perfil_estrutural_list = self.update_perfis()
+
         self.template_name = 'compilacao/ajax_form.html'
         self.action = request.GET['action']
 
@@ -2519,9 +2524,6 @@ class DispositivoDinamicEditView(
         elif self.action.startswith('get_actions'):
             self.form_class = None
 
-            self.object = Dispositivo.objects.get(
-                pk=self.kwargs['dispositivo_id'])
-
             ta_id = self.kwargs['ta_id']
 
             context = {}
@@ -2537,16 +2539,8 @@ class DispositivoDinamicEditView(
                                       'ajax_actions_dinamic_edit.html')
 
                 if ta_id == str(self.object.ta_id):
+                    context['perfil_estrutural_list'] = perfil_estrutural_list
                     context['allowed_inserts'] = self.allowed_inserts()
-
-                    if 'perfil_pk' in request.GET:
-                        self.set_perfil_in_session(
-                            request, request.GET['perfil_pk'])
-                    elif 'perfil_estrutural' not in request.session:
-                        self.set_perfil_in_session(request=request)
-
-                    context['perfil_estrutural_list'
-                            ] = PerfilEstruturalTextoArticulado.objects.all()
 
             return self.render_to_response(context)
 

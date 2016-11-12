@@ -624,17 +624,18 @@ class ProposicaoCrud(Crud):
         def get_rows(self, object_list):
 
             for obj in object_list:
+                if obj.data_recebimento is None:
+                    obj.data_recebimento = 'Não recebida'\
+                        if obj.data_envio else 'Não enviada'
+                else:
+                    obj.data_recebimento = formats.date_format(
+                        obj.data_recebimento, "DATETIME_FORMAT")
+
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
                     obj.data_envio = formats.date_format(
                         obj.data_envio, "DATETIME_FORMAT")
-
-                if obj.data_recebimento is None:
-                    obj.data_recebimento = 'Não recebida'
-                else:
-                    obj.data_envio = formats.date_format(
-                        obj.data_recebimento, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
 

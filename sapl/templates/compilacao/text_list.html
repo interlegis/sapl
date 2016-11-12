@@ -9,6 +9,11 @@
   {{block.super}}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
+
+{% block title %}
+  <h2 class="page-header">{% if object.content_object.title_type %}{{object.content_object.title_type}}{%else%}{{object}}{% endif %}{% comment %}<small><i>{% trans 'Texto Multivigente em Edição' %}</i></small>{% endcomment %}</h2>
+{% endblock %}
+
 {% block extra_sections_nav %}
         <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}?print">{% trans 'Versão para Impressão' %}</a></li>
 {% endblock %}

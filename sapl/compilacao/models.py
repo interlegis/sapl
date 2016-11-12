@@ -75,6 +75,31 @@ class BaseModel(models.Model):
             update_fields=update_fields)
 
 
+class PerfilEstruturalTextoArticulado(BaseModel):
+    sigla = models.CharField(
+        max_length=10, unique=True, verbose_name=_('Sigla'))
+    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    padrao = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES, verbose_name=_('Padrão'))
+
+    parent = models.ForeignKey(
+        'self',
+        blank=True, null=True, default=None,
+        related_name='perfil_parent_set',
+        on_delete=PROTECT,
+        verbose_name=_('Perfil Herdado'))
+
+    class Meta:
+        verbose_name = _('Perfil Estrutural de Texto Articulado')
+        verbose_name_plural = _('Perfis Estruturais de Textos Articulados')
+
+        ordering = ['-padrao', 'sigla']
+
+    def __str__(self):
+        return self.nome
+
+
 class TipoTextoArticulado(models.Model):
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
@@ -93,6 +118,15 @@ class TipoTextoArticulado(models.Model):
         blank=True, null=True,
         choices=YES_NO_CHOICES,
         verbose_name=_('Histórico de Publicação'))
+
+    perfis = models.ManyToManyField(
+        PerfilEstruturalTextoArticulado,
+        blank=True, verbose_name=_('Perfis Estruturais de Textos Articulados'),
+        help_text=_("""
+                    Apenas os perfis selecionados aqui estarão disponíveis
+                    para o editor de Textos Articulados cujo Tipo seja este
+                    em edição.
+                    """))
 
     class Meta:
         verbose_name = _('Tipo de Texto Articulado')
@@ -539,13 +573,11 @@ class TipoDispositivo(BaseModel):
         blank=True,
         max_length=20,
         verbose_name=_('Classe CSS'))
-    rotulo_prefixo_html = models.CharField(
+    rotulo_prefixo_html = models.TextField(
         blank=True,
-        max_length=100,
         verbose_name=_('Prefixo html do rótulo'))
-    rotulo_prefixo_texto = models.CharField(
+    rotulo_prefixo_texto = models.TextField(
         blank=True,
-        max_length=30,
         verbose_name=_('Prefixo de Edição do rótulo'))
     rotulo_ordinal = models.IntegerField(
         choices=TIPO_NUMERO_ROTULO,
@@ -575,29 +607,23 @@ class TipoDispositivo(BaseModel):
         max_length=1,
         default="-",
         verbose_name=_('Separador entre Variação 4 e Variação 5'))
-    rotulo_sufixo_texto = models.CharField(
+    rotulo_sufixo_texto = models.TextField(
         blank=True,
-        max_length=30,
         verbose_name=_('Sufixo de Edição do rótulo'))
-    rotulo_sufixo_html = models.CharField(
+    rotulo_sufixo_html = models.TextField(
         blank=True,
-        max_length=100,
         verbose_name=_('Sufixo html do rótulo'))
-    texto_prefixo_html = models.CharField(
+    texto_prefixo_html = models.TextField(
         blank=True,
-        max_length=100,
         verbose_name=_('Prefixo html do texto'))
-    texto_sufixo_html = models.CharField(
+    texto_sufixo_html = models.TextField(
         blank=True,
-        max_length=100,
         verbose_name=_('Sufixo html do texto'))
-    nota_automatica_prefixo_html = models.CharField(
+    nota_automatica_prefixo_html = models.TextField(
         blank=True,
-        max_length=100,
         verbose_name=_('Prefixo html da nota automática'))
-    nota_automatica_sufixo_html = models.CharField(
+    nota_automatica_sufixo_html = models.TextField(
         blank=True,
-        max_length=100,
         verbose_name=_('Sufixo html da nota automática'))
     contagem_continua = models.BooleanField(
         choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
@@ -680,8 +706,7 @@ class TipoDispositivo(BaseModel):
             perfil = perfil.parent
         return False
 
-    def permitido_variacao(
-            self, base, perfil_pk=None):
+    def permitido_variacao(self, base, perfil_pk=None):
 
         perfil = PerfilEstruturalTextoArticulado.objects.all()
         if not perfil_pk:
@@ -702,31 +727,6 @@ class TipoDispositivo(BaseModel):
                     return True
             perfil = perfil.parent
         return False
-
-
-class PerfilEstruturalTextoArticulado(BaseModel):
-    sigla = models.CharField(
-        max_length=10, unique=True, verbose_name=_('Sigla'))
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-    padrao = models.BooleanField(
-        default=False,
-        choices=YES_NO_CHOICES, verbose_name=_('Padrão'))
-
-    parent = models.ForeignKey(
-        'self',
-        blank=True, null=True, default=None,
-        related_name='perfil_parent_set',
-        on_delete=PROTECT,
-        verbose_name=_('Perfil Herdado'))
-
-    class Meta:
-        verbose_name = _('Perfil Estrutural de Texto Articulado')
-        verbose_name_plural = _('Perfis Estruturais de Textos Articulados')
-
-        ordering = ['-padrao', 'sigla']
-
-    def __str__(self):
-        return self.nome
 
 
 class TipoDispositivoRelationship(BaseModel):

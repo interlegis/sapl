@@ -8,6 +8,7 @@ from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db.models import Q
+from django.forms import widgets
 from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
@@ -23,6 +24,7 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
 from sapl.utils import YES_NO_CHOICES
+
 
 error_messages = {
     'required': _('Este campo é obrigatório'),
@@ -62,8 +64,11 @@ class TipoTaForm(ModelForm):
                   'descricao',
                   'content_type',
                   'participacao_social',
-                  'publicacao_func'
+                  'publicacao_func',
+                  'perfis'
                   ]
+
+        widgets = {'perfis': widgets.CheckboxSelectMultiple()}
 
     def __init__(self, *args, **kwargs):
 
@@ -75,6 +80,7 @@ class TipoTaForm(ModelForm):
         row2 = to_row([
             (InlineRadios('participacao_social'), 3),
             (InlineRadios('publicacao_func'), 3),
+            ('perfis', 12),
         ])
 
         self.helper = FormHelper()

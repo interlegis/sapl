@@ -94,7 +94,9 @@
               </span>
             </a>
           </div>
-          {% block sections_nav %} {% subnav %} {% endblock sections_nav %}
+          <div class="hidden-print">
+            {% block sections_nav %} {% subnav %} {% endblock sections_nav %}
+          </div>
         </div>
       </header>
       {% endblock main_header %}
@@ -148,7 +150,7 @@
 
 
       {% block footer_container %}
-      <footer id="footer" class="footer page__row">
+      <footer id="footer" class="footer page__row hidden-print">
         <div class="container">
 
           <div class="row">
