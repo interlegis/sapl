@@ -352,7 +352,7 @@ def get_dados_painel(request, pk):
         "cronometro_discurso": cronometro_discurso,
         "cronometro_ordem": cronometro_ordem,
     }
-
+    # import ipdb; ipdb.set_trace()
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
 
@@ -368,14 +368,16 @@ def get_dados_painel(request, pk):
         expediente__sessao_plenaria=sessao).last()
 
     # Ultimas materias votadas
-    ultima_ordem_votada = last_ordem_voto.ordem
-    ultimo_expediente_votado = last_expediente_voto.expediente
+    if last_ordem_voto:
+        ultima_ordem_votada = last_ordem_voto.ordem
+    if last_expediente_voto:
+        ultimo_expediente_votado = last_expediente_voto.expediente
 
     # Caso não tenha nenhuma votação aberta
-    if ultima_ordem_votada or ultimo_expediente_votado:
+    if last_ordem_voto or last_expediente_voto:
 
         # Se alguma ordem E algum expediente já tiver sido votado...
-        if ultima_ordem_votada and ultimo_expediente_votado:
+        if last_ordem_voto and last_expediente_voto:
             # Verifica se o último resultado é um uma ordem do dia
             if last_ordem_voto.pk >= last_expediente_voto.pk:
                 if ultima_ordem_votada.tipo_votacao in [1, 3]:
@@ -403,11 +405,11 @@ def get_dados_painel(request, pk):
                                           ultimo_expediente_votado))
 
         # Caso somente um deles tenha resultado, prioriza a Ordem do Dia
-        if ultima_ordem_votada:
+        if last_ordem_voto:
             return JsonResponse(get_presentes(
                 pk, response, ultima_ordem_votada))
         # Caso a Ordem do dia não tenha resultado, mostra o último expediente
-        if ultimo_expediente_votado:
+        if last_expediente_voto:
             return JsonResponse(get_presentes(pk, response,
                                               ultimo_expediente_votado))
 
