@@ -352,7 +352,7 @@ def get_dados_painel(request, pk):
         "cronometro_discurso": cronometro_discurso,
         "cronometro_ordem": cronometro_ordem,
     }
-    # import ipdb; ipdb.set_trace()
+
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
 
