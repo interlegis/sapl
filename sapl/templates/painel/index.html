@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load staticfiles %}
+{% load staticfiles sass_tags %}
 <!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
@@ -8,6 +8,7 @@
   <head>
     <meta charset="UTF-8">
     <!-- TODO: does it need this head_title here? -->
+    <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="{% static 'jquery/dist/jquery.js' %}"></script>
@@ -16,7 +17,7 @@
     <style type="text/css">
       @media screen {
         body {
-          background: #2B2B2A;
+          background: #1c1b1b;
         }
         ul, li {
           list-style-type: none;
@@ -33,50 +34,61 @@
     <h1 id="title"></h1>
     <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' sessao_id %}">
 
-    <h3><font color="#4FA64D"><p align="center"><span id="sessao_plenaria"></span></p></font></h3>
+    <h1><b><font color="#4FA64D"><p align="center"><span id="sessao_plenaria"></span></p></font></b></h1>
 
     <table style="width:100%">
       <tr>
-        <th style="text-align:center"><font color="white" size="2"><span id="sessao_plenaria_data"></span></font></th>
-        <th style="text-align:center"><font color="white" size="2"><span id="sessao_plenaria_hora_inicio"></span></font></th>
+        <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_data"></span></font></th>
+        <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></th>
       </tr>
     </table>
 
     <h2><font color="red"><p align="center"><span id="message"></span></p></font></h2>
 
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
-    <h3><font color="white"><p align="center"><span id="relogio"></span></p></font></h3>
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
+    <h1><font color="white"><p align="center"><span id="relogio"></span></p></font></h1>
 
-    <h3><font color="#459170"><p style="font-family:Verdana" align="center">Cronômetros</p></font></h3>
-    <table style="width:100%">
-      <tr>
-        <th style="text-align:center; font-family:Verdana"><font color="white">Discurso: <span id="cronometro_discurso"></span></font></th>
-      </tr>
-      <tr>
-        <th style="text-align:center; font-family:Verdana"><font color="white">Aparte: <span id="cronometro_aparte"></span></font></th>
-      </tr>
-      <tr>
-        <th style="text-align:center; font-family:Verdana"><font color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></th>
-      </tr>
-    </table>
+    <div class="row container-detail clearfix">
+      <div  class="row-fluid">
+        <div class="col-md-4">
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Parlamentares</p></b></font></h2>
+          <table align="center">
+            <tr>
+              <th><h4><font color="white"><span id="parlamentares"></span></h4></font></th>
+            </tr>
+          </table>
+        </div>
 
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
+        <div class="col-md-4" >
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
+          <table align="center">
+            <tr>
+              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Discurso: <span id="cronometro_discurso"></span></font></th>
+            </tr>
+            <tr>
+              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Aparte: <span id="cronometro_aparte"></span></font></th>
+            </tr>
+            <tr>
+              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></th>
+            </tr>
+          </table>
+        </div>
 
-    <h3><font color="#459170"><p style="font-family:Verdana" align="center">Parlamentares e Votos</p></font></h3>
-    <table style="width:60%" align="center">
-      <tr>
-        <th style="text-align:left"><font color="white" align="left"><span id="parlamentares"></span></font></th>
-        <th style="text-align:left"><font color="white"><span id="votacao"></span></font></th>
-      </tr>
-    </table>
+        <div class="col-md-4">
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Resultado</p></font></h2>
+          <table align="center">
+            <tr>
+              <th><h4><font color="white"><span id="votacao"></span></h4></font></th>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
 
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
-
-    <h3><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h3>
+    </br>
+    <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
     <table style="width:100%; border:1px;">
-      <tr><th style="text-align:center"><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
-      <tr><th style="text-align:center"><font color="white"><span id="observacao_materia"></span></font></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></th></tr>
       <tr><th style="text-align:center"><font color="#45919D"><span id="resultado_votacao"></span></font></th></tr>
     </table>
   </body>
