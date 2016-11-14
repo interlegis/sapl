@@ -104,7 +104,18 @@ $(function() {
         startAt: 60 * 5 * 1000,
         stopAt: 0,
         milliseconds: false
-	});
+	}).on('runnerFinish', function(eventObject, info){
+        $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
+
+        $('#discursoReset').show();
+        $('#discurso').runner('stop');
+        $('#discursoStart').text('Iniciar');
+        $('#aparteStart').prop('disabled', false);
+        $('#aparteReset').prop('disabled', false);
+        $('#ordemStart').prop('disabled', false);
+        $('#ordemReset').prop('disabled', false);
+
+    });
 
     $('#discursoStart').click(function() {
 
@@ -148,7 +159,18 @@ $(function() {
         startAt: 60 * 3 * 1000,
         stopAt: 0,
         milliseconds: false
-	});
+	}).on('runnerFinish', function(eventObject, info){
+        $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
+
+        $('#aparteReset').show();
+        $('#aparte').runner('stop');
+        $('#aparteStart').text('Iniciar');
+        $('#discursoStart').prop('disabled', false);
+        $('#discursoReset').prop('disabled', false);
+        $('#ordemStart').prop('disabled', false);
+        $('#ordemReset').prop('disabled', false);
+
+    });
 
 	$('#aparteStart').click(function(){
 		if ($('#aparteStart').text() == 'Iniciar') {
@@ -191,7 +213,17 @@ $(function() {
         startAt: 60 * 2 * 1000,
         stopAt: 0,
         milliseconds: false
-	});
+	}).on('runnerFinish', function(eventObject, info){
+        $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
+
+        $('#ordemReset').show();
+        $('#ordem').runner('stop');
+        $('#ordemStart').text('Iniciar');
+        $('#discursoStart').prop('disabled', false);
+        $('#discursoReset').prop('disabled', false);
+        $('#aparteStart').prop('disabled', false);
+        $('#aparteReset').prop('disabled', false);
+    });
 
     $('#ordemStart').click(function() {
 		if ($('#ordemStart').text() == 'Iniciar') {
