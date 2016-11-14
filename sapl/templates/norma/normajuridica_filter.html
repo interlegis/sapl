@@ -1,0 +1,62 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block actions %}
+  <div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'sapl.norma:normajuridica_create' %}" class="btn btn-default">
+      {% if perms.norma.add_normajuridica %}
+        {% blocktrans with verbose_name=view.verbose_name %} Adicionar Norma Jurídica {% endblocktrans %}
+      {% endif %}
+    </a>
+  {% if filter_url %}
+      <a href="{% url 'sapl.norma:norma_pesquisa' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+  {% endif %}
+  </div>
+  <br /><br />
+{% endblock %}
+
+{% block detail_content %}
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    {% if page_obj|length %}
+      <br />
+      {% if page_obj|length > 1 %}
+        <h3 style="text-align:right;">Pesquisa concluída com sucesso! Foram encontradas {{paginator.count}} normas.</h3>
+      {% elif page_obj|length == 1 %}
+        <h3 style="text-align:right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 norma.'%}</h3>
+      {% endif %}
+      <br />
+      <table class="table table-striped">
+    		<thead class="thead-default">
+          <tr>
+            <th>Tipo</th>
+            <th>Número</th>
+            <th>Ano</th>
+            <th>Data</th>
+            <th>Ementa</th>
+          </tr>
+    		</thead>
+        {% for n in page_obj %}
+          <tr>
+            <td><a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">{{n.tipo}}</a></td>
+            <td>{{n.numero}}</td>
+            <td>{{n.ano}}</td>
+            <td>{{n.data}}</td>
+            <td>{{n.ementa|safe}}</td>
+    			</tr>
+    		{% endfor %}
+    	</table>
+      {% include "paginacao.html" %}
+    {% else  %}
+      <br /><br />
+      <h2>Nenhuma norma encontrada com essas especificações</h2>
+    {% endif %}
+  {% endif %}
+{% endblock detail_content %}
+
+{% block table_content %}
+{% endblock table_content %}

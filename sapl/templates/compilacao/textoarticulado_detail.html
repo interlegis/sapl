@@ -31,7 +31,7 @@
 {% block base_content %}
 
   {% block actions %}
-    <div class="clearfix">
+    <div class="clearfix hidden-print">
 
       <div class="actions btn-group pull-right" role="group">
         {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
@@ -44,12 +44,12 @@
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
         {% endif %}
 
-	  </div>
+	     </div>
     </div>
   {% endblock actions %}
 
   {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
-    <fieldset>
+    <fieldset class="hidden-print">
         <legend>{%trans 'Identificação Básica'%}</legend>
         <div class="row">
           <div class="col-md-3">

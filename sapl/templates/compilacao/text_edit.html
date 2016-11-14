@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block title%}
-  <h1 class="page-header">{{object }}. <small><i>{% trans 'Texto Multivigente em Edição' %}</i></small></h1>
+  <h2 class="page-header">{% if object.content_object.title_type %}{{object.content_object.title_type}}{%else%}{{object}}{% endif %}{% comment %}<small><i>{% trans 'Texto Multivigente em Edição' %}</i></small>{% endcomment %}</h2>
 {% endblock %}
 
 {% block actions %}

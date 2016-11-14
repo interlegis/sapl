@@ -59,7 +59,7 @@
   <div class="btn-group " role="group">
     {% if not object.dispositivo_subsequente %}
       {% for perfil in perfil_estrutural_list%}
-        <button type="button" class="btn-action btn-perfis btn btn-xs {%if request.session.perfil_estrutural == perfil.pk%}btn-primary{%else%}btn-default{%endif%}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"  pk="{{object.pk}}" perfil_pk="{{perfil.pk}}" action="json_get_perfis" title="{{perfil.nome}}">
+        <button type="button" class="btn-action btn-perfis btn btn-xs {%if request.session.perfil_estrutural == perfil.pk %}btn-primary{%else%}btn-default{%endif%}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"  pk="{{object.pk}}" perfil_pk="{{perfil.pk}}" action="json_get_perfis" title="{{perfil.nome}}">
           {{perfil.sigla}}
         </button>
       {% endfor %}

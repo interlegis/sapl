@@ -1,18 +1,23 @@
+from datetime import datetime
+
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.deletion import PROTECT
+from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.models import TextoArticulado
+from sapl.compilacao.models import TextoArticulado,\
+    PerfilEstruturalTextoArticulado
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -38,19 +43,17 @@ class TipoProposicao(models.Model):
     tipo_conteudo_related = SaplGenericForeignKey(
         'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
 
-    """materia_ou_documento = models.CharField(
-        max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
-    modelo = models.CharField(max_length=50, verbose_name=_('Modelo XML'))
-
-    # mutually exclusive (depend on materia_ou_documento)
-    tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa,
-        blank=True,
-        null=True,
-        verbose_name=_('Tipo de Matéria'))
-    tipo_documento = models.ForeignKey(
-        TipoDocumento, blank=True, null=True,
-        verbose_name=_('Tipo de Documento'))"""
+    perfis = models.ManyToManyField(
+        PerfilEstruturalTextoArticulado,
+        blank=True, verbose_name=_('Perfis Estruturais de Textos Articulados'),
+        help_text=_("""
+                    Mesmo que em Configurações da Aplicação nas
+                    Tabelas Auxiliares esteja definido que Proposições possam
+                    utilizar Textos Articulados, ao gerar uma proposição,
+                    a solução de Textos Articulados será disponibilizada se
+                    o Tipo escolhido para a Proposição estiver associado a ao
+                    menos um Perfil Estrutural de Texto Articulado.
+                    """))
 
     class Meta:
         verbose_name = _('Tipo de Proposição')
@@ -565,6 +568,17 @@ class Proposicao(models.Model):
         related_name=_('materia_gerada'))
     documento_gerado = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True)"""
+
+    @property
+    def perfis(self):
+        return self.tipo.perfis.all()
+
+    @property
+    def title_type(self):
+        return '%s nº _____ %s' % (
+            self.tipo, formats.date_format(
+                self.data_envio if self.data_envio else datetime.now(),
+                "\d\e d \d\e F \d\e Y"))
 
     class Meta:
         verbose_name = _('Proposição')

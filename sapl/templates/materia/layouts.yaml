@@ -75,7 +75,7 @@ Relatoria:
 TipoProposicao:
   {% trans 'Tipo Proposição' %}:
   - descricao content_type
-  - tipo_conteudo_related
+  - tipo_conteudo_related perfis
 
 Proposicao:
   {% trans 'Proposição' %}:

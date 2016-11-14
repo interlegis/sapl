@@ -56,6 +56,18 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div id="div_id_ano" class="holder">
+          <label>{% field_verbose_name object 'perfis' %}</label>
+          <ul>
+          {% for perfil in object.perfis.all %}
+              <li>{{perfil}}</li>
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
     </fieldset>
   {% endblock detail_content %}
 {% endblock base_content %}
