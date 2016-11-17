@@ -3,7 +3,7 @@ from re import sub
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
@@ -1854,9 +1854,14 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
                    'ementa': expediente.observacao}
         context.update({'materia': materia})
 
-        votacao = RegistroVotacao.objects.get(
-            materia_id=materia_id,
-            expediente_id=expediente_id)
+        try:
+            votacao = RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                expediente_id=expediente_id)
+        except MultipleObjectsReturned:
+            votacao = RegistroVotacao.objects.filter(
+                materia_id=materia_id,
+                expediente_id=expediente_id).last()
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'tipo_resultado':
@@ -1875,9 +1880,14 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['mid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                expediente_id=expediente_id).delete()
+            try:
+                RegistroVotacao.objects.get(
+                    materia_id=materia_id,
+                    expediente_id=expediente_id).delete()
+            except MultipleObjectsReturned:
+                RegistroVotacao.objects.filter(
+                    materia_id=materia_id,
+                    expediente_id=expediente_id).last().delete()
 
             expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,

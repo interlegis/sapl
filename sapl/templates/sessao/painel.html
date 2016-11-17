@@ -11,7 +11,6 @@
 
 
 {% block detail_content %}
-	<audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
 
   <div class="row">
     <!--<div class="col-md-6"><a href="{% url 'sapl.painel:painel_principal' pk %}" class="btn btn-primary btn-sm active">Iniciar painel presidente</a></div> -->
@@ -95,8 +94,6 @@ $(function() {
 
 	startTime();
 
-	var audioAlertFinish = document.getElementById("audio");
-
 	$('#discurso').prop('disabled', true);
 	$('#aparte').prop('disabled', true);
 	$('#ordem').prop('disabled', true);
@@ -108,8 +105,17 @@ $(function() {
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
-	});
+        $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
+
+        $('#discursoReset').show();
+        $('#discurso').runner('stop');
+        $('#discursoStart').text('Iniciar');
+        $('#aparteStart').prop('disabled', false);
+        $('#aparteReset').prop('disabled', false);
+        $('#ordemStart').prop('disabled', false);
+        $('#ordemReset').prop('disabled', false);
+
+    });
 
     $('#discursoStart').click(function() {
 
@@ -154,8 +160,17 @@ $(function() {
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
-	});
+        $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
+
+        $('#aparteReset').show();
+        $('#aparte').runner('stop');
+        $('#aparteStart').text('Iniciar');
+        $('#discursoStart').prop('disabled', false);
+        $('#discursoReset').prop('disabled', false);
+        $('#ordemStart').prop('disabled', false);
+        $('#ordemReset').prop('disabled', false);
+
+    });
 
 	$('#aparteStart').click(function(){
 		if ($('#aparteStart').text() == 'Iniciar') {
@@ -199,8 +214,16 @@ $(function() {
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
-		audioAlertFinish.play();
-	});
+        $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
+
+        $('#ordemReset').show();
+        $('#ordem').runner('stop');
+        $('#ordemStart').text('Iniciar');
+        $('#discursoStart').prop('disabled', false);
+        $('#discursoReset').prop('disabled', false);
+        $('#aparteStart').prop('disabled', false);
+        $('#aparteReset').prop('disabled', false);
+    });
 
     $('#ordemStart').click(function() {
 		if ($('#ordemStart').text() == 'Iniciar') {

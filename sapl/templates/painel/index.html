@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load staticfiles %}
+{% load staticfiles sass_tags %}
 <!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
@@ -8,6 +8,7 @@
   <head>
     <meta charset="UTF-8">
     <!-- TODO: does it need this head_title here? -->
+    <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="{% static 'jquery/dist/jquery.js' %}"></script>
@@ -16,12 +17,11 @@
     <style type="text/css">
       @media screen {
         body {
-          background: #2B2B2A;
+          background: #1c1b1b;
         }
         ul, li {
           list-style-type: none;
         }
-
         #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao{
           font-family: Verdana;
         }
@@ -29,66 +29,77 @@
     </style>
   </head>
   <body>
+    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
+
     <h1 id="title"></h1>
     <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' sessao_id %}">
 
-    <h3><font color="#4FA64D"><p align="center"><span id="sessao_plenaria"></span></p></font></h3>
+    <h1><b><font color="#4FA64D"><p align="center"><span id="sessao_plenaria"></span></p></font></b></h1>
 
     <table style="width:100%">
       <tr>
-        <th style="text-align:center"><font color="white" size="2"><span id="sessao_plenaria_data"></span></font></th>
-        <th style="text-align:center"><font color="white" size="2"><span id="sessao_plenaria_hora_inicio"></span></font></th>
+        <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_data"></span></font></th>
+        <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></th>
       </tr>
     </table>
 
     <h2><font color="red"><p align="center"><span id="message"></span></p></font></h2>
 
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
-    <h3><font color="white"><p align="center"><span id="relogio"></span></p></font></h3>
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
+    <h1><font color="white"><p align="center"><span id="relogio"></span></p></font></h1>
 
-    <h3><font color="#459170"><p style="font-family:Verdana" align="center">Cronômetros</p></font></h3>
-    <table style="width:100%">
-      <tr>
-        <th style="text-align:center; font-family:Verdana"><font color="white">Discurso: <span id="cronometro_discurso"></span></font></th>
-      </tr>
-      <tr>
-        <th style="text-align:center; font-family:Verdana"><font color="white">Aparte: <span id="cronometro_aparte"></span></font></th>
-      </tr>
-      <tr>
-        <th style="text-align:center; font-family:Verdana"><font color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></th>
-      </tr>
-    </table>
+    <div class="row container-detail clearfix">
+      <div  class="row-fluid">
+        <div class="col-md-4">
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Parlamentares</p></b></font></h2>
+          <table align="center">
+            <tr>
+              <th><h4><font color="white"><span id="parlamentares"></span></h4></font></th>
+            </tr>
+          </table>
+        </div>
 
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
+        <div class="col-md-4" >
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
+          <table align="center">
+            <tr>
+              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Discurso: <span id="cronometro_discurso"></span></font></th>
+            </tr>
+            <tr>
+              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Aparte: <span id="cronometro_aparte"></span></font></th>
+            </tr>
+            <tr>
+              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></th>
+            </tr>
+          </table>
+        </div>
 
-    <h3><font color="#459170"><p style="font-family:Verdana" align="center">Parlamentares e Votos</p></font></h3>
-    <table style="width:60%" align="center">
-      <tr>
-        <th style="text-align:left"><font color="white" align="left"><span id="parlamentares"></span></font></th>
-        <th style="text-align:left"><font color="white"><span id="votacao"></span></font></th>
-      </tr>
-    </table>
+        <div class="col-md-4">
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Resultado</p></font></h2>
+          <table align="center">
+            <tr>
+              <th><h4><font color="white"><span id="votacao"></span></h4></font></th>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
 
-    <h3><font color="white"><p align="center">________________________________________________</p></font></h3>
-
-    <h3><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h3>
+    </br>
+    <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
     <table style="width:100%; border:1px;">
-      <tr><th style="text-align:center"><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
-      <tr><th style="text-align:center"><font color="white"><span id="observacao_materia"></span></font></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></th></tr>
       <tr><th style="text-align:center"><font color="#45919D"><span id="resultado_votacao"></span></font></th></tr>
     </table>
   </body>
 
   <script type="text/javascript">
      $(document).ready(function() {
-
          //TODO: replace by a fancy jQuery clock
          function checkTime(i) {
              if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
                 return i;
          }
-
          function startTime() {
              var today=new Date();
              var h=today.getHours();
@@ -101,8 +112,9 @@
                  startTime()
              }, 500);
          }
-
          startTime();
+
+        var audioAlertFinish = document.getElementById("audio");
 
         $('#cronometro_discurso').runner({
           autostart: false,
@@ -110,6 +122,8 @@
           startAt: 5 * 60 * 1000, // 5 minutes
           stopAt: 0,
           milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
         });
 
         $('#cronometro_aparte').runner({
@@ -118,6 +132,8 @@
           startAt: 3 * 60 * 1000, // 3 minutes
           stopAt: 0,
           milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+            audioAlertFinish.play();
         });
 
         $('#cronometro_ordem').runner({
@@ -126,11 +142,13 @@
           startAt: 2 * 60 * 1000, // 2 minutes
           stopAt: 0,
           milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
         });
 
-    var discurso_previous = '';
-    var aparte_previous = '';
-    var ordem_previous = '';
+    var discurso_previous;
+    var ordem_previous;
+    var aparte_previous;
 
     var counter = 1;
     (function poll() {
@@ -138,82 +156,118 @@
            url: $("#json_url").val(),
            type: "GET",
            success: function(data) {
-
-
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-
-              if (data["status_painel"] === "FECHADO") {
+              if (data["status_painel"] == "FECHADO") {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
-                return;
               }
-
+              else{
+                $("#message").text("");
+              }
 
               var presentes = $("#parlamentares");
+              var votacao = $("#votacao");
+              $("#votacao").text('');
               presentes.children().remove();
+              votacao.children().remove()
 
-              if (data["presentes_ordem_dia"] != null) {
-                presentes_ordem_dia = data["presentes_ordem_dia"];
-              }
-              else if (data["presentes_expediente"] != null){
-                presentes_ordem_dia = data["presentes_expediente"]
-              }
-
-
-              if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
-                  if(data["tipo_votacao"] == "Nominal") {
-                      jQuery.each(data["votos"], function(index, parlamentar) {
-                         $('<li />', {text: parlamentar.parlamentar + '  -  ' + parlamentar.partido + '  -  Voto: ' + parlamentar.voto}).appendTo(presentes);
+              if (data['materia_legislativa_texto']){
+                if (data["presentes_ordem_dia"] != null) {
+                  presentes_ordem_dia = data["presentes_ordem_dia"];
+                }
+                else if (data["presentes_expediente"] != null){
+                  presentes_ordem_dia = data["presentes_expediente"]
+                }
+                if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
+                    if(data["tipo_votacao"] == "Nominal") {
+                        jQuery.each(data["votos"], function(index, parlamentar) {
+                           $('<li />', {text: parlamentar.parlamentar + '  -  ' + parlamentar.partido + '  -  Voto: ' + parlamentar.voto}).appendTo(presentes);
+                        });
+                    }
+                    else{
+                      jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
+                        $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
                       });
-                  }
-              }else{
-                jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
-                  $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
-                });
+                    }
+                }
+
+                else{
+                  jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
+                        $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
+                      });
+                }
+
+                //console.debug(presentes_ordem_dia)
+                var votacao = $("#votacao")
+                if (data["num_presentes_ordem_dia"] != null) {
+                  num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
+                }
+                else if (data["num_presentes_expediente"] != null){
+                  num_presentes_ordem_dia = data["num_presentes_expediente"]
+                }
+
+                votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
+                votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
+                votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
+                votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
+                votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
               }
 
-            //console.debug(presentes_ordem_dia)
-
-            var votacao = $("#votacao")
-
-            if (data["num_presentes_ordem_dia"] != null) {
-              num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
-            }
-            else if (data["num_presentes_expediente"] != null){
-              num_presentes_ordem_dia = data["num_presentes_expediente"]
-            }
-
-            votacao.children().remove()
-            votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
-            votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
-            votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
-            votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
-            votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
-
+              else{
+                $("#votacao").text('Não há votação, pois não há nenhuma matéria aberta ou já votada.');
+              }
 
               var discurso_current = data["cronometro_discurso"];
+              if (!discurso_previous){
+                discurso_previous = ''
+              }
+
               if (discurso_current != discurso_previous) {
                 $('#cronometro_discurso').runner(discurso_current);
                 discurso_previous = discurso_current;
               }
 
               var aparte_current = data["cronometro_aparte"];
+              if (!aparte_previous){
+                aparte_previous = ''
+              }
+
               if (aparte_current != aparte_previous) {
                 $('#cronometro_aparte').runner(aparte_current);
                 aparte_previous = aparte_current;
               }
 
               var ordem_current = data["cronometro_ordem"];
+              if (!ordem_previous){
+                ordem_previous = ''
+              }
+
               if (ordem_current != ordem_previous) {
                 $('#cronometro_ordem').runner(ordem_current);
                 ordem_previous = ordem_current;
               }
 
-              $("#materia_legislativa_texto").text(data["materia_legislativa_texto"])
-              $("#observacao_materia").text(data["observacao_materia"])
-              $("#resultado_votacao").text(data["tipo_resultado"])
+              if (data['materia_legislativa_texto']){
+                $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
+              }
+              else{
+                $("#materia_legislativa_texto").text('Não há nehuma matéria votada ou para votação');
+              }
 
+              if (data['observacao_materia']){
+                $("#observacao_materia").text(data["observacao_materia"]);
+              }
+              else{
+                $("#observacao_materia").text('');
+              }
+
+              if (data['resultado_votacao']){
+                $("#resultado_votacao").text(data["tipo_resultado"]);
+              }
+              else{
+                $("#resultado_votacao").text('');
+              }
            },
            error: function(err) {
               console.error(err);
