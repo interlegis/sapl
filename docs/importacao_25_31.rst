@@ -11,8 +11,7 @@ o conteúdo do arquivo será semelhante a isso:
 DATABASE_URL = mysql://sapl:sapl@localhost:3306/interlegis
 
 
-Posteriormente rodar a seguinte sequencia de comandos::
-
+Posteriormente rodar a seguinte sequencia de comandos estando no ambiente virtual::
 
    ./manage.py shell_plus --settings=sapl.legacy_migration_settings
    
@@ -20,3 +19,8 @@ Posteriormente rodar a seguinte sequencia de comandos::
    
    >>> migrate()
    
+
+
+Para entrar no ambiente virtual::
+
+   workon sapl
