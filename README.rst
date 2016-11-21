@@ -29,7 +29,7 @@ Instalar as seguintes dependências do sistema::
 
 * ::
 
-    sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz \
+    sudo apt-get install git python3-dev libpq-dev graphviz-dev graphviz \
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools curl
@@ -229,6 +229,88 @@ Posteriormente rodar a seguinte sequencia de comandos::
    ./manage.py shell_plus --settings=sapl.legacy_migration_settings
    >>> %run sapl/legacy/migration.py
    >>> migrate()
+   
+   
+Instruções para fazer o Deploy
+==============================
+   
+Instalando o servidor web NGINX::
+
+  sudo pip install nginx
+  
+  
+Instalando o servidor de aplicativos dedicados chamado Gunicorn::
+
+  sudo pip install gunicorn  
+
+
+Preparando o NGINX
+------------------
+vi /etc/nginx/sites-available/sapl31::
+
+   upstream ENDERECO_SITE {  
+      server unix:~/sapl/gunicorn.sock fail_timeout=0;
+   }
+
+   server {
+
+       listen   80;
+       server_name ENDERECO_SITE;
+
+       client_max_body_size 4G;
+
+       access_log /var/log/nginx-access.log;
+       error_log /var/log/nginx-error.log;
+
+       location /static/ {
+           alias   ~/sapl/collected_static/;
+       }
+
+       location /media/ {
+           alias   ~/sapl/media/;
+       }
+
+       location / {
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header Host $http_host;
+           proxy_redirect off;
+           if (!-f $request_filename) {
+               proxy_pass http://ENDERECO_SITE;
+               break;
+           }
+       }
+
+       # Error pages
+       error_page 500 502 503 504 /500.html;
+       location = /500.html {
+           root ~/sapl/sapl/static/;
+       }
+   }
+
+
+Criar link simbólico para ativar o site::
+
+   sudo ln -s /etc/nginx/sites-available/sapl3.conf /etc/nginx/sites-enabled/sapl3
+
+
+
+Preparando o Gunicorn
+---------------------
+Na raiz do Projeto sapl, existe o arquivo chamado gunicorn_start.sh
+onde ~/ devem ser alterados pelos caminhos correspondentes.
+
+Para definir o parametro NUM_WORKERS  utilize a seguinte fórmula: 2 * CPUs + 1.
+Para uma máquina de CPU única o valor seria 3
+
+Para dar Permissão de execução para o script::
+
+   chmod u+x bin/gunicorn_start
+
+Para rodar o gunicorn::
+   
+   ./~/.gunicorn_start.sh
+   
+  
 
 Instruções para Tradução
 ========================
