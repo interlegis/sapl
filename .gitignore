@@ -73,6 +73,7 @@ target/
 .bak
 *~
 *.orig
+gunicorn_start.sh
 
 # Dev tools configuration files
 .idea/
