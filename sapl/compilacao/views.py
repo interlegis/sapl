@@ -1169,6 +1169,8 @@ class TextEditView(CompMixin, TemplateView):
             a.inicio_eficacia = ta.data
             a.save()
 
+            return
+
             td = TipoDispositivo.objects.filter(class_css='ementa')[0]
             e = Dispositivo()
             e.nivel = 1
@@ -2419,9 +2421,11 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             dispositivos_do_bloco = \
                 bloco_alteracao.dispositivos_alterados_set.order_by(
                     'ordem_bloco_atualizador')
-            if dispositivos_do_bloco.exists:
+            if dispositivos_do_bloco.exists():
                 ndp.ordem_bloco_atualizador = dispositivos_do_bloco.last(
                 ).ordem_bloco_atualizador + Dispositivo.INTERVALO_ORDEM
+            else:
+                ndp.ordem_bloco_atualizador = Dispositivo.INTERVALO_ORDEM
             ndp.save()
 
             p.dispositivo_subsequente = ndp
