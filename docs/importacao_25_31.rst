@@ -10,6 +10,13 @@ Criar um arquivo sapl/legacy/.env com o seguinte conteúdo (parametros de acesso
 o conteúdo do arquivo será semelhante a isso:
 DATABASE_URL = mysql://sapl:sapl@localhost:3306/interlegis
 
+   
+
+
+Para entrar no ambiente virtual::
+
+   workon sapl
+
 
 Posteriormente rodar a seguinte sequencia de comandos estando no ambiente virtual::
 
@@ -18,9 +25,3 @@ Posteriormente rodar a seguinte sequencia de comandos estando no ambiente virtua
    >>> %run sapl/legacy/migration.py
    
    >>> migrate()
-   
-
-
-Para entrar no ambiente virtual::
-
-   workon sapl
