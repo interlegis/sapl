@@ -217,12 +217,12 @@ Instruções para criação do super usuário e de usuários de testes
 Instruções para Importação da base mysql 2.5
 ============================================
 
-   `Importação da Base do SAPL 2.5 para SAPL 3.1 <https://github.com/interlegis/sapl/docs/importacao_25_31.rst>`_
+   `Importação da Base do SAPL 2.5 para SAPL 3.1 <https://github.com/interlegis/sapl/blob/master/docs/importacao_25_31.rst>`_
 
 
 Instruções para Deploy
 ======================
-   `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/docs/deploy.rst>`_
+   `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/blob/master/docs/deploy.rst>`_
 
 
 
