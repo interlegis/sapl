@@ -80,10 +80,14 @@ def reordernar_materias_ordem(request, pk):
 
 @permission_required('sessao.change_expedientemateria')
 def abrir_votacao_expediente_view(request, pk, spk):
-    existe_votacao_aberta = ExpedienteMateria.objects.filter(
+    existe_expediente_aberto = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
     ).exists()
-    if existe_votacao_aberta:
+    existe_ordem_aberta = OrdemDia.objects.filter(
+        sessao_plenaria_id=spk, votacao_aberta=True
+    ).exists()
+
+    if existe_expediente_aberto or existe_ordem_aberta:
         msg = _('Já existe uma matéria com votação aberta. Para abrir '
                 'outra, termine ou feche a votação existente.')
         messages.add_message(request, messages.INFO, msg)
@@ -97,10 +101,14 @@ def abrir_votacao_expediente_view(request, pk, spk):
 
 @permission_required('sessao.change_ordemdia')
 def abrir_votacao_ordem_view(request, pk, spk):
-    existe_votacao_aberta = OrdemDia.objects.filter(
+    existe_ordem_aberta = OrdemDia.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
     ).exists()
-    if existe_votacao_aberta:
+    existe_expediente_aberto = ExpedienteMateria.objects.filter(
+        sessao_plenaria_id=spk, votacao_aberta=True
+    ).exists()
+
+    if existe_ordem_aberta or existe_expediente_aberto:
         msg = _('Já existe uma matéria com votação aberta. Para abrir '
                 'outra, termine ou feche a votação existente.')
         messages.add_message(request, messages.INFO, msg)
