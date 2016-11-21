@@ -22,7 +22,7 @@ Preparando o NGINX
 vi /etc/nginx/sites-available/sapl31::
 
    upstream ENDERECO_SITE {  
-      server unix:~/sapl/gunicorn.sock fail_timeout=0;
+      server unix:~/sapl/run/gunicorn.sock fail_timeout=0;
    }
 
    server {
