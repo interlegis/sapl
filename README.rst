@@ -29,7 +29,7 @@ Instalar as seguintes dependências do sistema::
 
 * ::
 
-    sudo apt-get install git nginx python3-dev libpq-dev graphviz-dev graphviz \
+    sudo apt-get install git python3-dev libpq-dev graphviz-dev graphviz \
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools curl
@@ -216,19 +216,14 @@ Instruções para criação do super usuário e de usuários de testes
 Instruções para Importação da base mysql 2.5
 ============================================
 
-Criar um arquivo `sapl/legacy/.env` com o seguinte conteúdo (parametros de acesso ao banco 2.5)::
+   `Importação da Base do SAPL 2.5 para SAPL 3.1 <https://github.com/interlegis/sapl/docs/importacao_25_31.rst>`_
 
-  DATABASE_URL = mysql://[usuario do mysql]:[senha do myuysql]@[host]:[porta]/[banco]
 
-o conteúdo do arquivo será semelhante a isso::
+Instruções para Deploy
+======================
+   `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/docs/deploy.rst>`_
 
-  DATABASE_URL = mysql://sapl:sapl@localhost:3306/interlegis
 
-Posteriormente rodar a seguinte sequencia de comandos::
-
-   ./manage.py shell_plus --settings=sapl.legacy_migration_settings
-   >>> %run sapl/legacy/migration.py
-   >>> migrate()
 
 Instruções para Tradução
 ========================
