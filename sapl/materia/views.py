@@ -1101,6 +1101,11 @@ class MateriaLegislativaPesquisaView(FilterView):
             lista = filtra_tramitacao_destino(unidade_destino)
             qs = qs.filter(id__in=lista).distinct()
 
+        if 'o' in self.request.GET:
+            if not self.request.GET['o']:
+                qs = qs.order_by(
+                    '-data_apresentacao', '-tipo__sigla', '-ano', '-numero')
+
         kwargs.update({
             'queryset': qs,
         })
