@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template import Context, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
@@ -21,10 +21,11 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
-from sapl.compilacao.models import STATUS_TA_PRIVATE, STATUS_TA_EDITION,\
-    STATUS_TA_IMMUTABLE_RESTRICT
-
+from sapl.compilacao.models import (STATUS_TA_EDITION,
+                                    STATUS_TA_IMMUTABLE_RESTRICT,
+                                    STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -39,7 +40,6 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
@@ -54,7 +54,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -1101,10 +1100,8 @@ class MateriaLegislativaPesquisaView(FilterView):
             lista = filtra_tramitacao_destino(unidade_destino)
             qs = qs.filter(id__in=lista).distinct()
 
-        if 'o' in self.request.GET:
-            if not self.request.GET['o']:
-                qs = qs.order_by(
-                    '-data_apresentacao', '-tipo__sigla', '-ano', '-numero')
+        if 'o' not in self.request.GET:
+            qs = qs.order_by('tipo', 'ano', 'numero')
 
         kwargs.update({
             'queryset': qs,
