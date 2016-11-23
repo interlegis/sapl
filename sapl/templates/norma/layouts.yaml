@@ -53,3 +53,14 @@ LegislacaoCitadaDetail:
 VinculoNormaJuridica:
   {% trans 'Tipo de Vínculo entre Normas Jurídicas' %}:
   - sigla:2 descricao
+
+NormaRelacionada:
+  {% trans 'Norma Relacionada' %}:
+  - tipo numero ano
+  - tipo_vinculo
+  - ementa
+
+NormaRelacionadaDetail:
+  {% trans 'Norma Relacionada' %}:
+  - norma_relacionada
+  - tipo_vinculo

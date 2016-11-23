@@ -186,11 +186,15 @@ class VinculoNormaJuridica(models.Model):
 
 class NormaRelacionada(models.Model):
     norma_principal = models.ForeignKey(
-        NormaJuridica, related_name='norma_principal')
+        NormaJuridica,
+        related_name='norma_principal',
+        verbose_name=_('Norma Principal'))
     norma_relacionada = models.ForeignKey(
-        NormaJuridica, related_name='norma_relacionada')
+        NormaJuridica,
+        related_name='norma_relacionada',
+        verbose_name=_('Norma Relacionada'))
     tipo_vinculo = models.ForeignKey(
-        VinculoNormaJuridica, verbose_name='Tipo de Vínculo')
+        VinculoNormaJuridica, verbose_name=_('Tipo de Vínculo'))
 
     class Meta:
         verbose_name = _('Norma Relacionada')

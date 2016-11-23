@@ -1,0 +1,27 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+  <script language="Javascript">
+    function recuperar_norma() {
+      var tipo = $("#id_tipo").val()
+      var numero = $("#id_numero").val()
+      var ano = $("#id_ano").val()
+
+      if (tipo && numero && ano) {
+        $.get("/norma/recuperar-norma",{tipo: tipo,
+                                        numero: numero,
+                                        ano: ano},
+                                  function(data, status) {
+                                    $("#id_ementa").val(data.ementa);
+                                  });
+      }
+    }
+    var fields = ["#id_tipo", "#id_numero", "#id_ano"]
+    for (i = 0; i < fields.length; i++) {
+      $(fields[i]).change(recuperar_norma);
+    }
+  </script>
+{% endblock %}

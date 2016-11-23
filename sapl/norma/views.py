@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, ListView
@@ -12,9 +13,9 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 
-from .forms import NormaFilterSet, NormaJuridicaForm
-from .models import (AssuntoNorma, NormaJuridica, TipoNormaJuridica,
-                     VinculoNormaJuridica)
+from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm
+from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                     TipoNormaJuridica, VinculoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
@@ -26,6 +27,35 @@ TipoNormaCrud = CrudAux.build(
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
 VinculoNormaJuridicaCrud = CrudAux.build(
     VinculoNormaJuridica, '', list_field_names=['sigla', 'descricao'])
+
+
+class NormaRelacionadaCrud(MasterDetailCrud):
+    model = NormaRelacionada
+    parent_field = 'norma_principal'
+    help_path = ''
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['norma_relacionada']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = NormaRelacionadaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = NormaRelacionadaForm
+
+        def get_initial(self):
+            self.initial['tipo'] = self.object.norma_relacionada.tipo.id
+            self.initial['numero'] = self.object.norma_relacionada.numero
+            self.initial['ano'] = self.object.norma_relacionada.ano
+            self.initial['ementa'] = self.object.norma_relacionada.ementa
+            return self.initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'NormaRelacionadaDetail'
 
 
 class NormaPesquisaView(FilterView):
@@ -132,3 +162,20 @@ class NormaCrud(Crud):
                 self.initial['ano_materia'] = norma.materia.ano
                 self.initial['numero_materia'] = norma.materia.numero
             return self.initial.copy()
+
+
+def recuperar_norma(request):
+    tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
+    numero = request.GET['numero']
+    ano = request.GET['ano']
+
+    try:
+        norma = NormaJuridica.objects.get(tipo=tipo,
+                                          ano=ano,
+                                          numero=numero)
+        response = JsonResponse({'ementa': norma.ementa,
+                                 'id': norma.id})
+    except ObjectDoesNotExist:
+        response = JsonResponse({'ementa': '', 'id': 0})
+
+    return response

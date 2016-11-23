@@ -159,12 +159,13 @@ class NormaRelacionadaForm(ModelForm):
     )
     numero = forms.CharField(label='Número', required=True)
     ano = forms.CharField(label='Ano', required=True)
-    ementa = forms.CharField(widget=forms.Textarea)
+    ementa = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'disabled': 'disabled'}))
 
     class Meta:
         model = NormaRelacionada
         fields = ['tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
-        widgets = {'ementa': forms.Select(attrs={'disabled': 'disabled'})}
 
     def __init__(self, *args, **kwargs):
         super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
@@ -175,10 +176,9 @@ class NormaRelacionadaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
-            norma_relacionada = MateriaLegislativa.objects.get(
+            norma_relacionada = NormaJuridica.objects.get(
                 numero=cleaned_data['numero'],
                 ano=cleaned_data['ano'],
-                ementa=cleaned_data['ementa'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
             msg = _('A norma a ser relacionada não existe.')
