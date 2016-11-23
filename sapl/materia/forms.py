@@ -1158,7 +1158,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 if 'regime_tramitacao' not in cd or\
                         not cd['regime_tramitacao']:
                     raise ValidationError(
-                        _('Regimente de Tramitação deve ser informado.'))
+                        _('Regime de Tramitação deve ser informado.'))
 
             elif self.instance.tipo.content_type.model_class(
             ) == TipoDocumento and not cd['materia_de_vinculo']:
