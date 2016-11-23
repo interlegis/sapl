@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import GenericViewSet
 
 from sapl.api.forms import AutorChoiceFilterSet
@@ -59,10 +59,6 @@ class AutorListView(ListAPIView):
                       de Autores mas feito para Possíveis Autores armazenados
                       segundo o ContentType associado ao Tipo de Autor via
                       relacionamento genérico.
-<<<<<<< HEAD
-
-=======
->>>>>>> master
                       Busca feita sem django-filter processada no get_queryset
                       -> processo no cadastro de autores para seleção e busca
                           dos possíveis autores
@@ -87,7 +83,7 @@ class AutorListView(ListAPIView):
     TR_AUTOR_SERIALIZER = 3
 
     # FIXME aplicar permissão correta de usuário
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Autor.objects.all()
     model = Autor
 
@@ -116,7 +112,6 @@ class AutorListView(ListAPIView):
             desativa o django-filter se a busca for por possiveis autores
             parametro tr = TR_CHOICE_SERIALIZER
         """
-
         if self.tr == AutorListView.TR_CHOICE_SERIALIZER:
             self.filter_class = None
             self.filter_backends = []
