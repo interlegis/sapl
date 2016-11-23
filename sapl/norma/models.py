@@ -182,3 +182,22 @@ class VinculoNormaJuridica(models.Model):
 
     def __str__(self):
         return self.descricao
+
+
+class NormaRelacionada(models.Model):
+    norma_principal = models.ForeignKey(
+        NormaJuridica, related_name='norma_principal')
+    norma_relacionada = models.ForeignKey(
+        NormaJuridica, related_name='norma_relacionada')
+    tipo_vinculo = models.ForeignKey(
+        VinculoNormaJuridica, verbose_name='Tipo de Vínculo')
+
+    class Meta:
+        verbose_name = _('Norma Relacionada')
+        verbose_name_plural = _('Normas Relacionadas')
+
+    def __str__(self):
+        return _('Principal: %(norma_principal)s'
+                 ' - Relacionada: %(norma_relacionada)s') % {
+            'norma_principal': self.norma_principal,
+            'norma_relacionada': self.norma_relacionada}
