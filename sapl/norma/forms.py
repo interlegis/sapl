@@ -14,7 +14,8 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS, RangeWidgetOverride
 
-from .models import AssuntoNorma, NormaJuridica
+from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                     TipoNormaJuridica)
 
 
 def get_esferas():
@@ -146,3 +147,49 @@ class NormaJuridicaForm(ModelForm):
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
         return norma
+
+
+class NormaRelacionadaForm(ModelForm):
+
+    tipo = forms.ModelChoiceField(
+        label='Tipo',
+        required=True,
+        queryset=TipoNormaJuridica.objects.all(),
+        empty_label='----------',
+    )
+    numero = forms.CharField(label='Número', required=True)
+    ano = forms.CharField(label='Ano', required=True)
+    ementa = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'disabled': 'disabled'}))
+
+    class Meta:
+        model = NormaRelacionada
+        fields = ['tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
+
+    def __init__(self, *args, **kwargs):
+        super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+        cleaned_data = self.cleaned_data
+
+        try:
+            norma_relacionada = NormaJuridica.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A norma a ser relacionada não existe.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['norma_relacionada'] = norma_relacionada
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        relacionada = super(NormaRelacionadaForm, self).save(commit)
+        relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
+        relacionada.save()
+        return relacionada

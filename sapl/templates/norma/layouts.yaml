@@ -49,3 +49,18 @@ LegislacaoCitadaDetail:
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
+
+VinculoNormaJuridica:
+  {% trans 'Tipo de Vínculo entre Normas Jurídicas' %}:
+  - sigla:2 descricao
+
+NormaRelacionada:
+  {% trans 'Norma Relacionada' %}:
+  - tipo numero ano
+  - tipo_vinculo
+  - ementa
+
+NormaRelacionadaDetail:
+  {% trans 'Norma Relacionada' %}:
+  - norma_relacionada
+  - tipo_vinculo
