@@ -13,7 +13,8 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 
 from .forms import NormaFilterSet, NormaJuridicaForm
-from .models import AssuntoNorma, NormaJuridica, TipoNormaJuridica
+from .models import (AssuntoNorma, NormaJuridica, TipoNormaJuridica,
+                     VinculoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
@@ -23,6 +24,8 @@ AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
 TipoNormaCrud = CrudAux.build(
     TipoNormaJuridica, 'tipo_norma_juridica',
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
+VinculoNormaJuridicaCrud = CrudAux.build(
+    VinculoNormaJuridica, '', list_field_names=['sigla', 'descricao'])
 
 
 class NormaPesquisaView(FilterView):

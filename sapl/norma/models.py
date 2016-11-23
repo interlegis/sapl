@@ -171,37 +171,14 @@ class LegislacaoCitada(models.Model):
 
 
 class VinculoNormaJuridica(models.Model):
-    TIPO_VINCULO_CHOICES = (
-        ('A', _('Altera a norma')),
-        ('R', _('Revoga integralmente a norma')),
-        ('P', _('Revoga parcialmente a norma')),
-        ('T', _('Revoga integralmente por consolidação')),
-        ('C', _('Norma correlata')),
-        ('S', _('Ressalva a norma')),
-        ('E', _('Reedita a norma')),
-        ('I', _('Reedita a norma com alteração')),
-        ('G', _('Regulamenta a norma')),
-        ('K', _('Suspende parcialmente a norma')),
-        ('L', _('Suspende integralmente a norma')),
-        ('N', _('Julgada integralmente inconstitucional')),
-        ('O', _('Julgada parcialmente inconstitucional')),
-    )
-
-    # TODO M2M ???
-    norma_referente = models.ForeignKey(
-        NormaJuridica, related_name='norma_referente_set')
-    norma_referida = models.ForeignKey(
-        NormaJuridica, related_name='norma_referida_set')
-    tipo_vinculo = models.CharField(
-        max_length=1, blank=True, choices=TIPO_VINCULO_CHOICES)
+    sigla = models.CharField(
+        max_length=1, blank=True, verbose_name=_('Sigla'))
+    descricao = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Descrição'))
 
     class Meta:
-        verbose_name = _('Vínculo entre Normas Jurídicas')
-        verbose_name_plural = _('Vínculos entre Normas Jurídicas')
+        verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')
+        verbose_name_plural = _('Tipos de Vínculos entre Normas Jurídicas')
 
     def __str__(self):
-        return _('Referente: %(referente)s \n'
-                 'Referida: %(referida)s \nVínculo: %(vinculo)s') % {
-            'referente': self.norma_referente,
-            'referida': self.norma_referida,
-            'vinculo': self.tipo_vinculo}
+        return self.descricao
