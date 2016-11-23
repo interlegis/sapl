@@ -51,3 +51,4 @@ class MateriaLegislativaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MateriaLegislativa
+        fields = '__all__'
