@@ -200,6 +200,13 @@ class MateriaLegislativa(models.Model):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
 
+    def delete(self, using=None, keep_parents=False):
+        if self.texto_original:
+            self.texto_original.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -345,6 +352,13 @@ class DocumentoAcessorio(models.Model):
             'nome': self.nome,
             'data': self.data,
             'autor': self.autor}
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -589,6 +603,13 @@ class Proposicao(models.Model):
         return '%s %s/%s' % (Proposicao._meta.verbose_name,
                              self.numero_proposicao,
                              self.ano)
+
+    def delete(self, using=None, keep_parents=False):
+        if self.texto_original:
+            self.texto_original.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

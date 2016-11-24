@@ -986,29 +986,35 @@ class ProposicaoForm(forms.ModelForm):
         return cd
 
     def save(self, commit=True):
+        cd = self.cleaned_data
+        inst = self.instance
+        if inst.pk:
+            if 'tipo_texto' in cd:
 
-        if self.instance.pk:
-            if 'tipo_texto' in self.cleaned_data:
-                if self.cleaned_data['tipo_texto'] in ['T', ''] and\
-                        self.instance.texto_original:
-                    self.instance.texto_original.delete()
+                if cd['tipo_texto'] == 'T' and inst.texto_original:
+                    inst.texto_original.delete()
 
-                if self.cleaned_data['tipo_texto'] in ['D', '']:
-                    self.instance.texto_articulado.all().delete()
+                elif cd['tipo_texto'] != 'T':
+                    inst.texto_articulado.all().delete()
+
+                    if 'texto_original' in cd and\
+                            not cd['texto_original'] and \
+                            inst.texto_original:
+                        inst.texto_original.delete()
 
             return super().save(commit)
 
-        self.instance.ano = datetime.now().year
+        inst.ano = datetime.now().year
         numero__max = Proposicao.objects.filter(
-            autor=self.instance.autor,
+            autor=inst.autor,
             ano=datetime.now().year).aggregate(Max('numero_proposicao'))
         numero__max = numero__max['numero_proposicao__max']
-        self.instance.numero_proposicao = (
+        inst.numero_proposicao = (
             numero__max + 1) if numero__max else 1
 
-        self.instance.save()
+        inst.save()
 
-        return self.instance
+        return inst
 
 
 class ConfirmarProposicaoForm(ProposicaoForm):
@@ -1209,6 +1215,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.instance.justificativa_devolucao = ''
             self.instance.data_devolucao = None
             self.instance.data_recebimento = datetime.now()
+            self.instance.materia_de_vinculo = cd['materia_de_vinculo']
 
             if self.instance.texto_articulado.exists():
                 ta = self.instance.texto_articulado.first()

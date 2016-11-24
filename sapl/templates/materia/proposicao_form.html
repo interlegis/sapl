@@ -17,15 +17,19 @@
 
         if (this.selectedOptions[0].getAttribute('data-has-perfil') === "True") {
           $("input[name=tipo_texto]").closest('label').removeClass('disabled');
+          $("input[name=tipo_texto]").closest('.form-group').parent().removeClass('hidden');
           $("input[name=tipo_texto]").prop('disabled', false);
         }
         else {
             $("input[name=tipo_texto]").closest('label').addClass('disabled');
+            $("input[name=tipo_texto]").closest('.form-group').parent().addClass('hidden');
             $("input[name=tipo_texto]").prop('disabled', true);
         }
+        if ($("input[name=tipo_texto]:checked").length == 0) {
+          $("input[name=tipo_texto]").first().prop('checked', true);
+          $("input[name=tipo_texto]").first().closest('label').addClass('checked');          
+        }
 
-        $("input[name=tipo_texto]").first().prop('checked', true);
-        $("input[name=tipo_texto]").first().closest('label').addClass('checked');
       });
 
       $("select[name=tipo_materia], input[name=numero_materia], input[name=ano_materia]").change(function(event) {
@@ -46,7 +50,7 @@
         });
   		});
 
-      $("input[name=tipo_texto], select[name=tipo_materia]").trigger('change');
+      $("input[name=tipo_texto], select[name=tipo_materia], select[name=tipo]").trigger('change');
 
     });
 	</script>

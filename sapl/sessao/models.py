@@ -7,7 +7,7 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
 class CargoBancada(models.Model):
@@ -77,11 +77,13 @@ def get_sessao_media_path(instance, subpath, filename):
 
 
 def pauta_upload_path(instance, filename):
-    return get_sessao_media_path(instance, 'pauta', filename)
+    return texto_upload_path(instance, filename, subpath='pauta')
+    # return get_sessao_media_path(instance, 'pauta', filename)
 
 
 def ata_upload_path(instance, filename):
-    return get_sessao_media_path(instance, 'ata', filename)
+    return texto_upload_path(instance, filename, subpath='ata')
+    # return get_sessao_media_path(instance, 'ata', filename)
 
 
 class SessaoPlenaria(models.Model):
@@ -143,6 +145,37 @@ class SessaoPlenaria(models.Model):
             'sessao_legislativa_numero': self.sessao_legislativa.numero,
             # XXX check if it shouldn't be legislatura.numero
             'legislatura_id': self.legislatura.numero}
+
+    def delete(self, using=None, keep_parents=False):
+        if self.upload_pauta:
+            self.upload_pauta.delete()
+
+        if self.upload_ata:
+            self.upload_ata.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and (self.upload_pauta or self.upload_ata):
+            upload_pauta = self.upload_pauta
+            upload_ata = self.upload_ata
+            self.upload_pauta = None
+            self.upload_ata = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+
+            self.upload_pauta = upload_pauta
+            self.upload_ata = upload_ata
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class AbstractOrdemDia(models.Model):

@@ -81,6 +81,30 @@ class DocumentoAdministrativo(models.Model):
             'tipo': self.tipo, 'assunto': self.assunto
         }
 
+    def delete(self, using=None, keep_parents=False):
+        if self.texto_integral:
+            self.texto_integral.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.texto_integral:
+            texto_integral = self.texto_integral
+            self.texto_integral = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.texto_integral = texto_integral
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
+
 
 class DocumentoAcessorioAdministrativo(models.Model):
     documento = models.ForeignKey(DocumentoAdministrativo)
@@ -105,6 +129,30 @@ class DocumentoAcessorioAdministrativo(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class Protocolo(models.Model):
