@@ -18,7 +18,7 @@
           <div class="col-md-4 col-md-offset-4">
               <div class="login-panel panel panel-default">
                   <div class="panel-heading">
-                      <h3 class="panel-title">Entrar</h3>
+                      <h3 class="panel-title"><center>Entrar</center></h3>
                   </div>
                   <div class="panel-body">
                     <form id="login-form" method="post" action="{% url 'sapl.base:login' %}">
@@ -32,18 +32,19 @@
 
                                 {% endif %}
                                   <tr>
-                                      <td><b>Usuário</b></td>
-                                      <td>{{ form.username }}</td>
+                                      <p><b><center>Usuário</center></b></p>
+                                      {{ form.username }}
                                   </tr>
                                   <tr>
-                                      <td><b>Senha</b></td>
-                                      <td>{{ form.password }}</td>
+                                      <p><b><center>Senha</center></b></p>
+                                      {{ form.password }}
                                   </tr>
                               </table>
                           </p>
+                          <h5><a href="{% url 'sapl.base:recuperar_senha_email' %}"><center>Esqueceu sua senha?</center></a></h6>
                           <p class="bs-component">
                               <center>
-                                  <input class="btn btn-success btn-sm" type="submit" value="login" />
+                                  <input class="btn btn-lg btn-success btn-block" type="submit" value="login" />
                               </center>
                           </p>
                           <input type="hidden" name="next" value="{{ next }}" />

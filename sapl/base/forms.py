@@ -4,8 +4,8 @@ from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import Group
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -695,3 +695,27 @@ class ConfiguracoesAppForm(ModelForm):
                   'texto_articulado_materia',
                   'texto_articulado_norma',
                   'proposicao_incorporacao_obrigatoria']
+
+
+class RecuperarSenhaForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        row1 = to_row(
+            [('email', 12)])
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
+                     row1,
+                     form_actions(save_label='Enviar'))
+        )
+
+        super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        email_existente = User.objects.filter(
+            email=self.data['email']).exists()
+
+        if not email_existente:
+            msg = 'Não existe nenhum usuário cadastrado com este e-mail.'
+            raise ValidationError(msg)
+
+        return self.cleaned_data

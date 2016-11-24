@@ -8,6 +8,9 @@ register_all_models_in_admin(__name__)
 
 admin.site.unregister(ProblemaMigracao)
 
+admin.site.site_title = 'Administração - SAPL'
+admin.site.site_header = 'Administração - SAPL'
+
 
 @admin.register(ProblemaMigracao)
 class ProblemaMigracaoAdmin(admin.ModelAdmin):

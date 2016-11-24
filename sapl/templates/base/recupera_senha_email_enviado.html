@@ -1,0 +1,14 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+{% block base_content %}
+
+    <div class="container">
+        {% csrf_token %}
+        <div class="row">
+            <p>Foi enviado um e-mail para o endereço inserido. Verifique-o e siga as instruções.</p>
+            <p>Caso não receba, procure-o na caixa de spam.</p>
+        </div>
+    </div>
+
+
+{%endblock%}

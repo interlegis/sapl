@@ -1,12 +1,17 @@
 from django.conf.urls import include, url
 from django.contrib.auth import views
+from django.contrib.auth.views import (password_reset,
+                                       password_reset_done,
+                                       password_reset_confirm,
+                                       password_reset_complete)
 from django.contrib.auth.decorators import permission_required
 from django.views.generic.base import TemplateView
 
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 
 from .apps import AppConfig
-from .forms import LoginForm
+from .forms import LoginForm, RecuperarSenhaForm
+from sapl.settings import EMAIL_SEND_USER
 from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioAtasView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
@@ -15,6 +20,32 @@ from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioPresencaSessaoView)
 
 app_name = AppConfig.name
+
+recuperar_senha = [
+    url(r'^recuperar-senha/email/$',
+        password_reset,
+        {'post_reset_redirect': 'sapl.base:recuperar_senha_finalizado',
+         'email_template_name': 'base/recuperar_senha_email.html',
+         'html_email_template_name': 'base/recuperar_senha_email.html',
+         'template_name': 'base/recuperar_senha_email_form.html',
+         'from_email': EMAIL_SEND_USER,
+         'password_reset_form': RecuperarSenhaForm},
+        name='recuperar_senha_email'),
+
+    url(r'^recuperar-senha/finalizado/$',
+        password_reset_done,
+        {'template_name': 'base/recupera_senha_email_enviado.html'},
+        name='recuperar_senha_finalizado'),
+
+    url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
+        password_reset_confirm,
+        {'post_reset_redirect': 'sapl.base:recuperar_senha_completo'},
+        name='recuperar_senha_confirma'),
+
+    url(r'^recuperar-senha/completo/$',
+        password_reset_complete,
+        name='recuperar_senha_completo'),
+]
 
 
 urlpatterns = [
@@ -66,4 +97,4 @@ urlpatterns = [
         name='login'),
     url(r'^logout/$', views.logout, {'next_page': '/login'}, name='logout'),
 
-]
+] + recuperar_senha
