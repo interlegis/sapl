@@ -128,6 +128,11 @@ class NormaCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
+    class DeleteView(Crud.DeleteView):
+
+        def get_success_url(self):
+            return self.search_url
+
     class CreateView(Crud.CreateView):
         form_class = NormaJuridicaForm
 
