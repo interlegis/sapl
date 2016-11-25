@@ -10,7 +10,6 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 install_requires = [
     'dj-database-url==0.4.1',
-    'django-admin-bootstrapped==2.5.7',
     'django-bootstrap3==7.0.1',
     'django-bower==5.1.0',
     'django-braces==1.9.0',

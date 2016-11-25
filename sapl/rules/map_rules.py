@@ -128,7 +128,7 @@ rules_group_norma = {
     'group': SAPL_GROUP_NORMA,
     'rules': [
         (norma.NormaJuridica, __base__),
-        (norma.VinculoNormaJuridica, __base__),
+        (norma.NormaRelacionada, __base__),
 
         # Publicacao está com permissão apenas para norma e não para matéria
         # e proposições apenas por análise do contexto, não é uma limitação
@@ -221,6 +221,7 @@ rules_group_geral = {
 
         (norma.AssuntoNorma, __base__),
         (norma.TipoNormaJuridica, __base__),
+        (norma.VinculoNormaJuridica, __base__),
 
         (parlamentares.Legislatura, __base__),
         (parlamentares.SessaoLegislativa, __base__),
@@ -259,7 +260,8 @@ rules_group_geral = {
         # este model é um espelho do model integrado e sua edição pode
         # confundir Autores, operadores de matéria e/ou norma.
         # Por isso está adicionado apenas para o operador geral
-        (compilacao.TextoArticulado, __base__ + ['lock_unlock_textoarticulado']),
+        (compilacao.TextoArticulado,
+         __base__ + ['lock_unlock_textoarticulado']),
 
         # estes tres models são complexos e a principio apenas o admin tem perm
         (compilacao.TipoDispositivo, []),
