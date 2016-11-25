@@ -1,6 +1,9 @@
 Instruções para Importação da base mysql 2.5
 ============================================
 
+Instalar Dependências::
+
+   pip install -r requirements/migration-requirements.txt
 
 Criar um arquivo sapl/legacy/.env com o seguinte conteúdo (parametros de acesso ao banco 2.5)::
 
@@ -17,8 +20,8 @@ Para entrar no ambiente virtual::
 
 Posteriormente rodar a seguinte sequencia de comandos estando no ambiente virtual::
 
-   ./manage.py shell_plus --settings=sapl.legacy_migration_settings
+   ./manage.py shell --settings=sapl.legacy_migration_settings
    
-   >>> %run sapl/legacy/migration.py
+   %run sapl/legacy/migration.py
    
-   >>> migrate()
+   migrate()
