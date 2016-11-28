@@ -4,7 +4,7 @@ import pkg_resources
 import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models
 from django.db.models import CharField, TextField, ProtectedError
@@ -332,7 +332,7 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
         self.to_delete = []
         ProblemaMigracao.objects.all().delete()
-        User.objects.all().delete()
+        get_user_model().objects.exclude(is_superuser=True).delete()
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
@@ -540,12 +540,15 @@ def adjust_autor(new, old):
         new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
 
     if old.col_username:
-        if not User.objects.filter(username=old.col_username).exists():
-            user = User(username=old.col_username, password=12345)
+        if not get_user_model().objects.filter(
+                username=old.col_username).exists():
+            user = get_user_model()(
+                username=old.col_username, password=12345)
             user.save()
             new.user = user
         else:
-            new.user = User.objects.filter(username=old.col_username)[0]
+            new.user = get_user_model().objects.filter(
+                username=old.col_username)[0]
 
 
 AJUSTE_ANTES_SALVAR = {
