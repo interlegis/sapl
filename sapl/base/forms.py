@@ -358,9 +358,13 @@ class AutorForm(ModelForm):
                 u.save()
         elif self.cleaned_data['action_user'] == 'C':
 
-            u = get_user_model().objects.create(
-                username=self.cleaned_data['username'],
-                email=self.cleaned_data['email'])
+            param_username = {
+                get_user_model().USERNAME_FIELD: self.cleaned_data['username']}
+
+            if get_user_model().USERNAME_FIELD != 'email':
+                param_username['email'] = self.cleaned_data['email']
+
+            u = get_user_model().objects.create(**param_username)
 
             u.set_password(self.cleaned_data['senha'])
             # Define usuário como ativo em ambiente de desenvolvimento

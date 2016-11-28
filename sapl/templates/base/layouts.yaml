@@ -27,7 +27,7 @@ TipoAutor:
 Autor:
   {% trans 'Autor' %}:
   - tipo:3  nome
-  - user:6 cargo
+  - cargo
 
 AutorCreate:
   {% trans 'Cadastro de Usuários Autores' %}:
