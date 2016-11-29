@@ -1,5 +1,5 @@
 dj-database-url==0.4.1
-django==1.9.7
+django>=1.9,<1.10
 django-admin-bootstrapped==2.5.7
 django-bootstrap3==7.0.1
 django-bower==5.1.0

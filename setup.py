@@ -21,7 +21,7 @@ install_requires = [
     'django-floppyforms==1.6.2',
     'django-model-utils==2.5',
     'django-sass-processor==0.4.6',
-    'django==1.9.7',
+    'django>=1.9,<1.10',
     'djangorestframework',
     'easy-thumbnails==2.3',
     'libsass==0.11.1',
@@ -31,7 +31,7 @@ install_requires = [
     'pyyaml==3.11',
     'rtyaml==0.0.3',
     'unipath==1.1',
-    'python-magic==0.4.10',
+    'python-magic==0.4.12',
     'gunicorn==19.6.0',
     # git+git://github.com/interlegis/trml2pdf.git
 ]
