@@ -87,8 +87,8 @@ target/
 
 
 # specific to this project
+whoosh_index
 collected_static
 bower
 bower_components
 media
-
