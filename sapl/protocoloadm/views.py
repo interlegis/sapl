@@ -220,12 +220,9 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
-        if numero['numero__max'] is None:
-            numero['numero__max'] = 0
-
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
-        f.numero = numero['numero__max'] + 1
+        f.numero = (numero['numero__max'] + 1) if numero__max else 1
         f.ano = datetime.now().year
         f.data = datetime.now().strftime('%Y-%m-%d')
         f.hora = datetime.now().strftime('%H:%M')
@@ -356,7 +353,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo = Protocolo()
 
-        protocolo.numero = numero['numero__max'] + 1
+        protocolo.numero = (numero['numero__max'] + 1) if numero__max else 1
         protocolo.ano = datetime.now().year
         protocolo.data = datetime.now().strftime("%Y-%m-%d")
         protocolo.hora = datetime.now().strftime("%H:%M")
