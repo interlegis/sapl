@@ -48,7 +48,7 @@
                 <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
                 <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não Informada"}}</br>
                 {% if m.registrovotacao_set.exists %}
-                    <strong>Data Votação:</strong>
+                    <strong>Data da última Votação:</strong>
                     {% if m.registrovotacao_set.last.ordem %}
                       <a href="{% url 'sapl.sessao:ordemdia_list' m.registrovotacao_set.last.ordem.sessao_plenaria_id %}">
                         {{ m.registrovotacao_set.last.ordem.data_ordem }}
