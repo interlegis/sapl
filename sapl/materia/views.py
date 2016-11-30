@@ -1,6 +1,7 @@
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
+from django.views.generic import DetailView
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
@@ -992,6 +993,40 @@ class MateriaLegislativaCrud(Crud):
 
         def get_success_url(self):
             return self.search_url
+
+    class DetailView(Crud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data()
+            data = {}
+
+            if self.object.numeracao_set.all().count() > 1:
+                string = ' - '
+                for n in self.object.numeracao_set.all():
+                    _str = n.numero + '/' + n.ano + ' - '
+                    string += _str
+
+                data = {'text': string,
+                        'span': 12,
+                        'verbose_name': 'Processo',
+                        'id': 'processo'}
+
+            elif self.object.numeracao_set.all().count() == 1:
+                n = self.object.numeracao_set.first()
+                string = n.numero + '/' + n.ano
+
+                data = {'text': string,
+                        'span': 12,
+                        'verbose_name': 'Processo',
+                        'id': 'processo'}
+
+            context['view'].layout_display[0]['rows'].insert(3, data)
+            import ipdb; ipdb.set_trace()
+            return context
+
+        @property
+        def layout_key(self):
+            return 'MateriaLegislativaDetail'
 
     class ListView(Crud.ListView, RedirectView):
 
