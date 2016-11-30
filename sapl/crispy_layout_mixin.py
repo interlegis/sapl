@@ -61,8 +61,12 @@ def get_field_display(obj, fieldname):
     try:
         field = obj._meta.get_field(fieldname)
     except:
-        value = getattr(obj, fieldname)
-        return '', str(value)
+        field = getattr(obj, fieldname)
+        if 'ManyRelatedManager' not in str(type(field))\
+                and 'RelatedManager' not in str(type(field))\
+                and 'GenericRelatedObjectManager' not in str(type(field)):
+            return '', str(field)
+
     verbose_name = str(field.verbose_name)\
         if hasattr(field, 'verbose_name') else ''
     if hasattr(field, 'choices') and field.choices:
@@ -98,7 +102,11 @@ def get_field_display(obj, fieldname):
             display += '<li>%s</li>' % str(v)
         display += '</ul>'
         if not verbose_name:
-            verbose_name = str(field.related_model._meta.verbose_name_plural)
+            if hasattr(field, 'related_model'):
+                verbose_name = str(
+                    field.related_model._meta.verbose_name_plural)
+            elif hasattr(field, 'model'):
+                verbose_name = str(field.model._meta.verbose_name_plural)
     else:
         display = str(value)
     return verbose_name, display
