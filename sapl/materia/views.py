@@ -1003,7 +1003,8 @@ class MateriaLegislativaCrud(Crud):
             if self.object.numeracao_set.all().count() > 1:
                 string = ' - '
                 for n in self.object.numeracao_set.all():
-                    _str = n.numero_materia + '/' + n.ano_materia + ' - '
+                    _str = str(n.numero_materia) + '/' + str(
+                        n.ano_materia) + ' - '
                     string += _str
 
                 data = {'text': string,
@@ -1013,7 +1014,7 @@ class MateriaLegislativaCrud(Crud):
 
             elif self.object.numeracao_set.all().count() == 1:
                 n = self.object.numeracao_set.first()
-                string = n.numero_materia + '/' + n.ano_materia
+                string = str(n.numero_materia) + '/' + str(n.ano_materia)
 
                 data = {'text': string,
                         'span': 12,
