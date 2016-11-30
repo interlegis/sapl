@@ -222,7 +222,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
-        f.numero = (numero['numero__max'] + 1) if numero__max else 1
+        f.numero = (numero['numero__max'] + 1) if numero else 1
         f.ano = datetime.now().year
         f.data = datetime.now().strftime('%Y-%m-%d')
         f.hora = datetime.now().strftime('%H:%M')
