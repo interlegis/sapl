@@ -598,6 +598,14 @@ class Proposicao(models.Model):
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
         unique_together = (('content_type', 'object_id'), )
+        permissions = (
+            ('detail_proposicao_enviada',
+             _('Pode acessar detalhes de uma proposição enviada.')),
+            ('detail_proposicao_devolvida',
+             _('Pode acessar detalhes de uma proposição devolvida.')),
+            ('detail_proposicao_incorporada',
+             _('Pode acessar detalhes de uma proposição incorporada.')),
+        )
 
     def __str__(self):
         return '%s %s/%s' % (Proposicao._meta.verbose_name,

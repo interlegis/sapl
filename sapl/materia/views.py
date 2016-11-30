@@ -252,7 +252,7 @@ class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = ('materia.list_proposicao', )
+    permission_required = ('materia.detail_proposicao_devolvida', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -276,7 +276,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio', 'autor', 'tipo', 'descricao']
     paginate_by = 10
-    permission_required = ('materia.list_proposicao', )
+    permission_required = ('materia.detail_proposicao_enviada', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -301,7 +301,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = ('materia.list_proposicao', )
+    permission_required = 'materia.detail_proposicao_incorporada'
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -473,10 +473,16 @@ class ProposicaoCrud(Crud):
 
     class DetailView(Crud.DetailView):
         layout_key = 'Proposicao'
+        permission_required = (RP_DETAIL, 'materia.detail_proposicao_enviada',
+                               'materia.detail_proposicao_devolvida',
+                               'materia.detail_proposicao_incorporada')
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
+
+            context['title'] = '%s <small>(%s)</small>' % (
+                self.object, self.object.autor)
             return context
 
         def get(self, request, *args, **kwargs):
@@ -535,6 +541,37 @@ class ProposicaoCrud(Crud):
             # retornar redirecionando para limpar a variavel action
             return redirect(reverse('sapl.materia:proposicao_detail',
                                     kwargs={'pk': kwargs['pk']}))
+
+        def dispatch(self, request, *args, **kwargs):
+
+            try:
+                p = Proposicao.objects.get(id=kwargs['pk'])
+            except:
+                raise Http404()
+
+            if not self.has_permission():
+                return self.handle_no_permission()
+
+            if p.autor.user != request.user:
+                if not p.data_envio and not p.data_devolucao:
+                    raise Http404()
+
+                if p.data_devolucao and not request.user.has_perm(
+                        'materia.detail_proposicao_devolvida'):
+                    raise Http404()
+
+                if p.data_envio and not p.data_recebimento\
+                    and not request.user.has_perm(
+                        'materia.detail_proposicao_enviada'):
+                    raise Http404()
+
+                if p.data_envio and p.data_recebimento\
+                    and not request.user.has_perm(
+                        'materia.detail_proposicao_incorporada'):
+                    raise Http404()
+
+            return super(PermissionRequiredMixin, self).dispatch(
+                request, *args, **kwargs)
 
     class DeleteView(BaseLocalMixin, Crud.DeleteView):
 

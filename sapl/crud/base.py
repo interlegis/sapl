@@ -180,7 +180,15 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
         perms = self.get_permission_required()
         # Torna a view pública se não possuir conteudo
         # no atributo permission_required
-        return self.request.user.has_perms(perms) if len(perms) else True
+        if not len(perms):
+            return True
+
+        for perm in perms:
+            if self.request.user.has_perm(perm):
+                return True
+        return False
+
+        # return self.request.user.has_perms(perms) if len(perms) else True
 
     def dispatch(self, request, *args, **kwargs):
         if not self.has_permission():
@@ -257,9 +265,7 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
                 self.permission_required = list(
                     set(self.permission_required) - set(obj.public))
             else:
-                obj.public = list(
-                    set(self.permission_required) -
-                    set((RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE)))
+                obj.public = []
 
             self.permission_required = tuple((
                 self.permission(pr) for pr in self.permission_required))
