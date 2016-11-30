@@ -14,7 +14,7 @@
             <th>Tipo</th>
             <th>Descrição</th>
             <th>Autor</th>
-            <th>Vínculo</th>
+            <th>Motivo da Devolução</th>
           </tr>
         </thead>
         <tbody>
@@ -24,12 +24,7 @@
               <td>{{ prop.tipo.descricao }}</td>
               <td>{{ prop.descricao }}</td>
               <td>{{ prop.autor }}</td>
-              <td>
-                {% if prop.materia_gerada %}
-                  <a href="{% url 'sapl.materia:materialegislativa_detail' prop.materia_gerada.pk %}">{{ prop.materia_gerada.tipo.sigla }} {{ prop.materia_gerada.numero }}/{{ prop.materia_gerada.ano }}</a>
-                {% elif prop.documento_gerado %}
-                  <a href="{% url 'sapl.materia:documentoacessorio_detail' prop.documento_gerado.pk %}">{{ prop.documento_gerado.materia.tipo.sigla }} {{ prop.documento_gerado.materia.numero }}/{{ prop.documento_gerado.materia.ano }}</a>
-                {% endif %}
+              <td>{{ prop.justificativa_devolucao}}
               </td>
             </tr>
           {% endfor %}

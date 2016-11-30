@@ -12,7 +12,9 @@ from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
                         SAPL_GROUP_GERAL, SAPL_GROUP_LOGIN_SOCIAL,
                         SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
                         SAPL_GROUP_PAINEL, SAPL_GROUP_PARLAMENTAR,
-                        SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO)
+                        SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
+                        RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE)
+
 from sapl.sessao import models as sessao
 
 """
@@ -42,19 +44,7 @@ arquivo (sapl.rules.map_rules.py) e criar os grupos definidos na regra de
 negócio trabalham com os cinco radiais de permissão
 e com qualquer outro tipo de permissão customizada, nesta ordem de precedência.
 
-Os cinco radicais de permissão completa são:
-
-        RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE =\
-            '.list_', '.detail_', '.add_', '.change_', '.delete_',
-
-Tanto a app crud quanto a app rules estão sempre ligadas a um model. Ao lidar
-com permissões, sempre é analisado se é apenas um radical ou permissão
-completa, sendo apenas um radical, a permissão completa é montada com base
-no model associado.
 """
-
-RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE =\
-    '.list_', '.detail_', '.add_', '.change_', '.delete_',
 
 __base__ = [RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE]
 __listdetailchange__ = [RP_LIST, RP_DETAIL, RP_CHANGE]
@@ -83,7 +73,9 @@ rules_group_protocolo = {
         (materia.Anexada, __base__),
         (materia.Autoria, __base__),
 
-        (materia.Proposicao, __listdetailchange__),
+        (materia.Proposicao, ['detail_proposicao_enviada',
+                              'detail_proposicao_devolvida',
+                              'detail_proposicao_incorporada']),
         (compilacao.TextoArticulado, ['view_restricted_textoarticulado'])
     ]
 }
