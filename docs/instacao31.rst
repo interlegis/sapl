@@ -9,13 +9,13 @@ Instalação do Ambiente de Desenvolvimento
 
 
 Atualizar o sistema::
--------------------
+----------------------
 
-* ::
+ ::
 
-  sudo apt-get update
+    sudo apt-get update
   
-  sudo apt-get upgrade
+    sudo apt-get upgrade
 
 
 
@@ -118,29 +118,18 @@ Instalação e configuração das dependências do projeto
   * Obs: no ambiente de desenvolvimento, a role deve ter permissão para criar outro banco. Isso é usado pelos testes automatizados.
   * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
-    
-    
-    *Configurar arquivo .env
 
-    Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
-
-* **É necessário criar um projeto fake para extrair uma chave SECRET_KEY**::
-
-        mkdir /var/interlegis/temp
-        cd /var/interlegis/temp
-
-        django-admin startproject sapl_temp
-
-        grep SECRET_KEY sapl_temp/sapl_temp/settings.py
-
-    Copie a linha que aparecerá, volte para a pasta do projeto SAPL e apague sua pasta temporária::
-
-        cd /var/interlegis/
-        rm -R /var/interlegis/temp
-        
 * **Ajustar as permissões - onde sapl31 trocar por usuario**::    
     
     sudo chown -R sapl31:sapl31 /var/interlegis/
+
+
+
+* **Configurar arquivo .env**::
+  
+  
+Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
+
 
 * **Criar o arquivo ``.env`` dentro da pasta /var/interlegis/sapl/sapl/.env**::
     
@@ -158,7 +147,7 @@ Instalação e configuração das dependências do projeto
     * Uma configuração mínima para atender os procedimentos acima seria::
         
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
-        SECRET_KEY = 'Substitua esta linha pela copiada acima'
+        SECRET_KEY = 'cole aqui entre as aspas simples a chave gerada pelo comando abaixo'
         DEBUG = True
         EMAIL_USE_TLS = True
         EMAIL_PORT = 587
@@ -167,7 +156,18 @@ Instalação e configuração das dependências do projeto
         EMAIL_HOST_PASSWORD =
 
 
-cd /var/interlegis/sapl
+
+Rodar o comando abaixo, um detalhe importante, esse comando só funciona com o django extensions, mas ele já está presente no arquivo requirements/requirements.txt desse projeto::
+
+    python manage.py generate_secret_key
+
+Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetro SECRET_KEY.
+ 
+ 
+* Posicionar-se no diretorio do Projeto::
+
+    cd /var/interlegis/sapl
+
 
 * Instalar as dependências do ``bower``::
 
@@ -187,7 +187,7 @@ cd /var/interlegis/sapl
 
 * Acesse o SAPL em::
 
-   http://localhost:8000/
+   http://localhost:8001/
 
 Instruções para criação do super usuário e de usuários de testes
 ===========================================================================
