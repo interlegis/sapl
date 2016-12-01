@@ -8,10 +8,13 @@ Instalação do Ambiente de Desenvolvimento
 * Para esta instalação foi utilizado o usuário de sistema sapl31
 
 
-Atualizar o sistema
+Atualizar o sistema::
 -------------------
 
+* ::
+
   sudo apt-get update
+  
   sudo apt-get upgrade
 
 
@@ -44,7 +47,8 @@ Instalar o virtualenv usando python 3 para o projeto.
 
     sudo mkdir -p /var/interlegis/.virtualenvs
     
-* Ajustar as permissões - onde sapl31 trocar por usuario    
+* Ajustar as permissões - onde sapl31 trocar por usuario::    
+    
     sudo chown -R sapl31:sapl31 /var/interlegis/
         
 
@@ -57,8 +61,12 @@ Instalar o virtualenv usando python 3 para o projeto.
     export PROJECT_HOME=/var/interlegis
     source /usr/local/bin/virtualenvwrapper.sh
 
-* Carregue as configurações do virtualenvwrapper.
+
+* Carregue as configurações do virtualenvwrapper::
+    
     source /home/sapl31/.bashrc
+
+
 
 Clonar o projeto do github, ou fazer um fork e depois clonar
 ------------------------------------------------------------
@@ -98,21 +106,25 @@ Instalação e configuração das dependências do projeto
 
     pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt
 
-* **Configurar Postgresql**:
+* **Configurar Postgresql**::
 
-sudo -u postgres psql -c "CREATE ROLE sapl LOGIN ENCRYPTED PASSWORD 'sapl' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;"
-sudo -u postgres psql -c "ALTER ROLE sapl VALID UNTIL 'infinity';"
-sudo -u postgres psql -c "CREATE DATABASE sapl WITH OWNER = sapl ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'pt_BR.UTF-8' LC_CTYPE = 'pt_BR.UTF-8' CONNECTION LIMIT = -1;"
+   sudo -u postgres psql -c "CREATE ROLE sapl LOGIN ENCRYPTED PASSWORD 'sapl' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;"
+   
+   sudo -u postgres psql -c "ALTER ROLE sapl VALID UNTIL 'infinity';"
+   
+   sudo -u postgres psql -c "CREATE DATABASE sapl WITH OWNER = sapl ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'pt_BR.UTF-8' LC_CTYPE = 'pt_BR.UTF-8' CONNECTION LIMIT = -1;"
 
   * Se você possui uma cópia da base de dados do SAPL, essa é a hora para restaurá-la.
   * Obs: no ambiente de desenvolvimento, a role deve ter permissão para criar outro banco. Isso é usado pelos testes automatizados.
   * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
-* **Configurar arquivo .env**:
+    
+    
+    *Configurar arquivo .env
 
-  * Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
+    Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
 
-    É necessário criar um projeto fake para extrair uma chave SECRET_KEY::
+* **É necessário criar um projeto fake para extrair uma chave SECRET_KEY**::
 
         mkdir /var/interlegis/temp
         cd /var/interlegis/temp
@@ -126,12 +138,15 @@ sudo -u postgres psql -c "CREATE DATABASE sapl WITH OWNER = sapl ENCODING = 'UTF
         cd /var/interlegis/
         rm -R /var/interlegis/temp
         
-* Ajustar as permissões - onde sapl31 trocar por usuario    
+* **Ajustar as permissões - onde sapl31 trocar por usuario**::    
+    
     sudo chown -R sapl31:sapl31 /var/interlegis/
 
-  * Criar o arquivo ``.env`` dentro da pasta ~/Envs/sapl/sapl/.env::
+* **Criar o arquivo ``.env`` dentro da pasta /var/interlegis/sapl/sapl/.env**::
+    
+    nano /var/interlegis/sapl/sapl/.env
 
-DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
+      DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
       SECRET_KEY = Gere alguma chave e coloque aqui
       DEBUG = [True/False]
       EMAIL_USE_TLS = [True/False]
@@ -141,9 +156,7 @@ DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
       EMAIL_HOST_PASSWORD = [Insira este parâmetro]
 
     * Uma configuração mínima para atender os procedimentos acima seria::
-  
-  nano /var/interlegis/sapl/sapl/.env
-  
+        
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
         SECRET_KEY = 'Substitua esta linha pela copiada acima'
         DEBUG = True
