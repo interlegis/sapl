@@ -1382,19 +1382,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.timestamp = datetime.now()
         protocolo.tipo_protocolo = '1'
 
-        # 1 Processo Legislativo
-        # 0 Processo Administrativo
-        protocolo.tipo_processo = '1'
         protocolo.interessado = str(proposicao.autor)
         protocolo.autor = proposicao.autor
+        protocolo.assunto_ementa = proposicao.descricao
         protocolo.numero_paginas = cd['numero_de_paginas']
         protocolo.anulado = False
 
         if self.instance.tipo.content_type.model_class(
         ) == TipoMateriaLegislativa:
             protocolo.tipo_materia = proposicao.tipo.tipo_conteudo_related
+            protocolo.tipo_processo = '1'
         elif self.instance.tipo.content_type.model_class() == TipoDocumento:
             protocolo.tipo_documento = proposicao.tipo.tipo_conteudo_related
+            protocolo.tipo_processo = '0'
 
         protocolo.save()
 
@@ -1403,6 +1403,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         # FIXME qdo protocoloadm estiver homologado, verifique a necessidade
         # de redirecionamento para o protocolo.
+        # complete e libere código abaixo para tal.
 
         """
         self.instance.results['url'] = reverse(
