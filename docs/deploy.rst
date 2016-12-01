@@ -9,7 +9,7 @@ O NGINX é o servidor WEB, e o GUNICORN é o servidor da aplicação para o serv
    
 Instalar o NGINX::
 
-  sudo pip install nginx
+  sudo apt-get install nginx
   
   
 Instalar o Gunicorn::
@@ -19,10 +19,10 @@ Instalar o Gunicorn::
 
 Preparando o NGINX
 ------------------
-vi /etc/nginx/sites-available/sapl31::
+sudo nano /etc/nginx/sites-available/sapl31.conf::
 
    upstream ENDERECO_SITE {  
-      server unix:~/sapl/run/gunicorn.sock fail_timeout=0;
+      server unix:/var/interlegis/sapl/run/gunicorn.sock fail_timeout=0;
    }
 
    server {
@@ -36,11 +36,11 @@ vi /etc/nginx/sites-available/sapl31::
        error_log /var/log/nginx-error.log;
 
        location /static/ {
-           alias   ~/sapl/collected_static/;
+           alias   /var/interlegis/sapl/collected_static/;
        }
 
        location /media/ {
-           alias   ~/sapl/media/;
+           alias   /var/interlegis/sapl/media/;
        }
 
        location / {
@@ -56,32 +56,32 @@ vi /etc/nginx/sites-available/sapl31::
        # Error pages
        error_page 500 502 503 504 /500.html;
        location = /500.html {
-           root ~/sapl/sapl/static/;
+           root /var/interlegis/sapl/sapl/static/;
        }
    }
 
 
 Criar link simbólico para ativar o site::
 
-   sudo ln -s /etc/nginx/sites-available/sapl3.conf /etc/nginx/sites-enabled/sapl3
+   sudo ln -s /etc/nginx/sites-available/sapl31.conf /etc/nginx/sites-enabled/sapl3
 
+Reiniciar o nginx
+
+   sudo service nginx restart
 
 
 Preparando o Gunicorn
 ---------------------
 Na raiz do Projeto sapl, existe o arquivo chamado gunicorn_start.sh
-onde ~/ devem ser alterados pelos caminhos correspondentes.
 
 Para definir o parametro NUM_WORKERS  utilize a seguinte fórmula: 2 * CPUs  1.
 Para uma máquina de CPU única o valor seria 3
 
-Para dar Permissão de execução para o script::
-
-   chmod ux bin/gunicorn_start
 
 Para rodar o gunicorn::
+   workon sapl
    
-   ./~/.gunicorn_start.sh
+   /var/interlegis/sapl/.gunicorn_start.sh
    
    
    
