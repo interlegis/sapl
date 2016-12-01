@@ -28,7 +28,13 @@
 					{% elif p.tipo_processo == 1 %}
 						Matéria Legislativa
 					{% endif %}</br>
-				<strong>Classificação:</strong> {{ p.tipo_documento }} </br>
+				<strong>Classificação:</strong>
+        					{% if p.tipo_processo == 0 %}
+        						{{ p.tipo_documento }} </br>
+        					{% elif p.tipo_processo == 1 %}
+        					{{ p.tipo_materia }} </br>
+        					{% endif %}</br>
+
 				<p></p>
 			</td>
 			</tr>
