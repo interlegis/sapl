@@ -3,6 +3,8 @@ INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao,
 INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (3, 'PLOL', 'Projeto de Lei Ordinária do Legislativo', false, 1);
 INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (4, 'REQ', 'Requerimento', false, null);
 SELECT pg_catalog.setval('compilacao_perfilestruturaltextoarticulado_id_seq', 4, true);
+update compilacao_perfilestruturaltextoarticulado set nome = 'Projeto de Lei Ordinária', sigla = 'PLO' where id = 3;
+
 
 INSERT INTO compilacao_tipodispositivo (id, nome, class_css, rotulo_prefixo_html, rotulo_prefixo_texto, rotulo_ordinal, rotulo_sufixo_texto, rotulo_sufixo_html, texto_prefixo_html, texto_sufixo_html, nota_automatica_prefixo_html, nota_automatica_sufixo_html, contagem_continua, formato_variacao0, formato_variacao1, formato_variacao2, formato_variacao3, formato_variacao4, formato_variacao5, rotulo_separador_variacao01, rotulo_separador_variacao12, rotulo_separador_variacao23, rotulo_separador_variacao34, rotulo_separador_variacao45, dispositivo_de_articulacao, dispositivo_de_alteracao) VALUES (1, 'Articulação', 'articulacao', '', '', 0, '', '', '', '', '', '', true, 'N', 'N', 'N', 'N', 'N', 'N', '-', '-', '-', '-', '-', true, false);
 INSERT INTO compilacao_tipodispositivo (id, nome, class_css, rotulo_prefixo_html, rotulo_prefixo_texto, rotulo_ordinal, rotulo_sufixo_texto, rotulo_sufixo_html, texto_prefixo_html, texto_sufixo_html, nota_automatica_prefixo_html, nota_automatica_sufixo_html, contagem_continua, formato_variacao0, formato_variacao1, formato_variacao2, formato_variacao3, formato_variacao4, formato_variacao5, rotulo_separador_variacao01, rotulo_separador_variacao12, rotulo_separador_variacao23, rotulo_separador_variacao34, rotulo_separador_variacao45, dispositivo_de_articulacao, dispositivo_de_alteracao) VALUES (2, 'Ementa', 'ementa', '', '', 0, '', '', '', '', '', '', false, 'N', '1', '1', '1', '1', '1', '-', '-', '-', '-', '-', false, false);
@@ -254,6 +256,13 @@ INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, 
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (2, 1, false, 4, -1, false);
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (125, 1, false, 4, -1, false);
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (126, 1, false, 4, -1, false);
+
+INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 1, -1, false);
+INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 1, -1, false);
+
+INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 2, -1, true);
+INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 2, -1, true);
+
 
 
 INSERT INTO compilacao_tiponota (id, sigla, nome, modelo) VALUES (1, 'NE', 'Nota Explicativa', '');
