@@ -1,13 +1,14 @@
 
+import os
 from datetime import date, datetime
 from itertools import chain
-import os
 
+import django_filters
 from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
                                     InlineRadios)
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, Button, Column, Field, Fieldset, Layout,
-                                 Submit, Div)
+from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
+                                 Layout, Submit)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -22,17 +23,18 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.models import STATUS_TA_PRIVATE,\
-    STATUS_TA_IMMUTABLE_PUBLIC, TextoArticulado, STATUS_TA_PUBLIC,\
-    PerfilEstruturalTextoArticulado
+from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
+                                    STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
+                                    PerfilEstruturalTextoArticulado,
+                                    TextoArticulado)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import TipoProposicao, MateriaLegislativa,\
-    RegimeTramitacao, TipoDocumento
+from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
+                                 TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
@@ -42,12 +44,10 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
-import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, Numeracao,
-                     Proposicao, Relatoria, TipoMateriaLegislativa, Tramitacao,
-                     UnidadeTramitacao)
+                     DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
+                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 
 def ANO_CHOICES():
@@ -679,7 +679,7 @@ class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
         self.form.fields['tipo'].required = True
-        self.form.fields['data_apresentacao'].required = True
+        self.form.fields['data_apresentacao'].required = False
 
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
@@ -714,7 +714,7 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
         self.filters['tramitacao__unidade_tramitacao_destino'
                      ].label = 'Unidade Destino (Último Destino)'
         self.form.fields['tipo'].required = True
-        self.form.fields['data_apresentacao'].required = True
+        self.form.fields['data_apresentacao'].required = False
         self.form.fields['tramitacao__status'].required = True
         self.form.fields[
             'tramitacao__unidade_tramitacao_destino'].required = True
