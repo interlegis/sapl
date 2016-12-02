@@ -412,10 +412,9 @@ class Numeracao(models.Model):
                     'data_materia',)
 
     def __str__(self):
-        return _('Nº%(numero)s %(tipo)s - %(data)s') % {
+        return _('%(numero)s/%(ano)s') % {
             'numero': self.numero_materia,
-            'tipo': self.tipo_materia,
-            'data': self.data_materia}
+            'ano': self.data_materia.year}
 
 
 class Orgao(models.Model):

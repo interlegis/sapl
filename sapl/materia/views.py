@@ -16,11 +16,13 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template import Context, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import (CreateView, DetailView, ListView,
+                                  TemplateView, UpdateView)
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.compilacao.models import (STATUS_TA_EDITION,
                                     STATUS_TA_IMMUTABLE_RESTRICT,
@@ -39,7 +41,6 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
@@ -54,7 +55,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -1029,6 +1029,12 @@ class MateriaLegislativaCrud(Crud):
 
         def get_success_url(self):
             return self.search_url
+
+    class DetailView(Crud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'MateriaLegislativaDetail'
 
     class ListView(Crud.ListView, RedirectView):
 
