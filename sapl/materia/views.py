@@ -1,7 +1,6 @@
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
-from django.views.generic import DetailView
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
@@ -17,11 +16,13 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template import Context, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import (CreateView, DetailView, ListView,
+                                  TemplateView, UpdateView)
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.compilacao.models import (STATUS_TA_EDITION,
                                     STATUS_TA_IMMUTABLE_RESTRICT,
@@ -40,7 +41,6 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
@@ -55,7 +55,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -1032,34 +1031,6 @@ class MateriaLegislativaCrud(Crud):
             return self.search_url
 
     class DetailView(Crud.DetailView):
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data()
-            data = {}
-
-            if self.object.numeracao_set.all().count() > 1:
-                string = ' - '
-                for n in self.object.numeracao_set.all():
-                    _str = str(n.numero_materia) + '/' + str(
-                        n.ano_materia) + ' - '
-                    string += _str
-
-                data = {'text': string,
-                        'span': 12,
-                        'verbose_name': 'Processo',
-                        'id': 'processo'}
-
-            elif self.object.numeracao_set.all().count() == 1:
-                n = self.object.numeracao_set.first()
-                string = str(n.numero_materia) + '/' + str(n.ano_materia)
-
-                data = {'text': string,
-                        'span': 12,
-                        'verbose_name': 'Processo',
-                        'id': 'processo'}
-
-            context['view'].layout_display[0]['rows'].insert(3, data)
-            return context
 
         @property
         def layout_key(self):

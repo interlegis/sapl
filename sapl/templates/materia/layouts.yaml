@@ -125,6 +125,7 @@ MateriaLegislativaDetail:
   - tipo ano numero
   - data_apresentacao  numero_protocolo  tipo_apresentacao
   - texto_original
+  - numeracao_set
   {% trans 'Outras Informações' %}:
   - apelido  dias_prazo  polemica
   - objeto  regime_tramitacao  em_tramitacao
