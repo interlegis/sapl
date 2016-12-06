@@ -215,7 +215,7 @@ def update_groups(app_config, verbosity=2, interactive=True,
         def update_groups(self):
             print('')
             print(string_concat('\033[93m\033[1m',
-                                _('Atualizando grupos:'),
+                                _('Atualizando grupos do SAPL:'),
                                 '\033[0m'))
             for rules_group in self.rules_patterns:
                 group_name = rules_group['group']
