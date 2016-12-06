@@ -6,7 +6,21 @@ Para efeitos deste doc, foram consideradas as tecnologias NGINX + GUNICORN para 
 
 O NGINX é o servidor WEB, e o GUNICORN é o servidor da aplicação para o servidor WEB.
 
-   
+
+
+É altamente recomendável que para produção o SAPL não seja executado em modo debug.
+Para isso edite o arquivo ``.env`` criado anteriormente em::
+
+   sudo nano /var/interlegis/sapl/sapl/.env
+
+alterando o variável DEBUG para false::
+
+    DEBUG = False
+
+
+Instalando Pacotes
+------------------
+
 Instalar o NGINX::
 
   sudo apt-get install nginx
@@ -79,6 +93,7 @@ Para uma máquina de CPU única o valor seria 3
 
 
 Para rodar o gunicorn::
+
    workon sapl
    
    /var/interlegis/sapl/.gunicorn_start.sh
