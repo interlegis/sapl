@@ -92,6 +92,9 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         qs = self.get_queryset().order_by('ano', 'numero')
 
         qs = qs.distinct()
+        
+        if 'o' in self.request.GET and not self.request.GET['o']:
+            qs = qs.order_by('-ano', '-numero')
 
         kwargs.update({
             'queryset': qs,
