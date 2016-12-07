@@ -43,6 +43,11 @@ Orientações gerais de implementação
 
 
 
+Orientações gerais sobre o GitHub
+===================================
+   `Instruções para GitHub <https://github.com/interlegis/sapl/blob/master/docs/howtogit.rst>`_
+
+
 
 Issues
 ------
