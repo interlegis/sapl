@@ -31,7 +31,7 @@ class Bancada(models.Model):
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     nome = models.CharField(
         max_length=80,
-        verbose_name=_('Nome da Bancada, Bloco, ou Frente'))
+        verbose_name=_('Nome da Bancada'))
     partido = models.ForeignKey(Partido, blank=True, null=True,
                                 verbose_name=_('Partido'))
     data_criacao = models.DateField(blank=True, null=True,
