@@ -12,13 +12,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import UnidadeTramitacao
+from sapl.materia.models import UnidadeTramitacao, TipoMateriaLegislativa
+from sapl.materia.models import TipoMateriaLegislativa
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
-                     TramitacaoAdministrativo)
+                     TramitacaoAdministrativo, TipoMateriaLegislativa)
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 TIPOS_PROTOCOLO_CREATE = [('0', 'Enviado'), ('1', 'Recebido')]
