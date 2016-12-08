@@ -336,7 +336,7 @@ class ProtocoloMateriaForm(ModelForm):
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo de Matéria'),
         required=True,
-        queryset=TipoDocumentoAdministrativo.objects.all(),
+        queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
     )
     
