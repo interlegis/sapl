@@ -275,7 +275,7 @@ class ProtocoloDocumentForm(ModelForm):
 
     tipo_documento = forms.ModelChoiceField(
         label=_('Tipo de Documento'),
-        required=False,
+        required=True,
         queryset=TipoDocumentoAdministrativo.objects.all(),
         empty_label='Selecione',
     )
@@ -332,6 +332,19 @@ class ProtocoloDocumentForm(ModelForm):
 
 class ProtocoloMateriaForm(ModelForm):
     autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    
+    tipo_materia = forms.ModelChoiceField(
+        label=_('Tipo de Matéria'),
+        required=True,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione',
+    )
+    
+    numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
+    
+    observacao = forms.CharField(required=True,
+                                 widget=forms.Textarea, label='Observação')
+
 
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
