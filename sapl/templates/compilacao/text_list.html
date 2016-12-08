@@ -113,13 +113,15 @@
   </div>
 {% endblock base_content %}
 
-
-
 {% block foot_js %}
+
   {{block.super}}
+
   <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+
   {% if perms.compilacao.add_nota %}
     <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
   {% endif %}
+
 {% endblock %}

@@ -1154,9 +1154,10 @@ class TextEditView(CompMixin, TemplateView):
         result = Dispositivo.objects.filter(ta_id=self.kwargs['ta_id'])
 
         if not result.exists():
+            # FIXME a inserção básica deve ser refatorada para não depender
+            # das classes css
 
             ta = self.object
-
             td = TipoDispositivo.objects.filter(class_css='articulacao')[0]
             a = Dispositivo()
             a.nivel = 0
