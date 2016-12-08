@@ -19,7 +19,7 @@ from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
-                     TramitacaoAdministrativo, TipoMateriaLegislativa)
+                     TramitacaoAdministrativo)
 
 TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
 TIPOS_PROTOCOLO_CREATE = [('0', 'Enviado'), ('1', 'Recebido')]
