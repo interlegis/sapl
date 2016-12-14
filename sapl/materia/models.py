@@ -651,6 +651,7 @@ class StatusTramitacao(models.Model):
     class Meta:
         verbose_name = _('Status de Tramitação')
         verbose_name_plural = _('Status de Tramitação')
+        ordering = ['descricao']
 
     def __str__(self):
         return _('%(descricao)s') % {
