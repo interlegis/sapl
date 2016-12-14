@@ -1512,6 +1512,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             context['unidade_local'] = [UnidadeTramitacao.objects.get(
                 id=qr['tramitacao__unidade_tramitacao_destino'])]
 
+        context['object_list'] = context['object_list'].order_by(
+            'ano', 'numero')
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
 
