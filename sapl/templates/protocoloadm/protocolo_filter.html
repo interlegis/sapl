@@ -48,6 +48,10 @@
               <strong>Natureza do Processo:</strong>
               {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
               <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:p.tipo_materia }} </br>
+              {% if p.anulado %}
+                <strong>Anulado por: </strong>{{ p.user_anulacao }} - IP {{ p.ip_anulacao }}</br>
+                <strong>Motivo Anulação: </strong>{{ p.justificativa_anulacao }}</br>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
