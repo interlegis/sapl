@@ -14,6 +14,7 @@ class TipoDocumentoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Tipo de Documento Administrativo')
         verbose_name_plural = _('Tipos de Documento Administrativo')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
