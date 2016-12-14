@@ -39,14 +39,19 @@
             <td>
               <strong>Protocolo:
               <a href="{% url 'protocoloadm:protocolo_mostrar' p.pk %}">{{ p.numero|stringformat:'06d' }}/{{ p.ano }}</a></strong>&nbsp;&nbsp;<strong>-</strong>&nbsp;&nbsp;
-              <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
+              <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a>
+              {% if p.anulado %}<strong><font color="red">&nbsp;&nbsp;** NULO **</font></strong>{% endif %}
+              </br>
               <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não Informado"}}</br>
               <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não Informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
               <strong>Interessado:</strong> {{ p.interessado }}</br>
               <strong>Natureza do Processo:</strong>
               {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
               <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:p.tipo_materia }} </br>
-              <strong>Anulado: {% if p.anulado %} <font color="red"> Sim {% else %} <font color="green"> Não {% endif %} </font></strong>
+              {% if p.anulado %}
+                <strong>Anulado por: </strong>{{ p.user_anulacao }} - IP {{ p.ip_anulacao }}</br>
+                <strong>Motivo Anulação: </strong>{{ p.justificativa_anulacao }}</br>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
