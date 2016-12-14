@@ -43,6 +43,7 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         montar_row_autor)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    DespachoInicialForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
@@ -880,6 +881,12 @@ class DespachoInicialCrud(MasterDetailCrud):
     parent_field = 'materia'
     help_path = ''
     public = [RP_LIST, RP_DETAIL]
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = DespachoInicialForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = DespachoInicialForm
 
 
 class LegislacaoCitadaCrud(MasterDetailCrud):

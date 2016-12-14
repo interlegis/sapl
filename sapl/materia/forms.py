@@ -589,6 +589,8 @@ def filtra_tramitacao_destino_and_status(status, destino):
 
 
 class DespachoInicialForm(ModelForm):
+    comissao = forms.ModelChoiceField(
+        queryset=Comissao.objects.filter(ativa=True))
 
     class Meta:
         model = DespachoInicial

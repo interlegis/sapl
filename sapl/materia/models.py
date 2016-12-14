@@ -295,6 +295,8 @@ class AssuntoMateria(models.Model):
 
 class DespachoInicial(models.Model):
     # TODO M2M?
+    # TODO Despachos não são necessáriamente comissoes, podem ser outros
+    #  órgãos, ex: procuradorias
     materia = models.ForeignKey(MateriaLegislativa)
     comissao = models.ForeignKey(Comissao)
 
