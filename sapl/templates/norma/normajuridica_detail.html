@@ -1,0 +1,30 @@
+{% extends "crud/detail.html" %}
+{% load i18n common_tags%}
+
+{% block detail_content %}
+      {% for fieldset in view.layout_display %}
+        <h2 class="legend">{{ fieldset.legend }}</h2>
+        {% for row in fieldset.rows %}
+          <div class="row-fluid">
+            {% for column in row %}
+              <div class="col-sm-{{ column.span }}">
+                <div id="div_id_{{ column.id }}" class="form-group">
+                  <p class="control-label">{{ column.verbose_name }}</p>
+                  <div class="controls">
+                    {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
+                    
+                    {% if column.text|url %}
+                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
+                    {% elif column.verbose_name == 'Matéria' %}
+                        <div class="form-control-static"><a href="{% url 'sapl.materia:materialegislativa_detail' object.materia.id  %}"> {{ column.text|safe }} </a></div>
+                    {% else %}
+                      <div class="form-control-static">{{ column.text|safe }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+{% endblock detail_content %}
