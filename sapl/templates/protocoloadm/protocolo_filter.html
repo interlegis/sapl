@@ -45,9 +45,8 @@
               <strong>Interessado:</strong> {{ p.interessado }}</br>
               <strong>Natureza do Processo:</strong>
               {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
-              <strong>Classificação:</strong>
-
-               {{ p.tipo_documento|default_if_none:p.tipo_materia }} </br>
+              <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:p.tipo_materia }} </br>
+              <strong>Anulado: {% if p.anulado %} <font color="red"> Sim {% else %} <font color="green"> Não {% endif %} </font></strong>
             </td>
           </tr>
         {% endfor %}
