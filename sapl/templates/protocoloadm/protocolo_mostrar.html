@@ -22,7 +22,7 @@
 			</br>
 		{% else %}
 			<br />
-			<a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>
+			{% if not protocolo.anulado %} <a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>{% endif %}
 		{% endif %}
 	{% elif protocolo.tipo_materia %}
 		{% if materia %}
@@ -30,7 +30,7 @@
 			</br>
 		{% else %}
 			<br />
-			<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>
+			{% if not protocolo.anulado %}<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>{% endif %}
 		{% endif %}
 	{% endif %}
 
