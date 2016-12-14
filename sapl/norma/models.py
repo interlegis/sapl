@@ -50,6 +50,7 @@ class TipoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Tipo de Norma Jurídica')
         verbose_name_plural = _('Tipos de Norma Jurídica')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
