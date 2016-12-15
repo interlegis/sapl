@@ -294,7 +294,7 @@ class Parlamentar(models.Model):
     @property
     def avatar_html(self):
         return '<img class="avatar-parlamentar" src='\
-            + self.fotografia.url + '/>'if self.fotografia else ''
+            + self.fotografia.url + '>'if self.fotografia else ''
 
 
 class TipoDependente(models.Model):
