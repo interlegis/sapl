@@ -6,7 +6,7 @@ from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import connections, models
+from django.db import connections, models, OperationalError, ProgrammingError
 from django.db.models import CharField, TextField, ProtectedError
 from django.db.models.base import ModelBase
 from model_mommy import mommy
@@ -115,8 +115,13 @@ def get_fk_related(field, value, label=None):
             if value == 0:
                 if not field.null:
                     fields_dict = get_fields_dict(field.related_model)
-                    value = mommy.make(field.related_model,
-                                       **fields_dict)
+                    # Cria stub ao final da tabela para evitar erros
+                    pk = 1
+                    if hasattr(field.related_model.objects.last(), 'pk'):
+                        pk = field.related_model.objects.last().pk
+                    value = mommy.make(
+                        field.related_model, **fields_dict,
+                        pk=(pk + 1 or 1))
                     descricao = 'stub criado para campos não nuláveis!'
                     save_relation(value, [field.name], msg, descricao,
                                   eh_stub=True)
@@ -139,6 +144,15 @@ def get_fk_related(field, value, label=None):
 
 def get_field(model, fieldname):
     return model._meta.get_field(fieldname)
+
+
+def exec_sql_file(path, db='default'):
+    cursor = connections[db].cursor()
+    for line in open(path):
+        try:
+            cursor.execute(line)
+        except (OperationalError, ProgrammingError) as e:
+            print("Args: '%s'" % (str(e.args)))
 
 
 def exec_sql(sql, db='default'):
@@ -221,11 +235,13 @@ def save_with_id(new, id):
     sequence_name = '%s_id_seq' % type(new)._meta.db_table
     cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
     (last_value,) = cursor.fetchone()
+
     if last_value == 1 or id != last_value + 1:
         # we explicitly set the next id if last_value == 1
         # because last_value == 1 for a table containing either 0 or 1 records
         # (we would have trouble for id == 2 and a missing id == 1)
-        exec_sql('ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+        cursor = exec_sql(
+            'ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
     new.save()
     assert new.id == id, 'New id is different from provided!'
 
@@ -241,7 +257,7 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
 
 def make_stub(model, id):
     fields_dict = get_fields_dict(model)
-    new = mommy.prepare(model, **fields_dict)
+    new = mommy.prepare(model, **fields_dict, pk=id)
     save_with_id(new, id)
 
     return new
@@ -332,6 +348,7 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
         self.to_delete = []
         ProblemaMigracao.objects.all().delete()
+        exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
         get_user_model().objects.exclude(is_superuser=True).delete()
 
         info('Começando migração: %s...' % obj)

@@ -28,6 +28,8 @@ DATABASES['legacy'] = config('DATABASE_URL', cast=db_url,)
 
 DATABASE_ROUTERS = ['sapl.legacy.router.LegacyRouter', ]
 
+DEBUG = False
+
 MOMMY_CUSTOM_FIELDS_GEN = {
     'django.db.models.ForeignKey': 'sapl.legacy.migration.make_with_log'
 }
