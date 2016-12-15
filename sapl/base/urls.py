@@ -10,7 +10,7 @@ from django.views.generic.base import TemplateView
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 
 from .apps import AppConfig
-from .forms import LoginForm, RecuperarSenhaForm
+from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
 from sapl.settings import EMAIL_SEND_USER
 from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioAtasView, RelatorioHistoricoTramitacaoView,
@@ -39,11 +39,14 @@ recuperar_senha = [
 
     url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
         password_reset_confirm,
-        {'post_reset_redirect': 'sapl.base:recuperar_senha_completo'},
+        {'post_reset_redirect': 'sapl.base:recuperar_senha_completo',
+         'template_name': 'base/nova_senha_form.html',
+         'set_password_form': NovaSenhaForm},
         name='recuperar_senha_confirma'),
 
     url(r'^recuperar-senha/completo/$',
         password_reset_complete,
+        {'template_name': 'base/recuperar_senha_completo.html'},
         name='recuperar_senha_completo'),
 ]
 

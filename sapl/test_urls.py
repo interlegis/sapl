@@ -145,6 +145,7 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
                         Se encontra em %s.urls
                     """ % (url, app_name)
 
+
 apps_url_patterns_prefixs_and_users = {
     'api': {
         'prefixs': [
@@ -158,6 +159,7 @@ apps_url_patterns_prefixs_and_users = {
             '/logout',
             '/ajuda',
             '/email',
+            '/recuperar-senha'
         ]},
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],
@@ -235,13 +237,6 @@ apps_url_patterns_prefixs_and_users = {
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_urlpatterns(url_item, admin_client):
 
-    urls_reset_password = [
-        '/recuperar-senha/1/1/',
-        '/recuperar-senha/completo/',
-        '/recuperar-senha/email/',
-        '/recuperar-senha/finalizado/',
-    ]
-
     key, url, var, app_name = url_item
     url = '/' + (url % {v: 1 for v in var})
 
@@ -264,12 +259,11 @@ def test_urlpatterns(url_item, admin_client):
                 isvalid = True
                 break
 
-        if url not in urls_reset_password:
-            assert isvalid, """
-                O prefixo da url (%s) não está no padrão de sua app (%s).
-                Os prefixos permitidos são:
-                %s
-                """ % (url, app_name, prefixs)
+        assert isvalid, """
+            O prefixo da url (%s) não está no padrão de sua app (%s).
+            Os prefixos permitidos são:
+            %s
+            """ % (url, app_name, prefixs)
 
 
 urls_publicas_excecoes = {

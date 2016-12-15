@@ -4,7 +4,8 @@ from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
+from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
+                                       SetPasswordForm)
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
@@ -719,3 +720,18 @@ class RecuperarSenhaForm(PasswordResetForm):
             raise ValidationError(msg)
 
         return self.cleaned_data
+
+
+class NovaSenhaForm(SetPasswordForm):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(NovaSenhaForm, self).__init__(user, *args, **kwargs)
+
+        row1 = to_row(
+            [('new_password1', 6),
+             ('new_password2', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+                     row1,
+                     form_actions(save_label='Enviar'))
