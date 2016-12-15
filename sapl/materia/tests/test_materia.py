@@ -159,6 +159,7 @@ def test_despacho_inicial_submit(admin_client):
     comissao = mommy.make(Comissao,
                           tipo=tipo_comissao,
                           nome='Teste',
+                          ativa=True,
                           sigla='T',
                           data_criacao='2016-03-18')
 
@@ -172,6 +173,7 @@ def test_despacho_inicial_submit(admin_client):
 
     # Verifica se o despacho foi criado
     despacho = DespachoInicial.objects.first()
+
     assert despacho.comissao == comissao
     assert despacho.materia == materia_principal
 
