@@ -13,7 +13,8 @@ Coligacao:
 
 Partido:
   {% trans 'Partido Político' %}:
-  - nome:6  sigla  data_criacao  data_extincao  logo_partido
+  - nome:6 data_criacao data_extincao
+  - logo_partido
 
 Dependente:
   {% trans 'Dependentes' %}:
