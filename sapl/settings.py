@@ -32,6 +32,8 @@ SECRET_KEY = config('SECRET_KEY', default='')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
 ALLOWED_HOSTS = ['*']
 
 LOGIN_REDIRECT_URL = '/'
@@ -165,6 +167,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
+SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 
 MAX_DOC_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB

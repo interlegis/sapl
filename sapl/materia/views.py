@@ -12,19 +12,21 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template import Context, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import (CreateView, DetailView, ListView,
+                                  TemplateView, UpdateView)
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
-from sapl.compilacao.models import STATUS_TA_PRIVATE, STATUS_TA_EDITION,\
-    STATUS_TA_IMMUTABLE_RESTRICT
-
+from sapl.compilacao.models import (STATUS_TA_EDITION,
+                                    STATUS_TA_IMMUTABLE_RESTRICT,
+                                    STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
@@ -39,9 +41,9 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    DespachoInicialForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
@@ -54,7 +56,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      StatusTramitacao, TipoDocumento, TipoFimRelatoria,
                      TipoMateriaLegislativa, TipoProposicao, Tramitacao,
                      UnidadeTramitacao)
-
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -251,7 +252,7 @@ class ProposicaoDevolvida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = ('materia.list_proposicao', )
+    permission_required = ('materia.detail_proposicao_devolvida', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -275,7 +276,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio', 'autor', 'tipo', 'descricao']
     paginate_by = 10
-    permission_required = ('materia.list_proposicao', )
+    permission_required = ('materia.detail_proposicao_enviada', )
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -300,7 +301,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     model = Proposicao
     ordering = ['data_envio']
     paginate_by = 10
-    permission_required = ('materia.list_proposicao', )
+    permission_required = 'materia.detail_proposicao_incorporada'
 
     def get_queryset(self):
         return Proposicao.objects.filter(
@@ -472,10 +473,16 @@ class ProposicaoCrud(Crud):
 
     class DetailView(Crud.DetailView):
         layout_key = 'Proposicao'
+        permission_required = (RP_DETAIL, 'materia.detail_proposicao_enviada',
+                               'materia.detail_proposicao_devolvida',
+                               'materia.detail_proposicao_incorporada')
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
+
+            context['title'] = '%s <small>(%s)</small>' % (
+                self.object, self.object.autor)
             return context
 
         def get(self, request, *args, **kwargs):
@@ -534,6 +541,37 @@ class ProposicaoCrud(Crud):
             # retornar redirecionando para limpar a variavel action
             return redirect(reverse('sapl.materia:proposicao_detail',
                                     kwargs={'pk': kwargs['pk']}))
+
+        def dispatch(self, request, *args, **kwargs):
+
+            try:
+                p = Proposicao.objects.get(id=kwargs['pk'])
+            except:
+                raise Http404()
+
+            if not self.has_permission():
+                return self.handle_no_permission()
+
+            if p.autor.user != request.user:
+                if not p.data_envio and not p.data_devolucao:
+                    raise Http404()
+
+                if p.data_devolucao and not request.user.has_perm(
+                        'materia.detail_proposicao_devolvida'):
+                    raise Http404()
+
+                if p.data_envio and not p.data_recebimento\
+                    and not request.user.has_perm(
+                        'materia.detail_proposicao_enviada'):
+                    raise Http404()
+
+                if p.data_envio and p.data_recebimento\
+                    and not request.user.has_perm(
+                        'materia.detail_proposicao_incorporada'):
+                    raise Http404()
+
+            return super(PermissionRequiredMixin, self).dispatch(
+                request, *args, **kwargs)
 
     class DeleteView(BaseLocalMixin, Crud.DeleteView):
 
@@ -624,17 +662,18 @@ class ProposicaoCrud(Crud):
         def get_rows(self, object_list):
 
             for obj in object_list:
+                if obj.data_recebimento is None:
+                    obj.data_recebimento = 'Não recebida'\
+                        if obj.data_envio else 'Não enviada'
+                else:
+                    obj.data_recebimento = formats.date_format(
+                        obj.data_recebimento, "DATETIME_FORMAT")
+
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
                     obj.data_envio = formats.date_format(
                         obj.data_envio, "DATETIME_FORMAT")
-
-                if obj.data_recebimento is None:
-                    obj.data_recebimento = 'Não recebida'
-                else:
-                    obj.data_envio = formats.date_format(
-                        obj.data_recebimento, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -843,6 +882,12 @@ class DespachoInicialCrud(MasterDetailCrud):
     help_path = ''
     public = [RP_LIST, RP_DETAIL]
 
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = DespachoInicialForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = DespachoInicialForm
+
 
 class LegislacaoCitadaCrud(MasterDetailCrud):
     model = LegislacaoCitada
@@ -987,6 +1032,17 @@ class MateriaLegislativaCrud(Crud):
         def cancel_url(self):
             return self.search_url
 
+    class DeleteView(Crud.DeleteView):
+
+        def get_success_url(self):
+            return self.search_url
+
+    class DetailView(Crud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'MateriaLegislativaDetail'
+
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):
@@ -1099,6 +1155,9 @@ class MateriaLegislativaPesquisaView(FilterView):
         elif unidade_destino:
             lista = filtra_tramitacao_destino(unidade_destino)
             qs = qs.filter(id__in=lista).distinct()
+
+        if 'o' in self.request.GET and not self.request.GET['o']:
+            qs = qs.order_by('-ano', '-numero')
 
         kwargs.update({
             'queryset': qs,
@@ -1459,6 +1518,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             context['title'] = _('Tramitação em Lote')
             context['unidade_local'] = [UnidadeTramitacao.objects.get(
                 id=qr['tramitacao__unidade_tramitacao_destino'])]
+
+        context['object_list'] = context['object_list'].order_by(
+            'ano', 'numero')
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         return context

@@ -59,25 +59,27 @@
 		</tr>
 		<tr>
 			<th>Data / Horário</th>
-			<td>{{ protocolo.data|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:m:s" }}</td>
+			<td>{{ protocolo.data|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:i:s" }}</td>
 		</tr>
-		<tr>
-			<th>Ementa</th>
-			<td>{{ protocolo.assunto_ementa }}</td>
-		</tr>
-		<tr>
-			<th>Interessado</th>
-			<td>{{ protocolo.interessado }}</td>
-		</tr>
+		{% if protocolo.tipo_processo == 0 %}
+			<tr>
+				<th>Ementa</th>
+				<td>{{ protocolo.assunto_ementa }}</td>
+			</tr>
+			<tr>
+				<th>Interessado</th>
+				<td>{{ protocolo.interessado }}</td>
+			</tr>
+		{% endif %}
 		<tr>
 			<th>Natureza</th>
 			<td>
-			{% if protocolo.tipo_protocolo == 0 %} Administrativo {% elif protocolo.tipo_protocolo == 1 %} Matéria Legislativa {% endif %}
+				{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Legislativo {% endif %}
 			</td>
 		</tr>
 		<tr>
-			<th>Tipo Documento</th>
-			<td>{{ protocolo.tipo_documento }}</td>
+			<th>{% if protocolo.tipo_documento %} Tipo Documento {% else %} Tipo Matéria {% endif %}</th>
+			<td>{% if protocolo.tipo_documento %} {{protocolo.tipo_documento}} {% else %} {{protocolo.tipo_materia}} {% endif %}</td>
 		</tr>
 		<tr>
 			<th>Número Páginas</th>

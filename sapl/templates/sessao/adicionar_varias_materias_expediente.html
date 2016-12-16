@@ -52,7 +52,7 @@
           {% for m in page_obj %}
               <tr>
                   <td>
-                      <input type="checkbox" name="materia_id" value="{{m.id}}" {% if check %} checked {% endif %}/>
+                      <input type="checkbox" name="materia_id" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
                       <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
                       <strong>Autores:</strong>
                       {% for a in m.autoria_set.all %}

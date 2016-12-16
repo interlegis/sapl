@@ -1,18 +1,23 @@
+from datetime import datetime
+
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.deletion import PROTECT
+from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.models import TextoArticulado
+from sapl.compilacao.models import TextoArticulado,\
+    PerfilEstruturalTextoArticulado
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -38,19 +43,17 @@ class TipoProposicao(models.Model):
     tipo_conteudo_related = SaplGenericForeignKey(
         'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
 
-    """materia_ou_documento = models.CharField(
-        max_length=1, verbose_name=_('Gera'), choices=MAT_OU_DOC_CHOICES)
-    modelo = models.CharField(max_length=50, verbose_name=_('Modelo XML'))
-
-    # mutually exclusive (depend on materia_ou_documento)
-    tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa,
-        blank=True,
-        null=True,
-        verbose_name=_('Tipo de Matéria'))
-    tipo_documento = models.ForeignKey(
-        TipoDocumento, blank=True, null=True,
-        verbose_name=_('Tipo de Documento'))"""
+    perfis = models.ManyToManyField(
+        PerfilEstruturalTextoArticulado,
+        blank=True, verbose_name=_('Perfis Estruturais de Textos Articulados'),
+        help_text=_("""
+                    Mesmo que em Configurações da Aplicação nas
+                    Tabelas Auxiliares esteja definido que Proposições possam
+                    utilizar Textos Articulados, ao gerar uma proposição,
+                    a solução de Textos Articulados será disponibilizada se
+                    o Tipo escolhido para a Proposição estiver associado a ao
+                    menos um Perfil Estrutural de Texto Articulado.
+                    """))
 
     class Meta:
         verbose_name = _('Tipo de Proposição')
@@ -80,6 +83,7 @@ class TipoMateriaLegislativa(models.Model):
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
         verbose_name_plural = _('Tipos de Matérias Legislativas')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -197,6 +201,13 @@ class MateriaLegislativa(models.Model):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
 
+    def delete(self, using=None, keep_parents=False):
+        if self.texto_original:
+            self.texto_original.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -284,6 +295,8 @@ class AssuntoMateria(models.Model):
 
 class DespachoInicial(models.Model):
     # TODO M2M?
+    # TODO Despachos não são necessáriamente comissoes, podem ser outros
+    #  órgãos, ex: procuradorias
     materia = models.ForeignKey(MateriaLegislativa)
     comissao = models.ForeignKey(Comissao)
 
@@ -343,6 +356,13 @@ class DocumentoAcessorio(models.Model):
             'data': self.data,
             'autor': self.autor}
 
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -395,10 +415,9 @@ class Numeracao(models.Model):
                     'data_materia',)
 
     def __str__(self):
-        return _('Nº%(numero)s %(tipo)s - %(data)s') % {
+        return _('%(numero)s/%(ano)s') % {
             'numero': self.numero_materia,
-            'tipo': self.tipo_materia,
-            'data': self.data_materia}
+            'ano': self.data_materia.year}
 
 
 class Orgao(models.Model):
@@ -566,15 +585,41 @@ class Proposicao(models.Model):
     documento_gerado = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True)"""
 
+    @property
+    def perfis(self):
+        return self.tipo.perfis.all()
+
+    @property
+    def title_type(self):
+        return '%s nº _____ %s' % (
+            self.tipo, formats.date_format(
+                self.data_envio if self.data_envio else datetime.now(),
+                "\d\e d \d\e F \d\e Y"))
+
     class Meta:
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
         unique_together = (('content_type', 'object_id'), )
+        permissions = (
+            ('detail_proposicao_enviada',
+             _('Pode acessar detalhes de uma proposição enviada.')),
+            ('detail_proposicao_devolvida',
+             _('Pode acessar detalhes de uma proposição devolvida.')),
+            ('detail_proposicao_incorporada',
+             _('Pode acessar detalhes de uma proposição incorporada.')),
+        )
 
     def __str__(self):
         return '%s %s/%s' % (Proposicao._meta.verbose_name,
                              self.numero_proposicao,
                              self.ano)
+
+    def delete(self, using=None, keep_parents=False):
+        if self.texto_original:
+            self.texto_original.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -608,6 +653,7 @@ class StatusTramitacao(models.Model):
     class Meta:
         verbose_name = _('Status de Tramitação')
         verbose_name_plural = _('Status de Tramitação')
+        ordering = ['descricao']
 
     def __str__(self):
         return _('%(descricao)s') % {

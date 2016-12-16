@@ -4,7 +4,7 @@ import pkg_resources
 import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models
 from django.db.models import CharField, TextField, ProtectedError
@@ -12,8 +12,8 @@ from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
-from sapl.comissoes.models import Composicao, Participacao
+from sapl.base.models import Autor, ProblemaMigracao
+from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
@@ -332,22 +332,24 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
         self.to_delete = []
         ProblemaMigracao.objects.all().delete()
-        User.objects.all().delete()
+        get_user_model().objects.exclude(is_superuser=True).delete()
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
         # exclude logically deleted in legacy base
         info('Deletando models com ind_excluido...')
-        for obj in self.to_delete:
-            try:
-                obj.delete()
-            except ProtectedError:
-                msg = 'A entrada de PK %s da model %s não pode ser excluida' %\
-                    (obj.pk, obj._meta.model_name)
-                descricao = 'Um ou mais objetos protegidos '
-                warn(msg + ' => ' + descricao)
-                save_relation(obj=obj, problema=msg,
-                              descricao=descricao, eh_stub=False)
+        while self.to_delete:
+            for obj in self.to_delete:
+                try:
+                    obj.delete()
+                    self.to_delete.remove(obj)
+                except ProtectedError:
+                    msg = 'A entrada de PK %s da model %s não pode ser ' \
+                        'excluida' % (obj.pk, obj._meta.model_name)
+                    descricao = 'Um ou mais objetos protegidos '
+                    warn(msg + ' => ' + descricao)
+                    save_relation(obj=obj, problema=msg,
+                                  descricao=descricao, eh_stub=False)
 
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
@@ -532,14 +534,21 @@ def adjust_normajuridica_depois_salvar(new, old):
 
 
 def adjust_autor(new, old):
-    new.autor_related = TipoAutor.objects.get(pk=old.tip_autor)
+    if old.cod_parlamentar:
+        new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+    elif old.cod_comissao:
+        new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
+
     if old.col_username:
-        if not User.objects.filter(username=old.col_username).exists():
-            user = User(username=old.col_username, password=12345)
+        if not get_user_model().objects.filter(
+                username=old.col_username).exists():
+            user = get_user_model()(
+                username=old.col_username, password=12345)
             user.save()
             new.user = user
         else:
-            new.user = User.objects.filter(username=old.col_username)[0]
+            new.user = get_user_model().objects.filter(
+                username=old.col_username)[0]
 
 
 AJUSTE_ANTES_SALVAR = {

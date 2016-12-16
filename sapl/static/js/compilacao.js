@@ -22,12 +22,8 @@ function insertWaitAjax(element) {
     jQuery(element).append('<div style="text-align:center;"><i style="font-size: 200%;"class="fa fa-refresh fa-spin"></i></div>');
 }
 
-
-
 function DispostivoSearch(opts) {
-
     $(function() {
-
         var container_ds = $('body').children("#container_ds");
         if (container_ds.length > 0)
             $(container_ds).remove();

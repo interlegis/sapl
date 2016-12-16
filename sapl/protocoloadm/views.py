@@ -92,6 +92,9 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         qs = self.get_queryset().order_by('ano', 'numero')
 
         qs = qs.distinct()
+        
+        if 'o' in self.request.GET and not self.request.GET['o']:
+            qs = qs.order_by('-ano', '-numero')
 
         kwargs.update({
             'queryset': qs,
@@ -220,12 +223,9 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
-        if numero['numero__max'] is None:
-            numero['numero__max'] = 0
-
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
-        f.numero = numero['numero__max'] + 1
+        f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
         f.ano = datetime.now().year
         f.data = datetime.now().strftime('%Y-%m-%d')
         f.hora = datetime.now().strftime('%H:%M')
@@ -356,19 +356,22 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo = Protocolo()
 
-        protocolo.numero = numero['numero__max'] + 1
+        protocolo.numero = (
+            numero['numero__max'] + 1) if numero['numero__max'] else 1
         protocolo.ano = datetime.now().year
         protocolo.data = datetime.now().strftime("%Y-%m-%d")
         protocolo.hora = datetime.now().strftime("%H:%M")
         protocolo.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        protocolo.tipo_processo = '0'  # TODO validar o significado
+        protocolo.tipo_processo = '1'  # TODO validar o significado
+        protocolo.anulado = False
+
         if form.cleaned_data['autor']:
             protocolo.autor = form.cleaned_data['autor']
-        protocolo.anulado = False
         protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
             id=self.request.POST['tipo_materia'])
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
+
         protocolo.save()
         return redirect(self.get_success_url(protocolo))
 
@@ -403,6 +406,9 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         qs = self.get_queryset()
 
         qs = qs.distinct()
+        
+        if 'o' in self.request.GET and not self.request.GET['o']:
+            qs = qs.order_by('-ano', '-numero')
 
         kwargs.update({
             'queryset': qs,

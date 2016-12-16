@@ -3,7 +3,7 @@ from re import sub
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
@@ -80,10 +80,14 @@ def reordernar_materias_ordem(request, pk):
 
 @permission_required('sessao.change_expedientemateria')
 def abrir_votacao_expediente_view(request, pk, spk):
-    existe_votacao_aberta = ExpedienteMateria.objects.filter(
+    existe_expediente_aberto = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
     ).exists()
-    if existe_votacao_aberta:
+    existe_ordem_aberta = OrdemDia.objects.filter(
+        sessao_plenaria_id=spk, votacao_aberta=True
+    ).exists()
+
+    if existe_expediente_aberto or existe_ordem_aberta:
         msg = _('Já existe uma matéria com votação aberta. Para abrir '
                 'outra, termine ou feche a votação existente.')
         messages.add_message(request, messages.INFO, msg)
@@ -97,10 +101,14 @@ def abrir_votacao_expediente_view(request, pk, spk):
 
 @permission_required('sessao.change_ordemdia')
 def abrir_votacao_ordem_view(request, pk, spk):
-    existe_votacao_aberta = OrdemDia.objects.filter(
+    existe_ordem_aberta = OrdemDia.objects.filter(
         sessao_plenaria_id=spk, votacao_aberta=True
     ).exists()
-    if existe_votacao_aberta:
+    existe_expediente_aberto = ExpedienteMateria.objects.filter(
+        sessao_plenaria_id=spk, votacao_aberta=True
+    ).exists()
+
+    if existe_ordem_aberta or existe_expediente_aberto:
         msg = _('Já existe uma matéria com votação aberta. Para abrir '
                 'outra, termine ou feche a votação existente.')
         messages.add_message(request, messages.INFO, msg)
@@ -124,6 +132,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = OrdemDiaForm
+
+        def get_initial(self):
+            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+                pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
+            return self.initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
@@ -322,6 +335,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
+
+        def get_initial(self):
+            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+                pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
+            return self.initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:expedientemateria_list',
@@ -1854,9 +1872,14 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
                    'ementa': expediente.observacao}
         context.update({'materia': materia})
 
-        votacao = RegistroVotacao.objects.get(
-            materia_id=materia_id,
-            expediente_id=expediente_id)
+        try:
+            votacao = RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                expediente_id=expediente_id)
+        except MultipleObjectsReturned:
+            votacao = RegistroVotacao.objects.filter(
+                materia_id=materia_id,
+                expediente_id=expediente_id).last()
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'tipo_resultado':
@@ -1875,9 +1898,14 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['mid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                expediente_id=expediente_id).delete()
+            try:
+                RegistroVotacao.objects.get(
+                    materia_id=materia_id,
+                    expediente_id=expediente_id).delete()
+            except MultipleObjectsReturned:
+                RegistroVotacao.objects.filter(
+                    materia_id=materia_id,
+                    expediente_id=expediente_id).last().delete()
 
             expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,

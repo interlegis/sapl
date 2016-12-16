@@ -1,0 +1,13 @@
+<p>Você está recebendo este e-mail pois solicitou recuperação de senha de sua conta no site <b>SAPL</b>.</p></br></p>
+
+<p>Por favor clique no link a seguir e redefina sua senha:</p></br>
+
+<p><a href="{{ protocol }}://{{ domain }}{% url 'sapl.base:recuperar_senha_confirma' uidb64=uid token=token %}"> 
+
+Clique aqui</a></p></br>
+
+<p>Caso não tenha solicitado a alteração de sua senha, favor ignorar este e-mail.</p></br>
+
+<p>Atenciosamente,</p>
+
+<p>A equipe <b>SAPL</b></p>

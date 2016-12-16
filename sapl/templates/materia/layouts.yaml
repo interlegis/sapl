@@ -75,7 +75,7 @@ Relatoria:
 TipoProposicao:
   {% trans 'Tipo Proposição' %}:
   - descricao content_type
-  - tipo_conteudo_related
+  - tipo_conteudo_related perfis
 
 Proposicao:
   {% trans 'Proposição' %}:
@@ -119,3 +119,21 @@ LegislacaoCitadaDetail:
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
+
+MateriaLegislativaDetail:
+  {% trans 'Identificação Básica' %}:
+  - tipo ano numero
+  - data_apresentacao  numero_protocolo  tipo_apresentacao
+  - texto_original
+  - numeracao_set
+  {% trans 'Outras Informações' %}:
+  - apelido  dias_prazo  polemica
+  - objeto  regime_tramitacao  em_tramitacao
+  - data_fim_prazo  data_publicacao  complementar
+  {% trans 'Origem Externa' %}:
+  - tipo_origem_externa  numero_origem_externa  ano_origem_externa
+  - local_origem_externa  data_origem_externa
+  {% trans 'Dados Textuais' %}:
+  - ementa
+  - indexacao
+  - observacao

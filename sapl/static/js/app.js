@@ -13,9 +13,9 @@ function initTinymce(elements, readonly=false) {
     }
 
     if (readonly) {
-      config_tinymce.readonly = 1,
-      config_tinymce.menubar = false,
-      config_tinymce.toolbar = false
+      config_tinymce.readonly = 1;
+      config_tinymce.menubar = false;
+      config_tinymce.toolbar = false;
     }
 
     if (elements != null) {

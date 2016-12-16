@@ -1,6 +1,9 @@
 dj-database-url==0.4.1
-django==1.9.7
-django-admin-bootstrapped==2.5.7
+django>=1.9,<1.10
+# TODO O django-admin-bootstrapped 2.5.7 não inseriu a mudança que permite
+# a compatibilidade com Django 1.9+. A linha abaixo será mudada quando uma
+# nova versão do django-admin-bootstrapped for lançada
+git+git://github.com/django-admin-bootstrapped/django-admin-bootstrapped.git
 django-bootstrap3==7.0.1
 django-bower==5.1.0
 django-braces==1.9.0

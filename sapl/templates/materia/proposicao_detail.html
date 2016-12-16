@@ -15,14 +15,16 @@
 {% block editions %}
 
   {% if object.data_envio %}
-    {% block editions_actions_return %}
-      <div class="actions btn-group" role="group">
-        <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
-        {% if not object.data_recebimento %}
-          <a href="{{ view.detail_url }}?action=return" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
-        {% endif %}
-      </div>
+    {% if user == object.autor.user  %}
+      {% block editions_actions_return %}
+        <div class="actions btn-group" role="group">
+          <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
+          {% if not object.data_recebimento %}
+            <a href="{{ view.detail_url }}?action=return" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
+          {% endif %}
+        </div>
       {% endblock %}
+    {% endif %}
 
   {% else %}
 

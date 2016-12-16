@@ -1,19 +1,20 @@
-import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import Group
+from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
+                                       SetPasswordForm)
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -26,6 +27,7 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         autor_label, autor_modal, models_with_gr_for_model)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('C', _('Criar novo Usuário')),
@@ -96,7 +98,7 @@ class AutorForm(ModelForm):
         label=_('Confirmar Email'))
 
     username = forms.CharField(label=get_user_model()._meta.get_field(
-        'username').verbose_name.capitalize(),
+        get_user_model().USERNAME_FIELD).verbose_name.capitalize(),
         required=False,
         max_length=50)
 
@@ -188,26 +190,36 @@ class AutorForm(ModelForm):
             self.fields['autor_related'].initial = self.instance.autor_related
 
             if self.instance.user:
-                self.fields['username'].initial = self.instance.user.username
+                self.fields['username'].initial = getattr(
+                    self.instance.user,
+                    get_user_model().USERNAME_FIELD)
                 self.fields['action_user'].initial = 'A'
 
                 self.fields['username'].label = string_concat(
                     self.fields['username'].label,
-                    ' (', self.instance.user.username, ')')
+                    ' (', getattr(
+                        self.instance.user,
+                        get_user_model().USERNAME_FIELD), ')')
 
                 if 'status_user' in self.Meta.fields:
                     self.fields['status_user'].initial = 'R'
                     self.fields['status_user'].label = string_concat(
                         self.fields['status_user'].label,
-                        ' (', self.instance.user.username, ')')
+                        ' (', getattr(
+                            self.instance.user,
+                            get_user_model().USERNAME_FIELD), ')')
 
             self.fields['username'].widget.attrs.update({
-                'data': self.instance.user.username
+                'data': getattr(
+                    self.instance.user,
+                    get_user_model().USERNAME_FIELD)
                 if self.instance.user else ''})
 
             if 'status_user' in self.Meta.fields:
                 self.fields['status_user'].widget.attrs.update({
-                    'data': self.instance.user.username
+                    'data': getattr(
+                        self.instance.user,
+                        get_user_model().USERNAME_FIELD)
                     if self.instance.user else ''})
 
     def valida_igualdade(self, texto1, texto2, msg):
@@ -225,7 +237,9 @@ class AutorForm(ModelForm):
 
         if 'status_user' in self.Meta.fields:
             if self.instance.pk and self.instance.user_id:
-                if self.instance.user.username != cd['username']:
+                if getattr(
+                        self.instance.user.username,
+                        get_user_model().USERNAME_FIELD) != cd['username']:
                     if 'status_user' not in cd or not cd['status_user']:
                         raise ValidationError(
                             _('Foi trocado ou removido o usuário deste Autor, '
@@ -241,7 +255,8 @@ class AutorForm(ModelForm):
                 qs_user = qs_user.exclude(pk=self.instance.user.pk)
 
         if cd['action_user'] == 'C':
-            if User.objects.filter(username=cd['username']).exists():
+            param_username = {get_user_model().USERNAME_FIELD: cd['username']}
+            if User.objects.filter(**param_username).exists():
                 raise ValidationError(
                     _('Já existe usuário com o username "%s". '
                       'Para utilizar esse username você deve selecionar '
@@ -275,7 +290,8 @@ class AutorForm(ModelForm):
                         _('Já existe um Autor com este email.'))
 
         elif cd['action_user'] == 'A':
-            if not User.objects.filter(username=cd['username']).exists():
+            param_username = {get_user_model().USERNAME_FIELD: cd['username']}
+            if not User.objects.filter(**param_username).exists():
                 raise ValidationError(
                     _('Não existe usuário com username "%s". '
                       'Para utilizar esse username você deve selecionar '
@@ -286,7 +302,9 @@ class AutorForm(ModelForm):
             if 'username' not in cd or not cd['username']:
                 raise ValidationError(_('O username deve ser informado.'))
 
-            if qs_autor.filter(user__username=cd['username']).exists():
+            param_username = {
+                'user__' + get_user_model().USERNAME_FIELD: cd['username']}
+            if qs_autor.filter(**param_username).exists():
                 raise ValidationError(
                     _('Já existe um Autor para este usuário.'))
 
@@ -332,16 +350,23 @@ class AutorForm(ModelForm):
         user_old = autor.user if autor.user_id else None
 
         u = None
+        param_username = {
+            get_user_model().USERNAME_FIELD: self.cleaned_data['username']}
         if self.cleaned_data['action_user'] == 'A':
-            u = get_user_model().objects.get(
-                username=self.cleaned_data['username'])
+            u = get_user_model().objects.get(**param_username)
             if not u.is_active:
                 u.is_active = settings.DEBUG
                 u.save()
         elif self.cleaned_data['action_user'] == 'C':
-            u = get_user_model().objects.create(
-                username=self.cleaned_data['username'],
-                email=self.cleaned_data['email'])
+
+            param_username = {
+                get_user_model().USERNAME_FIELD: self.cleaned_data['username']}
+
+            if get_user_model().USERNAME_FIELD != 'email':
+                param_username['email'] = self.cleaned_data['email']
+
+            u = get_user_model().objects.create(**param_username)
+
             u.set_password(self.cleaned_data['senha'])
             # Define usuário como ativo em ambiente de desenvolvimento
             # pode logar sem a necessidade de passar pela validação de email
@@ -671,3 +696,42 @@ class ConfiguracoesAppForm(ModelForm):
                   'texto_articulado_materia',
                   'texto_articulado_norma',
                   'proposicao_incorporacao_obrigatoria']
+
+
+class RecuperarSenhaForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        row1 = to_row(
+            [('email', 12)])
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
+                     row1,
+                     form_actions(save_label='Enviar'))
+        )
+
+        super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        email_existente = User.objects.filter(
+            email=self.data['email']).exists()
+
+        if not email_existente:
+            msg = 'Não existe nenhum usuário cadastrado com este e-mail.'
+            raise ValidationError(msg)
+
+        return self.cleaned_data
+
+
+class NovaSenhaForm(SetPasswordForm):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(NovaSenhaForm, self).__init__(user, *args, **kwargs)
+
+        row1 = to_row(
+            [('new_password1', 6),
+             ('new_password2', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+                     row1,
+                     form_actions(save_label='Enviar'))

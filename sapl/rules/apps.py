@@ -1,6 +1,5 @@
 from builtins import LookupError
 
-import django
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -8,8 +7,9 @@ from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
@@ -205,8 +205,9 @@ def update_groups(app_config, verbosity=2, interactive=True,
 
         def cria_usuario(self, nome, grupo):
             nome_usuario = nome
+            param_username = {get_user_model().USERNAME_FIELD: nome_usuario}
             usuario = get_user_model().objects.get_or_create(
-                username=nome_usuario)[0]
+                **param_username)[0]
             usuario.set_password('interlegis')
             usuario.save()
             grupo.user_set.add(usuario)
@@ -214,7 +215,7 @@ def update_groups(app_config, verbosity=2, interactive=True,
         def update_groups(self):
             print('')
             print(string_concat('\033[93m\033[1m',
-                                _('Atualizando grupos:'),
+                                _('Atualizando grupos do SAPL:'),
                                 '\033[0m'))
             for rules_group in self.rules_patterns:
                 group_name = rules_group['group']

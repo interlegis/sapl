@@ -142,6 +142,7 @@ function textoVigente(item, link) {
 }
 
 $(document).ready(function() {
+
     setTimeout(function() {
         var href = location.href.split('#')
         if (href.length == 2) {
@@ -154,7 +155,6 @@ $(document).ready(function() {
             }
         }
     }, 100);
-
 
     $("#btn_font_menos").click(function() {
         $(".dpt").css("font-size", "-=1");
@@ -169,4 +169,10 @@ $(document).ready(function() {
         $(this).css('z-index', 15-nivel)
 
     });
+
+
+    /*$(".indent").each(function() {
+        $(this).removeClass('indent');
+        $(this.parentElement).addClass('indent');
+    });*/
 });

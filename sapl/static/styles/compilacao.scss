@@ -165,7 +165,6 @@ a:link:after, a:visited:after {
 
 .cp {
   .desativado {
-
     .dtxt, .dtxt *, .dpt-link, .dpt-link * {
       text-decoration: line-through;
       color: #999 !important;
@@ -180,6 +179,7 @@ a:link:after, a:visited:after {
     text-decoration: none;
     cursor: pointer;
   }
+
   .diff {
     .desativado, .desativado * {
       text-decoration: line-through;
@@ -194,7 +194,9 @@ a:link:after, a:visited:after {
   .dpt {
     font-size:1em;
     position: relative;
-
+    &.indent {
+      padding-left: 1em;
+    }
     .ementa {
       padding: 2em 0em 2em 35%;
       font-weight: bold;
@@ -259,26 +261,22 @@ a:link:after, a:visited:after {
     }
 
     .paragrafo {
-      padding-left: 1.5em;
       font-size: 1.1em;
       margin-top: 0.2222em;
     }
 
     .inciso {
       font-size: 1.1em;
-      padding-left: 2.5em;
       margin-top: 0.1667em;
     }
 
     .alinea {
       font-size: 1.0em;
-      padding-left: 3.5em;
       margin-top: 2px;
     }
 
     .item {
       font-size: 1.0em;
-      padding-left: 4.5em;
       margin-top: 2px;
     }
 
@@ -294,6 +292,7 @@ a:link:after, a:visited:after {
       a, table, table td {
         color: #018 !important;
       }
+
     }
 
     .dn { /* Notas de Dispositivo*/
@@ -375,7 +374,6 @@ a:link:after, a:visited:after {
         }
         &:hover {
           display: block;
-
 
           * {
             display: block;
@@ -524,6 +522,7 @@ a:link:after, a:visited:after {
       color: #02baf2 !important;
     }
   }
+
   .dpt {
     display: block;
     & > .dpt-actions-fixed {
@@ -592,6 +591,7 @@ a:link:after, a:visited:after {
       }
     }
   } /* fim .dpt */
+
   .dpt-alts {
     margin: 0;
     margin-bottom: 1em;
@@ -768,7 +768,7 @@ a:link:after, a:visited:after {
   }
 }
 
-.cp.cpe1 {
+.cp.cpe1_old_apagar {
 
 
   margin-bottom: 15em;

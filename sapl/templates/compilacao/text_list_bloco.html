@@ -13,7 +13,7 @@
 
     {% if forloop.first and not view|isinst:'TextView' %}
     {% else %}
-      <div class="dpt {%if dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.tipo_dispositivo.dispositivo_de_alteracao%}{{dpt.tipo_dispositivo.class_css}}{% endif %}" nivel="{{dpt.nivel}}">
+      <div class="dpt {%if dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.tipo_dispositivo.dispositivo_de_alteracao%}{{dpt.tipo_dispositivo.class_css}}{% endif %}{% if 'indent' in dpt.tipo_dispositivo.class_css%}indent{% endif %}" nivel="{{dpt.nivel}}">
     {% endif%}
 
     {% spaceless %}

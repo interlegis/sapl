@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import UnidadeTramitacao
+from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
@@ -275,7 +275,7 @@ class ProtocoloDocumentForm(ModelForm):
 
     tipo_documento = forms.ModelChoiceField(
         label=_('Tipo de Documento'),
-        required=False,
+        required=True,
         queryset=TipoDocumentoAdministrativo.objects.all(),
         empty_label='Selecione',
     )
@@ -333,6 +333,21 @@ class ProtocoloDocumentForm(ModelForm):
 class ProtocoloMateriaForm(ModelForm):
     autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
+    tipo_materia = forms.ModelChoiceField(
+        label=_('Tipo de Matéria'),
+        required=True,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+    )
+
+    numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
+
+    observacao = forms.CharField(required=False,
+                                 widget=forms.Textarea, label='Observação')
+
+    assunto_ementa = forms.CharField(required=True,
+                                     widget=forms.Textarea, label='Ementa')
+
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
         try:
@@ -348,6 +363,7 @@ class ProtocoloMateriaForm(ModelForm):
         fields = ['tipo_materia',
                   'numero_paginas',
                   'autor',
+                  'assunto_ementa',
                   'observacao']
 
     def __init__(self, *args, **kwargs):
@@ -364,19 +380,15 @@ class ProtocoloMateriaForm(ModelForm):
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
         row3 = to_row(
+            [('assunto_ementa', 12)])
+        row4 = to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
-                     row1,
-                      HTML(autor_label),
-                      HTML(autor_modal),
-                     row2,
-                     row3,
-                     form_actions(save_label='Protocolar Matéria')
-                     )
-        )
+                     row1, HTML(autor_label), HTML(autor_modal), row2, row3,
+                     row4, form_actions(save_label='Protocolar Matéria')))
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)

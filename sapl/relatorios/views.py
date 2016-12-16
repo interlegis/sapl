@@ -920,7 +920,7 @@ def get_etiqueta_protocolos(prots):
 
         dic['titulo'] = str(p.numero) + '/' + str(p.ano)
         dic['data'] = '<b>Data: </b>' + p.data.strftime(
-            "%d/%m/%Y") + ' - <b>Horário: </b>' + p.hora.strftime("%H:%m")
+            "%d/%m/%Y") + ' - <b>Horário: </b>' + p.hora.strftime("%H:%M")
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado
 

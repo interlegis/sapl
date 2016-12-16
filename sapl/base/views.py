@@ -62,7 +62,7 @@ class AutorCrud(CrudAux):
     help_path = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'user__username']
+        list_field_names = ['tipo', 'nome', 'user']
 
     class DeleteView(CrudAux.DeleteView):
 

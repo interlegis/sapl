@@ -416,12 +416,13 @@ class MesaDiretoraView(FormView):
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
 
-        sessao_selecionada = SessaoLegislativa.objects.get(
+        sessao_sel = SessaoLegislativa.objects.get(
             id=int(request.POST['sessao']))
-        if str(sessao_selecionada.legislatura_id) != int(
-                request.POST['legislatura']):
-            sessao_selecionada = SessaoLegislativa.objects.filter(
+
+        if str(sessao_sel.legislatura_id) != request.POST['legislatura']:
+            sessao_sel = SessaoLegislativa.objects.filter(
                 legislatura=Legislatura.objects.first()).first()
+
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
@@ -429,7 +430,7 @@ class MesaDiretoraView(FormView):
                 id=int(request.POST['legislatura'])),
                 'sessoes': SessaoLegislativa.objects.filter(
                 legislatura_id=int(request.POST['legislatura'])),
-                'sessao_selecionada': sessao_selecionada,
+                'sessao_selecionada': sessao_sel,
                 'composicao_mesa': mesa,
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos

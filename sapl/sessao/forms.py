@@ -79,11 +79,26 @@ class ExpedienteMateriaForm(ModelForm):
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
                   'numero_materia', 'ano_materia', 'tipo_votacao']
 
+    def clean_numero_ordem(self):
+        sessao = self.instance.sessao_plenaria
+
+        ex = ExpedienteMateria.objects.filter(
+            sessao_plenaria=sessao,
+            numero_ordem=self.cleaned_data['numero_ordem']).count()
+
+        if ex >= 1:
+            msg = _('Esse número de ordem já existe.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data['numero_ordem']
+
     def clean_data_ordem(self):
-        return datetime.now()
+        return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
         cleaned_data = self.cleaned_data
+        sessao = self.instance.sessao_plenaria
+
         try:
             materia = MateriaLegislativa.objects.get(
                 numero=self.cleaned_data['numero_materia'],
@@ -95,6 +110,14 @@ class ExpedienteMateriaForm(ModelForm):
             raise ValidationError(msg)
         else:
             cleaned_data['materia'] = materia
+
+        ex = ExpedienteMateria.objects.filter(
+            sessao_plenaria=sessao,
+            materia=materia).count()
+
+        if ex >= 1:
+            msg = _('Essa matéria já foi cadastrada.')
+            raise ValidationError(msg)
 
         return cleaned_data
 
@@ -113,10 +136,12 @@ class OrdemDiaForm(ExpedienteMateriaForm):
                   'numero_materia', 'ano_materia', 'tipo_votacao']
 
     def clean_data_ordem(self):
-        return datetime.now()
+        return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
         cleaned_data = self.cleaned_data
+        sessao = self.instance.sessao_plenaria
+
         try:
             materia = MateriaLegislativa.objects.get(
                 numero=self.cleaned_data['numero_materia'],
@@ -128,6 +153,14 @@ class OrdemDiaForm(ExpedienteMateriaForm):
             raise ValidationError(msg)
         else:
             cleaned_data['materia'] = materia
+
+        ex = ExpedienteMateria.objects.filter(
+            sessao_plenaria=sessao,
+            materia=materia).count()
+
+        if ex >= 1:
+            msg = _('Essa matéria já foi cadastrada.')
+            raise ValidationError(msg)
 
         return cleaned_data
 

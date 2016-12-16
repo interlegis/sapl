@@ -4,15 +4,18 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import models
 from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import RANGE_ANOS
+from sapl.utils import RANGE_ANOS, RangeWidgetOverride
 
-from .models import AssuntoNorma, NormaJuridica
+from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                     TipoNormaJuridica)
 
 
 def get_esferas():
@@ -30,94 +33,45 @@ ORDENACAO_CHOICES = [('', '---------'),
                      ('data,tipo,ano,numero', _('Data/Tipo/Ano/Número'))]
 
 
-# TODO termos, pesquisa textual, assunto(M2M)
-class NormaJuridicaPesquisaForm(ModelForm):
+class NormaFilterSet(django_filters.FilterSet):
 
-    periodo_inicial = forms.DateField(label=u'Período Inicial',
-                                      input_formats=['%d/%m/%Y'],
-                                      required=False,
-                                      widget=forms.DateInput(
-                                          format='%d/%m/%Y',
-                                          attrs={'class': 'dateinput'}))
+    RANGE_ANOS.insert(0, ('', 'Selecione'))
 
-    periodo_final = forms.DateField(label=u'Período Final',
-                                    input_formats=['%d/%m/%Y'],
-                                    required=False,
-                                    widget=forms.DateInput(
-                                        format='%d/%m/%Y',
-                                        attrs={'class': 'dateinput'}))
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
 
-    publicacao_inicial = forms.DateField(label=u'Publicação Inicial',
-                                         input_formats=['%d/%m/%Y'],
-                                         required=False,
-                                         widget=forms.DateInput(
-                                             format='%d/%m/%Y',
-                                             attrs={'class': 'dateinput'}))
+    ano = django_filters.ChoiceFilter(required=False,
+                                      label=u'Ano',
+                                      choices=RANGE_ANOS)
 
-    publicacao_final = forms.DateField(label=u'Publicação Final',
-                                       input_formats=['%d/%m/%Y'],
-                                       required=False,
-                                       widget=forms.DateInput(
-                                           format='%d/%m/%Y',
-                                           attrs={'class': 'dateinput'}))
+    ementa = django_filters.CharFilter(lookup_expr='icontains')
 
-    ano = forms.ModelChoiceField(
-        label='Ano',
-        required=False,
-        queryset=NormaJuridica.objects.order_by('-ano').values_list(
-            'ano', flat=True).distinct(),
-        empty_label='Selecione'
-    )
-
-    em_vigencia = forms.ChoiceField(
-        label='Em vigência?',
-        choices=YES_NO_CHOICES,
-        required=False)
-
-    ordenacao = forms.ChoiceField(
-        label='Ordenação',
-        choices=ORDENACAO_CHOICES,
-        required=False)
-
-    numero = forms.IntegerField(required=False)
-
-    assunto = forms.ModelChoiceField(
-        label='Assunto',
-        required=False,
-        queryset=AssuntoNorma.objects.all(),
-        empty_label='Selecione'
-    )
+    assuntos = django_filters.ModelChoiceFilter(
+        queryset=AssuntoNorma.objects.all())
 
     class Meta:
         model = NormaJuridica
-        fields = ['tipo',
-                  'numero',
-                  'ano',
-                  'periodo_inicial',
-                  'periodo_final',
-                  'publicacao_inicial',
-                  'publicacao_final',
-                  'assunto']
+        fields = ['tipo', 'numero', 'ano', 'data',
+                  'data_publicacao', 'ementa', 'assuntos']
 
     def __init__(self, *args, **kwargs):
+        super(NormaFilterSet, self).__init__(*args, **kwargs)
 
-        row1 = to_row([('tipo', 12)])
+        row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
+        row2 = to_row([('data', 6), ('data_publicacao', 6)])
+        row3 = to_row([('ementa', 8), ('assuntos', 4)])
 
-        row2 = to_row([('numero', 6), ('ano', 6)])
-
-        row3 = to_row([('periodo_inicial', 6), ('periodo_final', 6)])
-
-        row4 = to_row([('publicacao_inicial', 6), ('publicacao_final', 6)])
-
-        row5 = to_row([('em_vigencia', 4), ('ordenacao', 4), ('assunto', 4)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset('Pesquisa Norma Juridica',
-                     row1, row2, row3, row4, row5),
-            form_actions(save_label='Pesquisar')
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Norma'),
+                     row1, row2, row3,
+                     form_actions(save_label='Pesquisar'))
         )
-        super(NormaJuridicaPesquisaForm, self).__init__(*args, **kwargs)
 
 
 class NormaJuridicaForm(ModelForm):
@@ -195,3 +149,49 @@ class NormaJuridicaForm(ModelForm):
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
         return norma
+
+
+class NormaRelacionadaForm(ModelForm):
+
+    tipo = forms.ModelChoiceField(
+        label='Tipo',
+        required=True,
+        queryset=TipoNormaJuridica.objects.all(),
+        empty_label='----------',
+    )
+    numero = forms.CharField(label='Número', required=True)
+    ano = forms.CharField(label='Ano', required=True)
+    ementa = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'disabled': 'disabled'}))
+
+    class Meta:
+        model = NormaRelacionada
+        fields = ['tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
+
+    def __init__(self, *args, **kwargs):
+        super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.errors:
+            return self.errors
+        cleaned_data = self.cleaned_data
+
+        try:
+            norma_relacionada = NormaJuridica.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A norma a ser relacionada não existe.')
+            raise ValidationError(msg)
+        else:
+            cleaned_data['norma_relacionada'] = norma_relacionada
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        relacionada = super(NormaRelacionadaForm, self).save(commit)
+        relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
+        relacionada.save()
+        return relacionada
