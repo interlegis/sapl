@@ -133,6 +133,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = OrdemDiaForm
 
+        def get_initial(self):
+            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+                pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
+            return self.initial
+
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
                            kwargs={'pk': self.kwargs['pk']})
@@ -330,6 +335,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
+
+        def get_initial(self):
+            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+                pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
+            return self.initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:expedientemateria_list',

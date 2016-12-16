@@ -145,6 +145,7 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
                         Se encontra em %s.urls
                     """ % (url, app_name)
 
+
 apps_url_patterns_prefixs_and_users = {
     'api': {
         'prefixs': [
@@ -158,6 +159,7 @@ apps_url_patterns_prefixs_and_users = {
             '/logout',
             '/ajuda',
             '/email',
+            '/recuperar-senha'
         ]},
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],
@@ -258,10 +260,10 @@ def test_urlpatterns(url_item, admin_client):
                 break
 
         assert isvalid, """
-        O prefixo da url (%s) não está no padrão de sua app (%s).
-        Os prefixos permitidos são:
-        %s
-        """ % (url, app_name, prefixs)
+            O prefixo da url (%s) não está no padrão de sua app (%s).
+            Os prefixos permitidos são:
+            %s
+            """ % (url, app_name, prefixs)
 
 
 urls_publicas_excecoes = {

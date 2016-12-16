@@ -86,7 +86,15 @@ class Coligacao(models.Model):
     def __str__(self):
         return self.nome
 
+      
+def get_logo_media_path(instance, subpath, filename):
+    return './sapl/partidos/%s/%s/%s' % (instance, subpath, filename)
 
+
+def logo_upload_path(instance, filename):
+    return get_logo_media_path(instance, 'logo', filename)
+
+      
 class Partido(models.Model):
     sigla = models.CharField(max_length=9, verbose_name=_('Sigla'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
@@ -94,6 +102,12 @@ class Partido(models.Model):
         blank=True, null=True, verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Extinção'))
+    logo_partido = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to=logo_upload_path,
+        verbose_name=_('Logo Partido'),
+        validators=[restringe_tipos_de_arquivo_img])
 
     class Meta:
         verbose_name = _('Partido')
@@ -294,7 +308,7 @@ class Parlamentar(models.Model):
     @property
     def avatar_html(self):
         return '<img class="avatar-parlamentar" src='\
-            + self.fotografia.url + '/>'if self.fotografia else ''
+            + self.fotografia.url + '>'if self.fotografia else ''
 
 
 class TipoDependente(models.Model):

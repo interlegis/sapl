@@ -93,7 +93,7 @@ class ExpedienteMateriaForm(ModelForm):
         return self.cleaned_data['numero_ordem']
 
     def clean_data_ordem(self):
-        return datetime.now()
+        return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -136,7 +136,7 @@ class OrdemDiaForm(ExpedienteMateriaForm):
                   'numero_materia', 'ano_materia', 'tipo_votacao']
 
     def clean_data_ordem(self):
-        return datetime.now()
+        return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
         cleaned_data = self.cleaned_data
