@@ -186,6 +186,9 @@ class MateriaLegislativa(models.Model):
         verbose_name=_('Texto Original (PDF)'),
         validators=[restringe_tipos_de_arquivo_txt])
 
+    texto_articulado = GenericRelation(
+        TextoArticulado, related_query_name='texto_articulado')
+
     autores = models.ManyToManyField(
         Autor,
         through='Autoria',

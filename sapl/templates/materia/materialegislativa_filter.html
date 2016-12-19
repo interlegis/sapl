@@ -63,6 +63,7 @@
                 <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
                 <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
                 {% if m.texto_original %}</br></br><strong><a href="{{m.texto_original.url}}">Texto Original</a></strong>{% endif %}
+                {% if m.texto_articulado.exists %}</br></br><strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong>{% endif %}
                 <p></p>
             </tr>
           {% endfor %}
