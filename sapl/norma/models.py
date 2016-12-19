@@ -71,7 +71,9 @@ class NormaJuridica(models.Model):
         TipoNormaJuridica, verbose_name=_('Tipo da Norma Juridica'))
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
-    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    numero = models.CharField(
+        max_length=8,
+        verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     esfera_federacao = models.CharField(
