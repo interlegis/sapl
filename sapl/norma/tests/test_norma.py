@@ -25,7 +25,7 @@ def test_incluir_norma_submit(admin_client):
     assert response.status_code == 200
 
     norma = NormaJuridica.objects.first()
-    assert norma.numero == 1
+    assert norma.numero == '1'
     assert norma.ano == 2016
     assert norma.tipo == tipo
 
