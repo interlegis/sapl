@@ -55,7 +55,7 @@ def make_norma():
     # Testa se a Norma foi criada
     norma = NormaJuridica.objects.first()
     assert norma.tipo == tipo
-    assert norma.numero == 1
+    assert norma.numero == '1'
     assert norma.ano == 2016
 
     return norma
