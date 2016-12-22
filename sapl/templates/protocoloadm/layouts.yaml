@@ -16,7 +16,8 @@ DocumentoAdministrativo:
 
 DocumentoAcessorioAdministrativo:
   {% trans 'Documento Acessório' %}:
-  - tipo  nome  data
+  - documento  tipo
+  - nome  data
   - autor
   - arquivo
   - assunto

@@ -270,4 +270,4 @@ def excepthook(*args):
     logging.getLogger(BASE_DIR.name).error(
         'Uncaught exception:', exc_info=args)
 
-sys.excepthook = excepthook
+# sys.excepthook = excepthook
