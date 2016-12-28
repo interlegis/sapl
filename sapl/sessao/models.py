@@ -85,6 +85,10 @@ def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata')
     # return get_sessao_media_path(instance, 'ata', filename)
 
+def anexo_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='anexo')
+    # return get_sessao_media_path(instance, 'anexo', filename)
+
 
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
@@ -124,6 +128,11 @@ class SessaoPlenaria(models.Model):
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Sessão'),
         validators=[restringe_tipos_de_arquivo_txt])
+    upload_anexo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Anexo da Sessão'))
     iniciada = models.NullBooleanField(blank=True,
                                        choices=YES_NO_CHOICES,
                                        verbose_name=_('Sessão iniciada?'))
