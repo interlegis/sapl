@@ -7,7 +7,7 @@ from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models, OperationalError, ProgrammingError
-from django.db.models import CharField, TextField, ProtectedError
+from django.db.models import CharField, TextField, ProtectedError, Max
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
@@ -17,9 +17,10 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
+from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.norma.models import AssuntoNorma, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
-from sapl.protocoloadm.models import StatusTramitacaoAdministrativo
+from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
 from sapl.utils import normalize
 
@@ -37,6 +38,7 @@ appconfs = [apps.get_app_config(n) for n in [
 
 unique_constraints = []
 one_to_one_constraints = []
+primeira_vez = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
@@ -236,13 +238,11 @@ def save_with_id(new, id):
     cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
     (last_value,) = cursor.fetchone()
 
-    if last_value == 1 or id != last_value + 1:
-        # we explicitly set the next id if last_value == 1
-        # because last_value == 1 for a table containing either 0 or 1 records
-        # (we would have trouble for id == 2 and a missing id == 1)
-        cursor = exec_sql(
-            'ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+    cursor = exec_sql(
+        'ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
     new.save()
+    cursor = exec_sql(
+        'ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, last_value + 1))
     assert new.id == id, 'New id is different from provided!'
 
 
@@ -502,6 +502,18 @@ def adjust_participacao(new, old):
     new.composicao = composicao
 
 
+def adjust_protocolo(new, old):
+    if new.numero is None and not primeira_vez:
+        p = ProtocoloLegado.objects.filter(
+            ano_protocolo=new.ano).aggregate(Max('num_protocolo'))
+        new.numero = p['num_protocolo__max'] + 1
+        primeira_vez.append(True)
+    if new.numero is None and primeira_vez:
+        p = Protocolo.objects.filter(
+            ano=new.ano).aggregate(Max('numero'))
+        new.numero = p['numero__max'] + 1
+
+
 def adjust_sessaoplenaria(new, old):
     assert not old.tip_expediente
 
@@ -550,6 +562,15 @@ def adjust_normajuridica_depois_salvar(new, old):
         new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
 
 
+def adjust_protocolo_depois_salvar(new, old):
+    if old.num_protocolo is None:
+        problema = 'Número do protocolo de PK %s é nulo' % new.pk
+        descricao = 'Número do protocolo alterado para %s!' % new.numero
+        warn(problema + ' => ' + descricao)
+        save_relation(obj=new, problema=problema,
+                      descricao=descricao, eh_stub=False)
+
+
 def adjust_autor(new, old):
     if old.cod_parlamentar:
         new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
@@ -574,6 +595,7 @@ AJUSTE_ANTES_SALVAR = {
     OrdemDia: adjust_ordemdia,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
+    Protocolo: adjust_protocolo,
     SessaoPlenaria: adjust_sessaoplenaria,
     TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
@@ -583,6 +605,7 @@ AJUSTE_ANTES_SALVAR = {
 
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
+    Protocolo: adjust_protocolo_depois_salvar,
 }
 
 # CHECKS ####################################################################
