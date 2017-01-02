@@ -13,11 +13,10 @@ from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
 class CargoBancada(models.Model):
     nome_cargo = models.CharField(max_length=80,
                                   verbose_name=_('Cargo de Bancada'))
-    cargo_unico = models.CharField(
-        max_length=10,
-        verbose_name=_('Cargo Único'),
-        choices=YES_NO_CHOICES,
-        default=False)
+
+    cargo_unico = models.BooleanField(default=False,
+                                      choices=YES_NO_CHOICES,
+                                      verbose_name=_('Cargo Único ?'))
 
     class Meta:
         verbose_name = _('Cargo de Bancada')
