@@ -233,16 +233,21 @@ def stub_desnecessario(obj):
     return desnecessario
 
 
-def save_with_id(new, id):
-    sequence_name = '%s_id_seq' % type(new)._meta.db_table
-    cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
-    (last_value,) = cursor.fetchone()
+def get_last_value(model):
+    last_value = model.objects.all().aggregate(Max('pk'))
+    return last_value['pk__max'] if last_value['pk__max'] else 0
 
-    cursor = exec_sql(
-        'ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+
+def alter_sequence(model, id):
+    sequence_name = '%s_id_seq' % model._meta.db_table
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+
+
+def save_with_id(new, id):
+    last_value = get_last_value(type(new))
+    alter_sequence(type(new), id)
     new.save()
-    cursor = exec_sql(
-        'ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, last_value + 1))
+    alter_sequence(type(new), last_value + 1)
     assert new.id == id, 'New id is different from provided!'
 
 
@@ -372,7 +377,7 @@ class DataMigrator:
         while self.delete_stubs():
             pass
         info('Recriando unique constraints...')
-        recreate_constraints()
+        # recreate_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -626,6 +631,8 @@ def check_app_no_ind_excluido(app):
 
 
 def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
+    last_value = get_last_value(model)
+    alter_sequence(model, last_value + 1)
     fields_dict = get_fields_dict(model)
     stub = make(model, _quantity, make_m2m, **fields_dict)
     problema = 'Um stub foi necessário durante a criação de um outro stub'
