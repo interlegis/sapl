@@ -808,7 +808,6 @@ class MesaView(FormMixin, DetailView):
                 integrante.parlamentar_id = request.POST['parlamentar']
                 integrante.cargo_id = request.POST['cargo']
                 integrante.save()
-
                 return self.form_valid(form)
 
             else:
