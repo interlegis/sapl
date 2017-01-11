@@ -6,8 +6,8 @@ from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import connections, models
-from django.db.models import CharField, TextField, ProtectedError
+from django.db import connections, models, OperationalError, ProgrammingError
+from django.db.models import CharField, TextField, ProtectedError, Max
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
@@ -17,9 +17,10 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
+from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.norma.models import AssuntoNorma, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
-from sapl.protocoloadm.models import StatusTramitacaoAdministrativo
+from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
 from sapl.utils import normalize
 
@@ -37,6 +38,7 @@ appconfs = [apps.get_app_config(n) for n in [
 
 unique_constraints = []
 one_to_one_constraints = []
+primeira_vez = []
 
 name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
 
@@ -115,8 +117,13 @@ def get_fk_related(field, value, label=None):
             if value == 0:
                 if not field.null:
                     fields_dict = get_fields_dict(field.related_model)
-                    value = mommy.make(field.related_model,
-                                       **fields_dict)
+                    # Cria stub ao final da tabela para evitar erros
+                    pk = 1
+                    if hasattr(field.related_model.objects.last(), 'pk'):
+                        pk = field.related_model.objects.last().pk
+                    value = mommy.make(
+                        field.related_model, **fields_dict,
+                        pk=(pk + 1 or 1))
                     descricao = 'stub criado para campos não nuláveis!'
                     save_relation(value, [field.name], msg, descricao,
                                   eh_stub=True)
@@ -139,6 +146,15 @@ def get_fk_related(field, value, label=None):
 
 def get_field(model, fieldname):
     return model._meta.get_field(fieldname)
+
+
+def exec_sql_file(path, db='default'):
+    cursor = connections[db].cursor()
+    for line in open(path):
+        try:
+            cursor.execute(line)
+        except (OperationalError, ProgrammingError) as e:
+            print("Args: '%s'" % (str(e.args)))
 
 
 def exec_sql(sql, db='default'):
@@ -217,16 +233,21 @@ def stub_desnecessario(obj):
     return desnecessario
 
 
+def get_last_value(model):
+    last_value = model.objects.all().aggregate(Max('pk'))
+    return last_value['pk__max'] if last_value['pk__max'] else 0
+
+
+def alter_sequence(model, id):
+    sequence_name = '%s_id_seq' % model._meta.db_table
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+
+
 def save_with_id(new, id):
-    sequence_name = '%s_id_seq' % type(new)._meta.db_table
-    cursor = exec_sql('SELECT last_value from %s;' % sequence_name)
-    (last_value,) = cursor.fetchone()
-    if last_value == 1 or id != last_value + 1:
-        # we explicitly set the next id if last_value == 1
-        # because last_value == 1 for a table containing either 0 or 1 records
-        # (we would have trouble for id == 2 and a missing id == 1)
-        exec_sql('ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+    last_value = get_last_value(type(new))
+    alter_sequence(type(new), id)
     new.save()
+    alter_sequence(type(new), last_value + 1)
     assert new.id == id, 'New id is different from provided!'
 
 
@@ -241,7 +262,7 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
 
 def make_stub(model, id):
     fields_dict = get_fields_dict(model)
-    new = mommy.prepare(model, **fields_dict)
+    new = mommy.prepare(model, **fields_dict, pk=id)
     save_with_id(new, id)
 
     return new
@@ -332,6 +353,7 @@ class DataMigrator:
         # warning: model/app migration order is of utmost importance
         self.to_delete = []
         ProblemaMigracao.objects.all().delete()
+        exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
         get_user_model().objects.exclude(is_superuser=True).delete()
 
         info('Começando migração: %s...' % obj)
@@ -355,7 +377,7 @@ class DataMigrator:
         while self.delete_stubs():
             pass
         info('Recriando unique constraints...')
-        recreate_constraints()
+        # recreate_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -485,6 +507,18 @@ def adjust_participacao(new, old):
     new.composicao = composicao
 
 
+def adjust_protocolo(new, old):
+    if new.numero is None and not primeira_vez:
+        p = ProtocoloLegado.objects.filter(
+            ano_protocolo=new.ano).aggregate(Max('num_protocolo'))
+        new.numero = p['num_protocolo__max'] + 1
+        primeira_vez.append(True)
+    if new.numero is None and primeira_vez:
+        p = Protocolo.objects.filter(
+            ano=new.ano).aggregate(Max('numero'))
+        new.numero = p['numero__max'] + 1
+
+
 def adjust_sessaoplenaria(new, old):
     assert not old.tip_expediente
 
@@ -533,6 +567,15 @@ def adjust_normajuridica_depois_salvar(new, old):
         new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
 
 
+def adjust_protocolo_depois_salvar(new, old):
+    if old.num_protocolo is None:
+        problema = 'Número do protocolo de PK %s é nulo' % new.pk
+        descricao = 'Número do protocolo alterado para %s!' % new.numero
+        warn(problema + ' => ' + descricao)
+        save_relation(obj=new, problema=problema,
+                      descricao=descricao, eh_stub=False)
+
+
 def adjust_autor(new, old):
     if old.cod_parlamentar:
         new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
@@ -557,6 +600,7 @@ AJUSTE_ANTES_SALVAR = {
     OrdemDia: adjust_ordemdia,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
+    Protocolo: adjust_protocolo,
     SessaoPlenaria: adjust_sessaoplenaria,
     TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
@@ -566,6 +610,7 @@ AJUSTE_ANTES_SALVAR = {
 
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
+    Protocolo: adjust_protocolo_depois_salvar,
 }
 
 # CHECKS ####################################################################
@@ -586,6 +631,8 @@ def check_app_no_ind_excluido(app):
 
 
 def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
+    last_value = get_last_value(model)
+    alter_sequence(model, last_value + 1)
     fields_dict = get_fields_dict(model)
     stub = make(model, _quantity, make_m2m, **fields_dict)
     problema = 'Um stub foi necessário durante a criação de um outro stub'
