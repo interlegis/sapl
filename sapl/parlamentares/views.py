@@ -343,6 +343,13 @@ class MesaDiretoraView(FormView):
                 'cargos_vagos': cargos_vagos
             })
 
+    def existe_membro_mesa(self, sessao_plenaria, cargo):
+        return ComposicaoMesa.objects.filter(
+            sessao_legislativa_id=sessao_plenaria.id,
+            #parlamentar_id = integrante.parlamentar_id,
+            cargo_id = cargo.id
+            ).exists()
+
     def post(self, request, *args, **kwargs):
 
         if (not Legislatura.objects.exists() or
@@ -374,6 +381,11 @@ class MesaDiretoraView(FormView):
             try:
                 composicao.cargo = CargoMesa.objects.get(
                     id=int(request.POST['cargo']))
+                if self.existe_membro_mesa(composicao.sessao_legislativa,
+                                           composicao.cargo):
+                    messages.error(request, _('Parlamentar já inserido!'))
+                    return self.get(request)
+
                 composicao.save()
             except MultiValueDictKeyError:
                 messages.error(request, _(
