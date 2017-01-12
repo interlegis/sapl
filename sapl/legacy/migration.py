@@ -579,6 +579,7 @@ def adjust_protocolo_depois_salvar(new, old):
 def adjust_autor(new, old):
     if old.cod_parlamentar:
         new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+        new.nome = new.autor_related.nome_parlamentar
     elif old.cod_comissao:
         new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
 
