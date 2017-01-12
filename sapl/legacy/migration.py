@@ -2,6 +2,7 @@ import re
 
 import pkg_resources
 import yaml
+from datetime import date
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -595,8 +596,19 @@ def adjust_autor(new, old):
                 username=old.col_username)[0]
 
 
+def adjust_comissao(new, old):
+    if old.dat_extincao:
+        if date.today() < new.data_extincao:
+            new.ativa = True
+        else:
+            new.ativa = False
+    if not old.dat_extincao:
+        new.ativa = True
+
+
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
+    Comissao: adjust_comissao,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     OrdemDia: adjust_ordemdia,
     Parlamentar: adjust_parlamentar,
