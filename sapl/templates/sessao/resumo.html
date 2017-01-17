@@ -5,10 +5,20 @@
 {% block title %}
 	<h1 class="page-header">
 		Resumo <small>({{sessaoplenaria}})</small>
+		<br/>
 	</h1>
 {% endblock %}
 
 {% block detail_content %}
+<div>
+	<p align="right">
+		<strong>
+			<a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' sessaoplenaria.pk %}">
+				Impressão PDF
+			</a>
+		</strong>
+	</p>
+</div>
 	<fieldset>
 		<legend>Identificação Básica</legend>
     <div class="row">
