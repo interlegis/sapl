@@ -160,6 +160,9 @@ class SessaoPlenaria(models.Model):
 
         if self.upload_ata:
             self.upload_ata.delete()
+            
+        if self.upload_anexo:
+            self.upload_anexo.delete()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
@@ -167,11 +170,13 @@ class SessaoPlenaria(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and (self.upload_pauta or self.upload_ata):
+        if not self.pk and (self.upload_pauta or self.upload_ata or self.upload_anexo):
             upload_pauta = self.upload_pauta
             upload_ata = self.upload_ata
+            upload_anexo = self.upload_anexo
             self.upload_pauta = None
             self.upload_ata = None
+            self.upload_anexo = None
             models.Model.save(self, force_insert=force_insert,
                               force_update=force_update,
                               using=using,
@@ -179,6 +184,7 @@ class SessaoPlenaria(models.Model):
 
             self.upload_pauta = upload_pauta
             self.upload_ata = upload_ata
+            self.upload_anexo = upload_anexo
 
         return models.Model.save(self, force_insert=force_insert,
                                  force_update=force_update,
