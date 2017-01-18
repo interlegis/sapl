@@ -8,7 +8,7 @@ SessaoPlenaria:
   - legislatura  sessao_legislativa tipo:3  numero:1
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
-  - upload_pauta  upload_ata
+  - upload_pauta  upload_ata  upload_anexo
   - url_audio  url_video
 
 TipoResultadoVotacao:
