@@ -3,12 +3,14 @@ from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
 from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
 
 
+@reversion.register()
 class AssuntoNorma(models.Model):
     assunto = models.CharField(max_length=50, verbose_name=_('Assunto'))
     descricao = models.CharField(
@@ -22,6 +24,7 @@ class AssuntoNorma(models.Model):
         return self.assunto
 
 
+@reversion.register()
 class TipoNormaJuridica(models.Model):
     # TODO transform into Domain Model and use an FK for the field
     EQUIVALENTE_LEXML_CHOICES = ((name, name) for name in
@@ -56,6 +59,7 @@ class TipoNormaJuridica(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class NormaJuridica(models.Model):
     ESFERA_FEDERACAO_CHOICES = Choices(
         ('E', 'estadual', _('Estadual')),
@@ -145,6 +149,7 @@ class NormaJuridica(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class LegislacaoCitada(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     norma = models.ForeignKey(NormaJuridica)
@@ -181,6 +186,7 @@ class LegislacaoCitada(models.Model):
         return str(self.norma)
 
 
+@reversion.register()
 class TipoVinculoNormaJuridica(models.Model):
     sigla = models.CharField(
         max_length=1, blank=True, verbose_name=_('Sigla'))
@@ -197,6 +203,7 @@ class TipoVinculoNormaJuridica(models.Model):
         return self.descricao_ativa
 
 
+@reversion.register()
 class NormaRelacionada(models.Model):
     norma_principal = models.ForeignKey(
         NormaJuridica,

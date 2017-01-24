@@ -12,6 +12,8 @@ from django.db.models import CharField, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
+import reversion
+from reversion.models import Revision, Version
 
 from sapl.base.models import Autor, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
@@ -122,24 +124,28 @@ def get_fk_related(field, value, label=None):
                     pk = 1
                     if hasattr(field.related_model.objects.last(), 'pk'):
                         pk = field.related_model.objects.last().pk
-                    value = mommy.make(
-                        field.related_model, **fields_dict,
-                        pk=(pk + 1 or 1))
-                    descricao = 'stub criado para campos não nuláveis!'
-                    save_relation(value, [field.name], msg, descricao,
-                                  eh_stub=True)
-                    warn(msg + ' => ' + descricao)
+                    with reversion.create_revision():
+                        reversion.set_comment('Stub criado pela migração')
+                        value = mommy.make(
+                            field.related_model, **fields_dict,
+                            pk=(pk + 1 or 1))
+                        descricao = 'stub criado para campos não nuláveis!'
+                        save_relation(value, [field.name], msg, descricao,
+                                      eh_stub=True)
+                        warn(msg + ' => ' + descricao)
                 else:
                     value = None
             else:
                 if field.model._meta.label == 'sessao.RegistroVotacao' and \
                         field.name == 'ordem':
                     return value
-                value = make_stub(field.related_model, value)
-                descricao = 'stub criado para entrada orfã!'
-                warn(msg + ' => ' + descricao)
-                save_relation(value, [field.name], msg, descricao,
-                              eh_stub=True)
+                with reversion.create_revision():
+                    reversion.set_comment('Stub criado pela migração')
+                    value = make_stub(field.related_model, value)
+                    descricao = 'stub criado para entrada orfã!'
+                    warn(msg + ' => ' + descricao)
+                    save_relation(value, [field.name], msg, descricao,
+                                  eh_stub=True)
         else:
             assert value
     return value
@@ -308,11 +314,11 @@ class DataMigrator:
                     value = getattr(old, old_field_name)
                 if field_type == 'DateField' and \
                         not field.null and value is None:
-                    descricao = 'A data 0001-01-01 foi colocada no lugar'
+                    descricao = 'A data 1111-11-11 foi colocada no lugar'
                     problema = 'O valor da data era nulo ou inválido'
                     warn(msg +
                          ' => ' + descricao)
-                    value = '0001-01-01'
+                    value = date(1111, 11, 11)
                     self.data_mudada['obj'] = new
                     self.data_mudada['descricao'] = descricao
                     self.data_mudada['problema'] = problema
@@ -334,11 +340,13 @@ class DataMigrator:
                             '(em %s %s)' % (
                                 field.name, value,
                                 field.model.__name__, label or '---')
-                        value = make_stub(field.related_model, value)
-                        descricao = 'stub criado para entrada orfã!'
-                        warn(msg + ' => ' + descricao)
-                        save_relation(value, [field.name], msg, descricao,
-                                      eh_stub=True)
+                        with reversion.create_revision():
+                            value = make_stub(field.related_model, value)
+                            descricao = 'stub criado para entrada orfã!'
+                            warn(msg + ' => ' + descricao)
+                            save_relation(value, [field.name], msg, descricao,
+                                          eh_stub=True)
+                            reversion.set_comment('Stub criado pela migração')
                 setattr(new, field.name, value)
             elif field.model.__name__ == 'TipoAutor' and \
                     field.name == 'content_type':
@@ -353,6 +361,8 @@ class DataMigrator:
     def migrate(self, obj=appconfs):
         # warning: model/app migration order is of utmost importance
         self.to_delete = []
+        Revision.objects.all().delete()
+        Version.objects.all().delete()
         ProblemaMigracao.objects.all().delete()
         exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
         get_user_model().objects.exclude(is_superuser=True).delete()
@@ -364,15 +374,20 @@ class DataMigrator:
         while self.to_delete:
             for obj in self.to_delete:
                 try:
-                    obj.delete()
-                    self.to_delete.remove(obj)
+                    with reversion.create_revision():
+                        obj.delete()
+                        self.to_delete.remove(obj)
+                        reversion.set_comment(
+                            'Objeto com ind_excluido deletado')
                 except ProtectedError:
-                    msg = 'A entrada de PK %s da model %s não pode ser ' \
-                        'excluida' % (obj.pk, obj._meta.model_name)
-                    descricao = 'Um ou mais objetos protegidos '
-                    warn(msg + ' => ' + descricao)
-                    save_relation(obj=obj, problema=msg,
-                                  descricao=descricao, eh_stub=False)
+                    with reversion.create_revision():
+                        msg = 'A entrada de PK %s da model %s não pode ser ' \
+                            'excluida' % (obj.pk, obj._meta.model_name)
+                        descricao = 'Um ou mais objetos protegidos '
+                        warn(msg + ' => ' + descricao)
+                        save_relation(obj=obj, problema=msg,
+                                      descricao=descricao, eh_stub=False)
+                        reversion.set_comment('Objeto excluído pela migração')
 
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
@@ -420,13 +435,16 @@ class DataMigrator:
         if legacy_pk_name == 'id':
             # There is no pk in the legacy table
             def save(new, old):
-                new.save()
-
+                with reversion.create_revision():
+                    new.save()
+                    reversion.set_comment('Objeto criado pela migração')
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
             def save(new, old):
-                save_with_id(new, getattr(old, legacy_pk_name))
+                with reversion.create_revision():
+                    save_with_id(new, getattr(old, legacy_pk_name))
+                    reversion.set_comment('Objeto criado pela migração')
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
@@ -443,8 +461,10 @@ class DataMigrator:
             if ajuste_depois_salvar:
                 ajuste_depois_salvar(new, old)
             if self.data_mudada:
-                save_relation(**self.data_mudada)
-                self.data_mudada.clear()
+                with reversion.create_revision():
+                    save_relation(**self.data_mudada)
+                    self.data_mudada.clear()
+                    reversion.set_comment('Ajuste de data pela migração')
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
 
@@ -455,13 +475,17 @@ class DataMigrator:
                 original = obj.content_type.get_all_objects_for_this_type(
                     id=obj.object_id)
                 if stub_desnecessario(original[0]):
-                    qtd_exclusoes, *_ = original.delete()
-                    assert qtd_exclusoes == 1
-                    qtd_exclusoes, *_ = obj.delete()
-                    assert qtd_exclusoes == 1
-                    excluidos = excluidos + 1
+                    with reversion.create_revision():
+                        qtd_exclusoes, *_ = original.delete()
+                        assert qtd_exclusoes == 1
+                        qtd_exclusoes, *_ = obj.delete()
+                        assert qtd_exclusoes == 1
+                        excluidos = excluidos + 1
+                        reversion.set_comment('Stub desnecessario excluido')
             elif not obj.content_object and not obj.eh_stub:
-                qtd_exclusoes, *_ = obj.delete()
+                with reversion.create_revision():
+                    qtd_exclusoes, *_ = obj.delete()
+                    reversion.set_comment('Stub desnecessário excluido')
                 assert qtd_exclusoes == 1
                 excluidos = excluidos + 1
         return excluidos
@@ -504,7 +528,9 @@ def adjust_participacao(new, old):
         assert len(already_created) == 1  # we must never have made 2 copies
         [composicao] = already_created
     else:
-        composicao.save()
+        with reversion.create_revision():
+            composicao.save()
+            reversion.set_comment('Objeto criado pela migração')
     new.composicao = composicao
 
 
@@ -570,11 +596,13 @@ def adjust_normajuridica_depois_salvar(new, old):
 
 def adjust_protocolo_depois_salvar(new, old):
     if old.num_protocolo is None:
-        problema = 'Número do protocolo de PK %s é nulo' % new.pk
-        descricao = 'Número do protocolo alterado para %s!' % new.numero
-        warn(problema + ' => ' + descricao)
-        save_relation(obj=new, problema=problema,
-                      descricao=descricao, eh_stub=False)
+        with reversion.create_revision():
+            problema = 'Número do protocolo de PK %s é nulo' % new.pk
+            descricao = 'Número do protocolo alterado para %s!' % new.numero
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('Numero de protocolo teve que ser alterado')
 
 
 def adjust_autor(new, old):
@@ -589,7 +617,9 @@ def adjust_autor(new, old):
                 username=old.col_username).exists():
             user = get_user_model()(
                 username=old.col_username, password=12345)
-            user.save()
+            with reversion.create_revision():
+                user.save()
+                reversion.set_comment('Objeto criado pela migração')
             new.user = user
         else:
             new.user = get_user_model().objects.filter(

@@ -2,12 +2,14 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import YES_NO_CHOICES, SaplGenericRelation
 
 
+@reversion.register()
 class TipoComissao(models.Model):
     NATUREZA_CHOICES = Choices(('T', 'temporaria', _('Temporária')),
                                ('P', 'permanente', _('Permanente')))
@@ -28,6 +30,7 @@ class TipoComissao(models.Model):
         return self.nome
 
 
+@reversion.register()
 class Comissao(models.Model):
     tipo = models.ForeignKey(TipoComissao, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=60, verbose_name=_('Nome'))
@@ -95,6 +98,7 @@ class Comissao(models.Model):
         return self.sigla + ' - ' + self.nome
 
 
+@reversion.register()
 class Periodo(models.Model):  # PeriodoCompComissao
     data_inicio = models.DateField(verbose_name=_('Data Início'))
     data_fim = models.DateField(
@@ -112,6 +116,7 @@ class Periodo(models.Model):  # PeriodoCompComissao
             return '-'
 
 
+@reversion.register()
 class CargoComissao(models.Model):
     nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
     unico = models.BooleanField(
@@ -125,6 +130,7 @@ class CargoComissao(models.Model):
         return self.nome
 
 
+@reversion.register()
 class Composicao(models.Model):  # IGNORE
     comissao = models.ForeignKey(Comissao, verbose_name=_('Comissão'))
     periodo = models.ForeignKey(Periodo, verbose_name=_('Período'))
@@ -137,6 +143,7 @@ class Composicao(models.Model):  # IGNORE
         return '%s: %s' % (self.comissao.sigla, self.periodo)
 
 
+@reversion.register()
 class Participacao(models.Model):  # ComposicaoComissao
     composicao = models.ForeignKey(Composicao, related_name='participacao_set')
     parlamentar = models.ForeignKey(Parlamentar)

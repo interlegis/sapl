@@ -78,7 +78,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'sass_processor',
     'rest_framework',
-
+    'reversion',
 
 ) + SAPL_APPS
 

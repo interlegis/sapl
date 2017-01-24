@@ -1,12 +1,14 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
 
 
+@reversion.register()
 class TipoDocumentoAdministrativo(models.Model):
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
@@ -45,6 +47,7 @@ def texto_upload_path(instance, filename):
 """
 
 
+@reversion.register()
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
@@ -107,6 +110,7 @@ class DocumentoAdministrativo(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class DocumentoAcessorioAdministrativo(models.Model):
     documento = models.ForeignKey(DocumentoAdministrativo)
     tipo = models.ForeignKey(
@@ -156,6 +160,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class Protocolo(models.Model):
     numero = models.PositiveIntegerField(
         blank=False, null=False, verbose_name=_('Número de Protocolo'))
@@ -203,6 +208,7 @@ class Protocolo(models.Model):
         )
 
 
+@reversion.register()
 class StatusTramitacaoAdministrativo(models.Model):
     INDICADOR_CHOICES = Choices(
         ('F', 'fim', _('Fim')),
@@ -225,6 +231,7 @@ class StatusTramitacaoAdministrativo(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class TramitacaoAdministrativo(models.Model):
     status = models.ForeignKey(
         StatusTramitacaoAdministrativo,

@@ -8,6 +8,7 @@ from django.db.models.deletion import PROTECT
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -30,6 +31,7 @@ def grupo_autor():
     return grupo.id
 
 
+@reversion.register()
 class TipoProposicao(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -63,6 +65,7 @@ class TipoProposicao(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class TipoMateriaLegislativa(models.Model):
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição '))
@@ -88,6 +91,7 @@ class TipoMateriaLegislativa(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class RegimeTramitacao(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -99,6 +103,7 @@ class RegimeTramitacao(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class Origem(models.Model):
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
@@ -115,6 +120,7 @@ TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
                                     ('E', 'escrita', _('Escrita')))
 
 
+@reversion.register()
 class MateriaLegislativa(models.Model):
 
     tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_('Tipo'))
@@ -228,6 +234,7 @@ class MateriaLegislativa(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor, verbose_name=_('Autor'))
     materia = models.ForeignKey(
@@ -245,6 +252,7 @@ class Autoria(models.Model):
             'autor': self.autor, 'materia': self.materia}
 
 
+@reversion.register()
 class AcompanhamentoMateria(models.Model):
     usuario = models.CharField(max_length=50)
     materia = models.ForeignKey(MateriaLegislativa)
@@ -264,6 +272,7 @@ class AcompanhamentoMateria(models.Model):
             'materia': self.materia, 'hash': self.hash}
 
 
+@reversion.register()
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(
         MateriaLegislativa, related_name='materia_principal_set')
@@ -284,6 +293,7 @@ class Anexada(models.Model):
             'materia_anexada': self.materia_anexada}
 
 
+@reversion.register()
 class AssuntoMateria(models.Model):
     assunto = models.CharField(max_length=200)
     dispositivo = models.CharField(max_length=50)
@@ -296,6 +306,7 @@ class AssuntoMateria(models.Model):
         return self.assunto
 
 
+@reversion.register()
 class DespachoInicial(models.Model):
     # TODO M2M?
     # TODO Despachos não são necessáriamente comissoes, podem ser outros
@@ -313,6 +324,7 @@ class DespachoInicial(models.Model):
             'comissao': self.comissao}
 
 
+@reversion.register()
 class TipoDocumento(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Tipo Documento'))
@@ -332,6 +344,7 @@ class TipoDocumento(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     tipo = models.ForeignKey(TipoDocumento, verbose_name=_('Tipo'))
@@ -384,6 +397,7 @@ class DocumentoAcessorio(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class MateriaAssunto(models.Model):
     # TODO M2M ??
     assunto = models.ForeignKey(AssuntoMateria)
@@ -398,6 +412,7 @@ class MateriaAssunto(models.Model):
             'materia': self.materia, 'assunto': self.assunto}
 
 
+@reversion.register()
 class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     tipo_materia = models.ForeignKey(
@@ -423,6 +438,7 @@ class Numeracao(models.Model):
             'ano': self.data_materia.year}
 
 
+@reversion.register()
 class Orgao(models.Model):
     nome = models.CharField(max_length=60, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
@@ -450,6 +466,7 @@ class Orgao(models.Model):
             '%(nome)s - %(sigla)s') % {'nome': self.nome, 'sigla': self.sigla}
 
 
+@reversion.register()
 class TipoFimRelatoria(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Tipo Fim Relatoria'))
@@ -462,6 +479,7 @@ class TipoFimRelatoria(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class Relatoria(models.Model):
     materia = models.ForeignKey(MateriaLegislativa)
     parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
@@ -488,6 +506,7 @@ class Relatoria(models.Model):
             'data': self.data_designacao_relator}
 
 
+@reversion.register()
 class Parecer(models.Model):
     relatoria = models.ForeignKey(Relatoria)
     materia = models.ForeignKey(MateriaLegislativa)
@@ -506,6 +525,7 @@ class Parecer(models.Model):
         }
 
 
+@reversion.register()
 class Proposicao(models.Model):
     autor = models.ForeignKey(Autor, null=True, blank=True, on_delete=PROTECT)
     tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
@@ -642,6 +662,7 @@ class Proposicao(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class StatusTramitacao(models.Model):
     INDICADOR_CHOICES = Choices(('F', 'fim', _('Fim')),
                                 ('R', 'retorno', _('Retorno')))
@@ -663,6 +684,7 @@ class StatusTramitacao(models.Model):
             'descricao': self.descricao}
 
 
+@reversion.register()
 class UnidadeTramitacao(models.Model):
     comissao = models.ForeignKey(
         Comissao, blank=True, null=True, verbose_name=_('Comissão'))
@@ -701,6 +723,7 @@ class UnidadeTramitacao(models.Model):
             return _('%(parlamentar)s') % {'parlamentar': self.parlamentar}
 
 
+@reversion.register()
 class Tramitacao(models.Model):
     TURNO_CHOICES = Choices(
         ('P', 'primeiro', _('Primeiro')),

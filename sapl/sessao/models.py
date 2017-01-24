@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
@@ -11,6 +12,7 @@ from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
+@reversion.register()
 class CargoBancada(models.Model):
     nome_cargo = models.CharField(max_length=80,
                                   verbose_name=_('Cargo de Bancada'))
@@ -27,6 +29,7 @@ class CargoBancada(models.Model):
         return self.nome_cargo
 
 
+@reversion.register()
 class Bancada(models.Model):
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     nome = models.CharField(
@@ -59,6 +62,7 @@ class Bancada(models.Model):
         return self.nome
 
 
+@reversion.register()
 class TipoSessaoPlenaria(models.Model):
     nome = models.CharField(max_length=30, verbose_name=_('Tipo'))
     quorum_minimo = models.PositiveIntegerField(
@@ -91,6 +95,7 @@ def anexo_upload_path(instance, filename):
     # return get_sessao_media_path(instance, 'anexo', filename)
 
 
+@reversion.register()
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
     # andamento_sessao = models.ForeignKey(
@@ -172,8 +177,13 @@ class SessaoPlenaria(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
+<<<<<<< 0d281b8f594224dfa3ede0c7e6ccb32395bdfe42
         if not self.pk and (self.upload_pauta or
                             self.upload_ata or self.upload_anexo):
+=======
+        if not self.pk and (self.upload_pauta or self.upload_ata or
+                            self.upload_anexo):
+>>>>>>> Migra usando django-reversion
             upload_pauta = self.upload_pauta
             upload_ata = self.upload_ata
             upload_anexo = self.upload_anexo
@@ -195,6 +205,7 @@ class SessaoPlenaria(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class AbstractOrdemDia(models.Model):
     TIPO_VOTACAO_CHOICES = Choices(
         (1, 'simbolica', (('Simbólica'))),
@@ -224,6 +235,7 @@ class AbstractOrdemDia(models.Model):
         return '%s - %s' % (self.numero_ordem, self.sessao_plenaria)
 
 
+@reversion.register()
 class ExpedienteMateria(AbstractOrdemDia):
 
     class Meta:
@@ -232,6 +244,7 @@ class ExpedienteMateria(AbstractOrdemDia):
         ordering = ['numero_ordem']
 
 
+@reversion.register()
 class TipoExpediente(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
 
@@ -243,6 +256,7 @@ class TipoExpediente(models.Model):
         return self.nome
 
 
+@reversion.register()
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     tipo = models.ForeignKey(TipoExpediente)
@@ -257,6 +271,7 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
         return '%s - %s' % (self.tipo, self.sessao_plenaria)
 
 
+@reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     cargo = models.ForeignKey(CargoMesa)
@@ -270,6 +285,7 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
         return '%s - %s' % (self.cargo, self.parlamentar)
 
 
+@reversion.register()
 class AbstractOrador(models.Model):  # Oradores
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
@@ -289,6 +305,7 @@ class AbstractOrador(models.Model):  # Oradores
             'numero': self.numero_ordem}
 
 
+@reversion.register()
 class Orador(AbstractOrador):  # Oradores
 
     class Meta:
@@ -296,6 +313,7 @@ class Orador(AbstractOrador):  # Oradores
         verbose_name_plural = _('Oradores das Explicações Pessoais')
 
 
+@reversion.register()
 class OradorExpediente(AbstractOrador):  # OradoresExpediente
 
     class Meta:
@@ -303,6 +321,7 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
         verbose_name_plural = _('Oradores do Expediente')
 
 
+@reversion.register()
 class OrdemDia(AbstractOrdemDia):
 
     class Meta:
@@ -311,6 +330,7 @@ class OrdemDia(AbstractOrdemDia):
         ordering = ['numero_ordem']
 
 
+@reversion.register()
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
@@ -327,6 +347,7 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
             'parlamentar': self.parlamentar}
 
 
+@reversion.register()
 class TipoResultadoVotacao(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
 
@@ -338,6 +359,7 @@ class TipoResultadoVotacao(models.Model):
         return self.nome
 
 
+@reversion.register()
 class RegistroVotacao(models.Model):
     tipo_resultado_votacao = models.ForeignKey(
         TipoResultadoVotacao, verbose_name=_('Resultado da Votação'))
@@ -363,6 +385,7 @@ class RegistroVotacao(models.Model):
             'materia': self.materia}
 
 
+@reversion.register()
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     votacao = models.ForeignKey(RegistroVotacao)
     parlamentar = models.ForeignKey(Parlamentar)
@@ -378,6 +401,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
             'votacao': self.votacao, 'parlamentar': self.parlamentar}
 
 
+@reversion.register()
 class VotoNominal(models.Model):
     parlamentar = models.ForeignKey(Parlamentar)
     voto = models.CharField(verbose_name=_('Voto'), max_length=10)
@@ -398,6 +422,7 @@ class VotoNominal(models.Model):
         return '%s - %s' % (self.parlamentar.nome_parlamentar, self.voto)
 
 
+@reversion.register()
 class SessaoPlenariaPresenca(models.Model):
     sessao_plenaria = models.ForeignKey(SessaoPlenaria)
     parlamentar = models.ForeignKey(Parlamentar)
@@ -409,6 +434,7 @@ class SessaoPlenariaPresenca(models.Model):
         ordering = ['parlamentar__nome_parlamentar']
 
 
+@reversion.register()
 class Bloco(models.Model):
     '''
         * blocos podem existir por mais de uma legislatura
