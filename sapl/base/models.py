@@ -145,6 +145,7 @@ class TipoAutor(models.Model):
         verbose_name=_('Modelagem no SAPL'))
 
     class Meta:
+        ordering = ['descricao']
         verbose_name = _('Tipo de Autor')
         verbose_name_plural = _('Tipos de Autor')
 
