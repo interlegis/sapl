@@ -174,7 +174,9 @@ class RelatoriaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(RelatoriaForm, self).__init__(*args, **kwargs)
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            ativo=True).order_by('nome_completo')
+            ativo=True, id__in=Participacao.objects.filter(
+                composicao_id=self.initial['comissao']
+            ).values_list('parlamentar_id')).order_by('nome_completo')
 
     def clean(self):
         cleaned_data = self.cleaned_data
