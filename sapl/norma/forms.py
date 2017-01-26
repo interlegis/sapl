@@ -46,7 +46,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label=u'Ano',
-                                      choices=RANGE_ANOS)
+                                      choices=ANO_CHOICES)
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
@@ -90,7 +90,7 @@ class NormaJuridicaForm(ModelForm):
     ano_materia = forms.ChoiceField(
         label='Ano Matéria',
         required=False,
-        choices=RANGE_ANOS,
+        choices=ANO_CHOICES,
     )
 
     class Meta:
