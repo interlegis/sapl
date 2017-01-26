@@ -291,6 +291,11 @@ class MesaDiretoraView(FormView):
     template_name = 'parlamentares/composicaomesa_form.html'
     success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
 
+    def get_template_names(self):
+        return ['parlamentares/composicaomesa_form.html']\
+            if self.request.user.has_perm(RP_CHANGE)\
+            else ['parlamentares/public_composicaomesa_form.html']
+
     # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):
         mensagem = _('Não há nenhuma Sessão Legislativa cadastrada. ' +
