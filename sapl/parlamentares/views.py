@@ -293,7 +293,8 @@ class MesaDiretoraView(FormView):
 
     def get_template_names(self):
         return ['parlamentares/composicaomesa_form.html']\
-            if self.request.user.has_perm(RP_CHANGE)\
+            if self.request.user.has_perm(
+                'parlamentares.change_composicaomesa')\
             else ['parlamentares/public_composicaomesa_form.html']
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
