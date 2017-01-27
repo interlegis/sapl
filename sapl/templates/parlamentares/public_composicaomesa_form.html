@@ -51,7 +51,7 @@
 							<td></td>
 						{% endif %}
 						<td>{{p.parlamentar.nome_parlamentar}}</td>
-						<td>TODO</td>
+						<td>{{p.parlamentar.filiacao_set.last.partido.sigla}}</td>
 						<td>{{p.cargo}}</td>
 					</tr>
       	{% endfor %}
