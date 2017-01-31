@@ -183,7 +183,7 @@ class MateriaLegislativa(models.Model):
         blank=True,
         null=True,
         upload_to=texto_upload_path,
-        verbose_name=_('Texto Original (PDF)'),
+        verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])
 
     texto_articulado = GenericRelation(
