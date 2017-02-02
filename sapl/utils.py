@@ -18,6 +18,9 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+from reversion.admin import VersionAdmin
+import django_filters
+import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
@@ -195,7 +198,7 @@ def register_all_models_in_admin(module_name):
     appname = appname[1] if appname[0] == 'sapl' else appname[0]
     app = apps.get_app_config(appname)
     for model in app.get_models():
-        class CustomModelAdmin(admin.ModelAdmin):
+        class CustomModelAdmin(VersionAdmin):
             list_display = [f.name for f in model._meta.fields
                             if f.name != 'id']
 
