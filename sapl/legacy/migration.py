@@ -21,7 +21,8 @@ from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import AssuntoNorma, NormaJuridica
+from sapl.legacy.models import Protocolo as ProtocoloLegado
+from sapl.norma.models import AssuntoNorma, NormaJuridica, VinculoNormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
@@ -285,6 +286,25 @@ def get_fields_dict(model):
     return fields_dict
 
 
+def fill_vinculo_norma_juridica():
+    lista = [('A', 'Altera a norma'),
+             ('R', 'Revoga integralmente a norma'),
+             ('P', 'Revoga parcialmente a norma'),
+             ('T', 'Revoga integralmente por consolidação'),
+             ('C', 'Norma Correlata'),
+             ('S', 'Ressalva a Norma'),
+             ('E', 'Reedita a Norma'),
+             ('I', 'Reedita a Norma com Alteração'),
+             ('G', 'Regulamenta a Norma'),
+             ('K', 'Suspende parcialmente a norma'),
+             ('L', 'Suspende integralmente a norma'),
+             ('N', 'Julgada integralmente inconstitucional'),
+             ('O', 'Julgada parcialmente inconstitucional')]
+    lista_objs = [VinculoNormaJuridica(sigla=item[0], descricao=item[1])
+                  for item in lista]
+    VinculoNormaJuridica.objects.bulk_create(lista_objs)
+
+
 class DataMigrator:
 
     def __init__(self):
@@ -363,6 +383,7 @@ class DataMigrator:
         self.to_delete = []
         Revision.objects.all().delete()
         Version.objects.all().delete()
+        VinculoNormaJuridica.objects.all().delete()
         ProblemaMigracao.objects.all().delete()
         exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
         get_user_model().objects.exclude(is_superuser=True).delete()
@@ -390,8 +411,10 @@ class DataMigrator:
                         reversion.set_comment('Objeto excluído pela migração')
 
         info('Deletando stubs desnecessários...')
-        while self.delete_stubs():
-            pass
+        with reversion.create_revision():
+            while self.delete_stubs():
+                pass
+            reversion.set_comment('Stub desnecessário excluido')
         info('Recriando unique constraints...')
         # recreate_constraints()
 
