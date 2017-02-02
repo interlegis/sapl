@@ -1157,7 +1157,7 @@ class MateriaLegislativaPesquisaView(FilterView):
             qs = qs.filter(id__in=lista).distinct()
 
         if 'o' in self.request.GET and not self.request.GET['o']:
-            qs = qs.order_by('-ano', '-numero')
+            qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
 
         kwargs.update({
             'queryset': qs,
