@@ -107,8 +107,17 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         return context
 
     def post(self, request, *args, **kwargs):
+        marcados = request.POST.getlist('autor_id')
+
+        for m in marcados:
+            Autoria.objects.create(
+                materia_id=self.kwargs['pk'],
+                autor_id=m
+            )
+
         return HttpResponseRedirect(
-            reverse('sapl.materia:autoria_list', kwargs={'pk': pk}))
+            reverse('sapl.materia:autoria_list',
+                    kwargs={'pk': self.kwargs['pk']}))
 
 
 class CriarProtocoloMateriaView(CreateView):
