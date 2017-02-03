@@ -43,7 +43,7 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         montar_row_autor)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    DespachoInicialForm,
+                    AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
@@ -70,6 +70,44 @@ TipoDocumentoCrud = CrudAux.build(
 
 TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
+
+
+def retira_autores_ja_adicionados(id):
+    return []
+
+
+class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
+    filterset_class = AdicionarVariasAutoriasFilterSet
+    template_name = 'sessao/adicionar_varias_autorias.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(AdicionarVariasAutorias, self).get_filterset_kwargs(
+            filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset()
+
+        autores_adicionadas = retira_autores_ja_adicionados(self.kwargs['pk'])
+
+        qs = qs.exclude(id__in=autores_adicionadas).distinct()
+
+        kwargs.update({'queryset': qs})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MateriaLegislativaPesquisaView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Pesquisar Autores')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        context['pk_materia'] = self.kwargs['pk']
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return HttpResponseRedirect(
+            reverse('sapl.materia:autoria_list', kwargs={'pk': pk}))
 
 
 class CriarProtocoloMateriaView(CreateView):
