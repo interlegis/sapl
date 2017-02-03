@@ -1,0 +1,54 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %}{% endblock %}
+
+{% block detail_content %}
+  {% block buttons %}
+    {% if filter_url %}
+      <div class="actions btn-group pull-right" role="group">
+        <a href="{% url 'sapl.materia:adicionar_varias_autorias' pk_materia %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+      </div>
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <div class="actions btn-group pull-right" role="group">
+        <a href="{% url 'sapl.materia:autoria_list' pk_materia %}" class="btn btn-default">{% trans 'Autorias' %}</a>
+      </div>
+    {% endif %}
+  {% endblock buttons %}
+
+  {% if not filter_url %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if filter_url %}
+    <table class="table table-striped table-bordered">
+      <thead class="thead-default">
+        <tr><td><h3>{% trans "Autor" %}</h3></td></tr>
+      </thead>
+      {% if filter.qs|length > 1 %}
+        <h3>{% blocktrans with filter.qs|length as total_autores %}Pesquisa concluída com sucesso! Foram encontrados {{total_autores}} autores.{% endblocktrans %}</h3>
+      {% elif filter.qs|length == 1 %}
+        <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrado 1 autor.'%}</h3>
+      {% else  %}
+        <tr><td><h3>Nenhum autor encontrado.</h3></td></tr>
+      {% endif %}
+
+      <form method="POST" enctype="application/x-www-form-urlencoded">
+        {% csrf_token %}
+        {% for m in filter.qs %}
+          <tr>
+            <td>
+              <input type="checkbox" name="autor_id" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
+              &nbsp;&nbsp;
+              <strong>{{m}}</strong></a></br>
+            </td>
+          </tr>
+        {% endfor %}
+
+    </table>
+      <div class="btn-group" style="float:right;">
+        <input type="submit" value="Adicionar autores selecionados" class="btn btn-primary">
+      </div>
+    </form>
+  {% endif %}
+{% endblock detail_content %}

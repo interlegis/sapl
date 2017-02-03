@@ -2,7 +2,8 @@ from django.conf.urls import include, url
 
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
-                                AcompanhamentoMateriaView, AnexadaCrud,
+                                AcompanhamentoMateriaView,
+                                AdicionarVariasAutorias, AnexadaCrud,
                                 AutoriaCrud, ConfirmarProposicao,
                                 CriarProtocoloMateriaView, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
@@ -54,6 +55,10 @@ urlpatterns_materia = [
     url(r'^materia/(?P<pk>\d+)/acompanhar-excluir$',
         AcompanhamentoExcluirView.as_view(),
         name='acompanhar_excluir'),
+
+    url(r'^materia/(?P<pk>\d+)/adicionar-varias-autorias/',
+        AdicionarVariasAutorias.as_view(),
+        name='adicionar_varias_autorias'),
 
     url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),

@@ -72,18 +72,21 @@ TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
 
 
-def retira_autores_ja_adicionados(id):
-    return []
+def retira_autores_ja_adicionados(materia_pk):
+    autorias = Autoria.objects.filter(materia_id=materia_pk)
+    pks = [a.pk for a in autorias]
+    return pks
 
 
 class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
+    app_label = sapl.materia.apps.AppConfig.label
     filterset_class = AdicionarVariasAutoriasFilterSet
-    template_name = 'sessao/adicionar_varias_autorias.html'
+    template_name = 'materia/adicionar_varias_autorias.html'
+    model = Autor
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasAutorias, self).get_filterset_kwargs(
             filterset_class)
-
         kwargs = {'data': self.request.GET or None}
 
         qs = self.get_queryset()
@@ -91,13 +94,12 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         autores_adicionadas = retira_autores_ja_adicionados(self.kwargs['pk'])
 
         qs = qs.exclude(id__in=autores_adicionadas).distinct()
-
         kwargs.update({'queryset': qs})
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(MateriaLegislativaPesquisaView,
-                        self).get_context_data(**kwargs)
+        context = super(AdicionarVariasAutorias, self).get_context_data(
+            **kwargs)
 
         context['title'] = _('Pesquisar Autores')
         qr = self.request.GET.copy()
