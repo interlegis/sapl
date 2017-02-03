@@ -60,6 +60,25 @@ def em_tramitacao():
             (False, 'Não')]
 
 
+class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
+
+    class Meta:
+        model = Autor
+        fields = ['nome']
+
+    def __init__(self, *args, **kwargs):
+        super(AdicionarVariasAutoriasFilterSet, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('nome', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Filtrar Autores'),
+                     row1, form_actions(save_label='Filtrar'))
+        )
+
+
 class ReceberProposicaoForm(Form):
     cod_hash = forms.CharField(label='Código do Documento', required=True)
 

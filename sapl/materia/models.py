@@ -234,7 +234,8 @@ class Autoria(models.Model):
     materia = models.ForeignKey(
         MateriaLegislativa, verbose_name=_('Matéria Legislativa'))
     primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
-                                         choices=YES_NO_CHOICES)
+                                         choices=YES_NO_CHOICES,
+                                         default=False)
 
     class Meta:
         verbose_name = _('Autoria')

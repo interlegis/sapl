@@ -43,7 +43,7 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         montar_row_autor)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    DespachoInicialForm,
+                    AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
@@ -70,6 +70,54 @@ TipoDocumentoCrud = CrudAux.build(
 
 TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
+
+
+def autores_ja_adicionados(materia_pk):
+    autorias = Autoria.objects.filter(materia_id=materia_pk)
+    pks = [a.autor.pk for a in autorias]
+    return pks
+
+
+class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
+    app_label = sapl.materia.apps.AppConfig.label
+    filterset_class = AdicionarVariasAutoriasFilterSet
+    template_name = 'materia/adicionar_varias_autorias.html'
+    model = Autor
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(AdicionarVariasAutorias, self).get_filterset_kwargs(
+            filterset_class)
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset()
+        qs = qs.exclude(
+            id__in=autores_ja_adicionados(self.kwargs['pk'])).distinct()
+
+        kwargs.update({'queryset': qs})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(AdicionarVariasAutorias, self).get_context_data(
+            **kwargs)
+
+        context['title'] = _('Pesquisar Autores')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        context['pk_materia'] = self.kwargs['pk']
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcados = request.POST.getlist('autor_id')
+
+        for m in marcados:
+            Autoria.objects.create(
+                materia_id=self.kwargs['pk'],
+                autor_id=m
+            )
+
+        return HttpResponseRedirect(
+            reverse('sapl.materia:autoria_list',
+                    kwargs={'pk': self.kwargs['pk']}))
 
 
 class CriarProtocoloMateriaView(CreateView):
