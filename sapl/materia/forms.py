@@ -74,8 +74,8 @@ class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisar Autores'),
-                     row1, form_actions(save_label='Pesquisar'))
+            Fieldset(_('Filtrar Autores'),
+                     row1, form_actions(save_label='Filtrar'))
         )
 
 
