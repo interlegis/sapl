@@ -72,9 +72,9 @@ TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
 
 
-def retira_autores_ja_adicionados(materia_pk):
+def autores_ja_adicionados(materia_pk):
     autorias = Autoria.objects.filter(materia_id=materia_pk)
-    pks = [a.pk for a in autorias]
+    pks = [a.autor.pk for a in autorias]
     return pks
 
 
@@ -90,10 +90,9 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         kwargs = {'data': self.request.GET or None}
 
         qs = self.get_queryset()
+        qs = qs.exclude(
+            id__in=autores_ja_adicionados(self.kwargs['pk'])).distinct()
 
-        autores_adicionadas = retira_autores_ja_adicionados(self.kwargs['pk'])
-
-        qs = qs.exclude(id__in=autores_adicionadas).distinct()
         kwargs.update({'queryset': qs})
         return kwargs
 
