@@ -71,6 +71,7 @@ class ExpedienteMateriaForm(ModelForm):
         label='Ano Matéria', required=True)
 
     data_ordem = forms.CharField(
+        label='Data Sessão',
         initial=datetime.now().strftime('%d/%m/%Y'),
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
