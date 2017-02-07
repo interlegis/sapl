@@ -61,9 +61,20 @@
                     </br>
                 {% endif %}
                 <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
+                {% if m.anexo_de.exists %}
+                  {% for a in m.materia_anexada_set.all %}
+                  <strong>Matéria Anexadora: </strong>&nbsp;
+                  <a href="{% url 'materia:materialegislativa_detail' a.materia_principal.id %}">
+                      {{ a.materia_principal }}&nbsp;
+                  </a>
+                  <strong>Data Anexação:</strong> {{a.data_anexacao}}
+                  </br>
+                  {% endfor %}
+                {% endif %}
                 <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
                 {% if m.texto_original %}</br></br><strong><a href="{{m.texto_original.url}}">Texto Original</a></strong>{% endif %}
                 {% if m.texto_articulado.exists %}</br></br><strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong>{% endif %}
+                </br>
                 <p></p>
             </tr>
           {% endfor %}
