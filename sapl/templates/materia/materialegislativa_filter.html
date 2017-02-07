@@ -96,7 +96,10 @@
                 {% if m.texto_articulado.exists %}<strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong></br>{% endif %}
                 {% if m.normajuridica_set.exists %}
                     {% for nr in m.normajuridica_set.all %}
-                      <strong>Norma Jurídica: </strong> {{ nr }}
+                      <strong>Norma Jurídica: </strong>
+                      <a href="{% url 'sapl.norma:normajuridica_detail' nr.id %}">
+                        {{ nr }}
+                      </a>
                       </br>
                     {% endfor %}
                 {% endif %}
