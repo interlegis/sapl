@@ -36,6 +36,10 @@
             <tr>
               <td>
                 <strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
+                <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
+                {% if m.texto_original %}</br></br><strong><a href="{{m.texto_original.url}}">Texto Original</a></strong>{% endif %}
+                {% if m.texto_articulado.exists %}</br></br><strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong>{% endif %}
+                </br>
                 <strong>Autores:</strong>
                 {% for a in m.autoria_set.all %}
                   {% if not forloop.first %}
@@ -81,10 +85,9 @@
                   </br>
                   {% endfor %}
                 {% endif %}
-                <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
-                {% if m.texto_original %}</br></br><strong><a href="{{m.texto_original.url}}">Texto Original</a></strong>{% endif %}
-                {% if m.texto_articulado.exists %}</br></br><strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong>{% endif %}
-                </br>
+                {% if m.documentoacessorio_set.all.exists %}
+                    <strong>Documentos Acessórios:</strong> {{ m.documentoacessorio_set.all.count }}
+                {% endif %}
                 <p></p>
             </tr>
           {% endfor %}
