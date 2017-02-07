@@ -71,6 +71,16 @@
                   </br>
                   {% endfor %}
                 {% endif %}
+                {% if m.anexadas.all.exists %}
+                  {% for anexada in m.materia_principal_set.all %}
+                  <strong>Matéria Anexada: </strong>&nbsp;
+                  <a href="{% url 'materia:materialegislativa_detail' anexada.materia_anexada.id %}">
+                      {{ anexada.materia_anexada }}&nbsp;
+                  </a>
+                  <strong>Data Anexação:</strong> {{anexada.data_anexacao}}
+                  </br>
+                  {% endfor %}
+                {% endif %}
                 <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
                 {% if m.texto_original %}</br></br><strong><a href="{{m.texto_original.url}}">Texto Original</a></strong>{% endif %}
                 {% if m.texto_articulado.exists %}</br></br><strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong>{% endif %}
