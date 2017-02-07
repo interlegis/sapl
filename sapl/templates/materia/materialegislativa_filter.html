@@ -92,8 +92,14 @@
                     <strong>Documentos Acessórios:</strong> {{ m.documentoacessorio_set.all.count }}
                     </br>
                 {% endif %}
-                {% if m.texto_original %}</br></br><strong><a href="{{m.texto_original.url}}">Texto Original</a></strong>{% endif %}
-                {% if m.texto_articulado.exists %}</br></br><strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong>{% endif %}
+                {% if m.texto_original %}<strong><a href="{{m.texto_original.url}}">Texto Original</a></strong></br>{% endif %}
+                {% if m.texto_articulado.exists %}<strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong></br>{% endif %}
+                {% if m.normajuridica_set.exists %}
+                    {% for nr in m.normajuridica_set.all %}
+                      <strong>Norma Jurídica: </strong> {{ nr }}
+                      </br>
+                    {% endfor %}
+                {% endif %}
                 <p></p>
             </tr>
           {% endfor %}
