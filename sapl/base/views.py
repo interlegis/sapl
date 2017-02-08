@@ -386,6 +386,18 @@ class CasaLegislativaCrud(CrudAux):
         list_field_names = ['codigo', 'nome', 'sigla']
         form_class = CasaLegislativaForm
 
+    class ListView(CrudAux.ListView):
+
+        def get(self, request, *args, **kwargs):
+            casa = get_casalegislativa()
+            if casa:
+                return HttpResponseRedirect(
+                    reverse('sapl.base:casalegislativa_detail',
+                            kwargs={'pk': casa.pk}))
+            else:
+                return HttpResponseRedirect(
+                    reverse('sapl.base:casalegislativa_create'))
+
     class DetailView(CrudAux.DetailView):
 
         def get(self, request, *args, **kwargs):
