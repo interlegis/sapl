@@ -11,13 +11,14 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud)
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
+from sapl.utils import get_client_ip
 
 from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
-                    ParlamentarCreateForm, ParlamentarForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente)
+                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -32,6 +33,29 @@ FrenteCrud = CrudAux.build(Frente, 'tipo_situa_militar', list_field_names=[
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
+
+
+class VotanteView(MasterDetailCrud):
+    model = Votante
+    parent_field = 'parlamentar'
+    UpdateView = None
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['user']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = VotanteForm
+        layout_key = None
+
+        def get_initial(self):
+            initial_data = {}
+            initial_data['ip'] = get_client_ip(self.request)
+            return initial_data
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def detail_create_url(self):
+            return None
 
 
 class FrenteList(MasterDetailCrud):

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -495,3 +496,21 @@ class Frente(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class Votante(models.Model):
+    parlamentar = models.ForeignKey(
+        Parlamentar, verbose_name=_('Parlamentar'), related_name='parlamentar')
+    user = models.ForeignKey(User, verbose_name=_('User'), related_name='user')
+    data = models.DateTimeField(
+        verbose_name=_('Data'), auto_now_add=True,
+        max_length=30, null=True, blank=True)
+    ip = models.CharField(
+        verbose_name=_('IP'), max_length=30, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Votante')
+        verbose_name = _('Votantes')
+
+    def __str__(self):
+        return self.user.username

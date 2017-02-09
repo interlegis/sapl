@@ -101,3 +101,9 @@ Frente:
   - data_criacao data_extincao
   - parlamentares
   - descricao
+
+Votante:
+  {% trans 'Votante' %}:
+  - parlamentar user
+  - data ip
+  
