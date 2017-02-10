@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.painel.models import Painel
-from sapl.parlamentares.models import Filiacao
+from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
@@ -23,6 +23,56 @@ CronometroPainelCrud = Crud.build(Cronometro, '')
 
 def check_permission(user):
     return user.has_module_perms(AppConfig.label)
+
+
+def votante_view(request, pk):
+    context = {'head_title': str(_('Votação Individual')), 'sessao_id': pk}
+
+    # Inicializa presentes
+    presentes = []
+
+    # Verifica votação aberta
+    # Se aberta, verifica se é nominal. ID nominal == 2
+    ordem_dia = get_materia_aberta(pk)
+    expediente = get_materia_expediente_aberta(pk)
+
+    if ordem_dia:
+        if ordem_dia.tipo_votacao == 2:
+            context.update({'materia': ordem_dia})
+            presentes = PresencaOrdemDia.objects.filter(sessao_plenaria_id=pk)
+    elif expediente:
+        if expediente.tipo_votacao == 2:
+            context.update({'materia': expediente})
+            presentes = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=pk)
+    else:
+        context.update(
+            {'materia': 'Nenhuma matéria com votação nominal aberta.'})
+
+    # Verifica se usuário possui permissão para votar
+    if 'parlamentares.can_vote' in request.user.get_all_permissions():
+        context.update({'permissao': True})
+    else:
+        context.update({'permissao': False})
+
+    # Verifica se usuário está presente na sessão
+    try:
+        votante = Votante.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        context.update({'error_message':
+                        'Erro ao recuperar parlamentar ligado ao usuário'})
+    else:
+        parlamentar = votante.parlamentar
+        context.update({'presente': False})
+        if len(presentes) > 0:
+            for p in presentes:
+                if p.parlamentar.id == parlamentar:
+                    context.update({'presente': True})
+                    break
+
+    # FIXME: Verificar se usuário já votou
+
+    return render(request, 'painel/voto_nominal.html', context)
 
 
 @user_passes_test(check_permission)

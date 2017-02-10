@@ -509,8 +509,8 @@ class Votante(models.Model):
         verbose_name=_('IP'), max_length=30, null=True, blank=True)
 
     class Meta:
-        verbose_name = _('Votante')
-        verbose_name = _('Votantes')
+        verbose_name = _('Usuário')
+        verbose_name = _('Usuários')
 
     def __str__(self):
         return self.user.username

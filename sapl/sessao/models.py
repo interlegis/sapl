@@ -160,7 +160,7 @@ class SessaoPlenaria(models.Model):
 
         if self.upload_ata:
             self.upload_ata.delete()
-            
+
         if self.upload_anexo:
             self.upload_anexo.delete()
 
