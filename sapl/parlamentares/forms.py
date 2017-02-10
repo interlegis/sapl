@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from django.contrib.auth.models import Group
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
@@ -309,12 +310,16 @@ class VotanteForm(ModelForm):
     def save(self, commit=False):
         votante = super(VotanteForm, self).save(commit)
 
+        # Cria user
         u = User.objects.create(
             username=self.cleaned_data['username'],
             email=self.cleaned_data['email'])
-
         u.set_password(self.cleaned_data['senha'])
         u.save()
+
+        # Adiciona user ao grupo
+        g = Group.objects.filter(name='Votante')[0]
+        u.groups.add(g)
 
         votante.user = u
         votante.save()
