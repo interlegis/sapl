@@ -40,11 +40,17 @@ def votante_view(request, pk):
         if ordem_dia.tipo_votacao == 2:
             context.update({'materia': ordem_dia})
             presentes = PresencaOrdemDia.objects.filter(sessao_plenaria_id=pk)
+        else:
+            context.update(
+                {'materia': 'A matéria aberta não é votação nominal.'})
     elif expediente:
         if expediente.tipo_votacao == 2:
             context.update({'materia': expediente})
             presentes = SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=pk)
+        else:
+            context.update(
+                {'materia': 'A matéria aberta não é votação nominal.'})
     else:
         context.update(
             {'materia': 'Nenhuma matéria com votação nominal aberta.'})
