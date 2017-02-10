@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
+from django.http.response import HttpResponseRedirect
 
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -56,6 +57,16 @@ class VotanteView(MasterDetailCrud):
 
         def detail_create_url(self):
             return None
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, *args, **kwargs):
+            obj = self.get_object()
+            if obj.user:
+                obj.user.delete()
+            return HttpResponseRedirect(
+                    reverse('sapl.parlamentares:votante_list',
+                            kwargs={'pk': obj.parlamentar.pk}))
 
 
 class FrenteList(MasterDetailCrud):

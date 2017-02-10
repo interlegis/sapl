@@ -309,7 +309,6 @@ class VotanteForm(ModelForm):
     def save(self, commit=False):
         votante = super(VotanteForm, self).save(commit)
 
-        u = User.objects.get(username=self.cleaned_data['username'])
         u = User.objects.create(
             username=self.cleaned_data['username'],
             email=self.cleaned_data['email'])
