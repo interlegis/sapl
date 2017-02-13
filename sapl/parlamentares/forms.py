@@ -267,9 +267,8 @@ class VotanteForm(ModelForm):
 
     class Meta:
         model = Votante
-        fields = ['username', 'senha', 'senha_confirma', 'ip',
-                  'email', 'email_confirma']
-        widgets = {'ip': forms.HiddenInput()}
+        fields = ['username', 'senha', 'senha_confirma', 'email',
+                  'email_confirma']
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('username', 4), ('senha', 4), ('senha_confirma', 4)])

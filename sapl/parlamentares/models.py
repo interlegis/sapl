@@ -505,8 +505,7 @@ class Votante(models.Model):
     data = models.DateTimeField(
         verbose_name=_('Data'), auto_now_add=True,
         max_length=30, null=True, blank=True)
-    ip = models.CharField(
-        verbose_name=_('IP'), max_length=30, null=True, blank=True)
+
 
     class Meta:
         verbose_name = _('Usuário')

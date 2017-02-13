@@ -1,4 +1,5 @@
 from datetime import date
+from sapl.utils import get_client_ip
 
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,7 +13,8 @@ from sapl.painel.models import Painel
 from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
-                                SessaoPlenariaPresenca, VotoParlamentar)
+                                SessaoPlenariaPresenca, VotoNominal,
+                                VotoParlamentar)
 
 from .models import Cronometro
 
@@ -28,6 +30,12 @@ def check_permission(user):
 def votante_view(request, pk):
     context = {'head_title': str(_('Votação Individual')), 'sessao_id': pk}
 
+    # Pega sessão
+    sessao = SessaoPlenaria.objects.get(pk=pk)
+    context.update({'sessao': sessao,
+                    'data': sessao.data_inicio,
+                    'hora': sessao.hora_inicio})
+
     # Inicializa presentes
     presentes = []
 
@@ -35,17 +43,20 @@ def votante_view(request, pk):
     # Se aberta, verifica se é nominal. ID nominal == 2
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
+    materia = None
 
     if ordem_dia:
+        materia = ordem_dia.materia
         if ordem_dia.tipo_votacao == 2:
-            context.update({'materia': ordem_dia})
+            context.update({'materia': materia, 'ementa': materia.ementa})
             presentes = PresencaOrdemDia.objects.filter(sessao_plenaria_id=pk)
         else:
             context.update(
                 {'materia': 'A matéria aberta não é votação nominal.'})
     elif expediente:
+        materia = expediente.materia
         if expediente.tipo_votacao == 2:
-            context.update({'materia': expediente})
+            context.update({'materia': materia, 'ementa': materia.ementa})
             presentes = SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=pk)
         else:
@@ -76,7 +87,34 @@ def votante_view(request, pk):
                     context.update({'presente': True})
                     break
 
-    # FIXME: Verificar se usuário já votou
+    try:
+        voto = VotoNominal.objects.get(
+            sessao=sessao,
+            parlamentar=parlamentar,
+            materia=materia)
+    except ObjectDoesNotExist:
+        context.update({'voto_parlamentar': 'Voto não computado.'})
+    else:
+        context.update({'voto_parlamentar': voto.voto})
+
+    if request.method == 'POST':
+        try:
+            voto = VotoNominal.objects.get(
+                sessao=sessao,
+                parlamentar=parlamentar,
+                materia=materia)
+        except ObjectDoesNotExist:
+            voto = VotoNominal.objects.create(
+                sessao=sessao,
+                parlamentar=parlamentar,
+                materia=materia,
+                voto=request.POST['voto'],
+                ip=get_client_ip(request),
+                user=request.user)
+        else:
+            voto.voto = request.POST['voto']
+            voto.ip = get_client_ip(request)
+            voto.save()
 
     return render(request, 'painel/voto_nominal.html', context)
 

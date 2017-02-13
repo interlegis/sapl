@@ -105,5 +105,4 @@ Frente:
 Votante:
   {% trans 'Votante' %}:
   - parlamentar user
-  - data ip
-  
+  - data

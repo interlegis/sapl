@@ -48,11 +48,6 @@ class VotanteView(MasterDetailCrud):
         form_class = VotanteForm
         layout_key = None
 
-        def get_initial(self):
-            initial_data = {}
-            initial_data['ip'] = get_client_ip(self.request)
-            return initial_data
-
     class DetailView(MasterDetailCrud.DetailView):
 
         def detail_create_url(self):
