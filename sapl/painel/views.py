@@ -89,6 +89,7 @@ def votante_view(request, pk):
                     context.update({'presente': True})
                     break
 
+    # Recupera o voto do parlamentar logado
     try:
         voto = VotoNominal.objects.get(
             sessao=sessao,
