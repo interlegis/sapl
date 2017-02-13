@@ -21,7 +21,7 @@
       }
     </style>
   </head>
-  {% if permissao and presenca %}
+  {% if permissao and presente %}
     <body>
       <h1><b><font color="#4FA64D"><p align="center">{{sessao}}</p></font></b></h1>
       <table style="width:100%">
@@ -65,7 +65,7 @@
     </body>
   {% elif not permissao %}
     <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário sem permissão para participar de votações.</p></font></h2>
-  {% elif not presenca %}
+  {% elif not presente %}
     <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário não presente na Sessão Plenária.</p></font></h2>
   {% else %}
     <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário não presente na Sessão Plenária e sem permissão para votações.</p></font></h2>

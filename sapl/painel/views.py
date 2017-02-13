@@ -85,7 +85,7 @@ def votante_view(request, pk):
         context.update({'presente': False})
         if len(presentes) > 0:
             for p in presentes:
-                if p.parlamentar.id == parlamentar:
+                if p.parlamentar.id == parlamentar.id:
                     context.update({'presente': True})
                     break
 
@@ -100,6 +100,7 @@ def votante_view(request, pk):
     else:
         context.update({'voto_parlamentar': voto.voto})
 
+    # Salva o voto
     if request.method == 'POST':
         try:
             voto = VotoNominal.objects.get(
