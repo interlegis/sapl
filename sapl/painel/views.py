@@ -1,3 +1,5 @@
+from django.http.response import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from datetime import date
 from sapl.utils import get_client_ip
 
@@ -115,6 +117,8 @@ def votante_view(request, pk):
             voto.voto = request.POST['voto']
             voto.ip = get_client_ip(request)
             voto.save()
+        return HttpResponseRedirect(
+            reverse('sapl.painel:voto_individual', kwargs={'pk': pk}))
 
     return render(request, 'painel/voto_nominal.html', context)
 
