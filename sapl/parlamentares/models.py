@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.api import permissions
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         SaplGenericRelation, intervalos_tem_intersecao,
@@ -509,6 +510,9 @@ class Votante(models.Model):
     class Meta:
         verbose_name = _('Usuário')
         verbose_name_plural = _('Usuários')
+        permissions = (
+            ('can_vote', _('Can Vote')),
+        )
 
     def __str__(self):
         return self.user.username

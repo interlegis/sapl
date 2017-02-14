@@ -1,9 +1,9 @@
 from datetime import date, timedelta
-from django.contrib.auth.models import Group
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
+from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 
 from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.rules import SAPL_GROUP_VOTANTE
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Votante)
@@ -228,10 +229,10 @@ class ComposicaoColigacaoForm(ModelForm):
 class FrenteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
-            super(FrenteForm, self).__init__(*args, **kwargs)
-            self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
-                ativo=True).order_by('nome_completo')
-            self.fields['parlamentares'].label = _('Parlamentares \
+        super(FrenteForm, self).__init__(*args, **kwargs)
+        self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
+            ativo=True).order_by('nome_completo')
+        self.fields['parlamentares'].label = _('Parlamentares \
                 (Mantenha CTRL pressionado para selecionar vários)')
 
     class Meta:
@@ -317,7 +318,7 @@ class VotanteForm(ModelForm):
         u.save()
 
         # Adiciona user ao grupo
-        g = Group.objects.filter(name='Votante')[0]
+        g = Group.objects.filter(name=SAPL_GROUP_VOTANTE)[0]
         u.groups.add(g)
 
         votante.user = u

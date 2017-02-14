@@ -13,7 +13,8 @@ from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
                         SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
                         SAPL_GROUP_PAINEL, SAPL_GROUP_PARLAMENTAR,
                         SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
-                        RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE)
+                        RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE,
+                        SAPL_GROUP_VOTANTE)
 
 from sapl.sessao import models as sessao
 
@@ -178,6 +179,13 @@ rules_group_parlamentar = {
     'rules': []
 }
 
+rules_group_votante = {
+    'group': SAPL_GROUP_VOTANTE,
+    'rules': [
+        (parlamentares.Votante, ['can_vote'])
+    ]
+}
+
 rules_group_geral = {
     'group': SAPL_GROUP_GERAL,
     'rules': [
@@ -232,6 +240,7 @@ rules_group_geral = {
         (parlamentares.CargoMesa, __base__),
         (parlamentares.ComposicaoMesa, __base__),
         (parlamentares.Frente, __base__),
+        (parlamentares.Votante, __base__),
 
         (sessao.CargoBancada, __base__),
         (sessao.Bancada, __base__),
@@ -305,6 +314,7 @@ rules_patterns = [
     rules_group_geral,
     rules_group_autor,
     rules_group_parlamentar,
+    rules_group_votante,
 
     rules_group_anonymous,   # anotação para validação do teste de rules
     rules_group_login_social  # TODO não implementado
