@@ -20,18 +20,24 @@
 			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' object.pk %}" class="btn btn-warning">Voltar</a>
 		{% else %}
 			<fieldset class="form-group">
+				<div class="row">
+					<div class="col-md-12"><input type="button" value="Atualizar Votos" onClick="window.location.href=window.location.href" class="btn btn-primary sm"></div>
+				</div>
+				<br />
+
 				<legend>Votos</legend>
 	      <div class="row">
 	        {% for parlamentar in parlamentares %}
-	        <div class="col-md-6">{{parlamentar.nome_parlamentar}}</div>
-	        <div class="col-md-6">
-	          <select id="voto_parlamentar" name="voto_parlamentar" class="form-control">
-	            <option value="sim:{{parlamentar.id}}">Sim</option>
-	            <option value="nao:{{parlamentar.id}}">Não</option>
-	            <option value="abstencao:{{parlamentar.id}}">Abstenção</option>
-	            <option value="nao_votou:{{parlamentar.id}}">Não Votou</option>
-	          </select>
-	        </div>
+		        <div class="col-md-6">{{parlamentar.0.nome_parlamentar}}</div>
+		        <div class="col-md-6">
+							{% if parlamentar.1 %} <input type="hidden" name="voto_parlamentar" value="{{parlamentar.1}}:{{parlamentar.0.id}}" /> {% endif %}
+		          <select id="voto_parlamentar" name="voto_parlamentar" class="form-control" {% if parlamentar.1 %} disabled {% endif %}>
+		            <option value="Não Votou:{{parlamentar.0.id}}">Não Votou</option>
+		            <option value="Sim:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Sim' %} selected {% endif %}>Sim</option>
+		            <option value="Não:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Não' %} selected {% endif %}>Não</option>
+		            <option value="Abstenção:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Abstenção' %} selected {% endif %}>Abstenção</option>
+		          </select>
+		        </div>
 	        {% endfor %}
 	      </div>
 			</fieldset>
@@ -56,7 +62,7 @@
 	    </div>
 
 			<br /><br />
-			<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />
+			<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Fechar Votação" class="btn btn-primary" />
 			<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
 		</fieldset>
 	</form>

@@ -16,3 +16,5 @@
   url: relatoria_parlamentar_list
 - title: {% trans 'Frentes' %}
   url: frente_parlamentar_list
+- title: {% trans 'Usuário' %}
+  url: votante_list

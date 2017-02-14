@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -160,7 +161,7 @@ class SessaoPlenaria(models.Model):
 
         if self.upload_ata:
             self.upload_ata.delete()
-            
+
         if self.upload_anexo:
             self.upload_anexo.delete()
 
@@ -373,6 +374,26 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
             'votacao': self.votacao, 'parlamentar': self.parlamentar}
+
+
+class VotoNominal(models.Model):
+    parlamentar = models.ForeignKey(Parlamentar)
+    voto = models.CharField(verbose_name=_('Voto'), max_length=10)
+
+    sessao = models.ForeignKey(SessaoPlenaria)
+    materia = models.ForeignKey(MateriaLegislativa)
+
+    user = models.ForeignKey(User)
+    ip = models.CharField(verbose_name=_('IP'), max_length=30)
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Registro do Voto do Parlamentar')
+        verbose_name_plural = _('Registros dos Votos dos Parlamentares')
+
+    def __str__(self):
+        return self.Parlamentar, self.voto
 
 
 class SessaoPlenariaPresenca(models.Model):

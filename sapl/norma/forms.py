@@ -17,8 +17,10 @@ from sapl.utils import RANGE_ANOS, RangeWidgetOverride
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica)
 
+
 def ANO_CHOICES():
     return [('', '---------')] + RANGE_ANOS
+
 
 def get_esferas():
     return [('E', 'Estadual'),

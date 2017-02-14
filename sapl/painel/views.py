@@ -1,4 +1,7 @@
+from django.http.response import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from datetime import date
+from sapl.utils import get_client_ip
 
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,10 +12,11 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.painel.models import Painel
-from sapl.parlamentares.models import Filiacao
+from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
-                                SessaoPlenariaPresenca, VotoParlamentar)
+                                SessaoPlenariaPresenca, VotoNominal,
+                                VotoParlamentar)
 
 from .models import Cronometro
 
@@ -23,6 +27,105 @@ CronometroPainelCrud = Crud.build(Cronometro, '')
 
 def check_permission(user):
     return user.has_module_perms(AppConfig.label)
+
+
+def votante_view(request, pk):
+    context = {'head_title': str(_('Votação Individual')), 'sessao_id': pk}
+
+    # Pega sessão
+    sessao = SessaoPlenaria.objects.get(pk=pk)
+    context.update({'sessao': sessao,
+                    'data': sessao.data_inicio,
+                    'hora': sessao.hora_inicio})
+
+    # Inicializa presentes
+    presentes = []
+
+    # Verifica votação aberta
+    # Se aberta, verifica se é nominal. ID nominal == 2
+    ordem_dia = get_materia_aberta(pk)
+    expediente = get_materia_expediente_aberta(pk)
+    materia = None
+
+    if ordem_dia:
+        materia = ordem_dia.materia
+        if ordem_dia.tipo_votacao == 2:
+            context.update({'materia': materia, 'ementa': materia.ementa})
+            presentes = PresencaOrdemDia.objects.filter(sessao_plenaria_id=pk)
+        else:
+            context.update(
+                {'materia': 'A matéria aberta não é votação nominal.'})
+    elif expediente:
+        materia = expediente.materia
+        if expediente.tipo_votacao == 2:
+            context.update({'materia': materia, 'ementa': materia.ementa})
+            presentes = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=pk)
+        else:
+            context.update(
+                {'materia': 'A matéria aberta não é votação nominal.'})
+    else:
+        context.update(
+            {'materia': 'Nenhuma matéria com votação nominal aberta.'})
+
+    # Verifica se usuário possui permissão para votar
+    if 'parlamentares.can_vote' in request.user.get_all_permissions():
+        context.update({'permissao': True})
+    else:
+        context.update({'permissao': False})
+
+    # Verifica se usuário está presente na sessão
+    try:
+        votante = Votante.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        context.update({'error_message':
+                        'Erro ao recuperar parlamentar ligado ao usuário'})
+    else:
+        parlamentar = votante.parlamentar
+        context.update({'presente': False})
+        if len(presentes) > 0:
+            for p in presentes:
+                if p.parlamentar.id == parlamentar.id:
+                    context.update({'presente': True})
+                    break
+        else:
+            context.update({'error_message':
+                            'Nenhuma matéria com votação nominal aberta.'})
+
+    # Recupera o voto do parlamentar logado
+    try:
+        voto = VotoNominal.objects.get(
+            sessao=sessao,
+            parlamentar=parlamentar,
+            materia=materia)
+    except ObjectDoesNotExist:
+        context.update({'voto_parlamentar': 'Voto não computado.'})
+    else:
+        context.update({'voto_parlamentar': voto.voto})
+
+    # Salva o voto
+    if request.method == 'POST':
+        try:
+            voto = VotoNominal.objects.get(
+                sessao=sessao,
+                parlamentar=parlamentar,
+                materia=materia)
+        except ObjectDoesNotExist:
+            voto = VotoNominal.objects.create(
+                sessao=sessao,
+                parlamentar=parlamentar,
+                materia=materia,
+                voto=request.POST['voto'],
+                ip=get_client_ip(request),
+                user=request.user)
+        else:
+            voto.voto = request.POST['voto']
+            voto.ip = get_client_ip(request)
+            voto.save()
+        return HttpResponseRedirect(
+            reverse('sapl.painel:voto_individual', kwargs={'pk': pk}))
+
+    return render(request, 'painel/voto_nominal.html', context)
 
 
 @user_passes_test(check_permission)

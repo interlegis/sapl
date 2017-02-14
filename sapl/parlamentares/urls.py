@@ -11,7 +11,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       RelatoriaParlamentarCrud,
                                       SessaoLegislativaCrud,
                                       TipoAfastamentoCrud, TipoDependenteCrud,
-                                      TipoMilitarCrud)
+                                      TipoMilitarCrud, VotanteView)
 
 from .apps import AppConfig
 
@@ -23,7 +23,8 @@ urlpatterns = [
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
-        RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls()
+        RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls() +
+        VotanteView.get_urls()
     )),
 
     url(r'^sistema/coligacao/',
