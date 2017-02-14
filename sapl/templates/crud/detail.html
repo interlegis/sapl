@@ -32,6 +32,9 @@
           {% endif %}
       {% endblock sub_actions %}
 
+      {% block extra_actions %}
+      {% endblock extra_actions %}
+
       <div class="editons pull-right">
         {% block editions %}
           {% if view.update_url or view.delete_url %}

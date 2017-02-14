@@ -1518,7 +1518,13 @@ class VotacaoNominalEditView(SessaoPermissionMixin):
             ordem.votacao_aberta = False
             ordem.save()
 
-            trySessaoPe()
+            try:
+                votacao = VotoParlamentar.objects.filter(
+                    votacao_id=registro.id)
+                for v in votacao:
+                    v.delete()
+            except:
+                pass
 
         return self.form_valid(form)
 

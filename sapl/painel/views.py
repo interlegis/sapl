@@ -88,6 +88,9 @@ def votante_view(request, pk):
                 if p.parlamentar.id == parlamentar.id:
                     context.update({'presente': True})
                     break
+        else:
+            context.update({'error_message':
+                            'Nenhuma matéria com votação nominal aberta.'})
 
     # Recupera o voto do parlamentar logado
     try:

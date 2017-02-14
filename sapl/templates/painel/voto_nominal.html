@@ -64,10 +64,22 @@
       </form>
     </body>
   {% elif not permissao %}
-    <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário sem permissão para participar de votações.</p></font></h2>
+    {% if error_message %}
+      <h2><font color="red"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
+    {% else %}
+      <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário sem permissão para participar de votações.</p></font></h2>
+    {% endif %}
   {% elif not presente %}
-    <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário não presente na Sessão Plenária.</p></font></h2>
+    {% if error_message %}
+      <h2><font color="red"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
+    {% else %}
+      <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário não presente na Sessão Plenária.</p></font></h2>
+    {% endif %}
   {% else %}
-    <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário não presente na Sessão Plenária e sem permissão para votações.</p></font></h2>
+    {% if error_message %}
+      <h2><font color="red"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
+    {% else %}
+      <h2><font color="red"><p align="center" style="font-family:Verdana">Usuário não presente na Sessão Plenária e sem permissão para votações.</p></font></h2>
+    {% endif %}
   {% endif %}
 </html>

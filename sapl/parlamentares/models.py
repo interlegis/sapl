@@ -506,10 +506,9 @@ class Votante(models.Model):
         verbose_name=_('Data'), auto_now_add=True,
         max_length=30, null=True, blank=True)
 
-
     class Meta:
         verbose_name = _('Usuário')
-        verbose_name = _('Usuários')
+        verbose_name_plural = _('Usuários')
 
     def __str__(self):
         return self.user.username

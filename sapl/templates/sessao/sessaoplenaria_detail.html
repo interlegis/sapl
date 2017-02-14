@@ -1,0 +1,14 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+
+{% block extra_actions %}
+{% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
+  <div class="actions btn-group btn-group-sm" role="group">
+    <a href="{% url 'sapl.painel:voto_individual' object.pk %}" class="btn btn-default">
+      Votar Matéria
+    </a>
+  </div>
+{% endif %}
+{% endblock extra_actions %}
