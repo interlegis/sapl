@@ -393,7 +393,7 @@ class VotoNominal(models.Model):
         verbose_name_plural = _('Registros dos Votos dos Parlamentares')
 
     def __str__(self):
-        return self.Parlamentar, self.voto
+        return self.parlamentar, self.voto
 
 
 class SessaoPlenariaPresenca(models.Model):
