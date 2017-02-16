@@ -1,5 +1,6 @@
 from builtins import LookupError
 
+import django
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -7,9 +8,8 @@ from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-import django
+from django.utils.translation import string_concat
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,

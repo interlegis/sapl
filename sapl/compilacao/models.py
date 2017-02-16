@@ -12,8 +12,8 @@ from django.template import defaultfilters
 from django.utils.decorators import classonlymethod
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.compilacao.utils import int_to_letter, int_to_roman,\
-    get_integrations_view_names
+from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
+                                   int_to_roman)
 from sapl.utils import YES_NO_CHOICES, get_settings_auth_user_model
 
 

@@ -7,15 +7,14 @@ from sapl.norma import models as norma
 from sapl.painel import models as painel
 from sapl.parlamentares import models as parlamentares
 from sapl.protocoloadm import models as protocoloadm
-from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
+from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL, RP_LIST,
+                        SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
                         SAPL_GROUP_AUTOR, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_LOGIN_SOCIAL,
                         SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
                         SAPL_GROUP_PAINEL, SAPL_GROUP_PARLAMENTAR,
                         SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
-                        RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE,
                         SAPL_GROUP_VOTANTE)
-
 from sapl.sessao import models as sessao
 
 """
@@ -111,7 +110,8 @@ rules_group_materia = {
             # quando testes forem feitos para permtir que matérias possam
             # ser vinculadas a outras matérias via registro de compilação.
             # Normalmente emendas e/ou projetos substitutivos podem alterar
-            # uma matéria original. Fazer esse registro de compilação ofereceria
+            # uma matéria original.
+            # Fazer esse registro de compilação ofereceria
             # um autografo eletrônico pronto para ser convertido em Norma.
         ])
     ]

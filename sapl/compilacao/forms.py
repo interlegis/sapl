@@ -25,7 +25,6 @@ from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
 from sapl.utils import YES_NO_CHOICES
 
-
 error_messages = {
     'required': _('Este campo é obrigatório'),
     'invalid': _('URL inválida.')

@@ -1,24 +1,24 @@
 import re
+from datetime import date
 
 import pkg_resources
 import yaml
-from datetime import date
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import connections, models, OperationalError, ProgrammingError
-from django.db.models import CharField, TextField, ProtectedError, Max
+from django.db import OperationalError, ProgrammingError, connections, models
+from django.db.models import CharField, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
 from sapl.base.models import Autor, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.norma.models import AssuntoNorma, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo

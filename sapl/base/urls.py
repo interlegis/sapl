@@ -1,17 +1,16 @@
 from django.conf.urls import include, url
 from django.contrib.auth import views
-from django.contrib.auth.views import (password_reset,
-                                       password_reset_done,
-                                       password_reset_confirm,
-                                       password_reset_complete)
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.views import (password_reset, password_reset_complete,
+                                       password_reset_confirm,
+                                       password_reset_done)
 from django.views.generic.base import TemplateView
 
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
+from sapl.settings import EMAIL_SEND_USER
 
 from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
-from sapl.settings import EMAIL_SEND_USER
 from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioAtasView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,

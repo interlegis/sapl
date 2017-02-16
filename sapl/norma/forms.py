@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
@@ -7,7 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm, widgets
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa

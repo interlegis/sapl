@@ -12,7 +12,6 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud)
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import get_client_ip
 
 from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm)
@@ -106,7 +105,8 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
 
         def get_context_data(self, **kwargs):
-            context = CrudBaseForListAndDetailExternalAppView.ListView.get_context_data(self, **kwargs)
+            context = CrudBaseForListAndDetailExternalAppView\
+                            .ListView.get_context_data(self, **kwargs)
             context['title'] = context['title'].replace(
                 'Proposições', 'Matérias')
             return context
@@ -385,8 +385,8 @@ class MesaDiretoraView(FormView):
     def existe_membro_mesa(self, sessao_plenaria, cargo):
         return ComposicaoMesa.objects.filter(
             sessao_legislativa_id=sessao_plenaria.id,
-            #parlamentar_id = integrante.parlamentar_id,
-            cargo_id = cargo.id
+            # parlamentar_id = integrante.parlamentar_id,
+            cargo_id=cargo.id
             ).exists()
 
     def post(self, request, *args, **kwargs):

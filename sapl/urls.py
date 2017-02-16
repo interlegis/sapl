@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.base import RedirectView, TemplateView
 from django.views.static import serve as view_static_server
 
 import sapl.api.urls
@@ -32,7 +32,6 @@ import sapl.parlamentares.urls
 import sapl.protocoloadm.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
-
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html')),

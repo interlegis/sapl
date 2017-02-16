@@ -85,6 +85,7 @@ def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata')
     # return get_sessao_media_path(instance, 'ata', filename)
 
+
 def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='anexo')
     # return get_sessao_media_path(instance, 'anexo', filename)
@@ -171,7 +172,8 @@ class SessaoPlenaria(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and (self.upload_pauta or self.upload_ata or self.upload_anexo):
+        if not self.pk and (self.upload_pauta or
+                            self.upload_ata or self.upload_anexo):
             upload_pauta = self.upload_pauta
             upload_ata = self.upload_ata
             upload_anexo = self.upload_anexo

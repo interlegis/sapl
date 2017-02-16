@@ -1,7 +1,7 @@
-from collections import OrderedDict
-from datetime import datetime, timedelta
 import logging
 import sys
+from collections import OrderedDict
+from datetime import datetime, timedelta
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse_lazy, reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection, transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
@@ -19,8 +19,8 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -37,19 +37,18 @@ from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoSearchModalForm, NotaForm,
                                    PublicacaoForm, TaForm,
                                    TextNotificacoesForm, TipoTaForm, VideForm)
-from sapl.compilacao.models import (Dispositivo, Nota,
+from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
+                                    STATUS_TA_PUBLIC, Dispositivo, Nota,
                                     PerfilEstruturalTextoArticulado,
                                     Publicacao, TextoArticulado,
                                     TipoDispositivo, TipoNota, TipoPublicacao,
                                     TipoTextoArticulado, TipoVide,
-                                    VeiculoPublicacao, Vide, STATUS_TA_EDITION,
-                                    STATUS_TA_PRIVATE, STATUS_TA_PUBLIC)
+                                    VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
-
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')

@@ -1,11 +1,10 @@
-from django.http.response import HttpResponseRedirect
-from django.core.urlresolvers import reverse
 from datetime import date
-from sapl.utils import get_client_ip
 
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
@@ -17,8 +16,11 @@ from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoNominal,
                                 VotoParlamentar)
+from sapl.utils import get_client_ip
 
 from .models import Cronometro
+
+VOTACAO_NOMINAL = 2
 
 CronometroPainelCrud = Crud.build(Cronometro, '')
 
@@ -49,7 +51,7 @@ def votante_view(request, pk):
 
     if ordem_dia:
         materia = ordem_dia.materia
-        if ordem_dia.tipo_votacao == 2:
+        if ordem_dia.tipo_votacao == VOTACAO_NOMINAL:
             context.update({'materia': materia, 'ementa': materia.ementa})
             presentes = PresencaOrdemDia.objects.filter(sessao_plenaria_id=pk)
         else:
@@ -57,7 +59,7 @@ def votante_view(request, pk):
                 {'materia': 'A matéria aberta não é votação nominal.'})
     elif expediente:
         materia = expediente.materia
-        if expediente.tipo_votacao == 2:
+        if expediente.tipo_votacao == VOTACAO_NOMINAL:
             context.update({'materia': materia, 'ementa': materia.ementa})
             presentes = SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=pk)

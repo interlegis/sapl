@@ -1,11 +1,9 @@
 
 import os
 from datetime import date, datetime
-from itertools import chain
 
 import django_filters
-from crispy_forms.bootstrap import (Alert, FormActions, InlineCheckboxes,
-                                    InlineRadios)
+from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Submit)

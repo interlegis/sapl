@@ -1,10 +1,9 @@
 import os
 
-from decouple import Config, RepositoryEnv, AutoConfig
+from decouple import AutoConfig, Config, RepositoryEnv
 from dj_database_url import parse as db_url
 
 from .settings import *  # flake8: noqa
-
 
 config = AutoConfig()
 config.config = Config(RepositoryEnv(os.path.abspath('sapl/legacy/.env')))

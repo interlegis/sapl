@@ -11,13 +11,12 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.models import TextoArticulado,\
-    PerfilEstruturalTextoArticulado
+from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
+                                    TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
-
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
