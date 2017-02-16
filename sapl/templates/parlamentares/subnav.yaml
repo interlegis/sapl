@@ -12,6 +12,7 @@
   url: participacao_parlamentar_list
 - title: {% trans 'Matérias' %}
   url: proposicao_parlamentar_list
+  check_permission: materia.add_proposicao
 - title: {% trans 'Relatorias' %}
   url: relatoria_parlamentar_list
 - title: {% trans 'Frentes' %}
