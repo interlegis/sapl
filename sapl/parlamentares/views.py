@@ -356,10 +356,7 @@ class MesaDiretoraView(FormView):
             legislatura=Legislatura.objects.first()).first(
         )
 
-        if sessao:
-            mesa = sessao.composicaomesa_set.all()
-        else:
-            mesa = []
+        mesa = sessao.composicaomesa_set.all() if sessao else []
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
