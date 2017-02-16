@@ -1,10 +1,10 @@
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
-from django.http.response import HttpResponseRedirect
 
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -104,6 +104,12 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
             return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
 
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
+
+        def get_context_data(self, **kwargs):
+            context = CrudBaseForListAndDetailExternalAppView.ListView.get_context_data(self, **kwargs)
+            context['title'] = context['title'].replace(
+                'Proposições', 'Matérias')
+            return context
 
         def get_queryset(self):
             return super().get_queryset().filter(
