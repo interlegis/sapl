@@ -2104,6 +2104,7 @@ class PautaSessaoDetailView(DetailView):
             materias_ordem.append(mat)
 
         context.update({'materias_ordem': materias_ordem})
+        context.update({'subnav_template_name': 'sessao/pauta_subnav.yaml'})
 
         return self.render_to_response(context)
 

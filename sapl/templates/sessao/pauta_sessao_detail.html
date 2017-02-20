@@ -1,9 +1,8 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block actions %}{% endblock %}
 
-{% block detail_content %}
+{% block base_content %}
 <div align=right><a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' object.id %}">> PDF</a></li></div>
 <fieldset>
 	<legend>Identificação Básica</legend>
@@ -99,4 +98,4 @@
     {% endfor %}
   </table>
 </fieldset>
-{% endblock detail_content %}
+{% endblock base_content %}
