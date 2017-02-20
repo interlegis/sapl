@@ -182,7 +182,7 @@ def expediente_materia(lst_expediente_materia):
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             expediente_materia['nom_resultado'] + '</b></para>\n' + '<para style="P3">' + \
-            expediente_materia['votacao_observacao'] + '</para></td></tr>\n'
+            str(expediente_materia['votacao_observacao']) + '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
