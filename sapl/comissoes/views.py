@@ -42,6 +42,26 @@ class ComposicaoCrud(MasterDetailCrud):
     model_set = 'participacao_set'
     public = [RP_LIST, RP_DETAIL, ]
 
+    class ListView(MasterDetailCrud.ListView):
+        template_name = "comissoes/composicao_list.html"
+        paginate_by = None
+
+        def take_composicao_pk(self):
+            try:
+                return int(self.request.GET['pk'])
+            except:
+                return 0
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['composicao_pk'] = context['composicao_list'].first(
+                ).pk if self.take_composicao_pk(
+                ) == 0 else self.take_composicao_pk()
+            context['participacao_set'] = Participacao.objects.filter(
+                composicao__pk=context['composicao_pk']
+                ).order_by('parlamentar')
+            return context
+
 
 class ComissaoCrud(Crud):
     model = Comissao
