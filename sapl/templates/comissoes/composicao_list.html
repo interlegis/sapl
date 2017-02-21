@@ -58,8 +58,8 @@
         <td>{{p.cargo}}</td>
         <td>{{p.titular|yesno:"Sim,Não"}}</td>
         <td>{{p.data_designacao}}</td>
-        <td>{{p.data_desligamento}}</td>
-        <td>{{p.motivo}}</td>
+        <td>{{p.data_desligamento|default:""}}</td>
+        <td>{{p.motivo_desligamento}}</td>
         <td>{{p.observacao}}</td>
       </tr>
       {% endfor %}
