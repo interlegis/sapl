@@ -2033,6 +2033,9 @@ class PautaSessaoDetailView(DetailView):
             ementa = m.observacao
             titulo = m.materia
             numero = m.numero_ordem
+            situacao = m.materia.tramitacao_set.last().status
+            if situacao is None:
+                situacao = _("Não informada")
 
             if m.resultado:
                 resultado = m.resultado
@@ -2047,6 +2050,7 @@ class PautaSessaoDetailView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'situacao': situacao,
                    'autor': autor
                    }
             materias_expediente.append(mat)
