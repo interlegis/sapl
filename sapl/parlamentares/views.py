@@ -1,5 +1,5 @@
-
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -301,9 +301,15 @@ class ParlamentarCrud(Crud):
 
             legislatura_id = self.take_legislatura_id()
             if legislatura_id != 0:
-                queryset = queryset.filter(
+                return queryset.filter(
                     mandato__legislatura_id=legislatura_id)
-            return queryset
+            else:
+                try:
+                    l = Legislatura.objects.all().order_by('-data_inicio').first().pk
+                except ObjectDoesNotExist:
+                    return []
+                else:
+                    return queryset.filter(mandato__legislatura_id=l)
 
         def get_headers(self):
             return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
