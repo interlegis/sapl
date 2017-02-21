@@ -23,6 +23,7 @@ from django_filters.views import FilterView
 
 import sapl
 from sapl.base.models import Autor, CasaLegislativa
+from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_EDITION,
                                     STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
@@ -36,6 +37,7 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, ProposicaoForm,
                                 TipoProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
+from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
@@ -779,6 +781,21 @@ class RelatoriaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            comissao = Comissao.objects.get(
+                pk=context['form'].initial['comissao'])
+            composicao = comissao.composicao_set.last()
+            participacao = Participacao.objects.filter(composicao=composicao)
+
+            parlamentares = []
+            for p in participacao:
+                parlamentares.append(
+                    [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+            context['form'].fields['parlamentar'].choices = parlamentares
+
+            return context
 
         def get_initial(self):
             materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
