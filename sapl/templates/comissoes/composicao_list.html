@@ -20,7 +20,7 @@
 		<form method="GET">
 			<select name="pk" class="form-control" onChange="form.submit();">
 				{% for c in composicao_list %}
-					<option value="{{c.id}}">
+					<option value="{{c.id}}" {% if composicao_pk == c.id %} selected {% endif %}>
 						{{c}}
 					</option>
 				{% endfor %}
