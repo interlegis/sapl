@@ -39,7 +39,7 @@
             {% if principais|length > 0 %}
               {% for p in principais %}
                 <div class="form-control-static">
-                 <b>{{ p.tipo_vinculo.descricao_passiva }}</b>&nbsp;
+                 <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
                   <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
                    {{ p.norma_relacionada }}
                  </a>
@@ -50,7 +50,7 @@
             {% if relacionadas|length > 0 %}
               {% for r in relacionadas %}
                 <div class="form-control-static">
-                  <b>{{ r.tipo_vinculo.descricao_ativa }}</b>&nbsp;
+                  <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
                   <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
                   {{ r.norma_principal }}
                   </a>
