@@ -50,9 +50,9 @@ LegislacaoCitadaDetail:
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
 
-VinculoNormaJuridica:
+TipoVinculoNormaJuridica:
   {% trans 'Tipo de Vínculo entre Normas Jurídicas' %}:
-  - sigla:2 descricao
+  - sigla:2 descricao_ativa descricao_passiva
 
 NormaRelacionada:
   {% trans 'Norma Relacionada' %}:

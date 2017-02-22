@@ -223,7 +223,7 @@ rules_group_geral = {
 
         (norma.AssuntoNorma, __base__),
         (norma.TipoNormaJuridica, __base__),
-        (norma.VinculoNormaJuridica, __base__),
+        (norma.TipoVinculoNormaJuridica, __base__),
 
         (parlamentares.Legislatura, __base__),
         (parlamentares.SessaoLegislativa, __base__),

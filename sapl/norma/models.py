@@ -181,18 +181,20 @@ class LegislacaoCitada(models.Model):
         return str(self.norma)
 
 
-class VinculoNormaJuridica(models.Model):
+class TipoVinculoNormaJuridica(models.Model):
     sigla = models.CharField(
         max_length=1, blank=True, verbose_name=_('Sigla'))
-    descricao = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Descrição'))
+    descricao_ativa = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Descrição Ativa'))
+    descricao_passiva = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Descrição Passiva'))
 
     class Meta:
         verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')
         verbose_name_plural = _('Tipos de Vínculos entre Normas Jurídicas')
 
     def __str__(self):
-        return self.descricao
+        return self.descricao_ativa
 
 
 class NormaRelacionada(models.Model):
@@ -205,7 +207,7 @@ class NormaRelacionada(models.Model):
         related_name='norma_relacionada',
         verbose_name=_('Norma Relacionada'))
     tipo_vinculo = models.ForeignKey(
-        VinculoNormaJuridica, verbose_name=_('Tipo de Vínculo'))
+        TipoVinculoNormaJuridica, verbose_name=_('Tipo de Vínculo'))
 
     class Meta:
         verbose_name = _('Norma Relacionada')

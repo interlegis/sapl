@@ -15,7 +15,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
 
 from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica, VinculoNormaJuridica)
+                     TipoNormaJuridica, TipoVinculoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
@@ -25,8 +25,9 @@ AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
 TipoNormaCrud = CrudAux.build(
     TipoNormaJuridica, 'tipo_norma_juridica',
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
-VinculoNormaJuridicaCrud = CrudAux.build(
-    VinculoNormaJuridica, '', list_field_names=['sigla', 'descricao'])
+TipoVinculoNormaJuridicaCrud = CrudAux.build(
+    TipoVinculoNormaJuridica, '',
+    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva'])
 
 
 class NormaRelacionadaCrud(MasterDetailCrud):
@@ -127,6 +128,18 @@ class NormaCrud(Crud):
         def search_url(self):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
+
+    class DetailView(Crud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            principais = NormaRelacionada.objects.filter(
+                norma_principal=self.object.pk)
+            relacionadas = NormaRelacionada.objects.filter(
+                norma_relacionada=self.object.pk)
+            context['principais'] = principais
+            context['relacionadas'] = relacionadas
+            return context
 
     class DeleteView(Crud.DeleteView):
 
