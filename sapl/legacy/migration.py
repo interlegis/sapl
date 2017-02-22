@@ -1,14 +1,15 @@
 import re
 from datetime import date
 
+from subprocess import call, PIPE
 import pkg_resources
 import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import OperationalError, ProgrammingError, connections, models
-from django.db.models import CharField, Max, ProtectedError, TextField
+from django.db import connections, models, OperationalError, ProgrammingError
+from django.db.models import CharField, TextField, ProtectedError, Max, signals
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
@@ -26,6 +27,7 @@ from sapl.norma.models import AssuntoNorma, NormaJuridica, VinculoNormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
+from sapl.rules.apps import revision_pre_delete_signal
 from sapl.utils import normalize
 
 # BASE ######################################################################
@@ -381,12 +383,17 @@ class DataMigrator:
     def migrate(self, obj=appconfs):
         # warning: model/app migration order is of utmost importance
         self.to_delete = []
-        Revision.objects.all().delete()
-        Version.objects.all().delete()
-        VinculoNormaJuridica.objects.all().delete()
-        ProblemaMigracao.objects.all().delete()
         exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
-        get_user_model().objects.exclude(is_superuser=True).delete()
+        with desconecta_revisao_delete(
+                signal=signals.pre_delete,
+                receiver=revision_pre_delete_signal,
+                senders=[VinculoNormaJuridica,
+                         ProblemaMigracao, get_user_model()]):
+            VinculoNormaJuridica.objects.all().delete()
+            ProblemaMigracao.objects.all().delete()
+            get_user_model().objects.exclude(is_superuser=True).delete()
+            Revision.objects.all().delete()
+            Version.objects.all().delete()
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
@@ -395,26 +402,19 @@ class DataMigrator:
         while self.to_delete:
             for obj in self.to_delete:
                 try:
-                    with reversion.create_revision():
-                        obj.delete()
-                        self.to_delete.remove(obj)
-                        reversion.set_comment(
-                            'Objeto com ind_excluido deletado')
+                    obj.delete()
+                    self.to_delete.remove(obj)
                 except ProtectedError:
-                    with reversion.create_revision():
-                        msg = 'A entrada de PK %s da model %s não pode ser ' \
-                            'excluida' % (obj.pk, obj._meta.model_name)
-                        descricao = 'Um ou mais objetos protegidos '
-                        warn(msg + ' => ' + descricao)
-                        save_relation(obj=obj, problema=msg,
-                                      descricao=descricao, eh_stub=False)
-                        reversion.set_comment('Objeto excluído pela migração')
+                    msg = 'A entrada de PK %s da model %s não pode ser ' \
+                        'excluida' % (obj.pk, obj._meta.model_name)
+                    descricao = 'Um ou mais objetos protegidos '
+                    warn(msg + ' => ' + descricao)
+                    save_relation(obj=obj, problema=msg,
+                                  descricao=descricao, eh_stub=False)
 
         info('Deletando stubs desnecessários...')
-        with reversion.create_revision():
-            while self.delete_stubs():
-                pass
-            reversion.set_comment('Stub desnecessário excluido')
+        while self.delete_stubs():
+            pass
         info('Recriando unique constraints...')
         # recreate_constraints()
 
@@ -448,8 +448,16 @@ class DataMigrator:
         # Clear all model entries
         # They may have been created in a previous migration attempt
         try:
+            # with desconecta_revisao_delete(
+            #         signal=signals.pre_delete,
+            #         receiver=revision_pre_delete_signal,
+            #         senders=[model]):
             model.objects.all().delete()
         except ProtectedError:
+            # with desconecta_revisao_delete(
+            #         signal=signals.pre_delete,
+            #         receiver=revision_pre_delete_signal,
+            #         senders=[model, Proposicao]):
             Proposicao.objects.all().delete()
             model.objects.all().delete()
         delete_constraints(model)
@@ -498,17 +506,13 @@ class DataMigrator:
                 original = obj.content_type.get_all_objects_for_this_type(
                     id=obj.object_id)
                 if stub_desnecessario(original[0]):
-                    with reversion.create_revision():
-                        qtd_exclusoes, *_ = original.delete()
-                        assert qtd_exclusoes == 1
-                        qtd_exclusoes, *_ = obj.delete()
-                        assert qtd_exclusoes == 1
-                        excluidos = excluidos + 1
-                        reversion.set_comment('Stub desnecessario excluido')
-            elif not obj.content_object and not obj.eh_stub:
-                with reversion.create_revision():
+                    qtd_exclusoes, *_ = original.delete()
+                    assert qtd_exclusoes == 1
                     qtd_exclusoes, *_ = obj.delete()
-                    reversion.set_comment('Stub desnecessário excluido')
+                    assert qtd_exclusoes == 1
+                    excluidos = excluidos + 1
+            elif not obj.content_object and not obj.eh_stub:
+                qtd_exclusoes, *_ = obj.delete()
                 assert qtd_exclusoes == 1
                 excluidos = excluidos + 1
         return excluidos
@@ -710,3 +714,39 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
+
+# DISCONNECT SIGNAL TO DELETE ################################################
+
+
+class desconecta_revisao_delete():
+    def __init__(self, signal, receiver, senders=[], dispatch_uid=None):
+        self.signal = signal
+        self.receiver = receiver
+        self.senders = senders
+        self.dispatch_uid = dispatch_uid
+
+    def disconnect_signal(self, model):
+        self.signal.disconnect(
+            receiver=self.receiver,
+            sender=model,
+            dispatch_uid=self.dispatch_uid,
+            weak=False,)
+
+    def connect_signal(self, model):
+        self.signal.connect(
+            receiver=self.receiver,
+            sender=model,
+            dispatch_uid=self.dispatch_uid,
+            weak=False,)
+
+    def __enter__(self):
+        for sender in self.senders:
+            self.disconnect_signal(sender)
+            for related in sender._meta.get_all_related_objects_with_model():
+                self.disconnect_signal(related[0].related_model)
+
+    def __exit__(self, type, value, traceback):
+        for sender in self.senders:
+            self.connect_signal(sender)
+            for related in sender._meta.get_all_related_objects_with_model():
+                self.connect_signal(related[0].related_model)
