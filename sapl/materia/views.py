@@ -784,16 +784,21 @@ class RelatoriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            comissao = Comissao.objects.get(
-                pk=context['form'].initial['comissao'])
-            composicao = comissao.composicao_set.last()
-            participacao = Participacao.objects.filter(composicao=composicao)
+            try:
+                comissao = Comissao.objects.get(
+                    pk=context['form'].initial['comissao'])
+            except ObjectDoesNotExist:
+                pass
+            else:
+                composicao = comissao.composicao_set.last()
+                participacao = Participacao.objects.filter(
+                    composicao=composicao)
 
-            parlamentares = []
-            for p in participacao:
-                parlamentares.append(
-                    [p.parlamentar.id, p.parlamentar.nome_parlamentar])
-            context['form'].fields['parlamentar'].choices = parlamentares
+                parlamentares = []
+                for p in participacao:
+                    parlamentares.append(
+                        [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                context['form'].fields['parlamentar'].choices = parlamentares
 
             return context
 
