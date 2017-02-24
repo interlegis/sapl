@@ -27,7 +27,6 @@ from sapl.norma.models import AssuntoNorma, NormaJuridica, VinculoNormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
-from sapl.rules.apps import revision_pre_delete_signal
 from sapl.utils import normalize
 
 # BASE ######################################################################
@@ -382,18 +381,22 @@ class DataMigrator:
 
     def migrate(self, obj=appconfs):
         # warning: model/app migration order is of utmost importance
-        self.to_delete = []
         exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
-        with desconecta_revisao_delete(
-                signal=signals.pre_delete,
-                receiver=revision_pre_delete_signal,
-                senders=[VinculoNormaJuridica,
-                         ProblemaMigracao, get_user_model()]):
-            VinculoNormaJuridica.objects.all().delete()
-            ProblemaMigracao.objects.all().delete()
-            get_user_model().objects.exclude(is_superuser=True).delete()
-            Revision.objects.all().delete()
-            Version.objects.all().delete()
+        self.to_delete = []
+
+        # excluindo database antigo.
+        info('Todos os dados do banco serão excluidos. '
+             'Recomendamos que faça backup do banco sapl antes de continuar.')
+        info('Deseja continuar? [s/n]')
+        resposta = input()
+        if resposta.lower() in ['s', 'sim', 'y', 'yes']:
+            pass
+        else:
+            info('Migração cancelada.')
+            return 0
+        info('Excluindo entradas antigas do banco.')
+        call(['./manage.py', 'flush', '--settings=sapl.settings',
+              '--database=default', '--no-input'], stdout=PIPE)
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
@@ -714,39 +717,3 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
-
-# DISCONNECT SIGNAL TO DELETE ################################################
-
-
-class desconecta_revisao_delete():
-    def __init__(self, signal, receiver, senders=[], dispatch_uid=None):
-        self.signal = signal
-        self.receiver = receiver
-        self.senders = senders
-        self.dispatch_uid = dispatch_uid
-
-    def disconnect_signal(self, model):
-        self.signal.disconnect(
-            receiver=self.receiver,
-            sender=model,
-            dispatch_uid=self.dispatch_uid,
-            weak=False,)
-
-    def connect_signal(self, model):
-        self.signal.connect(
-            receiver=self.receiver,
-            sender=model,
-            dispatch_uid=self.dispatch_uid,
-            weak=False,)
-
-    def __enter__(self):
-        for sender in self.senders:
-            self.disconnect_signal(sender)
-            for related in sender._meta.get_all_related_objects_with_model():
-                self.disconnect_signal(related[0].related_model)
-
-    def __exit__(self, type, value, traceback):
-        for sender in self.senders:
-            self.connect_signal(sender)
-            for related in sender._meta.get_all_related_objects_with_model():
-                self.connect_signal(related[0].related_model)
