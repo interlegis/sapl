@@ -14,7 +14,7 @@ Atualizar o sistema::
  ::
 
     sudo apt-get update
-  
+
     sudo apt-get upgrade
 
 
@@ -46,16 +46,16 @@ Instalar o virtualenv usando python 3 para o projeto.
     sudo pip3 install virtualenvwrapper
 
     sudo mkdir -p /var/interlegis/.virtualenvs
-    
-* Ajustar as permissões - onde sapl31 trocar por usuario::    
-    
+
+* Ajustar as permissões - onde sapl31 trocar por usuario::
+
     sudo chown -R sapl31:sapl31 /var/interlegis/
-        
+
 
 * Edite o arquivo ``.bashrc`` e adicione ao seu final as configurações abaixo para o virtualenvwrapper::
-    
-    nano /home/sapl31/.bashrc    
-    
+
+    nano /home/sapl31/.bashrc
+
     export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
     export WORKON_HOME=/var/interlegis/.virtualenvs
     export PROJECT_HOME=/var/interlegis
@@ -63,7 +63,7 @@ Instalar o virtualenv usando python 3 para o projeto.
 
 
 * Carregue as configurações do virtualenvwrapper::
-    
+
     source /home/sapl31/.bashrc
 
 
@@ -109,30 +109,30 @@ Instalação e configuração das dependências do projeto
 * **Configurar Postgresql**::
 
    sudo -u postgres psql -c "CREATE ROLE sapl LOGIN ENCRYPTED PASSWORD 'sapl' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;"
-   
+
    sudo -u postgres psql -c "ALTER ROLE sapl VALID UNTIL 'infinity';"
-   
-   sudo -u postgres psql -c "CREATE DATABASE sapl WITH OWNER = sapl ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'pt_BR.UTF-8' LC_CTYPE = 'pt_BR.UTF-8' CONNECTION LIMIT = -1;"
+
+   sudo -u postgres psql -c "CREATE DATABASE sapl WITH OWNER = sapl ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'pt_BR.UTF-8' LC_CTYPE = 'pt_BR.UTF-8' CONNECTION LIMIT = -1 TEMPLATE template0;"
 
   * Se você possui uma cópia da base de dados do SAPL, essa é a hora para restaurá-la.
   * Obs: no ambiente de desenvolvimento, a role deve ter permissão para criar outro banco. Isso é usado pelos testes automatizados.
   * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
 
-* **Ajustar as permissões - onde sapl31 trocar por usuario**::    
-    
+* **Ajustar as permissões - onde sapl31 trocar por usuario**::
+
     sudo chown -R sapl31:sapl31 /var/interlegis/
 
 
 
 * **Configurar arquivo .env**::
-  
-  
+
+
 Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#std:setting-SECRET_KEY>`_:
 
 
 * **Criar o arquivo ``.env`` dentro da pasta /var/interlegis/sapl/sapl/.env**::
-    
+
     nano /var/interlegis/sapl/sapl/.env
 
       DATABASE_URL = postgresql://USER:PASSWORD@HOST:PORT/NAME
@@ -148,7 +148,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
 
 
     * Uma configuração mínima para atender os procedimentos acima seria::
-        
+
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
         SECRET_KEY = 'cole aqui entre as aspas simples a chave gerada pelo comando abaixo'
         DEBUG = True
@@ -157,8 +157,8 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
         EMAIL_HOST =
         EMAIL_HOST_USER =
         EMAIL_HOST_PASSWORD =
-        DEFAULT_FROM_EMAIL = 
-        SERVER_EMAIL = 
+        DEFAULT_FROM_EMAIL =
+        SERVER_EMAIL =
 
 
 
@@ -168,8 +168,8 @@ Rodar o comando abaixo, um detalhe importante, esse comando só funciona com o d
     python manage.py generate_secret_key
 
 Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetro SECRET_KEY.
- 
- 
+
+
 * Posicionar-se no diretorio do Projeto::
 
     cd /var/interlegis/sapl
