@@ -23,7 +23,8 @@ from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.norma.models import AssuntoNorma, NormaJuridica, VinculoNormaJuridica
+from sapl.norma.models import (AssuntoNorma, NormaJuridica,
+                               TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria

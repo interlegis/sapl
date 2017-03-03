@@ -42,7 +42,8 @@ LegislacaoCitada:
   subsecao: des_subsecao
   titulo: des_titulo
 
-VinculoNormaJuridica:
-  norma_referente: cod_norma_referente
-  norma_referida: cod_norma_referida
-  tipo_vinculo: tip_vinculo
+# TODO Descomentar quando a issue #832 for concluida
+# TipoVinculoNormaJuridica (VinculoNormaJuridica):
+#   norma_referente: cod_norma_referente
+#   norma_referida: cod_norma_referida
+#   tipo_vinculo: tip_vinculo

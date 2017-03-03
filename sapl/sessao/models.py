@@ -177,13 +177,8 @@ class SessaoPlenaria(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-<<<<<<< 0d281b8f594224dfa3ede0c7e6ccb32395bdfe42
-        if not self.pk and (self.upload_pauta or
-                            self.upload_ata or self.upload_anexo):
-=======
         if not self.pk and (self.upload_pauta or self.upload_ata or
                             self.upload_anexo):
->>>>>>> Migra usando django-reversion
             upload_pauta = self.upload_pauta
             upload_ata = self.upload_ata
             upload_anexo = self.upload_anexo
