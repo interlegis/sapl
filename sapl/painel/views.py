@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
-from django.http.response import HttpResponseRedirect
+from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
@@ -32,6 +32,9 @@ def check_permission(user):
 
 
 def votante_view(request, pk):
+    if not Votante.objects.filter(user=request.user).exists():
+        raise Http404('Você não tem permissão para votar')
+
     context = {'head_title': str(_('Votação Individual')), 'sessao_id': pk}
 
     # Pega sessão
