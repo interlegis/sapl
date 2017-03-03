@@ -781,6 +781,7 @@ class RelatoriaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
@@ -796,8 +797,9 @@ class RelatoriaCrud(MasterDetailCrud):
 
                 parlamentares = []
                 for p in participacao:
-                    parlamentares.append(
-                        [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                    if p.titular:
+                        parlamentares.append(
+                            [p.parlamentar.id, p.parlamentar.nome_parlamentar])
                 context['form'].fields['parlamentar'].choices = parlamentares
 
             return context
