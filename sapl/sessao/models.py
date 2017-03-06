@@ -8,7 +8,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        get_settings_auth_user_model)
 
 
 class CargoBancada(models.Model):
@@ -385,7 +386,7 @@ class VotoNominal(models.Model):
     sessao = models.ForeignKey(SessaoPlenaria)
     materia = models.ForeignKey(MateriaLegislativa)
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(get_settings_auth_user_model())
     ip = models.CharField(verbose_name=_('IP'), max_length=30)
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'), auto_now_add=True)

@@ -8,7 +8,8 @@ from model_utils import Choices
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         SaplGenericRelation, intervalos_tem_intersecao,
-                        restringe_tipos_de_arquivo_img)
+                        restringe_tipos_de_arquivo_img,
+                        get_settings_auth_user_model)
 
 
 class Legislatura(models.Model):
@@ -501,7 +502,9 @@ class Frente(models.Model):
 class Votante(models.Model):
     parlamentar = models.ForeignKey(
         Parlamentar, verbose_name=_('Parlamentar'), related_name='parlamentar')
-    user = models.ForeignKey(User, verbose_name=_('User'), related_name='user')
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('User'), related_name='user')
     data = models.DateTimeField(
         verbose_name=_('Data'), auto_now_add=True,
         max_length=30, null=True, blank=True)
