@@ -86,6 +86,7 @@ rules_group_comissoes = {
         (comissoes.Comissao, __base__),
         (comissoes.Composicao, __base__),
         (comissoes.Participacao, __base__),
+        (materia.Relatoria, __base__),
     ]
 }
 
@@ -99,9 +100,7 @@ rules_group_materia = {
 
         (materia.MateriaLegislativa, __base__),
         (materia.Numeracao, __base__),
-        (materia.Relatoria, __base__),
         (materia.Tramitacao, __base__),
-        (materia.Relatoria, __base__),
         (norma.LegislacaoCitada, __base__),
         (compilacao.Dispositivo, __base__ + [
             'change_dispositivo_edicao_dinamica',
