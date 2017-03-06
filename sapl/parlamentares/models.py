@@ -9,7 +9,7 @@ from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         SaplGenericRelation, intervalos_tem_intersecao,
                         restringe_tipos_de_arquivo_img,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model, texto_upload_path)
 
 
 class Legislatura(models.Model):
@@ -189,12 +189,8 @@ class SituacaoMilitar(models.Model):
         return self.descricao
 
 
-def get_foto_media_path(instance, subpath, filename):
-    return './sapl/parlamentar/%s/%s/%s' % (instance, subpath, filename)
-
-
 def foto_upload_path(instance, filename):
-    return get_foto_media_path(instance, 'foto', filename)
+    return texto_upload_path(instance, filename, subpath='')
 
 
 class Parlamentar(models.Model):
@@ -272,6 +268,7 @@ class Parlamentar(models.Model):
     biografia = models.TextField(
         blank=True, verbose_name=_('Biografia'))
     # XXX Esse atribuito foi colocado aqui para não atrapalhar a migração
+
     fotografia = models.ImageField(
         blank=True,
         null=True,
@@ -311,6 +308,30 @@ class Parlamentar(models.Model):
     def avatar_html(self):
         return '<img class="avatar-parlamentar" src='\
             + self.fotografia.url + '>'if self.fotografia else ''
+
+    def delete(self, using=None, keep_parents=False):
+        if self.fotografia:
+            self.fotografia.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.fotografia:
+            fotografia = self.fotografia
+            self.fotografia = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.fotografia = fotografia
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 class TipoDependente(models.Model):

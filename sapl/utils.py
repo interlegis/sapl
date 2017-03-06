@@ -1,12 +1,10 @@
-import hashlib
-import logging
-import re
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+import hashlib
+import logging
+import re
 
-import django_filters
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -16,11 +14,15 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
+import django_filters
+import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
+
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -598,8 +600,15 @@ def texto_upload_path(instance, filename, subpath=''):
     if subpath and '/' not in subpath:
         subpath = subpath + '/'
 
+    """ TODO: Verifique possibilidade de otimização do código de normalização
+    do filename...
+    Não use slugify... arquivos,
+    geralmente, possuem [.][alguma extensão]
+    Slugify retira esse ponto...
+    """
     filename = re.sub('[^a-zA-Z0-9.]', '-', filename).strip('-').lower()
     filename = re.sub('[-]+', '-', filename)
+
     path = './sapl/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' % {
         'model_name': instance._meta.model_name,
         'pk': instance.pk,
