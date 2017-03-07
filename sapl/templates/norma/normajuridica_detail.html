@@ -36,8 +36,9 @@
       <div class="row-fluid">
         <div class="col-sm-12">
           <p class="control-label">Relacionamentos</p>
-            {% if principais|length > 0 %}
-              {% for p in principais %}
+
+            {% if object.get_normas_relacionadas.0|length > 0 %}
+              {% for p in object.get_normas_relacionadas.0 %}
                 <div class="form-control-static">
                  <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
                   <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
@@ -47,8 +48,8 @@
               {% endfor %}
             {% endif %}
 
-            {% if relacionadas|length > 0 %}
-              {% for r in relacionadas %}
+            {% if object.get_normas_relacionadas.1|length > 0 %}
+              {% for r in object.get_normas_relacionadas.1 %}
                 <div class="form-control-static">
                   <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
                   <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">

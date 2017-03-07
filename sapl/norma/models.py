@@ -114,6 +114,13 @@ class NormaJuridica(models.Model):
         verbose_name_plural = _('Normas Jurídicas')
         ordering = ['-data', '-numero']
 
+    def get_normas_relacionadas(self):
+        principais = NormaRelacionada.objects.filter(
+                norma_principal=self.id)
+        relacionadas = NormaRelacionada.objects.filter(
+                norma_relacionada=self.id)
+        return (principais, relacionadas)
+
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(data)s') % {
             'tipo': self.tipo,

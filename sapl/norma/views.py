@@ -130,16 +130,7 @@ class NormaCrud(Crud):
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
     class DetailView(Crud.DetailView):
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            principais = NormaRelacionada.objects.filter(
-                norma_principal=self.object.pk)
-            relacionadas = NormaRelacionada.objects.filter(
-                norma_relacionada=self.object.pk)
-            context['principais'] = principais
-            context['relacionadas'] = relacionadas
-            return context
+        pass
 
     class DeleteView(Crud.DeleteView):
 
