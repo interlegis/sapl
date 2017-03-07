@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
@@ -40,6 +40,36 @@ DocumentoAcessorioAdministrativoCrud = Crud.build(
     DocumentoAcessorioAdministrativo, '')
 
 
+def doc_texto_integral(request, pk):
+    can_see = True
+
+    if not request.user.is_authenticated():
+        app_config = sapl.base.models.AppConfig.objects.last()
+        if app_config and app_config.documentos_administrativos == 'R':
+            can_see = False
+
+    if can_see:
+        documento = DocumentoAdministrativo.objects.get(pk=pk)
+        if documento.texto_integral:
+            arquivo = documento.texto_integral
+
+            ext = arquivo.name.split('.')[-1]
+            mime = ''
+            if ext == 'odt':
+                mime = 'application/vnd.oasis.opendocument.text'
+            else:
+                mime = "application/%s" % (ext,)
+
+            with open(arquivo.path, 'rb') as f:
+                data = f.read()
+
+            response = HttpResponse(data, content_type='%s' % mime)
+            response['Content-Disposition'] = (
+                'inline; filename="%s"' % arquivo.name.split('/')[-1])
+            return response
+    raise Http404
+
+
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
@@ -63,7 +93,13 @@ class DocumentoAdministrativoCrud(Crud):
         pass
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
-        pass
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            self.layout_display[0]['rows'][-1][0]['text'] = (
+                '<a href="%s"></a>' % reverse(
+                    'sapl.protocoloadm:doc_texto_integral',
+                    kwargs={'pk': self.object.pk}))
+            return context
 
 
 class StatusTramitacaoAdministrativoCrud(CrudAux):

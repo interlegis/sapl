@@ -16,7 +16,7 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-                                     TramitacaoAdmCrud)
+                                     TramitacaoAdmCrud, doc_texto_integral)
 
 from .apps import AppConfig
 
@@ -38,6 +38,9 @@ urlpatterns_documento_administrativo = [
     url(r'^docadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
         DocumentoAcessorioAdministrativoEditView.as_view(),
         name='doc_ace_adm_edit'),
+
+    url(r'^doc/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
+        name='doc_texto_integral'),
 ]
 
 urlpatterns_protocolo = [
