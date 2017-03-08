@@ -49,24 +49,27 @@
             <td>{{n.data}}</td>
             <td>{{n.ementa|safe}}</td>
             <td>
-                {% for p in n.get_normas_relacionadas.0 %}
-                  <div>
-                   <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
-                    <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
-                     {{ p.norma_relacionada }}
-                   </a>
-                  </div>
-                {% endfor %}
-                {% for r in n.get_normas_relacionadas.1 %}
-                <div>
-                  <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
-                    <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
-                      {{ r.norma_principal }}
-                    </a>
-              </div>
-            {% endfor %}
+                {% if n.get_normas_relacionadas.0|length == 0 and n.get_normas_relacionadas.1|length == 0%}
+                   Norma sem alterações posteriores.
+                {% else %}
+                  {% for p in n.get_normas_relacionadas.0 %}
+                    <div>
+                      <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
+                        <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
+                          {{ p.norma_relacionada }}
+                        </a>
+                    </div>
+                  {% endfor %}
+                  {% for r in n.get_normas_relacionadas.1 %}
+                    <div>
+                      <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
+                        <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
+                          {{ r.norma_principal }}
+                        </a>
+                    </div>
+                  {% endfor %}
+              {% endif %}
             </td>
-
     			</tr>
     		{% endfor %}
     	</table>
