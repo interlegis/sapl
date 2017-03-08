@@ -8,7 +8,6 @@ from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.painel.models import Painel

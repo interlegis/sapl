@@ -8,8 +8,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model,
+                        restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
 class CargoBancada(models.Model):

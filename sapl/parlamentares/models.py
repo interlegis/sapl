@@ -7,9 +7,9 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
-                        SaplGenericRelation, intervalos_tem_intersecao,
-                        restringe_tipos_de_arquivo_img,
-                        get_settings_auth_user_model, texto_upload_path)
+                        SaplGenericRelation, get_settings_auth_user_model,
+                        intervalos_tem_intersecao,
+                        restringe_tipos_de_arquivo_img, texto_upload_path)
 
 
 class Legislatura(models.Model):
