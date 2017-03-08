@@ -590,16 +590,38 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous():
             self.template_name = 'painel/index.html'
+
         return TemplateView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        cronometro_discurso = AppsAppConfig.attr('cronometro_discurso')
+        cronometro_aparte = AppsAppConfig.attr('cronometro_aparte')
+        cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
+
+        if not cronometro_discurso or not cronometro_aparte or not cronometro_ordem:
+            msg = _(
+                'Você precisa primeiro configurar os cronômetros nas Configurações da Aplicação')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+        else:
+            m, s, x = cronometro_discurso.isoformat().split(':')
+            cronometro_discurso = int(m) * 60 + int(s)
+
+            m, s, x = cronometro_aparte.isoformat().split(':')
+            cronometro_aparte = int(m) * 60 + int(s)
+
+            m, s, x = cronometro_ordem.isoformat().split(':')
+            cronometro_ordem = int(m) * 60 + int(s)
 
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
             'sessao_id': kwargs['pk'],
             'root_pk': kwargs['pk'],
-            'sessaoplenaria': SessaoPlenaria.objects.get(pk=kwargs['pk'])})
+            'sessaoplenaria': SessaoPlenaria.objects.get(pk=kwargs['pk']),
+            'cronometro_discurso': cronometro_discurso,
+            'cronometro_aparte': cronometro_aparte,
+            'cronometro_ordem': cronometro_ordem})
 
         return context
 

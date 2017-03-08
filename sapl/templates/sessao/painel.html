@@ -21,6 +21,7 @@
     <div class="col-md-6"><a href="{% url 'sapl.painel:painel_controlador' %}" class="btn btn-primary btn-sm active">Controlador Painel</a></div>
   </div>
 	<br />
+
 	<h1>Operação do Painel Eletrônico</h1>
 	<h2><span id="relogio"></span></h2>
 	<br />
@@ -101,7 +102,7 @@ $(function() {
     $('#discurso').runner({
         autostart: false,
         countdown: true,
-        startAt: 60 * 5 * 1000,
+        startAt: {{cronometro_discurso}} * 1000,
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
@@ -156,7 +157,7 @@ $(function() {
     $('#aparte').runner({
         autostart: false,
         countdown: true,
-        startAt: 60 * 3 * 1000,
+        startAt: {{cronometro_aparte}} * 1000,
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
@@ -210,7 +211,7 @@ $(function() {
     $('#ordem').runner({
         autostart: false,
         countdown: true,
-        startAt: 60 * 2 * 1000,
+        startAt: {{cronometro_ordem}} * 1000,
         stopAt: 0,
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){

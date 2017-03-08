@@ -20,6 +20,9 @@ AppConfig:
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
 
+  {% trans 'Cronômetros do Painel' %}:
+  - cronometro_discurso cronometro_aparte cronometro_ordem
+
 TipoAutor:
   {% trans 'Tipo Autor' %}:
   - content_type:4 descricao

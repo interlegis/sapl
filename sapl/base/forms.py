@@ -694,7 +694,16 @@ class ConfiguracoesAppForm(ModelForm):
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',
                   'texto_articulado_norma',
-                  'proposicao_incorporacao_obrigatoria']
+                  'proposicao_incorporacao_obrigatoria',
+                  'cronometro_discurso',
+                  'cronometro_aparte',
+                  'cronometro_ordem']
+
+    def __init__(self, *args, **kwargs):
+        super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
+        self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
+        self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
+        self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
 
 
 class RecuperarSenhaForm(PasswordResetForm):
