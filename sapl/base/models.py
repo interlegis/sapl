@@ -114,6 +114,21 @@ class AppConfig(models.Model):
         verbose_name=_('Regra de incorporação de proposições e protocolo'),
         max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
 
+    cronometro_discurso = models.TimeField(
+        verbose_name=_('Cronômetro do Discurso'),
+        blank=True,
+        null=True)
+
+    cronometro_aparte = models.TimeField(
+        verbose_name=_('Cronômetro do Aparte'),
+        blank=True,
+        null=True)
+
+    cronometro_ordem = models.TimeField(
+        verbose_name=_('Cronômetro da Ordem'),
+        blank=True,
+        null=True)
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

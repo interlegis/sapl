@@ -121,3 +121,14 @@ def url(value):
     if value.startswith('http://') or value.startswith('https://'):
         return True
     return False
+
+
+@register.filter
+def cronometro_to_seconds(value):    
+    if not AppConfig.attr('cronometro_' + value):
+        return 0
+
+    m, s, x = AppConfig.attr(
+        'cronometro_' + value).isoformat().split(':')
+
+    return 60 * int(m) + int(s)

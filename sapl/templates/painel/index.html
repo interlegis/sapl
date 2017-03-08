@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load staticfiles sass_tags %}
+{% load common_tags %}
 <!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
@@ -39,6 +40,7 @@
     <table style="width:100%">
       <tr>
         <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_data"></span></font></th>
+
         <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></th>
       </tr>
     </table>
@@ -119,7 +121,7 @@
         $('#cronometro_discurso').runner({
           autostart: false,
           countdown: true,
-          startAt: 5 * 60 * 1000, // 5 minutes
+          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
           stopAt: 0,
           milliseconds: false
         }).on('runnerFinish', function(eventObject, info){
@@ -129,7 +131,7 @@
         $('#cronometro_aparte').runner({
           autostart: false,
           countdown: true,
-          startAt: 3 * 60 * 1000, // 3 minutes
+          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
           stopAt: 0,
           milliseconds: false
         }).on('runnerFinish', function(eventObject, info){
@@ -139,7 +141,7 @@
         $('#cronometro_ordem').runner({
           autostart: false,
           countdown: true,
-          startAt: 2 * 60 * 1000, // 2 minutes
+          startAt:  {{ 'ordem'|cronometro_to_seconds }} * 1000,
           stopAt: 0,
           milliseconds: false
         }).on('runnerFinish', function(eventObject, info){
