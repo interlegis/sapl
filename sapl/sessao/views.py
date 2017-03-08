@@ -591,6 +591,10 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         if request.user.is_anonymous():
             self.template_name = 'painel/index.html'
 
+        request.session['discurso'] = 'stop'
+        request.session['aparte'] = 'stop'
+        request.session['ordem'] = 'stop'
+
         return TemplateView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
