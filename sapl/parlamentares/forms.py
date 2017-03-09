@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -288,6 +289,11 @@ class VotanteForm(ModelForm):
 
     def clean(self):
         cd = self.cleaned_data
+
+        username = cd['username']
+        if get_user_model().objects.filter(username=username).exists():
+            raise ValidationError(_('Não foi possível salvar registro,\
+                                     pois usuário existente'))
 
         if ('senha' not in cd or 'senha_confirma' not in cd or
                 not cd['senha'] or not cd['senha_confirma']):
