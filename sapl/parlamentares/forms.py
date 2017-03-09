@@ -290,6 +290,11 @@ class VotanteForm(ModelForm):
     def clean(self):
         cd = self.cleaned_data
 
+        username = cd['username']
+        if get_user_model().objects.filter(username=username).exists():
+            raise ValidationError(_('Não foi possível salvar registro,\
+                                     pois usuário existente'))
+
         if ('senha' not in cd or 'senha_confirma' not in cd or
                 not cd['senha'] or not cd['senha_confirma']):
             raise ValidationError(_(
