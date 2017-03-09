@@ -20,7 +20,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
-                                recuperar_materia)
+                                proposicao_texto, recuperar_materia)
 
 from .apps import AppConfig
 
@@ -90,6 +90,10 @@ urlpatterns_proposicao = [
 
     url(r'^proposicao/(?P<pk>[0-9]+)/ta$',
         ProposicaoTaView.as_view(), name='proposicao_ta'),
+
+
+    url(r'^proposicao/texto/(?P<pk>\d+)$', proposicao_texto,
+        name='proposicao_texto'),
 ]
 
 urlpatterns_sistema = [

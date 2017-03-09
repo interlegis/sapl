@@ -7,7 +7,7 @@
       <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico" %}</a>
     {% endif %}
     {% if object.texto_original %}
-      <a class="btn btn-success" href="{{ object.texto_original.url }}">{% trans "Texto Original" %}</a>
+      <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_texto' object.pk %}">{% trans "Texto Original" %}</a>
     {% endif %}
   </div>
 {% endblock sub_actions%}

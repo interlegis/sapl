@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import Context, loader
@@ -77,6 +77,33 @@ def autores_ja_adicionados(materia_pk):
     autorias = Autoria.objects.filter(materia_id=materia_pk)
     pks = [a.autor.pk for a in autorias]
     return pks
+
+
+def proposicao_texto(request, pk):
+    proposicao = Proposicao.objects.get(pk=pk)
+
+    if proposicao.texto_original:
+        if not proposicao.data_recebimento:
+            if proposicao.autor.user_id != request.user.id:
+                raise Http404
+
+        arquivo = proposicao.texto_original
+
+        ext = arquivo.name.split('.')[-1]
+        mime = ''
+        if ext == 'odt':
+            mime = 'application/vnd.oasis.opendocument.text'
+        else:
+            mime = "application/%s" % (ext,)
+
+        with open(arquivo.path, 'rb') as f:
+            data = f.read()
+
+        response = HttpResponse(data, content_type='%s' % mime)
+        response['Content-Disposition'] = (
+            'inline; filename="%s"' % arquivo.name.split('/')[-1])
+        return response
+    raise Http404
 
 
 class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
