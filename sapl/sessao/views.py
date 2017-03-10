@@ -12,6 +12,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, TemplateView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
@@ -2407,3 +2408,60 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 ordem_dia.save()
 
         return self.get(request, self.kwargs)
+
+
+@csrf_exempt
+def mudar_ordem_materia_sessao(request):
+    # Pega os dados vindos da requisição
+    posicao_inicial = int(request.POST['pos_ini']) + 1
+    posicao_final = int(request.POST['pos_fim']) + 1
+    pk_sessao = int(request.POST['pk_sessao'])
+    pk_list = request.POST.getlist('pk_list[]')
+
+    materia = request.POST['materia']
+    
+    # Verifica se está nas Matérias do Expediente ou da Ordem do Dia
+    if materia == 'expediente':
+        materia = ExpedienteMateria
+    elif materia == 'ordem':
+        materia = OrdemDia
+    else:
+        return
+
+    # Testa se existe alguma matéria na posição recebida
+    try:
+        materia_1 = materia.objects.get(
+            sessao_plenaria=pk_sessao,
+            numero_ordem=posicao_inicial)
+    except ObjectDoesNotExist:
+        raise # TODO tratar essa exceção
+
+    # Se a posição inicial for menor que a final, todos que
+    # estiverem acima da nova posição devem ter sua ordem decrementada
+    # em uma posição
+    if posicao_inicial < posicao_final:
+        materias_expediente = materia.objects.filter(
+            sessao_plenaria=pk_sessao,
+            numero_ordem__lte=posicao_final,
+            numero_ordem__gte=posicao_inicial)
+        for m in materias_expediente:
+            m.numero_ordem = m.numero_ordem - 1
+            m.save()
+
+
+    # Se a posição inicial for maior que a final, todos que
+    # estiverem abaixo da nova posição devem ter sua ordem incrementada
+    # em uma posição
+    elif posicao_inicial > posicao_final:
+        materias_expediente = materia.objects.filter(
+            sessao_plenaria=pk_sessao,
+            numero_ordem__gte=posicao_final,
+            numero_ordem__lte=posicao_inicial)
+        for m in materias_expediente:
+            m.numero_ordem = m.numero_ordem + 1
+            m.save()
+
+    materia_1.numero_ordem = posicao_final
+    materia_1.save()
+
+    return
