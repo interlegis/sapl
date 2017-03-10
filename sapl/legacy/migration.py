@@ -7,6 +7,7 @@ import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, models, OperationalError, ProgrammingError
 from django.db.models import CharField, TextField, ProtectedError, Max, signals
@@ -142,13 +143,27 @@ def get_fk_related(field, value, label=None):
                 if field.model._meta.label == 'sessao.RegistroVotacao' and \
                         field.name == 'ordem':
                     return value
-                with reversion.create_revision():
-                    reversion.set_comment('Stub criado pela migração')
-                    value = make_stub(field.related_model, value)
-                    descricao = 'stub criado para entrada orfã!'
-                    warn(msg + ' => ' + descricao)
-                    save_relation(value, [field.name], msg, descricao,
-                                  eh_stub=True)
+                # Caso TipoProposicao não exista, um objeto será criado então
+                # com content_type=13 (ProblemaMigracao)
+                if field.related_model.__name__ == 'TipoProposicao':
+                    tipo = TipoProposicao.objects.filter(descricao='Erro')
+                    if not tipo:
+                        with reversion.create_revision():
+                            reversion.set_comment(
+                                'TipoProposicao "Erro" criado')
+                            ct = ContentType.objects.get(pk=13)
+                            value = TipoProposicao.objects.create(
+                                id=value, descricao='Erro', content_type=ct)
+                    else:
+                        value = tipo[0]
+                else:
+                    with reversion.create_revision():
+                        reversion.set_comment('Stub criado pela migração')
+                        value = make_stub(field.related_model, value)
+                        descricao = 'stub criado para entrada orfã!'
+                        warn(msg + ' => ' + descricao)
+                        save_relation(value, [field.name], msg, descricao,
+                                      eh_stub=True)
         else:
             assert value
     return value
@@ -452,16 +467,8 @@ class DataMigrator:
         # Clear all model entries
         # They may have been created in a previous migration attempt
         try:
-            # with desconecta_revisao_delete(
-            #         signal=signals.pre_delete,
-            #         receiver=revision_pre_delete_signal,
-            #         senders=[model]):
             model.objects.all().delete()
         except ProtectedError:
-            # with desconecta_revisao_delete(
-            #         signal=signals.pre_delete,
-            #         receiver=revision_pre_delete_signal,
-            #         senders=[model, Proposicao]):
             Proposicao.objects.all().delete()
             model.objects.all().delete()
         delete_constraints(model)
