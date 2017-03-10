@@ -39,7 +39,7 @@ urlpatterns_documento_administrativo = [
         DocumentoAcessorioAdministrativoEditView.as_view(),
         name='doc_ace_adm_edit'),
 
-    url(r'^doc/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
+    url(r'^docadm/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
         name='doc_texto_integral'),
 ]
 
