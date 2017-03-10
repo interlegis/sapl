@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
@@ -12,6 +13,7 @@ from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_img, texto_upload_path)
 
 
+@reversion.register()
 class Legislatura(models.Model):
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     data_inicio = models.DateField(verbose_name=_('Data Início'))
@@ -44,6 +46,7 @@ class Legislatura(models.Model):
             'current': current}
 
 
+@reversion.register()
 class SessaoLegislativa(models.Model):
     TIPO_SESSAO_CHOICES = Choices(
         ('O', 'ordinaria', _('Ordinária')),
@@ -75,6 +78,7 @@ class SessaoLegislativa(models.Model):
             'fim': self.data_fim.year}
 
 
+@reversion.register()
 class Coligacao(models.Model):
     legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
@@ -97,6 +101,7 @@ def logo_upload_path(instance, filename):
     return get_logo_media_path(instance, 'logo', filename)
 
 
+@reversion.register()
 class Partido(models.Model):
     sigla = models.CharField(max_length=9, verbose_name=_('Sigla'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
@@ -121,6 +126,7 @@ class Partido(models.Model):
         }
 
 
+@reversion.register()
 class ComposicaoColigacao(models.Model):
     # TODO M2M
     partido = models.ForeignKey(Partido,
@@ -137,6 +143,7 @@ class ComposicaoColigacao(models.Model):
         }
 
 
+@reversion.register()
 class Municipio(models.Model):  # Localidade
     # TODO filter on migration leaving only cities
 
@@ -165,6 +172,7 @@ class Municipio(models.Model):  # Localidade
         }
 
 
+@reversion.register()
 class NivelInstrucao(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Nível de Instrução'))
@@ -177,6 +185,7 @@ class NivelInstrucao(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class SituacaoMilitar(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Situação Militar'))
@@ -193,6 +202,7 @@ def foto_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='')
 
 
+@reversion.register()
 class Parlamentar(models.Model):
     FEMININO = 'F'
     MASCULINO = 'M'
@@ -334,6 +344,7 @@ class Parlamentar(models.Model):
                                  update_fields=update_fields)
 
 
+@reversion.register()
 class TipoDependente(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -345,6 +356,7 @@ class TipoDependente(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class Dependente(models.Model):
     FEMININO = 'F'
     MASCULINO = 'M'
@@ -375,6 +387,7 @@ class Dependente(models.Model):
         return self.nome
 
 
+@reversion.register()
 class Filiacao(models.Model):
     data = models.DateField(verbose_name=_('Data Filiação'))
     parlamentar = models.ForeignKey(Parlamentar)
@@ -395,6 +408,7 @@ class Filiacao(models.Model):
         }
 
 
+@reversion.register()
 class TipoAfastamento(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
     indicador = models.CharField(
@@ -411,6 +425,7 @@ class TipoAfastamento(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class Mandato(models.Model):
     parlamentar = models.ForeignKey(Parlamentar)
     tipo_afastamento = models.ForeignKey(
@@ -449,6 +464,7 @@ class Mandato(models.Model):
                     f.data_desfiliacao or datetime.max.date())]
 
 
+@reversion.register()
 class CargoMesa(models.Model):
     # TODO M2M ????
     descricao = models.CharField(
@@ -464,6 +480,7 @@ class CargoMesa(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar)
@@ -480,6 +497,7 @@ class ComposicaoMesa(models.Model):
         }
 
 
+@reversion.register()
 class Frente(models.Model):
     '''
         * Uma frente agrupa vários parlamentares

@@ -2,6 +2,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
 from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
 
@@ -20,6 +21,7 @@ def get_casa_media_path(instance, filename):
     return get_sessao_media_path(instance, 'Logotipo', filename)
 
 
+@reversion.register()
 class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
     # cod_casa => id (pk)
@@ -59,6 +61,7 @@ class CasaLegislativa(models.Model):
             'municipio': self.municipio}
 
 
+@reversion.register()
 class ProblemaMigracao(models.Model):
     content_type = models.ForeignKey(ContentType,
                                      verbose_name=_('Tipo de Content'))
@@ -76,6 +79,7 @@ class ProblemaMigracao(models.Model):
         verbose_name_plural = _('Problemas na Migração')
 
 
+@reversion.register()
 class AppConfig(models.Model):
 
     POLITICA_PROTOCOLO_CHOICES = (
@@ -151,6 +155,7 @@ class AppConfig(models.Model):
             'id': self.id}
 
 
+@reversion.register()
 class TipoAutor(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
@@ -168,6 +173,7 @@ class TipoAutor(models.Model):
         return self.descricao
 
 
+@reversion.register()
 class Autor(models.Model):
 
     user = models.OneToOneField(get_settings_auth_user_model(),

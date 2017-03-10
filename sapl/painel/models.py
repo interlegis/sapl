@@ -1,7 +1,9 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
 
+@reversion.register()
 class Painel(models.Model):
     PAINEL_TYPES = (
         ('C', 'Completo'),
@@ -19,6 +21,7 @@ class Painel(models.Model):
         return str(self.aberto) + ":" + self.data_painel.strftime("%d/%m/%Y")
 
 
+@reversion.register()
 class Cronometro(models.Model):
     CRONOMETRO_TYPES = (
         ('A', _('Aparte')),

@@ -78,7 +78,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'sass_processor',
     'rest_framework',
-
+    'reversion',
 
 ) + SAPL_APPS
 
@@ -86,6 +86,7 @@ if DEBUG:
     INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
 
 MIDDLEWARE_CLASSES = (
+    'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -1,5 +1,3 @@
-
-
 from sapl.base.views import get_casalegislativa
 
 
