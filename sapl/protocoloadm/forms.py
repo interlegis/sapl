@@ -287,7 +287,7 @@ class ProtocoloDocumentForm(ModelForm):
     interessado = forms.CharField(required=True,
                                   label='Interessado')
 
-    observacao = forms.CharField(required=True,
+    observacao = forms.CharField(required=False,
                                  widget=forms.Textarea, label='Observação')
 
     class Meta:

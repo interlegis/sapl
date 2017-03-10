@@ -66,7 +66,7 @@ class DocumentoAdministrativo(models.Model):
         choices=YES_NO_CHOICES)
     assunto = models.TextField(verbose_name=_('Assunto'))
     observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
+        blank=True, null=True, verbose_name=_('Observação'))
     texto_integral = models.FileField(
         blank=True,
         null=True,
