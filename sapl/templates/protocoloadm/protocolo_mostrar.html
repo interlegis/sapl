@@ -18,7 +18,7 @@
 
 	{% if protocolo.tipo_documento %}
 		{% if documento %}
-			<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' documento.pk %}"> {{documento.numero}}/{{documento.ano}} - {{documento.tipo}} - {{documento.assunto}} </a>
+			<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' documento.pk %}">{{documento.tipo}} - {{documento.numero}}/{{documento.ano}}</a>
 			</br>
 		{% else %}
 			<br />
