@@ -132,3 +132,8 @@ def cronometro_to_seconds(value):
         'cronometro_' + value).isoformat().split(':')
 
     return 60 * int(m) + int(s)
+
+
+@register.filter
+def to_list_pk(object_list):
+    return [o.pk for o in object_list]

@@ -23,7 +23,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                recuperar_numero_sessao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
-                               sessao_legislativa_legislatura_ajax)
+                               sessao_legislativa_legislatura_ajax,
+                               mudar_ordem_materia_sessao)
 
 from .apps import AppConfig
 
@@ -127,4 +128,8 @@ urlpatterns = [
         VotacaoExpedienteView.as_view(), name='votacaosecretaexp'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosecretaexpedit'),
+
+    url(r'^ajax/mudar-ordem-materia-sessao/',
+        mudar_ordem_materia_sessao,
+        name='mudar_ordem_materia_sessao'),
 ]

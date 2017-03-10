@@ -15,3 +15,36 @@
 {% endif %}
 
 {% endblock more_buttons %}
+
+{% block extra_js %}
+
+    <script type="text/javascript">
+        var pk_sessao = {{root_pk}};
+        var pk_list = {{ object_list|to_list_pk|safe }};
+
+        $('tbody').sortable({
+
+        start: function(event, ui) {
+            ui.item.startPos = ui.item.index();
+        
+        },
+        stop: function(event, ui) {
+            var pos_ini = ui.item.startPos;
+            var pos_fim = ui.item.index();
+
+            $.ajax({
+                data: {pos_ini: pos_ini,
+                       pos_fim: pos_fim,
+                       pk_sessao: pk_sessao,
+                       pk_list,
+                       materia: 'ordem'},
+                type: 'POST',
+                url: "{% url 'sapl.sessao:mudar_ordem_materia_sessao' %}",
+            });
+
+            setTimeout(function(){ window.location.reload(true) }, 500);
+        }
+     });
+    </script>
+
+{% endblock %}
