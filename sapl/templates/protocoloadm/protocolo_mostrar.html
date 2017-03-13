@@ -14,12 +14,15 @@
 	<strong>Anulado: {% if protocolo.anulado %} <font color="red"> Sim {% else %} <font color="green"> Não {% endif %} </font></strong>
 	<br /><br />
 
-	<strong>Documento Vinculado:</strong>
-
+	<strong>Documentos Vinculados:</strong>
+	<br/>
 	{% if protocolo.tipo_documento %}
-		{% if documento %}
-			<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' documento.pk %}">{{documento.tipo}} - {{documento.numero}}/{{documento.ano}}</a>
-			</br>
+		{% if documentos %}
+		  {% for documento in documentos %}
+			  &nbsp;&nbsp;&nbsp;&nbsp;
+				<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' documento.pk %}">{{documento.tipo}} - {{documento.numero}}/{{documento.ano}}</a>
+				</br>
+			{% endfor %}
 		{% else %}
 			<br />
 			{% if not protocolo.anulado %} <a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>{% endif %}

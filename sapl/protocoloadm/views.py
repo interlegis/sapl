@@ -322,12 +322,12 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
                 context['materia'] = materia
         elif protocolo.tipo_documento:
             try:
-                documento = DocumentoAdministrativo.objects.get(
+                documentos = DocumentoAdministrativo.objects.filter(
                     numero_protocolo=protocolo.numero, ano=protocolo.ano)
             except ObjectDoesNotExist:
-                context['documento'] = None
+                context['documentos'] = None
             else:
-                context['documento'] = documento
+                context['documentos'] = documentos
 
         context['protocolo'] = protocolo
         return context
