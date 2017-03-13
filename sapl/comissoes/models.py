@@ -1,8 +1,8 @@
 
+import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar

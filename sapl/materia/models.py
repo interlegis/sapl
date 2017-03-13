@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -8,7 +9,6 @@ from django.db.models.deletion import PROTECT
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao

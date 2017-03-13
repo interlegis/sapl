@@ -20,8 +20,6 @@ from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
-import django_filters
-import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR

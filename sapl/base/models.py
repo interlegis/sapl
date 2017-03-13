@@ -1,8 +1,8 @@
+import reversion
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-import reversion
 
 from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
 

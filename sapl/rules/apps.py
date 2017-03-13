@@ -1,6 +1,7 @@
 from builtins import LookupError
 
 import django
+import reversion
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -10,8 +11,6 @@ from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-import django
-import reversion
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,

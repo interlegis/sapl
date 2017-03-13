@@ -19,12 +19,12 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoNominalExpedienteView,
                                VotacaoNominalView, VotacaoView,
                                abrir_votacao_expediente_view,
-                               abrir_votacao_ordem_view, recuperar_materia,
+                               abrir_votacao_ordem_view,
+                               mudar_ordem_materia_sessao, recuperar_materia,
                                recuperar_numero_sessao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
-                               sessao_legislativa_legislatura_ajax,
-                               mudar_ordem_materia_sessao)
+                               sessao_legislativa_legislatura_ajax)
 
 from .apps import AppConfig
 

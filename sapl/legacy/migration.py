@@ -1,20 +1,20 @@
 import re
 from datetime import date
+from subprocess import PIPE, call
 
-from subprocess import call, PIPE
 import pkg_resources
+import reversion
 import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import connections, models, OperationalError, ProgrammingError
-from django.db.models import CharField, TextField, ProtectedError, Max, signals
+from django.db import OperationalError, ProgrammingError, connections, models
+from django.db.models import CharField, Max, ProtectedError, TextField, signals
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
-import reversion
 from reversion.models import Revision, Version
 
 from sapl.base.models import Autor, ProblemaMigracao
@@ -23,7 +23,6 @@ from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
