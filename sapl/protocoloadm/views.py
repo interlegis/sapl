@@ -294,7 +294,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
 
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
-        doc['ano'] = protocolo.ano
+        doc['ano'] = datetime.datetime.now().date().year
         doc['data'] = protocolo.data
         doc['numero_protocolo'] = protocolo.numero
         doc['assunto'] = protocolo.assunto_ementa
