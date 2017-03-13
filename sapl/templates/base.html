@@ -193,7 +193,9 @@
               {% else %}
                  Casa Legislativa não configurada.
                  <br>
-                 <a href="{{casa_legislativa}}">Favor configurar clicando aqui</a>
+                {% if user.is_authenticated %}
+                  <a href="{% url 'sapl.base:casalegislativa_list' %}">Favor configurar clicando aqui</a>
+                {% endif %}
               {% endif %}
             </div>
           </div>
