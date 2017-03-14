@@ -25,7 +25,9 @@
 			<br />
 			{% if not protocolo.anulado %} <a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>{% endif %}
 	{% elif protocolo.tipo_materia %}
+		{% if materia %}
 			<a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}"> {{materia}} </a>
+		{% endif %}
 			</br>
 			{% if not protocolo.anulado %}<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>{% endif %}
 	{% endif %}
