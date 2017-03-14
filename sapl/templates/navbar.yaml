@@ -21,7 +21,7 @@
       url: sapl.materia:receber-proposicao
 
 - title: {% trans 'Documentos Administrativos' %}
-  {% if 'documentos_administrativos'|get_config_attr == 'R' %}check_permission: protolcoloadm.documentoadministrativo_list{%endif%}
+  {% if 'documentos_administrativos'|get_config_attr == 'R' %}check_permission: protocoloadm.list_documentoadministrativo{%endif%}
   url: sapl.protocoloadm:pesq_doc_adm
 
 - title: {% trans 'Atividade Legislativa' %}
