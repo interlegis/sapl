@@ -263,9 +263,9 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.anulado = False
         f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
         f.ano = datetime.now().year
-        f.data = datetime.now().strftime('%Y-%m-%d')
-        f.hora = datetime.now().strftime('%H:%M')
-        f.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        f.data = datetime.now().date()
+        f.hora = datetime.now().time()
+        f.timestamp = datetime.now()
         f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
