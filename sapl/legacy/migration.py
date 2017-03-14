@@ -386,12 +386,13 @@ class DataMigrator:
                 setattr(new, field.name, value)
             elif field.model.__name__ == 'TipoAutor' and \
                     field.name == 'content_type':
-                try:
-                    value = field.related_model.objects.get(
-                        model=normalize(new.descricao.lower()).replace(' ',
-                                                                       ''))
-                except ObjectDoesNotExist:
-                    value = None
+
+                model = normalize(new.descricao.lower()).replace(' ', '')
+                content_types = field.related_model.objects.filter(
+                    model=model).exclude(app_label='legacy')
+                assert len(content_types) <= 1
+
+                value = content_types[0] if content_types else None
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs, interativo=True):
