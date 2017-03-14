@@ -287,14 +287,15 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
     def criar_documento(self, protocolo):
+        curr_year = datetime.now().date().year
 
         numero_max = DocumentoAdministrativo.objects.filter(
-            tipo=protocolo.tipo_documento
+            tipo=protocolo.tipo_documento, ano=curr_year
         ).aggregate(Max('numero'))['numero__max']
 
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
-        doc['ano'] = datetime.now().date().year
+        doc['ano'] = curr_year
         doc['data'] = protocolo.data
         doc['numero_protocolo'] = protocolo.numero
         doc['assunto'] = protocolo.assunto_ementa
