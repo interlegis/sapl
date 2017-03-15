@@ -90,6 +90,10 @@ def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata')
     # return get_sessao_media_path(instance, 'ata', filename)
 
+def anexo_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='anexo')
+    # return get_sessao_media_path(instance, 'anexo', filename)
+
 
 def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='anexo')
