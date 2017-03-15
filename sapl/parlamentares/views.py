@@ -14,7 +14,8 @@ from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
 from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
+                    MandatoForm, ParlamentarCreateForm, ParlamentarForm,
+                    VotanteForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -194,6 +195,13 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = MandatoForm
+
+        def get_initial(self):
+            return {'parlamentar': Parlamentar.objects.get(
+                    pk=self.kwargs['pk'])}
 
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):

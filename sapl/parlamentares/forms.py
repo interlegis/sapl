@@ -5,7 +5,7 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.forms import ModelForm
@@ -47,6 +47,28 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
         return [False, msg_error]
 
     return [True, '']
+
+
+class MandatoForm(ModelForm):
+
+    class Meta:
+        model = Mandato
+        fields = ['legislatura', 'coligacao', 'votos_recebidos',
+                  'data_fim_mandato', 'data_expedicao_diploma',
+                  'tipo_afastamento', 'observacao', 'parlamentar']
+        widgets = {'parlamentar': forms.HiddenInput()}
+
+    def clean(self):
+        data = self.cleaned_data
+        try:
+            mandato = Mandato.objects.get(
+                parlamentar__pk=self.initial['parlamentar'].pk,
+                legislatura__pk=data['legislatura'].pk)
+        except ObjectDoesNotExist:
+            pass
+        else:
+            raise ValidationError('Mandato nesta legislatura já existe.')
+        return data
 
 
 class LegislaturaForm(ModelForm):
