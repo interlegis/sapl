@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
-from sapl.protocoloadm.views import (AnularProtocoloAdmView,
+from sapl.protocoloadm.views import (atualizar_numero_documento,
+                                     AnularProtocoloAdmView,
                                      ComprovanteProtocoloView,
                                      CriarDocumentoProtocolo,
                                      DetailDocumentoAdministrativo,
@@ -77,6 +78,10 @@ urlpatterns_protocolo = [
         ComprovanteProtocoloView.as_view(), name='comprovante_protocolo'),
     url(r'^protocoloadm/(?P<pk>\d+)/criar-documento$',
         CriarDocumentoProtocolo.as_view(), name='criar_documento'),
+
+    url(r'^protocoloadm/atualizar_numero_documento$',
+        atualizar_numero_documento, name='atualizar_numero_documento'),
+
 
 ]
 

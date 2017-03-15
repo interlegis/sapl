@@ -6,7 +6,8 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import (Http404, HttpResponse, HttpResponseRedirect,
+                         JsonResponse)
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, DetailView, FormView, ListView
@@ -651,3 +652,15 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
         pass
+
+
+def atualizar_numero_documento(request):
+    tipo = TipoDocumentoAdministrativo.objects.get(pk=request.GET['tipo'])
+    ano = request.GET['ano']
+
+    numero_max = DocumentoAdministrativo.objects.filter(
+        tipo=tipo, ano=ano).aggregate(Max('numero'))['numero__max']
+
+    return JsonResponse(
+        {'numero': numero_max + 1}) if numero_max else JsonResponse(
+        {'numero': 1})

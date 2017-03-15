@@ -5,3 +5,28 @@
 {% block detail_content %}
   {% crispy form %}
 {% endblock %}
+
+
+{% block extra_js %}
+
+<script language="Javascript">
+    function atualizar_numero_documento(){
+        var tipo = $("#id_tipo").val();
+        var ano = $("#id_ano").val();
+
+        if (tipo && ano){
+            $.get(
+                "{% url 'sapl.protocoloadm:atualizar_numero_documento' %}",
+                {tipo: tipo, ano:ano},
+                function(data, status) {
+                    $("#id_numero").val(data.numero);
+                });
+        }
+    }
+
+    $("#id_tipo").change(atualizar_numero_documento)
+    $("#id_ano").change(atualizar_numero_documento)
+
+</script>
+
+{% endblock %}
