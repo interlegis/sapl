@@ -554,14 +554,39 @@ class DocumentoAdministrativoForm(ModelForm):
                   'data_fim_prazo',
                   'observacao',
                   'texto_integral',
+                  'protocolo',
                   ]
 
+        widgets = {'protocolo': forms.HiddenInput()}
+
+    def clean(self):
+        numero_protocolo = self.data['numero_protocolo']
+        ano = self.data['ano']
+
+        if numero_protocolo and ano:
+            try:
+                self.fields['protocolo'].initial = Protocolo.objects.get(
+                    numero=numero_protocolo,
+                    ano=ano).pk
+            except ObjectDoesNotExist:
+                msg = _('Protocolo %s/%s inexistente' % (
+                    numero_protocolo, ano))
+                raise ValidationError(str(msg))
+
+        return self.cleaned_data
+
     def save(self, commit=True):
-        documento = super(DocumentoAdministrativoForm, self).save(commit)
+        documento = super(DocumentoAdministrativoForm, self).save(False)
+
+        if self.fields['protocolo'].initial:
+            documento.protocolo = Protocolo.objects.get(
+                id=int(self.fields['protocolo'].initial))
+
+        documento.save()
+
         return documento
 
     def __init__(self, *args, **kwargs):
-
         row1 = to_row(
             [('tipo', 4), ('numero', 4), ('ano', 4)])
 

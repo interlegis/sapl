@@ -93,6 +93,12 @@ class DocumentoAdministrativoCrud(Crud):
     class ListView(DocumentoAdministrativoMixin, Crud.ListView):
         pass
 
+    class CreateView(DocumentoAdministrativoMixin, Crud.CreateView):
+        form_class = DocumentoAdministrativoForm
+
+    class UpdateView(DocumentoAdministrativoMixin, Crud.UpdateView):
+        form_class = DocumentoAdministrativoForm
+
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
