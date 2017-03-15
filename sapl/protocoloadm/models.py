@@ -94,6 +94,11 @@ class Protocolo(models.Model):
             ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
         )
 
+    def __str__(self):
+        return _('%(numero)s/%(ano)s') % {
+            'numero': self.numero, 'ano': self.ano
+        }
+
 
 @reversion.register()
 class DocumentoAdministrativo(models.Model):
