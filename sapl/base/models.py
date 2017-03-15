@@ -61,14 +61,43 @@ class ProblemaMigracao(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     nome_campo = models.CharField(max_length=100,
                                   blank=True,
-                                  verbose_name='Nome do(s) Campo(s)')
+                                  verbose_name=_('Nome do(s) Campo(s)'))
     problema = models.CharField(max_length=300, verbose_name=_('Problema'))
     descricao = models.CharField(max_length=300, verbose_name=_('Descrição'))
-    eh_stub = models.BooleanField(verbose_name='É stub?')
+    eh_stub = models.BooleanField(verbose_name=_('É stub?'))
+    eh_importante = models.BooleanField(
+        default=False, verbose_name=_('É importante?'))
 
     class Meta:
         verbose_name = _('Problema na Migração')
         verbose_name_plural = _('Problemas na Migração')
+
+
+@reversion.register()
+class Constraint(models.Model):
+    nome_tabela = models.CharField(
+        max_length=50, verbose_name=_('Nome da tabela'))
+    nome_constraint = models.CharField(
+        max_length=100, verbose_name=_('Nome da constraint'))
+    nome_model = models.CharField(
+        max_length=50, verbose_name=_('Nome da model'))
+    tipo_constraint = models.CharField(
+        max_length=50, verbose_name=_('Tipo da constraint'))
+
+    class Meta:
+        verbose_name = _('Constraint removida')
+        verbose_name_plural = _('Constraints removidas')
+
+
+@reversion.register()
+class Argumento(models.Model):
+    constraint = models.ForeignKey(Constraint)
+    argumento = models.CharField(
+        max_length=50, verbose_name=_('Argumento'))
+
+    class Meta:
+        verbose_name = _('Argumento da constraint')
+        verbose_name_plural = _('Argumentos da constraint')
 
 
 @reversion.register()
