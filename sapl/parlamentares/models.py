@@ -440,6 +440,13 @@ class Mandato(models.Model):
         blank=True, null=True, verbose_name=_('Votos Recebidos'))
     data_expedicao_diploma = models.DateField(
         verbose_name=_('Expedição do Diploma'))
+    # define se parlamentar é tituar ou suplente
+    sim = 'S'
+    nao = 'N'
+    titular_CHOICE = ((sim, _('Sim')),
+                   (nao, _('Não')))
+    titular = models.CharField(
+        max_length=1, verbose_name=_('Titular'), choices=titular_CHOICE)
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
 
