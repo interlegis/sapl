@@ -16,7 +16,7 @@ from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import Autor, ProblemaMigracao
+from sapl.base.models import Autor, ProblemaMigracao, Constraint, Argumento
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.materia.models import (StatusTramitacao, TipoDocumento,
@@ -107,6 +107,10 @@ def info(msg):
 
 def warn(msg):
     print('CUIDADO! ' + msg)
+
+
+def erro(msg):
+    print('ERRO: ' + msg)
 
 
 def get_fk_related(field, value, label=None):
@@ -210,40 +214,66 @@ def delete_constraints(model):
     for r in result:
         if r[0].endswith('key'):
             words_list = r[0].split('_')
-            one_to_one_constraints.append([table, r[0], words_list, model])
+            constraint = Constraint.objects.create(
+                nome_tabela=table, nome_constraint=r[0],
+                nome_model=model.__name__, tipo_constraint='one_to_one')
+            for w in words_list:
+                Argumento.objects.create(constraint=constraint, argumento=w)
         else:
             args = None
-            args_list = []
             if model._meta.unique_together:
                 args = model._meta.unique_together[0]
                 args_list = list(args)
-            unique_constraints.append([table, r[0], args_list, model])
+                constraint = Constraint.objects.create(
+                    nome_tabela=table, nome_constraint=r[0],
+                    nome_model=model.__name__,
+                    tipo_constraint='unique_together')
+                for a in args_list:
+                    Argumento.objects.create(constraint=constraint,
+                                             argumento=a)
         warn('Excluindo unique constraint de nome %s' % r[0])
         exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
                  (table, r[0]))
 
 
 def recreate_constraints():
-    if one_to_one_constraints:
-        for constraint in one_to_one_constraints:
-            table, name, args, model = constraint
+    constraints = Constraint.objects.all()
+    for con in constraints:
+        if con.tipo_constraint == 'one_to_one':
+            nome_tabela = con.nome_tabela
+            nome_constraint = con.nome_constraint
+            args = [a.argumento for a in con.argumento_set.all()]
             args_string = ''
             args_string = "(" + "_".join(map(str, args[2:-1])) + ")"
-            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                     (table, name, args_string))
-    if unique_constraints:
-        for constraint in unique_constraints:
-            table, name, args, model = constraint
+            try:
+                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                         (nome_tabela, nome_constraint, args_string))
+            except ProgrammingError:
+                info('A constraint %s já foi recriada!' % nome_constraint)
+        if con.tipo_constraint == 'unique_together':
+            nome_tabela = con.nome_tabela
+            nome_constraint = con.nome_constraint
+            model = ContentType.objects.get(
+                model=con.nome_model.lower()).model_class()
+            args = [a.argumento for a in con.argumento_set.all()]
             for i in range(len(args)):
                 if isinstance(model._meta.get_field(args[i]),
                               models.ForeignKey):
                     args[i] = args[i] + '_id'
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
-            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                     (table, name, args_string))
-    one_to_one_constraints.clear()
-    unique_constraints.clear()
+            try:
+                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                         (nome_tabela, nome_constraint, args_string))
+            except ProgrammingError:
+                info('A constraint %s já foi recriada!' % nome_constraint)
+            except Exception as err:
+                problema = re.findall('\(.*?\)', err.args[0])
+                erro('A constraint [%s] da tabela [%s] não pode ser recriada' %
+                     (nome_constraint, nome_tabela))
+                erro('Os dados %s = %s estão duplicados. '
+                     'Arrume antes de recriar as constraints!' %
+                     (problema[0], problema[1]))
 
 
 def obj_desnecessario(obj):
@@ -435,8 +465,6 @@ class DataMigrator:
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
             pass
-        info('Recriando unique constraints...')
-        # recreate_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
