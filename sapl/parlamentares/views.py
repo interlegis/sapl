@@ -191,7 +191,8 @@ class MandatoCrud(MasterDetailCrud):
     list_field_names = ['legislatura',
                         'votos_recebidos',
                         'coligacao',
-                        'coligacao__numero_votos']
+                        'coligacao__numero_votos',
+                        'titular']
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')

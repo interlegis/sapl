@@ -71,7 +71,7 @@ Filiacao:
 Mandato:
   {% trans 'Mandato' %}:
   - legislatura  coligacao  votos_recebidos
-  - data_fim_mandato  data_expedicao_diploma
+  - data_fim_mandato  data_expedicao_diploma titular
   - tipo_afastamento
   - observacao
 
