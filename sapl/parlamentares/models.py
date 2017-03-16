@@ -440,6 +440,12 @@ class Mandato(models.Model):
         blank=True, null=True, verbose_name=_('Votos Recebidos'))
     data_expedicao_diploma = models.DateField(
         verbose_name=_('Expedição do Diploma'))
+    titular = models.BooleanField(
+        db_index=True,
+        default=True,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Vereador Titular'))
+    
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
 
