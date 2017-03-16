@@ -48,12 +48,69 @@ def texto_upload_path(instance, filename):
 
 
 @reversion.register()
+class Protocolo(models.Model):
+    numero = models.PositiveIntegerField(
+        blank=False, null=False, verbose_name=_('Número de Protocolo'))
+    ano = models.PositiveSmallIntegerField(blank=False,
+                                           null=False,
+                                           choices=RANGE_ANOS,
+                                           verbose_name=_('Ano do Protocolo'))
+    data = models.DateField()
+    hora = models.TimeField()
+    # TODO transformar campo timestamp em auto_now_add
+    timestamp = models.DateTimeField()
+    tipo_protocolo = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
+    tipo_processo = models.PositiveIntegerField()
+    interessado = models.CharField(
+        max_length=60, blank=True, verbose_name=_('Interessado'))
+    autor = models.ForeignKey(Autor, blank=True, null=True)
+    assunto_ementa = models.TextField(blank=True)
+    tipo_documento = models.ForeignKey(
+        TipoDocumentoAdministrativo,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo de documento'))
+    tipo_materia = models.ForeignKey(
+        TipoMateriaLegislativa,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo Matéria'))
+    numero_paginas = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Número de Páginas'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+    anulado = models.BooleanField()
+    user_anulacao = models.CharField(max_length=20, blank=True)
+    ip_anulacao = models.CharField(max_length=15, blank=True)
+    justificativa_anulacao = models.CharField(
+        max_length=60, blank=True, verbose_name='Motivo')
+    timestamp_anulacao = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('Protocolo')
+        verbose_name_plural = _('Protocolos')
+        permissions = (
+            ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
+        )
+
+    def __str__(self):
+        return _('%(numero)s/%(ano)s') % {
+            'numero': self.numero, 'ano': self.ano
+        }
+
+
+@reversion.register()
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
+    protocolo = models.ForeignKey(
+        Protocolo,
+        blank=True,
+        null=True)
     data = models.DateField(verbose_name=_('Data'))
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
@@ -158,54 +215,6 @@ class DocumentoAcessorioAdministrativo(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
-
-
-@reversion.register()
-class Protocolo(models.Model):
-    numero = models.PositiveIntegerField(
-        blank=False, null=False, verbose_name=_('Número de Protocolo'))
-    ano = models.PositiveSmallIntegerField(blank=False,
-                                           null=False,
-                                           choices=RANGE_ANOS,
-                                           verbose_name=_('Ano do Protocolo'))
-    data = models.DateField()
-    hora = models.TimeField()
-    # TODO transformar campo timestamp em auto_now_add
-    timestamp = models.DateTimeField()
-    tipo_protocolo = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
-    tipo_processo = models.PositiveIntegerField()
-    interessado = models.CharField(
-        max_length=60, blank=True, verbose_name=_('Interessado'))
-    autor = models.ForeignKey(Autor, blank=True, null=True)
-    assunto_ementa = models.TextField(blank=True)
-    tipo_documento = models.ForeignKey(
-        TipoDocumentoAdministrativo,
-        blank=True,
-        null=True,
-        verbose_name=_('Tipo de documento'))
-    tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa,
-        blank=True,
-        null=True,
-        verbose_name=_('Tipo Matéria'))
-    numero_paginas = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número de Páginas'))
-    observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
-    anulado = models.BooleanField()
-    user_anulacao = models.CharField(max_length=20, blank=True)
-    ip_anulacao = models.CharField(max_length=15, blank=True)
-    justificativa_anulacao = models.CharField(
-        max_length=60, blank=True, verbose_name='Motivo')
-    timestamp_anulacao = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        verbose_name = _('Protocolo')
-        verbose_name_plural = _('Protocolos')
-        permissions = (
-            ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
-        )
 
 
 @reversion.register()

@@ -93,6 +93,12 @@ class DocumentoAdministrativoCrud(Crud):
     class ListView(DocumentoAdministrativoMixin, Crud.ListView):
         pass
 
+    class CreateView(DocumentoAdministrativoMixin, Crud.CreateView):
+        form_class = DocumentoAdministrativoForm
+
+    class UpdateView(DocumentoAdministrativoMixin, Crud.UpdateView):
+        form_class = DocumentoAdministrativoForm
+
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -322,14 +328,10 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
                 context['materia'] = None
             else:
                 context['materia'] = materia
+
         elif protocolo.tipo_documento:
-            try:
-                documentos = DocumentoAdministrativo.objects.filter(
-                    numero_protocolo=protocolo.numero, ano=protocolo.ano)
-            except ObjectDoesNotExist:
-                context['documentos'] = None
-            else:
-                context['documentos'] = documentos
+            context[
+                'documentos'] = protocolo.documentoadministrativo_set.all().order_by('-ano', '-numero')
 
         context['protocolo'] = protocolo
         return context
