@@ -90,8 +90,8 @@ urlpatterns = [
         ConfirmarEmailView.as_view(), name='confirmar_email'),
 
 
-    # todos os sublink s de sistema devem vir acima deste
-    url(r'^sistema/', permission_required('base.view_tabelas_auxiliares')
+    # todos os sublinks de sistema devem vir acima deste
+    url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
         (TemplateView.as_view(template_name='sistema.html'))),
 
     url(r'^login/$', views.login, {
