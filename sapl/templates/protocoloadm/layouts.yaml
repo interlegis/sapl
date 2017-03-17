@@ -6,8 +6,7 @@ TipoDocumentoAdministrativo:
 DocumentoAdministrativo:
   {% trans 'Indentificação Básica' %}:
   - tipo  numero  ano
-  - data  protocolo
-  - numero_protocolo ano_protocolo
+  - data  protocolo 
   - assunto
   - interessado  tramitacao
   - texto_integral

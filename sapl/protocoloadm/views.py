@@ -95,9 +95,17 @@ class DocumentoAdministrativoCrud(Crud):
 
     class CreateView(DocumentoAdministrativoMixin, Crud.CreateView):
         form_class = DocumentoAdministrativoForm
+        layout_key = None
 
     class UpdateView(DocumentoAdministrativoMixin, Crud.UpdateView):
         form_class = DocumentoAdministrativoForm
+        layout_key = None
+
+        def get_initial(self):
+            if self.object.protocolo:
+                p = self.object.protocolo
+                return {'ano_protocolo': p.ano,
+                        'numero_protocolo': p.numero}
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         def get_context_data(self, **kwargs):
