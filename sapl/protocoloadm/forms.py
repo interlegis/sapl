@@ -540,6 +540,15 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
 class DocumentoAdministrativoForm(ModelForm):
 
+    data = forms.DateField(initial=datetime.today)
+
+    ano_protocolo = forms.ChoiceField(required=False,
+                                      label=Protocolo._meta.
+                                        get_field('ano').verbose_name,
+                                      choices=RANGE_ANOS,
+                                      widget=forms.Select(
+                                      attrs={'class': 'selector'}))
+
     class Meta:
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -547,6 +556,7 @@ class DocumentoAdministrativoForm(ModelForm):
                   'ano',
                   'data',
                   'numero_protocolo',
+                  'ano_protocolo',
                   'assunto',
                   'interessado',
                   'tramitacao',
@@ -561,23 +571,22 @@ class DocumentoAdministrativoForm(ModelForm):
 
     def clean(self):
         numero_protocolo = self.data['numero_protocolo']
-        ano = self.data['ano']
+        ano_protocolo = self.data['ano_protocolo']
 
-        if numero_protocolo and ano:
+        if numero_protocolo and ano_protocolo:
             try:
                 self.fields['protocolo'].initial = Protocolo.objects.get(
                     numero=numero_protocolo,
-                    ano=ano).pk
+                    ano=ano_protocolo).pk
             except ObjectDoesNotExist:
                 msg = _('Protocolo %s/%s inexistente' % (
-                    numero_protocolo, ano))
+                    numero_protocolo, ano_protocolo))
                 raise ValidationError(str(msg))
 
         return self.cleaned_data
 
     def save(self, commit=True):
         documento = super(DocumentoAdministrativoForm, self).save(False)
-
         if self.fields['protocolo'].initial:
             documento.protocolo = Protocolo.objects.get(
                 id=int(self.fields['protocolo'].initial))
@@ -587,11 +596,12 @@ class DocumentoAdministrativoForm(ModelForm):
         return documento
 
     def __init__(self, *args, **kwargs):
+
         row1 = to_row(
             [('tipo', 4), ('numero', 4), ('ano', 4)])
 
         row2 = to_row(
-            [('data', 6), ('numero_protocolo', 6)])
+            [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
 
         row3 = to_row(
             [('assunto', 12)])
