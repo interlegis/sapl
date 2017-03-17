@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import date
 from subprocess import PIPE, call
@@ -16,6 +17,7 @@ from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
+from sapl.base import CasaLegislativa
 from sapl.base.models import Autor, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
@@ -27,7 +29,7 @@ from sapl.norma.models import (AssuntoNorma, NormaJuridica,
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
-from sapl.settings import PROJECT_DIR
+from sapl.settings import MEDIA_ROOT, PROJECT_DIR
 from sapl.utils import normalize
 
 # BASE ######################################################################
@@ -732,3 +734,42 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
+
+# MIGRAÇÃO DE DOCUMENTOS  ###################################################
+
+DOCS = {'logotipo': ('props_sapl/logo_casa.gif',
+                     'casa/logotipo/logo_casa.gif')}
+
+DOCS = {k: (os.path.join('sapl_documentos', origem),
+            os.path.join('sapl', destino))
+        for k, (origem, destino) in DOCS.items()}
+
+
+def em_media(caminho):
+    return os.path.join(MEDIA_ROOT, caminho)
+
+
+def mover_documento(origem, destino):
+    origem, destino = map(em_media, (origem, destino))
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    os.rename(origem, destino)
+
+
+def migrar_docs_logo():
+    origem, destino = DOCS['logotipo']
+    props_sapl = os.path.dirname(origem)
+    # a pasta props_sapl deve conter apenas o origem e metadatas!
+    assert set(os.listdir(em_media(props_sapl))) == {
+        'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata'}
+    mover_documento(origem, destino)
+    casa = CasaLegislativa.objects.first()
+    casa.logotipo = destino
+    casa.save()
+
+
+def migrar_documentos():
+    # aqui supomos que uma pasta chamada sapl_documentos está em MEDIA_ROOT
+    # com o conteúdo da pasta de mesmo nome do zope
+    # Os arquivos da pasta serão movidos para a nova estrutura e a pasta será
+    # apagada
+    migrar_docs_logo()
