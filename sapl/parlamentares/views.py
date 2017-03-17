@@ -318,7 +318,10 @@ class ParlamentarCrud(Crud):
                 except ObjectDoesNotExist:
                     return []
                 else:
-                    return queryset.filter(mandato__legislatura_id=l.pk)
+                    if l:
+                        return queryset.filter(mandato__legislatura_id=l.pk)
+                    else:
+                        return []
 
         def get_headers(self):
             return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
