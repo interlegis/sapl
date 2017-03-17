@@ -314,11 +314,11 @@ class ParlamentarCrud(Crud):
                     mandato__legislatura_id=legislatura_id)
             else:
                 try:
-                    l = Legislatura.objects.all().order_by('-data_inicio').first().pk
+                    l = Legislatura.objects.all().order_by('-data_inicio').first()
                 except ObjectDoesNotExist:
                     return []
                 else:
-                    return queryset.filter(mandato__legislatura_id=l)
+                    return queryset.filter(mandato__legislatura_id=l.pk)
 
         def get_headers(self):
             return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
