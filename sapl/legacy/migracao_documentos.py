@@ -36,6 +36,15 @@ def mover_documento(origem, destino):
     os.rename(origem, destino)
 
 
+def get_casa_legislativa():
+    casa = CasaLegislativa.objects.first()
+    if not casa:
+        casa = CasaLegislativa.objects.create(**{k: 'PREENCHER...' for k in [
+            'codigo', 'nome', 'sigla', 'endereco', 'cep', 'municipio', 'uf',
+        ]})
+    return casa
+
+
 def migrar_docs_logo():
     _, origem, destino = DOCS[CasaLegislativa]
     props_sapl = os.path.dirname(origem)
@@ -43,14 +52,14 @@ def migrar_docs_logo():
     assert set(os.listdir(em_media(props_sapl))) == {
         'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata'}
     mover_documento(origem, destino)
-    casa = CasaLegislativa.objects.first()
+    casa = get_casa_legislativa()
     casa.logotipo = destino
     casa.save()
 
 
 def migrar_docs_por_ids(tipo):
     campo, base_origem, base_destino = DOCS[tipo]
-    origens = glob.glob(em_media(base_origem.format('*')))
+    origens = glob(em_media(base_origem.format('*')))
 
     def get_id(caminho):
         match = re.match('.*/' + base_origem.format('(\d+)'), caminho)
