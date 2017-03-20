@@ -110,7 +110,7 @@ class DocumentoAdministrativo(models.Model):
     protocolo = models.ForeignKey(
         Protocolo,
         blank=True,
-        null=True)
+        null=True, verbose_name=_('Protocolo'))
     data = models.DateField(verbose_name=_('Data'))
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
