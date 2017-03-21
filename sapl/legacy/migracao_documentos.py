@@ -1,12 +1,11 @@
 import mimetypes
 import os
 import re
-from glob import glob
 
 import magic
 
 from sapl.base.models import CasaLegislativa
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.settings import MEDIA_ROOT
 
@@ -36,8 +35,11 @@ DOCS = {
     MateriaLegislativa: (
         'texto_original',
         'materia/{}_texto_integral',
-        'materialegislativa/{0}/{0}_texto_integral{1}',
-    )
+        'materialegislativa/{0}/{0}_texto_integral{1}'),
+    DocumentoAcessorio: (
+        'arquivo',
+        'materia/{}',
+        'documentoacessorio/{0}/{0}{1}'),
 }
 
 DOCS = {tipo: (campo,
@@ -93,19 +95,21 @@ def get_extensao(caminho):
 
 def migrar_docs_por_ids(tipo):
     campo, base_origem, base_destino = DOCS[tipo]
-    origens = glob(em_media(base_origem.format('*')))
 
-    def get_id(caminho):
-        match = re.match('.*/' + base_origem.format('(\d+)'), caminho)
-        return int(match.group(1))
+    dir_origem, nome_origem = os.path.split(em_media(base_origem))
+    pat = re.compile('^{}$'.format(nome_origem.format('(\d+)')))
+    for arq in os.listdir(dir_origem):
+        match = pat.match(arq)
+        if match:
+            origem = os.path.join(dir_origem, match.group(0))
+            id = match.group(1)
+            extensao = get_extensao(origem)
+            destino = base_destino.format(id, extensao)
+            mover_documento(origem, destino)
 
-    for origem in origens:
-        id, extensao = get_id(origem), get_extensao(origem)
-        destino = base_destino.format(id, extensao)
-        mover_documento(origem, destino)
-        obj = tipo.objects.get(pk=id)
-        setattr(obj, campo, destino)
-        obj.save()
+            obj = tipo.objects.get(pk=id)
+            setattr(obj, campo, destino)
+            obj.save()
 
 
 def migrar_documentos():
@@ -116,3 +120,4 @@ def migrar_documentos():
     migrar_docs_logo()
     migrar_docs_por_ids(Parlamentar)
     migrar_docs_por_ids(MateriaLegislativa)
+    migrar_docs_por_ids(DocumentoAcessorio)
