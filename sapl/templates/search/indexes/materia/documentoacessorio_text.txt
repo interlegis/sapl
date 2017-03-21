@@ -1,0 +1,7 @@
+{{ object.tipo.sigla }}
+{{ object.tipo.descricao }}
+{{ object.materia.numero}}
+{{ object.materia.ano}}
+{{ object.nome }}
+{{ object.data }}
+{{ object.ementa }}

@@ -14,6 +14,7 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
 import logging
+import os
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -77,6 +78,7 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'floppyforms',
     'sass_processor',
+    'haystack',
     'rest_framework',
     'reversion',
 
@@ -172,6 +174,23 @@ SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 
 MAX_DOC_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+    },
+#    'default': {
+#        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+#        'URL': 'http://127.0.0.1:9200/',
+#        'INDEX_NAME': 'products',
+#    },
+#    'default': {
+#        'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+#        'URL': 'http://127.0.0.1:8983/',
+#        'INDEX_NAME': 'products',
+#    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
