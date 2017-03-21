@@ -307,17 +307,19 @@ class ParlamentarCrud(Crud):
 
         def get_queryset(self):
             queryset = super().get_queryset()
-
             legislatura_id = self.take_legislatura_id()
             if legislatura_id != 0:
                 return queryset.filter(
                     mandato__legislatura_id=legislatura_id)
             else:
                 try:
-                    l = Legislatura.objects.all().order_by('-data_inicio').first().pk
+                    l = Legislatura.objects.all().order_by(
+                        '-data_inicio').first()
                 except ObjectDoesNotExist:
-                    return []
+                    return Legislatura.objects.all()
                 else:
+                    if l is None:
+                        return Legislatura.objects.all()
                     return queryset.filter(mandato__legislatura_id=l)
 
         def get_headers(self):

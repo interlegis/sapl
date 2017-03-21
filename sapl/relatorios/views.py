@@ -504,13 +504,16 @@ def get_sessao_plenaria(sessao, casa):
     lst_presenca_sessao = []
     for presenca in SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria=sessao):
+
         for parlamentar in Parlamentar.objects.filter(
                 id=presenca.parlamentar.id):
             dic_presenca = {}
             dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
-            partido_sigla = Filiacao.objects.filter(
-                parlamentar=parlamentar).first().partido.sigla
-            if not partido_sigla:
+            partido = Filiacao.objects.filter(
+                parlamentar=parlamentar).first()
+            if partido:
+                partido_sigla = partido.partido.sigla
+            else:
                 partido_sigla = ''
             dic_presenca['sgl_partido'] = partido_sigla
             lst_presenca_sessao.append(dic_presenca)
@@ -569,6 +572,7 @@ def get_sessao_plenaria(sessao, casa):
         dic_expediente_materia["txt_ementa"] = str(materia.ementa)
         dic_expediente_materia["ordem_observacao"] = ' '  # TODO
         dic_expediente_materia["nom_autor"] = ' '
+        dic_expediente_materia["nom_resultado"] = ''
 
         autoria = Autoria.objects.filter(
             materia=materia, primeiro_autor=True).first()
@@ -650,6 +654,7 @@ def get_sessao_plenaria(sessao, casa):
             id=votacao.materia.id).first()
 
         dic_votacao = {}
+        dic_votacao["nom_resultado"] = ''
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = (
             materia.tipo.sigla + ' ' +

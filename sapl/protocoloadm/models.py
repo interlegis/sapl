@@ -110,7 +110,7 @@ class DocumentoAdministrativo(models.Model):
     protocolo = models.ForeignKey(
         Protocolo,
         blank=True,
-        null=True)
+        null=True, verbose_name=_('Protocolo'))
     data = models.DateField(verbose_name=_('Data'))
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
@@ -126,7 +126,7 @@ class DocumentoAdministrativo(models.Model):
         choices=YES_NO_CHOICES)
     assunto = models.TextField(verbose_name=_('Assunto'))
     observacao = models.TextField(
-        blank=True, null=True, verbose_name=_('Observação'))
+        blank=True, verbose_name=_('Observação'))
     texto_integral = models.FileField(
         blank=True,
         null=True,

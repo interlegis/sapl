@@ -47,8 +47,8 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, MateriaLegislativaFilterSet,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, TramitacaoEmLoteFilterSet,
-                    filtra_tramitacao_destino,
+                    ReceberProposicaoForm, RelatoriaForm,
+                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
@@ -808,6 +808,7 @@ class RelatoriaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
+        form_class = RelatoriaForm
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -847,6 +848,9 @@ class RelatoriaCrud(MasterDetailCrud):
                     localizacao = 0
 
             return {'comissao': localizacao}
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RelatoriaForm
 
 
 class TramitacaoCrud(MasterDetailCrud):

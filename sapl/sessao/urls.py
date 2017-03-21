@@ -129,7 +129,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosecretaexpedit'),
 
-    url(r'^ajax/mudar-ordem-materia-sessao/',
+    url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
         name='mudar_ordem_materia_sessao'),
 ]

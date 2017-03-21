@@ -87,7 +87,7 @@ class DocumentoAdministrativoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
-                            'numero_protocolo', 'assunto',
+                            'numero_protocolo', 'ano_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
     class ListView(DocumentoAdministrativoMixin, Crud.ListView):
@@ -95,9 +95,17 @@ class DocumentoAdministrativoCrud(Crud):
 
     class CreateView(DocumentoAdministrativoMixin, Crud.CreateView):
         form_class = DocumentoAdministrativoForm
+        layout_key = None
 
     class UpdateView(DocumentoAdministrativoMixin, Crud.UpdateView):
         form_class = DocumentoAdministrativoForm
+        layout_key = None
+
+        def get_initial(self):
+            if self.object.protocolo:
+                p = self.object.protocolo
+                return {'ano_protocolo': p.ano,
+                        'numero_protocolo': p.numero}
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
         def get_context_data(self, **kwargs):
@@ -303,8 +311,10 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
         doc['ano'] = curr_year
-        doc['data'] = protocolo.data
+        doc['data'] = datetime.today()
         doc['numero_protocolo'] = protocolo.numero
+        doc['ano_protocolo'] = protocolo.ano
+        doc['protocolo'] = protocolo.id
         doc['assunto'] = protocolo.assunto_ementa
         doc['interessado'] = protocolo.interessado
         doc['numero'] = numero_max + 1 if numero_max else 1
@@ -329,7 +339,7 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
             else:
                 context['materia'] = materia
 
-        elif protocolo.tipo_documento:
+        if protocolo.tipo_documento:
             context[
                 'documentos'] = protocolo.documentoadministrativo_set.all().order_by('-ano', '-numero')
 
