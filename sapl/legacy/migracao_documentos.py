@@ -1,12 +1,28 @@
+import mimetypes
 import os
 import re
 from glob import glob
 
+import magic
+
 from sapl.base.models import CasaLegislativa
+from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.settings import MEDIA_ROOT
 
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
+EXTENSOES = {
+    'application/msword': '.doc',
+    'application/pdf': '.pdf',
+    'application/vnd.oasis.opendocument.text': '.odt',
+    'application/vnd.openxmlformats-'
+    'officedocument.wordprocessingml.document': '.docx',
+    'application/xml': '.xml',
+    'application/zip': '.zip',
+    'image/jpeg': '.jpeg',
+    'image/png': '.png',
+    'text/html': '.html',
+}
 
 DOCS = {
     CasaLegislativa: (
@@ -16,7 +32,12 @@ DOCS = {
     Parlamentar: (
         'fotografia',
         'parlamentar/fotos/{}_foto_parlamentar',
-        'parlamentar/{0}/{0}_foto_parlamentar'),
+        'parlamentar/{0}/{0}_foto_parlamentar{1}'),
+    MateriaLegislativa: (
+        'texto_original',
+        'materia/{}_texto_integral',
+        'materialegislativa/{0}/{0}_texto_integral{1}',
+    )
 }
 
 DOCS = {tipo: (campo,
@@ -57,6 +78,19 @@ def migrar_docs_logo():
     casa.save()
 
 
+def get_extensao(caminho):
+    mime = magic.from_file(caminho, mime=True)
+    try:
+        return EXTENSOES[mime]
+    except KeyError as e:
+        raise Exception('\n'.join([
+            'Extensão não conhecida. Algumas possibilidades são:', ] +
+            ["    '{}': '{}',".format(mime, ext)
+             for ext in mimetypes.guess_all_extensions(mime)] +
+            ['Atualize o código do dicionário EXTENSOES!']
+        )) from e
+
+
 def migrar_docs_por_ids(tipo):
     campo, base_origem, base_destino = DOCS[tipo]
     origens = glob(em_media(base_origem.format('*')))
@@ -66,8 +100,8 @@ def migrar_docs_por_ids(tipo):
         return int(match.group(1))
 
     for origem in origens:
-        id = get_id(origem)
-        destino = base_destino.format(id)
+        id, extensao = get_id(origem), get_extensao(origem)
+        destino = base_destino.format(id, extensao)
         mover_documento(origem, destino)
         obj = tipo.objects.get(pk=id)
         setattr(obj, campo, destino)
@@ -81,3 +115,4 @@ def migrar_documentos():
     # apagada
     migrar_docs_logo()
     migrar_docs_por_ids(Parlamentar)
+    migrar_docs_por_ids(MateriaLegislativa)
