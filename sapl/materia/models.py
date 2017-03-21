@@ -489,7 +489,7 @@ class Relatoria(models.Model):
         null=True,
         verbose_name=_('Motivo Fim Relatoria'))
     comissao = models.ForeignKey(
-        Comissao, blank=True, null=True, verbose_name=_('Localização Atual'))
+        Comissao, blank=True, null=True, verbose_name=_('Comissão'))
     data_designacao_relator = models.DateField(
         verbose_name=_('Data Designação'))
     data_destituicao_relator = models.DateField(
