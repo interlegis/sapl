@@ -580,7 +580,8 @@ def adjust_protocolo(new, old):
     if new.numero is None and not primeira_vez:
         p = ProtocoloLegado.objects.filter(
             ano_protocolo=new.ano).aggregate(Max('num_protocolo'))
-        new.numero = p['num_protocolo__max'] + 1
+        numero_maximo = p['num_protocolo__max']
+        new.numero = 1 if numero_maximo is None else numero_maximo + 1
         primeira_vez.append(True)
     if new.numero is None and primeira_vez:
         p = Protocolo.objects.filter(
