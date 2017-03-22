@@ -11,11 +11,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
-from django.db.models import CharField, Max, ProtectedError, TextField, signals
+from django.db.models import CharField, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
-from reversion.models import Revision, Version
 
 from sapl.base.models import Autor, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
@@ -28,6 +27,7 @@ from sapl.norma.models import (AssuntoNorma, NormaJuridica,
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
+from sapl.settings import PROJECT_DIR
 from sapl.utils import normalize
 
 # BASE ######################################################################
@@ -316,9 +316,9 @@ def fill_vinculo_norma_juridica():
              ('L', 'Suspende integralmente a norma'),
              ('N', 'Julgada integralmente inconstitucional'),
              ('O', 'Julgada parcialmente inconstitucional')]
-    lista_objs = [VinculoNormaJuridica(sigla=item[0], descricao=item[1])
+    lista_objs = [TipoVinculoNormaJuridica(sigla=item[0], descricao=item[1])
                   for item in lista]
-    VinculoNormaJuridica.objects.bulk_create(lista_objs)
+    TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
 class DataMigrator:
@@ -386,32 +386,37 @@ class DataMigrator:
                 setattr(new, field.name, value)
             elif field.model.__name__ == 'TipoAutor' and \
                     field.name == 'content_type':
-                try:
-                    value = field.related_model.objects.get(
-                        model=normalize(new.descricao.lower()).replace(' ',
-                                                                       ''))
-                except ObjectDoesNotExist:
-                    value = None
+
+                model = normalize(new.descricao.lower()).replace(' ', '')
+                content_types = field.related_model.objects.filter(
+                    model=model).exclude(app_label='legacy')
+                assert len(content_types) <= 1
+
+                value = content_types[0] if content_types else None
                 setattr(new, field.name, value)
 
-    def migrate(self, obj=appconfs):
+    def migrate(self, obj=appconfs, interativo=True):
         # warning: model/app migration order is of utmost importance
-        exec_sql_file('sapl/legacy/scripts/fix_tables.sql', 'legacy')
+        exec_sql_file(PROJECT_DIR.child(
+            'sapl', 'legacy', 'scripts', 'fix_tables.sql'), 'legacy')
         self.to_delete = []
 
         # excluindo database antigo.
-        info('Todos os dados do banco serão excluidos. '
-             'Recomendamos que faça backup do banco sapl antes de continuar.')
-        info('Deseja continuar? [s/n]')
-        resposta = input()
-        if resposta.lower() in ['s', 'sim', 'y', 'yes']:
-            pass
-        else:
-            info('Migração cancelada.')
-            return 0
+        if interativo:
+            info('Todos os dados do banco serão excluidos. '
+                 'Recomendamos que faça backup do banco sapl '
+                 'antes de continuar.')
+            info('Deseja continuar? [s/n]')
+            resposta = input()
+            if resposta.lower() in ['s', 'sim', 'y', 'yes']:
+                pass
+            else:
+                info('Migração cancelada.')
+                return 0
         info('Excluindo entradas antigas do banco.')
-        call(['./manage.py', 'flush', '--settings=sapl.settings',
-              '--database=default', '--no-input'], stdout=PIPE)
+        call([PROJECT_DIR.child('manage.py'), 'flush',
+              '--settings=sapl.settings', '--database=default', '--no-input'],
+             stdout=PIPE)
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
@@ -528,9 +533,9 @@ class DataMigrator:
         return excluidos
 
 
-def migrate(obj=appconfs):
+def migrate(obj=appconfs, interativo=True):
     dm = DataMigrator()
-    dm.migrate(obj)
+    dm.migrate(obj, interativo)
 
 
 # MIGRATION_ADJUSTMENTS #####################################################

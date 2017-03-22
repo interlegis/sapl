@@ -1,12 +1,11 @@
 import os
 
-from decouple import AutoConfig, Config, RepositoryEnv
+from decouple import Config, RepositoryEnv
 from dj_database_url import parse as db_url
 
 from .settings import *  # flake8: noqa
 
-config = AutoConfig()
-config.config = Config(RepositoryEnv(os.path.abspath('sapl/legacy/.env')))
+config = Config(RepositoryEnv(BASE_DIR.child('legacy', '.env')))
 
 
 INSTALLED_APPS += (
@@ -14,6 +13,13 @@ INSTALLED_APPS += (
 )
 
 DATABASES['legacy'] = config('DATABASE_URL', cast=db_url,)
+
+# Sobrescreve o nome dos bancos caso a variável de ambiente seja definida
+# Útil para migração em lote de vários bancos
+DATABASE_NAME_OVERRIDE = os.environ.get('DATABASE_NAME')
+if DATABASE_NAME_OVERRIDE:
+    for db in DATABASES.values():
+        db['NAME'] = DATABASE_NAME_OVERRIDE
 
 DATABASE_ROUTERS = ['sapl.legacy.router.LegacyRouter', ]
 
