@@ -6,6 +6,7 @@ import magic
 
 from sapl.base.models import CasaLegislativa
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
+from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.settings import MEDIA_ROOT
 
@@ -14,13 +15,17 @@ EXTENSOES = {
     'application/msword': '.doc',
     'application/pdf': '.pdf',
     'application/vnd.oasis.opendocument.text': '.odt',
-    'application/vnd.openxmlformats-'
-    'officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
     'application/xml': '.xml',
     'application/zip': '.zip',
     'image/jpeg': '.jpeg',
     'image/png': '.png',
     'text/html': '.html',
+    'text/rtf': '.rtf',
+
+    # sem extensao
+    'application/octet-stream': '',  # binário
+    'inode/x-empty': '',  # vazio
 }
 
 DOCS = {
@@ -40,6 +45,10 @@ DOCS = {
         'arquivo',
         'materia/{}',
         'documentoacessorio/{0}/{0}{1}'),
+    NormaJuridica: (
+        'texto_original',
+        'norma_juridica/{}_texto_integral',
+        'normajuridica/{0}/{0}_texto_integral{1}'),
 }
 
 DOCS = {tipo: (campo,
@@ -86,7 +95,11 @@ def get_extensao(caminho):
         return EXTENSOES[mime]
     except KeyError as e:
         raise Exception('\n'.join([
-            'Extensão não conhecida. Algumas possibilidades são:', ] +
+            'Extensão não conhecida para o arquivo:',
+            caminho,
+            'E mimetype:',
+            mime,
+            ' Algumas possibilidades são:', ] +
             ["    '{}': '{}',".format(mime, ext)
              for ext in mimetypes.guess_all_extensions(mime)] +
             ['Atualize o código do dicionário EXTENSOES!']
@@ -121,3 +134,4 @@ def migrar_documentos():
     migrar_docs_por_ids(Parlamentar)
     migrar_docs_por_ids(MateriaLegislativa)
     migrar_docs_por_ids(DocumentoAcessorio)
+    migrar_docs_por_ids(NormaJuridica)
