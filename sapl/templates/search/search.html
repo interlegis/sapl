@@ -38,7 +38,6 @@
         </div>
 
         </br>
-
         {% if query %}
             <table class="table table-striped table-bordered">
                 <thead class="thead-default">
@@ -51,53 +50,22 @@
                         {% if result.object|search_get_model == 'm' %}
                             <p>
                               <strong>Matéria Legislativa: </strong> <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a></br>
-
-                              {% if result.object.texto_original %}
-                                <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
-                              {% else %}
-                                <strong>O texto desta matéria foi removido recentemente. Em breve ela sairá desta listagem.</strong></br>
-                              {% endif %}
+                              <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
                             </p>
                         
                         {% elif result.object|search_get_model == 'd' %}
                             <p>
                               <strong> Documento Acessório: </strong><a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              {% if result.object.arquivo %}
-                                <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
-                              {% else %}
-                                <strong>O texto deste documento foi removido recentemente. Em breve ele sairá desta listagem.</strong></br>
-                              {% endif %}
+                              <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
                             </p>
                         {% endif %}
                     </td>
                 </tr>
 
                 {% empty %}
-                <h3> Nenhum texto encontrado! </h3>
-                <tr>
-                    <td>
-                    </td>
-                </tr>
+                <h3> Nenhum resultado encontrado! </h3>
                 {% endfor %}
             </table>
-        {% if query %}
-            <h3>Resultados</h3>
-
-            {% for result in page.object_list %}
-                {% if result.object|search_get_model == 'm' %}
-                    <p>
-                      <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a>
-                    </p>
-                
-                {% elif result.object|search_get_model == 'd' %}
-                    <p>
-                      <a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a>
-                    </p>
-                {% endif %}
-
-            {% empty %}
-                <p>No results found.</p>
-            {% endfor %}
 
             {% if page.has_previous or page.has_next %}
                 <div>
