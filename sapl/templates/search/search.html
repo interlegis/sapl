@@ -50,7 +50,7 @@
                         {% if result.object|search_get_model == 'm' %}
                             <p>
                               <strong>Matéria Legislativa: </strong> <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
+                              <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
                             </p>
                         
                         {% elif result.object|search_get_model == 'd' %}
