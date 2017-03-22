@@ -4,7 +4,6 @@
 
 {% block base_content %}
     <h1><legend>Pesquisa Textual</legend></h1>
-
     </br>
 
     <form method="get" action=".">
@@ -81,6 +80,24 @@
                 </tr>
                 {% endfor %}
             </table>
+        {% if query %}
+            <h3>Resultados</h3>
+
+            {% for result in page.object_list %}
+                {% if result.object|search_get_model == 'm' %}
+                    <p>
+                      <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a>
+                    </p>
+                
+                {% elif result.object|search_get_model == 'd' %}
+                    <p>
+                      <a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a>
+                    </p>
+                {% endif %}
+
+            {% empty %}
+                <p>No results found.</p>
+            {% endfor %}
 
             {% if page.has_previous or page.has_next %}
                 <div>
