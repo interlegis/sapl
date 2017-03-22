@@ -76,11 +76,22 @@ INSTALLED_APPS = (
     'crispy_forms',
     'easy_thumbnails',
     'floppyforms',
+    'haystack',
     'sass_processor',
     'rest_framework',
     'reversion',
+    'whoosh',
 
 ) + SAPL_APPS
+
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': PROJECT_DIR.child('whoosh'),
+    },
+}
+
 
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
