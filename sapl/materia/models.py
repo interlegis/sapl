@@ -38,6 +38,7 @@ class TipoProposicao(models.Model):
     # FIXME - para a rotina de migração - estes campos mudaram
     # retire o comentário quando resolver
     content_type = models.ForeignKey(ContentType, default=None,
+                                     on_delete=models.PROTECT,
                                      verbose_name=_('Definição de Tipo'))
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
@@ -123,7 +124,9 @@ TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
 @reversion.register()
 class MateriaLegislativa(models.Model):
 
-    tipo = models.ForeignKey(TipoMateriaLegislativa, verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(TipoMateriaLegislativa,
+                             on_delete=models.PROTECT,
+                             verbose_name=_('Tipo'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
@@ -135,7 +138,9 @@ class MateriaLegislativa(models.Model):
         verbose_name=_('Tipo de Apresentação'),
         choices=TIPO_APRESENTACAO_CHOICES)
     regime_tramitacao = models.ForeignKey(
-        RegimeTramitacao, verbose_name=_('Regime Tramitação'))
+        RegimeTramitacao,
+        on_delete=models.PROTECT,
+        verbose_name=_('Regime Tramitação'))
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Publicação'))
     tipo_origem_externa = models.ForeignKey(
@@ -143,6 +148,7 @@ class MateriaLegislativa(models.Model):
         blank=True,
         null=True,
         related_name='tipo_origem_externa_set',
+        on_delete=models.PROTECT,
         verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
         max_length=5, blank=True, verbose_name=_('Número'))
@@ -151,7 +157,8 @@ class MateriaLegislativa(models.Model):
     data_origem_externa = models.DateField(
         blank=True, null=True, verbose_name=_('Data'))
     local_origem_externa = models.ForeignKey(
-        Origem, blank=True, null=True, verbose_name=_('Local Origem'))
+        Origem, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Local Origem'))
     apelido = models.CharField(
         max_length=50, blank=True, verbose_name=_('Apelido'))
     dias_prazo = models.PositiveIntegerField(
@@ -236,9 +243,12 @@ class MateriaLegislativa(models.Model):
 
 @reversion.register()
 class Autoria(models.Model):
-    autor = models.ForeignKey(Autor, verbose_name=_('Autor'))
+    autor = models.ForeignKey(Autor,
+                              verbose_name=_('Autor'),
+                              on_delete=models.PROTECT)
     materia = models.ForeignKey(
-        MateriaLegislativa, verbose_name=_('Matéria Legislativa'))
+        MateriaLegislativa, on_delete=models.PROTECT,
+        verbose_name=_('Matéria Legislativa'))
     primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
                                          choices=YES_NO_CHOICES,
                                          default=False)
@@ -255,7 +265,7 @@ class Autoria(models.Model):
 @reversion.register()
 class AcompanhamentoMateria(models.Model):
     usuario = models.CharField(max_length=50)
-    materia = models.ForeignKey(MateriaLegislativa)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
     email = models.EmailField(
         max_length=100, verbose_name=_('E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)
@@ -275,9 +285,11 @@ class AcompanhamentoMateria(models.Model):
 @reversion.register()
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(
-        MateriaLegislativa, related_name='materia_principal_set')
+        MateriaLegislativa, related_name='materia_principal_set',
+        on_delete=models.PROTECT)
     materia_anexada = models.ForeignKey(
-        MateriaLegislativa, related_name='materia_anexada_set')
+        MateriaLegislativa, related_name='materia_anexada_set',
+        on_delete=models.PROTECT)
     data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
     data_desanexacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Desanexação'))
@@ -311,8 +323,8 @@ class DespachoInicial(models.Model):
     # TODO M2M?
     # TODO Despachos não são necessáriamente comissoes, podem ser outros
     #  órgãos, ex: procuradorias
-    materia = models.ForeignKey(MateriaLegislativa)
-    comissao = models.ForeignKey(Comissao)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    comissao = models.ForeignKey(Comissao, on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = _('Despacho Inicial')
@@ -346,8 +358,10 @@ class TipoDocumento(models.Model):
 
 @reversion.register()
 class DocumentoAcessorio(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
-    tipo = models.ForeignKey(TipoDocumento, verbose_name=_('Tipo'))
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    tipo = models.ForeignKey(TipoDocumento,
+                             on_delete=models.PROTECT,
+                             verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
@@ -400,8 +414,8 @@ class DocumentoAcessorio(models.Model):
 @reversion.register()
 class MateriaAssunto(models.Model):
     # TODO M2M ??
-    assunto = models.ForeignKey(AssuntoMateria)
-    materia = models.ForeignKey(MateriaLegislativa)
+    assunto = models.ForeignKey(AssuntoMateria, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = _('Relação Matéria - Assunto')
@@ -414,9 +428,11 @@ class MateriaAssunto(models.Model):
 
 @reversion.register()
 class Numeracao(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
     tipo_materia = models.ForeignKey(
-        TipoMateriaLegislativa, verbose_name=_('Tipo de Matéria'))
+        TipoMateriaLegislativa,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo de Matéria'))
     numero_materia = models.CharField(max_length=5,
                                       verbose_name=_('Número'))
     ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
@@ -481,15 +497,19 @@ class TipoFimRelatoria(models.Model):
 
 @reversion.register()
 class Relatoria(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
-    parlamentar = models.ForeignKey(Parlamentar, verbose_name=_('Parlamentar'))
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    on_delete=models.PROTECT,
+                                    verbose_name=_('Parlamentar'))
     tipo_fim_relatoria = models.ForeignKey(
         TipoFimRelatoria,
         blank=True,
         null=True,
+        on_delete=models.PROTECT,
         verbose_name=_('Motivo Fim Relatoria'))
     comissao = models.ForeignKey(
-        Comissao, blank=True, null=True, verbose_name=_('Comissão'))
+        Comissao, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Comissão'))
     data_designacao_relator = models.DateField(
         verbose_name=_('Data Designação'))
     data_destituicao_relator = models.DateField(
@@ -508,8 +528,8 @@ class Relatoria(models.Model):
 
 @reversion.register()
 class Parecer(models.Model):
-    relatoria = models.ForeignKey(Relatoria)
-    materia = models.ForeignKey(MateriaLegislativa)
+    relatoria = models.ForeignKey(Relatoria, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
     tipo_conclusao = models.CharField(max_length=3, blank=True)
     tipo_apresentacao = models.CharField(
         max_length=1, choices=TIPO_APRESENTACAO_CHOICES)
@@ -527,8 +547,12 @@ class Parecer(models.Model):
 
 @reversion.register()
 class Proposicao(models.Model):
-    autor = models.ForeignKey(Autor, null=True, blank=True, on_delete=PROTECT)
-    tipo = models.ForeignKey(TipoProposicao, verbose_name=_('Tipo'))
+    autor = models.ForeignKey(Autor,
+                              null=True,
+                              blank=True,
+                              on_delete=models.PROTECT)
+    tipo = models.ForeignKey(TipoProposicao, on_delete=models.PROTECT,
+                             verbose_name=_('Tipo'))
 
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
@@ -587,6 +611,7 @@ class Proposicao(models.Model):
     # retire o comentário quando resolver
     materia_de_vinculo = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
+        on_delete=models.PROTECT,
         verbose_name=_('Matéria anexadora'),
         related_name=_('proposicao_set'))
 
@@ -687,11 +712,14 @@ class StatusTramitacao(models.Model):
 @reversion.register()
 class UnidadeTramitacao(models.Model):
     comissao = models.ForeignKey(
-        Comissao, blank=True, null=True, verbose_name=_('Comissão'))
+        Comissao, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Comissão'))
     orgao = models.ForeignKey(
-        Orgao, blank=True, null=True, verbose_name=_('Órgão'))
+        Orgao, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Órgão'))
     parlamentar = models.ForeignKey(
-        Parlamentar, blank=True, null=True, verbose_name=_('Parlamentar'))
+        Parlamentar, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Parlamentar'))
 
     class Meta:
         verbose_name = _('Unidade de Tramitação')
@@ -736,18 +764,21 @@ class Tramitacao(models.Model):
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
     )
 
-    status = models.ForeignKey(StatusTramitacao, verbose_name=_('Status'))
-    materia = models.ForeignKey(MateriaLegislativa)
+    status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,
+                               verbose_name=_('Status'))
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
     data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
         related_name='tramitacoes_origem',
+        on_delete=models.PROTECT,
         verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
         related_name='tramitacoes_destino',
+        on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
     urgente = models.BooleanField(verbose_name=_('Urgente ?'),
                                   choices=YES_NO_CHOICES)
