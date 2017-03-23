@@ -65,15 +65,17 @@ def get_field_display(obj, fieldname):
             ele pode ser um aggregate, annotate, um property, um manager,
             ou mesmo uma método no model.
         """
-        field = getattr(obj, fieldname)
-
-    verbose_name = str(field.verbose_name)\
-        if hasattr(field, 'verbose_name') else ''
-
-    if hasattr(field, 'choices') and field.choices:
-        value = getattr(obj, 'get_%s_display' % fieldname)()
-    else:
         value = getattr(obj, fieldname)
+        verbose_name = ''
+
+    else:
+        verbose_name = str(field.verbose_name)\
+            if hasattr(field, 'verbose_name') else ''
+
+        if hasattr(field, 'choices') and field.choices:
+            value = getattr(obj, 'get_%s_display' % fieldname)()
+        else:
+            value = getattr(obj, fieldname)
 
     str_type = str(type(value))
 
