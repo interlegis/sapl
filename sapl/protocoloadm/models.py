@@ -64,17 +64,22 @@ class Protocolo(models.Model):
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
         max_length=60, blank=True, verbose_name=_('Interessado'))
-    autor = models.ForeignKey(Autor, blank=True, null=True)
+    autor = models.ForeignKey(Autor,
+                              blank=True,
+                              null=True,
+                              on_delete=models.PROTECT)
     assunto_ementa = models.TextField(blank=True)
     tipo_documento = models.ForeignKey(
         TipoDocumentoAdministrativo,
         blank=True,
         null=True,
+        on_delete=models.PROTECT,
         verbose_name=_('Tipo de documento'))
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa,
         blank=True,
         null=True,
+        on_delete=models.PROTECT,
         verbose_name=_('Tipo Matéria'))
     numero_paginas = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número de Páginas'))
@@ -103,20 +108,24 @@ class Protocolo(models.Model):
 @reversion.register()
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
-        TipoDocumentoAdministrativo, verbose_name=_('Tipo Documento'))
+        TipoDocumentoAdministrativo, on_delete=models.PROTECT,
+        verbose_name=_('Tipo Documento'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     protocolo = models.ForeignKey(
         Protocolo,
         blank=True,
-        null=True, verbose_name=_('Protocolo'))
+        null=True,
+        on_delete=models.PROTECT,
+        verbose_name=_('Protocolo'))
     data = models.DateField(verbose_name=_('Data'))
     numero_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Núm. Protocolo'))
     interessado = models.CharField(
         max_length=50, blank=True, verbose_name=_('Interessado'))
-    autor = models.ForeignKey(Autor, blank=True, null=True)
+    autor = models.ForeignKey(Autor, blank=True, null=True,
+                              on_delete=models.PROTECT)
     dias_prazo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
@@ -169,9 +178,12 @@ class DocumentoAdministrativo(models.Model):
 
 @reversion.register()
 class DocumentoAcessorioAdministrativo(models.Model):
-    documento = models.ForeignKey(DocumentoAdministrativo)
+    documento = models.ForeignKey(DocumentoAdministrativo,
+                                  on_delete=models.PROTECT)
     tipo = models.ForeignKey(
-        TipoDocumentoAdministrativo, verbose_name=_('Tipo'))
+        TipoDocumentoAdministrativo,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     arquivo = models.FileField(
         blank=True,
@@ -244,19 +256,23 @@ class StatusTramitacaoAdministrativo(models.Model):
 class TramitacaoAdministrativo(models.Model):
     status = models.ForeignKey(
         StatusTramitacaoAdministrativo,
+        on_delete=models.PROTECT,
         verbose_name=_('Status'))
-    documento = models.ForeignKey(DocumentoAdministrativo)
+    documento = models.ForeignKey(DocumentoAdministrativo,
+                                  on_delete=models.PROTECT)
     data_tramitacao = models.DateField(
         verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
         related_name='adm_tramitacoes_origem',
+        on_delete=models.PROTECT,
         verbose_name=_('Unidade Local'))
     data_encaminhamento = models.DateField(
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
         related_name='adm_tramitacoes_destino',
+        on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
     texto = models.TextField(
         blank=True, verbose_name=_('Texto da Ação'))

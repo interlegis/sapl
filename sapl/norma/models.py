@@ -72,9 +72,12 @@ class NormaJuridica(models.Model):
         upload_to=texto_upload_path,
         verbose_name=_('Texto Integral'))
     tipo = models.ForeignKey(
-        TipoNormaJuridica, verbose_name=_('Tipo da Norma Juridica'))
+        TipoNormaJuridica,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo da Norma Juridica'))
     materia = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
+        MateriaLegislativa, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Matéria'))
     numero = models.CharField(
         max_length=8,
         verbose_name=_('Número'))
@@ -158,8 +161,8 @@ class NormaJuridica(models.Model):
 
 @reversion.register()
 class LegislacaoCitada(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
-    norma = models.ForeignKey(NormaJuridica)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    norma = models.ForeignKey(NormaJuridica, on_delete=models.PROTECT)
     disposicoes = models.CharField(
         max_length=15, blank=True, verbose_name=_('Disposição'))
     parte = models.CharField(
@@ -215,13 +218,17 @@ class NormaRelacionada(models.Model):
     norma_principal = models.ForeignKey(
         NormaJuridica,
         related_name='norma_principal',
+        on_delete=models.PROTECT,
         verbose_name=_('Norma Principal'))
     norma_relacionada = models.ForeignKey(
         NormaJuridica,
         related_name='norma_relacionada',
+        on_delete=models.PROTECT,
         verbose_name=_('Norma Relacionada'))
     tipo_vinculo = models.ForeignKey(
-        TipoVinculoNormaJuridica, verbose_name=_('Tipo de Vínculo'))
+        TipoVinculoNormaJuridica,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo de Vínculo'))
 
     class Meta:
         verbose_name = _('Norma Relacionada')
