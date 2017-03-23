@@ -16,7 +16,6 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
         return self.model
 
     def index_queryset(self, using=None):
-        """Used when the entire index for model is updated."""
         return self.get_model().objects.all()
 
     def prepare(self, obj):
@@ -37,8 +36,6 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
                 arquivo.path).decode(
                 'utf-8').replace('\n', ' ')
 
-            # Now we'll finally perform the template processing to render the
-            # text field with *all* of our metadata visible for templating:
             t = loader.select_template((
                 'search/indexes/' + self.template_name, ))
             data['text'] = t.render(Context({'object': obj,
