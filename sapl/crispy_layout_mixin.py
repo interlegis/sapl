@@ -1,12 +1,12 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -60,15 +60,16 @@ def get_field_display(obj, fieldname):
     field = ''
     try:
         field = obj._meta.get_field(fieldname)
-    except:
+    except Exception as e:
+        """ nos casos que o fieldname não é um field_model,
+            ele pode ser um aggregate, annotate, um property, um manager,
+            ou mesmo uma método no model.
+        """
         field = getattr(obj, fieldname)
-        if 'ManyRelatedManager' not in str(type(field))\
-                and 'RelatedManager' not in str(type(field))\
-                and 'GenericRelatedObjectManager' not in str(type(field)):
-            return '', str(field)
 
     verbose_name = str(field.verbose_name)\
         if hasattr(field, 'verbose_name') else ''
+
     if hasattr(field, 'choices') and field.choices:
         value = getattr(obj, 'get_%s_display' % fieldname)()
     else:

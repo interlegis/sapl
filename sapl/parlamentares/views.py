@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models import F
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
@@ -20,6 +21,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -60,8 +62,8 @@ class VotanteView(MasterDetailCrud):
             if obj.user:
                 obj.user.delete()
             return HttpResponseRedirect(
-                    reverse('sapl.parlamentares:votante_list',
-                            kwargs={'pk': obj.parlamentar.pk}))
+                reverse('sapl.parlamentares:votante_list',
+                        kwargs={'pk': obj.parlamentar.pk}))
 
 
 class FrenteList(MasterDetailCrud):
@@ -107,7 +109,7 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
         def get_context_data(self, **kwargs):
             context = CrudBaseForListAndDetailExternalAppView\
-                            .ListView.get_context_data(self, **kwargs)
+                .ListView.get_context_data(self, **kwargs)
             context['title'] = context['title'].replace(
                 'Proposições', 'Matérias')
             return context
@@ -264,7 +266,7 @@ class ParlamentarCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         ordered_list = False
         list_field_names = [
-            'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo']
+            'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo', 'mandato_titular']
 
     class DetailView(Crud.DetailView):
 
@@ -310,7 +312,8 @@ class ParlamentarCrud(Crud):
             legislatura_id = self.take_legislatura_id()
             if legislatura_id != 0:
                 return queryset.filter(
-                    mandato__legislatura_id=legislatura_id)
+                    mandato__legislatura_id=legislatura_id).annotate(
+                        mandato_titular=F('mandato__titular'))
             else:
                 try:
                     l = Legislatura.objects.all().order_by(
@@ -320,10 +323,11 @@ class ParlamentarCrud(Crud):
                 else:
                     if l is None:
                         return Legislatura.objects.all()
-                    return queryset.filter(mandato__legislatura_id=l)
+                    return queryset.filter(mandato__legislatura_id=l).annotate(
+                        mandato_titular=F('mandato__titular'))
 
         def get_headers(self):
-            return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
+            return ['', _('Parlamentar'), _('Partido'), _('Ativo?'), _('Titular?')]
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -404,7 +408,7 @@ class MesaDiretoraView(FormView):
             sessao_legislativa_id=sessao_plenaria.id,
             # parlamentar_id = integrante.parlamentar_id,
             cargo_id=cargo.id
-            ).exists()
+        ).exists()
 
     def post(self, request, *args, **kwargs):
 
