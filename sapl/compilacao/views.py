@@ -1,7 +1,7 @@
 import logging
 import sys
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from braces.views import FormMessagesMixin
 from django import forms

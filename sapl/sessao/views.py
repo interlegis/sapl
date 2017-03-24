@@ -603,9 +603,11 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         cronometro_aparte = AppsAppConfig.attr('cronometro_aparte')
         cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
 
-        if not cronometro_discurso or not cronometro_aparte or not cronometro_ordem:
+        if (not cronometro_discurso or not cronometro_aparte
+            or not cronometro_ordem):
             msg = _(
-                'Você precisa primeiro configurar os cronômetros nas Configurações da Aplicação')
+                'Você precisa primeiro configurar os cronômetros \
+                nas Configurações da Aplicação')
             messages.add_message(self.request, messages.ERROR, msg)
 
         else:
@@ -2419,7 +2421,7 @@ def mudar_ordem_materia_sessao(request):
     pk_list = request.POST.getlist('pk_list[]')
 
     materia = request.POST['materia']
-    
+
     # Verifica se está nas Matérias do Expediente ou da Ordem do Dia
     if materia == 'expediente':
         materia = ExpedienteMateria
@@ -2447,7 +2449,6 @@ def mudar_ordem_materia_sessao(request):
         for m in materias_expediente:
             m.numero_ordem = m.numero_ordem - 1
             m.save()
-
 
     # Se a posição inicial for maior que a final, todos que
     # estiverem abaixo da nova posição devem ter sua ordem incrementada

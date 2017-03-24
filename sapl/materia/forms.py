@@ -26,16 +26,13 @@ import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
-                                    STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
-                                    PerfilEstruturalTextoArticulado,
-                                    TextoArticulado)
+                                    STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
                                  TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -780,7 +777,8 @@ class TipoProposicaoForm(ModelForm):
 
         tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
                                Div(to_column(('descricao', 5)),
-                                   to_column(('content_type', 7)), css_class='clearfix'),
+                                   to_column(('content_type', 7)),
+                                   css_class='clearfix'),
                                to_column(('tipo_conteudo_related_radio', 6)),
 
                                to_column(('perfis', 6)))
@@ -847,11 +845,12 @@ class TipoProposicaoSelect(Select):
                 selected_choices.remove(option_value)
         else:
             selected_html = ''
-        return format_html('<option value="{}"{} data-has-perfil={}>{}</option>',
-                           option_value,
-                           selected_html,
-                           str(data_has_perfil),
-                           force_text(option_label))
+        return format_html(
+                        '<option value="{}"{} data-has-perfil={}>{}</option>',
+                        option_value,
+                        selected_html,
+                        str(data_has_perfil),
+                        force_text(option_label))
 
     def render_options(self, choices, selected_choices):
         # Normalize to strings.

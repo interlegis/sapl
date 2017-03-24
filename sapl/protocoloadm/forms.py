@@ -547,7 +547,7 @@ class DocumentoAdministrativoForm(ModelForm):
                                         get_field('ano').verbose_name,
                                       choices=RANGE_ANOS,
                                       widget=forms.Select(
-                                      attrs={'class': 'selector'}))
+                                        attrs={'class': 'selector'}))
 
     class Meta:
         model = DocumentoAdministrativo

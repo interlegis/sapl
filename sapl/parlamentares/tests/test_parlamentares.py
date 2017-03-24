@@ -122,9 +122,9 @@ def test_mandato_submit(admin_client):
     mommy.make(Parlamentar, pk=14)
     mommy.make(Legislatura, pk=5)
 
-    response = admin_client.post(reverse('sapl.parlamentares:mandato_create',
+    admin_client.post(reverse('sapl.parlamentares:mandato_create',
                               kwargs={'pk': 14}),
-                      {'parlamentar': 14, # hidden field
+                      {'parlamentar': 14,  # hidden field
                        'legislatura': 5,
                        'data_fim_mandato': '2016-01-01',
                        'data_expedicao_diploma': '2016-03-22',

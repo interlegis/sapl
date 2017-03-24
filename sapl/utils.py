@@ -16,7 +16,6 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin

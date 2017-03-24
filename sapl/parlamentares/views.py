@@ -266,7 +266,11 @@ class ParlamentarCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         ordered_list = False
         list_field_names = [
-            'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo', 'mandato_titular']
+            'avatar_html',
+            'nome_parlamentar',
+            'filiacao_atual',
+            'ativo',
+            'mandato_titular']
 
     class DetailView(Crud.DetailView):
 
@@ -327,7 +331,9 @@ class ParlamentarCrud(Crud):
                         mandato_titular=F('mandato__titular'))
 
         def get_headers(self):
-            return ['', _('Parlamentar'), _('Partido'), _('Ativo?'), _('Titular?')]
+            return ['',
+                    _('Parlamentar'), _('Partido'),
+                    _('Ativo?'), _('Titular?')]
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)

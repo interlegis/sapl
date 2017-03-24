@@ -62,7 +62,7 @@ class MandatoForm(ModelForm):
         data = self.cleaned_data
         try:
             if 'legislatura' in data and 'parlamentar' in data:
-                    mandato = Mandato.objects.get(
+                    Mandato.objects.get(
                         parlamentar__pk=self.initial['parlamentar'].pk,
                         legislatura__pk=data['legislatura'].pk)
         except ObjectDoesNotExist:
