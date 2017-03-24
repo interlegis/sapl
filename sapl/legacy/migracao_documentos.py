@@ -8,6 +8,7 @@ from sapl.base.models import CasaLegislativa
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
+from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
@@ -49,6 +50,10 @@ DOCS = {
         'texto_original',
         'norma_juridica/{}_texto_integral',
         'normajuridica/{0}/{0}_texto_integral{1}'),
+    SessaoPlenaria: (
+        'upload_ata',
+        'ata_sessao/{}_ata_sessao',
+        'sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
 }
 
 DOCS = {tipo: (campo,
@@ -135,3 +140,4 @@ def migrar_documentos():
     migrar_docs_por_ids(MateriaLegislativa)
     migrar_docs_por_ids(DocumentoAcessorio)
     migrar_docs_por_ids(NormaJuridica)
+    migrar_docs_por_ids(SessaoPlenaria)
