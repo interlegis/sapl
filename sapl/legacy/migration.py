@@ -246,14 +246,12 @@ def recreate_constraints():
     unique_constraints.clear()
 
 
-def stub_desnecessario(obj):
+def obj_desnecessario(obj):
     lista_fields = [
         f for f in obj._meta.get_fields()
-        if (f.one_to_many or f.one_to_one) and f.auto_created
-    ]
-    desnecessario = not any(
-        rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
-        for rr in lista_fields)
+        if (f.one_to_many or f.one_to_one) and f.auto_created]
+    desnecessario = not any(rr.related_model.objects.filter(
+        **{rr.field.name: obj}).exists() for rr in lista_fields)
     return desnecessario
 
 
@@ -424,16 +422,25 @@ class DataMigrator:
         info('Deletando models com ind_excluido...')
         while self.to_delete:
             for obj in self.to_delete:
-                try:
-                    obj.delete()
-                    self.to_delete.remove(obj)
-                except ProtectedError:
+                if obj_desnecessario(obj):
+                    try:
+                        obj.delete()
+                        self.to_delete.remove(obj)
+                    except ProtectedError:
+                        msg = 'A entrada de PK %s da model %s não pode ser ' \
+                            'excluida' % (obj.pk, obj._meta.model_name)
+                        descricao = 'Um ou mais objetos protegidos '
+                        warn(msg + ' => ' + descricao)
+                        save_relation(obj=obj, problema=msg,
+                                      descricao=descricao, eh_stub=False)
+                else:
                     msg = 'A entrada de PK %s da model %s não pode ser ' \
                         'excluida' % (obj.pk, obj._meta.model_name)
-                    descricao = 'Um ou mais objetos protegidos '
+                    descricao = 'Outros objetos dependem dessa entrada'
                     warn(msg + ' => ' + descricao)
                     save_relation(obj=obj, problema=msg,
                                   descricao=descricao, eh_stub=False)
+                    self.to_delete.remove(obj)
 
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
@@ -468,13 +475,6 @@ class DataMigrator:
         legacy_model = legacy_app.get_model(legacy_model_name)
         legacy_pk_name = legacy_model._meta.pk.name
 
-        # Clear all model entries
-        # They may have been created in a previous migration attempt
-        try:
-            model.objects.all().delete()
-        except ProtectedError:
-            Proposicao.objects.all().delete()
-            model.objects.all().delete()
         delete_constraints(model)
 
         # setup migration strategy for tables with or without a pk
@@ -520,7 +520,7 @@ class DataMigrator:
             if obj.content_object and obj.eh_stub:
                 original = obj.content_type.get_all_objects_for_this_type(
                     id=obj.object_id)
-                if stub_desnecessario(original[0]):
+                if obj_desnecessario(original[0]):
                     qtd_exclusoes, *_ = original.delete()
                     assert qtd_exclusoes == 1
                     qtd_exclusoes, *_ = obj.delete()

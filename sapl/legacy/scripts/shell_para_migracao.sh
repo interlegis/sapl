@@ -5,4 +5,5 @@
 
 # Rode esse script a partir da raiz do projeto
 
+DATABASE_NAME=$1 ./manage.py migrate --settings sapl.legacy_migration_settings
 DATABASE_NAME=$1 ./manage.py shell_plus --settings sapl.legacy_migration_settings
