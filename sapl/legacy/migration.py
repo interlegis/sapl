@@ -633,7 +633,9 @@ def adjust_normajuridica_antes_salvar(new, old):
 def adjust_normajuridica_depois_salvar(new, old):
     # Ajusta relação M2M
     lista_pks_assunto = old.cod_assunto.split(',')
-    for pk_assunto in lista_pks_assunto:
+
+    # list(filter(..)) usado para retirar strings vazias da lista
+    for pk_assunto in list(filter(None, lista_pks_assunto)):
         new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
 
 
