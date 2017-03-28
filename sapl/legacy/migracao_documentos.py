@@ -5,7 +5,8 @@ import re
 import magic
 
 from sapl.base.models import CasaLegislativa
-from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
+from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
+                                 Proposicao)
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria
@@ -54,6 +55,10 @@ DOCS = {
         'upload_ata',
         'ata_sessao/{}_ata_sessao',
         'sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
+    Proposicao: (
+        'texto_original',
+        'proposicao/{}',
+        'proposicao/{0}/{0}{1}'),
 }
 
 DOCS = {tipo: (campo,
@@ -147,3 +152,4 @@ def migrar_documentos():
     migrar_docs_por_ids(DocumentoAcessorio)
     migrar_docs_por_ids(NormaJuridica)
     migrar_docs_por_ids(SessaoPlenaria)
+    migrar_docs_por_ids(Proposicao)
