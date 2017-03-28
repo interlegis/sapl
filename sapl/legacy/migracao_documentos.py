@@ -125,9 +125,15 @@ def migrar_docs_por_ids(tipo):
             destino = base_destino.format(id, extensao)
             mover_documento(origem, destino)
 
-            obj = tipo.objects.get(pk=id)
-            setattr(obj, campo, destino)
-            obj.save()
+            # associa documento ao objeto
+            try:
+                obj = tipo.objects.get(pk=id)
+                setattr(obj, campo, destino)
+                obj.save()
+            except tipo.DoesNotExist:
+                msg = 'Objeto do tipo {} não encontrado para documento em [{}]'
+                print(msg.format(
+                    tipo.__name__, destino))
 
 
 def migrar_documentos():
