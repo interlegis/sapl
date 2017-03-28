@@ -67,6 +67,8 @@ urlpatterns_materia = [
         name='primeira_tramitacao_em_lote'),
     url(r'^materia/tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
         name='tramitacao_em_lote'),
+
+    url(r'^materia/acessorio/search/', include('haystack.urls')),
 ]
 
 

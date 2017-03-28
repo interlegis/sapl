@@ -13,6 +13,7 @@ django-extensions==1.6.7
 django-extra-views==0.8.0
 django-filter==0.15.3
 django-floppyforms==1.6.2
+django-haystack
 django-model-utils==2.5
 django-sass-processor==0.4.6
 djangorestframework
@@ -29,3 +30,7 @@ unipath==1.1
 python-magic==0.4.12
 gunicorn==19.6.0
 django-reversion==2.0.8
+whoosh
+pysolr
+elasticsearch
+textract
