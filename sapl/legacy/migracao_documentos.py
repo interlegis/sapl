@@ -9,6 +9,7 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
+from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 
@@ -24,6 +25,7 @@ EXTENSOES = {
     'image/png': '.png',
     'text/html': '.html',
     'text/rtf': '.rtf',
+    'text/x-python': '.py',
 
     # sem extensao
     'application/octet-stream': '',  # binário
@@ -59,6 +61,10 @@ DOCS = {
         'texto_original',
         'proposicao/{}',
         'proposicao/{0}/{0}{1}'),
+    DocumentoAdministrativo: (
+        'texto_integral',
+        'administrativo/{}_texto_integral',
+        'documentoadministrativo/{0}/{0}_texto_integral{1}'),
 }
 
 DOCS = {tipo: (campo,
@@ -136,9 +142,9 @@ def migrar_docs_por_ids(tipo):
                 setattr(obj, campo, destino)
                 obj.save()
             except tipo.DoesNotExist:
-                msg = 'Objeto do tipo {} não encontrado para documento em [{}]'
+                msg = '{} (pk={}) não encontrado para documento em [{}]'
                 print(msg.format(
-                    tipo.__name__, destino))
+                    tipo.__name__, id, destino))
 
 
 def migrar_documentos():
@@ -147,9 +153,13 @@ def migrar_documentos():
     # Os arquivos da pasta serão movidos para a nova estrutura e a pasta será
     # apagada
     migrar_docs_logo()
-    migrar_docs_por_ids(Parlamentar)
-    migrar_docs_por_ids(MateriaLegislativa)
-    migrar_docs_por_ids(DocumentoAcessorio)
-    migrar_docs_por_ids(NormaJuridica)
-    migrar_docs_por_ids(SessaoPlenaria)
-    migrar_docs_por_ids(Proposicao)
+    for tipo in [
+        Parlamentar,
+        MateriaLegislativa,
+        DocumentoAcessorio,
+        NormaJuridica,
+        SessaoPlenaria,
+        Proposicao,
+        DocumentoAdministrativo,
+    ]:
+        migrar_docs_por_ids(tipo)
