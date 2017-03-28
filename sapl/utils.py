@@ -608,10 +608,20 @@ def texto_upload_path(instance, filename, subpath=''):
     filename = re.sub('[^a-zA-Z0-9.]', '-', filename).strip('-').lower()
     filename = re.sub('[-]+', '-', filename)
 
-    path = './sapl/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' % {
-        'model_name': instance._meta.model_name,
-        'pk': instance.pk,
-        'subpath': subpath,
-        'filename': filename}
+    prefix = 'public'
+
+    from sapl.materia.models import Proposicao
+    from sapl.protocoloadm.models import DocumentoAdministrativo
+    if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
+        prefix = 'private'
+
+    path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' %\
+        {
+            'prefix': prefix,
+            'model_name': instance._meta.model_name,
+            'pk': instance.pk,
+            'subpath': subpath,
+            'filename': filename
+        }
 
     return path
