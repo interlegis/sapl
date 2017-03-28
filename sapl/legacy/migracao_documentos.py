@@ -94,10 +94,11 @@ def get_casa_legislativa():
 
 
 def migrar_docs_logo():
+    print('Migrando logotipo da casa')
     _, origem, destino = DOCS[CasaLegislativa]
     props_sapl = os.path.dirname(origem)
     # a pasta props_sapl deve conter apenas o origem e metadatas!
-    assert set(os.listdir(em_media(props_sapl))) == {
+    assert set(os.listdir(em_media(props_sapl))) < {
         'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata'}
     mover_documento(origem, destino)
     casa = get_casa_legislativa()
@@ -124,6 +125,7 @@ def get_extensao(caminho):
 
 def migrar_docs_por_ids(tipo):
     campo, base_origem, base_destino = DOCS[tipo]
+    print('Migrando {} de {}'.format(campo, tipo.__name__))
 
     dir_origem, nome_origem = os.path.split(em_media(base_origem))
     pat = re.compile('^{}$'.format(nome_origem.format('(\d+)')))
@@ -163,3 +165,12 @@ def migrar_documentos():
         DocumentoAdministrativo,
     ]:
         migrar_docs_por_ids(tipo)
+
+    sobrando = [os.path.join(dir, file)
+                for (dir, _, files) in os.walk(em_media('sapl_documentos'))
+                for file in files]
+    if sobrando:
+        print('{} documentos sobraram sem ser migrados!!!'.format(
+            len(sobrando)))
+        for doc in sobrando:
+            print('  {}'. format(doc))
