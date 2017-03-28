@@ -33,44 +33,49 @@ EXTENSOES = {
 }
 
 DOCS = {
-    CasaLegislativa: (
+    CasaLegislativa: [(
         'logotipo',
         'props_sapl/logo_casa.gif',
-        'casa/logotipo/logo_casa.gif'),
-    Parlamentar: (
+        'casa/logotipo/logo_casa.gif')],
+    Parlamentar: [(
         'fotografia',
         'parlamentar/fotos/{}_foto_parlamentar',
-        'parlamentar/{0}/{0}_foto_parlamentar{1}'),
-    MateriaLegislativa: (
+        'parlamentar/{0}/{0}_foto_parlamentar{1}')],
+    MateriaLegislativa: [(
         'texto_original',
         'materia/{}_texto_integral',
-        'materialegislativa/{0}/{0}_texto_integral{1}'),
-    DocumentoAcessorio: (
+        'materialegislativa/{0}/{0}_texto_integral{1}')],
+    DocumentoAcessorio: [(
         'arquivo',
         'materia/{}',
-        'documentoacessorio/{0}/{0}{1}'),
-    NormaJuridica: (
+        'documentoacessorio/{0}/{0}{1}')],
+    NormaJuridica: [(
         'texto_original',
         'norma_juridica/{}_texto_integral',
-        'normajuridica/{0}/{0}_texto_integral{1}'),
-    SessaoPlenaria: (
-        'upload_ata',
-        'ata_sessao/{}_ata_sessao',
-        'sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
-    Proposicao: (
+        'normajuridica/{0}/{0}_texto_integral{1}')],
+    SessaoPlenaria: [
+        ('upload_ata',
+         'ata_sessao/{}_ata_sessao',
+         'sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
+        ('upload_anexo',
+         'anexo_sessao/{}_texto_anexado',
+         'sessaoplenaria/{0}/anexo/{0}_texto_anexado{1}')
+    ],
+    Proposicao: [(
         'texto_original',
         'proposicao/{}',
-        'proposicao/{0}/{0}{1}'),
-    DocumentoAdministrativo: (
+        'proposicao/{0}/{0}{1}')],
+    DocumentoAdministrativo: [(
         'texto_integral',
         'administrativo/{}_texto_integral',
-        'documentoadministrativo/{0}/{0}_texto_integral{1}'),
+        'documentoadministrativo/{0}/{0}_texto_integral{1}')],
 }
 
-DOCS = {tipo: (campo,
-               os.path.join('sapl_documentos', origem),
-               os.path.join('sapl', destino))
-        for tipo, (campo, origem, destino) in DOCS.items()}
+DOCS = {tipo: [(campo,
+                os.path.join('sapl_documentos', origem),
+                os.path.join('sapl', destino))
+               for campo, origem, destino in campos]
+        for tipo, campos in DOCS.items()}
 
 
 def em_media(caminho):
@@ -94,8 +99,8 @@ def get_casa_legislativa():
 
 
 def migrar_docs_logo():
-    print('Migrando logotipo da casa')
-    _, origem, destino = DOCS[CasaLegislativa]
+    print('#### Migrando logotipo da casa ####')
+    [(_, origem, destino)] = DOCS[CasaLegislativa]
     props_sapl = os.path.dirname(origem)
     # a pasta props_sapl deve conter apenas o origem e metadatas!
     assert set(os.listdir(em_media(props_sapl))) < {
@@ -124,29 +129,35 @@ def get_extensao(caminho):
 
 
 def migrar_docs_por_ids(tipo):
-    campo, base_origem, base_destino = DOCS[tipo]
-    print('Migrando {} de {}'.format(campo, tipo.__name__))
+    for campo, base_origem, base_destino in DOCS[tipo]:
+        print('#### Migrando {} de {} ####'.format(campo, tipo.__name__))
 
-    dir_origem, nome_origem = os.path.split(em_media(base_origem))
-    pat = re.compile('^{}$'.format(nome_origem.format('(\d+)')))
-    for arq in os.listdir(dir_origem):
-        match = pat.match(arq)
-        if match:
-            origem = os.path.join(dir_origem, match.group(0))
-            id = match.group(1)
-            extensao = get_extensao(origem)
-            destino = base_destino.format(id, extensao)
-            mover_documento(origem, destino)
+        dir_origem, nome_origem = os.path.split(em_media(base_origem))
+        pat = re.compile('^{}$'.format(nome_origem.format('(\d+)')))
 
-            # associa documento ao objeto
-            try:
-                obj = tipo.objects.get(pk=id)
-                setattr(obj, campo, destino)
-                obj.save()
-            except tipo.DoesNotExist:
-                msg = '{} (pk={}) não encontrado para documento em [{}]'
-                print(msg.format(
-                    tipo.__name__, id, destino))
+        if not os.path.isdir(dir_origem):
+            print('  >>> O diretório {} não existe! Abortado.'.format(
+                dir_origem))
+            continue
+
+        for arq in os.listdir(dir_origem):
+            match = pat.match(arq)
+            if match:
+                origem = os.path.join(dir_origem, match.group(0))
+                id = match.group(1)
+                extensao = get_extensao(origem)
+                destino = base_destino.format(id, extensao)
+                mover_documento(origem, destino)
+
+                # associa documento ao objeto
+                try:
+                    obj = tipo.objects.get(pk=id)
+                    setattr(obj, campo, destino)
+                    obj.save()
+                except tipo.DoesNotExist:
+                    msg = '  {} (pk={}) não encontrado para documento em [{}]'
+                    print(msg.format(
+                        tipo.__name__, id, destino))
 
 
 def migrar_documentos():
@@ -170,7 +181,8 @@ def migrar_documentos():
                 for (dir, _, files) in os.walk(em_media('sapl_documentos'))
                 for file in files]
     if sobrando:
-        print('{} documentos sobraram sem ser migrados!!!'.format(
-            len(sobrando)))
+        print('\n#### Encerrado ####\n\n'
+              '{} documentos sobraram sem ser migrados!!!'.format(
+                  len(sobrando)))
         for doc in sobrando:
             print('  {}'. format(doc))
