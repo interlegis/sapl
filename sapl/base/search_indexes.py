@@ -36,6 +36,8 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
                 arquivo.path).decode(
                 'utf-8').replace('\n', ' ')
 
+            extracted_data = extracted_data.replace('\t', ' ')
+
             t = loader.select_template((
                 'search/indexes/' + self.template_name, ))
             data['text'] = t.render(Context({'object': obj,
