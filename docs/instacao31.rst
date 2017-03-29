@@ -187,6 +187,9 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
    ./manage.py collectstatic --noinput
 
+* Preparar o ambiente para indexação de arquivos::
+   ./manage.py rebuild_index
+
 * Subir o servidor do django::
 
    ./manage.py runserver 0.0.0.0:8001
