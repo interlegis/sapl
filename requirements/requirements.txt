@@ -1,4 +1,5 @@
 dj-database-url==0.4.1
+django-haystack==2.6.0
 django>=1.9,<1.10
 # TODO O django-admin-bootstrapped 2.5.7 não inseriu a mudança que permite
 # a compatibilidade com Django 1.9+. A linha abaixo será mudada quando uma
@@ -13,14 +14,12 @@ django-extensions==1.6.7
 django-extra-views==0.8.0
 django-filter==0.15.3
 django-floppyforms==1.6.2
-django-haystack==2.6.0
 django-model-utils==2.5
 django-sass-processor==0.4.6
 djangorestframework
 drfdocs
 easy-thumbnails==2.3
 git+git://github.com/interlegis/trml2pdf.git
-haystack==0.36
 libsass==0.11.1
 psycopg2==2.6.2
 python-decouple==3.0
