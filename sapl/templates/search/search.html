@@ -4,6 +4,7 @@
 
 {% block base_content %}
     <h1><legend>Pesquisa Textual</legend></h1>
+
     </br>
 
     <form method="get" action=".">
@@ -50,13 +51,22 @@
                         {% if result.object|search_get_model == 'm' %}
                             <p>
                               <strong>Matéria Legislativa: </strong> <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
+
+                              {% if result.object.texto_original %}
+                                <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
+                              {% else %}
+                                <strong>O texto desta matéria foi removido recentemente. Em breve ela sairá desta listagem.</strong></br>
+                              {% endif %}
                             </p>
                         
                         {% elif result.object|search_get_model == 'd' %}
                             <p>
                               <strong> Documento Acessório: </strong><a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
+                              {% if result.object.arquivo %}
+                                <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
+                              {% else %}
+                                <strong>O texto deste documento foi removido recentemente. Em breve ele sairá desta listagem.</strong></br>
+                              {% endif %}
                             </p>
                         {% endif %}
                     </td>
