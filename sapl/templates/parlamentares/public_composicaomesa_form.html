@@ -50,7 +50,7 @@
 						{% else %}
 							<td></td>
 						{% endif %}
-						<td><a href="{% url 'sapl.parlamentares:parlamentar_detail' p.pk %}">{{p.parlamentar.nome_parlamentar}}</a></td>
+						<td><a href="{% url 'sapl.parlamentares:parlamentar_detail' p.parlamentar.pk %}">{{p.parlamentar.nome_parlamentar}}</a></td>
 						<td>{{p.parlamentar.filiacao_set.last.partido.sigla}}</td>
 						<td>{{p.cargo}}</td>
 					</tr>
