@@ -2,6 +2,7 @@ from compressor.utils import get_class
 from django import template
 
 from sapl.base.models import AppConfig
+from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.parlamentares.models import Filiacao
 
 register = template.Library()
@@ -124,7 +125,7 @@ def url(value):
 
 
 @register.filter
-def cronometro_to_seconds(value):    
+def cronometro_to_seconds(value):
     if not AppConfig.attr('cronometro_' + value):
         return 0
 
@@ -137,3 +138,13 @@ def cronometro_to_seconds(value):
 @register.filter
 def to_list_pk(object_list):
     return [o.pk for o in object_list]
+
+
+@register.filter
+def search_get_model(object):
+    if type(object) == MateriaLegislativa:
+        return 'm'
+    elif type(object) == DocumentoAcessorio:
+        return 'd'
+
+    return None
