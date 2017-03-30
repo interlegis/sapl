@@ -840,6 +840,22 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
     def get_success_url(self):
         return self.list_url
 
+    def delete(self, request, *args, **kwargs):
+        try:
+            super(CrudDeleteView, self).delete(request, args, kwargs)
+        except models.ProtectedError as err:
+            error_msg = 'Registro não pode ser removido, pois\
+                         é referenciado por outros registros:<br>\
+                         <ul>'
+            for i in err.protected_objects:
+                error_msg += '<li>' + i.__str__() + '</li>'
+            error_msg += '</ul>'
+
+            messages.add_message(request,
+                                 messages.ERROR,
+                                 error_msg)
+            return self.render_to_response(self.get_context_data())
+
 
 class Crud:
     BaseMixin = CrudBaseMixin
