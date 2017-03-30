@@ -23,7 +23,7 @@ if DATABASE_NAME_OVERRIDE:
 
 DATABASE_ROUTERS = ['sapl.legacy.router.LegacyRouter', ]
 
-DEBUG = False
+DEBUG = True
 
 MOMMY_CUSTOM_FIELDS_GEN = {
     'django.db.models.ForeignKey': 'sapl.legacy.migration.make_with_log'

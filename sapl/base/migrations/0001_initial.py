@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                 ('uf', models.CharField(choices=[('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapá'), ('AM', 'Amazonas'), ('BA', 'Bahia'), ('CE', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'), ('GO', 'Goiás'), ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'), ('MG', 'Minas Gerais'), ('PR', 'Paraná'), ('PB', 'Paraíba'), ('PA', 'Pará'), ('PE', 'Pernambuco'), ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'), ('RS', 'Rio Grande do Sul'), ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'), ('SE', 'Sergipe'), ('SP', 'São Paulo'), ('TO', 'Tocantins'), ('EX', 'Exterior')], max_length=100, verbose_name='UF')),
                 ('telefone', models.CharField(blank=True, max_length=100, verbose_name='Telefone')),
                 ('fax', models.CharField(blank=True, max_length=100, verbose_name='Fax')),
-                ('logotipo', models.ImageField(blank=True, upload_to=sapl.base.models.get_casa_media_path, verbose_name='Logotipo')),
+                ('logotipo', models.ImageField(blank=True, upload_to='sapl/casa/logotipo/', verbose_name='Logotipo')),
                 ('endereco_web', models.URLField(blank=True, max_length=100, verbose_name='HomePage')),
                 ('email', models.EmailField(blank=True, max_length=100, verbose_name='E-mail')),
                 ('informacao_geral', models.TextField(blank=True, max_length=100, verbose_name='Informação Geral')),

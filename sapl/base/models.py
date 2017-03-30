@@ -13,14 +13,6 @@ SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
                        ('U', _('Sequencial único')))
 
 
-def get_sessao_media_path(instance, subpath, filename):
-    return './sapl/casa/%s/%s' % (subpath, filename)
-
-
-def get_casa_media_path(instance, filename):
-    return get_sessao_media_path(instance, 'Logotipo', filename)
-
-
 @reversion.register()
 class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
@@ -41,7 +33,7 @@ class CasaLegislativa(models.Model):
         max_length=100, blank=True, verbose_name=_('Fax'))
     logotipo = models.ImageField(
         blank=True,
-        upload_to=get_casa_media_path,
+        upload_to='sapl/casa/logotipo/',
         verbose_name=_('Logotipo'))
     endereco_web = models.URLField(
         max_length=100, blank=True, verbose_name=_('HomePage'))
