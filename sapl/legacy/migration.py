@@ -26,7 +26,7 @@ from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
-from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
+from sapl.sessao.models import ExpedienteMateria, OrdemDia
 from sapl.settings import PROJECT_DIR
 from sapl.utils import normalize
 
@@ -246,15 +246,13 @@ def recreate_constraints():
     unique_constraints.clear()
 
 
-def stub_desnecessario(obj):
-    lista_fields = [
+def obj_desnecessario(obj):
+    relacoes = [
         f for f in obj._meta.get_fields()
-        if (f.one_to_many or f.one_to_one) and f.auto_created
-    ]
-    desnecessario = not any(
-        rr.related_model.objects.filter(**{rr.field.name: obj}).exists()
-        for rr in lista_fields)
-    return desnecessario
+        if (f.one_to_many or f.one_to_one) and f.auto_created]
+    sem_referencia = not any(rr.related_model.objects.filter(
+        **{rr.field.name: obj}).exists() for rr in relacoes)
+    return sem_referencia
 
 
 def get_last_value(model):
@@ -415,25 +413,23 @@ class DataMigrator:
                 return 0
         info('Excluindo entradas antigas do banco.')
         call([PROJECT_DIR.child('manage.py'), 'flush',
-              '--settings=sapl.settings', '--database=default', '--no-input'],
-             stdout=PIPE)
+              '--database=default', '--no-input'], stdout=PIPE)
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
-        # exclude logically deleted in legacy base
+
+        # Itera várias vezes na lista excluindo o que for possível
         info('Deletando models com ind_excluido...')
-        while self.to_delete:
-            for obj in self.to_delete:
-                try:
-                    obj.delete()
-                    self.to_delete.remove(obj)
-                except ProtectedError:
-                    msg = 'A entrada de PK %s da model %s não pode ser ' \
-                        'excluida' % (obj.pk, obj._meta.model_name)
-                    descricao = 'Um ou mais objetos protegidos '
-                    warn(msg + ' => ' + descricao)
-                    save_relation(obj=obj, problema=msg,
-                                  descricao=descricao, eh_stub=False)
+        while self.delete_ind_excluido():
+            pass
+        # Salva o que não pôde ser excluido da lista no problema da migração
+        for obj in self.to_delete:
+            msg = 'A entrada de PK %s da model %s não pode ser ' \
+                'excluida' % (obj.pk, obj._meta.model_name)
+            descricao = 'Um ou mais objetos protegidos '
+            warn(msg + ' => ' + descricao)
+            save_relation(obj=obj, problema=msg,
+                          descricao=descricao, eh_stub=False)
 
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
@@ -468,13 +464,6 @@ class DataMigrator:
         legacy_model = legacy_app.get_model(legacy_model_name)
         legacy_pk_name = legacy_model._meta.pk.name
 
-        # Clear all model entries
-        # They may have been created in a previous migration attempt
-        try:
-            model.objects.all().delete()
-        except ProtectedError:
-            Proposicao.objects.all().delete()
-            model.objects.all().delete()
         delete_constraints(model)
 
         # setup migration strategy for tables with or without a pk
@@ -514,13 +503,27 @@ class DataMigrator:
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
 
+    def delete_ind_excluido(self):
+        excluidos = 0
+        for obj in self.to_delete:
+            if obj_desnecessario(obj):
+                try:
+                    obj.delete()
+                except ProtectedError:
+                    pass
+                else:
+                    self.to_delete.remove(obj)
+                    excluidos += 1
+
+        return excluidos
+
     def delete_stubs(self):
         excluidos = 0
         for obj in ProblemaMigracao.objects.all():
             if obj.content_object and obj.eh_stub:
                 original = obj.content_type.get_all_objects_for_this_type(
                     id=obj.object_id)
-                if stub_desnecessario(original[0]):
+                if obj_desnecessario(original[0]):
                     qtd_exclusoes, *_ = original.delete()
                     assert qtd_exclusoes == 1
                     qtd_exclusoes, *_ = obj.delete()
@@ -587,10 +590,6 @@ def adjust_protocolo(new, old):
         p = Protocolo.objects.filter(
             ano=new.ano).aggregate(Max('numero'))
         new.numero = p['numero__max'] + 1
-
-
-def adjust_sessaoplenaria(new, old):
-    assert not old.tip_expediente
 
 
 def adjust_tipoproposicao(new, old):
@@ -689,7 +688,6 @@ AJUSTE_ANTES_SALVAR = {
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
     Protocolo: adjust_protocolo,
-    SessaoPlenaria: adjust_sessaoplenaria,
     TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
