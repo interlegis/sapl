@@ -6,3 +6,6 @@ class AppConfig(apps.AppConfig):
     name = 'sapl.norma'
     label = 'norma'
     verbose_name = _('Norma Jurídica')
+
+    def ready(self):
+        from . import signals

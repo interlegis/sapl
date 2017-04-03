@@ -68,6 +68,16 @@
                                 <strong>O texto deste documento foi removido recentemente. Em breve ele sairá desta listagem.</strong></br>
                               {% endif %}
                             </p>
+
+                        {% elif result.object|search_get_model == 'n' %}
+                            <p>
+                              <strong> Norma Jurídica: </strong><a href="{% url 'sapl.norma:normajuridica_detail' result.object.pk %}">{{ result.object }}</a></br>
+                              {% if result.object.texto_integral %}
+                                <strong>Texto Original:</strong> <a href="{{result.object.texto_integral.url}}"> Clique aqui </a></br>
+                              {% else %}
+                                <strong>O texto desta norma foi removido recentemente. Em breve ela sairá desta listagem.</strong></br>
+                              {% endif %}
+                            </p>
                         {% endif %}
                     </td>
                 </tr>

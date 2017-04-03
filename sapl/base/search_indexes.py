@@ -4,6 +4,7 @@ import textract
 from django.template import Context, loader
 from haystack import indexes
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
+from sapl.norma.models import NormaJuridica
 
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
@@ -60,3 +61,11 @@ class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     filename = 'texto_original'
     model = MateriaLegislativa
     template_name = 'materia/materialegislativa_text.txt'
+
+
+class NormaJuridicaIndex(DocumentoAcessorioIndex):
+    text = indexes.CharField(document=True, use_template=True)
+
+    filename = 'texto_integral'
+    model = NormaJuridica
+    template_name = 'norma/normajuridica_text.txt'

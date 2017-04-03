@@ -7,7 +7,8 @@ from model_utils import Choices
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
-from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
+                        restringe_tipos_de_arquivo_txt)
 
 
 @reversion.register()
@@ -70,7 +71,8 @@ class NormaJuridica(models.Model):
         blank=True,
         null=True,
         upload_to=texto_upload_path,
-        verbose_name=_('Texto Integral'))
+        verbose_name=_('Texto Integral'),
+        validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
         TipoNormaJuridica,
         on_delete=models.PROTECT,
