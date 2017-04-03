@@ -55,7 +55,7 @@
                     </li>
                   </ul>
               </li>
-              <li><a href="/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
+              <li><a href="/sistema/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
               {% if not user.is_authenticated %}
                 <li><a href="{% url 'sapl.base:login' %}"><img src="{% static 'img/user.png' %}"></a></li>
               {% else %}
