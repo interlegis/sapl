@@ -23,3 +23,9 @@ echo "--- MIGRACAO DE DADOS ---" | tee -a $LOG
 echo >> $LOG
 DATABASE_NAME=$1 ./manage.py migracao_25_31 -f --settings sapl.legacy_migration_settings |& tee -a $LOG
 echo >> $LOG
+
+
+echo "--- RECRIANDO CONSTRAINTS  ---" | tee -a $LOG
+echo >> $LOG
+DATABASE_NAME=$1 ./manage.py recria_constraints --settings sapl.legacy_migration_settings |& tee -a $LOG
+echo >> $LOG

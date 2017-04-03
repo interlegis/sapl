@@ -236,7 +236,7 @@ def delete_constraints(model):
                  (table, r[0]))
 
 
-def recreate_constraints():
+def recria_constraints():
     constraints = Constraint.objects.all()
     for con in constraints:
         if con.tipo_constraint == 'one_to_one':
@@ -459,7 +459,7 @@ class DataMigrator:
         for obj in self.to_delete:
             msg = 'A entrada de PK %s da model %s não pode ser ' \
                 'excluida' % (obj.pk, obj._meta.model_name)
-            descricao = 'Um ou mais objetos protegidos '
+            descricao = 'Um ou mais objetos protegidos'
             warn(msg + ' => ' + descricao)
             save_relation(obj=obj, problema=msg,
                           descricao=descricao, eh_stub=False)
