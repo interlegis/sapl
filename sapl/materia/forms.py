@@ -29,8 +29,8 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import (MateriaAssunto, MateriaLegislativa,
-                                 RegimeTramitacao,
+from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
+                                 MateriaLegislativa, RegimeTramitacao,
                                  TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
@@ -494,8 +494,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                                                 label=u'Em tramitação',
                                                 choices=em_tramitacao)
 
-    materiaassunto = django_filters.ModelChoiceFilter(
-        queryset=MateriaAssunto.objects.all(),
+    materiaassunto__assunto = django_filters.ModelChoiceFilter(
+        queryset=AssuntoMateria.objects.all(),
         label=_('Assunto da Matéria'))
 
     o = MateriaPesquisaOrderingFilter()
@@ -514,7 +514,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
-                  'materiaassunto',
+                  'materiaassunto__assunto',
                   'em_tramitacao',
                   ]
 
@@ -557,7 +557,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             [('em_tramitacao', 6),
              ('o', 6)])
         row9 = to_row(
-            [('materiaassunto', 12)])
+            [('materiaassunto__assunto', 12)])
         row10 = to_row(
             [('ementa', 12)])
 
