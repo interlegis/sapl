@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import os
 import re
 from datetime import date
 from functools import wraps
@@ -364,12 +365,17 @@ TIPOS_IMG_PERMITIDOS = (
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
+        if not os.path.splitext(value.path)[1][:1]:
+                raise ValidationError(_(
+                    'Não é possível fazer upload de arquivos sem extensão.'))
+
         mime = magic.from_buffer(value.read(), mime=True)
         if mime not in lista:
             raise ValidationError(_('Tipo de arquivo não suportado'))
     # o nome é importante para as migrations
     restringe_tipos_de_arquivo.__name__ = nome
     return restringe_tipos_de_arquivo
+
 
 restringe_tipos_de_arquivo_txt = fabrica_validador_de_tipos_de_arquivo(
     TIPOS_TEXTO_PERMITIDOS, 'restringe_tipos_de_arquivo_txt')
@@ -381,6 +387,7 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     maior_inicio = max(a_inicio, b_inicio)
     menor_fim = min(a_fim, b_fim)
     return maior_inicio <= menor_fim
+
 
 """
 def permissoes(nome_grupo, app_label):

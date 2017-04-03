@@ -1,8 +1,9 @@
+import os.path
 import textract
 
+from django.template import Context, loader
 from haystack import indexes
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
-from django.template import Context, loader
 
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
@@ -30,6 +31,9 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
             try:
                 arquivo.open()
             except OSError:
+                return self.prepared_data
+
+            if not os.path.splitext(arquivo.path)[1][:1]:
                 return self.prepared_data
 
             extracted_data = textract.process(
