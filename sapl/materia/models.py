@@ -307,8 +307,14 @@ class Anexada(models.Model):
 
 @reversion.register()
 class AssuntoMateria(models.Model):
-    assunto = models.CharField(max_length=200)
-    dispositivo = models.CharField(max_length=50)
+    assunto = models.CharField(
+        max_length=50,
+        verbose_name=_('Assunto'))
+    dispositivo = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True,
+        verbose_name=_('Descrição do Dispositivo Legal'))
 
     class Meta:
         verbose_name = _('Assunto de Matéria')

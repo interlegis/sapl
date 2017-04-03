@@ -3,6 +3,8 @@
   url: materialegislativa_detail
 - title: {% trans 'Anexada' %}
   url: anexada_list
+- title: {% trans 'Assunto' %}
+  url: materiaassunto_list
 - title: {% trans 'Autoria' %}
   url: autoria_list
 - title: {% trans 'Despacho Inicial' %}

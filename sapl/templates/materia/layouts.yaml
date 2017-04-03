@@ -36,6 +36,16 @@ MateriaLegislativa:
   - indexacao
   - observacao
 
+AssuntoMateria:
+  {% trans 'Assunto de Matéria Legislativa' %}:
+  - assunto
+  - dispositivo
+
+MateriaAssunto:
+  {% trans 'Assuntos da Matéria' %}:
+  - assunto
+  - materia
+
 Anexada:
   {% trans 'Matéria Anexada' %}:
   - tipo numero ano

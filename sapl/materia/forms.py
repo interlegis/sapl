@@ -29,7 +29,8 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
+from sapl.materia.models import (MateriaAssunto, MateriaLegislativa,
+                                 RegimeTramitacao,
                                  TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
@@ -1430,3 +1431,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         conteudo_gerado.save()
 
         return self.instance
+
+
+class MateriaAssuntoForm(ModelForm):
+
+    class Meta:
+        model = MateriaAssunto
+        fields = ['materia', 'assunto']
+
+        widgets = {'materia': forms.HiddenInput()}
