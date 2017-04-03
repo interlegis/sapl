@@ -253,8 +253,10 @@ def recreate_constraints():
         if con.tipo_constraint == 'unique_together':
             nome_tabela = con.nome_tabela
             nome_constraint = con.nome_constraint
-            model = ContentType.objects.get(
-                model=con.nome_model.lower()).model_class()
+            # Pegando explicitamente o primeiro valor do filter,
+            # pois pode ser que haja mais de uma ocorrência
+            model = ContentType.objects.filter(
+                model=con.nome_model.lower())[0].model_class()
             args = [a.argumento for a in con.argumento_set.all()]
             for i in range(len(args)):
                 if isinstance(model._meta.get_field(args[i]),
