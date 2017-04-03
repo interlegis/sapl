@@ -494,6 +494,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                                                 label=u'Em tramitação',
                                                 choices=em_tramitacao)
 
+    materiaassunto = django_filters.ModelChoiceFilter(
+        queryset=MateriaAssunto.objects.all(),
+        label=_('Assunto da Matéria'))
+
     o = MateriaPesquisaOrderingFilter()
 
     class Meta:
@@ -510,6 +514,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
+                  'materiaassunto',
                   'em_tramitacao',
                   ]
 
@@ -552,6 +557,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             [('em_tramitacao', 6),
              ('o', 6)])
         row9 = to_row(
+            [('materiaassunto', 12)])
+        row10 = to_row(
             [('ementa', 12)])
 
         self.form.helper = FormHelper()
@@ -561,7 +568,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row5, row6, row7, row8, row9,
+                     row4, row5, row6, row7, row8, row9, row10,
                      form_actions(save_label='Pesquisar'))
         )
 
