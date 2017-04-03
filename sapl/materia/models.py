@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -8,6 +7,7 @@ from django.db import models
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -17,6 +17,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -361,7 +362,7 @@ class DocumentoAcessorio(models.Model):
     tipo = models.ForeignKey(TipoDocumento,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
-    nome = models.CharField(max_length=30, verbose_name=_('Nome'))
+    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
         max_length=50, blank=True, verbose_name=_('Autor'))
