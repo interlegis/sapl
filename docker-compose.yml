@@ -8,7 +8,7 @@ server:
     - web
   links:
     - web
-localhost:
+sapl_db:
   image: postgres
   environment:
     POSTGRES_PASSWORD: sapl
@@ -21,8 +21,8 @@ localhost:
     - "5532:5432"
 web:
   build: .
-  command: /bin/sh -c "sleep 75 && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh"
+  command: /bin/sh -c "/bin/sh busy-wait.sh && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh"
   volumes:
     - .:/sapl
   links:
-    - localhost
+    - sapl_db
