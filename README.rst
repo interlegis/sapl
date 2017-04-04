@@ -55,7 +55,6 @@ Logo dos Partidos
    `Logo dos Partidos <https://github.com/interlegis/sapl/blob/master/docs/logo_partidos.rst>`_
 
 
-
 Perguntas Frequentes
 ===================================
    `Perguntas Frequentes <https://github.com/interlegis/sapl/wiki/Perguntas-Frequentes>`_
