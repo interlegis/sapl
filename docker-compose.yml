@@ -14,11 +14,14 @@ localhost:
     POSTGRES_PASSWORD: sapl
     POSTGRES_USER: sapl
     POSTGRES_DB: sapl
+    PGDATA : /var/lib/postgresql/data/
+  volumes:
+    - ./postgres-data/data/:/var/lib/postgresql/data/
   ports:
     - "5532:5432"
 web:
   build: .
-  command: /bin/sh -c "python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh"
+  command: /bin/sh -c "sleep 75 && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh"
   volumes:
     - .:/sapl
   links:
