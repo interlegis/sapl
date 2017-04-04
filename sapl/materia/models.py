@@ -312,7 +312,6 @@ class AssuntoMateria(models.Model):
         verbose_name=_('Assunto'))
     dispositivo = models.CharField(
         max_length=200,
-        null=True,
         blank=True,
         verbose_name=_('Descrição do Dispositivo Legal'))
 
