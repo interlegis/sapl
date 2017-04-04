@@ -420,8 +420,14 @@ class DocumentoAcessorio(models.Model):
 @reversion.register()
 class MateriaAssunto(models.Model):
     # TODO M2M ??
-    assunto = models.ForeignKey(AssuntoMateria, on_delete=models.PROTECT)
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    assunto = models.ForeignKey(
+        AssuntoMateria,
+        on_delete=models.PROTECT,
+        verbose_name=_('Assunto'))
+    materia = models.ForeignKey(
+        MateriaLegislativa,
+        on_delete=models.PROTECT,
+        verbose_name=_('Matéria'))
 
     class Meta:
         verbose_name = _('Relação Matéria - Assunto')
