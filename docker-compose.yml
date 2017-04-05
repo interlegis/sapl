@@ -8,7 +8,7 @@ server:
     - web
   links:
     - web
-sapl_db:
+sapldb:
   image: postgres
   environment:
     POSTGRES_PASSWORD: sapl
@@ -25,4 +25,4 @@ web:
   volumes:
     - .:/sapl
   links:
-    - sapl_db
+    - sapldb

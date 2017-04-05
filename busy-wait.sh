@@ -1,12 +1,10 @@
 #!/bin/sh
 
-#
-
 while true; do
-    COUNT_PG=`netstat -an | grep "tcp.*:5532.*LISTEN"| wc -l`
+    COUNT_PG=`psql --dbname=postgresql://sapl:sapl@sapldb/sapl -c '\l \q' | grep sapl | wc -l`
     if ! [ "$COUNT_PG" -eq "0" ]; then
        break
     fi
-    echo "Esperando BD"
-    sleep 5
+    echo "Esperando Database Setup"
+    sleep 10
 done
