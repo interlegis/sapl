@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from bs4 import BeautifulSoup
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils.translation import ugettext_lazy as _
@@ -525,8 +524,7 @@ def get_sessao_plenaria(sessao, casa):
                 sessao_plenaria=sessao, tipo=tip_expediente):
             dic_expedientes = {}
             dic_expedientes["nom_expediente"] = str(tip_expediente)
-            dic_expedientes["txt_expediente"] = (
-                BeautifulSoup(expediente.conteudo).text)
+            dic_expedientes["txt_expediente"] = (expediente.conteudo)
             if dic_expedientes:
                 lst_expedientes.append(dic_expedientes)
 

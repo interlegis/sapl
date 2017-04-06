@@ -924,13 +924,13 @@ class ResumoView(DetailView):
             context.update({'multimidia_audio':
                             _('Audio: ') + str(self.object.url_audio)})
         else:
-            context.update({'multimidia_audio': _('Audio: Indisponivel')})
+            context.update({'multimidia_audio': _('Audio: Indisponível')})
 
         if self.object.url_video:
             context.update({'multimidia_video':
                             _('Video: ') + str(self.object.url_video)})
         else:
-            context.update({'multimidia_video': _('Video: Indisponivel')})
+            context.update({'multimidia_video': _('Video: Indisponível')})
 
         # =====================================================================
         # Mesa Diretora
