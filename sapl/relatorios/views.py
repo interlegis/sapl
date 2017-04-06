@@ -12,7 +12,8 @@ from sapl.parlamentares.models import (CargoMesa, ComposicaoMesa, Filiacao,
                                        Parlamentar)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo)
-from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, Orador,
+from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
+                                IntegranteMesa, Orador,
                                 OradorExpediente, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, TipoExpediente)
@@ -484,8 +485,7 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista da composicao da mesa diretora
     lst_mesa = []
-    for composicao in ComposicaoMesa.objects.filter(
-            sessao_legislativa=sessao.sessao_legislativa):
+    for composicao in IntegranteMesa.objects.filter(sessao_plenaria=sessao):
         for parlamentar in Parlamentar.objects.filter(
                 id=composicao.parlamentar.id):
             for cargo in CargoMesa.objects.filter(id=composicao.cargo.id):
