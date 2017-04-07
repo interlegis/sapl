@@ -262,7 +262,8 @@ def get_last_value(model):
 
 def alter_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
-    exec_sql('ALTER SEQUENCE %s RESTART WITH %s;' % (sequence_name, id))
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE %s;' % (
+        sequence_name, id, id))
 
 
 def save_with_id(new, id):
