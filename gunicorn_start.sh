@@ -2,7 +2,7 @@
 
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
 
-SAPL_DIR=/var/interlegis/sapl
+SAPL_DIR="/var/interlegis/sapl"
 
 # Seta um novo diretório foi passado como raiz para o SAPL
 # caso esse tenha sido passado como parâmetro
@@ -12,8 +12,8 @@ then
 fi
 
 NAME="SAPL"                                     # Name of the application (*)
-DJANGODIR=$SAPL_DIR                    # Django project directory (*)
-SOCKFILE=$SAPL_DIR/gunicorn.sock    # we will communicate using this unix socket (*)
+DJANGODIR=$SAPL_DIR                             # Django project directory (*)
+SOCKFILE="$SAPL_DIR/gunicorn.sock"              # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
 NUM_WORKERS=3                                   # how many worker processes should Gunicorn spawn (*)
@@ -21,7 +21,7 @@ NUM_WORKERS=3                                   # how many worker processes shou
 DJANGO_SETTINGS_MODULE=sapl.settings            # which settings file should Django use (*)
 DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)
 
-echo "Starting $NAME as `whoami`"
+echo "Starting $NAME as `whoami` on base dir $SAPL_DIR"
 
 # Create the run directory if it doesn't exist
 RUNDIR=$(dirname $SOCKFILE)
