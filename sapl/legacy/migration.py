@@ -13,22 +13,23 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
 from django.db.models import CharField, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
+from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
 from sapl.base.models import Autor, ProblemaMigracao, Constraint, Argumento
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (StatusTramitacao, TipoDocumento,
+from sapl.materia.models import (StatusTramitacao, TipoDocumento, Tramitacao,
                                  TipoMateriaLegislativa, TipoProposicao,
-                                 Tramitacao)
+                                 DocumentoAcessorio, MateriaLegislativa)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia
 from sapl.settings import PROJECT_DIR
-from sapl.utils import normalize
+from sapl.utils import normalize, save_texto, delete_texto
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -294,8 +295,8 @@ def get_last_value(model):
 
 def alter_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
-    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE %s;' % (
-        sequence_name, id, id))
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
+        sequence_name, id))
 
 
 def save_with_id(new, id):
@@ -310,8 +311,7 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
                   eh_stub=False):
     link = ProblemaMigracao(
         content_object=obj, nome_campo=nome_campo, problema=problema,
-        descricao=descricao, eh_stub=eh_stub,
-    )
+        descricao=descricao, eh_stub=eh_stub,)
     link.save()
 
 
@@ -448,6 +448,8 @@ class DataMigrator:
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
+        disconecta_sinais_indexacao()
+
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
@@ -467,6 +469,8 @@ class DataMigrator:
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
             pass
+
+        conecta_sinais_indexacao()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -761,3 +765,23 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
+
+# DISCONNECT SIGNAL  ########################################################
+
+
+def disconecta_sinais_indexacao():
+    post_save.disconnect(save_texto, NormaJuridica)
+    post_save.disconnect(save_texto, DocumentoAcessorio)
+    post_save.disconnect(save_texto, MateriaLegislativa)
+    post_delete.disconnect(delete_texto, NormaJuridica)
+    post_delete.disconnect(delete_texto, DocumentoAcessorio)
+    post_delete.disconnect(delete_texto, MateriaLegislativa)
+
+
+def conecta_sinais_indexacao():
+    post_save.connect(save_texto, NormaJuridica)
+    post_save.connect(save_texto, DocumentoAcessorio)
+    post_save.connect(save_texto, MateriaLegislativa)
+    post_delete.connect(delete_texto, NormaJuridica)
+    post_delete.connect(delete_texto, DocumentoAcessorio)
+    post_delete.connect(delete_texto, MateriaLegislativa)
