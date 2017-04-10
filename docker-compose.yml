@@ -21,7 +21,7 @@ sapldb:
     - "5532:5432"
 web:
   build: .
-  command: /bin/sh -c "/bin/sh busy-wait.sh && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh"
+  command: /bin/sh -c "/bin/sh busy-wait.sh && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh /sapl"
   volumes:
     - .:/sapl
   links:
