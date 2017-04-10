@@ -1,8 +1,9 @@
-from django.db.models.signals import post_delete, post_save
-from sapl.settings import PROJECT_DIR
 from subprocess import PIPE, call
 from threading import Thread
 
+from django.db.models.signals import post_delete, post_save
+
+from sapl.settings import PROJECT_DIR
 
 from .models import NormaJuridica
 

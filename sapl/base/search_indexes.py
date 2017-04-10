@@ -1,8 +1,9 @@
 import os.path
-import textract
 
+import textract
 from django.template import Context, loader
 from haystack import indexes
+
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 

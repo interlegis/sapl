@@ -604,7 +604,7 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
 
         if (not cronometro_discurso or not cronometro_aparte
-            or not cronometro_ordem):
+                or not cronometro_ordem):
             msg = _(
                 'Você precisa primeiro configurar os cronômetros \
                 nas Configurações da Aplicação')
@@ -2436,7 +2436,7 @@ def mudar_ordem_materia_sessao(request):
             sessao_plenaria=pk_sessao,
             numero_ordem=posicao_inicial)
     except ObjectDoesNotExist:
-        raise # TODO tratar essa exceção
+        raise  # TODO tratar essa exceção
 
     # Se a posição inicial for menor que a final, todos que
     # estiverem acima da nova posição devem ter sua ordem decrementada

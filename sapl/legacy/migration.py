@@ -19,7 +19,7 @@ from model_mommy.mommy import foreign_key_required, make
 from sapl.base.models import Autor, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (Proposicao, StatusTramitacao, TipoDocumento,
+from sapl.materia.models import (StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,

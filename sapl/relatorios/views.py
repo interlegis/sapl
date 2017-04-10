@@ -8,15 +8,14 @@ from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
                                  Tramitacao, UnidadeTramitacao)
-from sapl.parlamentares.models import (CargoMesa, ComposicaoMesa, Filiacao,
-                                       Parlamentar)
+from sapl.parlamentares.models import CargoMesa, Filiacao, Parlamentar
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo)
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
-                                IntegranteMesa, Orador,
-                                OradorExpediente, OrdemDia, PresencaOrdemDia,
-                                RegistroVotacao, SessaoPlenaria,
-                                SessaoPlenariaPresenca, TipoExpediente)
+                                IntegranteMesa, Orador, OradorExpediente,
+                                OrdemDia, PresencaOrdemDia, RegistroVotacao,
+                                SessaoPlenaria, SessaoPlenariaPresenca,
+                                TipoExpediente)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import UF
 

@@ -544,10 +544,10 @@ class DocumentoAdministrativoForm(ModelForm):
 
     ano_protocolo = forms.ChoiceField(required=False,
                                       label=Protocolo._meta.
-                                        get_field('ano').verbose_name,
+                                      get_field('ano').verbose_name,
                                       choices=RANGE_ANOS,
                                       widget=forms.Select(
-                                        attrs={'class': 'selector'}))
+                                          attrs={'class': 'selector'}))
 
     class Meta:
         model = DocumentoAdministrativo
