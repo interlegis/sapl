@@ -1,3 +1,2 @@
 #!/bin/bash
-
-docker run --rm -ti sapl_web /bin/sh
+docker run -ti sapl_web /bin/bash

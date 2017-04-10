@@ -20,7 +20,3 @@ script:
   - ./manage.py bower install
   - py.test --create-db
   # - ./test_and_check_qa.sh
-
-addons:
-    hosts:
-        - 127.0.0.1 sapldb

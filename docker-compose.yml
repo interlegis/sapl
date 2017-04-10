@@ -1,22 +1,9 @@
-server:
-  image: nginx:latest
-  ports:
-    - "80:80"
-  volumes:
-    - ./config/nginx:/etc/nginx/conf.d
-  volumes_from:
-    - web
-  links:
-    - web
-sapldb:
+localhost:
   image: postgres
   environment:
     POSTGRES_PASSWORD: sapl
     POSTGRES_USER: sapl
     POSTGRES_DB: sapl
-    PGDATA : /var/lib/postgresql/data/
-  volumes:
-    - ./postgres-data/data/:/var/lib/postgresql/data/
   ports:
     - "5532:5432"
 web:
@@ -24,5 +11,7 @@ web:
   command: /bin/sh -c "/bin/sh busy-wait.sh && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh /sapl"
   volumes:
     - .:/sapl
+  ports:
+    - "8000:8000"
   links:
-    - sapldb
+    - localhost

@@ -1,26 +1,53 @@
-FROM alpine:3.5
+FROM ubuntu:15.04
 
-ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
-python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
-py3-magic postgresql-client
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
-RUN apk add --no-cache python3 && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    rm -r /root/.cache
+RUN mkdir /sapl
 
-RUN mkdir /sapl && apk add --update --no-cache $BUILD_PACKAGES && npm install -g bower
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ vivid universe" | tee -a "/etc/apt/sources.list"
+
+RUN \
+	apt-get update && \
+	apt-get install -y -f \
+	software-properties-common \
+	libpq-dev \
+	graphviz-dev \
+	graphviz \
+	build-essential \
+	git \
+	pkg-config \
+	python3-dev \
+	libxml2-dev \
+	libjpeg-dev \
+	libssl-dev \
+	libffi-dev \
+	libxslt1-dev \
+	python3-setuptools \
+	curl
+
+# use python3 in pip
+RUN easy_install3 pip lxml
+
+# install nodejs
+RUN DEBIAN_FRONTEND=noninteractive curl -sL https://deb.nodesource.com/setup_5.x | bash -
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
+
+# install bower
+RUN npm install -g bower
 
 # Bower aceitar root
-RUN touch /root/.bowerrc \
-&& chmod 751 /root/.bowerrc \
-&& echo "{ \"allow_root\": true }" >> /root/.bowerrc \
-&& npm cache clean
+RUN touch /root/.bowerrc
+RUN chmod 751 /root/.bowerrc
+RUN echo "{ \"allow_root\": true }" >> /root/.bowerrc
 
 WORKDIR /sapl
 
 ADD . /sapl
 
-RUN pip install -r requirements/dev-requirements.txt --upgrade setuptools --no-cache-dir \
-&& python3 manage.py bower install
+RUN pip install -r requirements/dev-requirements.txt
+RUN pip install --upgrade setuptools
+
+# RUN python3 manage.py bower install
