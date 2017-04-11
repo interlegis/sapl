@@ -182,7 +182,7 @@ def expediente_materia(lst_expediente_materia):
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(expediente_materia['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
-            str(expediente_materia['votacao_observacao']) + '</para></td></tr>\n'
+             '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
@@ -237,7 +237,7 @@ def votacao(lst_votacao):
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
-            str(votacao['votacao_observacao']) + '</para></td></tr>\n'
+            '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
