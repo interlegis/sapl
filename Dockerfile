@@ -18,9 +18,15 @@ RUN touch /root/.bowerrc \
 && echo "{ \"allow_root\": true }" >> /root/.bowerrc \
 && npm cache clean
 
+RUN npm install -g bower
+
 WORKDIR /sapl
 
 ADD . /sapl
 
-RUN pip install -r requirements/dev-requirements.txt --upgrade setuptools --no-cache-dir \
-&& python3 manage.py bower install
+RUN chmod +x ./start.sh
+
+# RUN pip install -r requirements/requirements.txt --upgrade setuptools --no-cache-dir
+
+VOLUME ["/sapl/data"]
+ENTRYPOINT ["./start.sh"]
