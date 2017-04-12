@@ -518,14 +518,14 @@ def get_sessao_plenaria(sessao, casa):
 
     # Exibe os Expedientes
     lst_expedientes = []
-    for tip_expediente in TipoExpediente.objects.all():
-        for expediente in ExpedienteSessao.objects.filter(
-                sessao_plenaria=sessao, tipo=tip_expediente):
-            dic_expedientes = {}
-            dic_expedientes["nom_expediente"] = str(tip_expediente)
-            dic_expedientes["txt_expediente"] = (expediente.conteudo)
-            if dic_expedientes:
-                lst_expedientes.append(dic_expedientes)
+    expedientes = ExpedienteSessao.objects.filter(
+                sessao_plenaria=sessao).order_by('tipo__nome')
+    for e in expedientes:
+        dic_expedientes = {}
+        dic_expedientes["nom_expediente"] = str(e.tipo)
+        dic_expedientes["txt_expediente"] = (e.conteudo)
+        if dic_expedientes:
+            lst_expedientes.append(dic_expedientes)
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
