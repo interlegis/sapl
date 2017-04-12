@@ -522,8 +522,8 @@ def get_sessao_plenaria(sessao, casa):
                 sessao_plenaria=sessao).order_by('tipo__nome')
     for e in expedientes:
         dic_expedientes = {}
-        dic_expedientes["nom_expediente"] = str(e.tipo)
-        dic_expedientes["txt_expediente"] = (e.conteudo)
+        dic_expedientes["nom_expediente"] = e.tipo.nome
+        dic_expedientes["txt_expediente"] = e.conteudo
         if dic_expedientes:
             lst_expedientes.append(dic_expedientes)
 
