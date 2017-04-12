@@ -5,6 +5,8 @@ import re
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+from subprocess import PIPE, call
+from threading import Thread
 
 import django_filters
 import magic
@@ -22,7 +24,7 @@ from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.settings import BASE_DIR
+from sapl.settings import BASE_DIR, PROJECT_DIR
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -632,3 +634,19 @@ def texto_upload_path(instance, filename, subpath=''):
         }
 
     return path
+
+
+class UpdateIndexCommand(Thread):
+    def run(self):
+        call([PROJECT_DIR.child('manage.py'), 'update_index'],
+             stdout=PIPE)
+
+
+def save_texto(sender, instance, **kwargs):
+    update_index = UpdateIndexCommand()
+    update_index.start()
+
+
+def delete_texto(sender, instance, **kwargs):
+    update_index = UpdateIndexCommand()
+    update_index.start()

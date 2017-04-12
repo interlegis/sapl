@@ -197,6 +197,8 @@ rules_group_geral = {
 
         (base.CasaLegislativa, __listdetailchange__),
         (base.ProblemaMigracao, []),
+        (base.Argumento, []),
+        (base.Constraint, []),
         (base.TipoAutor, __base__),
         (base.Autor, __base__),
 

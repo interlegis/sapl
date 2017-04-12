@@ -13,13 +13,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
 from django.db.models import CharField, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
+from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import Autor, ProblemaMigracao
+from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (StatusTramitacao, TipoDocumento,
+from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
+                                 StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
@@ -28,7 +30,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia
 from sapl.settings import PROJECT_DIR
-from sapl.utils import normalize
+from sapl.utils import delete_texto, normalize, save_texto
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -107,6 +109,10 @@ def info(msg):
 
 def warn(msg):
     print('CUIDADO! ' + msg)
+
+
+def erro(msg):
+    print('ERRO: ' + msg)
 
 
 def get_fk_related(field, value, label=None):
@@ -197,6 +203,12 @@ def iter_sql_records(sql, db):
         record.__dict__.update(zip(fieldnames, row))
         yield record
 
+# Todos os models têm no máximo uma constraint unique together
+# Isso é necessário para que o método delete_constraints funcione corretamente
+assert all(len(model._meta.unique_together) <= 1
+           for app in appconfs
+           for model in app.models.values())
+
 
 def delete_constraints(model):
     # pega nome da unique constraint dado o nome da tabela
@@ -210,40 +222,66 @@ def delete_constraints(model):
     for r in result:
         if r[0].endswith('key'):
             words_list = r[0].split('_')
-            one_to_one_constraints.append([table, r[0], words_list, model])
+            constraint = Constraint.objects.create(
+                nome_tabela=table, nome_constraint=r[0],
+                nome_model=model.__name__, tipo_constraint='one_to_one')
+            for w in words_list:
+                Argumento.objects.create(constraint=constraint, argumento=w)
         else:
-            args = None
-            args_list = []
             if model._meta.unique_together:
-                args = model._meta.unique_together[0]
-                args_list = list(args)
-            unique_constraints.append([table, r[0], args_list, model])
+                args_list = model._meta.unique_together[0]
+                constraint = Constraint.objects.create(
+                    nome_tabela=table, nome_constraint=r[0],
+                    nome_model=model.__name__,
+                    tipo_constraint='unique_together')
+                for a in args_list:
+                    Argumento.objects.create(constraint=constraint,
+                                             argumento=a)
         warn('Excluindo unique constraint de nome %s' % r[0])
         exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
                  (table, r[0]))
 
 
-def recreate_constraints():
-    if one_to_one_constraints:
-        for constraint in one_to_one_constraints:
-            table, name, args, model = constraint
+def recria_constraints():
+    constraints = Constraint.objects.all()
+    for con in constraints:
+        if con.tipo_constraint == 'one_to_one':
+            nome_tabela = con.nome_tabela
+            nome_constraint = con.nome_constraint
+            args = [a.argumento for a in con.argumento_set.all()]
             args_string = ''
             args_string = "(" + "_".join(map(str, args[2:-1])) + ")"
-            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                     (table, name, args_string))
-    if unique_constraints:
-        for constraint in unique_constraints:
-            table, name, args, model = constraint
+            try:
+                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                         (nome_tabela, nome_constraint, args_string))
+            except ProgrammingError:
+                info('A constraint %s já foi recriada!' % nome_constraint)
+        if con.tipo_constraint == 'unique_together':
+            nome_tabela = con.nome_tabela
+            nome_constraint = con.nome_constraint
+            # Pegando explicitamente o primeiro valor do filter,
+            # pois pode ser que haja mais de uma ocorrência
+            model = ContentType.objects.filter(
+                model=con.nome_model.lower())[0].model_class()
+            args = [a.argumento for a in con.argumento_set.all()]
             for i in range(len(args)):
                 if isinstance(model._meta.get_field(args[i]),
                               models.ForeignKey):
                     args[i] = args[i] + '_id'
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
-            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                     (table, name, args_string))
-    one_to_one_constraints.clear()
-    unique_constraints.clear()
+            try:
+                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                         (nome_tabela, nome_constraint, args_string))
+            except ProgrammingError:
+                info('A constraint %s já foi recriada!' % nome_constraint)
+            except Exception as err:
+                problema = re.findall('\(.*?\)', err.args[0])
+                erro('A constraint [%s] da tabela [%s] não pode ser recriada' %
+                     (nome_constraint, nome_tabela))
+                erro('Os dados %s = %s estão duplicados. '
+                     'Arrume antes de recriar as constraints!' %
+                     (problema[0], problema[1]))
 
 
 def obj_desnecessario(obj):
@@ -262,8 +300,8 @@ def get_last_value(model):
 
 def alter_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
-    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE %s;' % (
-        sequence_name, id, id))
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
+        sequence_name, id))
 
 
 def save_with_id(new, id):
@@ -278,8 +316,7 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
                   eh_stub=False):
     link = ProblemaMigracao(
         content_object=obj, nome_campo=nome_campo, problema=problema,
-        descricao=descricao, eh_stub=eh_stub,
-    )
+        descricao=descricao, eh_stub=eh_stub,)
     link.save()
 
 
@@ -416,6 +453,8 @@ class DataMigrator:
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
+        disconecta_sinais_indexacao()
+
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
@@ -427,7 +466,7 @@ class DataMigrator:
         for obj in self.to_delete:
             msg = 'A entrada de PK %s da model %s não pode ser ' \
                 'excluida' % (obj.pk, obj._meta.model_name)
-            descricao = 'Um ou mais objetos protegidos '
+            descricao = 'Um ou mais objetos protegidos'
             warn(msg + ' => ' + descricao)
             save_relation(obj=obj, problema=msg,
                           descricao=descricao, eh_stub=False)
@@ -435,8 +474,8 @@ class DataMigrator:
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
             pass
-        info('Recriando unique constraints...')
-        # recreate_constraints()
+
+        conecta_sinais_indexacao()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -731,3 +770,23 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
+
+# DISCONNECT SIGNAL  ########################################################
+
+
+def disconecta_sinais_indexacao():
+    post_save.disconnect(save_texto, NormaJuridica)
+    post_save.disconnect(save_texto, DocumentoAcessorio)
+    post_save.disconnect(save_texto, MateriaLegislativa)
+    post_delete.disconnect(delete_texto, NormaJuridica)
+    post_delete.disconnect(delete_texto, DocumentoAcessorio)
+    post_delete.disconnect(delete_texto, MateriaLegislativa)
+
+
+def conecta_sinais_indexacao():
+    post_save.connect(save_texto, NormaJuridica)
+    post_save.connect(save_texto, DocumentoAcessorio)
+    post_save.connect(save_texto, MateriaLegislativa)
+    post_delete.connect(delete_texto, NormaJuridica)
+    post_delete.connect(delete_texto, DocumentoAcessorio)
+    post_delete.connect(delete_texto, MateriaLegislativa)
