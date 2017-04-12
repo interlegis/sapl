@@ -17,19 +17,20 @@ from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import Autor, ProblemaMigracao, Constraint, Argumento
+from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (StatusTramitacao, TipoDocumento, Tramitacao,
+from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
+                                 StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
-                                 DocumentoAcessorio, MateriaLegislativa)
+                                 Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia
 from sapl.settings import PROJECT_DIR
-from sapl.utils import normalize, save_texto, delete_texto
+from sapl.utils import delete_texto, normalize, save_texto
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -202,6 +203,12 @@ def iter_sql_records(sql, db):
         record.__dict__.update(zip(fieldnames, row))
         yield record
 
+# Todos os models têm no máximo uma constraint unique together
+# Isso é necessário para que o método delete_constraints funcione corretamente
+assert all(len(model._meta.unique_together) <= 1
+           for app in appconfs
+           for model in app.models.values())
+
 
 def delete_constraints(model):
     # pega nome da unique constraint dado o nome da tabela
@@ -221,10 +228,8 @@ def delete_constraints(model):
             for w in words_list:
                 Argumento.objects.create(constraint=constraint, argumento=w)
         else:
-            args = None
             if model._meta.unique_together:
-                args = model._meta.unique_together[0]
-                args_list = list(args)
+                args_list = model._meta.unique_together[0]
                 constraint = Constraint.objects.create(
                     nome_tabela=table, nome_constraint=r[0],
                     nome_model=model.__name__,
