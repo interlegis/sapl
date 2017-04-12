@@ -164,7 +164,8 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_rows(self, object_list):
             for obj in object_list:
-                if not obj.resultado:
+                resultados = obj.registrovotacao_set.all()
+                if not resultados:
                     if obj.votacao_aberta:
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -208,6 +209,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                         else:
                             obj.resultado = '''Não há resultado'''
                 else:
+                    resultado = resultados[0].tipo_resultado_votacao.nome
                     if self.request.user.has_module_perms(AppConfig.label):
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -229,9 +231,9 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
                         obj.resultado = '<a href="%s">%s</a>' % (url,
-                                                                 obj.resultado)
+                                                                 resultado)
                     else:
-                        obj.resultado = '%s' % (obj.resultado)
+                        obj.resultado = '%s' % (resultado)
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -268,7 +270,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
         def get_rows(self, object_list):
             for obj in object_list:
-                if not obj.resultado:
+                resultados = obj.registrovotacao_set.all()
+                if not resultados:
                     if obj.votacao_aberta:
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -310,7 +313,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                         obj.resultado = btn_abrir
                 else:
                     url = ''
-
+                    resultado = resultados[0].tipo_resultado_votacao.nome
                     if self.request.user.has_module_perms(AppConfig.label):
                         if obj.tipo_votacao == 1:
                             url = reverse(
@@ -332,7 +335,9 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
                         obj.resultado = '<a href="%s">%s</a>' % (url,
-                                                                 obj.resultado)
+                                                                 resultado)
+                    else:
+                        obj.resultado = '%s' % (resultado)
             return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -982,12 +987,14 @@ class ResumoView(DetailView):
 
         materias_expediente = []
         for m in materias:
+
             ementa = m.observacao
             titulo = m.materia
             numero = m.numero_ordem
 
-            if m.resultado:
-                resultado = m.resultado
+            resultado = m.registrovotacao_set.all()
+            if resultado:
+                resultado = resultado[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
 
@@ -1039,7 +1046,6 @@ class ResumoView(DetailView):
         # Matérias Ordem do Dia
         ordem = OrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id)
-
         materias_ordem = []
         for o in ordem:
             ementa = o.observacao
@@ -1047,8 +1053,9 @@ class ResumoView(DetailView):
             numero = o.numero_ordem
 
             # Verificar resultado
-            if o.resultado:
-                resultado = o.resultado
+            resultado = o.registrovotacao_set.all()
+            if resultado:
+                resultado = resultado[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
 
@@ -2065,9 +2072,9 @@ class PautaSessaoDetailView(DetailView):
             situacao = m.materia.tramitacao_set.last().status
             if situacao is None:
                 situacao = _("Não informada")
-
-            if m.resultado:
-                resultado = m.resultado
+            resultado = m.registrovotacao_set.all()
+            if resultado:
+                resultado = resultado[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
 
@@ -2118,8 +2125,9 @@ class PautaSessaoDetailView(DetailView):
             numero = o.numero_ordem
 
             # Verificar resultado
-            if o.resultado:
-                resultado = o.resultado
+            resultado = o.registrovotacao_set.all()
+            if resultado:
+                resultado = resultado[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
 

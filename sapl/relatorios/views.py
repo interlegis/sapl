@@ -594,11 +594,9 @@ def get_sessao_plenaria(sessao, casa):
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
         dic_expediente_materia["votacao_observacao"] = ' '
-        if not expediente_materia.resultado:
-            resultado = RegistroVotacao.objects.filter(
-                tipo_resultado_votacao=expediente_materia.tipo_votacao)
-
-            for i in resultado:
+        resultados = expediente_materia.registrovotacao_set.all()
+        if resultados:
+            for i in resultados:
                 dic_expediente_materia["nom_resultado"] = (
                     i.tipo_resultado_votacao.nome)
                 dic_expediente_materia["votacao_observacao"] = (
@@ -710,10 +708,9 @@ def get_sessao_plenaria(sessao, casa):
             dic_votacao["nom_autor"] = 'Desconhecido'
 
         dic_votacao["votacao_observacao"] = ' '
-        if not votacao.resultado:
-            resultado = RegistroVotacao.objects.filter(
-                tipo_resultado_votacao=votacao.tipo_votacao)
-            for i in resultado:
+        resultados = votacao.registrovotacao_set.all()
+        if resultados:
+            for i in resultados:
                 dic_votacao["nom_resultado"] = i.tipo_resultado_votacao.nome
                 if votacao.observacao:
                     dic_votacao["votacao_observacao"] = votacao.observacao
