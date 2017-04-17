@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F
+from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
@@ -512,3 +513,34 @@ class MesaDiretoraView(FormView):
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos
             })
+
+
+def altera_legislatura_mesa(request):
+    sessao = SessaoLegislativa.objects.filter(
+        legislatura=request.GET['legislatura']).order_by('-data_inicio')
+
+    composicao_mesa = ComposicaoMesa.objects.filter(
+        sessao_legislativa=sessao[0])
+
+    cargos_ocupados = [m.cargo for m in composicao_mesa]
+    cargos = CargoMesa.objects.all()
+    cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+
+    parlamentares = Legislatura.objects.get(
+        id=request.GET['legislatura']).mandato_set.all()
+    parlamentares_ocupados = [m.parlamentar for m in composicao_mesa]
+    parlamentares_vagos = list(
+        set(
+            [p.parlamentar for p in parlamentares]) - set(
+            parlamentares_ocupados))
+
+    lista_sessoes = [(s.id, s.__str__()) for s in sessao]
+    lista_composicao = [(c.id, c.__str__()) for c in composicao_mesa]
+    lista_parlamentares = [(p.id, p.__str__()) for p in parlamentares_vagos]
+    lista_cargos = [(c.id, c.__str__()) for c in cargos_vagos]
+
+    return JsonResponse(
+        {'lista_sessoes': lista_sessoes,
+         'lista_composicao': lista_composicao,
+         'lista_parlamentares': lista_parlamentares,
+         'lista_cargos': lista_cargos})

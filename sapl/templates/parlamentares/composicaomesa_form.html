@@ -16,7 +16,7 @@
 		    <div class="row">
 		      <div class="col-md-6">
 		        <label>Escolha uma Legislatura</label>
-		        <select name="legislatura" class="form-control" onChange="form.submit();">
+		        <select name="legislatura" id="id_legislatura" class="form-control">
 		          {% for l in legislaturas %}
 		          	<option value="{{l.id}}" {% if l == legislatura_selecionada %} selected {% endif %}>
 		          		{{l}}
@@ -26,7 +26,7 @@
 		      </div>
 		      <div class="col-md-6">
 		        <label>Escolha uma Sessão Legislativa</label>
-		        <select name="sessao" class="form-control" onChange="form.submit();">
+		        <select name="sessao" id="id_sessao_legislativa" class="form-control" onChange="form.submit();">
 		          {% for s in sessoes %}
 		          	<option value="{{s.id}}" {% if s == sessao_selecionada %} selected {% endif %}>
 		          		{{s}}
@@ -42,7 +42,7 @@
 		    <div class="row">
 		      <div class="col-md-4">
 		        <label>Composição da Mesa Diretora</label>
-		        <select multiple size="5" class="form-control" name="composicao_mesa">
+		        <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
 		          {% for p in composicao_mesa %}
 			          <option value="{{p.parlamentar.id}}:{{p.cargo.id}}">
 			          	{{p.parlamentar}} || {{p.cargo}}
@@ -67,14 +67,14 @@
 
 		      {% if cargos_vagos %}
 		      <div class="col-md-4">
-		        <label>Parlamentare | Cargo</label>
-		        <select class="form-control" name="parlamentar" id="parlamentar">
+		        <label id='parlamentar-cargo-title'>Parlamentar | Cargo</label>
+		        <select class="form-control" name="parlamentar" id="id_parlamentar">
 		          {% for p in parlamentares %}
 		          	<option value="{{p.id}}">{{p.nome_completo}}</option>
 		          {% endfor %}
 		        </select>
 						<br />
-		        <select class="form-control" name="cargo" id="cargo">
+		        <select class="form-control" name="cargo" id="id_cargo">
 		          {% for c in cargos_vagos %}
 		          	<option value="{{c.id}}">{{c}}</option>
 		          {% endfor %}
@@ -87,3 +87,47 @@
 		</form>
 	{% endif %}
 {% endblock detail_content %}
+
+
+{% block extra_js %}
+
+<script language="Javascript">
+    function altera_legislatura(){
+      var id_legislatura = $("#id_legislatura").val();
+
+      $("#id_sessao_legislativa option").remove();
+      $("#id_composicao_mesa option").remove();
+      $("#id_parlamentar option").remove();
+      $("#id_cargo option").remove();
+
+      $.get("/mesa-diretora/altera-legislatura", {legislatura: id_legislatura}, function(data) {
+          lista_sessoes = data['lista_sessoes'];
+          lista_composicao = data['lista_composicao'];
+          lista_parlamentares = data['lista_parlamentares'];
+          lista_cargos = data['lista_cargos'];
+
+          for (i = 0; i < lista_sessoes.length; i++) {
+              $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
+          }
+
+          for (i = 0; i < lista_composicao.length; i++) {
+              $('#id_composicao_mesa').append('<option value="' + lista_composicao[i][0] + '">' + lista_composicao[i][1] + '</option>');
+          }
+
+          if (lista_parlamentares.length != 0 && lista_cargos.length != 0){
+	          for (i = 0; i < lista_parlamentares.length; i++) {
+	              $('#id_parlamentar').append('<option value="' + lista_parlamentares[i][0] + '">' + lista_parlamentares[i][1] + '</option>');
+	          }
+
+	          for (i = 0; i < lista_cargos.length; i++) {
+	              $('#id_cargo').append('<option value="' + lista_cargos[i][0] + '">' + lista_cargos[i][1] + '</option>');
+	          }
+	      }
+      });
+    }
+
+    $("#id_legislatura").change(altera_legislatura);
+
+</script>
+
+{% endblock %}
