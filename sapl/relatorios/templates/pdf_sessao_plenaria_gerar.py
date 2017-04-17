@@ -101,7 +101,7 @@ def inf_basicas(inf_basicas_dic):
 
     tmp += '\t\t<para style="P1">Informações Básicas</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Tipo da Sessão: </b> ' + \
         nom_sessao + '</para>\n'
@@ -120,7 +120,7 @@ def mesa(lst_mesa):
     tmp = ''
     tmp += '\t\t<para style="P1">Mesa Diretora</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for mesa in lst_mesa:
         tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
@@ -136,7 +136,7 @@ def presenca(lst_presenca_sessao):
     tmp = ''
     tmp += '\t\t<para style="P1">Lista de Presença da Sessão</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for presenca in lst_presenca_sessao:
         tmp += '\t\t<para style="P2" spaceAfter="5">' + \
@@ -171,7 +171,7 @@ def expediente_materia(lst_expediente_materia):
     tmp = ''
     tmp += '\t\t<para style="P1">Matérias do Expediente</para>\n\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
@@ -199,7 +199,7 @@ def oradores_expediente(lst_oradores_expediente):
     tmp = ''
     tmp += '\t\t<para style="P1">Oradores do Expediente</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for orador_expediente in lst_oradores_expediente:
         tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + str(orador_expediente['num_ordem']) + '</b> - ' + orador_expediente[
@@ -214,7 +214,7 @@ def presenca_ordem_dia(lst_presenca_ordem_dia):
     tmp = ''
     tmp += '\t\t<para style="P1">Lista de Presença da Ordem do Dia</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for presenca_ordem_dia in lst_presenca_ordem_dia:
         tmp += '\t\t<para style="P2" spaceAfter="5">' + \
@@ -230,7 +230,7 @@ def votacao(lst_votacao):
     tmp = ''
     tmp += '<para style="P1">Matérias da Ordem do Dia</para>\n\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
@@ -258,7 +258,7 @@ def oradores(lst_oradores):
     tmp = ''
     tmp += '\t\t<para style="P1">Oradores das Explicações Pessoais</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for orador in lst_oradores:
         tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
