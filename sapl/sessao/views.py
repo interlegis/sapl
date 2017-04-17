@@ -210,6 +210,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             obj.resultado = '''Não há resultado'''
                 else:
                     resultado = resultados[0].tipo_resultado_votacao.nome
+                    resultado_observacao = resultados[0].observacao
                     if self.request.user.has_module_perms(AppConfig.label):
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -230,10 +231,13 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
-                        obj.resultado = '<a href="%s">%s</a>' % (url,
-                                                                 resultado)
+                        obj.resultado = ('<a href="%s">%s</a><br/>%s' %
+                                           (url,
+                                            resultado,
+                                            resultado_observacao))
                     else:
-                        obj.resultado = '%s' % (resultado)
+                        obj.resultado = ('%s<br/>%s' %
+                                           (resultado, resultado_observacao))
 
             return [self._as_row(obj) for obj in object_list]
 

@@ -779,8 +779,6 @@ def relatorio_sessao_plenaria(request, pk):
      lst_votacao,
      lst_oradores) = get_sessao_plenaria(sessao, casa)
 
-#    import ipdb; ipdb.set_trace()
-
     pdf = pdf_sessao_plenaria_gerar.principal(
         cabecalho,
         rodape,
