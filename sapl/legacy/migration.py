@@ -453,7 +453,7 @@ class DataMigrator:
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
-        disconecta_sinais_indexacao()
+        desconecta_sinais_indexacao()
 
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
@@ -774,7 +774,7 @@ make_with_log.required = foreign_key_required
 # DISCONNECT SIGNAL  ########################################################
 
 
-def disconecta_sinais_indexacao():
+def desconecta_sinais_indexacao():
     post_save.disconnect(save_texto, NormaJuridica)
     post_save.disconnect(save_texto, DocumentoAcessorio)
     post_save.disconnect(save_texto, MateriaLegislativa)
