@@ -600,7 +600,7 @@ def get_sessao_plenaria(sessao, casa):
                 dic_expediente_materia["nom_resultado"] = (
                     i.tipo_resultado_votacao.nome)
                 dic_expediente_materia["votacao_observacao"] = (
-                    expediente_materia.observacao)
+                    i.observacao)
         else:
             dic_expediente_materia["nom_resultado"] = _("Matéria não votada")
             dic_expediente_materia["votacao_observacao"] = _("Vazio")
@@ -713,7 +713,7 @@ def get_sessao_plenaria(sessao, casa):
             for i in resultados:
                 dic_votacao["nom_resultado"] = i.tipo_resultado_votacao.nome
                 if votacao.observacao:
-                    dic_votacao["votacao_observacao"] = votacao.observacao
+                    dic_votacao["votacao_observacao"] = i.observacao
         else:
             dic_votacao["nom_resultado"] = _("Matéria não votada")
             dic_votacao["votacao_observacao"] = _("Vazio")
@@ -778,6 +778,8 @@ def relatorio_sessao_plenaria(request, pk):
      lst_presenca_ordem_dia,
      lst_votacao,
      lst_oradores) = get_sessao_plenaria(sessao, casa)
+
+#    import ipdb; ipdb.set_trace()
 
     pdf = pdf_sessao_plenaria_gerar.principal(
         cabecalho,
