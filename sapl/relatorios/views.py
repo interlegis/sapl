@@ -603,7 +603,7 @@ def get_sessao_plenaria(sessao, casa):
                     i.observacao)
         else:
             dic_expediente_materia["nom_resultado"] = _("Matéria não votada")
-            dic_expediente_materia["votacao_observacao"] = _("Vazio")
+            dic_expediente_materia["votacao_observacao"] = _(" ")
         lst_expediente_materia.append(dic_expediente_materia)
 
     # Lista dos oradores do Expediente
@@ -716,7 +716,7 @@ def get_sessao_plenaria(sessao, casa):
                     dic_votacao["votacao_observacao"] = i.observacao
         else:
             dic_votacao["nom_resultado"] = _("Matéria não votada")
-            dic_votacao["votacao_observacao"] = _("Vazio")
+            dic_votacao["votacao_observacao"] = _(" ")
         lst_votacao.append(dic_votacao)
 
     # Lista dos oradores nas Explicações Pessoais

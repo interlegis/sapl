@@ -185,7 +185,7 @@ def expediente_materia(lst_expediente_materia):
         if expediente_materia['votacao_observacao'] != txt_ementa:
                 tmp += str(expediente_materia['votacao_observacao'])
         else:
-                tmp += 'Vazio'
+                tmp += ' '
         tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
@@ -244,7 +244,7 @@ def votacao(lst_votacao):
         if votacao['votacao_observacao'] != txt_ementa:
                 tmp += str(votacao['votacao_observacao'])
         else:
-                tmp += 'Vazio'
+                tmp += ' '
         tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
