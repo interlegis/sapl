@@ -154,10 +154,10 @@ def expedientes(lst_expedientes):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> </font>\n'
     tmp += '\t\t</para>\n'
-    for expediente in lst_expedientes:
+    for idx, expediente in enumerate(lst_expedientes):
         tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
             expediente['nom_expediente'] + ': </b></para>\n' + \
-            '<para style="P2">' + \
+             '<para style="P2">' + \
             expediente['txt_expediente'] + '</para>\n'
         tmp += '\t\t<para style="P2">\n'
         tmp += '\t\t\t<font color="white"> </font>\n'
@@ -181,8 +181,12 @@ def expediente_materia(lst_expediente_materia):
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            str(expediente_materia['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
-             '</para></td></tr>\n'
+            str(expediente_materia['nom_resultado']) + '</b></para>\n' + '<para style="P3">'
+        if expediente_materia['votacao_observacao'] != txt_ementa:
+                tmp += str(expediente_materia['votacao_observacao'])
+        else:
+                tmp += 'Vazio'
+        tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
@@ -236,8 +240,12 @@ def votacao(lst_votacao):
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
-            '</para></td></tr>\n'
+            str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">'
+        if votacao['votacao_observacao'] != txt_ementa:
+                tmp += str(votacao['votacao_observacao'])
+        else:
+                tmp += 'Vazio'
+        tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
@@ -290,6 +298,7 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
     tmp += oradores(lst_oradores)
     tmp += '\t</story>\n'
     tmp += '</document>\n'
+
     tmp_pdf = parseString(tmp)
     return tmp_pdf
 #     if hasattr(context.temp_folder,arquivoPdf):
