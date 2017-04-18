@@ -1,12 +1,7 @@
 #!/bin/sh
 
-touch .env
-
 python3 gen-env.py
-
-/bin/sh
-
-# Generate .env em /sapl/data volume
-
-
-
+python3 manage.py bower install
+/bin/sh busy-wait.sh
+python3 manage.py migrate
+/bin/sh gunicorn_start.sh

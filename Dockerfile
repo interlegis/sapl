@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
 python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
-py3-magic postgresql-client
+py3-magic postgresql-client vim
 
 RUN apk add --no-cache python3 && \
     python3 -m ensurepip && \
@@ -24,9 +24,11 @@ WORKDIR /sapl
 
 ADD . /sapl
 
-RUN chmod +x ./start.sh
+COPY start.sh /sapl
 
-# RUN pip install -r requirements/requirements.txt --upgrade setuptools --no-cache-dir
+RUN chmod +x /sapl/start.sh
+
+RUN pip install -r requirements/requirements.txt --upgrade setuptools --no-cache-dir
 
 VOLUME ["/sapl/data"]
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["/sapl/start.sh"]
