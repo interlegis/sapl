@@ -30,5 +30,5 @@ RUN chmod +x /sapl/start.sh
 
 RUN pip install -r requirements/requirements.txt --upgrade setuptools --no-cache-dir
 
-VOLUME ["/sapl/data"]
+VOLUME ["/sapl/data", "/sapl/media", "/sapl/collected_static"]
 ENTRYPOINT ["/sapl/start.sh"]
