@@ -23,19 +23,23 @@ create_env() {
 
     touch $FILENAME
 
+
     # explicitly use '>' to erase any previous content
     echo "SECRET_KEY="$KEY > $FILENAME
     # now only appends
     echo "DATABASE_URL = "$DATABASE_URL >> $FILENAME
-    echo "DEBUG = False" >> $FILENAME
-    echo "EMAIL_USE_TLS = True" >> $FILENAME
-    echo "EMAIL_PORT = 587" >> $FILENAME
+    echo "DEBUG = ""${DEBUG-False}" >> $FILENAME
+    echo "EMAIL_USE_TLS = ""${USE_TLS-True}" >> $FILENAME
+    echo "EMAIL_PORT = ""${EMAIL_PORT-587}" >> $FILENAME
     echo "EMAIL_HOST = ""${EMAIL_HOST-''}" >> $FILENAME
     echo "EMAIL_HOST_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "EMAIL_HOST_PASSWORD = ""${EMAIL_HOST_PASSWORD-''}" >> $FILENAME
 }
 
+echo "creating .env file..."
 create_env
+echo "done."
+
 # # python3 gen-env.py
 
 python3 manage.py bower install
