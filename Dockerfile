@@ -10,7 +10,7 @@ RUN apk add --no-cache python3 && \
     pip3 install --upgrade pip setuptools && \
     rm -r /root/.cache
 
-RUN cd /var && mkdir interlegis && cd interlegis && mkdir sapl && cd .. && cd .. &&\
+RUN mkdir -p /var/interlegis/sapl &&\
     apk add --update --no-cache $BUILD_PACKAGES && \
     npm install -g bower
 
