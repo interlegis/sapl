@@ -558,6 +558,10 @@ class DataMigrator:
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
 
+        # necessário para ajustar sequence da tabela para o ultimo valor de id
+        ultimo_valor = get_last_value(model)
+        alter_sequence(model, ultimo_valor+1)
+
     def delete_ind_excluido(self):
         excluidos = 0
         for obj in self.to_delete:
@@ -635,8 +639,9 @@ def adjust_participacao(new, old):
 
 
 def adjust_normarelacionada(new, old):
-    new.tipo_vinculo = TipoVinculoNormaJuridica.objects.get(
-        sigla=old.tip_vinculo)
+    tipo = TipoVinculoNormaJuridica.objects.filter(sigla=old.tip_vinculo)
+    assert len(tipo) == 1
+    new.tipo_vinculo = tipo[0]
 
 
 def adjust_protocolo(new, old):
