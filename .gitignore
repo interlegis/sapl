@@ -94,3 +94,4 @@ bower_components
 media
 whoosh/
 postgres-data/
+data/
