@@ -17,12 +17,14 @@ sapldb:
     PGDATA : /var/lib/postgresql/data/
   volumes:
     - ./postgres-data/data/:/var/lib/postgresql/data/
+    - ./data:/data-import
   ports:
     - "5532:5432"
 web:
   build: .
   volumes:
     - .:/var/interlegis/sapl/
+    - ./data:/var/interlegis/sapl/data
     - ./media:/var/interlegis/sapl/media
     - ./collected_static:/var/interlegis/sapl/collected_static
   links:
