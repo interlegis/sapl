@@ -8,83 +8,77 @@
 			<b>{{legislatura_selecionada}}</b> não possui nenhuma Sessão Legislativa cadastrada.<br />
 			Clique <a href="{% url 'sapl.parlamentares:sessaolegislativa_create' %}">aqui</a> para cadastrar uma nova.
 		</div>
+
 	{% else %}
-		<form method="POST">
-			{% csrf_token %}
-			<fieldset class="form-group">
-				<legend>Escolha da Legislatura e da Sessão Legislativa</legend>
-		    <div class="row">
-		      <div class="col-md-6">
-		        <label>Escolha uma Legislatura</label>
-		        <select name="legislatura" id="id_legislatura" class="form-control">
-		          {% for l in legislaturas %}
-		          	<option value="{{l.id}}" {% if l == legislatura_selecionada %} selected {% endif %}>
-		          		{{l}}
-		          	</option>
-		          {% endfor %}
-		        </select>
-		      </div>
-		      <div class="col-md-6">
-		        <label>Escolha uma Sessão Legislativa</label>
-		        <select name="sessao" id="id_sessao_legislativa" class="form-control" onChange="form.submit();">
-		          {% for s in sessoes %}
-		          	<option value="{{s.id}}" {% if s == sessao_selecionada %} selected {% endif %}>
-		          		{{s}}
-		          	</option>
-		          {% endfor %}
-		        </select>
-		      </div>
-		    </div>
-			</fieldset>
-			<br />
-			<fieldset class="form-group">
-				<legend>Escolha da Composição da Mesa Diretora</legend>
-		    <div class="row">
-		      <div class="col-md-4">
-		        <label>Composição da Mesa Diretora</label>
-		        <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
-		          {% for p in composicao_mesa %}
-			          <option value="{{p.parlamentar.id}}:{{p.cargo.id}}">
-			          	{{p.parlamentar}} || {{p.cargo}}
-			          </option>
-		          {% endfor %}
-		        </select>
-		      </div>
+		<fieldset class="form-group">
+			<legend>Escolha da Legislatura e da Sessão Legislativa</legend>
+	    <div class="row">
+	      <div class="col-md-6">
+	        <label>Escolha uma Legislatura</label>
+	        <select name="legislatura" id="id_legislatura" class="form-control">
+	          {% for l in legislaturas %}
+	          	<option value="{{l.id}}" {% if l == legislatura_selecionada %} selected {% endif %}>
+	          		{{l}}
+	          	</option>
+	          {% endfor %}
+	        </select>
+	      </div>
+	      <div class="col-md-6">
+	        <label>Escolha uma Sessão Legislativa</label>
+	        <select name="sessao" id="id_sessao_legislativa" class="form-control">
+	          {% for s in sessoes %}
+	          	<option value="{{s.id}}" {% if s == sessao_selecionada %} selected {% endif %}>
+	          		{{s}}
+	          	</option>
+	          {% endfor %}
+	        </select>
+	      </div>
+	    </div>
+		</fieldset>
+		<br />
+		<fieldset class="form-group">
+			<legend>Escolha da Composição da Mesa Diretora</legend>
+	    <div class="row">
+	      <div class="col-md-4">
+	        <label>Composição da Mesa Diretora</label>
+	        <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
+	          {% for p in composicao_mesa %}
+		          <option value="{{p.id}}">
+		          	{{p.parlamentar}} || {{p.cargo}}
+		          </option>
+	          {% endfor %}
+	        </select>
+	      </div>
 
-		      <div class="col-md-4" align="center">
-						<br /><br />
-		        {% if cargos_vagos %}
-		        	{% if perms.parlamentares.add_cargomesa %}
-		        		<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />
-		        	{% endif %}
-		        {% endif %}
-		        <br />
-		        <br />
-		        {% if perms.parlamentares.add_composicaomesa %}
-		        	<input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" />
-		        {% endif %}
-		      </div>
+	      <div class="col-md-4" align="center">
+					<br /><br />
+        	{% if perms.parlamentares.add_cargomesa %}
+        		<input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
+        	{% endif %}
+	        <br />
+	        <br />
+	        {% if perms.parlamentares.add_composicaomesa %}
+	        	<input type="submit" style="display: none" name="Excluir" id="id_excluir" Value="Excluir" class="btn btn-danger" />
+	        {% endif %}
+	      </div>
 
-		      {% if cargos_vagos %}
-		      <div class="col-md-4">
-		        <label id='parlamentar-cargo-title'>Parlamentar | Cargo</label>
-		        <select class="form-control" name="parlamentar" id="id_parlamentar">
-		          {% for p in parlamentares %}
-		          	<option value="{{p.id}}">{{p.nome_completo}}</option>
-		          {% endfor %}
-		        </select>
-						<br />
-		        <select class="form-control" name="cargo" id="id_cargo">
-		          {% for c in cargos_vagos %}
-		          	<option value="{{c.id}}">{{c}}</option>
-		          {% endfor %}
-		        </select>
-		      </div>
-		      {% endif %}
+	      <div class="col-md-4">
+	        <label id='parlamentar-cargo-title' style="display: none">Parlamentar | Cargo</label>
+	        <select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
+	          {% for p in parlamentares %}
+	          	<option value="{{p.id}}">{{p.nome_completo}}</option>
+	          {% endfor %}
+	        </select>
+					<br />
+	        <select class="form-control" name="cargo" id="id_cargo" style="display: none">
+	          {% for c in cargos_vagos %}
+	          	<option value="{{c.id}}">{{c}}</option>
+	          {% endfor %}
+	        </select>
+	      </div>
 
-		    </div>
-			</fieldset>
-		</form>
+	    </div>
+		</fieldset>
 	{% endif %}
 {% endblock detail_content %}
 
@@ -92,29 +86,76 @@
 {% block extra_js %}
 
 <script language="Javascript">
-    function altera_legislatura(){
-      var id_legislatura = $("#id_legislatura").val();
 
+	  // Se a composicao estiver completa, deve-se esconder o botão e os
+	  // campos de inserção
+	  $(document).ready(function(){
+    	if($("#id_parlamentar").val() == null || $("#id_cargo").val() == null){
+    		$("#id_parlamentar").hide();
+    		$("#id_cargo").hide();
+    		$("#parlamentar-cargo-title").hide();
+    		$('#id_incluir').hide();
+    	}
+    	else{
+    		$("#id_parlamentar").show();
+    		$("#id_cargo").show();
+    		$("#parlamentar-cargo-title").show();
+    		$('#id_incluir').show();
+    	}
+
+    	// Se a composição estiver vazia, deve-se esconder
+    	// de Excluir
+    	if (!$("#id_composicao_mesa option").val()){
+    		$("#id_excluir").hide()
+    	}
+    	else{
+    		$("#id_excluir").show()
+    	}
+    });
+
+	  // Atualiza os campos após alguma operação de mudança da Legislatura/Sessao ou
+	  // Inserção/Remoção
+    function altera_field(id_field, incluir_excluir_op=null){
+    	// Pega o novo valor do campo que foi modificado (Sessao/Legislatura) ou utiliza
+    	// o valor da Legislatura, por conveniência, quando há alguma inserção ou remoção
+      var field = $(id_field).val();
+
+      // Limpa os campos que serão atualizados
       $("#id_sessao_legislativa option").remove();
       $("#id_composicao_mesa option").remove();
       $("#id_parlamentar option").remove();
       $("#id_cargo option").remove();
 
-      $.get("/mesa-diretora/altera-legislatura", {legislatura: id_legislatura}, function(data) {
+      $.get("/mesa-diretora/altera-field-mesa",
+      	{field: field, id_field: id_field, incluir_excluir_op: incluir_excluir_op},
+      	function(data) {
+      		// Caso não venha nenhum dado da requisição, retorna null
+      	  if ($.isEmptyObject(data)){
+      	  	return null
+      	  }
+
           lista_sessoes = data['lista_sessoes'];
           lista_composicao = data['lista_composicao'];
           lista_parlamentares = data['lista_parlamentares'];
           lista_cargos = data['lista_cargos'];
 
+          // Atualiza a listagem dos campos
           for (i = 0; i < lista_sessoes.length; i++) {
               $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
           }
 
           for (i = 0; i < lista_composicao.length; i++) {
-              $('#id_composicao_mesa').append('<option value="' + lista_composicao[i][0] + '">' + lista_composicao[i][1] + '</option>');
+              $('#id_composicao_mesa').append('<option value="' + lista_composicao[i][0] + '">' + lista_composicao[i][1] + ' || ' + lista_composicao[i][2] + '</option>');
           }
 
+          // Caso ainda tenha parlamentares/cargos a serem inseridos, preenche a listagem com
+          // os disponíveis e garante que as ferramentas de inserção estejam disponíveis
           if (lista_parlamentares.length != 0 && lista_cargos.length != 0){
+          	$('#id_incluir').show()
+          	$('#id_cargo').show();
+	      		$('#id_parlamentar').show();
+	      		$("#parlamentar-cargo-title").show();
+
 	          for (i = 0; i < lista_parlamentares.length; i++) {
 	              $('#id_parlamentar').append('<option value="' + lista_parlamentares[i][0] + '">' + lista_parlamentares[i][1] + '</option>');
 	          }
@@ -122,11 +163,89 @@
 	          for (i = 0; i < lista_cargos.length; i++) {
 	              $('#id_cargo').append('<option value="' + lista_cargos[i][0] + '">' + lista_cargos[i][1] + '</option>');
 	          }
-	      }
+	      	}
+
+	      	// Caso contrário, esconde do usuário essas opções
+	      	else{
+	      		$('#id_incluir').hide();
+	      		$('#id_cargo').hide();
+	      		$('#id_parlamentar').hide();
+	      		$("#parlamentar-cargo-title").hide();
+	      	}
+
+	      	// Garante que o botão de remoção aparecerá, caso tenha
+	      	// algum parlamentar na composição
+	      	if (lista_composicao.length != 0){
+    				$("#id_excluir").show()
+    			}
+    			else{
+    				$("#id_excluir").hide()
+    			}
+
+	      // Garante que a Sessão atual será a selecionada previamente e, no caso em que
+	      // o campo modificado seja o de Legislatura, que a Sessão seja a última daquela
+	      // legislatura
+	      $("#id_sessao_legislativa").val(data['sessao_selecionada'])
+
       });
     }
 
-    $("#id_legislatura").change(altera_legislatura);
+    //#######################################################
+    //#                     EVENT HANDLERS                  #
+    //#######################################################
+    $("#id_legislatura").change(function(){
+    	altera_field("#id_legislatura");
+    });
+
+    $("#id_sessao_legislativa").change(function(){
+    	altera_field("#id_sessao_legislativa");
+    });
+
+    $('#id_incluir').click(function(){
+    	$.ajax({
+	        data: {sessao: $("#id_sessao_legislativa").val(),
+	               parlamentar: $("#id_parlamentar").val(),
+	               cargo: $("#id_cargo").val()},
+	        type: 'POST',
+	        url: "{% url 'sapl.parlamentares:insere_parlamentar_composicao' %}",
+	        headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+          success: function(data){
+          					  // if ('erro' in data){
+          					  // 	if (data['erro'].length > 0){
+          					  // 		alert(data['erro'])
+          					  // 	}
+          					  // }				             
+				              setTimeout(function(data){
+				               // Atualiza os campos após a inserção
+				            	 altera_field("#id_legislatura", $("#id_sessao_legislativa").val())
+				             }, 500)
+                   },
+	    });
+    })
+
+    $('#id_excluir').click(function(){
+    	// Pega o id do parlamentar que foi selecionado
+    	selecionado = $("#id_composicao_mesa option:selected").val()
+
+    	if (selecionado){
+	    	$.ajax({
+		        data: {composicao_mesa: selecionado},
+		        type: 'POST',
+		        url: "{% url 'sapl.parlamentares:remove_parlamentar_composicao' %}",
+		        headers: {
+	                'X-CSRFToken': getCookie('csrftoken')
+	            },
+	          success: function(data){		             
+					              setTimeout(function(data){
+					               // Atualiza os campos após a remoção
+					            	 altera_field("#id_legislatura", $("#id_sessao_legislativa").val())
+					             }, 500)
+	                   },
+		    });
+    	}
+    });
 
 </script>
 
