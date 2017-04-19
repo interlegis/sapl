@@ -19,7 +19,7 @@ django-sass-processor==0.4.6
 djangorestframework
 drfdocs
 easy-thumbnails==2.3
-trml2pdf==0.4.2
+git+git://github.com/interlegis/trml2pdf.git
 libsass==0.11.1
 psycopg2==2.6.2
 python-decouple==3.0

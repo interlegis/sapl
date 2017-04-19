@@ -237,6 +237,7 @@ BOWER_INSTALLED_APPS = (
     'jQuery-Mask-Plugin#1.14.0',
     'jsdiff#2.2.2',
     'https://github.com/interlegis/drunken-parrot-flat-ui.git',
+    'jquery-query-object#2.2.3',
 )
 
 # Additional search paths for SASS files when using the @import statement

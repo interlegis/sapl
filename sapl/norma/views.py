@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
+
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,

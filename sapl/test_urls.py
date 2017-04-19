@@ -361,6 +361,7 @@ for item in _lista_urls:
         __lista_urls.append((oper, item))"""
 
 
+@pytest.mark.skip(reason="TODO: Lento demais. Precisa ser refatorado")
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_permissions_urls_for_users_by_apps(url_item, client):
@@ -402,7 +403,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             container, como é o caso de proposições que possui restrição
             por usuário e não só por, ou não tem, o campo permission_required
         """
-        if PermissionRequiredForAppCrudMixin in type.mro(key.view_class):
+        if issubclass(key.view_class, PermissionRequiredForAppCrudMixin):
             # essa classe deve informar app_label
             assert hasattr(key.view_class, 'app_label')
             # app_label deve ter conteudo

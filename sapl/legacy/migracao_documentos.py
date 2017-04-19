@@ -4,6 +4,7 @@ import re
 
 import magic
 
+from django.db.models.signals import post_delete, post_save
 from sapl.base.models import CasaLegislativa
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
@@ -12,6 +13,8 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
+from sapl.utils import delete_texto, save_texto
+
 
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
 EXTENSOES = {
@@ -160,7 +163,29 @@ def migrar_docs_por_ids(tipo):
                         tipo.__name__, id, destino))
 
 
+def desconecta_sinais_indexacao():
+    post_save.disconnect(save_texto, NormaJuridica)
+    post_save.disconnect(save_texto, DocumentoAcessorio)
+    post_save.disconnect(save_texto, MateriaLegislativa)
+    post_delete.disconnect(delete_texto, NormaJuridica)
+    post_delete.disconnect(delete_texto, DocumentoAcessorio)
+    post_delete.disconnect(delete_texto, MateriaLegislativa)
+
+
+def conecta_sinais_indexacao():
+    post_save.connect(save_texto, NormaJuridica)
+    post_save.connect(save_texto, DocumentoAcessorio)
+    post_save.connect(save_texto, MateriaLegislativa)
+    post_delete.connect(delete_texto, NormaJuridica)
+    post_delete.connect(delete_texto, DocumentoAcessorio)
+    post_delete.connect(delete_texto, MateriaLegislativa)
+
+
 def migrar_documentos():
+    # precisamos excluir os sinais de post_save e post_delete para não que o
+    # computador não trave com a criação de threads desnecessárias
+    desconecta_sinais_indexacao()
+
     # aqui supomos que uma pasta chamada sapl_documentos está em MEDIA_ROOT
     # com o conteúdo da pasta de mesmo nome do zope
     # Os arquivos da pasta serão movidos para a nova estrutura e a pasta será
@@ -186,3 +211,6 @@ def migrar_documentos():
                   len(sobrando)))
         for doc in sobrando:
             print('  {}'. format(doc))
+            #
+    # reconexão dos sinais desligados no inicio da migração de documentos
+    conecta_sinais_indexacao()

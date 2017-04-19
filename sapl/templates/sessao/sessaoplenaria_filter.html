@@ -9,16 +9,11 @@
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
     {% endif %}
     </a>
-    {% if filter_url %}
-        <a href="{% url 'sapl.sessao:pesquisar_sessao' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-    {% endif %}
   </div>
 {% endblock %}
 
 {% block detail_content %}
-    {% if not filter_url %}
-      {% crispy filter.form %}
-    {% endif %}
+  {% crispy filter.form %}
 
   {% if filter_url %}
     <p></p>
@@ -51,3 +46,41 @@
 {% endblock detail_content %}
 {% block table_content %}
 {% endblock table_content %}
+
+
+{% block extra_js %}
+
+<script type="text/javascript">
+  var querystring = "{{filter_url|safe}}"
+
+  // Esse IF garante que já existe uma querystring, ou seja, algo já foi pesquisado
+  if(querystring.length != 0){ 
+    $('#id_data_inicio__year').on({
+      change: function(){
+        window.location.search = jQuery.query.set("data_inicio__year", $('#id_data_inicio__year').val());
+      }
+    })
+
+    $('#id_data_inicio__month').on({
+      change: function(){
+        window.location.search = jQuery.query.set("data_inicio__month", $('#id_data_inicio__month').val());
+      }
+    })
+
+    $('#id_data_inicio__day').on({
+      change: function(){
+        window.location.search = jQuery.query.set("data_inicio__day", $('#id_data_inicio__day').val());
+      }
+    })
+
+    $('#id_tipo').on({
+      change: function(){
+        window.location.search = jQuery.query.set("tipo", $('#id_tipo').val());
+      }
+    })
+  }
+
+
+</script>
+
+{% endblock %}

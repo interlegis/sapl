@@ -7,8 +7,8 @@ from model_utils import Choices
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
-from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
-                        restringe_tipos_de_arquivo_txt)
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
 @reversion.register()

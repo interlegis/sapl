@@ -211,7 +211,7 @@ def heranca(request, d, ignore_ultimo=0, ignore_primeiro=0):
     ta_id = str(d.ta_id)
     d_pk = str(d.pk)
     if ta_id not in ta_dpts_parents or d_pk not in ta_dpts_parents[ta_id]:
-        #print('recarregando estrutura temporaria de heranças')
+        # print('recarregando estrutura temporaria de heranças')
         dpts_parents = {}
         ta_dpts_parents[ta_id] = dpts_parents
         update_dispositivos_parents(dpts_parents, ta_id)
@@ -295,6 +295,7 @@ def urldetail_content_type(obj):
 @register.filter
 def list(obj):
     return [obj, ]
+
 
 @register.filter
 def can_use_dynamic_editing(texto_articulado, user):

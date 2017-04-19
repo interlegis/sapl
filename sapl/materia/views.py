@@ -43,21 +43,19 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm,
-                    MateriaAssuntoForm, MateriaLegislativaFilterSet,
-                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
+                    DocumentoAcessorioForm, MateriaAssuntoForm,
+                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
+                    RelatoriaForm, TramitacaoEmLoteFilterSet,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
-from .models import (AssuntoMateria, AcompanhamentoMateria,
-                     Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa,
-                     MateriaAssunto, Numeracao, Orgao,
-                     Origem, Proposicao, RegimeTramitacao, Relatoria,
-                     StatusTramitacao, TipoDocumento, TipoFimRelatoria,
-                     TipoMateriaLegislativa, TipoProposicao, Tramitacao,
-                     UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaAssunto,
+                     MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
+                     RegimeTramitacao, Relatoria, StatusTramitacao,
+                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
+                     TipoProposicao, Tramitacao, UnidadeTramitacao)
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
