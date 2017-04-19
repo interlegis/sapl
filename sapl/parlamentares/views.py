@@ -479,7 +479,8 @@ def altera_field_mesa(request):
          'lista_composicao': lista_composicao,
          'lista_parlamentares': lista_parlamentares,
          'lista_cargos': lista_cargos,
-         'sessao_selecionada': sessao_selecionada.id})
+         'sessao_selecionada': sessao_selecionada.id,
+         'msg': ('', 1)})
 
 
 def insere_parlamentar_composicao(request):
