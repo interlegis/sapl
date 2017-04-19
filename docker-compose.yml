@@ -4,6 +4,8 @@ server:
     - "80:80"
   volumes:
     - ./config/nginx:/etc/nginx/conf.d
+    - ./collected_static:/var/interlegis/sapl/collected_static
+    - ./media:/var/interlegis/sapl/media
   volumes_from:
     - web
 sapldb:
@@ -14,14 +16,14 @@ sapldb:
     POSTGRES_DB: sapl
     PGDATA : /var/lib/postgresql/data/
   volumes:
-    - ./postgres-data/data/:/var/lib/postgresql/data/     
+    - ./postgres-data/data/:/var/lib/postgresql/data/
   ports:
     - "5532:5432"
 web:
   build: .
   volumes:
-    - .:/sapl
-    - ./media:/sapl/media
-    - ./collected_static:/sapl/collected_static
+    - .:/var/interlegis/sapl/
+    - ./media:/var/interlegis/sapl/media
+    - ./collected_static:/var/interlegis/sapl/collected_static
   links:
     - sapldb

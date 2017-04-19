@@ -3,15 +3,15 @@
 
 create_env() {
     # check if file exists
-    if [ ! -f "data/secret.key" ]; then   
-        KEY=`cat data/secret.key`
+    if [ -f "/var/interlegis/sapl/data/secret.key" ]; then
+        KEY=`cat /var/interlegis/sapl/data/secret.key`
     else
         KEY=`python3 genkey.py`
         echo $KEY > data/secret.key
     fi
 
     # TODO: rename env-test-bash to .env
-    FILENAME="sapl/.env"
+    FILENAME="/var/interlegis/sapl/sapl/.env"
 
     if [ -z "${DATABASE_URL:-}" ]; then
         DATABASE_URL="postgresql://sapl:sapl@sapldb:5432/sapl"
@@ -36,8 +36,7 @@ create_env() {
 }
 
 create_env
-
-# python3 gen-env.py
+# # python3 gen-env.py
 
 python3 manage.py bower install
 

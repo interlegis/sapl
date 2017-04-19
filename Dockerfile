@@ -10,7 +10,9 @@ RUN apk add --no-cache python3 && \
     pip3 install --upgrade pip setuptools && \
     rm -r /root/.cache
 
-RUN mkdir /sapl && apk add --update --no-cache $BUILD_PACKAGES && npm install -g bower
+RUN cd /var && mkdir interlegis && cd interlegis && mkdir sapl && cd .. && cd .. &&\
+    apk add --update --no-cache $BUILD_PACKAGES && \
+    npm install -g bower
 
 # Bower aceitar root
 RUN touch /root/.bowerrc \
@@ -18,17 +20,15 @@ RUN touch /root/.bowerrc \
 && echo "{ \"allow_root\": true }" >> /root/.bowerrc \
 && npm cache clean
 
-RUN npm install -g bower
+WORKDIR /var/interlegis/sapl/
 
-WORKDIR /sapl
+ADD . /var/interlegis/sapl/
 
-ADD . /sapl
+COPY start.sh /var/interlegis/sapl/
 
-COPY start.sh /sapl
+RUN chmod +x /var/interlegis/sapl/start.sh
 
-RUN chmod +x /sapl/start.sh
+RUN pip install -r /var/interlegis/sapl/requirements/requirements.txt --upgrade setuptools
 
-RUN pip install -r requirements/requirements.txt --upgrade setuptools --no-cache-dir
-
-VOLUME ["/sapl/data", "/sapl/media", "/sapl/collected_static"]
-ENTRYPOINT ["/sapl/start.sh"]
+VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media", "/var/interlegis/sapl/collected_static"]
+ENTRYPOINT ["/var/interlegis/sapl/start.sh"]

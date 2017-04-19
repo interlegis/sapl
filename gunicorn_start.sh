@@ -3,8 +3,8 @@
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
 
 NAME="SAPL"                                     # Name of the application (*)
-DJANGODIR=/sapl/                    # Django project directory (*)
-SOCKFILE=/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
+DJANGODIR=/var/interlegis/sapl/                    # Django project directory (*)
+SOCKFILE=/var/interlegis/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
 NUM_WORKERS=3                                   # how many worker processes should Gunicorn spawn (*)
