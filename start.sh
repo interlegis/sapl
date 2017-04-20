@@ -44,7 +44,7 @@ create_env
 
 python3 manage.py bower install
 
-/bin/sh busy-wait.sh
+/bin/sh busy-wait.sh $DATABASE_URL
 
 python3 manage.py migrate
 python3 manage.py collectstatic --no-input
