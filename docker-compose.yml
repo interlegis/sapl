@@ -1,17 +1,31 @@
-localhost:
+server:
+  image: nginx:latest
+  ports:
+    - "80:80"
+  volumes:
+    - ./config/nginx:/etc/nginx/conf.d
+    - ./collected_static:/var/interlegis/sapl/collected_static
+    - ./media:/var/interlegis/sapl/media
+  volumes_from:
+    - web
+sapldb:
   image: postgres
   environment:
     POSTGRES_PASSWORD: sapl
     POSTGRES_USER: sapl
     POSTGRES_DB: sapl
+    PGDATA : /var/lib/postgresql/data/
+  volumes:
+    - ./postgres-data/data/:/var/lib/postgresql/data/
+    - ./data:/data-import
   ports:
     - "5532:5432"
 web:
   build: .
-  command: /bin/sh -c "/bin/sh busy-wait.sh && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh /sapl"
   volumes:
-    - .:/sapl
-  ports:
-    - "8000:8000"
+    - .:/var/interlegis/sapl/
+    - ./data:/var/interlegis/sapl/data
+    - ./media:/var/interlegis/sapl/media
+    - ./collected_static:/var/interlegis/sapl/collected_static
   links:
-    - localhost
+    - sapldb

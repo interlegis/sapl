@@ -1,6 +1,6 @@
 DATABASE_URL = postgresql://postgres:@sapldb:/sapl
-SECRET_KEY=TravisTest
-DEBUG=False
+KEY 
+DEBUG = False
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST = ''
