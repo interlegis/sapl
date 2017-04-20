@@ -50,4 +50,4 @@ python3 manage.py migrate
 python3 manage.py collectstatic --no-input
 python3 manage.py rebuild_index --noinput
 
-/bin/sh gunicorn_start.sh
+/bin/sh gunicorn_start.sh no-venv
