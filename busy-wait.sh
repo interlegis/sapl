@@ -1,7 +1,7 @@
 #!/bin/sh
 
 while true; do
-    COUNT_PG=`psql --dbname=postgresql://sapl:sapl@sapldb/sapl -c '\l \q' | grep sapl | wc -l`
+    COUNT_PG=`psql $1 -c '\l \q' | grep sapl | wc -l`
     if ! [ "$COUNT_PG" -eq "0" ]; then
        break
     fi
