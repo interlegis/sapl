@@ -25,7 +25,7 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
-                               TipoVinculoNormaJuridica)
+                               TipoVinculoNormaJuridica, NormaRelacionada)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia
@@ -339,20 +339,34 @@ def get_fields_dict(model):
 
 
 def fill_vinculo_norma_juridica():
-    lista = [('A', 'Altera a norma'),
-             ('R', 'Revoga integralmente a norma'),
-             ('P', 'Revoga parcialmente a norma'),
-             ('T', 'Revoga integralmente por consolidação'),
-             ('C', 'Norma Correlata'),
-             ('S', 'Ressalva a Norma'),
-             ('E', 'Reedita a Norma'),
-             ('I', 'Reedita a Norma com Alteração'),
-             ('G', 'Regulamenta a Norma'),
-             ('K', 'Suspende parcialmente a norma'),
-             ('L', 'Suspende integralmente a norma'),
-             ('N', 'Julgada integralmente inconstitucional'),
-             ('O', 'Julgada parcialmente inconstitucional')]
-    lista_objs = [TipoVinculoNormaJuridica(sigla=item[0], descricao=item[1])
+    lista = [('A', 'Altera o(a)',
+              'Alterado(a) pelo(a)'),
+             ('R', 'Revoga integralmente o(a)',
+              'Revogado(a) integralmente pelo(a)'),
+             ('P', 'Revoga parcialmente o(a)',
+              'Revogado(a) parcialmente pelo(a)'),
+             ('T', 'Revoga integralmente por consolidação',
+              'Revogado(a) integralmente por consolidação'),
+             ('C', 'Norma correlata',
+              'Norma correlata'),
+             ('S', 'Ressalva o(a)',
+              'Ressalvada pelo(a)'),
+             ('E', 'Reedita o(a)',
+              'Reeditada pelo(a)'),
+             ('I', 'Reedita com alteração o(a)',
+              'Reeditada com alteração pelo(a)'),
+             ('G', 'Regulamenta o(a)',
+              'Regulamentada pelo(a)'),
+             ('K', 'Suspende parcialmente o(a)',
+              'Suspenso(a) parcialmente pelo(a)'),
+             ('L', 'Suspende integralmente o(a)',
+              'Suspenso(a) integralmente pelo(a)'),
+             ('N', 'Julga integralmente inconstitucional',
+              'Julgada integralmente inconstitucional'),
+             ('O', 'Julga parcialmente inconstitucional',
+              'Julgada parcialmente inconstitucional')]
+    lista_objs = [TipoVinculoNormaJuridica(
+        sigla=item[0], descricao_ativa=item[1], descricao_passiva=item[2])
                   for item in lista]
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
@@ -455,6 +469,7 @@ class DataMigrator:
 
         desconecta_sinais_indexacao()
 
+        fill_vinculo_norma_juridica()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
@@ -543,6 +558,10 @@ class DataMigrator:
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
 
+        # necessário para ajustar sequence da tabela para o ultimo valor de id
+        ultimo_valor = get_last_value(model)
+        alter_sequence(model, ultimo_valor+1)
+
     def delete_ind_excluido(self):
         excluidos = 0
         for obj in self.to_delete:
@@ -617,6 +636,12 @@ def adjust_participacao(new, old):
             composicao.save()
             reversion.set_comment('Objeto criado pela migração')
     new.composicao = composicao
+
+
+def adjust_normarelacionada(new, old):
+    tipo = TipoVinculoNormaJuridica.objects.filter(sigla=old.tip_vinculo)
+    assert len(tipo) == 1
+    new.tipo_vinculo = tipo[0]
 
 
 def adjust_protocolo(new, old):
@@ -724,6 +749,7 @@ AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
     Comissao: adjust_comissao,
     NormaJuridica: adjust_normajuridica_antes_salvar,
+    NormaRelacionada: adjust_normarelacionada,
     OrdemDia: adjust_ordemdia,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
