@@ -303,6 +303,7 @@ UF = [
 ]
 
 RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
+RANGE_ANOS_COM_EMPTY_LABEL = [('','---------')]  + RANGE_ANOS
 
 RANGE_MESES = [
     (1, 'Janeiro'),
