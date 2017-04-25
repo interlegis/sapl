@@ -164,8 +164,8 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_rows(self, object_list):
             for obj in object_list:
-                resultados = obj.registrovotacao_set.all()
-                if not resultados:
+                exist_resultado = obj.registrovotacao_set.all().exists()
+                if not exist_resultado:
                     if obj.votacao_aberta:
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -209,8 +209,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                         else:
                             obj.resultado = '''Não há resultado'''
                 else:
-                    resultado = resultados[0].tipo_resultado_votacao.nome
-                    resultado_observacao = resultados[0].observacao
+                    resultado = obj.registrovotacao_set.get(
+                                    materia_id=obj.materia_id)
+                    resultado_descricao = resultado.tipo_resultado_votacao.nome
+                    resultado_observacao = resultado.observacao
+
                     if self.request.user.has_module_perms(AppConfig.label):
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -233,11 +236,12 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'mid': obj.pk})
                         obj.resultado = ('<a href="%s">%s</a><br/>%s' %
                                            (url,
-                                            resultado,
+                                            resultado_descricao,
                                             resultado_observacao))
                     else:
                         obj.resultado = ('%s<br/>%s' %
-                                           (resultado, resultado_observacao))
+                                           (resultado_descricao,
+                                            resultado_observacao))
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -1057,7 +1061,7 @@ class ResumoView(DetailView):
             numero = o.numero_ordem
 
             # Verificar resultado
-            resultado = o.registrovotacao_set.all()
+            resultado = o.registrovotacao_set.filter(materia=o.materia)
             if resultado:
                 resultado = resultado[0].tipo_resultado_votacao.nome
             else:
@@ -1207,6 +1211,7 @@ class VotacaoEditView(SessaoPermissionMixin):
             ordem_id=ordem_id).last()
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
+            'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
         context.update({'votacao_titulo': titulo,
@@ -1517,6 +1522,7 @@ class VotacaoNominalEditView(SessaoPermissionMixin):
 
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
+            'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
         context.update({'votacao': votacao_existente,
@@ -1749,6 +1755,7 @@ class VotacaoNominalExpedienteEditView(SessaoPermissionMixin):
 
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
+            'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
         context.update({'votacao': votacao_existente,
@@ -1983,6 +1990,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
                 expediente_id=expediente_id).last()
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
+            'resultado': votacao.tipo_resultado.nome,
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
         context.update({'votacao_titulo': titulo,
