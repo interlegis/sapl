@@ -164,7 +164,9 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_rows(self, object_list):
             for obj in object_list:
-                exist_resultado = obj.registrovotacao_set.all().exists()
+                exist_resultado = obj.registrovotacao_set.filter(
+                    materia=obj.materia
+                    ).exists()
                 if not exist_resultado:
                     if obj.votacao_aberta:
                         url = ''
