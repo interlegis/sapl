@@ -662,9 +662,9 @@ def get_sessao_plenaria(sessao, casa):
             materia=votacao.materia).first()
         if numeracao is not None:
             dic_votacao["des_numeracao"] = (
-                str(numeracao.numero) +
+                str(numeracao.numero_materia) +
                 '/' +
-                str(numeracao.ano))
+                str(numeracao.ano_materia))
         dic_votacao["des_turno"] = ' '
 
         tramitacao = Tramitacao.objects.filter(
@@ -1083,11 +1083,11 @@ def get_pauta_sessao(sessao, casa):
         dic_votacao["ordem_observacao"] = votacao.observacao
 
         dic_votacao["des_numeracao"] = ' '
-        numeracao = Numeracao.objects.filter(materia=materia)
-        # if numeracao is not None:
-        #     numeracao = numeracao.first()
-        #     dic_votacao["des_numeracao"] = str(
-        #         numeracao.numero) + '/' + str(numeracao.ano)
+#        numeracao = Numeracao.objects.filter(materia=materia)
+#        if numeracao is not None:
+#             numeracao = numeracao.first()
+#             dic_votacao["des_numeracao"] = str(
+#                 numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
         dic_votacao["nom_autor"] = ' '
         autoria = Autoria.objects.filter(

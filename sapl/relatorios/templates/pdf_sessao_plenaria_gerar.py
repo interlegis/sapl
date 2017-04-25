@@ -176,8 +176,8 @@ def expediente_materia(lst_expediente_materia):
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
     for expediente_materia in lst_expediente_materia:
-        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
-            'des_turno'] + '</para>\n' + '<para style="P3"><b>Autor: </b>' + expediente_materia['nom_autor'] + '</para></td>\n'
+        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + str(expediente_materia[
+            'des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
