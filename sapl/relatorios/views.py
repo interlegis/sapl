@@ -520,10 +520,18 @@ def get_sessao_plenaria(sessao, casa):
     lst_expedientes = []
     expedientes = ExpedienteSessao.objects.filter(
                 sessao_plenaria=sessao).order_by('tipo__nome')
+
     for e in expedientes:
+
         dic_expedientes = {}
         dic_expedientes["nom_expediente"] = e.tipo.nome
-        dic_expedientes["txt_expediente"] = e.conteudo
+        conteudo = e.conteudo
+        # escape special character '&'
+        #   https://github.com/interlegis/sapl/issues/1009
+        conteudo = conteudo.replace('&', '&amp;')
+
+        dic_expedientes["txt_expediente"] = conteudo
+
         if dic_expedientes:
             lst_expedientes.append(dic_expedientes)
 
