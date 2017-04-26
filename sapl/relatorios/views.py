@@ -1,5 +1,8 @@
 from datetime import datetime
 
+import re
+import html
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils.translation import ugettext_lazy as _
@@ -526,6 +529,12 @@ def get_sessao_plenaria(sessao, casa):
         dic_expedientes = {}
         dic_expedientes["nom_expediente"] = e.tipo.nome
         conteudo = e.conteudo
+
+        # unescape HTML codes
+        # https://github.com/interlegis/sapl/issues/1046
+        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = html.unescape(conteudo)
+
         # escape special character '&'
         #   https://github.com/interlegis/sapl/issues/1009
         conteudo = conteudo.replace('&', '&amp;')
