@@ -148,7 +148,7 @@ class OrdemDiaForm(ExpedienteMateriaForm):
                                 numero_ordem=self.cleaned_data[
                                     'numero_ordem']).exists()
 
-        if exists_numero_ordem:
+        if numero_ordem_exists:
             msg = _('Esse número de ordem já existe.')
             raise ValidationError(msg)
 
