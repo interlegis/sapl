@@ -280,8 +280,10 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
         def get_rows(self, object_list):
             for obj in object_list:
-                resultados = obj.registrovotacao_set.all()
-                if not resultados:
+                exist_resultado = obj.registrovotacao_set.filter(
+                    materia=obj.materia
+                    ).exists()
+                if not exist_resultado:
                     if obj.votacao_aberta:
                         url = ''
                         if obj.tipo_votacao == 1:
@@ -323,7 +325,10 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                         obj.resultado = btn_abrir
                 else:
                     url = ''
-                    resultado = resultados[0].tipo_resultado_votacao.nome
+                    resultado = obj.registrovotacao_set.get(
+                                    materia_id=obj.materia_id)
+                    resultado_descricao = resultado.tipo_resultado_votacao.nome
+                    resultado_observacao = resultado.observacao
                     if self.request.user.has_module_perms(AppConfig.label):
                         if obj.tipo_votacao == 1:
                             url = reverse(
@@ -344,10 +349,14 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.materia_id,
                                               'mid': obj.pk})
-                        obj.resultado = '<a href="%s">%s</a>' % (url,
-                                                                 resultado)
+                        obj.resultado = ('<a href="%s">%s</a><br/>%s' %
+                                           (url,
+                                            resultado_descricao,
+                                            resultado_observacao))
                     else:
-                        obj.resultado = '%s' % (resultado)
+                        obj.resultado = ('%s<br/>%s' %
+                                           (resultado_descricao,
+                                            resultado_observacao))
             return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):
