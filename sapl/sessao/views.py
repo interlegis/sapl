@@ -28,7 +28,7 @@ from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import (Legislatura, Parlamentar,
+from sapl.parlamentares.models import (Filiacao, Legislatura, Parlamentar,
                                        SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
@@ -1091,6 +1091,24 @@ class ResumoView(DetailView):
             materias_ordem.append(mat)
 
         context.update({'materias_ordem': materias_ordem})
+
+        # =====================================================================
+        # Oradores nas Explicações Pessoais
+        oradores_explicacoes = []
+        for orador in Orador.objects.filter(sessao_plenaria_id=self.object.id):
+                for parlamentar in Parlamentar.objects.filter(
+                        id=orador.parlamentar.id):
+                    partido_sigla = Filiacao.objects.filter(
+                        parlamentar=parlamentar).first().partido.sigla
+                    if not partido_sigla:
+                        partido_sigla = ''
+                    oradores = {
+                                'numero_ordem': orador.numero_ordem,
+                                'parlamentar': parlamentar.nome_parlamentar,
+                                'sgl_partido': partido_sigla
+                                }
+                    oradores_explicacoes.append(oradores)
+        context.update({'oradores_explicacoes': oradores_explicacoes})
 
         return self.render_to_response(context)
 

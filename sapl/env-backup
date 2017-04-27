@@ -1,0 +1,8 @@
+SECRET_KEY=qbl0+_+h6^u_k0ggkv&+ff&56s!d(*k+vk^_eu3-to_w&k-kp@
+DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
+DEBUG = True
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
