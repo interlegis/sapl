@@ -43,7 +43,7 @@
     <div class="row">
       {% for m in mesa %}
       <div class="col-md-12"><b>{{m.cargo}}:
-			</b>{{m.parlamentar.nome_parlamentar}} / {{ m.parlamentar.filiacao_set.last.partido.sigla }}</div>
+			</b>{{m.parlamentar.nome_parlamentar}} / {{ m.parlamentar.filiacao_atual }}</div>
       {% endfor %}
     </div>
 	</fieldset>
@@ -53,7 +53,7 @@
 		<legend>Lista de Presença na Sessão</legend>
     <div class="row">
       {% for p in presenca_sessao %}
-      <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_set.last.partido.sigla }}</div>
+      <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_atual }}</div>
       {% endfor %}
     </div>
 	</fieldset>
@@ -125,7 +125,7 @@
 		<legend>Lista de Presença na Ordem do Dia</legend>
     <div class="row">
       {% for p in presenca_ordem %}
-      <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_set.last.partido.sigla }}</div>
+      <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_atual }}</div>
       {% endfor %}
     </div>
 	</fieldset>
@@ -165,7 +165,7 @@
 	    </div>
 	    <div class="row">
 	      {% for o in oradores_explicacoes %}
-	      		<div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_set.last.partido.sigla }}</div>
+	      		<div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</div>
 	      		<div class="col-md-6">{{o.url_discurso}}</div>
 						</br>
 	      {% endfor %}
