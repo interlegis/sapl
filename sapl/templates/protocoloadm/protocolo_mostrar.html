@@ -6,6 +6,7 @@
 	<strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }}</br>
 	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:" Não informado." }}</br>
 	<strong>Data Protocolo: </strong> {{ protocolo.data|date:"d/m/Y" }} - Horário: {{ protocolo.hora|date:"H:i" }}</br>
+	<strong>Autor:</strong> {{protocolo.autor.nome}} </br>
 	<strong>Interessado: </strong> {{ protocolo.interessado|default:" Não informado." }}</br>
 	<!-- TODO: convert if-else to custom tag -->
 	<strong>Natureza do Processo: </strong>{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Legislativo {% endif %}</br>
