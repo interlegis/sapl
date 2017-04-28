@@ -47,6 +47,14 @@
                    <strong>Apresentação: </strong>{{ m.data_apresentacao }}
                    </br>
                 {% endif %}
+                {% if m.numeracao_set.first %}
+                   <strong>Processo: </strong>{{ m.numeracao_set.first.numero_materia }} / {{ m.numeracao_set.first.ano_materia }}
+                   </br>
+                {% endif %}
+                {% if m.numero_protocolo %}
+                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}} &nbsp;&nbsp; <strong>Data Entrada:</strong> {{m.data_entrada_protocolo}} </br>
+
+                {% endif %}
                 {% if m.autoria_set.all %}
                 <strong>Autores:</strong>
                 {% for a in m.autoria_set.all %}
@@ -57,7 +65,7 @@
                   {% endif %}
                 {% endfor %}
                 </br>
-                {% endif %}                
+                {% endif %}
                 {% if m.tramitacao_set.last.unidade_tramitacao_destino %}
                 <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino}}</br>
                 {% endif %}
@@ -79,6 +87,7 @@
                 {% endif %}
                 {% if m.tramitacao_set.last.data_tramitacao %}
                 <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao}}</br>
+                <strong>Ultima Ação:</strong> &nbsp; {{m.tramitacao_set.last.texto}}</br>
                 {% endif %}
                 {% if m.anexo_de.exists %}
                   {% for a in m.materia_anexada_set.all %}
