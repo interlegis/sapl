@@ -418,40 +418,31 @@ class MesaDiretoraView(FormView):
 def altera_field_mesa(request):
     """
         Essa função lida com qualquer alteração nos campos
-        da Mesa Diretora, atualizando os campos após cada
-    alteração
+        da Mesa Diretora, após qualquer
+        operação (Legislatura/Sessão/Inclusão/Remoção),
+        atualizando os campos após cada alteração
     """
 
-    # Verifica qual o campo que foi alterado
-    if request.GET['id_field'] == '#id_legislatura':
-        legislatura_id = request.GET['field']
-        sessao = SessaoLegislativa.objects.filter(
-            legislatura=request.GET['field']).order_by('-data_inicio')
-        try:
-            sessao_selecionada = sessao[0]
-        # Passa, pois essa exceção será capturada no 'if not sessao'
-        except IndexError:
-            pass
+    legislatura = request.GET['legislatura']
+    sessoes = SessaoLegislativa.objects.filter(
+        legislatura=legislatura).order_by('-data_inicio')
 
-    elif request.GET['id_field'] == '#id_sessao_legislativa':
-        sessao_selecionada = SessaoLegislativa.objects.get(
-            id=request.GET['field'])
-        legislatura_id = sessao_selecionada.legislatura.id
-        sessao = SessaoLegislativa.objects.filter(
-            legislatura=legislatura_id).order_by('-data_inicio')
-
-    # Caso seja uma operação de incluir/remover, garante que a
-    # sessão se manterá a mesma
-    if request.GET['incluir_excluir_op']:
-        try:
-            sessao_selecionada = SessaoLegislativa.objects.get(
-                id=request.GET['incluir_excluir_op'])
-        except ObjectDoesNotExist:
-            return JsonResponse({'msg': ('Essa sessão não existe!', 0)})
-
-    if not sessao:
+    if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
+    # Verifica se já tem uma sessão selecionada. Ocorre quando
+    # é alterado o campo de sessão ou feita alguma operação
+    # de inclusão/remoção.
+    if request.GET['sessao']:
+        sessao_selecionada = request.GET['sessao']
+    # Caso a mudança tenha sido no campo legislatura, a sessão
+    # atual deve ser a primeira daquela legislatura
+    else:
+        sessao_selecionada = SessaoLegislativa.objects.filter(
+            legislatura=legislatura).order_by(
+            '-data_inicio').first().id
+
+    # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
         sessao_legislativa=sessao_selecionada)
 
@@ -460,14 +451,14 @@ def altera_field_mesa(request):
     cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
     parlamentares = Legislatura.objects.get(
-        id=legislatura_id).mandato_set.all()
+        id=legislatura).mandato_set.all()
     parlamentares_ocupados = [m.parlamentar for m in composicao_mesa]
     parlamentares_vagos = list(
         set(
             [p.parlamentar for p in parlamentares]) - set(
             parlamentares_ocupados))
 
-    lista_sessoes = [(s.id, s.__str__()) for s in sessao]
+    lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
     lista_composicao = [(c.id, c.parlamentar.__str__(),
                          c.cargo.__str__()) for c in composicao_mesa]
     lista_parlamentares = [(
@@ -479,7 +470,7 @@ def altera_field_mesa(request):
          'lista_composicao': lista_composicao,
          'lista_parlamentares': lista_parlamentares,
          'lista_cargos': lista_cargos,
-         'sessao_selecionada': sessao_selecionada.id,
+         'sessao_selecionada': sessao_selecionada,
          'msg': ('', 1)})
 
 

@@ -101,6 +101,10 @@
 
 <script language="Javascript">
 
+		//##############################################################
+		//                Inicialização da View                        #
+		//##############################################################
+
 	  // Se a composicao estiver completa, deve-se esconder o botão e os
 	  // campos de inserção
 	  $(document).ready(function(){
@@ -127,6 +131,10 @@
     	}
     });
 
+    //##############################################################
+    //#                     EVENT HANDLERS                         #
+    //##############################################################
+
     function errors_handler(msg){
     	if (msg == null){
       	  	$("#div-success").hide()
@@ -149,10 +157,11 @@
 
 	  // Atualiza os campos após alguma operação de mudança da Legislatura/Sessao ou
 	  // Inserção/Remoção
-    function altera_field(id_field, incluir_excluir_op=null, msg=null){
+    function altera_field(id_legislatura, id_sessao=null, msg=null){
     	// Pega o novo valor do campo que foi modificado (Sessao/Legislatura) ou utiliza
     	// o valor da Legislatura, por conveniência, quando há alguma inserção ou remoção
-      var field = $(id_field).val();
+      var sessao_value = id_sessao
+      var legislatura_value = id_legislatura
 
       // Limpa os campos que serão atualizados
       $("#id_sessao_legislativa option").remove();
@@ -161,7 +170,7 @@
       $("#id_cargo option").remove();
 
       $.get("/mesa-diretora/altera-field-mesa",
-      	{field: field, id_field: id_field, incluir_excluir_op: incluir_excluir_op},
+      	{legislatura: legislatura_value, sessao: sessao_value},
       	function(data) {
       		// Caso não venha nenhum dado da requisição, retorna null
       	  if ($.isEmptyObject(data)){
@@ -232,15 +241,18 @@
       });
     }
 
-    //#######################################################
-    //#                     EVENT HANDLERS                  #
-    //#######################################################
+    //#############################################################
+    //#                     EVENTS CATCH                          #
+    //#############################################################
     $("#id_legislatura").change(function(){
-    	altera_field("#id_legislatura");
+    	legislatura = $("#id_legislatura").val();
+    	altera_field(legislatura);
     });
 
     $("#id_sessao_legislativa").change(function(){
-    	altera_field("#id_sessao_legislativa");
+    	legislatura = $("#id_legislatura").val();
+    	sessao = $("#id_sessao_legislativa").val();
+    	altera_field(legislatura, sessao);
     });
 
     $('#id_incluir').click(function(){
@@ -254,10 +266,12 @@
                 'X-CSRFToken': getCookie('csrftoken')
             },
           success: function(data){
-          						var msg = data['msg']	             
+          						var msg = data['msg'];
+          						legislatura = $("#id_legislatura").val();
+    									sessao = $("#id_sessao_legislativa").val();	             
 				              setTimeout(function(data){
 				               // Atualiza os campos após a inserção
-				            	 altera_field("#id_legislatura", $("#id_sessao_legislativa").val(), msg)
+				            	 altera_field(legislatura, sessao, msg)
 				             }, 500)
                    },
 	    });
@@ -276,10 +290,13 @@
 	                'X-CSRFToken': getCookie('csrftoken')
 	            },
 	          success: function(data){		 
-	                      var msg = data['msg']	             
+	                      var msg = data['msg'];
+	                      legislatura = $("#id_legislatura").val();
+    										sessao = $("#id_sessao_legislativa").val();
+
 					              setTimeout(function(data){
 					               // Atualiza os campos após a remoção
-					            	 altera_field("#id_legislatura", $("#id_sessao_legislativa").val(), msg)
+					            	 altera_field(legislatura, sessao, msg)
 					             }, 500)
 	                   },
 		    });
