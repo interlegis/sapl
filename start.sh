@@ -1,7 +1,5 @@
-#!/bin/sh
-
-
 create_env() {
+    echo "[ENV FILE] creating .env file..."
     # check if file exists
     if [ -f "/var/interlegis/sapl/data/secret.key" ]; then
         KEY=`cat /var/interlegis/sapl/data/secret.key`
@@ -10,7 +8,6 @@ create_env() {
         echo $KEY > data/secret.key
     fi
 
-    # TODO: rename env-test-bash to .env
     FILENAME="/var/interlegis/sapl/sapl/.env"
 
     if [ -z "${DATABASE_URL:-}" ]; then
@@ -34,13 +31,11 @@ create_env() {
     echo "EMAIL_HOST = ""${EMAIL_HOST-''}" >> $FILENAME
     echo "EMAIL_HOST_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "EMAIL_HOST_PASSWORD = ""${EMAIL_HOST_PASSWORD-''}" >> $FILENAME
+
+    echo "[ENV FILE] done."
 }
 
-echo "creating .env file..."
 create_env
-echo "done."
-
-# # python3 gen-env.py
 
 python3 manage.py bower install
 
@@ -50,4 +45,22 @@ python3 manage.py migrate
 python3 manage.py collectstatic --no-input
 python3 manage.py rebuild_index --noinput &
 
-/bin/sh gunicorn_start.sh
+user_created=$(python3 create_admin.py 2>&1)
+
+cmd=$(echo $user_created | grep 'ADMIN_USER_EXISTS')
+user_exists=$?
+
+cmd=$(echo $user_created | grep 'MISSING_ADMIN_PASSWORD')
+lack_pwd=$?
+
+if [ $user_exists -eq 0 ]; then
+   echo "[SUPERUSER CREATION] User admin already exists. Not creating"
+fi
+
+if [ $lack_pwd -eq 0 ]; then
+   echo "[SUPERUSER] Environment variable $ADMIN_PASSWORD for superuser admin was not set. Leaving container"
+   # return -1
+fi
+
+
+/bin/sh gunicorn_start.sh no-venv
