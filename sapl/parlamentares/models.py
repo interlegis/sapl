@@ -85,7 +85,8 @@ class Coligacao(models.Model):
                                     verbose_name=_('Legislatura'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     numero_votos = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Nº Votos Recebidos'))
+        blank=True, null=True,
+        verbose_name=_('Nº Votos Recebidos (Coligação)'))
 
     class Meta:
         verbose_name = _('Coligação')
@@ -448,7 +449,7 @@ class Mandato(models.Model):
     tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
     data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'))
     votos_recebidos = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Votos Recebidos'))
+        blank=True, null=True, verbose_name=_('Votos Recebidos (Mandato)'))
     data_expedicao_diploma = models.DateField(
         verbose_name=_('Expedição do Diploma'))
     titular = models.BooleanField(
