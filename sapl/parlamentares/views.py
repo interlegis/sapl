@@ -347,17 +347,12 @@ class ParlamentarCrud(Crud):
                 # Coloca a filiação atual ao invés da última
                 if row[0][1]:
                     # Pega o Parlamentar por meio da pk
-                    try:
-                        parlamentar = Parlamentar.objects.get(
-                            id=(row[0][1].split('/')[-1]))
-                    except ObjectDoesNotExist:
-                        raise ObjectDoesNotExist
+                    parlamentar = Parlamentar.objects.get(
+                        id=(row[0][1].split('/')[-1]))
+
                     # Pega a Legislatura
-                    try:
-                        legislatura = Legislatura.objects.get(
-                            id=context['legislatura_id'])
-                    except ObjectDoesNotExist:
-                        raise ObjectDoesNotExist
+                    legislatura = Legislatura.objects.get(
+                        id=context['legislatura_id'])
 
                     # As condições para mostrar a filiação são:
                     # A data de filiacao deve ser menor que a data de fim
