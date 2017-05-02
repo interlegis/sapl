@@ -685,9 +685,19 @@ class Proposicao(models.Model):
         )
 
     def __str__(self):
-        return '%s %s/%s' % (Proposicao._meta.verbose_name,
-                             self.numero_proposicao,
-                             self.ano)
+        if self.ano and self.numero_proposicao:
+            return '%s %s/%s' % (Proposicao._meta.verbose_name,
+                                 self.numero_proposicao,
+                                 self.ano)
+        else:
+            if len(self.descricao) < 30:
+                descricao = self.descricao[:28] + ' ...'
+            else:
+                descricao = self.descricao
+
+            return '%s %s/%s' % (Proposicao._meta.verbose_name,
+                                 self.id,
+                                 descricao)
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
