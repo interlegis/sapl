@@ -40,12 +40,12 @@ create_env() {
 
 create_env
 
-python3 manage.py bower install
+#python3 manage.py bower install
 
 /bin/sh busy-wait.sh $DATABASE_URL
 
 python3 manage.py migrate
-python3 manage.py collectstatic --no-input
+#python3 manage.py collectstatic --no-input
 python3 manage.py rebuild_index --noinput
 
 user_created=$(python3 create_admin.py 2>&1)
@@ -66,4 +66,5 @@ if [ $lack_pwd -eq 0 ]; then
 fi 
 
 
-/bin/sh gunicorn_start.sh no-venv
+/bin/sh gunicorn_start.sh no-venv & 
+/usr/sbin/nginx -g "daemon off;"
