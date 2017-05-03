@@ -1,3 +1,6 @@
+#!/bin/sh
+
+
 create_env() {
     echo "[ENV FILE] creating .env file..."
     # check if file exists
@@ -63,5 +66,5 @@ if [ $lack_pwd -eq 0 ]; then
 fi
 
 
-/bin/sh gunicorn_start.sh no-venv & 
+/bin/sh gunicorn_start.sh no-venv &
 /usr/sbin/nginx -g "daemon off;"
