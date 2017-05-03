@@ -28,13 +28,17 @@ RUN pip install -r /var/interlegis/sapl/requirements/requirements.txt --upgrade 
     rm -r /root/.cache && \
     rm -r /tmp/*
 
+COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
+
 RUN python3 manage.py bower install -- --allow-root && \
-    python3 manage.py collectstatic --no-input
+    python3 manage.py collectstatic --no-input && \
+    rm -rf /var/interlegis/sapl/sapl/.env && \
+    rm -rf /var/interlegis/sapl/sapl.db 
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log
 
-VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media", "/var/interlegis/sapl/collected_static"]
+VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
 CMD ["/var/interlegis/sapl/start.sh"]
