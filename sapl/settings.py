@@ -14,6 +14,7 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
 import logging
+import os
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -30,6 +31,8 @@ PROJECT_DIR = Path(__file__).ancestor(2)
 SECRET_KEY = config('SECRET_KEY', default='')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+
+DOCKER_FILE = config('DOCKER_FILE', default=False, cast=bool)
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
@@ -160,13 +163,20 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
-DATABASES = {
-    'default': config(
-        'DATABASE_URL', default='sqlite://:memory:',
-        cast=db_url,
-    )
-}
+if DOCKER_FILE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(PROJECT_DIR, 'sapl.db'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': config(
+            'DATABASE_URL', default='sqlite://:memory:',
+            cast=db_url,
+            )
+    }
 
 # troque no caso de reimplementação da classe User conforme
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model

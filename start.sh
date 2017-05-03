@@ -40,13 +40,15 @@ create_env() {
 
 create_env
 
-python3 manage.py bower install
+# python3 manage.py bower install
+
+echo 'DATABASE: '$DATABASE_URL
 
 /bin/sh busy-wait.sh $DATABASE_URL
 
 python3 manage.py migrate
-python3 manage.py collectstatic --no-input
-python3 manage.py rebuild_index --noinput
+# python3 manage.py collectstatic --no-input
+python3 manage.py rebuild_index --noinput &
 
 user_created=$(python3 create_admin.py 2>&1)
 
@@ -58,12 +60,12 @@ lack_pwd=$?
 
 if [ $user_exists -eq 0 ]; then
    echo "[SUPERUSER CREATION] User admin already exists. Not creating"
-fi  
- 
+fi
+
 if [ $lack_pwd -eq 0 ]; then
-   echo "[SUPERUSER] Environment variable $ADMIN_PASSWORD for superuser admin was not set. Leaving container"
+   echo "[SUPERUSER] Environment variable ADMIN_PASSWORD for superuser admin was not set. Leaving container"
    # return -1
-fi 
+fi
 
 
 /bin/sh gunicorn_start.sh no-venv

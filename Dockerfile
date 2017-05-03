@@ -25,10 +25,13 @@ WORKDIR /var/interlegis/sapl/
 ADD . /var/interlegis/sapl/
 
 COPY start.sh /var/interlegis/sapl/
+COPY config/env-dockerfile /var/interlegis/sapl/sapl/.env
 
 RUN chmod +x /var/interlegis/sapl/start.sh
 
 RUN pip install -r /var/interlegis/sapl/requirements/requirements.txt --upgrade setuptools
 
-VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media", "/var/interlegis/sapl/collected_static"]
+RUN python3 manage.py bower install && python3 manage.py collectstatic --no-input
+
+VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 ENTRYPOINT ["/var/interlegis/sapl/start.sh"]
