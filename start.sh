@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 create_env() {
     echo "[ENV FILE] creating .env file..."
     # check if file exists
