@@ -1099,12 +1099,12 @@ class ResumoView(DetailView):
                 for parlamentar in Parlamentar.objects.filter(
                         id=orador.parlamentar.id):
                     partido_sigla = Filiacao.objects.filter(
-                        parlamentar=parlamentar).first().partido.sigla
+                        parlamentar=parlamentar).last().partido.sigla
                     if not partido_sigla:
                         partido_sigla = ''
                     oradores = {
                                 'numero_ordem': orador.numero_ordem,
-                                'parlamentar': parlamentar.nome_parlamentar,
+                                'parlamentar': parlamentar,
                                 'sgl_partido': partido_sigla
                                 }
                     oradores_explicacoes.append(oradores)

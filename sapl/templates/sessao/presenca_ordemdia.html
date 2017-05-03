@@ -24,7 +24,7 @@
       <div class="checkbox">
       <label for="id_presenca_{{forloop.counter}}">
         <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-        {{ parlamentar.nome_parlamentar }}
+        {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
       </label>
       </div>
 		{% endfor %}
@@ -44,7 +44,7 @@
     {% for parlamentar, check in view.get_presencas_ordem %}
         {% if check %}
             <div class="row">
-              <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar.nome_parlamentar }}</label></div>
+              <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}</label></div>
             </div>
         {% endif %}
     {% endfor %}
