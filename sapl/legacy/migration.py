@@ -637,7 +637,7 @@ def adjust_protocolo(new, old):
         new.numero = p['numero__max'] + 1
 
 
-def adjust_registrovotacao(new, old):
+def adjust_registrovotacao_antes_salvar(new, old):
     ordem_dia = OrdemDia.objects.filter(
         pk=old.cod_ordem, materia=old.cod_materia)
     expediente_materia = ExpedienteMateria.objects.filter(
@@ -647,11 +647,19 @@ def adjust_registrovotacao(new, old):
         new.ordem = ordem_dia[0]
     if not ordem_dia and expediente_materia:
         new.expediente = expediente_materia[0]
-    if len(ordem_dia) == len(expediente_materia):
-        assert 0, "ERRO: RegistroVotacao [PK %s]. OrdemDia tem %s entrada(s)"\
-                " e ExpedienteMateria %s entrada(s).\n Deve haver somente "\
-                "uma entrada de OrdemDia ou ExpedienteMateria." % (
-                    old.pk, len(ordem_dia), len(expediente))
+
+
+def adjust_registrovotacao_depois_salvar(new, old):
+    if not new.ordem and not new.expediente:
+        with reversion.create_revision():
+            problema = 'RegistroVotacao de PK %s não possui nenhuma OrdemDia'\
+                ' ou ExpedienteMateria.' % old.pk
+            descricao = 'RevistroVotacao deve ter no mínimo uma ordem do dia'\
+                ' ou expediente vinculado.'
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('RegistroVotacao sem ordem ou expediente')
 
 
 def adjust_tipoproposicao(new, old):
@@ -751,7 +759,7 @@ AJUSTE_ANTES_SALVAR = {
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
     Protocolo: adjust_protocolo,
-    RegistroVotacao: adjust_registrovotacao,
+    RegistroVotacao: adjust_registrovotacao_antes_salvar,
     TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
@@ -761,6 +769,7 @@ AJUSTE_ANTES_SALVAR = {
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
+    RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
 
 # CHECKS ####################################################################
