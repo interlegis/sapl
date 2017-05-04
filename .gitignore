@@ -95,3 +95,4 @@ media
 whoosh/
 postgres-data/
 data/
+solr-4.10.2
