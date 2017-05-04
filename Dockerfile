@@ -24,7 +24,7 @@ COPY start.sh /var/interlegis/sapl/
 COPY config/nginx/sapl.conf /etc/nginx/conf.d
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
 
-RUN pip install -r /var/interlegis/sapl/requirements/requirements.txt --upgrade setuptools && \
+RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
     rm -r /root/.cache && \
     rm -r /tmp/*
 
