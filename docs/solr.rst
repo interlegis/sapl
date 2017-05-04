@@ -17,3 +17,6 @@ Dentro do diretório principal siga os seguintes passos::
 
 
 Após isso, deve-se parar o servidor do Solr e restartar com ``java -jar start.jar``
+
+
+``OBS: Toda vez que o código da pesquisa textual for modificado, os comandos de build_solr_schema e start.jar devem ser rodados, nessa mesma ordem.``
