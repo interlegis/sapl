@@ -10,7 +10,7 @@ sapldb:
   ports:
     - "5532:5432"
 sapl:
-  build: .
+  image: interlegis/sapl:latest
   volumes:
     - sapl_data:/var/interlegis/sapl/data
     - sapl_media:/var/interlegis/sapl/media
