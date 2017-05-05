@@ -2462,12 +2462,13 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
 
 
 @csrf_exempt
+@permission_required('sessao.change_expedientemateria',
+                     'sessao.change_ordemdia')
 def mudar_ordem_materia_sessao(request):
     # Pega os dados vindos da requisição
     posicao_inicial = int(request.POST['pos_ini']) + 1
     posicao_final = int(request.POST['pos_fim']) + 1
     pk_sessao = int(request.POST['pk_sessao'])
-    pk_list = request.POST.getlist('pk_list[]')
 
     materia = request.POST['materia']
 
