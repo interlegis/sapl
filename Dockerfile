@@ -30,10 +30,12 @@ RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgr
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
-RUN python3 manage.py bower install -- --allow-root && \
+# manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
+
+RUN python3 manage.py bower_install -- --allow-root --no-input && \
     python3 manage.py collectstatic --no-input && \
     rm -rf /var/interlegis/sapl/sapl/.env && \
-    rm -rf /var/interlegis/sapl/sapl.db 
+    rm -rf /var/interlegis/sapl/sapl.db
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
