@@ -172,6 +172,11 @@ apps_url_patterns_prefixs_and_users = {
         'prefixs': [
             '/ta',
         ]},
+    'redireciona_urls': {
+        'prefixs': [
+            '/parlamentar/parlamentar_index_html',
+            '/parlamentar/parlamentar_mostrar_proc',
+        ]},
     'lexml': {
         'prefixs': [
             '/lexml',
@@ -328,7 +333,7 @@ urls_publicas_excecoes = {
         '/proposicao/1',
         '/proposicao/create',
         '/proposicao/1/edit',
-        '/proposicao/1/delete',
+        '/proposicao/1/delete'
 
     },
     'get': [
