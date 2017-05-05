@@ -2019,7 +2019,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
                 expediente_id=expediente_id).last()
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
-            'resultado': votacao.tipo_resultado.nome,
+            'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
             votacao.tipo_resultado_votacao_id}
         context.update({'votacao_titulo': titulo,
