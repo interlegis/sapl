@@ -174,8 +174,15 @@ apps_url_patterns_prefixs_and_users = {
         ]},
     'redireciona_urls': {
         'prefixs': [
-            '/parlamentar/parlamentar_index_html',
-            '/parlamentar/parlamentar_mostrar_proc',
+            '/default_index_html',
+            '/consultas/parlamentar/parlamentar_index_html',
+            '/consultas/parlamentar/parlamentar_mostrar_proc',
+            '/consultas/comissao/comissao_index_html',
+            '/consultas/comissao/comissao_mostrar_proc',
+            '/consultas/pauta_sessao/pauta_sessao_plen_mostrar_proc',
+            '/consultas/pauta_sessao/pauta_sessao_index_html',
+            '/consultas/sessao_plenaria/sessao_plenaria_index_html',
+            '/consultas/sessao_plenaria/agenda_sessao_plen_mostrar_proc',
         ]},
     'lexml': {
         'prefixs': [
