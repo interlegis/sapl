@@ -130,9 +130,7 @@ def get_fk_related(field, value, label=None):
                 if not field.null:
                     fields_dict = get_fields_dict(field.related_model)
                     # Cria stub ao final da tabela para evitar erros
-                    pk = 1
-                    if hasattr(field.related_model.objects.last(), 'pk'):
-                        pk = field.related_model.objects.last().pk
+                    pk = get_last_value(field.related_model)
                     with reversion.create_revision():
                         reversion.set_comment('Stub criado pela migração')
                         value = mommy.make(
