@@ -32,9 +32,10 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 # manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
 
-RUN python3 manage.py bower install --no-input && \
-    python3 manage.py collectstatic --no-input && \
-    rm -rf /var/interlegis/sapl/sapl/.env && \
+RUN python3 manage.py bower install && \
+    python3 manage.py collectstatic --no-input
+ 
+RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db 
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
