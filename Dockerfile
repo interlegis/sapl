@@ -1,53 +1,46 @@
-FROM ubuntu:15.04
+FROM alpine:3.5
 
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
+python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
+py3-magic postgresql-client vim
 
-RUN mkdir /sapl
+RUN apk add --no-cache python3 nginx && \
+    python3 -m ensurepip && \
+    rm -r /usr/lib/python*/ensurepip && \
+    pip3 install --upgrade pip setuptools && \
+    rm -r /root/.cache && \
+    rm -f /etc/nginx/conf.d/*
 
-RUN echo "deb http://archive.ubuntu.com/ubuntu/ vivid universe" | tee -a "/etc/apt/sources.list"
+RUN mkdir -p /var/interlegis/sapl && \
+    apk add --update --no-cache $BUILD_PACKAGES && \
+    npm install -g bower && \
+    npm cache clean
 
-RUN \
-	apt-get update && \
-	apt-get install -y -f \
-	software-properties-common \
-	libpq-dev \
-	graphviz-dev \
-	graphviz \
-	build-essential \
-	git \
-	pkg-config \
-	python3-dev \
-	libxml2-dev \
-	libjpeg-dev \
-	libssl-dev \
-	libffi-dev \
-	libxslt1-dev \
-	python3-setuptools \
-	curl
+WORKDIR /var/interlegis/sapl/
 
-# use python3 in pip
-RUN easy_install3 pip lxml
+ADD . /var/interlegis/sapl/
 
-# install nodejs
-RUN DEBIAN_FRONTEND=noninteractive curl -sL https://deb.nodesource.com/setup_5.x | bash -
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
+COPY start.sh /var/interlegis/sapl/
+COPY config/nginx/sapl.conf /etc/nginx/conf.d
+COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# install bower
-RUN npm install -g bower
+RUN pip install -r /var/interlegis/sapl/requirements/requirements.txt --upgrade setuptools && \
+    rm -r /root/.cache && \
+    rm -r /tmp/*
 
-# Bower aceitar root
-RUN touch /root/.bowerrc
-RUN chmod 751 /root/.bowerrc
-RUN echo "{ \"allow_root\": true }" >> /root/.bowerrc
+COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
-WORKDIR /sapl
+# manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
 
-ADD . /sapl
+RUN python3 manage.py bower_install -- --allow-root --no-input && \
+    python3 manage.py collectstatic --no-input && \
+    rm -rf /var/interlegis/sapl/sapl/.env && \
+    rm -rf /var/interlegis/sapl/sapl.db 
 
-RUN pip install -r requirements/dev-requirements.txt
-RUN pip install --upgrade setuptools
+RUN chmod +x /var/interlegis/sapl/start.sh && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log
 
-# RUN python3 manage.py bower install
+VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
+
+CMD ["/var/interlegis/sapl/start.sh"]

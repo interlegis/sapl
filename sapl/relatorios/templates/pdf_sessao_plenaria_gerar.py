@@ -101,7 +101,7 @@ def inf_basicas(inf_basicas_dic):
 
     tmp += '\t\t<para style="P1">Informações Básicas</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Tipo da Sessão: </b> ' + \
         nom_sessao + '</para>\n'
@@ -120,7 +120,7 @@ def mesa(lst_mesa):
     tmp = ''
     tmp += '\t\t<para style="P1">Mesa Diretora</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for mesa in lst_mesa:
         tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
@@ -136,7 +136,7 @@ def presenca(lst_presenca_sessao):
     tmp = ''
     tmp += '\t\t<para style="P1">Lista de Presença da Sessão</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for presenca in lst_presenca_sessao:
         tmp += '\t\t<para style="P2" spaceAfter="5">' + \
@@ -154,10 +154,10 @@ def expedientes(lst_expedientes):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> </font>\n'
     tmp += '\t\t</para>\n'
-    for expediente in lst_expedientes:
-        tmp += '\t\t<para style="P2"><b>' + \
+    for idx, expediente in enumerate(lst_expedientes):
+        tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
             expediente['nom_expediente'] + ': </b></para>\n' + \
-            '<para style="P2">' + \
+             '<para style="P2">' + \
             expediente['txt_expediente'] + '</para>\n'
         tmp += '\t\t<para style="P2">\n'
         tmp += '\t\t\t<font color="white"> </font>\n'
@@ -171,18 +171,22 @@ def expediente_materia(lst_expediente_materia):
     tmp = ''
     tmp += '\t\t<para style="P1">Matérias do Expediente</para>\n\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
     for expediente_materia in lst_expediente_materia:
-        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
-            'des_turno'] + '</para>\n' + '<para style="P3"><b>Autor: </b>' + expediente_materia['nom_autor'] + '</para></td>\n'
+        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + str(expediente_materia[
+            'des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            str(expediente_materia['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
-             '</para></td></tr>\n'
+            str(expediente_materia['nom_resultado']) + '</b></para>\n' + '<para style="P3">'
+        if expediente_materia['votacao_observacao'] != txt_ementa:
+                tmp += str(expediente_materia['votacao_observacao'])
+        else:
+                tmp += ' '
+        tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
@@ -195,7 +199,7 @@ def oradores_expediente(lst_oradores_expediente):
     tmp = ''
     tmp += '\t\t<para style="P1">Oradores do Expediente</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for orador_expediente in lst_oradores_expediente:
         tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + str(orador_expediente['num_ordem']) + '</b> - ' + orador_expediente[
@@ -210,7 +214,7 @@ def presenca_ordem_dia(lst_presenca_ordem_dia):
     tmp = ''
     tmp += '\t\t<para style="P1">Lista de Presença da Ordem do Dia</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for presenca_ordem_dia in lst_presenca_ordem_dia:
         tmp += '\t\t<para style="P2" spaceAfter="5">' + \
@@ -226,7 +230,7 @@ def votacao(lst_votacao):
     tmp = ''
     tmp += '<para style="P1">Matérias da Ordem do Dia</para>\n\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
@@ -236,8 +240,12 @@ def votacao(lst_votacao):
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">' + \
-            '</para></td></tr>\n'
+            str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">'
+        if votacao['votacao_observacao'] != txt_ementa:
+                tmp += str(votacao['votacao_observacao'])
+        else:
+                tmp += ' '
+        tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
     return tmp
@@ -250,7 +258,7 @@ def oradores(lst_oradores):
     tmp = ''
     tmp += '\t\t<para style="P1">Oradores das Explicações Pessoais</para>\n'
     tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for orador in lst_oradores:
         tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
@@ -290,6 +298,7 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
     tmp += oradores(lst_oradores)
     tmp += '\t</story>\n'
     tmp += '</document>\n'
+
     tmp_pdf = parseString(tmp)
     return tmp_pdf
 #     if hasattr(context.temp_folder,arquivoPdf):

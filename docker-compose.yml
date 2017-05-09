@@ -1,17 +1,20 @@
-localhost:
+sapldb:
   image: postgres
   environment:
     POSTGRES_PASSWORD: sapl
     POSTGRES_USER: sapl
     POSTGRES_DB: sapl
+    PGDATA : /var/lib/postgresql/data/
+  volumes:
+    - sapldb_data:/var/lib/postgresql/data/
   ports:
     - "5532:5432"
-web:
-  build: .
-  command: /bin/sh -c "/bin/sh busy-wait.sh && python3 manage.py bower install && python3 manage.py migrate && /bin/sh gunicorn_start.sh /sapl"
+sapl:
+  image: interlegis/sapl:latest
   volumes:
-    - .:/sapl
-  ports:
-    - "8000:8000"
+    - sapl_data:/var/interlegis/sapl/data
+    - sapl_media:/var/interlegis/sapl/media
   links:
-    - localhost
+    - sapldb
+  ports:
+    - "80:80"

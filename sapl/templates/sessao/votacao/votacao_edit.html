@@ -26,12 +26,10 @@
 
     <div class="row">
       <div class="col-md-12">
-        Resultado da Votação:
-        {% for tipo in view.get_tipos_votacao %}
-	        {% if votacao.tipo_resultado == tipo.id %}
-	        	<b>{{ tipo.nome }}</b>
-	        {% endif %}
-        {% endfor %}
+				<br/>
+        Resultado da Votação: <strong>{{ votacao.resultado }}</strong>
+				<br/>
+				<br/>
       </div>
     </div>
 

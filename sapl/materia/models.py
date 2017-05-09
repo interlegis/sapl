@@ -4,6 +4,7 @@ import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
@@ -214,6 +215,22 @@ class MateriaLegislativa(models.Model):
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
+
+    def data_entrada_protocolo(self):
+        '''
+           hack: recuperar a data de entrada do protocolo sem gerar
+           dependência circular
+        '''
+        from sapl.protocoloadm.models import Protocolo
+        if self.ano and self.numero_protocolo:
+            try:
+                return Protocolo.objects.get(
+                    ano=self.ano,
+                    numero=self.numero_protocolo).data
+            except ObjectDoesNotExist:
+                pass
+
+        return ''
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
@@ -668,9 +685,19 @@ class Proposicao(models.Model):
         )
 
     def __str__(self):
-        return '%s %s/%s' % (Proposicao._meta.verbose_name,
-                             self.numero_proposicao,
-                             self.ano)
+        if self.ano and self.numero_proposicao:
+            return '%s %s/%s' % (Proposicao._meta.verbose_name,
+                                 self.numero_proposicao,
+                                 self.ano)
+        else:
+            if len(self.descricao) < 30:
+                descricao = self.descricao[:28] + ' ...'
+            else:
+                descricao = self.descricao
+
+            return '%s %s/%s' % (Proposicao._meta.verbose_name,
+                                 self.id,
+                                 descricao)
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:

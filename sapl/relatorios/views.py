@@ -1,5 +1,8 @@
 from datetime import datetime
 
+import re
+import html
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils.translation import ugettext_lazy as _
@@ -518,14 +521,28 @@ def get_sessao_plenaria(sessao, casa):
 
     # Exibe os Expedientes
     lst_expedientes = []
-    for tip_expediente in TipoExpediente.objects.all():
-        for expediente in ExpedienteSessao.objects.filter(
-                sessao_plenaria=sessao, tipo=tip_expediente):
-            dic_expedientes = {}
-            dic_expedientes["nom_expediente"] = str(tip_expediente)
-            dic_expedientes["txt_expediente"] = (expediente.conteudo)
-            if dic_expedientes:
-                lst_expedientes.append(dic_expedientes)
+    expedientes = ExpedienteSessao.objects.filter(
+                sessao_plenaria=sessao).order_by('tipo__nome')
+
+    for e in expedientes:
+
+        dic_expedientes = {}
+        dic_expedientes["nom_expediente"] = e.tipo.nome
+        conteudo = e.conteudo
+
+        # unescape HTML codes
+        # https://github.com/interlegis/sapl/issues/1046
+        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = html.unescape(conteudo)
+
+        # escape special character '&'
+        #   https://github.com/interlegis/sapl/issues/1009
+        conteudo = conteudo.replace('&', '&amp;')
+
+        dic_expedientes["txt_expediente"] = conteudo
+
+        if dic_expedientes:
+            lst_expedientes.append(dic_expedientes)
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
@@ -594,18 +611,16 @@ def get_sessao_plenaria(sessao, casa):
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
         dic_expediente_materia["votacao_observacao"] = ' '
-        if not expediente_materia.resultado:
-            resultado = RegistroVotacao.objects.filter(
-                tipo_resultado_votacao=expediente_materia.tipo_votacao)
-
-            for i in resultado:
+        resultados = expediente_materia.registrovotacao_set.all()
+        if resultados:
+            for i in resultados:
                 dic_expediente_materia["nom_resultado"] = (
                     i.tipo_resultado_votacao.nome)
                 dic_expediente_materia["votacao_observacao"] = (
-                    expediente_materia.observacao)
+                    i.observacao)
         else:
             dic_expediente_materia["nom_resultado"] = _("Matéria não votada")
-            dic_expediente_materia["votacao_observacao"] = _("Vazio")
+            dic_expediente_materia["votacao_observacao"] = _(" ")
         lst_expediente_materia.append(dic_expediente_materia)
 
     # Lista dos oradores do Expediente
@@ -664,9 +679,9 @@ def get_sessao_plenaria(sessao, casa):
             materia=votacao.materia).first()
         if numeracao is not None:
             dic_votacao["des_numeracao"] = (
-                str(numeracao.numero) +
+                str(numeracao.numero_materia) +
                 '/' +
-                str(numeracao.ano))
+                str(numeracao.ano_materia))
         dic_votacao["des_turno"] = ' '
 
         tramitacao = Tramitacao.objects.filter(
@@ -710,16 +725,15 @@ def get_sessao_plenaria(sessao, casa):
             dic_votacao["nom_autor"] = 'Desconhecido'
 
         dic_votacao["votacao_observacao"] = ' '
-        if not votacao.resultado:
-            resultado = RegistroVotacao.objects.filter(
-                tipo_resultado_votacao=votacao.tipo_votacao)
-            for i in resultado:
+        resultados = votacao.registrovotacao_set.all()
+        if resultados:
+            for i in resultados:
                 dic_votacao["nom_resultado"] = i.tipo_resultado_votacao.nome
                 if votacao.observacao:
-                    dic_votacao["votacao_observacao"] = votacao.observacao
+                    dic_votacao["votacao_observacao"] = i.observacao
         else:
             dic_votacao["nom_resultado"] = _("Matéria não votada")
-            dic_votacao["votacao_observacao"] = _("Vazio")
+            dic_votacao["votacao_observacao"] = _(" ")
         lst_votacao.append(dic_votacao)
 
     # Lista dos oradores nas Explicações Pessoais
@@ -1086,11 +1100,11 @@ def get_pauta_sessao(sessao, casa):
         dic_votacao["ordem_observacao"] = votacao.observacao
 
         dic_votacao["des_numeracao"] = ' '
-        numeracao = Numeracao.objects.filter(materia=materia)
-        # if numeracao is not None:
-        #     numeracao = numeracao.first()
-        #     dic_votacao["des_numeracao"] = str(
-        #         numeracao.numero) + '/' + str(numeracao.ano)
+#        numeracao = Numeracao.objects.filter(materia=materia)
+#        if numeracao is not None:
+#             numeracao = numeracao.first()
+#             dic_votacao["des_numeracao"] = str(
+#                 numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
         dic_votacao["nom_autor"] = ' '
         autoria = Autoria.objects.filter(

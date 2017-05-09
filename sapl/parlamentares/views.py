@@ -1,7 +1,7 @@
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
@@ -345,8 +345,47 @@ class ParlamentarCrud(Crud):
 
             # Tira Link do avatar_html e coloca no nome
             for row in context['rows']:
+                # Coloca a filiação atual ao invés da última
+                if row[0][1]:
+                    # Pega o Parlamentar por meio da pk
+                    parlamentar = Parlamentar.objects.get(
+                        id=(row[0][1].split('/')[-1]))
+
+                    # Pega a Legislatura
+                    legislatura = Legislatura.objects.get(
+                        id=context['legislatura_id'])
+
+                    # As condições para mostrar a filiação são:
+                    # A data de filiacao deve ser menor que a data de fim
+                    # da legislatura e data de desfiliação deve nula, ou maior,
+                    # ou igual a data de fim da legislatura
+                    try:
+                        filiacao = parlamentar.filiacao_set.get(Q(
+                            data__lte=legislatura.data_fim,
+                            data_desfiliacao__gte=legislatura.data_fim) | Q(
+                            data__lte=legislatura.data_fim,
+                            data_desfiliacao__isnull=True))
+
+                    # Caso não exista filiação com essas condições
+                    except ObjectDoesNotExist:
+                        row[2] = ('Não possui filiação', None)
+
+                    # Caso exista mais de uma filiação nesse intervalo
+                    # Entretanto, NÃO DEVE OCORRER
+                    except MultipleObjectsReturned:
+                        filiacao = parlamentar.filiacao_set.filter(Q(
+                            data__lte=legislatura.data_fim,
+                            data_desfiliacao__gte=legislatura.data_fim) | Q(
+                            data__lte=legislatura.data_fim,
+                            data_desfiliacao__isnull=True)).last()
+
+                    # Caso encontre UMA filiação nessas condições
+                    else:
+                        row[2] = (filiacao.partido.sigla, None)
+
                 row[1] = (row[1][0], row[0][1])
                 row[0] = (row[0][0], None)
+
             return context
 
 

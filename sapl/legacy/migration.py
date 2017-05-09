@@ -13,22 +13,24 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
 from django.db.models import CharField, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
+from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import Autor, ProblemaMigracao
+from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (StatusTramitacao, TipoDocumento,
+from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
+                                 StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
-                               TipoVinculoNormaJuridica)
+                               TipoVinculoNormaJuridica, NormaRelacionada)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia
 from sapl.settings import PROJECT_DIR
-from sapl.utils import normalize
+from sapl.utils import delete_texto, normalize, save_texto
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -109,6 +111,10 @@ def warn(msg):
     print('CUIDADO! ' + msg)
 
 
+def erro(msg):
+    print('ERRO: ' + msg)
+
+
 def get_fk_related(field, value, label=None):
     if value is None and field.null is False:
         value = 0
@@ -124,9 +130,7 @@ def get_fk_related(field, value, label=None):
                 if not field.null:
                     fields_dict = get_fields_dict(field.related_model)
                     # Cria stub ao final da tabela para evitar erros
-                    pk = 1
-                    if hasattr(field.related_model.objects.last(), 'pk'):
-                        pk = field.related_model.objects.last().pk
+                    pk = get_last_value(field.related_model)
                     with reversion.create_revision():
                         reversion.set_comment('Stub criado pela migração')
                         value = mommy.make(
@@ -197,6 +201,12 @@ def iter_sql_records(sql, db):
         record.__dict__.update(zip(fieldnames, row))
         yield record
 
+# Todos os models têm no máximo uma constraint unique together
+# Isso é necessário para que o método delete_constraints funcione corretamente
+assert all(len(model._meta.unique_together) <= 1
+           for app in appconfs
+           for model in app.models.values())
+
 
 def delete_constraints(model):
     # pega nome da unique constraint dado o nome da tabela
@@ -210,40 +220,66 @@ def delete_constraints(model):
     for r in result:
         if r[0].endswith('key'):
             words_list = r[0].split('_')
-            one_to_one_constraints.append([table, r[0], words_list, model])
+            constraint = Constraint.objects.create(
+                nome_tabela=table, nome_constraint=r[0],
+                nome_model=model.__name__, tipo_constraint='one_to_one')
+            for w in words_list:
+                Argumento.objects.create(constraint=constraint, argumento=w)
         else:
-            args = None
-            args_list = []
             if model._meta.unique_together:
-                args = model._meta.unique_together[0]
-                args_list = list(args)
-            unique_constraints.append([table, r[0], args_list, model])
+                args_list = model._meta.unique_together[0]
+                constraint = Constraint.objects.create(
+                    nome_tabela=table, nome_constraint=r[0],
+                    nome_model=model.__name__,
+                    tipo_constraint='unique_together')
+                for a in args_list:
+                    Argumento.objects.create(constraint=constraint,
+                                             argumento=a)
         warn('Excluindo unique constraint de nome %s' % r[0])
         exec_sql("ALTER TABLE %s DROP CONSTRAINT %s;" %
                  (table, r[0]))
 
 
-def recreate_constraints():
-    if one_to_one_constraints:
-        for constraint in one_to_one_constraints:
-            table, name, args, model = constraint
+def recria_constraints():
+    constraints = Constraint.objects.all()
+    for con in constraints:
+        if con.tipo_constraint == 'one_to_one':
+            nome_tabela = con.nome_tabela
+            nome_constraint = con.nome_constraint
+            args = [a.argumento for a in con.argumento_set.all()]
             args_string = ''
             args_string = "(" + "_".join(map(str, args[2:-1])) + ")"
-            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                     (table, name, args_string))
-    if unique_constraints:
-        for constraint in unique_constraints:
-            table, name, args, model = constraint
+            try:
+                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                         (nome_tabela, nome_constraint, args_string))
+            except ProgrammingError:
+                info('A constraint %s já foi recriada!' % nome_constraint)
+        if con.tipo_constraint == 'unique_together':
+            nome_tabela = con.nome_tabela
+            nome_constraint = con.nome_constraint
+            # Pegando explicitamente o primeiro valor do filter,
+            # pois pode ser que haja mais de uma ocorrência
+            model = ContentType.objects.filter(
+                model=con.nome_model.lower())[0].model_class()
+            args = [a.argumento for a in con.argumento_set.all()]
             for i in range(len(args)):
                 if isinstance(model._meta.get_field(args[i]),
                               models.ForeignKey):
                     args[i] = args[i] + '_id'
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
-            exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                     (table, name, args_string))
-    one_to_one_constraints.clear()
-    unique_constraints.clear()
+            try:
+                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                         (nome_tabela, nome_constraint, args_string))
+            except ProgrammingError:
+                info('A constraint %s já foi recriada!' % nome_constraint)
+            except Exception as err:
+                problema = re.findall('\(.*?\)', err.args[0])
+                erro('A constraint [%s] da tabela [%s] não pode ser recriada' %
+                     (nome_constraint, nome_tabela))
+                erro('Os dados %s = %s estão duplicados. '
+                     'Arrume antes de recriar as constraints!' %
+                     (problema[0], problema[1]))
 
 
 def obj_desnecessario(obj):
@@ -262,8 +298,8 @@ def get_last_value(model):
 
 def alter_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
-    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE %s;' % (
-        sequence_name, id, id))
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
+        sequence_name, id))
 
 
 def save_with_id(new, id):
@@ -278,8 +314,7 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
                   eh_stub=False):
     link = ProblemaMigracao(
         content_object=obj, nome_campo=nome_campo, problema=problema,
-        descricao=descricao, eh_stub=eh_stub,
-    )
+        descricao=descricao, eh_stub=eh_stub,)
     link.save()
 
 
@@ -302,20 +337,34 @@ def get_fields_dict(model):
 
 
 def fill_vinculo_norma_juridica():
-    lista = [('A', 'Altera a norma'),
-             ('R', 'Revoga integralmente a norma'),
-             ('P', 'Revoga parcialmente a norma'),
-             ('T', 'Revoga integralmente por consolidação'),
-             ('C', 'Norma Correlata'),
-             ('S', 'Ressalva a Norma'),
-             ('E', 'Reedita a Norma'),
-             ('I', 'Reedita a Norma com Alteração'),
-             ('G', 'Regulamenta a Norma'),
-             ('K', 'Suspende parcialmente a norma'),
-             ('L', 'Suspende integralmente a norma'),
-             ('N', 'Julgada integralmente inconstitucional'),
-             ('O', 'Julgada parcialmente inconstitucional')]
-    lista_objs = [TipoVinculoNormaJuridica(sigla=item[0], descricao=item[1])
+    lista = [('A', 'Altera o(a)',
+              'Alterado(a) pelo(a)'),
+             ('R', 'Revoga integralmente o(a)',
+              'Revogado(a) integralmente pelo(a)'),
+             ('P', 'Revoga parcialmente o(a)',
+              'Revogado(a) parcialmente pelo(a)'),
+             ('T', 'Revoga integralmente por consolidação',
+              'Revogado(a) integralmente por consolidação'),
+             ('C', 'Norma correlata',
+              'Norma correlata'),
+             ('S', 'Ressalva o(a)',
+              'Ressalvada pelo(a)'),
+             ('E', 'Reedita o(a)',
+              'Reeditada pelo(a)'),
+             ('I', 'Reedita com alteração o(a)',
+              'Reeditada com alteração pelo(a)'),
+             ('G', 'Regulamenta o(a)',
+              'Regulamentada pelo(a)'),
+             ('K', 'Suspende parcialmente o(a)',
+              'Suspenso(a) parcialmente pelo(a)'),
+             ('L', 'Suspende integralmente o(a)',
+              'Suspenso(a) integralmente pelo(a)'),
+             ('N', 'Julga integralmente inconstitucional',
+              'Julgada integralmente inconstitucional'),
+             ('O', 'Julga parcialmente inconstitucional',
+              'Julgada parcialmente inconstitucional')]
+    lista_objs = [TipoVinculoNormaJuridica(
+        sigla=item[0], descricao_ativa=item[1], descricao_passiva=item[2])
                   for item in lista]
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
@@ -416,6 +465,9 @@ class DataMigrator:
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
+        desconecta_sinais_indexacao()
+
+        fill_vinculo_norma_juridica()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
@@ -427,7 +479,7 @@ class DataMigrator:
         for obj in self.to_delete:
             msg = 'A entrada de PK %s da model %s não pode ser ' \
                 'excluida' % (obj.pk, obj._meta.model_name)
-            descricao = 'Um ou mais objetos protegidos '
+            descricao = 'Um ou mais objetos protegidos'
             warn(msg + ' => ' + descricao)
             save_relation(obj=obj, problema=msg,
                           descricao=descricao, eh_stub=False)
@@ -435,8 +487,8 @@ class DataMigrator:
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
             pass
-        info('Recriando unique constraints...')
-        # recreate_constraints()
+
+        conecta_sinais_indexacao()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -503,6 +555,10 @@ class DataMigrator:
                     reversion.set_comment('Ajuste de data pela migração')
             if getattr(old, 'ind_excluido', False):
                 self.to_delete.append(new)
+
+        # necessário para ajustar sequence da tabela para o ultimo valor de id
+        ultimo_valor = get_last_value(model)
+        alter_sequence(model, ultimo_valor+1)
 
     def delete_ind_excluido(self):
         excluidos = 0
@@ -578,6 +634,12 @@ def adjust_participacao(new, old):
             composicao.save()
             reversion.set_comment('Objeto criado pela migração')
     new.composicao = composicao
+
+
+def adjust_normarelacionada(new, old):
+    tipo = TipoVinculoNormaJuridica.objects.filter(sigla=old.tip_vinculo)
+    assert len(tipo) == 1
+    new.tipo_vinculo = tipo[0]
 
 
 def adjust_protocolo(new, old):
@@ -685,6 +747,7 @@ AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
     Comissao: adjust_comissao,
     NormaJuridica: adjust_normajuridica_antes_salvar,
+    NormaRelacionada: adjust_normarelacionada,
     OrdemDia: adjust_ordemdia,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
@@ -731,3 +794,23 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
+
+# DISCONNECT SIGNAL  ########################################################
+
+
+def desconecta_sinais_indexacao():
+    post_save.disconnect(save_texto, NormaJuridica)
+    post_save.disconnect(save_texto, DocumentoAcessorio)
+    post_save.disconnect(save_texto, MateriaLegislativa)
+    post_delete.disconnect(delete_texto, NormaJuridica)
+    post_delete.disconnect(delete_texto, DocumentoAcessorio)
+    post_delete.disconnect(delete_texto, MateriaLegislativa)
+
+
+def conecta_sinais_indexacao():
+    post_save.connect(save_texto, NormaJuridica)
+    post_save.connect(save_texto, DocumentoAcessorio)
+    post_save.connect(save_texto, MateriaLegislativa)
+    post_delete.connect(delete_texto, NormaJuridica)
+    post_delete.connect(delete_texto, DocumentoAcessorio)
+    post_delete.connect(delete_texto, MateriaLegislativa)
