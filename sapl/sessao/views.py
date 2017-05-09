@@ -1083,11 +1083,13 @@ class ResumoView(DetailView):
             numero = o.numero_ordem
 
             # Verificar resultado
-            resultado = o.registrovotacao_set.filter(materia=o.materia)
-            if resultado:
-                resultado = resultado[0].tipo_resultado_votacao.nome
+            rv = o.registrovotacao_set.filter(materia=o.materia).first()
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
             else:
                 resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
 
             autoria = Autoria.objects.filter(
                 materia_id=o.materia_id)
@@ -1097,6 +1099,7 @@ class ResumoView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'resultado_observacao': resultado_observacao,
                    'autor': autor
                    }
             materias_ordem.append(mat)
@@ -2169,11 +2172,13 @@ class PautaSessaoDetailView(DetailView):
             situacao = m.materia.tramitacao_set.last().status
             if situacao is None:
                 situacao = _("Não informada")
-            resultado = m.registrovotacao_set.all()
+            rv = m.registrovotacao_set.all()
             if resultado:
-                resultado = resultado[0].tipo_resultado_votacao.nome
+                resultado = rv[0].tipo_resultado_votacao.nome
+                resultado_observacao = rv[0].observacao
             else:
                 resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
 
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
@@ -2183,6 +2188,7 @@ class PautaSessaoDetailView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'resultado_observacao': resultado_observacao,
                    'situacao': situacao,
                    'autor': autor
                    }
