@@ -18,8 +18,8 @@ class AssuntoNorma(models.Model):
         max_length=250, blank=True, verbose_name=_('Descrição'))
 
     class Meta:
-        verbose_name = _('Assunto de Norma')
-        verbose_name_plural = _('Assuntos de Norma')
+        verbose_name = _('Assunto de Norma Jurídica')
+        verbose_name_plural = _('Assuntos de Normas Jurídicas')
 
     def __str__(self):
         return self.assunto
