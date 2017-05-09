@@ -2173,7 +2173,7 @@ class PautaSessaoDetailView(DetailView):
             if situacao is None:
                 situacao = _("Não informada")
             rv = m.registrovotacao_set.all()
-            if resultado:
+            if rv:
                 resultado = rv[0].tipo_resultado_votacao.nome
                 resultado_observacao = rv[0].observacao
             else:
