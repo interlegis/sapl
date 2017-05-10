@@ -93,5 +93,6 @@ bower
 bower_components
 media
 whoosh/
+solr-4.10.2/
 postgres-data/
 data/
