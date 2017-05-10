@@ -24,7 +24,7 @@ COPY start.sh /var/interlegis/sapl/
 COPY config/nginx/sapl.conf /etc/nginx/conf.d
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
 
-RUN pip install -r /var/interlegis/sapl/requirements/requirements.txt --upgrade setuptools && \
+RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
     rm -r /root/.cache && \
     rm -r /tmp/*
 
@@ -32,11 +32,11 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 # manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
 
-RUN python3 manage.py bower install && \
+RUN python3 manage.py bower_install -- --allow-root --no-input && \
     python3 manage.py collectstatic --no-input
- 
+
 RUN rm -rf /var/interlegis/sapl/sapl/.env && \
-    rm -rf /var/interlegis/sapl/sapl.db 
+    rm -rf /var/interlegis/sapl/sapl.db
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
