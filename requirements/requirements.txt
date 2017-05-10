@@ -32,3 +32,4 @@ python-magic==0.4.12
 gunicorn==19.6.0
 django-reversion==2.0.8
 whoosh==2.7.4
+codeclimate-test-reporter
