@@ -15,7 +15,7 @@ django-extra-views==0.8.0
 django-filter==0.15.3
 django-floppyforms==1.6.2
 django-model-utils==2.5
-django-sass-processor==0.4.6
+django-sass-processor==0.5.4
 djangorestframework
 drfdocs
 easy-thumbnails==2.3

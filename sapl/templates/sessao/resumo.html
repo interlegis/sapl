@@ -139,6 +139,7 @@
 		      <th>Matéria</th>
 		      <th>Ementa</th>
 		      <th>Resultado da Votação</th>
+					<th>Observação da Votação</th>
 		    </tr>
 		  </thead>
 		  <tbody>
@@ -151,6 +152,7 @@
 		        </td>
 		        <td>{{m.ementa|safe}}</td>
 		        <td>{{m.resultado}}</td>
+						<td>{{m.resultado_observacao}}</td>
 		      </tr>
 		    {% endfor %}
 		  </tbody>
