@@ -624,12 +624,13 @@ def texto_upload_path(instance, filename, subpath=''):
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
 
-    path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' %\
+    path = './sapl/%(prefix)s/%(model_name)s/%(ano)s/%(pk)s/%(subpath)s/%(filename)s' %\
         {
             'prefix': prefix,
             'model_name': instance._meta.model_name,
             'pk': instance.pk,
-            'subpath': subpath,
+            'ano': instance.ano,
+            'subpath': subpath,          
             'filename': filename
         }
 
