@@ -18,9 +18,7 @@ before_script:
 script:
   - ./manage.py migrate
   - ./manage.py bower install
-  - py.test --create-db
-  # - ./test_and_check_qa.sh
-  - coverage run my_program.py arg1 arg2
+  - py.test --create-db --cov . --cov-report term
 
 addons:
     hosts:
