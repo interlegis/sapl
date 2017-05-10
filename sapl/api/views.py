@@ -6,16 +6,19 @@ from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from rest_framework.viewsets import GenericViewSet
+                                        IsAuthenticatedOrReadOnly,
+                                        AllowAny)
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from sapl.api.forms import AutorChoiceFilterSet
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
                                   ChoiceSerializer,
                                   MateriaLegislativaSerializer,
-                                  ModelChoiceSerializer)
+                                  ModelChoiceSerializer,
+                                  SessaoPlenariaSerializer)
 from sapl.base.models import Autor, TipoAutor
 from sapl.materia.models import MateriaLegislativa
+from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import SaplGenericRelation, sapl_logger
 
 
@@ -203,3 +206,13 @@ class MateriaLegislativaViewSet(ListModelMixin,
     queryset = MateriaLegislativa.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('numero', 'ano', 'tipo', )
+
+class SessaoPlenariaViewSet(ListModelMixin,
+                            RetrieveModelMixin,
+                            GenericViewSet):
+
+    permission_classes = (AllowAny,)
+    serializer_class = SessaoPlenariaSerializer
+    queryset = SessaoPlenaria.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('data_inicio', 'data_fim', 'interativa')
