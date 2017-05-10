@@ -156,6 +156,9 @@ class SessaoPlenaria(models.Model):
     finalizada = models.NullBooleanField(blank=True,
                                          choices=YES_NO_CHOICES,
                                          verbose_name=_('Sessão finalizada?'))
+    interativa = models.NullBooleanField(blank=True,
+                                         choices=YES_NO_CHOICES,
+                                         verbose_name=_('Sessão interativa'))
 
     class Meta:
         verbose_name = _('Sessão Plenária')

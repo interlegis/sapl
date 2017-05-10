@@ -111,10 +111,7 @@ MIDDLEWARE_CLASSES = (
 
 
 REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": (
-        "rest_framework.renderers.JSONRenderer",
-        # "rest_framework.renderers.BrowsableAPIRenderer",
-    ),
+    "UNICODE_JSON": False,
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
     ),
