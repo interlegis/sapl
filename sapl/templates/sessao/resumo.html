@@ -139,7 +139,6 @@
 		      <th>Matéria</th>
 		      <th>Ementa</th>
 		      <th>Resultado da Votação</th>
-					<th>Observação da Votação</th>
 		    </tr>
 		  </thead>
 		  <tbody>
@@ -151,8 +150,7 @@
 		          <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 		        </td>
 		        <td>{{m.ementa|safe}}</td>
-		        <td>{{m.resultado}}</td>
-						<td>{{m.resultado_observacao}}</td>
+		        <td>{{m.resultado}}<br/>{{m.resultado_observacao}}</td>
 		      </tr>
 		    {% endfor %}
 		  </tbody>
