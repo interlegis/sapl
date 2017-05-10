@@ -373,11 +373,9 @@ class ParlamentarCrud(Crud):
                     # Caso exista mais de uma filiação nesse intervalo
                     # Entretanto, NÃO DEVE OCORRER
                     except MultipleObjectsReturned:
-                        filiacao = parlamentar.filiacao_set.filter(Q(
-                            data__lte=legislatura.data_fim,
-                            data_desfiliacao__gte=legislatura.data_fim) | Q(
-                            data__lte=legislatura.data_fim,
-                            data_desfiliacao__isnull=True)).last()
+                        row[2] = (
+                            'O Parlamentar possui duas filiações conflitantes',
+                            None)
 
                     # Caso encontre UMA filiação nessas condições
                     else:
@@ -588,3 +586,94 @@ def remove_parlamentar_composicao(request):
                 return JsonResponse(
                     {'msg': (
                         'Selecione algum parlamentar para ser excluido!', 0)})
+
+
+def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
+    """
+        Função para descobrir o partido do parlamentar durante
+        o período de uma dada Sessão Legislativa
+    """
+
+    # As condições para mostrar a filiação são:
+    # A data de filiacao deve ser menor que a data de fim
+    # da sessao legislativa e data de desfiliação deve nula, ou maior,
+    # ou igual a data de fim da sessao
+    try:
+        filiacao = parlamentar.filiacao_set.get(Q(
+            data__lte=sessao.data_fim,
+            data_desfiliacao__gte=sessao.data_fim) | Q(
+            data__lte=sessao.data_fim,
+            data_desfiliacao__isnull=True))
+
+    # Caso não exista filiação com essas condições
+    except ObjectDoesNotExist:
+        return ''
+
+    # Caso exista mais de uma filiação nesse intervalo
+    # Entretanto, NÃO DEVE OCORRER
+    except MultipleObjectsReturned:
+        return 'O Parlamentar possui duas filiações conflitantes'
+
+    # Caso encontre UMA filiação nessas condições
+    else:
+        return filiacao.partido.sigla
+
+
+def altera_field_mesa_public_view(request):
+    """
+        Essa função lida com qualquer alteração nos campos
+        da Mesa Diretora para usuários anônimos,
+        atualizando os campos após cada alteração
+    """
+
+    legislatura = request.GET['legislatura']
+    sessoes = SessaoLegislativa.objects.filter(
+        legislatura=legislatura).order_by('-data_inicio')
+
+    if not sessoes:
+        return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
+
+    # Verifica se já tem uma sessão selecionada. Ocorre quando
+    # é alterado o campo de sessão
+    if request.GET['sessao']:
+        sessao_selecionada = request.GET['sessao']
+    # Caso a mudança tenha sido no campo legislatura, a sessão
+    # atual deve ser a primeira daquela legislatura
+    else:
+        sessao_selecionada = sessoes.first().id
+
+    # Atualiza os componentes da view após a mudança
+    lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
+
+    composicao_mesa = ComposicaoMesa.objects.filter(
+        sessao_legislativa=sessao_selecionada)
+
+    cargos_ocupados = [(m.cargo.id,
+                        m.cargo.__str__()) for m in composicao_mesa]
+
+    parlamentares_ocupados = [(m.parlamentar.id,
+                               m.parlamentar.__str__()
+                               ) for m in composicao_mesa]
+
+    lista_fotos = []
+    lista_partidos = []
+
+    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
+    for p in parlamentares_ocupados:
+        parlamentar = Parlamentar.objects.get(id=p[0])
+        lista_partidos.append(
+            partido_parlamentar_sessao_legislativa(sessao,
+                                                   parlamentar))
+        if parlamentar.fotografia:
+            lista_fotos.append(parlamentar.fotografia.url)
+        else:
+            lista_fotos.append(None)
+
+    return JsonResponse(
+        {'lista_parlamentares': parlamentares_ocupados,
+         'lista_partidos': lista_partidos,
+         'lista_cargos': cargos_ocupados,
+         'lista_sessoes': lista_sessoes,
+         'lista_fotos': lista_fotos,
+         'sessao_selecionada': sessao_selecionada,
+         'msg': ('', 1)})

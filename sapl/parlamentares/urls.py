@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
 from sapl.parlamentares.views import (altera_field_mesa,
+                                      altera_field_mesa_public_view,
                                       CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
@@ -58,6 +59,9 @@ urlpatterns = [
 
     url(r'^mesa-diretora/altera-field-mesa/$',
         altera_field_mesa, name='altera_field_mesa'),
+
+    url(r'^mesa-diretora/altera-field-mesa-public-view/$',
+        altera_field_mesa_public_view, name='altera_field_mesa_public_view'),
 
     url(r'^mesa-diretora/insere-parlamentar-composicao/$',
         insere_parlamentar_composicao, name='insere_parlamentar_composicao'),
