@@ -96,3 +96,4 @@ whoosh/
 solr-4.10.2/
 postgres-data/
 data/
+solr-*/

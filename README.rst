@@ -30,6 +30,11 @@ Instruções para Deploy
    `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/blob/master/docs/deploy.rst>`_
 
 
+Instalação do Solr
+======================
+   `Instalação e configuração do Solr <https://github.com/interlegis/sapl/blob/master/docs/solr.rst>`_
+
+
 
 Instruções para Tradução
 ========================

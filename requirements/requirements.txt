@@ -28,6 +28,7 @@ pyyaml==3.11
 rtyaml==0.0.3
 textract==1.5.0
 unipath==1.1
+pysolr==3.6.0
 python-magic==0.4.12
 gunicorn==19.6.0
 django-reversion==2.0.8
