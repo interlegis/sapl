@@ -97,7 +97,7 @@
 		          <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 		        </td>
 		        <td>{{m.ementa|safe}}</td>
-		        <td>{{m.resultado}}</td>
+		        <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>
 		      </tr>
 		    {% endfor %}
 		  </tbody>
@@ -150,7 +150,7 @@
 		          <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 		        </td>
 		        <td>{{m.ementa|safe}}</td>
-		        <td>{{m.resultado}}<br/>{{m.resultado_observacao}}</td>
+		        <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>
 		      </tr>
 		    {% endfor %}
 		  </tbody>
