@@ -125,7 +125,9 @@
                     {% endfor %}
                 {% endif %}
                 <p></p>
-                <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
+                {% if m.tramitacao_set.all.exists %}
+                    <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
+                {% endif %}
             </tr>
           {% endfor %}
         {% else  %}
