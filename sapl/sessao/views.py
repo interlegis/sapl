@@ -1032,11 +1032,14 @@ class ResumoView(DetailView):
             titulo = m.materia
             numero = m.numero_ordem
 
-            resultado = m.registrovotacao_set.all()
-            if resultado:
-                resultado = resultado[0].tipo_resultado_votacao.nome
+            rv = m.registrovotacao_set.first()
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
+
             else:
                 resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
 
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
@@ -1045,6 +1048,7 @@ class ResumoView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'resultado_observacao': resultado_observacao,
                    'autor': autor
                    }
             materias_expediente.append(mat)
