@@ -125,6 +125,7 @@
                     {% endfor %}
                 {% endif %}
                 <p></p>
+                <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
             </tr>
           {% endfor %}
         {% else  %}
