@@ -28,7 +28,7 @@ from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica, NormaRelacionada)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
-from sapl.sessao.models import ExpedienteMateria, OrdemDia
+from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
 from sapl.utils import delete_texto, normalize, save_texto
 
@@ -411,26 +411,6 @@ class DataMigrator:
                 if field_type == 'CharField' or field_type == 'TextField':
                     if value is None or value == 'None':
                         value = ''
-                if field.model._meta.label == 'sessao.RegistroVotacao' and \
-                        field.name == 'ordem' and \
-                        not isinstance(value, OrdemDia):
-                    try:
-                        new_value = ExpedienteMateria.objects.get(pk=value)
-                        setattr(new, 'expediente', new_value)
-                        setattr(new, field.name, None)
-                        continue
-                    except ObjectDoesNotExist:
-                        msg = 'FK [%s] não encontrada para valor %s ' \
-                            '(em %s %s)' % (
-                                field.name, value,
-                                field.model.__name__, label or '---')
-                        with reversion.create_revision():
-                            value = make_stub(field.related_model, value)
-                            descricao = 'stub criado para entrada orfã!'
-                            warn(msg + ' => ' + descricao)
-                            save_relation(value, [field.name], msg, descricao,
-                                          eh_stub=True)
-                            reversion.set_comment('Stub criado pela migração')
                 setattr(new, field.name, value)
             elif field.model.__name__ == 'TipoAutor' and \
                     field.name == 'content_type':
@@ -655,6 +635,31 @@ def adjust_protocolo(new, old):
         new.numero = p['numero__max'] + 1
 
 
+def adjust_registrovotacao_antes_salvar(new, old):
+    ordem_dia = OrdemDia.objects.filter(
+        pk=old.cod_ordem, materia=old.cod_materia)
+    expediente_materia = ExpedienteMateria.objects.filter(
+        pk=old.cod_ordem, materia=old.cod_materia)
+
+    if ordem_dia and not expediente_materia:
+        new.ordem = ordem_dia[0]
+    if not ordem_dia and expediente_materia:
+        new.expediente = expediente_materia[0]
+
+
+def adjust_registrovotacao_depois_salvar(new, old):
+    if not new.ordem and not new.expediente:
+        with reversion.create_revision():
+            problema = 'RegistroVotacao de PK %s não possui nenhuma OrdemDia'\
+                ' ou ExpedienteMateria.' % old.pk
+            descricao = 'RevistroVotacao deve ter no mínimo uma ordem do dia'\
+                ' ou expediente vinculado.'
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('RegistroVotacao sem ordem ou expediente')
+
+
 def adjust_tipoproposicao(new, old):
     if old.ind_mat_ou_doc == 'M':
         new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
@@ -752,6 +757,7 @@ AJUSTE_ANTES_SALVAR = {
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
     Protocolo: adjust_protocolo,
+    RegistroVotacao: adjust_registrovotacao_antes_salvar,
     TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
@@ -761,6 +767,7 @@ AJUSTE_ANTES_SALVAR = {
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
+    RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
 
 # CHECKS ####################################################################

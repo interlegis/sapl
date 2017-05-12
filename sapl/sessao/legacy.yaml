@@ -65,7 +65,6 @@ RegistroVotacao:
   numero_votos_nao: num_votos_nao
   numero_votos_sim: num_votos_sim
   observacao: txt_observacao
-  ordem: cod_ordem
   tipo_resultado_votacao: tip_resultado_votacao
 
 VotoParlamentar (RegistroVotacaoParlamentar):
