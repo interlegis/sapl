@@ -605,8 +605,8 @@ def texto_upload_path(instance, filename, subpath=''):
     seguida para armazenar o arquivo.
     """
 
-    if subpath and '/' not in subpath:
-        subpath = subpath + '/'
+#    if subpath and '/' not in subpath:
+#        subpath = subpath + '/'
 
     """ TODO: Verifique possibilidade de otimização do código de normalização
     do filename...
@@ -624,7 +624,7 @@ def texto_upload_path(instance, filename, subpath=''):
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
 
-    path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' %\
+    path = './sapl/%(prefix)s/%(model_name)s/%(subpath)s/%(pk)s/%(filename)s' %\
         {
             'prefix': prefix,
             'model_name': instance._meta.model_name,
