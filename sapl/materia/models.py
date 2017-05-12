@@ -22,14 +22,12 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
 
-
 def grupo_autor():
     try:
         grupo = Group.objects.get(name='Autor')
     except Group.DoesNotExist:
         return None
     return grupo.id
-
 
 @reversion.register()
 class TipoProposicao(models.Model):
@@ -120,10 +118,15 @@ class Origem(models.Model):
 TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
                                     ('E', 'escrita', _('Escrita')))
 
+def materia_upload_path(instance, filename):
+        return texto_upload_path(instance, filename, subpath=instance.ano)        
 
+def anexo_upload_path(instance, filename):
+        return texto_upload_path(instance, filename, subpath=instance.materia.ano)
+    
 @reversion.register()
 class MateriaLegislativa(models.Model):
-
+      
     tipo = models.ForeignKey(TipoMateriaLegislativa,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
@@ -194,7 +197,7 @@ class MateriaLegislativa(models.Model):
     texto_original = models.FileField(
         blank=True,
         null=True,
-        upload_to=texto_upload_path,
+        upload_to=materia_upload_path,
         verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])
 
@@ -215,6 +218,7 @@ class MateriaLegislativa(models.Model):
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
+        
 
     def data_entrada_protocolo(self):
         '''
@@ -231,7 +235,7 @@ class MateriaLegislativa(models.Model):
                 pass
 
         return ''
-
+    
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
             self.texto_original.delete()
@@ -255,6 +259,7 @@ class MateriaLegislativa(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+        
 
 
 @reversion.register()
@@ -392,7 +397,7 @@ class DocumentoAcessorio(models.Model):
     arquivo = models.FileField(
         blank=True,
         null=True,
-        upload_to=texto_upload_path,
+        upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
         validators=[restringe_tipos_de_arquivo_txt])
 
@@ -625,7 +630,7 @@ class Proposicao(models.Model):
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     texto_original = models.FileField(
-        upload_to=texto_upload_path,
+        upload_to=materia_upload_path,
         blank=True,
         null=True,
         verbose_name=_('Texto Original'),
