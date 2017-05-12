@@ -1,5 +1,26 @@
+from .exceptions import UnknownUrlNameError
+
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
+
+from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
+from sapl.comissoes.apps import AppConfig as comissoesConfig
+from sapl.sessao.apps import AppConfig as sessaoConfig
+
+app_parlamentares = parlamentaresConfig.name
+app_comissoes = comissoesConfig.name
+app_sessao = sessaoConfig.name
+
+parlamentar_list = ( app_parlamentares + ':parlamentar_list')
+parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
+
+comissao_list = (app_comissoes + ':comissao_list')
+comissao_detail = (app_comissoes + ':comissao_detail')
+
+pauta_sessao_list = (app_sessao + ':pesquisar_pauta')
+pauta_sessao_detail = app_sessao + ':pauta_sessao_detail'
+sessao_plenaria_list = (app_sessao + ':pesquisar_sessao')
+sessao_plenaria_detail = app_sessao + ':sessaoplenaria_detail'
 
 
 class RedirecionaSAPLIndex(RedirectView):
@@ -7,7 +28,10 @@ class RedirecionaSAPLIndex(RedirectView):
 
     def get(self, request, *args, **kwargs):
         self.url = '/'
-        return super(RedirecionaSAPLIndexRedirectView, self).get(self, request, *args, **kwargs)
+        return super(
+            RedirecionaSAPLIndexRedirectView,
+            self
+            ).get(self, request, *args, **kwargs)
 
 class RedirecionaParlamentarDetail(RedirectView):
     permanent = True
@@ -17,11 +41,9 @@ class RedirecionaParlamentarDetail(RedirectView):
 
         if pk:
             kwargs = {'pk': pk}
-            return reverse(
-                'sapl.parlamentares:parlamentar_detail',
-                kwargs=kwargs)
+            return reverse(parlamentar_detail, kwargs=kwargs)
         else:
-            return reverse('sapl.parlamentares:parlamentar_list')
+            return reverse(parlamentar_list)
 
 
 class RedirecionaParlamentarList(RedirectView):
@@ -29,11 +51,11 @@ class RedirecionaParlamentarList(RedirectView):
     query_string = True
 
     def get_redirect_url(self):
-
         try:
-            url = reverse('sapl.parlamentares:parlamentar_list')
+            url = reverse(parlamentar_list)
         except NoReverseMatch:
-            return None
+            raise UnknownUrlNameError(parlamentar_list)
+
         pk = self.request.GET.get('hdn_num_legislatura', '')
         if pk:
             args = '?pk=' + pk
@@ -46,11 +68,10 @@ class RedirecionaComissaoList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
-
         try:
-            url = reverse('sapl.comissoes:comissao_list')
+            url = reverse(comissao_list)
         except NoReverseMatch:
-            return None
+            raise UnknownUrlNameError(comissao_list)
         return url
 
 
@@ -62,11 +83,9 @@ class RedirecionaComissaoDetail(RedirectView):
 
         if pk:
             kwargs = {'pk': pk}
-            return reverse(
-                'sapl.comissoes:comissao_detail',
-                kwargs=kwargs)
+            return reverse(comissao_detail, kwargs=kwargs)
         else:
-            return reverse('sapl.comissoes:comissao_list')
+            return reverse(comissao_list)
 
 
 class RedirecionaPautaSessaoDetail(RedirectView):
@@ -77,22 +96,18 @@ class RedirecionaPautaSessaoDetail(RedirectView):
 
         if pk:
             kwargs = {'pk': pk}
-            return reverse(
-                'sapl.sessao:pauta_sessao_detail',
-                kwargs=kwargs)
+            return reverse(pauta_sessao_detail, kwargs=kwargs)
         else:
-            return reverse('sapl.sessao:pesquisar_pauta')
-
+            return reverse(pauta_sessao_list)
 
 class RedirecionaPautaSessaoList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
         try:
-            url = reverse('sapl.sessao:pesquisar_pauta')
+            url = reverse(pauta_sessao_list)
         except NoReverseMatch:
-            return None
-
+            raise UnknownUrlNameError(pauta_sessao_list)
         pk = self.request.GET.get('dat_sessao_sel', '')
 
         args = ''
@@ -116,9 +131,9 @@ class RedirecionaSessaoPlenariaList(RedirectView):
 
     def get_redirect_url(self):
         try:
-            url = reverse('sapl.sessao:pesquisar_sessao')
+            url = reverse(sessao_plenaria_list)
         except NoReverseMatch:
-            return None
+            raise UnknownUrlNameError(sessao_plenaria_list)
 
         year = self.request.GET.get('ano_sessao_sel', '')
         if year:
@@ -155,8 +170,6 @@ class RedirecionaSessaoPlenariaDetail(RedirectView):
 
         if pk:
             kwargs = {'pk': pk}
-            return reverse(
-                'sapl.sessao:sessaoplenaria_detail',
-                kwargs=kwargs)
+            return reverse(sessao_plenaria_detail, kwargs=kwargs)
         else:
-            return reverse('sapl.sessao:pesquisar_sessao')
+            return reverse(sessao_plenaria_list)
