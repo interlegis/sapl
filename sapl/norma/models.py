@@ -59,6 +59,8 @@ class TipoNormaJuridica(models.Model):
     def __str__(self):
         return self.descricao
 
+def norma_upload_path(instance, filename):
+        return texto_upload_path(instance, filename, subpath=instance.ano)
 
 @reversion.register()
 class NormaJuridica(models.Model):
@@ -67,10 +69,11 @@ class NormaJuridica(models.Model):
         ('F', 'federal', _('Federal')),
         ('M', 'municipal', _('Municipal')),
     )
+    
     texto_integral = models.FileField(
         blank=True,
         null=True,
-        upload_to=texto_upload_path,
+        upload_to=norma_upload_path,
         verbose_name=_('Texto Integral'),
         validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
