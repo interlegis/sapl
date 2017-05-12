@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
+from sapl.sessao.models import SessaoPlenaria
 
 
 class ChoiceSerializer(serializers.Serializer):
@@ -52,3 +53,25 @@ class MateriaLegislativaSerializer(serializers.ModelSerializer):
     class Meta:
         model = MateriaLegislativa
         fields = '__all__'
+
+
+class SessaoPlenariaSerializer(serializers.ModelSerializer):
+
+    tipo = serializers.StringRelatedField(many=False)
+    sessao_legislativa = serializers.StringRelatedField(many=False)
+    legislatura = serializers.StringRelatedField(many=False)
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = ('pk',
+                  'tipo',
+                  'sessao_legislativa',
+                  'legislatura',
+                  'data_inicio',
+                  'hora_inicio',
+                  'hora_fim',
+                  'url_video',
+                  'iniciada',
+                  'finalizada',
+                  'interativa'
+                  )

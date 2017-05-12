@@ -143,7 +143,7 @@ class NormaJuridicaForm(ModelForm):
         if texto_integral:
             if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
                 raise ValidationError("Arquivo muito grande. ( > 5mb )")
-            return texto_integral
+        return texto_integral
 
     def save(self, commit=False):
         norma = self.instance

@@ -4,11 +4,12 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView,
                                 AdicionarVariasAutorias, AnexadaCrud,
-                                AutoriaCrud, ConfirmarProposicao,
-                                CriarProtocoloMateriaView, DespachoInicialCrud,
-                                DocumentoAcessorioCrud,
+                                AssuntoMateriaCrud, AutoriaCrud,
+                                ConfirmarProposicao, CriarProtocoloMateriaView,
+                                DespachoInicialCrud, DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
-                                LegislacaoCitadaCrud, MateriaLegislativaCrud,
+                                LegislacaoCitadaCrud, MateriaAssuntoCrud,
+                                MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
                                 NumeracaoCrud, OrgaoCrud, OrigemCrud,
                                 PrimeiraTramitacaoEmLoteView, ProposicaoCrud,
@@ -31,6 +32,7 @@ urlpatterns_materia = [
                               AnexadaCrud.get_urls() +
                               AutoriaCrud.get_urls() +
                               DespachoInicialCrud.get_urls() +
+                              MateriaAssuntoCrud.get_urls() +
                               NumeracaoCrud.get_urls() +
                               LegislacaoCitadaCrud.get_urls() +
                               TramitacaoCrud.get_urls() +
@@ -97,6 +99,8 @@ urlpatterns_proposicao = [
 ]
 
 urlpatterns_sistema = [
+    url(r'^sistema/assunto-materia',
+        include(AssuntoMateriaCrud.get_urls())),
     url(r'^sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),
     url(r'^sistema/materia/tipo/', include(TipoMateriaCrud.get_urls())),

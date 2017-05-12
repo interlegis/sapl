@@ -11,7 +11,7 @@
       var ano = $("#id_ano").val()
 
       if (tipo && numero && ano) {
-        $.get("/norma/recuperar-norma",{tipo: tipo,
+        $.get("{% url 'sapl.norma:recuperar_norma' %}",{tipo: tipo,
                                         numero: numero,
                                         ano: ano},
                                   function(data, status) {

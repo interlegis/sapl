@@ -57,6 +57,10 @@ urlpatterns = [
 
     url(r'^favicon\.ico$', RedirectView.as_view(
         url='/static/img/favicon.ico', permanent=True)),
+
+    # Folhas XSLT e extras referenciadas por documentos migrados do sapl 2.5
+    url(r'^XSLT/HTML/(?P<path>.*)$', RedirectView.as_view(
+        url='/static/XSLT/HTML/%(path)s', permanent=False)),
 ]
 
 

@@ -7,7 +7,8 @@ from model_utils import Choices
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
-from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
 @reversion.register()
@@ -17,8 +18,8 @@ class AssuntoNorma(models.Model):
         max_length=250, blank=True, verbose_name=_('Descrição'))
 
     class Meta:
-        verbose_name = _('Assunto de Norma')
-        verbose_name_plural = _('Assuntos de Norma')
+        verbose_name = _('Assunto de Norma Jurídica')
+        verbose_name_plural = _('Assuntos de Normas Jurídicas')
 
     def __str__(self):
         return self.assunto
@@ -70,11 +71,15 @@ class NormaJuridica(models.Model):
         blank=True,
         null=True,
         upload_to=texto_upload_path,
-        verbose_name=_('Texto Integral'))
+        verbose_name=_('Texto Integral'),
+        validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
-        TipoNormaJuridica, verbose_name=_('Tipo da Norma Juridica'))
+        TipoNormaJuridica,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo da Norma Juridica'))
     materia = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True, verbose_name=_('Matéria'))
+        MateriaLegislativa, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Matéria'))
     numero = models.CharField(
         max_length=8,
         verbose_name=_('Número'))
@@ -158,8 +163,8 @@ class NormaJuridica(models.Model):
 
 @reversion.register()
 class LegislacaoCitada(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
-    norma = models.ForeignKey(NormaJuridica)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    norma = models.ForeignKey(NormaJuridica, on_delete=models.PROTECT)
     disposicoes = models.CharField(
         max_length=15, blank=True, verbose_name=_('Disposição'))
     parte = models.CharField(
@@ -215,13 +220,17 @@ class NormaRelacionada(models.Model):
     norma_principal = models.ForeignKey(
         NormaJuridica,
         related_name='norma_principal',
+        on_delete=models.PROTECT,
         verbose_name=_('Norma Principal'))
     norma_relacionada = models.ForeignKey(
         NormaJuridica,
         related_name='norma_relacionada',
+        on_delete=models.PROTECT,
         verbose_name=_('Norma Relacionada'))
     tipo_vinculo = models.ForeignKey(
-        TipoVinculoNormaJuridica, verbose_name=_('Tipo de Vínculo'))
+        TipoVinculoNormaJuridica,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo de Vínculo'))
 
     class Meta:
         verbose_name = _('Norma Relacionada')

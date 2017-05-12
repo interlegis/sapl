@@ -1,7 +1,6 @@
 from django.conf.urls import include, url
 
-from sapl.protocoloadm.views import (atualizar_numero_documento,
-                                     AnularProtocoloAdmView,
+from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ComprovanteProtocoloView,
                                      CriarDocumentoProtocolo,
                                      DetailDocumentoAdministrativo,
@@ -17,7 +16,9 @@ from sapl.protocoloadm.views import (atualizar_numero_documento,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
                                      TipoDocumentoAdministrativoCrud,
-                                     TramitacaoAdmCrud, doc_texto_integral)
+                                     TramitacaoAdmCrud,
+                                     atualizar_numero_documento,
+                                     doc_texto_integral)
 
 from .apps import AppConfig
 

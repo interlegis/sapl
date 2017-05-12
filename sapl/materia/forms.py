@@ -26,16 +26,14 @@ import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
-                                    STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
-                                    PerfilEstruturalTextoArticulado,
-                                    TextoArticulado)
+                                    STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import (MateriaLegislativa, RegimeTramitacao,
+from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
+                                 MateriaLegislativa, RegimeTramitacao,
                                  TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -496,6 +494,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                                                 label=u'Em tramitação',
                                                 choices=em_tramitacao)
 
+    materiaassunto__assunto = django_filters.ModelChoiceFilter(
+        queryset=AssuntoMateria.objects.all(),
+        label=_('Assunto da Matéria'))
+
     o = MateriaPesquisaOrderingFilter()
 
     class Meta:
@@ -512,6 +514,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
+                  'materiaassunto__assunto',
                   'em_tramitacao',
                   ]
 
@@ -554,6 +557,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             [('em_tramitacao', 6),
              ('o', 6)])
         row9 = to_row(
+            [('materiaassunto__assunto', 12)])
+        row10 = to_row(
             [('ementa', 12)])
 
         self.form.helper = FormHelper()
@@ -563,7 +568,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row5, row6, row7, row8, row9,
+                     row4, row5, row6, row7, row8, row9, row10,
                      form_actions(save_label='Pesquisar'))
         )
 
@@ -780,7 +785,8 @@ class TipoProposicaoForm(ModelForm):
 
         tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
                                Div(to_column(('descricao', 5)),
-                                   to_column(('content_type', 7)), css_class='clearfix'),
+                                   to_column(('content_type', 7)),
+                                   css_class='clearfix'),
                                to_column(('tipo_conteudo_related_radio', 6)),
 
                                to_column(('perfis', 6)))
@@ -847,11 +853,12 @@ class TipoProposicaoSelect(Select):
                 selected_choices.remove(option_value)
         else:
             selected_html = ''
-        return format_html('<option value="{}"{} data-has-perfil={}>{}</option>',
-                           option_value,
-                           selected_html,
-                           str(data_has_perfil),
-                           force_text(option_label))
+        return format_html(
+                        '<option value="{}"{} data-has-perfil={}>{}</option>',
+                        option_value,
+                        selected_html,
+                        str(data_has_perfil),
+                        force_text(option_label))
 
     def render_options(self, choices, selected_choices):
         # Normalize to strings.
@@ -1431,3 +1438,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         conteudo_gerado.save()
 
         return self.instance
+
+
+class MateriaAssuntoForm(ModelForm):
+
+    class Meta:
+        model = MateriaAssunto
+        fields = ['materia', 'assunto']
+
+        widgets = {'materia': forms.HiddenInput()}

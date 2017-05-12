@@ -1,9 +1,12 @@
 import hashlib
 import logging
+import os
 import re
 from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+from subprocess import PIPE, call
+from threading import Thread
 
 import django_filters
 import magic
@@ -16,13 +19,12 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.settings import BASE_DIR
+from sapl.settings import BASE_DIR, PROJECT_DIR
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -365,12 +367,17 @@ TIPOS_IMG_PERMITIDOS = (
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
+        if not os.path.splitext(value.path)[1][:1]:
+                raise ValidationError(_(
+                    'Não é possível fazer upload de arquivos sem extensão.'))
+
         mime = magic.from_buffer(value.read(), mime=True)
         if mime not in lista:
             raise ValidationError(_('Tipo de arquivo não suportado'))
     # o nome é importante para as migrations
     restringe_tipos_de_arquivo.__name__ = nome
     return restringe_tipos_de_arquivo
+
 
 restringe_tipos_de_arquivo_txt = fabrica_validador_de_tipos_de_arquivo(
     TIPOS_TEXTO_PERMITIDOS, 'restringe_tipos_de_arquivo_txt')
@@ -382,6 +389,7 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     maior_inicio = max(a_inicio, b_inicio)
     menor_fim = min(a_fim, b_fim)
     return maior_inicio <= menor_fim
+
 
 """
 def permissoes(nome_grupo, app_label):
@@ -609,10 +617,36 @@ def texto_upload_path(instance, filename, subpath=''):
     filename = re.sub('[^a-zA-Z0-9.]', '-', filename).strip('-').lower()
     filename = re.sub('[-]+', '-', filename)
 
-    path = './sapl/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' % {
-        'model_name': instance._meta.model_name,
-        'pk': instance.pk,
-        'subpath': subpath,
-        'filename': filename}
+    prefix = 'public'
+
+    from sapl.materia.models import Proposicao
+    from sapl.protocoloadm.models import DocumentoAdministrativo
+    if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
+        prefix = 'private'
+
+    path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' %\
+        {
+            'prefix': prefix,
+            'model_name': instance._meta.model_name,
+            'pk': instance.pk,
+            'subpath': subpath,
+            'filename': filename
+        }
 
     return path
+
+
+class UpdateIndexCommand(Thread):
+    def run(self):
+        call([PROJECT_DIR.child('manage.py'), 'update_index'],
+             stdout=PIPE)
+
+
+def save_texto(sender, instance, **kwargs):
+    update_index = UpdateIndexCommand()
+    update_index.start()
+
+
+def delete_texto(sender, instance, **kwargs):
+    update_index = UpdateIndexCommand()
+    update_index.start()

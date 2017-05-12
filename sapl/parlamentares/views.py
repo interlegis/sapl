@@ -1,6 +1,8 @@
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models import F, Q
+from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
@@ -60,8 +62,8 @@ class VotanteView(MasterDetailCrud):
             if obj.user:
                 obj.user.delete()
             return HttpResponseRedirect(
-                    reverse('sapl.parlamentares:votante_list',
-                            kwargs={'pk': obj.parlamentar.pk}))
+                reverse('sapl.parlamentares:votante_list',
+                        kwargs={'pk': obj.parlamentar.pk}))
 
 
 class FrenteList(MasterDetailCrud):
@@ -107,7 +109,7 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
         def get_context_data(self, **kwargs):
             context = CrudBaseForListAndDetailExternalAppView\
-                            .ListView.get_context_data(self, **kwargs)
+                .ListView.get_context_data(self, **kwargs)
             context['title'] = context['title'].replace(
                 'Proposições', 'Matérias')
             return context
@@ -264,7 +266,11 @@ class ParlamentarCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         ordered_list = False
         list_field_names = [
-            'avatar_html', 'nome_parlamentar', 'filiacao_atual', 'ativo']
+            'avatar_html',
+            'nome_parlamentar',
+            'filiacao_atual',
+            'ativo',
+            'mandato_titular']
 
     class DetailView(Crud.DetailView):
 
@@ -310,7 +316,8 @@ class ParlamentarCrud(Crud):
             legislatura_id = self.take_legislatura_id()
             if legislatura_id != 0:
                 return queryset.filter(
-                    mandato__legislatura_id=legislatura_id)
+                    mandato__legislatura_id=legislatura_id).annotate(
+                        mandato_titular=F('mandato__titular'))
             else:
                 try:
                     l = Legislatura.objects.all().order_by(
@@ -320,10 +327,13 @@ class ParlamentarCrud(Crud):
                 else:
                     if l is None:
                         return Legislatura.objects.all()
-                    return queryset.filter(mandato__legislatura_id=l)
+                    return queryset.filter(mandato__legislatura_id=l).annotate(
+                        mandato_titular=F('mandato__titular'))
 
         def get_headers(self):
-            return ['', _('Parlamentar'), _('Partido'), _('Ativo?')]
+            return ['',
+                    _('Parlamentar'), _('Partido'),
+                    _('Ativo?'), _('Titular?')]
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -335,8 +345,45 @@ class ParlamentarCrud(Crud):
 
             # Tira Link do avatar_html e coloca no nome
             for row in context['rows']:
+                # Coloca a filiação atual ao invés da última
+                if row[0][1]:
+                    # Pega o Parlamentar por meio da pk
+                    parlamentar = Parlamentar.objects.get(
+                        id=(row[0][1].split('/')[-1]))
+
+                    # Pega a Legislatura
+                    legislatura = Legislatura.objects.get(
+                        id=context['legislatura_id'])
+
+                    # As condições para mostrar a filiação são:
+                    # A data de filiacao deve ser menor que a data de fim
+                    # da legislatura e data de desfiliação deve nula, ou maior,
+                    # ou igual a data de fim da legislatura
+                    try:
+                        filiacao = parlamentar.filiacao_set.get(Q(
+                            data__lte=legislatura.data_fim,
+                            data_desfiliacao__gte=legislatura.data_fim) | Q(
+                            data__lte=legislatura.data_fim,
+                            data_desfiliacao__isnull=True))
+
+                    # Caso não exista filiação com essas condições
+                    except ObjectDoesNotExist:
+                        row[2] = ('Não possui filiação', None)
+
+                    # Caso exista mais de uma filiação nesse intervalo
+                    # Entretanto, NÃO DEVE OCORRER
+                    except MultipleObjectsReturned:
+                        row[2] = (
+                            'O Parlamentar possui duas filiações conflitantes',
+                            None)
+
+                    # Caso encontre UMA filiação nessas condições
+                    else:
+                        row[2] = (filiacao.partido.sigla, None)
+
                 row[1] = (row[1][0], row[0][1])
                 row[0] = (row[0][0], None)
+
             return context
 
 
@@ -386,6 +433,11 @@ class MesaDiretoraView(FormView):
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
 
+        # Se todos os cargos estiverem ocupados, a listagem de parlamentares
+        # deve ser renderizada vazia
+        if not cargos_vagos:
+            parlamentares_vagos = []
+
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
@@ -399,107 +451,229 @@ class MesaDiretoraView(FormView):
                 'cargos_vagos': cargos_vagos
             })
 
-    def existe_membro_mesa(self, sessao_plenaria, cargo):
-        return ComposicaoMesa.objects.filter(
-            sessao_legislativa_id=sessao_plenaria.id,
-            # parlamentar_id = integrante.parlamentar_id,
-            cargo_id=cargo.id
-            ).exists()
 
-    def post(self, request, *args, **kwargs):
+def altera_field_mesa(request):
+    """
+        Essa função lida com qualquer alteração nos campos
+        da Mesa Diretora, após qualquer
+        operação (Legislatura/Sessão/Inclusão/Remoção),
+        atualizando os campos após cada alteração
+    """
 
-        if (not Legislatura.objects.exists() or
-                not SessaoLegislativa.objects.exists()):
-            return self.validation(request)
+    legislatura = request.GET['legislatura']
+    sessoes = SessaoLegislativa.objects.filter(
+        legislatura=legislatura).order_by('-data_inicio')
 
-        if 'Incluir' in request.POST and request.user.has_perm(
-                '%s.add_%s' % (
-                    AppConfig.label, ComposicaoMesa._meta.model_name)):
+    if not sessoes:
+        return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
-            composicao = ComposicaoMesa()
+    # Verifica se já tem uma sessão selecionada. Ocorre quando
+    # é alterado o campo de sessão ou feita alguma operação
+    # de inclusão/remoção.
+    if request.GET['sessao']:
+        sessao_selecionada = request.GET['sessao']
+    # Caso a mudança tenha sido no campo legislatura, a sessão
+    # atual deve ser a primeira daquela legislatura
+    else:
+        sessao_selecionada = SessaoLegislativa.objects.filter(
+            legislatura=legislatura).order_by(
+            '-data_inicio').first().id
 
-            try:
-                composicao.sessao_legislativa = SessaoLegislativa.objects.get(
-                    id=int(request.POST['sessao']))
-            except MultiValueDictKeyError:
-                messages.error(request, _(
-                    'Nenhuma sessão foi inserida!'))
-                return self.get(request)
+    # Atualiza os componentes da view após a mudança
+    composicao_mesa = ComposicaoMesa.objects.filter(
+        sessao_legislativa=sessao_selecionada)
 
-            try:
-                composicao.parlamentar = Parlamentar.objects.get(
-                    id=int(request.POST['parlamentar']))
-            except MultiValueDictKeyError:
-                messages.error(request, _(
-                    'Nenhum parlamentar foi inserido!'))
-                return self.get(request)
+    cargos_ocupados = [m.cargo for m in composicao_mesa]
+    cargos = CargoMesa.objects.all()
+    cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
-            try:
-                composicao.cargo = CargoMesa.objects.get(
-                    id=int(request.POST['cargo']))
-                if self.existe_membro_mesa(composicao.sessao_legislativa,
-                                           composicao.cargo):
-                    messages.error(request, _('Parlamentar já inserido!'))
-                    return self.get(request)
+    parlamentares = Legislatura.objects.get(
+        id=legislatura).mandato_set.all()
+    parlamentares_ocupados = [m.parlamentar for m in composicao_mesa]
+    parlamentares_vagos = list(
+        set(
+            [p.parlamentar for p in parlamentares]) - set(
+            parlamentares_ocupados))
 
-                composicao.save()
-            except MultiValueDictKeyError:
-                messages.error(request, _(
-                    'Nenhum cargo foi inserido!'))
-                return self.get(request)
+    lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
+    lista_composicao = [(c.id, c.parlamentar.__str__(),
+                         c.cargo.__str__()) for c in composicao_mesa]
+    lista_parlamentares = [(
+        p.id, p.__str__()) for p in parlamentares_vagos]
+    lista_cargos = [(c.id, c.__str__()) for c in cargos_vagos]
 
-            messages.success(request, _(
-                'Parlamentar adicionado com sucesso!'))
+    return JsonResponse(
+        {'lista_sessoes': lista_sessoes,
+         'lista_composicao': lista_composicao,
+         'lista_parlamentares': lista_parlamentares,
+         'lista_cargos': lista_cargos,
+         'sessao_selecionada': sessao_selecionada,
+         'msg': ('', 1)})
 
-        elif 'Excluir' in request.POST and request.user.has_perm(
-                '%s.delete_%s' % (
-                    AppConfig.label, ComposicaoMesa._meta.model_name)):
+
+def insere_parlamentar_composicao(request):
+    """
+        Essa função lida com qualquer operação de inserção
+        na composição da Mesa Diretora
+    """
+
+    if request.user.has_perm(
+            '%s.add_%s' % (
+                AppConfig.label, ComposicaoMesa._meta.model_name)):
+
+        composicao = ComposicaoMesa()
+
+        try:
+            composicao.sessao_legislativa = SessaoLegislativa.objects.get(
+                id=int(request.POST['sessao']))
+        except MultiValueDictKeyError:
+            return JsonResponse({'msg': ('Nenhuma sessão foi inserida!', 0)})
+
+        try:
+            composicao.parlamentar = Parlamentar.objects.get(
+                id=int(request.POST['parlamentar']))
+        except MultiValueDictKeyError:
+            return JsonResponse({
+                'msg': ('Nenhum parlamentar foi inserido!', 0)})
+
+        try:
+            composicao.cargo = CargoMesa.objects.get(
+                id=int(request.POST['cargo']))
+            parlamentar_ja_inserido = ComposicaoMesa.objects.filter(
+                sessao_legislativa_id=composicao.sessao_legislativa.id,
+                cargo_id=composicao.cargo.id).exists()
+
+            if parlamentar_ja_inserido:
+                return JsonResponse({'msg': ('Parlamentar já inserido!', 0)})
+
+            composicao.save()
+
+        except MultiValueDictKeyError:
+            return JsonResponse({'msg': ('Nenhum cargo foi inserido!', 0)})
+
+        return JsonResponse({'msg': ('Parlamentar inserido com sucesso!', 1)})
+
+    else:
+        return JsonResponse(
+            {'msg': ('Você não tem permissão para esta operação!', 0)})
+
+
+def remove_parlamentar_composicao(request):
+    """
+        Essa função lida com qualquer operação de remoção
+        na composição da Mesa Diretora
+    """
+
+    if request.POST and request.user.has_perm(
+        '%s.delete_%s' % (
+            AppConfig.label, ComposicaoMesa._meta.model_name)):
 
             if 'composicao_mesa' in request.POST:
-                ids = request.POST['composicao_mesa'].split(':')
-                composicao = ComposicaoMesa.objects.get(
-                    sessao_legislativa_id=int(request.POST['sessao']),
-                    parlamentar_id=int(ids[0]),
-                    cargo_id=int(ids[1])
-                )
+                try:
+                    composicao = ComposicaoMesa.objects.get(
+                        id=request.POST['composicao_mesa'])
+                except ObjectDoesNotExist:
+                    return JsonResponse(
+                        {'msg': (
+                            'Composição da Mesa não pôde ser removida!', 0)})
+
                 composicao.delete()
-                messages.success(request, _(
-                    'Parlamentar excluido com sucesso!'))
+
+                return JsonResponse(
+                    {'msg': (
+                        'Parlamentar excluido com sucesso!', 1)})
             else:
-                messages.error(request, _(
-                    'Selecione um parlamentar para ser excluido!'))
+                return JsonResponse(
+                    {'msg': (
+                        'Selecione algum parlamentar para ser excluido!', 0)})
 
-        mesa = ComposicaoMesa.objects.filter(
-            sessao_legislativa=request.POST['sessao'])
 
-        cargos_ocupados = [m.cargo for m in mesa]
-        cargos = CargoMesa.objects.all()
-        cargos_vagos = list(set(cargos) - set(cargos_ocupados))
+def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
+    """
+        Função para descobrir o partido do parlamentar durante
+        o período de uma dada Sessão Legislativa
+    """
 
-        parlamentares = Legislatura.objects.get(
-            id=int(request.POST['legislatura'])).mandato_set.all()
-        parlamentares_ocupados = [m.parlamentar for m in mesa]
-        parlamentares_vagos = list(
-            set(
-                [p.parlamentar for p in parlamentares]) - set(
-                parlamentares_ocupados))
+    # As condições para mostrar a filiação são:
+    # A data de filiacao deve ser menor que a data de fim
+    # da sessao legislativa e data de desfiliação deve nula, ou maior,
+    # ou igual a data de fim da sessao
+    try:
+        filiacao = parlamentar.filiacao_set.get(Q(
+            data__lte=sessao.data_fim,
+            data_desfiliacao__gte=sessao.data_fim) | Q(
+            data__lte=sessao.data_fim,
+            data_desfiliacao__isnull=True))
 
-        sessao_sel = SessaoLegislativa.objects.get(
-            id=int(request.POST['sessao']))
+    # Caso não exista filiação com essas condições
+    except ObjectDoesNotExist:
+        return ''
 
-        if str(sessao_sel.legislatura_id) != request.POST['legislatura']:
-            sessao_sel = SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.first()).first()
+    # Caso exista mais de uma filiação nesse intervalo
+    # Entretanto, NÃO DEVE OCORRER
+    except MultipleObjectsReturned:
+        return 'O Parlamentar possui duas filiações conflitantes'
 
-        return self.render_to_response(
-            {'legislaturas': Legislatura.objects.all(
-            ).order_by('-numero'),
-                'legislatura_selecionada': Legislatura.objects.get(
-                id=int(request.POST['legislatura'])),
-                'sessoes': SessaoLegislativa.objects.filter(
-                legislatura_id=int(request.POST['legislatura'])),
-                'sessao_selecionada': sessao_sel,
-                'composicao_mesa': mesa,
-                'parlamentares': parlamentares_vagos,
-                'cargos_vagos': cargos_vagos
-            })
+    # Caso encontre UMA filiação nessas condições
+    else:
+        return filiacao.partido.sigla
+
+
+def altera_field_mesa_public_view(request):
+    """
+        Essa função lida com qualquer alteração nos campos
+        da Mesa Diretora para usuários anônimos,
+        atualizando os campos após cada alteração
+    """
+
+    legislatura = request.GET['legislatura']
+    sessoes = SessaoLegislativa.objects.filter(
+        legislatura=legislatura).order_by('-data_inicio')
+
+    if not sessoes:
+        return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
+
+    # Verifica se já tem uma sessão selecionada. Ocorre quando
+    # é alterado o campo de sessão
+    if request.GET['sessao']:
+        sessao_selecionada = request.GET['sessao']
+    # Caso a mudança tenha sido no campo legislatura, a sessão
+    # atual deve ser a primeira daquela legislatura
+    else:
+        sessao_selecionada = sessoes.first().id
+
+    # Atualiza os componentes da view após a mudança
+    lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
+
+    composicao_mesa = ComposicaoMesa.objects.filter(
+        sessao_legislativa=sessao_selecionada)
+
+    cargos_ocupados = [(m.cargo.id,
+                        m.cargo.__str__()) for m in composicao_mesa]
+
+    parlamentares_ocupados = [(m.parlamentar.id,
+                               m.parlamentar.__str__()
+                               ) for m in composicao_mesa]
+
+    lista_fotos = []
+    lista_partidos = []
+
+    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
+    for p in parlamentares_ocupados:
+        parlamentar = Parlamentar.objects.get(id=p[0])
+        lista_partidos.append(
+            partido_parlamentar_sessao_legislativa(sessao,
+                                                   parlamentar))
+        if parlamentar.fotografia:
+            lista_fotos.append(parlamentar.fotografia.url)
+        else:
+            lista_fotos.append(None)
+
+    return JsonResponse(
+        {'lista_parlamentares': parlamentares_ocupados,
+         'lista_partidos': lista_partidos,
+         'lista_cargos': cargos_ocupados,
+         'lista_sessoes': lista_sessoes,
+         'lista_fotos': lista_fotos,
+         'sessao_selecionada': sessao_selecionada,
+         'msg': ('', 1)})

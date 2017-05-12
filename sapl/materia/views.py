@@ -24,8 +24,7 @@ from django_filters.views import FilterView
 import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
-from sapl.compilacao.models import (STATUS_TA_EDITION,
-                                    STATUS_TA_IMMUTABLE_RESTRICT,
+from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
@@ -37,7 +36,6 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, ProposicaoForm,
                                 TipoProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
@@ -45,18 +43,21 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm, MateriaLegislativaFilterSet,
-                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
+                    DocumentoAcessorioForm, MateriaAssuntoForm,
+                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
+                    RelatoriaForm, TramitacaoEmLoteFilterSet,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
-from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, MateriaLegislativa, Numeracao, Orgao,
-                     Origem, Proposicao, RegimeTramitacao, Relatoria,
-                     StatusTramitacao, TipoDocumento, TipoFimRelatoria,
-                     TipoMateriaLegislativa, TipoProposicao, Tramitacao,
-                     UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaAssunto,
+                     MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
+                     RegimeTramitacao, Relatoria, StatusTramitacao,
+                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
+                     TipoProposicao, Tramitacao, UnidadeTramitacao)
+
+AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
 OrigemCrud = Crud.build(Origem, '')
 
@@ -417,7 +418,8 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                 else:
                     hasher = gerar_hash_arquivo(
                         proposicao.texto_original.path,
-                        str(proposicao.pk)) if proposicao.texto_original else None
+                        str(proposicao.pk)) \
+                            if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
@@ -1109,6 +1111,31 @@ class AnexadaCrud(MasterDetailCrud):
         @property
         def layout_key(self):
             return 'AnexadaDetail'
+
+
+class MateriaAssuntoCrud(MasterDetailCrud):
+    model = MateriaAssunto
+    parent_field = 'materia'
+    help_path = ''
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['assunto', 'materia']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = MateriaAssuntoForm
+
+        def get_initial(self):
+            self.initial['materia'] = self.kwargs['pk']
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = MateriaAssuntoForm
+
+        def get_initial(self):
+            self.initial['materia'] = self.get_object().materia
+            self.initial['assunto'] = self.get_object().assunto
+            return self.initial
 
 
 class MateriaLegislativaCrud(Crud):

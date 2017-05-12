@@ -1,0 +1,95 @@
+ body {
+   font-family: Times;
+   text-align: justify;
+   font-size: 12 pt;
+   margin: 5px 1cm 20px 2cm;
+}
+
+ p,
+ .p{
+   font-family: Times;
+   text-align: justify;
+   font-size: 12pt;
+   text-indent: 1.5cm;
+   margin: 40px 0  20px 0;
+  }
+
+ .pequeno {
+   font-family: Times;
+   text-align: left;
+   font-size: 13pt;
+   margin: 0px 0  0px 0;
+  }
+
+ .cabecalho {
+   font-family: Times;
+   font-weight:bold;
+   text-align: left;
+   font-size: 15pt;
+   margin: 10px 0  0px 0;
+  }
+
+ .texto {
+   font-family: Times;
+   text-align: justify;
+   font-size: 12pt;
+   margin: 0px 0px 0px 0px;
+  }
+
+ .data {
+   text-align: right;
+  }
+
+ .autor {
+   text-align: center;
+  }
+
+ .center {
+   text-align: center;
+  }
+
+ .semrecuo {
+   text-indent: 0;
+  }
+
+ .ementa {
+   text-align: justify;
+   margin-left: 50%;
+   text-indent: 0;
+  }
+
+ .titulos1 {
+   text-align: center;
+  margin: 10px 0  0px 0;
+  }
+
+ .titulos2 {
+   text-align: center;
+  margin: 0px 0  0px 0;
+  }
+
+ p.artigo {
+  text-align: justify;
+  text-indent: 1cm;
+  margin: 10px 0  0px 0;
+}
+
+
+#imagem {
+   float:left;
+  }
+
+#autores
+  {
+    -moz-column-count:3; /* Firefox */
+    -webkit-column-count:3;  /* Safari and Chrome */
+    width:50px;
+
+  }
+
+#col1 { width: 33%; float: left; center: 10px; }
+#col2 { width: 33%; float: left; center: 10px; }
+#col3 { width: 33%; float: left; center: 10px; }
+
+
+

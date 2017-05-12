@@ -341,7 +341,8 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 
         if protocolo.tipo_documento:
             context[
-                'documentos'] = protocolo.documentoadministrativo_set.all().order_by('-ano', '-numero')
+                'documentos'] = protocolo.documentoadministrativo_set\
+                                         .all().order_by('-ano', '-numero')
 
         context['protocolo'] = protocolo
         return context

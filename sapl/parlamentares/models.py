@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import reversion
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -55,6 +54,7 @@ class SessaoLegislativa(models.Model):
 
     legislatura = models.ForeignKey(
         Legislatura,
+        on_delete=models.PROTECT,
         verbose_name=Legislatura._meta.verbose_name)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     tipo = models.CharField(
@@ -80,10 +80,13 @@ class SessaoLegislativa(models.Model):
 
 @reversion.register()
 class Coligacao(models.Model):
-    legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
+    legislatura = models.ForeignKey(Legislatura,
+                                    on_delete=models.PROTECT,
+                                    verbose_name=_('Legislatura'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     numero_votos = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Nº Votos Recebidos'))
+        blank=True, null=True,
+        verbose_name=_('Nº Votos Recebidos (Coligação)'))
 
     class Meta:
         verbose_name = _('Coligação')
@@ -130,8 +133,9 @@ class Partido(models.Model):
 class ComposicaoColigacao(models.Model):
     # TODO M2M
     partido = models.ForeignKey(Partido,
+                                on_delete=models.PROTECT,
                                 verbose_name=_('Partidos da Coligação'))
-    coligacao = models.ForeignKey(Coligacao)
+    coligacao = models.ForeignKey(Coligacao, on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = (_('Composição Coligação'))
@@ -213,11 +217,13 @@ class Parlamentar(models.Model):
         NivelInstrucao,
         blank=True,
         null=True,
+        on_delete=models.PROTECT,
         verbose_name=_('Nível Instrução'))
     situacao_militar = models.ForeignKey(
         SituacaoMilitar,
         blank=True,
         null=True,
+        on_delete=models.PROTECT,
         verbose_name=_('Situação Militar'))
     nome_completo = models.CharField(
         max_length=50, verbose_name=_('Nome Completo'))
@@ -247,7 +253,8 @@ class Parlamentar(models.Model):
         blank=True,
         verbose_name=_('Endereço Residencial'))
     municipio_residencia = models.ForeignKey(
-        Municipio, blank=True, null=True, verbose_name=_('Município'))
+        Municipio, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Município'))
     cep_residencia = models.CharField(
         max_length=9, blank=True, verbose_name=_('CEP'))
     telefone_residencia = models.CharField(
@@ -363,8 +370,9 @@ class Dependente(models.Model):
     SEXO_CHOICE = ((FEMININO, _('Feminino')),
                    (MASCULINO, _('Masculino')))
 
-    tipo = models.ForeignKey(TipoDependente, verbose_name=_('Tipo'))
-    parlamentar = models.ForeignKey(Parlamentar)
+    tipo = models.ForeignKey(TipoDependente, on_delete=models.PROTECT,
+                             verbose_name=_('Tipo'))
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
@@ -390,8 +398,10 @@ class Dependente(models.Model):
 @reversion.register()
 class Filiacao(models.Model):
     data = models.DateField(verbose_name=_('Data Filiação'))
-    parlamentar = models.ForeignKey(Parlamentar)
-    partido = models.ForeignKey(Partido, verbose_name=_('Partido'))
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    partido = models.ForeignKey(Partido,
+                                on_delete=models.PROTECT,
+                                verbose_name=_('Partido'))
     data_desfiliacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Desfiliação'))
 
@@ -427,17 +437,19 @@ class TipoAfastamento(models.Model):
 
 @reversion.register()
 class Mandato(models.Model):
-    parlamentar = models.ForeignKey(Parlamentar)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     tipo_afastamento = models.ForeignKey(
-        TipoAfastamento, blank=True, null=True)
-    legislatura = models.ForeignKey(Legislatura, verbose_name=_('Legislatura'))
+        TipoAfastamento, blank=True, null=True, on_delete=models.PROTECT)
+    legislatura = models.ForeignKey(Legislatura, on_delete=models.PROTECT,
+                                    verbose_name=_('Legislatura'))
     coligacao = models.ForeignKey(
-        Coligacao, blank=True, null=True, verbose_name=_('Coligação'))
+        Coligacao, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Coligação'))
     # TODO what is this field??????
     tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
     data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'))
     votos_recebidos = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Votos Recebidos'))
+        blank=True, null=True, verbose_name=_('Votos Recebidos (Mandato)'))
     data_expedicao_diploma = models.DateField(
         verbose_name=_('Expedição do Diploma'))
     titular = models.BooleanField(
@@ -445,7 +457,7 @@ class Mandato(models.Model):
         default=True,
         choices=YES_NO_CHOICES,
         verbose_name=_('Vereador Titular'))
-    
+
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
 
@@ -489,9 +501,10 @@ class CargoMesa(models.Model):
 @reversion.register()
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
-    parlamentar = models.ForeignKey(Parlamentar)
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa)
-    cargo = models.ForeignKey(CargoMesa)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
+                                           on_delete=models.PROTECT)
+    cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
@@ -546,9 +559,10 @@ class Frente(models.Model):
 
 class Votante(models.Model):
     parlamentar = models.ForeignKey(
-        Parlamentar, verbose_name=_('Parlamentar'), related_name='parlamentar')
+        Parlamentar, verbose_name=_('Parlamentar'),
+        on_delete=models.PROTECT, related_name='parlamentar')
     user = models.ForeignKey(
-        get_settings_auth_user_model(),
+        get_settings_auth_user_model(), on_delete=models.PROTECT,
         verbose_name=_('User'), related_name='user')
     data = models.DateTimeField(
         verbose_name=_('Data'), auto_now_add=True,

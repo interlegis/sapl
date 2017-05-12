@@ -55,7 +55,7 @@
                     </li>
                   </ul>
               </li>
-              <li><a href="/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
+              <li><a href="/sistema/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
               {% if not user.is_authenticated %}
                 <li><a href="{% url 'sapl.base:login' %}"><img src="{% static 'img/user.png' %}"></a></li>
               {% else %}
@@ -223,6 +223,8 @@
       <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
 
       <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
 
       {% block extra_js %}{% endblock %}
 

@@ -99,4 +99,6 @@ urlpatterns = [
         name='login'),
     url(r'^logout/$', views.logout, {'next_page': '/login'}, name='logout'),
 
+    url(r'^sistema/search/', include('haystack.urls')),
+
 ] + recuperar_senha

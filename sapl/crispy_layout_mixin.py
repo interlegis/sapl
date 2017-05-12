@@ -60,19 +60,22 @@ def get_field_display(obj, fieldname):
     field = ''
     try:
         field = obj._meta.get_field(fieldname)
-    except:
-        field = getattr(obj, fieldname)
-        if 'ManyRelatedManager' not in str(type(field))\
-                and 'RelatedManager' not in str(type(field))\
-                and 'GenericRelatedObjectManager' not in str(type(field)):
-            return '', str(field)
-
-    verbose_name = str(field.verbose_name)\
-        if hasattr(field, 'verbose_name') else ''
-    if hasattr(field, 'choices') and field.choices:
-        value = getattr(obj, 'get_%s_display' % fieldname)()
-    else:
+    except Exception as e:
+        """ nos casos que o fieldname não é um field_model,
+            ele pode ser um aggregate, annotate, um property, um manager,
+            ou mesmo uma método no model.
+        """
         value = getattr(obj, fieldname)
+        verbose_name = ''
+
+    else:
+        verbose_name = str(field.verbose_name)\
+            if hasattr(field, 'verbose_name') else ''
+
+        if hasattr(field, 'choices') and field.choices:
+            value = getattr(obj, 'get_%s_display' % fieldname)()
+        else:
+            value = getattr(obj, fieldname)
 
     str_type = str(type(value))
 

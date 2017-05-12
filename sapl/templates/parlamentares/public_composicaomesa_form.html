@@ -10,7 +10,7 @@
     <div class="row">
       <div class="col-md-6">
         <label>Escolha uma Legislatura</label>
-        <select name="legislatura" class="form-control" onChange="form.submit();">
+        <select name="legislatura" id="id_legislatura" class="form-control">
           {% for l in legislaturas %}
           	<option value="{{l.id}}" {% if l == legislatura_selecionada %} selected {% endif %}>
           		{{l}}
@@ -20,7 +20,7 @@
       </div>
       <div class="col-md-6">
         <label>Escolha uma Sessão Legislativa</label>
-        <select name="sessao" class="form-control" onChange="form.submit();">
+        <select name="sessao" id="id_sessao_legislativa" class="form-control">
           {% for s in sessoes %}
           	<option value="{{s.id}}" {% if s == sessao_selecionada %} selected {% endif %}>
           		{{s}}
@@ -33,7 +33,7 @@
 	<br />
 	<fieldset class="form-group">
 		<legend>Composição da Mesa Diretora</legend>
-		<table class="table table-striped table-hover table-link-ordering">
+		<table id="tabela-composicao" class="table table-striped table-hover table-link-ordering">
 		  <thead>
 				<tr>
 					<th></th>
@@ -46,12 +46,12 @@
       	{% for p in composicao_mesa %}
 					<tr>
 						{% if p.parlamentar.fotografia %}
-							<td><img class="img-responsive"  height="60" width="60" src="{{ p.parlamentar.fotografia.url }}"></td>
+							<td><img class="img-responsive"  height="30" width="30" src="{{ p.parlamentar.fotografia.url }}"></td>
 						{% else %}
 							<td></td>
 						{% endif %}
-						<td>{{p.parlamentar.nome_parlamentar}}</td>
-						<td>{{p.parlamentar.filiacao_set.last.partido.sigla}}</td>
+						<td><a href="{% url 'sapl.parlamentares:parlamentar_detail' p.parlamentar.pk %}">{{p.parlamentar.nome_parlamentar}}</a></td>
+						<td>{{p.parlamentar.filiacao_atual}}</td>
 						<td>{{p.cargo}}</td>
 					</tr>
       	{% endfor %}
@@ -60,3 +60,84 @@
 	</fieldset>
 </form>
 {% endblock detail_content %}
+
+{% block extra_js %}
+
+<script language="Javascript">
+
+//##############################################################
+//#                     USEFUL FUNCTIONS                       #
+//##############################################################
+function retorna_imagem(url){
+    if (url != null){
+        image_component = '<img class="img-responsive"  height="30" width="30" src="' + url + '">'
+        return image_component
+    }
+
+    else{
+        return ''
+    }
+}
+
+//##############################################################
+//#                     EVENT HANDLERS                         #
+//##############################################################
+
+function altera_field(id_legislatura, id_sessao=null){
+        // Pega o novo valor do campo que foi modificado (Sessao/Legislatura)
+      var sessao_value = id_sessao
+      var legislatura_value = id_legislatura
+
+      // Limpa o campo que será atualizado
+      $("#id_sessao_legislativa option").remove();
+      $("#tabela-composicao tbody").empty();
+
+      $.get("/mesa-diretora/altera-field-mesa-public-view",
+        {legislatura: legislatura_value, sessao: sessao_value},
+        function(data) {
+            // Caso não venha nenhum dado da requisição, retorna null
+          if ($.isEmptyObject(data)){
+            return null
+          }
+
+          lista_sessoes = data['lista_sessoes'];
+          lista_parlamentares = data['lista_parlamentares'];
+          lista_cargos = data['lista_cargos'];
+          lista_fotos = data['lista_fotos']
+          lista_partidos = data['lista_partidos']
+
+          // Atualiza a listagem de sessões
+          for (i = 0; i < lista_sessoes.length; i++) {
+              $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
+          }
+
+          // Atualiza a tabela de composição
+          for (i = 0; i < lista_parlamentares.length; i++) {
+              $("#tabela-composicao tbody").append('<tr> <td>' + retorna_imagem(lista_fotos[i]) +'</td> <td><a href="/parlamentar/' + lista_parlamentares[i][0] + '">' + lista_parlamentares[i][1] + '</a></td> <td>' + lista_partidos[i] + '</td> <td>'+ lista_cargos[i][1] + '</td> </tr>');
+          }
+
+          // Garante que a Sessão atual será a selecionada previamente e, no caso em que
+          // o campo modificado seja o de Legislatura, que a Sessão seja a última daquela
+          // legislatura
+          $("#id_sessao_legislativa").val(data['sessao_selecionada'])     
+          
+      });
+    }
+
+//#############################################################
+//#                     EVENTS CATCH                          #
+//#############################################################
+    $("#id_legislatura").change(function(){
+        legislatura = $("#id_legislatura").val();
+        altera_field(legislatura);
+    });
+
+    $("#id_sessao_legislativa").change(function(){
+        legislatura = $("#id_legislatura").val();
+        sessao = $("#id_sessao_legislativa").val();
+        altera_field(legislatura, sessao);
+    });
+
+</script>
+
+{% endblock %}

@@ -32,7 +32,9 @@ class TipoComissao(models.Model):
 
 @reversion.register()
 class Comissao(models.Model):
-    tipo = models.ForeignKey(TipoComissao, verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(TipoComissao,
+                             on_delete=models.PROTECT,
+                             verbose_name=_('Tipo'))
     nome = models.CharField(max_length=60, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     data_criacao = models.DateField(verbose_name=_('Data de Criação'))
@@ -132,8 +134,12 @@ class CargoComissao(models.Model):
 
 @reversion.register()
 class Composicao(models.Model):  # IGNORE
-    comissao = models.ForeignKey(Comissao, verbose_name=_('Comissão'))
-    periodo = models.ForeignKey(Periodo, verbose_name=_('Período'))
+    comissao = models.ForeignKey(Comissao,
+                                 on_delete=models.PROTECT,
+                                 verbose_name=_('Comissão'))
+    periodo = models.ForeignKey(Periodo,
+                                on_delete=models.PROTECT,
+                                verbose_name=_('Período'))
 
     class Meta:
         verbose_name = _('Composição de Comissão')
@@ -145,9 +151,11 @@ class Composicao(models.Model):  # IGNORE
 
 @reversion.register()
 class Participacao(models.Model):  # ComposicaoComissao
-    composicao = models.ForeignKey(Composicao, related_name='participacao_set')
-    parlamentar = models.ForeignKey(Parlamentar)
-    cargo = models.ForeignKey(CargoComissao)
+    composicao = models.ForeignKey(Composicao,
+                                   related_name='participacao_set',
+                                   on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    cargo = models.ForeignKey(CargoComissao, on_delete=models.PROTECT)
     titular = models.BooleanField(
         verbose_name=_('Titular'),
         default=False,

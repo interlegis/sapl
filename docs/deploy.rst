@@ -18,24 +18,36 @@ alterando o variável DEBUG para false::
     DEBUG = False
 
 
+Arquivos Estáticos
+------------------
+Com o ambiente em produção, os arquivos estáticos devem ser servidos pelo web service, em nosso caso o `NGINX`, logo para ter acesso aos arquivos primeiro devemos rodar o seguinte comando::
+
+  python3 manage.py compilescss
+
+para que os arquivos SASS/SCSS sejam compilados em arquivos .css em ambiente de produção, e em seguida rode::
+
+  pyhton3 manage.py collectstatic --no-input
+
+para coletar todos os arquivos estáticos do projeto e guarda-los no diretório definido em `STATIC_ROOT`, que será também o diretório no qual o `NGINX` irá referenciar para a aplicação.
+
 Instalando Pacotes
 ------------------
 
 Instalar o NGINX::
 
   sudo apt-get install nginx
-  
-  
+
+
 Instalar o Gunicorn::
 
-  sudo pip install gunicorn  
+  sudo pip install gunicorn
 
 
 Preparando o NGINX
 ------------------
 sudo nano /etc/nginx/sites-available/sapl31.conf::
 
-   upstream ENDERECO_SITE {  
+   upstream ENDERECO_SITE {
       server unix:/var/interlegis/sapl/run/gunicorn.sock fail_timeout=0;
    }
 
@@ -95,11 +107,11 @@ Para uma máquina de CPU única o valor seria 3
 Para rodar o gunicorn::
 
    workon sapl
-   
+
    /var/interlegis/sapl/.gunicorn_start.sh
-   
-   
-   
+
+
+
 #Referências.
 
 http://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supervisor/
@@ -107,4 +119,12 @@ http://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supe
 Para multiplas aplicações Django.
 
 http://michal.karzynski.pl/blog/2013/10/29/serving-multiple-django-applications-with-nginx-gunicorn-supervisor/
-   
+
+Compilar arquivos SASS/SCSS
+
+https://github.com/jrief/django-sass-processor#offline-compilation
+https://github.com/jrief/django-sass-processor/issues/34#issuecomment-252611103
+
+Deploy Arquivos Estáticos
+
+https://docs.djangoproject.com/pt-br/1.11/howto/static-files/deployment/
