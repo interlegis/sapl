@@ -183,6 +183,9 @@ apps_url_patterns_prefixs_and_users = {
             '/consultas/pauta_sessao/pauta_sessao_index_html',
             '/consultas/sessao_plenaria/sessao_plenaria_index_html',
             '/consultas/sessao_plenaria/agenda_sessao_plen_mostrar_proc',
+            '/relatorios_administrativos/relatorios_administrativos_index_html',
+            '/relatorios_administrativos/tramitacaoMaterias/tramitacaoMaterias',
+            '/relatorios_administrativos/tramitacaoMaterias/materia_mostrar_proc',
         ]},
     'lexml': {
         'prefixs': [

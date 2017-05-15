@@ -1,10 +1,13 @@
 from .views import (
     RedirecionaComissaoDetail,
     RedirecionaComissaoList,
+    RedirecionaMateriaLegislativaDetail,
     RedirecionaParlamentarDetail,
     RedirecionaParlamentarList,
     RedirecionaPautaSessaoDetail,
     RedirecionaPautaSessaoList,
+    RedirecionaRelatoriosList,
+    RedirecionaRelatoriosMateriasEmTramitacaoList,
     RedirecionaSessaoPlenariaList,
     RedirecionaSAPLIndex,
     RedirecionaSessaoPlenariaDetail)
@@ -43,4 +46,13 @@ urlpatterns = [
     url(r'^consultas/sessao_plenaria/agenda_sessao_plen_mostrar_proc$',
         RedirecionaSessaoPlenariaDetail.as_view(),
         name='redireciona_sessao_plenaria_detail'),
+    url(r'^relatorios_administrativos/relatorios_administrativos_index_html$',
+        RedirecionaRelatoriosList.as_view(),
+        name='redireciona_relatorios_list'),
+    url(r'^relatorios_administrativos/tramitacaoMaterias/tramitacaoMaterias',
+        RedirecionaRelatoriosMateriasEmTramitacaoList.as_view(),
+        name='redireciona_relatorio_materia_por_tramitacao'),
+    url(r'^relatorios_administrativos/tramitacaoMaterias/materia_mostrar_proc$',
+        RedirecionaMateriaLegislativaDetail.as_view(),
+        name='redireciona_materialegislativa_detail'),
 ]

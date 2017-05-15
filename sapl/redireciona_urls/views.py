@@ -5,11 +5,15 @@ from django.views.generic import RedirectView
 
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
+from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
+from sapl.base.apps import AppConfig as relatoriosConfig
 
 app_parlamentares = parlamentaresConfig.name
 app_comissoes = comissoesConfig.name
+app_materia = materiaConfig.name
 app_sessao = sessaoConfig.name
+app_relatorios = relatoriosConfig.name
 
 parlamentar_list = ( app_parlamentares + ':parlamentar_list')
 parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
@@ -17,10 +21,17 @@ parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
 comissao_list = (app_comissoes + ':comissao_list')
 comissao_detail = (app_comissoes + ':comissao_detail')
 
+
+materialegislativa_detail = (app_materia + ':materialegislativa_detail')
+materialegislativa_list = (app_materia + ':materialegislativa_list')
+
 pauta_sessao_list = (app_sessao + ':pesquisar_pauta')
-pauta_sessao_detail = app_sessao + ':pauta_sessao_detail'
+pauta_sessao_detail = (app_sessao + ':pauta_sessao_detail')
 sessao_plenaria_list = (app_sessao + ':pesquisar_sessao')
-sessao_plenaria_detail = app_sessao + ':sessaoplenaria_detail'
+sessao_plenaria_detail = (app_sessao + ':sessaoplenaria_detail')
+
+relatorios_list = (app_relatorios + ':relatorios_list')
+relatorio_materia_por_tramitacao = (app_relatorios + ':materia_por_tramitacao')
 
 
 class RedirecionaSAPLIndex(RedirectView):
@@ -173,3 +184,60 @@ class RedirecionaSessaoPlenariaDetail(RedirectView):
             return reverse(sessao_plenaria_detail, kwargs=kwargs)
         else:
             return reverse(sessao_plenaria_list)
+
+
+class RedirecionaRelatoriosList(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        url = ''
+        try:
+            url = reverse(relatorios_list)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(relatorios_list)
+        return url
+
+
+class RedirecionaRelatoriosMateriasEmTramitacaoList(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        url = ''
+        try:
+            url = reverse(relatorio_materia_por_tramitacao)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(relatorio_materia_por_tramitacao)
+
+        year = self.request.GET.get('selAno', '')
+        if year:
+            tramitacao_tipo = self.request.GET.get('lst_tip_materia', '')
+            tramitacao_unidade_local = self.request.GET.get('lst_cod_unid_tram_dest', '')
+            tramitacao_status = self.request.GET.get('lst_status', '')
+            salvar = self.request.GET.get('btn_materia_pesquisar', 'Pesquisar')
+
+            tramitacao_tipo = tramitacao_tipo.lstrip("0")
+            tramitacao_unidade_local = tramitacao_unidade_local.lstrip("0")
+            tramitacao_status = tramitacao_status.lstrip("0")
+
+            args = ''
+            args += "?ano=%s" % (year)
+            args += "&tipo=%s" % (tramitacao_tipo)
+            args += "&tramitacao__unidade_tramitacao_local=%s" % (tramitacao_unidade_local)
+            args += "&tramitacao__status=%s" % (tramitacao_status)
+            args += "&salvar=%s" % (salvar)
+            url = "%s%s" % (url, args)
+
+        return url
+
+
+class RedirecionaMateriaLegislativaDetail(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        pk = self.request.GET.get('cod_materia', '')
+
+        if pk:
+            kwargs = {'pk': pk}
+            return reverse(materialegislativa_detail, kwargs=kwargs)
+        else:
+            return reverse(materialegislativa_list)
