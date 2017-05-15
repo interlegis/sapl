@@ -7,7 +7,7 @@ from crispy_forms.layout import HTML
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
@@ -1355,6 +1355,11 @@ class AcompanhamentoMateriaView(CreateView):
                 acompanhar.usuario = usuario.username
                 acompanhar.confirmado = False
                 acompanhar.save()
+            except MultipleObjectsReturned:
+                AcompanhamentoMateria.objects.filter(
+                    email=email,
+                    materia=materia,
+                    hash=hash_txt).first()
 
                 do_envia_email_confirmacao(request, materia, email)
 
