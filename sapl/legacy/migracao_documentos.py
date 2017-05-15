@@ -29,6 +29,17 @@ EXTENSOES = {
     'text/html': '.html',
     'text/rtf': '.rtf',
     'text/x-python': '.py',
+    'text/plain': '.ksh',
+    'text/plain': '.c',
+    'text/plain': '.h',
+    'text/plain': '.txt',
+    'text/plain': '.bat',
+    'text/plain': '.pl',
+    'text/plain': '.asc',
+    'text/plain': '.text',
+    'text/plain': '.pot',
+    'text/plain': '.brf',
+    'text/plain': '.srt',
 
     # sem extensao
     'application/octet-stream': '',  # binário
@@ -105,9 +116,14 @@ def migrar_docs_logo():
     print('#### Migrando logotipo da casa ####')
     [(_, origem, destino)] = DOCS[CasaLegislativa]
     props_sapl = os.path.dirname(origem)
+
     # a pasta props_sapl deve conter apenas o origem e metadatas!
+    # Edit: Aparentemente há diretório que contém properties ao invés de
+    # metadata. O assert foi modificado para essa situação.
     assert set(os.listdir(em_media(props_sapl))) < {
-        'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata'}
+        'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata',
+        '.properties', 'logo_casa.gif.properties', '.objects'}
+
     mover_documento(origem, destino)
     casa = get_casa_legislativa()
     casa.logotipo = destino
