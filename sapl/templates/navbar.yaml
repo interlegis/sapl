@@ -5,10 +5,10 @@
 
 - title: {% trans 'Institucional' %}
   children:
-    - title: {% trans 'Mesa Diretora' %}
-      url: sapl.parlamentares:mesa_diretora
     - title: {% trans 'Comissões' %}
       url: sapl.comissoes:comissao_list
+    - title: {% trans 'Mesa Diretora' %}
+      url: sapl.parlamentares:mesa_diretora
     - title: {% trans 'Parlamentares' %}
       url: sapl.parlamentares:parlamentar_list
 
@@ -26,21 +26,21 @@
 
 - title: {% trans 'Atividade Legislativa' %}
   children:
-    - title: {% trans 'Proposições' %}
-      url: sapl.materia:proposicao_list
-      check_permission: materia.add_proposicao
-    - title: {% trans 'Matérias Legislativas' %}
-      url: sapl.materia:pesquisar_materia
-    - title: {% trans 'Sessões Plenárias' %}
-      url: sapl.sessao:pesquisar_sessao
-    - title: {% trans 'Pautas das Sessões' %}
-      url: sapl.sessao:pesquisar_pauta
-    - title: {% trans 'Tramitação em Lote' %}
-      url: sapl.materia:primeira_tramitacao_em_lote
-      check_permission: materia.list_tramitacao {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
     - title: {% trans 'Acessório em Lote' %}
       url: sapl.materia:acessorio_em_lote
       check_permission: materia.list_documentoacessorio {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
+    - title: {% trans 'Matérias Legislativas' %}
+      url: sapl.materia:pesquisar_materia
+    - title: {% trans 'Pautas das Sessões' %}
+      url: sapl.sessao:pesquisar_pauta
+    - title: {% trans 'Proposições' %}
+      url: sapl.materia:proposicao_list
+      check_permission: materia.add_proposicao
+    - title: {% trans 'Sessões Plenárias' %}
+      url: sapl.sessao:pesquisar_sessao
+    - title: {% trans 'Tramitação em Lote' %}
+      url: sapl.materia:primeira_tramitacao_em_lote
+      check_permission: materia.list_tramitacao {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
 
 - title: {% trans 'Normas Jurídicas' %}
   children:
