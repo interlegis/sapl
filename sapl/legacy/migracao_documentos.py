@@ -178,9 +178,9 @@ def migrar_docs_por_ids(tipo):
                     extensao = get_extensao(origem)
                     if hasattr(obj, "ano"):
                         destino = base_destino.format(id, extensao, obj.ano)
-                    elif hasattr(obj, "data"):
+                    elif isinstance(obj, DocumentoAcessorio):
                         destino = base_destino.format(
-                            id, extensao, obj.data.year)
+                            id, extensao, obj.materia.ano)
                     else:
                         destino = base_destino.format(id, extensao)
                     mover_documento(origem, destino)
