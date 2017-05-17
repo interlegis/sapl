@@ -182,6 +182,7 @@ apps_url_patterns_prefixs_and_users = {
             '/relatorios_administrativos/relatorios_administrativos_index_html',
             '/relatorios_administrativos/tramitacaoMaterias/tramitacaoMaterias',
             '/relatorios_administrativos/tramitacaoMaterias/materia_mostrar_proc',
+            '/generico/materia_pesquisar_',
         ]},
     'lexml': {
         'prefixs': [

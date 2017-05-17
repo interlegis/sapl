@@ -1,6 +1,7 @@
 from .views import (
     RedirecionaComissao,
     RedirecionaMateriaLegislativaDetail,
+    RedirecionaMateriaLegislativaList,
     RedirecionaParlamentar,
     RedirecionaPautaSessao,
     RedirecionaRelatoriosList,
@@ -39,4 +40,7 @@ urlpatterns = [
     url(r'^relatorios_administrativos/tramitacaoMaterias/materia_mostrar_proc$',
         RedirecionaMateriaLegislativaDetail.as_view(),
         name='redireciona_materialegislativa_detail'),
+    url(r'^generico/materia_pesquisar_',
+        RedirecionaMateriaLegislativaList.as_view(),
+        name='redireciona_materialegislativa_list'),
 ]

@@ -23,7 +23,7 @@ comissao_detail = (app_comissoes + ':comissao_detail')
 
 
 materialegislativa_detail = (app_materia + ':materialegislativa_detail')
-materialegislativa_list = (app_materia + ':materialegislativa_list')
+materialegislativa_list = (app_materia + ':pesquisar_materia')
 
 pauta_sessao_list = (app_sessao + ':pesquisar_pauta')
 pauta_sessao_detail = (app_sessao + ':pauta_sessao_detail')
@@ -234,3 +234,55 @@ class RedirecionaMateriaLegislativaDetail(RedirectView):
             return reverse(materialegislativa_detail, kwargs=kwargs)
         else:
             return reverse(materialegislativa_list)
+
+
+class RedirecionaMateriaLegislativaList(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        empty_string = ''
+        url = empty_string
+        args = empty_string
+        try:
+            url = reverse(materialegislativa_list)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(materialegislativa_list)
+
+        tipo_materia = self.request.GET.get('lst_tip_materia', empty_string)
+        numero_materia = self.request.GET.get('txt_numero', empty_string)
+        ano_materia = self.request.GET.get('txt_ano', empty_string)
+        numero_processo = self.request.GET.get('txt_npc', empty_string)
+        num_protocolo_materia = self.request.GET.get('txt_num_protocolo', empty_string)
+        periodo_inicial_apresentacao = self.request.GET.get('dt_apres', empty_string)
+        periodo_final_apresentacao = self.request.GET.get('dt_apres2', empty_string)
+        periodo_inicial_publicacao = self.request.GET.get('dt_public', empty_string)
+        periodo_final_publicacao = self.request.GET.get('dt_public2', empty_string)
+        hdn_cod_autor = self.request.GET.get('hdn_cod_autor', empty_string)
+        tipo_autor = self.request.GET.get('lst_tip_autor', empty_string)
+        ementa_materia = self.request.GET.get('txt_assunto', empty_string)
+        tramitando = self.request.GET.get('rad_tramitando', empty_string)
+        status_tramitacao = self.request.GET.get('lst_status', empty_string)
+
+        args += "?tipo=%s" % (tipo_materia)
+        args += "&numero=%s" % (numero_materia)
+        args += "&ano=%s" % (ano_materia)
+        args += "&numero_protocolo=%s" % (num_protocolo_materia)
+        args += "&data_apresentacao_0=%s" % (periodo_inicial_apresentacao)
+        args += "&data_apresentacao_1=%s" % (periodo_final_apresentacao)
+        args += "&data_publicacao_0=%s" % (periodo_inicial_publicacao)
+        args += "&data_publicacao_1=%s" % (periodo_final_publicacao)
+        args += "&autoria__autor=%s" % (empty_string)
+        args += "&autoria__autor__tipo=%s" % (tipo_autor)
+        args += "&relatoria__parlamentar_id=%s" % (empty_string)
+        args += "&local_origem_externa=%s" % (empty_string)
+        args += "&tramitacao__unidade_tramitacao_destino=%s" % (empty_string)
+        args += "&tramitacao__status=%s" % (status_tramitacao)
+        args += "&em_tramitacao=%s" % (tramitando)
+        args += "&o=%s" % (empty_string)
+        args += "&materiaassunto__assunto=%s" % (empty_string)
+        args += "&ementa=%s" % (ementa_materia)
+        args += "&salvar=%s" % ('Pesquisar') # Default in both SAPL version
+
+        url = "%s%s" % (url, args)
+
+        return url
