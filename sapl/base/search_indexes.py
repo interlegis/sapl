@@ -7,6 +7,8 @@ from haystack import indexes
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 
+from textract.exceptions import ExtensionNotSupported
+
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
@@ -32,15 +34,19 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
         if arquivo:
             try:
                 arquivo.open()
+                arquivo.close()
             except OSError:
                 return self.prepared_data
 
             if not os.path.splitext(arquivo.path)[1][:1]:
                 return self.prepared_data
 
-            extracted_data = textract.process(
-                arquivo.path).decode(
-                'utf-8').replace('\n', ' ')
+            try:
+                extracted_data = textract.process(
+                    arquivo.path).decode(
+                        'utf-8').replace('\n', ' ')
+            except ExtensionNotSupported:
+                return self.prepared_data
 
             extracted_data = extracted_data.replace('\t', ' ')
 
