@@ -86,7 +86,7 @@ DOCS = {
         'documentoadministrativo/{0}/{0}_texto_integral{1}')       
     ],
     DocumentoAcessorioAdministrativo: [(
-    	  'arquivo',
+    	 'arquivo',
         'administrativo/{}',
         'documentoacessorioadministrativo/{0}/{0}_acessorio_administrativo{1}')
     ],
