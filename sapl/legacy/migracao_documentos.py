@@ -11,6 +11,7 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo
+from sapl.protocoloadm.models import DocumentoAcessorioAdministrativo
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 from sapl.utils import delete_texto, save_texto
@@ -64,7 +65,7 @@ DOCS = {
         'materia/{}',
         'documentoacessorio/{0}/{0}{1}')],
     NormaJuridica: [(
-        'texto_original',
+        'texto_integral',
         'norma_juridica/{}_texto_integral',
         'normajuridica/{0}/{0}_texto_integral{1}')],
     SessaoPlenaria: [
@@ -82,7 +83,13 @@ DOCS = {
     DocumentoAdministrativo: [(
         'texto_integral',
         'administrativo/{}_texto_integral',
-        'documentoadministrativo/{0}/{0}_texto_integral{1}')],
+        'documentoadministrativo/{0}/{0}_texto_integral{1}')       
+    ],
+    DocumentoAcessorioAdministrativo: [(
+    	  'arquivo',
+        'administrativo/{}',
+        'documentoacessorioadministrativo/{0}/{0}_acessorio_administrativo{1}')
+    ],
 }
 
 DOCS = {tipo: [(campo,
@@ -215,6 +222,7 @@ def migrar_documentos():
         SessaoPlenaria,
         Proposicao,
         DocumentoAdministrativo,
+      	DocumentoAcessorioAdministrativo,
     ]:
         migrar_docs_por_ids(tipo)
 
