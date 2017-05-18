@@ -1,0 +1,17 @@
+<fieldset>
+  <legend>Expedientes</legend>
+    <table class="table">
+      <thead class="thead-default">
+        {% for e in expedientes %}
+          <tr>
+            <td>
+              <b>{{e.tipo}}: </b> <br /><br />
+              <div contenteditable="false" style="border:0.5px solid #BAB4B1; border-radius: 10px; background-color: rgba(225, 225, 225, .8);">
+                <p>{{e.conteudo|safe}}</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </thead>
+    </table>
+</fieldset>
