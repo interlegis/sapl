@@ -183,6 +183,8 @@ apps_url_patterns_prefixs_and_users = {
             '/relatorios_administrativos/tramitacaoMaterias/tramitacaoMaterias',
             '/relatorios_administrativos/tramitacaoMaterias/materia_mostrar_proc',
             '/generico/materia_pesquisar_',
+            '/consultas/mesa_diretora/',
+            '/consultas/mesa_diretora/parlamentar/parlamentar_',
         ]},
     'lexml': {
         'prefixs': [

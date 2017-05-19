@@ -17,6 +17,7 @@ app_relatorios = relatoriosConfig.name
 
 parlamentar_list = ( app_parlamentares + ':parlamentar_list')
 parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
+parlamentar_mesa_diretora = (app_parlamentares + ':mesa_diretora')
 
 comissao_list = (app_comissoes + ':comissao_list')
 comissao_detail = (app_comissoes + ':comissao_detail')
@@ -40,7 +41,7 @@ class RedirecionaSAPLIndex(RedirectView):
     def get(self, request, *args, **kwargs):
         self.url = '/'
         return super(
-            RedirecionaSAPLIndexRedirectView,
+            RedirecionaSAPLIndex,
             self
             ).get(self, request, *args, **kwargs)
 
@@ -63,9 +64,9 @@ class RedirecionaParlamentar(RedirectView):
             except NoReverseMatch:
                 raise UnknownUrlNameError(parlamentar_list)
 
-            pk = self.request.GET.get('hdn_num_legislatura', '')
-            if pk:
-                args = '?pk=' + pk
+            numero_legislatura = self.request.GET.get('hdn_num_legislatura', '')
+            if numero_legislatura:
+                args = '?pk=' + numero_legislatura
                 url = "%s%s" % (url, args)
 
         return url
@@ -76,10 +77,10 @@ class RedirecionaComissao(RedirectView):
 
     def get_redirect_url(self):
         url = ''
-        pk = self.request.GET.get('cod_comissao', '')
+        pk_comissao = self.request.GET.get('cod_comissao', '')
 
-        if pk:
-            kwargs = {'pk': pk}
+        if pk_comissao:
+            kwargs = {'pk': pk_comissao}
             
             try:
                 url = reverse(comissao_detail, kwargs=kwargs)
@@ -91,13 +92,6 @@ class RedirecionaComissao(RedirectView):
             except NoReverseMatch:
                 raise UnknownUrlNameError(comissao_list)
         return url
-
-
-class RedirecionaComissaoDetail(RedirectView):
-    permanent = True
-
-    def get_redirect_url(self):
-            return reverse(comissao_list)
 
 
 class RedirecionaPautaSessao(RedirectView):
@@ -284,5 +278,17 @@ class RedirecionaMateriaLegislativaList(RedirectView):
         args += "&salvar=%s" % ('Pesquisar') # Default in both SAPL version
 
         url = "%s%s" % (url, args)
+
+        return url
+
+
+class RedirecionaMesaDiretoraView(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        try:
+            url = reverse(parlamentar_mesa_diretora)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(parlamentar_mesa_diretora)
 
         return url
