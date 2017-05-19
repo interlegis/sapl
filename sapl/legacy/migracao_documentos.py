@@ -55,40 +55,40 @@ DOCS = {
     Parlamentar: [(
         'fotografia',
         'parlamentar/fotos/{}_foto_parlamentar',
-        'parlamentar/{0}/{0}_foto_parlamentar{1}')],
+        'public/parlamentar/{0}/{0}_foto_parlamentar{1}')],
     MateriaLegislativa: [(
         'texto_original',
         'materia/{}_texto_integral',
-        'materialegislativa/{2}/{0}/{0}_texto_integral{1}')],
+        'public/materialegislativa/{2}/{0}/{0}_texto_integral{1}')],
     DocumentoAcessorio: [(
         'arquivo',
         'materia/{}',
-        'documentoacessorio/{2}/{0}/{0}{1}')],
+        'public/documentoacessorio/{2}/{0}/{0}{1}')],
     NormaJuridica: [(
         'texto_integral',
         'norma_juridica/{}_texto_integral',
-        'normajuridica/{2}/{0}/{0}_texto_integral{1}')],
+        'public/normajuridica/{2}/{0}/{0}_texto_integral{1}')],
     SessaoPlenaria: [
         ('upload_ata',
          'ata_sessao/{}_ata_sessao',
-         'sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
+         'public/sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
         ('upload_anexo',
          'anexo_sessao/{}_texto_anexado',
-         'sessaoplenaria/{0}/anexo/{0}_texto_anexado{1}')
+         'public/sessaoplenaria/{0}/anexo/{0}_texto_anexado{1}')
     ],
     Proposicao: [(
         'texto_original',
         'proposicao/{}',
-        'proposicao/{0}/{0}{1}')],
+        'private/proposicao/{0}/{0}{1}')],
     DocumentoAdministrativo: [(
         'texto_integral',
         'administrativo/{}_texto_integral',
-        'documentoadministrativo/{0}/{0}_texto_integral{1}')
+        'private/documentoadministrativo/{0}/{0}_texto_integral{1}')
     ],
     DocumentoAcessorioAdministrativo: [(
         'arquivo',
         'administrativo/{}',
-        'documentoacessorioadministrativo/{0}/{0}_acessorio_administrativo{1}')
+        'private/documentoacessorioadministrativo/{0}/{0}_acessorio_administrativo{1}')
     ],
 }
 
