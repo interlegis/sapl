@@ -723,6 +723,7 @@ def adjust_autor(new, old):
         new.nome = new.autor_related.nome_parlamentar
     elif old.cod_comissao:
         new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
+        new.nome = new.autor_related.nome
 
     if old.col_username:
         if not get_user_model().objects.filter(
