@@ -211,7 +211,7 @@ class Autor(models.Model):
     autor_related = GenericForeignKey('content_type', 'object_id')
 
     nome = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Nome do Autor'))
+        max_length=60, blank=True, verbose_name=_('Nome do Autor'))
 
     cargo = models.CharField(max_length=50, blank=True)
 
