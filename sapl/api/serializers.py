@@ -46,6 +46,7 @@ class AutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Autor
+        fields = '__all__'
 
 
 class MateriaLegislativaSerializer(serializers.ModelSerializer):
