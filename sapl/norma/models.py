@@ -116,7 +116,7 @@ class NormaJuridica(models.Model):
         AssuntoNorma, blank=True,
         verbose_name=_('Assuntos'))
     data_vigencia = models.DateField(blank=True, null=True)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(null=True)
 
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
