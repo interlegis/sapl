@@ -19,34 +19,36 @@
 		</strong>
 	</p>
 </div>
-	{% include 'sessao/blocos_resumo/identificacao_basica.html' %}
+
+	{% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/conteudo_multimidia.html' %}
+    {% include 'sessao/blocos_resumo/'|add:segundo_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/mesa_diretora.html' %}
+    {% include 'sessao/blocos_resumo/'|add:terceiro_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/lista_presenca.html' %}
+    {% include 'sessao/blocos_resumo/'|add:quarto_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/expedientes.html' %}
+    {% include 'sessao/blocos_resumo/'|add:quinto_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/materias_expediente.html' %}
+    {% include 'sessao/blocos_resumo/'|add:sexto_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/oradores_expediente.html' %}
+    {% include 'sessao/blocos_resumo/'|add:setimo_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/lista_presenca_ordem_dia.html' %}
+    {% include 'sessao/blocos_resumo/'|add:oitavo_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/materias_ordem_dia.html' %}
+    {% include 'sessao/blocos_resumo/'|add:nono_ordenacao %}
     <br /><br /><br />
 
-    {% include 'sessao/blocos_resumo/oradores_explicacoes.html' %}
+    {% include 'sessao/blocos_resumo/'|add:decimo_ordenacao %}
     <br /><br /><br />
+
 
 {% endblock detail_content %}
