@@ -580,10 +580,26 @@ def migrate(obj=appconfs, interativo=True):
 
 # MIGRATION_ADJUSTMENTS #####################################################
 
-def adjust_ordemdia(new, old):
+def adjust_ordemdia_antes_salvar(new, old):
     # Prestar atenção
     if not old.tip_votacao:
         new.tipo_votacao = 1
+
+    if old.num_ordem is None:
+        new.numero_ordem = 999999999
+
+
+def adjust_ordemdia_depois_salvar(new, old):
+    if old.num_ordem is None and new.numero_ordem == 999999999:
+        with reversion.create_revision():
+            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem'\
+                ' nulo.' % old.pk
+            descricao = 'O valor %s foi colocado no lugar.' % new.numero_ordem
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('OrdemDia sem número da ordem.')
+    pass
 
 
 def adjust_parlamentar(new, old):
@@ -723,6 +739,7 @@ def adjust_autor(new, old):
         new.nome = new.autor_related.nome_parlamentar
     elif old.cod_comissao:
         new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
+        new.nome = new.autor_related.nome
 
     if old.col_username:
         if not get_user_model().objects.filter(
@@ -753,7 +770,7 @@ AJUSTE_ANTES_SALVAR = {
     Comissao: adjust_comissao,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     NormaRelacionada: adjust_normarelacionada,
-    OrdemDia: adjust_ordemdia,
+    OrdemDia: adjust_ordemdia_antes_salvar,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
     Protocolo: adjust_protocolo,
@@ -766,6 +783,7 @@ AJUSTE_ANTES_SALVAR = {
 
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
+    OrdemDia: adjust_ordemdia_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
     RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
