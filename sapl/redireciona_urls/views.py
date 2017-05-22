@@ -46,6 +46,7 @@ class RedirecionaSAPLIndex(RedirectView):
             raise UnknownUrlNameError(url_pattern)
         return url
 
+
 class RedirecionaParlamentar(RedirectView):
     permanent = True
 
@@ -99,10 +100,10 @@ class RedirecionaPautaSessao(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
-        pk = self.request.GET.get('cod_sessao_plen', '')
+        pk_sessao_plenaria = self.request.GET.get('cod_sessao_plen', '')
 
-        if pk:
-            kwargs = {'pk': pk}
+        if pk_sessao_plenaria:
+            kwargs = {'pk': pk_sessao_plenaria}
             try:
                 url = reverse(pauta_sessao_detail, kwargs=kwargs)
             except NoReverseMatch:
@@ -112,19 +113,20 @@ class RedirecionaPautaSessao(RedirectView):
                 url = reverse(pauta_sessao_list)
             except NoReverseMatch:
                 raise UnknownUrlNameError(pauta_sessao_list)
-            pk = self.request.GET.get('dat_sessao_sel', '')
 
-            args = ''
 
-            if pk:
-                day, month, year = pk.split('/')
-                # Remove zeros à esquerda
-                day = day.lstrip("0")
-                month = month.lstrip("0")
-                args = "?data_inicio__year=%s" % (year)
-                args += "&data_inicio__month=%s" % (month)
-                args += "&data_inicio__day=%s" % (day)
-                args += "&tipo=&salvar=Pesquisar" 
+            data_sessao_plenaria = self.request.GET.get('dat_sessao_sel', '')
+
+            if data_sessao_plenaria:
+                dia_s_p, mes_s_p, ano_s_p = data_sessao_plenaria.split('/')
+                # Remove zeros à esquerda de dia_s_p e mes_s_p
+                dia_s_p = dia_s_p.lstrip("0")
+                mes_s_p = mes_s_p.lstrip("0")
+                args = ''
+                args += "?data_inicio__year=%s" % (ano_s_p)
+                args += "&data_inicio__month=%s" % (mes_s_p)
+                args += "&data_inicio__day=%s" % (dia_s_p)
+                args += "&tipo=&salvar=Pesquisar"
                 url = "%s%s" % (url, args)
 
         return url
@@ -134,10 +136,10 @@ class RedirecionaSessaoPlenaria(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
-        pk = self.request.GET.get('cod_sessao_plen', '')
+        pk_sessao_plenaria = self.request.GET.get('cod_sessao_plen', '')
         url = ''
-        if pk:
-            kwargs = {'pk': pk}
+        if pk_sessao_plenaria:
+            kwargs = {'pk': pk_sessao_plenaria}
             try:
                 url = reverse(sessao_plenaria_detail, kwargs=kwargs)
             except NoReverseMatch:
@@ -150,26 +152,19 @@ class RedirecionaSessaoPlenaria(RedirectView):
                 raise UnknownUrlNameError(sessao_plenaria_list)
 
             year = self.request.GET.get('ano_sessao_sel', '')
-            month = ''
-            day = ''
-
-            if year:
-                month = self.request.GET.get('mes_sessao_sel', '')
-                if month:
-                    day = self.request.GET.get('dia_sessao_sel', '')
-
+            month = self.request.GET.get('mes_sessao_sel', '')
+            day = self.request.GET.get('dia_sessao_sel', '')
             tipo_sessao = self.request.GET.get('tip_sessao_sel', '')
 
-            if tipo_sessao or year:
-                # Remove zeros à esquerda
-                day = day.lstrip("0")
-                month = month.lstrip("0")
-                args = ''
-                args += "?data_inicio__year=%s" % (year)
-                args += "&data_inicio__month=%s" % (month)
-                args += "&data_inicio__day=%s" % (day)
-                args += "&tipo=%s&salvar=Pesquisar" % (tipo_sessao)
-                url = "%s%s" % (url, args)
+            # Remove zeros à esquerda
+            day = day.lstrip("0")
+            month = month.lstrip("0")
+            args = ''
+            args += "?data_inicio__year=%s" % (year)
+            args += "&data_inicio__month=%s" % (month)
+            args += "&data_inicio__day=%s" % (day)
+            args += "&tipo=%s&salvar=Pesquisar" % (tipo_sessao)
+            url = "%s%s" % (url, args)
 
         return url
 

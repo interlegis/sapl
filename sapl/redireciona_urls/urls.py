@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^consultas/pauta_sessao/pauta_sessao_',
         RedirecionaPautaSessao.as_view(),
         name='redireciona_pauta_sessao_'),
-    url(r'^consultas/mesa_diretora/',
+    url(r'^consultas/mesa_diretora/mesa_diretora_index_html',
         RedirecionaMesaDiretoraView.as_view(),
         name='redireciona_mesa_diretora'),
     url(r'^consultas/mesa_diretora/parlamentar/parlamentar_',
