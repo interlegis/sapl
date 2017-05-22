@@ -44,7 +44,7 @@
               </br>
               <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não Informado"}}</br>
               <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não Informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
-              <strong>Autor:</strong> {{protocolo.autor.nome}} </br>
+              <strong>Autor:</strong> {{p.autor.nome}} </br>
               <strong>Natureza do Processo:</strong>
               {% if p.tipo_processo == 0 %}
                   Administrativo</br>
