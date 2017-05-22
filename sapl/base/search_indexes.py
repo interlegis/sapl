@@ -54,8 +54,8 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
             # text field with *all* of our metadata visible for templating:
             t = loader.select_template((
                 'search/indexes/' + self.template_name, ))
-            data['text'] = t.render(Context({'object': obj,
-                                             'extracted': extracted_data}))
+            data['text'] = t.render({'object': obj,
+                                     'extracted': extracted_data})
 
             return data
 
