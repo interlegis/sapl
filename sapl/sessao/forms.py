@@ -390,10 +390,10 @@ class ResumoOrdenacaoForm(forms.Form):
                                choices=ORDENACAO_RESUMO)
     oitavo = forms.ChoiceField(label=_('8°'),
                                choices=ORDENACAO_RESUMO)
-    decimo = forms.ChoiceField(label=_('9°'),
-                               choices=ORDENACAO_RESUMO)
-    nono = forms.ChoiceField(label=u'10°',
+    nono = forms.ChoiceField(label=_('9°'),
                              choices=ORDENACAO_RESUMO)
+    decimo = forms.ChoiceField(label=u'10°',
+                               choices=ORDENACAO_RESUMO)
 
     def __init__(self, *args, **kwargs):
         super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
