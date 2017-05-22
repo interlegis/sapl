@@ -9,6 +9,7 @@ from django import forms
 from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.fields.related import ForeignKey
@@ -1133,7 +1134,11 @@ class MasterDetailCrud(Crud):
             parent_field = obj.parent_field.split('__')
             if not obj.is_m2m or len(parent_field) > 1:
                 field = self.model._meta.get_field(parent_field[0])
-                parent = field.related_model.objects.get(pk=self.kwargs['pk'])
+                try:
+                    parent = field.related_model.objects.get(
+                        pk=self.kwargs['pk'])
+                except ObjectDoesNotExist:
+                    raise Http404()
                 setattr(form.instance, parent_field[0], parent)
             return form
 
@@ -1155,7 +1160,7 @@ class MasterDetailCrud(Crud):
 
                 try:
                     parent_object = parent_model.objects.get(**params)
-                except:
+                except Exception:
                     raise Http404()
             else:
                 parent_model = self.model
