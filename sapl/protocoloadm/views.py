@@ -425,6 +425,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             id=self.request.POST['tipo_materia'])
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
+        protocolo.assunto_ementa = self.request.POST['assunto_ementa']
 
         protocolo.save()
         return redirect(self.get_success_url(protocolo))
