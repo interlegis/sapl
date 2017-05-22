@@ -38,12 +38,13 @@ relatorio_materia_por_tramitacao = (app_relatorios + ':materia_por_tramitacao')
 class RedirecionaSAPLIndex(RedirectView):
     permanent = True
 
-    def get(self, request, *args, **kwargs):
-        self.url = '/'
-        return super(
-            RedirecionaSAPLIndex,
-            self
-            ).get(self, request, *args, **kwargs)
+    def get_redirect_url(self):
+        url_pattern = 'sapl_index'
+        try:
+            url = reverse(url_pattern)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(url_pattern)
+        return url
 
 class RedirecionaParlamentar(RedirectView):
     permanent = True

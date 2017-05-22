@@ -7,8 +7,9 @@ class RedirecionaURLsTests(TestCase):
         response = self.client.get(reverse(
             'sapl.redireciona_urls:redireciona_sapl_index')
         )
+        url_e = reverse('sapl_index')
         self.assertEqual(response.status_code, 301)
-        self.assertEqual(response.url, "/")
+        self.assertEqual(response.url, url_e)
 
     def test_redireciona_parlamentar_list(self):
         # import ipdb; ipdb.set_trace()
@@ -68,3 +69,15 @@ class RedirecionaURLsTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, url_e)
+
+
+    # def test_redireciona_comissao_list(self):
+    #     url = reverse('sapl.redireciona_urls:redireciona_comissao')
+    #     url_e = reverse(
+    #         'sapl.comissoes:comissao_list')
+    #     response = self.client.get(url)
+    #     self.assertEqual(response.status_code, 301)
+    #     self.assertEqual(response.url, url_e)
+
+
+        # import ipdb; ipdb.set_trace()
