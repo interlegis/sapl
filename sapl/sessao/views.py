@@ -3,6 +3,7 @@ from re import sub
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -931,9 +932,10 @@ class MesaView(FormMixin, DetailView):
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
 
 
-class ResumoOrdenacaoView(FormView):
+class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
     template_name = 'sessao/resumo_ordenacao.html'
     form_class = ResumoOrdenacaoForm
+    permission_required = 'sessao.change_resumoordenacao'
 
     def get_success_url(self):
         return reverse('sapl.base:sistema')
