@@ -28,7 +28,7 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl
+    python3-pip curl poppler-utils
 
     sudo -i
     curl -sL https://deb.nodesource.com/setup_5.x | bash -
