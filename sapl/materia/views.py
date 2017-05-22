@@ -162,14 +162,26 @@ class CriarProtocoloMateriaView(CreateView):
         context = super(
             CriarProtocoloMateriaView, self).get_context_data(**kwargs)
 
-        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        try:
+            protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404()
+
+        materias_ano = MateriaLegislativa.objects.filter(
+            ano=protocolo.ano,
+            tipo=protocolo.tipo_materia).order_by('-numero')
+
+        if materias_ano:
+            numero = materias_ano.first().numero + 1
+        else:
+            numero = 1
 
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
-        context['form'].fields['numero'].initial = protocolo.numero
+        context['form'].fields['numero'].initial = numero
         context['form'].fields['ano'].initial = protocolo.ano
         context['form'].fields['data_apresentacao'].initial = protocolo.data
         context['form'].fields['numero_protocolo'].initial = protocolo.numero
-        context['form'].fields['ementa'].initial = protocolo.observacao
+        context['form'].fields['ementa'].initial = protocolo.assunto_ementa
 
         return context
 
