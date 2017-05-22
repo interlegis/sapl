@@ -20,7 +20,7 @@
         {% for v in votos %}
 
         <div class="col-md-6">{{v.parlamentar}} -
-          {% if v.voto = '-1'%}
+          {% if v.voto == '-1'%}
                  <b>Voto não Registrado</b>
           {% else %}
                  <b>{{v.voto}}</b>
