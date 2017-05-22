@@ -92,7 +92,8 @@ urlpatterns = [
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
-        (TemplateView.as_view(template_name='sistema.html'))),
+        (TemplateView.as_view(template_name='sistema.html')),
+        name='sistema'),
 
     url(r'^login/$', views.login, {
         'template_name': 'base/login.html', 'authentication_form': LoginForm},
