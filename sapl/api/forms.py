@@ -35,10 +35,11 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
                                     item.related_query_name(),
                                     field[0])
                                 )
-                            q_fs = q_fs | Q(**{'%s__%s%s' % (
-                                item.related_query_name(),
-                                field[0],
-                                field[1]): qtext})
+                            if len(field) == 3 and field[2](qtext) is not None:
+                                q_fs = q_fs | Q(**{'%s__%s%s' % (
+                                    item.related_query_name(),
+                                    field[0],
+                                    field[1]): qtext if len(field) == 2 else field[2](qtext)})
 
                 q = q & q_fs
 
@@ -60,4 +61,4 @@ class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
 
     def filter_q(self, queryset, value):
         return SaplGenericRelationSearchFilterSet.filter_q(
-            self, queryset, value).order_by('nome')
+            self, queryset, value).distinct('nome').order_by('nome')
