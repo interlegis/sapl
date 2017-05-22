@@ -951,25 +951,21 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, **kwargs):
-            montar_helper_documento_acessorio(self)
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(
                 MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
             return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, **kwargs):
-            montar_helper_documento_acessorio(self)
             super(MasterDetailCrud.UpdateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(UpdateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
             return context
 
 
