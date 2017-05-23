@@ -1717,10 +1717,12 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
 
         qr = self.request.GET.copy()
 
-        lista = filtra_tramitacao_destino_and_status(
-            qr['tramitacao__status'],
-            qr['tramitacao__unidade_tramitacao_destino'])
-        context['object_list'] = context['object_list'].filter(
-            id__in=lista).distinct()
+        if ('tramitacao__status' in qr and
+           'tramitacao__unidade_tramitacao_destino' in qr):
+            lista = filtra_tramitacao_destino_and_status(
+                qr['tramitacao__status'],
+                qr['tramitacao__unidade_tramitacao_destino'])
+            context['object_list'] = context['object_list'].filter(
+                id__in=lista).distinct()
 
         return context
