@@ -34,7 +34,8 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, ProposicaoForm,
-                                TipoProposicaoForm)
+                                TipoProposicaoForm, TramitacaoForm,
+                                TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
@@ -892,6 +893,7 @@ class TramitacaoCrud(MasterDetailCrud):
         ordering = '-data_tramitacao',
 
     class CreateView(MasterDetailCrud.CreateView):
+        form_class = TramitacaoForm
 
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
@@ -908,6 +910,7 @@ class TramitacaoCrud(MasterDetailCrud):
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = TramitacaoUpdateForm
 
         def post(self, request, *args, **kwargs):
             materia = MateriaLegislativa.objects.get(
