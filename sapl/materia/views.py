@@ -1619,7 +1619,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
             doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
-            doc.autor_id = request.POST['autor']
+            doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
             doc.save()
         msg = _('Documento(s) criado(s).')
