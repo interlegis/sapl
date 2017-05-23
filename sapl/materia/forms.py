@@ -164,18 +164,6 @@ class DocumentoAcessorioForm(ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
-        widgets = {'autor': forms.HiddenInput()}
-
-    def clean_autor(self):
-        autor_field = self.cleaned_data['autor']
-        try:
-            int(autor_field)
-        except ValueError:
-            return autor_field
-        else:
-            if autor_field:
-                return str(Autor.objects.get(id=autor_field))
-
 
 class RelatoriaForm(ModelForm):
 

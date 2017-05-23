@@ -21,10 +21,10 @@
 				</a></br>
 				<strong>Assunto:</strong> {{ p.assunto_ementa }}</br>
 				<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.timestamp|date:"H:m:s" }}</br>
-				<strong>Interessado:</strong> {{ p.interessado }}</br>
 				<strong>Natureza do Processo:</strong>
 					{% if p.tipo_processo == 0 %}
-						Administrativo
+						Administrativo </br>
+					  <strong>Interessado:</strong> {{ p.interessado }}</br>
 					{% elif p.tipo_processo == 1 %}
 						Matéria Legislativa
 					{% endif %}</br>

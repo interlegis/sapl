@@ -1,15 +1,13 @@
+from datetime import date
+from functools import wraps
+from subprocess import PIPE, call
+from threading import Thread
+from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
 import os
 import re
-from datetime import date
-from functools import wraps
-from unicodedata import normalize as unicodedata_normalize
-from subprocess import PIPE, call
-from threading import Thread
 
-import django_filters
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -22,9 +20,12 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
+import django_filters
+import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR, PROJECT_DIR
+
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -159,8 +160,8 @@ class SaplGenericRelation(GenericRelation):
             assert isinstance(field, (tuple, list)), _(
                 'fields_search deve ser um array de tuplas ou listas.')
 
-            assert len(field) == 2, _(
-                'cada tupla de fields_search deve possuir duas strins')
+            assert len(field) <= 3, _(
+                'cada tupla de fields_search deve possuir até 3 strings')
 
             # TODO implementar assert para validar campos do Model e lookups
 
@@ -368,8 +369,8 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
         if not os.path.splitext(value.path)[1][:1]:
-                raise ValidationError(_(
-                    'Não é possível fazer upload de arquivos sem extensão.'))
+            raise ValidationError(_(
+                'Não é possível fazer upload de arquivos sem extensão.'))
 
         mime = magic.from_buffer(value.read(), mime=True)
         if mime not in lista:
@@ -389,92 +390,6 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     maior_inicio = max(a_inicio, b_inicio)
     menor_fim = min(a_fim, b_fim)
     return maior_inicio <= menor_fim
-
-
-"""
-def permissoes(nome_grupo, app_label):
-    lista_permissoes = []
-    try:
-        perms = list(Permission.objects.filter(
-            group__name=nome_grupo))
-        for p in perms:
-            lista_permissoes.append('%s.%s' % (app_label, p.codename))
-    except:
-        pass
-    return set(lista_permissoes)
-
-
-def permission_required_for_app(app_label, login_url=None,
-                                raise_exception=False):
-
-    Decorator for views that checks whether a user has a particular permission
-    enabled, redirecting to the log-in page if necessary.
-    If the raise_exception parameter is given the PermissionDenied exception
-    is raised.
-
-    def check_perms(user):
-        if user.has_module_perms(app_label):
-            return True
-        # In case the 403 handler should be called raise the exception
-        if raise_exception:
-            raise PermissionDenied
-        # As the last resort, show the login form
-        return False
-    return user_passes_test(check_perms, login_url=login_url)
-
-def permissoes_materia():
-    return permissoes('Operador de Matéria', 'materia')
-
-
-def permissoes_comissoes():
-    return permissoes('Operador de Comissões', 'comissoes')
-
-
-def permissoes_norma():
-    return permissoes('Operador de Norma Jurídica', 'norma')
-
-
-def permissoes_protocoloadm():
-    return permissoes('Operador de Protocolo Administrativo', 'protocoloadm')
-
-
-def permissoes_adm():
-    return permissoes('Operador Administrativo', 'protocoloadm')
-
-
-def permissoes_sessao():
-    return permissoes('Operador de Sessão Plenária', 'sessao')
-
-
-def permissoes_painel():
-    return permissoes('Operador de Painel Eletrônico', 'painel')
-
-
-def permissoes_autor():
-    return permissoes('Autor', 'materia')
-
-
-def permissoes_parlamentares():
-    lista_permissoes = []
-    try:
-        cts = ContentType.objects.filter(app_label='parlamentares')
-        perms_parlamentares = list(Permission.objects.filter(
-            content_type__in=cts))
-        for p in perms_parlamentares:
-            lista_permissoes.append('parlamentares.' + p.codename)
-    except:
-        pass
-    return set(lista_permissoes)
-
-
-def permissao_tb_aux(self):
-    u = self.request.user
-    if u.groups.filter(name='Operador Geral').exists() or u.is_superuser:
-        return True
-    else:
-        return False
-
-"""
 
 
 class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
@@ -637,6 +552,7 @@ def texto_upload_path(instance, filename, subpath=''):
 
 
 class UpdateIndexCommand(Thread):
+
     def run(self):
         call([PROJECT_DIR.child('manage.py'), 'update_index'],
              stdout=PIPE)

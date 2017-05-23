@@ -963,25 +963,21 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, **kwargs):
-            montar_helper_documento_acessorio(self)
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(
                 MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
             return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, **kwargs):
-            montar_helper_documento_acessorio(self)
             super(MasterDetailCrud.UpdateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(UpdateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
             return context
 
 
@@ -1617,15 +1613,15 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
 
         for materia_id in marcadas:
-            DocumentoAcessorio.objects.create(
-                materia_id=materia_id,
-                tipo=tipo,
-                arquivo=request.POST['arquivo'],
-                nome=request.POST['nome'],
-                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
-                autor=Autor.objects.get(id=request.POST['autor']),
-                ementa=request.POST['ementa']
-            )
+            doc = DocumentoAcessorio()
+            doc.materia_id = materia_id
+            doc.tipo = tipo
+            doc.arquivo = request.FILES['arquivo']
+            doc.nome = request.POST['nome']
+            doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
+            doc.autor = request.POST['autor']
+            doc.ementa = request.POST['ementa']
+            doc.save()
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)

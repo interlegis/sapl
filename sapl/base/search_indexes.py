@@ -32,10 +32,7 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
         arquivo = getattr(obj, self.filename)
 
         if arquivo:
-            try:
-                arquivo.open()
-                arquivo.close()
-            except OSError:
+            if not os.path.exists(arquivo.path):
                 return self.prepared_data
 
             if not os.path.splitext(arquivo.path)[1][:1]:
@@ -43,9 +40,12 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
 
             try:
                 extracted_data = textract.process(
-                    arquivo.path).decode(
-                        'utf-8').replace('\n', ' ')
+                    arquivo.path,
+                    language='pt-br').decode('utf-8').replace('\n', ' ')
             except ExtensionNotSupported:
+                return self.prepared_data
+            except Exception:
+                print('Erro inesperado processando arquivo: %s' % arquivo.path)
                 return self.prepared_data
 
             extracted_data = extracted_data.replace('\t', ' ')
@@ -54,8 +54,8 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
             # text field with *all* of our metadata visible for templating:
             t = loader.select_template((
                 'search/indexes/' + self.template_name, ))
-            data['text'] = t.render(Context({'object': obj,
-                                             'extracted': extracted_data}))
+            data['text'] = t.render({'object': obj,
+                                     'extracted': extracted_data})
 
             return data
 
