@@ -187,6 +187,18 @@ class CriarProtocoloMateriaView(CreateView):
 
     def form_valid(self, form):
         materia = form.save()
+
+        try:
+            protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404()
+
+        if protocolo.autor:
+            Autoria.objects.create(
+                materia=materia,
+                autor=protocolo.autor,
+                primeiro_autor=True)
+
         return redirect(self.get_success_url(materia))
 
 
