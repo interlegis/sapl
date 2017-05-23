@@ -1710,3 +1710,17 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
+
+    def get_context_data(self, **kwargs):
+        context = super(TramitacaoEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        qr = self.request.GET.copy()
+
+        lista = filtra_tramitacao_destino_and_status(
+            qr['tramitacao__status'],
+            qr['tramitacao__unidade_tramitacao_destino'])
+        context['object_list'] = context['object_list'].filter(
+            id__in=lista).distinct()
+
+        return context
