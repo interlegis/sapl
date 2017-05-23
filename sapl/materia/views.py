@@ -1613,15 +1613,15 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
 
         for materia_id in marcadas:
-            DocumentoAcessorio.objects.create(
-                materia_id=materia_id,
-                tipo=tipo,
-                arquivo=request.POST['arquivo'],
-                nome=request.POST['nome'],
-                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
-                autor=request.POST['autor'],
-                ementa=request.POST['ementa']
-            )
+            doc = DocumentoAcessorio()
+            doc.materia_id = materia_id
+            doc.tipo = tipo
+            doc.arquivo = request.POST['arquivo']
+            doc.nome = request.POST['nome']
+            doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
+            doc.autor_id = request.POST['autor']
+            doc.ementa = request.POST['ementa']
+            doc.save()
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
