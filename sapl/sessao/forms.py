@@ -28,7 +28,7 @@ def recupera_anos():
         # apos a adicao do .dates(), por isso o reversed() abaixo
         anos = [(k.year, k.year) for k in reversed(anos_list)]
         return anos
-    except:
+    except Exception:
         return []
 
 
@@ -37,6 +37,18 @@ def ANO_CHOICES():
 
 MES_CHOICES = [('', '---------')] + RANGE_MESES
 DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
+
+
+ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
+                    ('exp', 'Expedientes'),
+                    ('id_basica', 'Identificação Básica'),
+                    ('lista_p', 'Lista de Presença'),
+                    ('lista_p_o_d', 'Lista de Presença Ordem do Dia'),
+                    ('mat_exp', 'Matérias do Expediente'),
+                    ('mat_o_d', 'Matérias da Ordem do Dia'),
+                    ('mesa_d', 'Mesa Diretora'),
+                    ('oradores_exped', 'Oradores do Expediente'),
+                    ('oradores_expli', 'Oradores das Explicações Pessoais')]
 
 
 class BancadaForm(ModelForm):
@@ -359,3 +371,70 @@ class OradorExpedienteForm(ModelForm):
 
 class PautaSessaoFilterSet(SessaoPlenariaFilterSet):
     titulo = _('Pesquisa de Pauta de Sessão')
+
+
+class ResumoOrdenacaoForm(forms.Form):
+    primeiro = forms.ChoiceField(label=_('1°'),
+                                 choices=ORDENACAO_RESUMO)
+    segundo = forms.ChoiceField(label=_('2°'),
+                                choices=ORDENACAO_RESUMO)
+    terceiro = forms.ChoiceField(label=u'3°',
+                                 choices=ORDENACAO_RESUMO)
+    quarto = forms.ChoiceField(label=_('4°'),
+                               choices=ORDENACAO_RESUMO)
+    quinto = forms.ChoiceField(label=_('5°'),
+                               choices=ORDENACAO_RESUMO)
+    sexto = forms.ChoiceField(label=_('6°'),
+                              choices=ORDENACAO_RESUMO)
+    setimo = forms.ChoiceField(label=_('7°'),
+                               choices=ORDENACAO_RESUMO)
+    oitavo = forms.ChoiceField(label=_('8°'),
+                               choices=ORDENACAO_RESUMO)
+    nono = forms.ChoiceField(label=_('9°'),
+                             choices=ORDENACAO_RESUMO)
+    decimo = forms.ChoiceField(label=u'10°',
+                               choices=ORDENACAO_RESUMO)
+
+    def __init__(self, *args, **kwargs):
+        super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('primeiro', 12)])
+        row2 = to_row(
+            [('segundo', 12)])
+        row3 = to_row(
+            [('terceiro', 12)])
+        row4 = to_row(
+            [('quarto', 12)])
+        row5 = to_row(
+            [('quinto', 12)])
+        row6 = to_row(
+            [('sexto', 12)])
+        row7 = to_row(
+            [('setimo', 12)])
+        row8 = to_row(
+            [('oitavo', 12)])
+        row9 = to_row(
+            [('nono', 12)])
+        row10 = to_row(
+            [('decimo', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_(''),
+                     row1, row2, row3, row4, row5,
+                     row6, row7, row8, row9, row10,
+                     form_actions(save_label='Atualizar'))
+        )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        for c1 in cleaned_data:
+            i = 0
+            for c2 in cleaned_data:
+                if cleaned_data[str(c1)] == cleaned_data[str(c2)]:
+                    i = i + 1
+                    if i > 1:
+                        raise ValidationError(_(
+                            'Não é possível ter campos repetidos'))
