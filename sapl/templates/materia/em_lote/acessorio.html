@@ -14,7 +14,7 @@
       {% else %}
         <h3 style="text-align: right;">{% blocktrans with object_list.count as total_materias %}Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
       {% endif %}
-      <form method="POST">
+      <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <fieldset>
           <legend>Documento Acessório</legend>
@@ -42,7 +42,7 @@
               <label>Autor:</label>
               <input type="text" name="autor" class="form-control" required="False">
             </div>
- 
+
           <div class="row">
             <div class="col-md-12">
               <label>Ementa</label>

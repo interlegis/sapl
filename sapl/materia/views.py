@@ -1616,7 +1616,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
             doc.tipo = tipo
-            doc.arquivo = request.POST['arquivo']
+            doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
             doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
             doc.autor_id = request.POST['autor']
