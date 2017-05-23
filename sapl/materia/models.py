@@ -259,7 +259,6 @@ class MateriaLegislativa(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
-        
 
 
 @reversion.register()
