@@ -1,3 +1,4 @@
+import logging
 import os.path
 
 import textract
@@ -9,6 +10,8 @@ from sapl.norma.models import NormaJuridica
 
 from textract.exceptions import ExtensionNotSupported
 
+from sapl.settings import BASE_DIR
+logger = logging.getLogger(BASE_DIR.name)
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
@@ -45,7 +48,9 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
             except ExtensionNotSupported:
                 return self.prepared_data
             except Exception:
-                print('Erro inesperado processando arquivo: %s' % arquivo.path)
+                msg = 'Erro inesperado processando arquivo: %s' % arquivo.path
+                print(msg)
+                logger.error(msg)
                 return self.prepared_data
 
             extracted_data = extracted_data.replace('\t', ' ')
