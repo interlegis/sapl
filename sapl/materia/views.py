@@ -1702,8 +1702,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         else:
             data_fim_prazo = None
 
+        # issue https://github.com/interlegis/sapl/issues/1123
+        # TODO: usar Form
+        urgente = request.POST['urgente'] == 'True'
+
         for materia_id in marcadas:
-            Tramitacao.objects.create(
+            t = Tramitacao(
                 materia_id=materia_id,
                 data_tramitacao=datetime.strptime(
                     request.POST['data_tramitacao'], "%d/%m/%Y"),
@@ -1713,11 +1717,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                     'unidade_tramitacao_local'],
                 unidade_tramitacao_destino_id=request.POST[
                     'unidade_tramitacao_destino'],
-                urgente=request.POST['urgente'],
+                urgente=urgente,
                 status_id=request.POST['status'],
                 turno=request.POST['turno'],
                 texto=request.POST['texto']
             )
+            t.save()
         msg = _('Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
