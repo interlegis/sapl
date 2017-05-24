@@ -416,6 +416,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                                            '%H:%M')
         protocolo.timestamp = datetime.strptime(
             datetime.now().strftime("%Y-%m-%d %H:%M"), "%Y-%m-%d %H:%M")
+        protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado
         protocolo.anulado = False
 
