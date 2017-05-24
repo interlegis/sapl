@@ -1,3 +1,4 @@
+import logging
 import os.path
 
 import textract
@@ -7,6 +8,10 @@ from haystack import indexes
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 
+from textract.exceptions import ExtensionNotSupported
+
+from sapl.settings import BASE_DIR
+logger = logging.getLogger(BASE_DIR.name)
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
@@ -30,17 +35,23 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
         arquivo = getattr(obj, self.filename)
 
         if arquivo:
-            try:
-                arquivo.open()
-            except OSError:
+            if not os.path.exists(arquivo.path):
                 return self.prepared_data
 
             if not os.path.splitext(arquivo.path)[1][:1]:
                 return self.prepared_data
 
-            extracted_data = textract.process(
-                arquivo.path).decode(
-                'utf-8').replace('\n', ' ')
+            try:
+                extracted_data = textract.process(
+                    arquivo.path,
+                    language='pt-br').decode('utf-8').replace('\n', ' ')
+            except ExtensionNotSupported:
+                return self.prepared_data
+            except Exception:
+                msg = 'Erro inesperado processando arquivo: %s' % arquivo.path
+                print(msg)
+                logger.error(msg)
+                return self.prepared_data
 
             extracted_data = extracted_data.replace('\t', ' ')
 
@@ -48,8 +59,8 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
             # text field with *all* of our metadata visible for templating:
             t = loader.select_template((
                 'search/indexes/' + self.template_name, ))
-            data['text'] = t.render(Context({'object': obj,
-                                             'extracted': extracted_data}))
+            data['text'] = t.render({'object': obj,
+                                     'extracted': extracted_data})
 
             return data
 

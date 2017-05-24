@@ -84,11 +84,22 @@ INSTALLED_APPS = (
 
 ) + SAPL_APPS
 
+# FTS = Full Text Search
+SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
+SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
+
+SOLR_URL = config('SOLR_URL', cast=str, default='')
+if SOLR_URL:
+    SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
+    SEARCH_URL = ('URL', config('SOLR_URL', cast=str))
+    # ...or for multicore...
+    # 'URL': 'http://127.0.0.1:8983/solr/mysite',
+
 
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': PROJECT_DIR.child('whoosh'),
+        'ENGINE': SEARCH_BACKEND,
+        SEARCH_URL[0] : SEARCH_URL[1]
     },
 }
 
@@ -111,10 +122,7 @@ MIDDLEWARE_CLASSES = (
 
 
 REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": (
-        "rest_framework.renderers.JSONRenderer",
-        # "rest_framework.renderers.BrowsableAPIRenderer",
-    ),
+    "UNICODE_JSON": False,
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
     ),
@@ -208,6 +216,7 @@ LOCALE_PATHS = (
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
+
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
 STATICFILES_DIRS = (BASE_DIR.child("static"),)

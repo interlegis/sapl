@@ -1,5 +1,8 @@
 from django.db.models import Q
+from django.forms.fields import MultiValueField, CharField
+from django.forms.widgets import TextInput, MultiWidget
 from django_filters.filters import MethodFilter, ModelChoiceFilter
+from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet
 
 from sapl.base.models import Autor, TipoAutor
@@ -35,10 +38,11 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
                                     item.related_query_name(),
                                     field[0])
                                 )
-                            q_fs = q_fs | Q(**{'%s__%s%s' % (
-                                item.related_query_name(),
-                                field[0],
-                                field[1]): qtext})
+                            if len(field) == 3 and field[2](qtext) is not None:
+                                q_fs = q_fs | Q(**{'%s__%s%s' % (
+                                    item.related_query_name(),
+                                    field[0],
+                                    field[1]): qtext if len(field) == 2 else field[2](qtext)})
 
                 q = q & q_fs
 
@@ -46,6 +50,37 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
                 queryset = queryset.filter(q).order_by(*order_by)
 
         return queryset
+
+
+class SearchForFieldWidget(MultiWidget):
+
+    def decompress(self, value):
+        if value is None:
+            return [None, None]
+        return value
+
+    def __init__(self, attrs=None):
+        widgets = (TextInput, TextInput)
+        MultiWidget.__init__(self, widgets, attrs)
+
+
+class SearchForFieldField(MultiValueField):
+    widget = SearchForFieldWidget
+
+    def __init__(self, *args, **kwargs):
+        fields = (
+            CharField(),
+            CharField())
+        super(SearchForFieldField, self).__init__(fields, *args, **kwargs)
+
+    def compress(self, parameters):
+        if parameters:
+            return parameters
+        return None
+
+
+class SearchForFieldFilter(django_filters.filters.MethodFilter):
+    field_class = SearchForFieldField
 
 
 class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
@@ -60,4 +95,23 @@ class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
 
     def filter_q(self, queryset, value):
         return SaplGenericRelationSearchFilterSet.filter_q(
-            self, queryset, value).order_by('nome')
+            self, queryset, value).distinct('nome').order_by('nome')
+
+
+class AutorSearchForFieldFilterSet(AutorChoiceFilterSet):
+    q = SearchForFieldFilter()
+
+    class Meta(AutorChoiceFilterSet.Meta):
+        pass
+
+    def filter_q(self, queryset, value):
+
+        value[0] = value[0].split(',')
+        value[1] = value[1].split(',')
+
+        params = {}
+        for key, v in list(zip(value[0], value[1])):
+            if v in ['True', 'False']:
+                v = '1' if v == 'True' else '0'
+            params[key] = v
+        return queryset.filter(**params).distinct('nome').order_by('nome')

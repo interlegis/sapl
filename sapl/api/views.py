@@ -6,16 +6,19 @@ from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from rest_framework.viewsets import GenericViewSet
+                                        IsAuthenticatedOrReadOnly,
+                                        AllowAny)
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from sapl.api.forms import AutorChoiceFilterSet
+from sapl.api.forms import AutorChoiceFilterSet, AutorSearchForFieldFilterSet
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
                                   ChoiceSerializer,
                                   MateriaLegislativaSerializer,
-                                  ModelChoiceSerializer)
+                                  ModelChoiceSerializer,
+                                  SessaoPlenariaSerializer)
 from sapl.base.models import Autor, TipoAutor
 from sapl.materia.models import MateriaLegislativa
+from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import SaplGenericRelation, sapl_logger
 
 
@@ -76,7 +79,57 @@ class AutorListView(ListAPIView):
                       o django-filter é desativado e a busca é feita
                       no model do ContentType associado ao tipo.
 
-    Outros campos
+    - q_0 / q_1 - q_0 faz o código ignorar "q"...
+
+                  q_0 -> campos lookup a serem filtrados em qualquer Model
+                  que implemente SaplGenericRelation
+                  q_1 -> o valor que será pesquisado no lookup de q_0
+
+                  q_0 e q_1 podem ser separados por ","... isso dará a
+                  possibilidade de filtrar mais de um campo. 
+
+
+                  http://localhost:8000
+                      /api/autor?tr=1&q_0=parlamentar_set__ativo&q_1=False
+                      /api/autor?tr=1&q_0=parlamentar_set__ativo&q_1=True
+                      /api/autor?tr=3&q_0=parlamentar_set__ativo&q_1=False
+                      /api/autor?tr=3&q_0=parlamentar_set__ativo&q_1=True
+
+                  http://localhost:8000
+                      /api/autor?tr=1
+                          &q_0=parlamentar_set__nome_completo__icontains,
+                               parlamentar_set__ativo
+                          &q_1=Carvalho,False
+                      /api/autor?tr=1
+                          &q_0=parlamentar_set__nome_completo__icontains,
+                               parlamentar_set__ativo
+                          &q_1=Carvalho,True
+                      /api/autor?tr=3
+                          &q_0=parlamentar_set__nome_completo__icontains,
+                               parlamentar_set__ativo
+                          &q_1=Carvalho,False
+                      /api/autor?tr=3
+                          &q_0=parlamentar_set__nome_completo__icontains,
+                               parlamentar_set__ativo
+                          &q_1=Carvalho,True
+
+
+                  não importa o campo que vc passe de qualquer dos Models
+                  ligados... é possível ver que models são esses, 
+                      na ocasião do commit deste texto, executando:
+                        In [6]: from sapl.utils import models_with_gr_for_model
+
+                        In [7]: models_with_gr_for_model(Autor)
+                        Out[7]:
+                        [sapl.parlamentares.models.Parlamentar,
+                         sapl.parlamentares.models.Frente,
+                         sapl.comissoes.models.Comissao,
+                         sapl.materia.models.Orgao,
+                         sapl.sessao.models.Bancada,
+                         sapl.sessao.models.Bloco]
+
+                      qualquer atributo destes models podem ser passados 
+                      para busca
     """
 
     TR_AUTOR_CHOICE_SERIALIZER = 1
@@ -121,6 +174,9 @@ class AutorListView(ListAPIView):
         elif self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)
+
+        if self.filter_class and 'q_0' in request.GET:
+            self.filter_class = AutorSearchForFieldFilterSet
 
         return ListAPIView.get(self, request, *args, **kwargs)
 
@@ -203,3 +259,14 @@ class MateriaLegislativaViewSet(ListModelMixin,
     queryset = MateriaLegislativa.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('numero', 'ano', 'tipo', )
+
+
+class SessaoPlenariaViewSet(ListModelMixin,
+                            RetrieveModelMixin,
+                            GenericViewSet):
+
+    permission_classes = (AllowAny,)
+    serializer_class = SessaoPlenariaSerializer
+    queryset = SessaoPlenaria.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('data_inicio', 'data_fim', 'interativa')

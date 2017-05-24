@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
 python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
-py3-magic postgresql-client vim
+py3-magic postgresql-client poppler-utils vim
 
 RUN apk add --no-cache python3 nginx && \
     python3 -m ensurepip && \
@@ -32,9 +32,15 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 # manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
 
+# compilescss - Precompile all occurrences of your SASS/SCSS files for the whole project into css files
+
 RUN python3 manage.py bower_install -- --allow-root --no-input && \
-    python3 manage.py collectstatic --no-input && \
-    rm -rf /var/interlegis/sapl/sapl/.env && \
+    python3 manage.py compilescss
+
+RUN python3 manage.py collectstatic --noinput --clear
+ 
+# Remove .env(fake) e sapl.db da imagem
+RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \

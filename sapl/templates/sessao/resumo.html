@@ -19,159 +19,36 @@
 		</strong>
 	</p>
 </div>
-	<fieldset>
-		<legend>Identificação Básica</legend>
-    <div class="row">
-      {% for b in basica %}
-      <div class="col-md-4">{{b}}</div>
-      {% endfor %}
-    </div>
-	</fieldset>
-	<br /><br /><br />
 
-	<fieldset>
-		<legend>Conteúdo Multimídia</legend>
-    <div class="row">
-      <div class="col-md-6">{{multimidia_audio}}</div>
-      <div class="col-md-6">{{multimidia_video}}</div>
-    </div>
-	</fieldset>
-	<br /><br /><br />
+	{% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Mesa Diretora</legend>
-    <div class="row">
-      {% for m in mesa %}
-      <div class="col-md-12"><b>{{m.cargo}}:
-			</b>{{m.parlamentar.nome_parlamentar}} / {{ m.parlamentar.filiacao_atual }}</div>
-      {% endfor %}
-    </div>
-	</fieldset>
-	<br /><br /><br />
+    {% include 'sessao/blocos_resumo/'|add:segundo_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Lista de Presença na Sessão</legend>
-    <div class="row">
-      {% for p in presenca_sessao %}
-      <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_atual }}</div>
-      {% endfor %}
-    </div>
-	</fieldset>
-	<br /><br /><br />
+    {% include 'sessao/blocos_resumo/'|add:terceiro_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Expedientes</legend>
-		<table class="table">
-			<thead class="thead-default">
-				{% for e in expedientes %}
-					<tr>
-						<td>
-							<b>{{e.tipo}}: </b> <br /><br />
-							<div contenteditable="false" style="border:0.5px solid #BAB4B1; border-radius: 10px; background-color: rgba(225, 225, 225, .8);">
-								<p>{{e.conteudo|safe}}</p>
-							</div>
-						</td>
-					</tr>
-				{% endfor %}
-			</thead>
-		</table>
-	</fieldset>
-	<br /><br /><br />
+    {% include 'sessao/blocos_resumo/'|add:quarto_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Matérias do Expediente</legend>
-		<table class="table table-striped table-hover">
-		  <thead>
-		    <tr>
-		      <th>Matéria</th>
-		      <th>Ementa</th>
-		      <th>Resultado da Votação</th>
-		    </tr>
-		  </thead>
-		  <tbody>
-		    {% for m in materia_expediente %}
-		      <tr>
-		        <td>
-		          {{m.numero}} - {{m.titulo}}
-		          <br />
-		          <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-		        </td>
-		        <td>{{m.ementa|safe}}</td>
-		        <td>{{m.resultado}}</td>
-		      </tr>
-		    {% endfor %}
-		  </tbody>
-		</table>
-	</fieldset>
-	<br /><br /><br />
+    {% include 'sessao/blocos_resumo/'|add:quinto_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Oradores do Expediente</legend>
-    <div class="row">
-      <div class="col-md-6">Parlamentar</div>
-      <div class="col-md-6">Discurso</div>
-    </div>
-    <div class="row">
-      {% for o in oradores %}
-      		<div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</div>
-      		<div class="col-md-6">{{o.url_discurso}}</div>
-					</br>
-      {% endfor %}
-    </div>
-	</fieldset>
-	<br /><br /><br />
+    {% include 'sessao/blocos_resumo/'|add:sexto_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Lista de Presença na Ordem do Dia</legend>
-    <div class="row">
-      {% for p in presenca_ordem %}
-      <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_atual }}</div>
-      {% endfor %}
-    </div>
-	</fieldset>
-	<br /><br /><br />
+    {% include 'sessao/blocos_resumo/'|add:setimo_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-		<legend>Matérias da Ordem do Dia</legend>
-		<table class="table table-striped table-hover">
-		  <thead>
-		    <tr>
-		      <th>Matéria</th>
-		      <th>Ementa</th>
-		      <th>Resultado da Votação</th>
-					<th>Observação da Votação</th>
-		    </tr>
-		  </thead>
-		  <tbody>
-		    {% for m in materias_ordem %}
-		      <tr>
-		        <td>
-		          {{m.numero}} - {{m.titulo}}
-		          <br />
-		          <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-		        </td>
-		        <td>{{m.ementa|safe}}</td>
-		        <td>{{m.resultado}}</td>
-						<td>{{m.resultado_observacao}}</td>
-		      </tr>
-		    {% endfor %}
-		  </tbody>
-		</table>
-	</fieldset>
+    {% include 'sessao/blocos_resumo/'|add:oitavo_ordenacao %}
+    <br /><br /><br />
 
-	<fieldset>
-			<legend>Oradores das Explicações Pessoais</legend>
-			<div class="row">
-	      <div class="col-md-6">Parlamentar</div>
-	      <div class="col-md-6">Discurso</div>
-	    </div>
-	    <div class="row">
-	      {% for o in oradores_explicacoes %}
-	      		<div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</div>
-	      		<div class="col-md-6">{{o.url_discurso}}</div>
-						</br>
-	      {% endfor %}
-	    </div>
-	</fieldset>
+    {% include 'sessao/blocos_resumo/'|add:nono_ordenacao %}
+    <br /><br /><br />
+
+    {% include 'sessao/blocos_resumo/'|add:decimo_ordenacao %}
+    <br /><br /><br />
+
 
 {% endblock detail_content %}

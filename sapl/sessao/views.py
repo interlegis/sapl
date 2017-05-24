@@ -3,6 +3,7 @@ from re import sub
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
@@ -13,7 +14,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import ListView, TemplateView
+from django.views.generic import FormView, ListView, TemplateView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
@@ -36,13 +37,14 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
                     OradorForm, PautaSessaoFilterSet, PresencaForm,
+                    ResumoOrdenacaoForm,
                     SessaoPlenariaFilterSet, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
-                     PresencaOrdemDia, RegistroVotacao, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoExpediente,
+                     PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
+                     SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoNominal,
                      VotoParlamentar)
 
@@ -930,6 +932,48 @@ class MesaView(FormMixin, DetailView):
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
 
 
+class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
+    template_name = 'sessao/resumo_ordenacao.html'
+    form_class = ResumoOrdenacaoForm
+    permission_required = 'sessao.change_resumoordenacao'
+
+    def get_success_url(self):
+        return reverse('sapl.base:sistema')
+
+    def get_initial(self):
+        ordenacao = ResumoOrdenacao.objects.first()
+        if ordenacao:
+            return {'primeiro': ordenacao.primeiro,
+                    'segundo': ordenacao.segundo,
+                    'terceiro': ordenacao.terceiro,
+                    'quarto': ordenacao.quarto,
+                    'quinto': ordenacao.quinto,
+                    'sexto': ordenacao.sexto,
+                    'setimo': ordenacao.setimo,
+                    'oitavo': ordenacao.oitavo,
+                    'nono': ordenacao.nono,
+                    'decimo': ordenacao.decimo}
+        return self.initial.copy()
+
+    def form_valid(self, form):
+        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+
+        ordenacao.primeiro = form.cleaned_data['primeiro']
+        ordenacao.segundo = form.cleaned_data['segundo']
+        ordenacao.terceiro = form.cleaned_data['terceiro']
+        ordenacao.quarto = form.cleaned_data['quarto']
+        ordenacao.quinto = form.cleaned_data['quinto']
+        ordenacao.sexto = form.cleaned_data['sexto']
+        ordenacao.setimo = form.cleaned_data['setimo']
+        ordenacao.oitavo = form.cleaned_data['oitavo']
+        ordenacao.nono = form.cleaned_data['nono']
+        ordenacao.decimo = form.cleaned_data['decimo']
+
+        ordenacao.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
@@ -1022,11 +1066,14 @@ class ResumoView(DetailView):
             titulo = m.materia
             numero = m.numero_ordem
 
-            resultado = m.registrovotacao_set.all()
-            if resultado:
-                resultado = resultado[0].tipo_resultado_votacao.nome
+            rv = m.registrovotacao_set.first()
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
+
             else:
                 resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
 
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
@@ -1035,6 +1082,7 @@ class ResumoView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'resultado_observacao': resultado_observacao,
                    'autor': autor
                    }
             materias_expediente.append(mat)
@@ -1117,12 +1165,53 @@ class ResumoView(DetailView):
                     if not partido_sigla:
                         partido_sigla = ''
                     oradores = {
-                                'numero_ordem': orador.numero_ordem,
-                                'parlamentar': parlamentar,
-                                'sgl_partido': partido_sigla
-                                }
+                        'numero_ordem': orador.numero_ordem,
+                        'parlamentar': parlamentar,
+                        'sgl_partido': partido_sigla
+                    }
                     oradores_explicacoes.append(oradores)
         context.update({'oradores_explicacoes': oradores_explicacoes})
+
+        # =====================================================================
+        # Indica a ordem com a qual o template será renderizado
+        ordenacao = ResumoOrdenacao.objects.first()
+        dict_ord_template = {
+            'cont_mult': 'conteudo_multimidia.html',
+            'exp': 'expedientes.html',
+            'id_basica': 'identificacao_basica.html',
+            'lista_p': 'lista_presenca.html',
+            'lista_p_o_d': 'lista_presenca_ordem_dia.html',
+            'mat_exp': 'materias_expediente.html',
+            'mat_o_d': 'materias_ordem_dia.html',
+            'mesa_d': 'mesa_diretora.html',
+            'oradores_exped': 'oradores_expediente.html',
+            'oradores_expli': 'oradores_explicacoes.html'
+        }
+
+        if ordenacao:
+            context.update(
+                {'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+                 'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                 'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                 'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                 'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                 'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                 'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                 'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                 'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                 'decimo_ordenacao': dict_ord_template[ordenacao.decimo]})
+        else:
+            context.update(
+                {'primeiro_ordenacao': dict_ord_template['id_basica'],
+                 'segundo_ordenacao': dict_ord_template['cont_mult'],
+                 'terceiro_ordenacao': dict_ord_template['mesa_d'],
+                 'quarto_ordenacao': dict_ord_template['lista_p'],
+                 'quinto_ordenacao': dict_ord_template['exp'],
+                 'sexto_ordenacao': dict_ord_template['mat_exp'],
+                 'setimo_ordenacao': dict_ord_template['oradores_exped'],
+                 'oitavo_ordenacao': dict_ord_template['lista_p_o_d'],
+                 'nono_ordenacao': dict_ord_template['mat_o_d'],
+                 'decimo_ordenacao': dict_ord_template['oradores_expli']})
 
         return self.render_to_response(context)
 

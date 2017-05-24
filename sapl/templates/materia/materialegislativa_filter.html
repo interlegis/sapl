@@ -58,10 +58,11 @@
                 {% if m.autoria_set.all %}
                 <strong>Autores:</strong>
                 {% for a in m.autoria_set.all %}
-                  {% if not forloop.first %}
-                    , &nbsp;&nbsp; {{a.autor}}
-                  {% else %}
-                    &nbsp;{{a.autor}}
+                  {% if a.primeiro_autor %}
+                    {% if not forloop.first %}
+                      , &nbsp;&nbsp;
+                    {% endif %}
+                    &nbsp;{{a.autor.nome}}
                   {% endif %}
                 {% endfor %}
                 </br>
@@ -125,6 +126,9 @@
                     {% endfor %}
                 {% endif %}
                 <p></p>
+                {% if m.tramitacao_set.all.exists %}
+                    <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
+                {% endif %}
             </tr>
           {% endfor %}
         {% else  %}

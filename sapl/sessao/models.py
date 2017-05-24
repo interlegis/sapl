@@ -156,6 +156,9 @@ class SessaoPlenaria(models.Model):
     finalizada = models.NullBooleanField(blank=True,
                                          choices=YES_NO_CHOICES,
                                          verbose_name=_('Sessão finalizada?'))
+    interativa = models.NullBooleanField(blank=True,
+                                         choices=YES_NO_CHOICES,
+                                         verbose_name=_('Sessão interativa'))
 
     class Meta:
         verbose_name = _('Sessão Plenária')
@@ -490,3 +493,28 @@ class Bloco(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+@reversion.register()
+class ResumoOrdenacao(models.Model):
+    '''
+        Tabela para registrar em qual ordem serão renderizados os componentes
+        da tela de resumo de uma sessão
+    '''
+    primeiro = models.CharField(max_length=30)
+    segundo = models.CharField(max_length=30)
+    terceiro = models.CharField(max_length=30)
+    quarto = models.CharField(max_length=30)
+    quinto = models.CharField(max_length=30)
+    sexto = models.CharField(max_length=30)
+    setimo = models.CharField(max_length=30)
+    oitavo = models.CharField(max_length=30)
+    nono = models.CharField(max_length=30)
+    decimo = models.CharField(max_length=30)
+
+    class Meta:
+        verbose_name = _('Ordenação do Resumo de uma Sessão')
+        verbose_name_plural = _('Ordenação do Resumo de uma Sessão')
+
+    def __str__(self):
+        return 'Ordenação do Resumo de uma Sessão'

@@ -1,9 +1,9 @@
 from datetime import datetime
 
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
@@ -206,6 +206,15 @@ def foto_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='')
 
 
+def true_false_none(x):
+    if x == 'True':
+        return True
+    elif x == 'False':
+        return False
+    else:
+        return None
+
+
 @reversion.register()
 class Parlamentar(models.Model):
     FEMININO = 'F'
@@ -303,6 +312,7 @@ class Parlamentar(models.Model):
             ('nome_completo', '__icontains'),
             ('nome_parlamentar', '__icontains'),
             ('filiacao__partido__sigla', '__icontains'),
+            ('ativo', '', true_false_none),
         ))
 
     class Meta:

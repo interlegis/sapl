@@ -27,7 +27,7 @@ create_env() {
     echo "SECRET_KEY="$KEY > $FILENAME
     # now only appends
     echo "DATABASE_URL = "$DATABASE_URL >> $FILENAME
-    echo "DEBUG = ""${DEBUG-True}" >> $FILENAME
+    echo "DEBUG = ""${DEBUG-False}" >> $FILENAME
     echo "EMAIL_USE_TLS = ""${USE_TLS-True}" >> $FILENAME
     echo "EMAIL_PORT = ""${EMAIL_PORT-587}" >> $FILENAME
     echo "EMAIL_HOST = ""${EMAIL_HOST-''}" >> $FILENAME

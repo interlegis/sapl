@@ -7,7 +7,7 @@ from crispy_forms.layout import HTML
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
@@ -34,7 +34,8 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, ProposicaoForm,
-                                TipoProposicaoForm)
+                                TipoProposicaoForm, TramitacaoForm,
+                                TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
@@ -162,19 +163,43 @@ class CriarProtocoloMateriaView(CreateView):
         context = super(
             CriarProtocoloMateriaView, self).get_context_data(**kwargs)
 
-        protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        try:
+            protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404()
+
+        materias_ano = MateriaLegislativa.objects.filter(
+            ano=protocolo.ano,
+            tipo=protocolo.tipo_materia).order_by('-numero')
+
+        if materias_ano:
+            numero = materias_ano.first().numero + 1
+        else:
+            numero = 1
 
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
-        context['form'].fields['numero'].initial = protocolo.numero
+        context['form'].fields['numero'].initial = numero
         context['form'].fields['ano'].initial = protocolo.ano
         context['form'].fields['data_apresentacao'].initial = protocolo.data
         context['form'].fields['numero_protocolo'].initial = protocolo.numero
-        context['form'].fields['ementa'].initial = protocolo.observacao
+        context['form'].fields['ementa'].initial = protocolo.assunto_ementa
 
         return context
 
     def form_valid(self, form):
         materia = form.save()
+
+        try:
+            protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404()
+
+        if protocolo.autor:
+            Autoria.objects.create(
+                materia=materia,
+                autor=protocolo.autor,
+                primeiro_autor=True)
+
         return redirect(self.get_success_url(materia))
 
 
@@ -868,6 +893,7 @@ class TramitacaoCrud(MasterDetailCrud):
         ordering = '-data_tramitacao',
 
     class CreateView(MasterDetailCrud.CreateView):
+        form_class = TramitacaoForm
 
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
@@ -884,6 +910,7 @@ class TramitacaoCrud(MasterDetailCrud):
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = TramitacaoUpdateForm
 
         def post(self, request, *args, **kwargs):
             materia = MateriaLegislativa.objects.get(
@@ -951,25 +978,21 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, **kwargs):
-            montar_helper_documento_acessorio(self)
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(
                 MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
             return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DocumentoAcessorioForm
 
         def __init__(self, **kwargs):
-            montar_helper_documento_acessorio(self)
             super(MasterDetailCrud.UpdateView, self).__init__(**kwargs)
 
         def get_context_data(self, **kwargs):
             context = super(UpdateView, self).get_context_data(**kwargs)
-            context['helper'] = self.helper
             return context
 
 
@@ -1355,6 +1378,11 @@ class AcompanhamentoMateriaView(CreateView):
                 acompanhar.usuario = usuario.username
                 acompanhar.confirmado = False
                 acompanhar.save()
+            except MultipleObjectsReturned:
+                AcompanhamentoMateria.objects.filter(
+                    email=email,
+                    materia=materia,
+                    hash=hash_txt).first()
 
                 do_envia_email_confirmacao(request, materia, email)
 
@@ -1600,15 +1628,15 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
 
         for materia_id in marcadas:
-            DocumentoAcessorio.objects.create(
-                materia_id=materia_id,
-                tipo=tipo,
-                arquivo=request.POST['arquivo'],
-                nome=request.POST['nome'],
-                data=datetime.strptime(request.POST['data'], "%d/%m/%Y"),
-                autor=Autor.objects.get(id=request.POST['autor']),
-                ementa=request.POST['ementa']
-            )
+            doc = DocumentoAcessorio()
+            doc.materia_id = materia_id
+            doc.tipo = tipo
+            doc.arquivo = request.FILES['arquivo']
+            doc.nome = request.POST['nome']
+            doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
+            doc.autor = request.POST['autor']
+            doc.ementa = request.POST['ementa']
+            doc.save()
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
@@ -1697,3 +1725,19 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
+
+    def get_context_data(self, **kwargs):
+        context = super(TramitacaoEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        qr = self.request.GET.copy()
+
+        if ('tramitacao__status' in qr and
+           'tramitacao__unidade_tramitacao_destino' in qr):
+            lista = filtra_tramitacao_destino_and_status(
+                qr['tramitacao__status'],
+                qr['tramitacao__unidade_tramitacao_destino'])
+            context['object_list'] = context['object_list'].filter(
+                id__in=lista).distinct()
+
+        return context

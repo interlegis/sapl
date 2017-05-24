@@ -158,8 +158,7 @@
 	  // Atualiza os campos após alguma operação de mudança da Legislatura/Sessao ou
 	  // Inserção/Remoção
     function altera_field(id_legislatura, id_sessao=null, msg=null){
-    	// Pega o novo valor do campo que foi modificado (Sessao/Legislatura) ou utiliza
-    	// o valor da Legislatura, por conveniência, quando há alguma inserção ou remoção
+      // Pega o novo valor dos campos modificados
       var sessao_value = id_sessao
       var legislatura_value = id_legislatura
 

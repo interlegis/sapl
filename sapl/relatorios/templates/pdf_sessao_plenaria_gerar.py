@@ -6,6 +6,8 @@
 """
 import time
 
+from sapl.sessao.models import ResumoOrdenacao
+
 from trml2pdf import parseString
 
 
@@ -287,15 +289,43 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
     tmp += '\t</template>\n'
     tmp += paraStyle()
     tmp += '\t<story>\n'
-    tmp += inf_basicas(inf_basicas_dic)
-    tmp += mesa(lst_mesa)
-    tmp += presenca(lst_presenca_sessao)
-    tmp += expedientes(lst_expedientes)
-    tmp += expediente_materia(lst_expediente_materia)
-    tmp += oradores_expediente(lst_oradores_expediente)
-    tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
-    tmp += votacao(lst_votacao)
-    tmp += oradores(lst_oradores)
+
+    ordenacao = ResumoOrdenacao.objects.first()
+    dict_ord_template = {
+        'cont_mult': '',
+        'exp': expedientes(lst_expedientes),
+        'id_basica': inf_basicas(inf_basicas_dic),
+        'lista_p': presenca(lst_presenca_sessao),
+        'lista_p_o_d': presenca_ordem_dia(lst_presenca_ordem_dia),
+        'mat_exp': expediente_materia(lst_expediente_materia),
+        'mat_o_d': votacao(lst_votacao),
+        'mesa_d': mesa(lst_mesa),
+        'oradores_exped': oradores_expediente(lst_oradores_expediente),
+        'oradores_expli': oradores(lst_oradores)
+    }
+
+    if ordenacao:
+        tmp += dict_ord_template[ordenacao.primeiro]
+        tmp += dict_ord_template[ordenacao.segundo]
+        tmp += dict_ord_template[ordenacao.terceiro]
+        tmp += dict_ord_template[ordenacao.quarto]
+        tmp += dict_ord_template[ordenacao.quinto]
+        tmp += dict_ord_template[ordenacao.sexto]
+        tmp += dict_ord_template[ordenacao.setimo]
+        tmp += dict_ord_template[ordenacao.oitavo]
+        tmp += dict_ord_template[ordenacao.nono]
+        tmp += dict_ord_template[ordenacao.decimo]
+    else:
+        tmp += inf_basicas(inf_basicas_dic)
+        tmp += mesa(lst_mesa)
+        tmp += presenca(lst_presenca_sessao)
+        tmp += expedientes(lst_expedientes)
+        tmp += expediente_materia(lst_expediente_materia)
+        tmp += oradores_expediente(lst_oradores_expediente)
+        tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
+        tmp += votacao(lst_votacao)
+        tmp += oradores(lst_oradores)
+
     tmp += '\t</story>\n'
     tmp += '</document>\n'
 
