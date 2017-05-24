@@ -7,5 +7,5 @@ class AppConfig(apps.AppConfig):
     label = 'materia'
     verbose_name = _('Matéria')
 
-    def ready(self):
-        from . import signals
+#    def ready(self):
+#        from . import signals
