@@ -20,8 +20,8 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
-TIPOS_PROTOCOLO_CREATE = [('0', 'Enviado'), ('1', 'Recebido')]
+TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('', 'Ambos')]
+TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado')]
 
 NATUREZA_PROCESSO = [('', 'Ambos'),
                      ('0', 'Administrativo'),
