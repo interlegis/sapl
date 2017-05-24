@@ -945,7 +945,7 @@ class MesaView(FormMixin, DetailView):
 class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
     template_name = 'sessao/resumo_ordenacao.html'
     form_class = ResumoOrdenacaoForm
-    permission_required = 'sessao.change_resumoordenacao'
+    permission_required = {'sessao.change_resumoordenacao'}
 
     def get_success_url(self):
         return reverse('sapl.base:sistema')
