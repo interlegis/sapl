@@ -486,12 +486,17 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         queryset=AssuntoMateria.objects.all(),
         label=_('Assunto da Matéria'))
 
+    numeracao__numero_materia = django_filters.NumberFilter(
+        required=False,
+        label=_('Número do Processo'))
+
     o = MateriaPesquisaOrderingFilter()
 
     class Meta:
         model = MateriaLegislativa
         fields = ['numero',
                   'numero_protocolo',
+                  'numeracao__numero_materia',
                   'ano',
                   'tipo',
                   'data_apresentacao',
@@ -517,9 +522,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         row1 = to_row(
             [('tipo', 12)])
         row2 = to_row(
-            [('numero', 4),
-             ('ano', 4),
-             ('numero_protocolo', 4)])
+            [('numero', 3),
+             ('numeracao__numero_materia', 3),
+             ('numero_protocolo', 3),
+             ('ano', 3)])
         row3 = to_row(
             [('data_apresentacao', 6),
              ('data_publicacao', 6)])
