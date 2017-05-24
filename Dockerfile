@@ -50,3 +50,4 @@ RUN chmod +x /var/interlegis/sapl/start.sh && \
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
 CMD ["/var/interlegis/sapl/start.sh"]
+
