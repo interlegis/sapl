@@ -158,6 +158,180 @@ class RedirecionaMesaDiretoraParlamentarTests(TestCase):
         self.assertEqual(response.url, url_e)
 
 
+class RedirecionaNormasJuridicasListTests(TestCase):
+    url_pattern = 'sapl.redireciona_urls:redireciona_norma_juridica_pesquisa'
+
+    def test_redireciona_norma_juridica_pesquisa_sem_parametros(self):
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.norma:norma_pesquisa')
+
+        tipo_norma = ''
+        numero_norma = ''
+        ano_norma = ''
+        periodo_inicial_aprovacao = ''
+        periodo_final_aprovacao = ''
+        periodo_inicial_publicacao = ''
+        periodo_final_publicacao = ''
+        ementa_norma = ''
+        assuntos_norma = ''
+
+        args = ''
+        args += "?lst_tip_norma=%s" % (tipo_norma)
+        args += "&txt_numero=%s" % (numero_norma)
+        args += "&txt_ano=%s" % (ano_norma)
+        args += "&dt_norma=%s" % (periodo_inicial_aprovacao)
+        args += "&dt_norma2=%s" % (periodo_final_aprovacao)
+        args += "&dt_public=%s" % (periodo_inicial_publicacao)
+        args += "&dt_public2=%s" % (periodo_final_publicacao)
+        args += "&txt_assunto=%s" % (ementa_norma)
+        args += "&lst_assunto_norma=%s" % (assuntos_norma)
+        args += "&salvar=%s" % ('Pesquisar')
+        url = "%s%s" % (url, args)
+
+        args_e = ''
+        args_e += "?tipo=%s" % (tipo_norma)
+        args_e += "&numero=%s" % (numero_norma)
+        args_e += "&ano=%s" % (ano_norma)
+        args_e += "&data_0=%s" % (periodo_inicial_aprovacao)
+        args_e += "&data_1=%s" % (periodo_final_aprovacao)
+        args_e += "&data_publicacao_0=%s" % (periodo_inicial_publicacao)
+        args_e += "&data_publicacao_1=%s" % (periodo_final_publicacao)
+        args_e += "&ementa=%s" % (ementa_norma)
+        args_e += "&assuntos=%s" % (assuntos_norma)
+        args_e += "&salvar=%s" % ('Pesquisar')
+        url_e = "%s%s" % (url_e, args_e)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, url_e)
+
+    def test_redireciona_norma_juridica_pesquisa_por_tipo(self):
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.norma:norma_pesquisa')
+
+        tipo_norma = '4'
+        numero_norma = ''
+        ano_norma = ''
+        periodo_inicial_aprovacao = ''
+        periodo_final_aprovacao = ''
+        periodo_inicial_publicacao = ''
+        periodo_final_publicacao = ''
+        ementa_norma = ''
+        assuntos_norma = ''
+
+        args = ''
+        args += "?lst_tip_norma=%s" % (tipo_norma)
+        args += "&txt_numero=%s" % (numero_norma)
+        args += "&txt_ano=%s" % (ano_norma)
+        args += "&dt_norma=%s" % (periodo_inicial_aprovacao)
+        args += "&dt_norma2=%s" % (periodo_final_aprovacao)
+        args += "&dt_public=%s" % (periodo_inicial_publicacao)
+        args += "&dt_public2=%s" % (periodo_final_publicacao)
+        args += "&txt_assunto=%s" % (ementa_norma)
+        args += "&lst_assunto_norma=%s" % (assuntos_norma)
+        args += "&salvar=%s" % ('Pesquisar')
+        url = "%s%s" % (url, args)
+
+        args_e = ''
+        args_e += "?tipo=%s" % (tipo_norma)
+        args_e += "&numero=%s" % (numero_norma)
+        args_e += "&ano=%s" % (ano_norma)
+        args_e += "&data_0=%s" % (periodo_inicial_aprovacao)
+        args_e += "&data_1=%s" % (periodo_final_aprovacao)
+        args_e += "&data_publicacao_0=%s" % (periodo_inicial_publicacao)
+        args_e += "&data_publicacao_1=%s" % (periodo_final_publicacao)
+        args_e += "&ementa=%s" % (ementa_norma)
+        args_e += "&assuntos=%s" % (assuntos_norma)
+        args_e += "&salvar=%s" % ('Pesquisar')
+        url_e = "%s%s" % (url_e, args_e)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, url_e)
+
+    def test_redireciona_norma_juridica_pesquisa_por_ano(self):
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.norma:norma_pesquisa')
+
+        tipo_norma = ''
+        numero_norma = ''
+        ano_norma = '2010'
+        periodo_inicial_aprovacao = ''
+        periodo_final_aprovacao = ''
+        periodo_inicial_publicacao = ''
+        periodo_final_publicacao = ''
+        ementa_norma = ''
+        assuntos_norma = ''
+
+        args = ''
+        args += "?lst_tip_norma=%s" % (tipo_norma)
+        args += "&txt_numero=%s" % (numero_norma)
+        args += "&txt_ano=%s" % (ano_norma)
+        args += "&dt_norma=%s" % (periodo_inicial_aprovacao)
+        args += "&dt_norma2=%s" % (periodo_final_aprovacao)
+        args += "&dt_public=%s" % (periodo_inicial_publicacao)
+        args += "&dt_public2=%s" % (periodo_final_publicacao)
+        args += "&txt_assunto=%s" % (ementa_norma)
+        args += "&lst_assunto_norma=%s" % (assuntos_norma)
+        args += "&salvar=%s" % ('Pesquisar')
+        url = "%s%s" % (url, args)
+
+        args_e = ''
+        args_e += "?tipo=%s" % (tipo_norma)
+        args_e += "&numero=%s" % (numero_norma)
+        args_e += "&ano=%s" % (ano_norma)
+        args_e += "&data_0=%s" % (periodo_inicial_aprovacao)
+        args_e += "&data_1=%s" % (periodo_final_aprovacao)
+        args_e += "&data_publicacao_0=%s" % (periodo_inicial_publicacao)
+        args_e += "&data_publicacao_1=%s" % (periodo_final_publicacao)
+        args_e += "&ementa=%s" % (ementa_norma)
+        args_e += "&assuntos=%s" % (assuntos_norma)
+        args_e += "&salvar=%s" % ('Pesquisar')
+        url_e = "%s%s" % (url_e, args_e)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, url_e)
+
+
+class RedirecionaNormasJuridicasDetailTests(TestCase):
+    url_pattern = 'sapl.redireciona_urls:redireciona_norma_juridica_detail'
+
+    def test_redireciona_norma_juridica_detail(self):
+        url = reverse(self.url_pattern)
+
+        pk_norma = 120
+
+        args = ''
+        args += "?cod_norma=%s" % (pk_norma)
+        url = "%s%s" % (url, args)
+
+        url_e = reverse(
+            'sapl.norma:normajuridica_detail',
+            kwargs={
+                'pk': pk_norma}
+            )
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, url_e)
+
+    def test_redireciona_norma_juridica_detail_sem_parametros(self):
+        url = reverse(self.url_pattern)
+
+        pk_norma = ''
+
+        args = ''
+        args += "?cod_norma=%s" % (pk_norma)
+        url = "%s%s" % (url, args)
+
+        url_e = reverse('sapl.norma:norma_pesquisa')
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, url_e)
+
+
 class RedirecionaSessaoPlenariaTests(TestCase):
     url_pattern = 'sapl.redireciona_urls:redireciona_sessao_plenaria_'
 

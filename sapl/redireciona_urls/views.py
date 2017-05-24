@@ -1,18 +1,19 @@
 from .exceptions import UnknownUrlNameError
-
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
-
-from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
+from sapl.base.apps import AppConfig as relatoriosConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
 from sapl.materia.apps import AppConfig as materiaConfig
+from sapl.norma.apps import AppConfig as normaConfig
+from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
-from sapl.base.apps import AppConfig as relatoriosConfig
+
 
 app_parlamentares = parlamentaresConfig.name
 app_comissoes = comissoesConfig.name
 app_materia = materiaConfig.name
 app_sessao = sessaoConfig.name
+app_norma = normaConfig.name
 app_relatorios = relatoriosConfig.name
 
 parlamentar_list = ( app_parlamentares + ':parlamentar_list')
@@ -30,6 +31,9 @@ pauta_sessao_list = (app_sessao + ':pesquisar_pauta')
 pauta_sessao_detail = (app_sessao + ':pauta_sessao_detail')
 sessao_plenaria_list = (app_sessao + ':pesquisar_sessao')
 sessao_plenaria_detail = (app_sessao + ':sessaoplenaria_detail')
+
+norma_juridica_detail = (app_norma + ':normajuridica_detail')
+norma_juridica_pesquisa = (app_norma + ':norma_pesquisa')
 
 relatorios_list = (app_relatorios + ':relatorios_list')
 relatorio_materia_por_tramitacao = (app_relatorios + ':materia_por_tramitacao')
@@ -286,5 +290,74 @@ class RedirecionaMesaDiretoraView(RedirectView):
             url = reverse(parlamentar_mesa_diretora)
         except NoReverseMatch:
             raise UnknownUrlNameError(parlamentar_mesa_diretora)
+
+        return url
+
+
+class RedirecionaNormasJuridicasDetail(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        pk_norma = self.request.GET.get('cod_norma', '')
+
+        if pk_norma:
+            kwargs = {'pk': pk_norma}
+            return reverse(norma_juridica_detail, kwargs=kwargs)
+        else:
+            return reverse(norma_juridica_pesquisa)
+
+class RedirecionaNormasJuridicasList(RedirectView):
+
+    permanent = True
+
+    def get_redirect_url(self):
+        empty_string = ''
+        url = empty_string
+        args = empty_string
+        try:
+            url = reverse(norma_juridica_pesquisa)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(norma_juridica_pesquisa)
+
+        tipo_norma = self.request.GET.get(
+            'lst_tip_norma',
+            empty_string)
+        numero_norma = self.request.GET.get(
+            'txt_numero',
+            empty_string)
+        ano_norma = self.request.GET.get(
+            'txt_ano',
+            empty_string)
+        periodo_inicial_aprovacao = self.request.GET.get(
+            'dt_norma',
+            empty_string)
+        periodo_final_aprovacao = self.request.GET.get(
+            'dt_norma2',
+            empty_string)
+        periodo_inicial_publicacao = self.request.GET.get(
+            'dt_public',
+            empty_string)
+        periodo_final_publicacao = self.request.GET.get(
+            'dt_public2',
+            empty_string)
+        ementa_norma = self.request.GET.get(
+            'txt_assunto',
+            empty_string)
+        assuntos_norma = self.request.GET.get(
+            'lst_assunto_norma',
+            empty_string)
+
+        args += "?tipo=%s" % (tipo_norma)
+        args += "&numero=%s" % (numero_norma)
+        args += "&ano=%s" % (ano_norma)
+        args += "&data_0=%s" % (periodo_inicial_aprovacao)
+        args += "&data_1=%s" % (periodo_final_aprovacao)
+        args += "&data_publicacao_0=%s" % (periodo_inicial_publicacao)
+        args += "&data_publicacao_1=%s" % (periodo_final_publicacao)
+        args += "&ementa=%s" % (ementa_norma)
+        args += "&assuntos=%s" % (assuntos_norma)
+        args += "&salvar=%s" % ('Pesquisar') # Default in both SAPL version
+
+        url = "%s%s" % (url, args)
 
         return url
