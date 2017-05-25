@@ -3,3 +3,5 @@
   url: documentoadministrativo_detail
 - title: {% trans 'Tramitação' %}
   url: tramitacaoadministrativo_list
+- title: {% trans 'Documento Acessório' %}
+  url: documentoacessorioadministrativo_list
