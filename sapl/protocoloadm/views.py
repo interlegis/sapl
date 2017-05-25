@@ -87,8 +87,17 @@ class DocumentoAdministrativoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
-                            'numero_protocolo', 'ano_protocolo', 'assunto',
+                            'numero_protocolo', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
+
+        @property
+        def search_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesq_doc_adm'))
+
+        @property
+        def list_url(self):
+            return ''
 
     class ListView(DocumentoAdministrativoMixin, Crud.ListView):
         pass
