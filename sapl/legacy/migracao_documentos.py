@@ -71,10 +71,10 @@ DOCS = {
     SessaoPlenaria: [
         ('upload_ata',
          'ata_sessao/{}_ata_sessao',
-         'public/sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
+         'public/sessaoplenaria/ata/{0}/{0}_ata_sessao{1}'),
         ('upload_anexo',
          'anexo_sessao/{}_texto_anexado',
-         'public/sessaoplenaria/{0}/anexo/{0}_texto_anexado{1}')
+         'public/sessaoplenaria/anexo/{0}/{0}_texto_anexado{1}')
     ],
     Proposicao: [(
         'texto_original',
