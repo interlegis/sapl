@@ -498,7 +498,7 @@ def generic_relations_for_model(model):
     ))
 
 
-def texto_upload_path(instance, filename, subpath=''):
+def texto_upload_path(instance, filename, subpath='', pk_first=False):
     """
     O path gerado por essa função leva em conta a pk de instance.
     isso não é possível naturalmente em uma inclusão pois a implementação
@@ -539,7 +539,12 @@ def texto_upload_path(instance, filename, subpath=''):
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
 
-    path = './sapl/%(prefix)s/%(model_name)s/%(subpath)s/%(pk)s/%(filename)s' %\
+    str_path = './sapl/%(prefix)s/%(model_name)s/%(subpath)s/%(pk)s/%(filename)s'
+
+    if pk_first:
+        str_path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s/%(filename)s'
+
+    path = str_path %\
         {
             'prefix': prefix,
             'model_name': instance._meta.model_name,
