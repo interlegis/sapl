@@ -86,17 +86,17 @@ def get_sessao_media_path(instance, subpath, filename):
 
 
 def pauta_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='pauta')
+    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
     # return get_sessao_media_path(instance, 'pauta', filename)
 
 
 def ata_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='ata')
+    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
     # return get_sessao_media_path(instance, 'ata', filename)
 
 
 def anexo_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='anexo')
+    return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
     # return get_sessao_media_path(instance, 'anexo', filename)
 
 
