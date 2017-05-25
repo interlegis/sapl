@@ -26,11 +26,10 @@ app_name = AppConfig.name
 
 urlpatterns_documento_administrativo = [
     url(r'^docadm/',
-        include(DocumentoAdministrativoCrud.get_urls())),
+        include(DocumentoAdministrativoCrud.get_urls() +
+                TramitacaoAdmCrud.get_urls())),
     url(r'^docadm/doc-acessorio/',
         include(DocumentoAcessorioAdministrativoCrud.get_urls())),
-    url(r'^docadm/tramitacao-doc-adm/',
-        include(TramitacaoAdmCrud.get_urls())),
     url(r'^docadm/pesq-doc-adm',
         PesquisarDocumentoAdministrativoView.as_view(), name='pesq_doc_adm'),
     url(r'^docadm/doc-adm/(?P<pk>\d+)$',
