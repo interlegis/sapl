@@ -409,34 +409,6 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
             'data': forms.DateInput(format='%d/%m/%Y')
         }
 
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = to_row(
-            [('tipo', 4),
-             ('nome', 4),
-             ('data', 4)])
-        row2 = to_row(
-            [('autor', 12)])
-        row3 = to_row(
-            [('arquivo', 12)])
-        row4 = to_row(
-            [('assunto', 12)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Documento Acessório'),
-                row1, row2, row3, row4,
-                form_actions(more=more)
-            )
-        )
-        super(DocumentoAcessorioAdministrativoForm, self).__init__(
-            *args, **kwargs)
-
 
 class TramitacaoAdmForm(ModelForm):
 

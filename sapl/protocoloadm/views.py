@@ -37,10 +37,6 @@ TipoDocumentoAdministrativoCrud = CrudAux.build(
 # ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
 
-DocumentoAcessorioAdministrativoCrud = Crud.build(
-    DocumentoAcessorioAdministrativo, '')
-
-
 def doc_texto_integral(request, pk):
     can_see = True
 
@@ -519,138 +515,6 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         return self.render_to_response(context)
 
 
-class DetailDocumentoAdministrativo(PermissionRequiredMixin, DetailView):
-    template_name = "protocoloadm/detail_doc_adm.html"
-    permission_required = ('protocoloadm.detail_documentoadministrativo', )
-
-    def get(self, request, *args, **kwargs):
-        documento = DocumentoAdministrativo.objects.get(
-            id=self.kwargs['pk'])
-
-        form = DocumentoAdministrativoForm(
-            instance=documento)
-        return self.render_to_response({
-            'form': form,
-            'pk': kwargs['pk']})
-
-    def post(self, request, *args, **kwargs):
-        if 'Salvar' in request.POST:
-            form = DocumentoAdministrativoForm(request.POST)
-
-            if form.is_valid():
-                doc = form.save(commit=False)
-                if 'texto_integral' in request.FILES:
-                    doc.texto_integral = request.FILES['texto_integral']
-                doc.save()
-                return self.form_valid(form)
-            else:
-                return self.render_to_response({'form': form})
-        elif 'Excluir' in request.POST:
-            DocumentoAdministrativo.objects.get(
-                id=kwargs['pk']).delete()
-            return HttpResponseRedirect(self.get_success_delete())
-
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_success_delete(self):
-        return reverse('sapl.protocoloadm:pesq_doc_adm')
-
-    def get_success_url(self):
-        return reverse('sapl.protocoloadm:detail_doc_adm', kwargs={
-            'pk': self.kwargs['pk']})
-
-
-class DocumentoAcessorioAdministrativoEditView(PermissionRequiredMixin,
-                                               FormView):
-    template_name = "protocoloadm/documento_acessorio_administrativo_edit.html"
-    permission_required = (
-        'protocoloadm.change_documentoacessorioadministrativo', )
-
-    def get(self, request, *args, **kwargs):
-        doc = DocumentoAdministrativo.objects.get(
-            id=kwargs['pk'])
-        doc_ace = DocumentoAcessorioAdministrativo.objects.get(
-            id=kwargs['ano'])
-        form = DocumentoAcessorioAdministrativoForm(instance=doc_ace,
-                                                    excluir=True)
-
-        return self.render_to_response({'pk': self.kwargs['pk'],
-                                        'doc': doc,
-                                        'doc_ace': doc_ace,
-                                        'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = DocumentoAcessorioAdministrativoForm(request.POST, excluir=True)
-        doc_ace = DocumentoAcessorioAdministrativo.objects.get(
-            id=kwargs['ano'])
-
-        if form.is_valid():
-            if 'Salvar' in request.POST:
-                if 'arquivo' in request.FILES:
-                    doc_ace.arquivo = request.FILES['arquivo']
-                doc_ace.documento = DocumentoAdministrativo.objects.get(
-                    id=kwargs['pk'])
-                doc_ace.tipo = TipoDocumentoAdministrativo.objects.get(
-                    id=form.data['tipo'])
-                doc_ace.nome = form.data['nome']
-                doc_ace.autor = form.data['autor']
-                doc_ace.data = datetime.strptime(
-                    form.data['data'], '%d/%m/%Y')
-                doc_ace.assunto = form.data['assunto']
-
-                doc_ace.save()
-            elif 'Excluir' in request.POST:
-                doc_ace.delete()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sapl.protocoloadm:doc_ace_adm', kwargs={'pk': pk})
-
-
-class DocumentoAcessorioAdministrativoView(PermissionRequiredMixin, FormView):
-    template_name = "protocoloadm/documento_acessorio_administrativo.html"
-    permission_required = (
-        'protocoloadm.add_documentoacessorioadministrativo', )
-
-    def get(self, request, *args, **kwargs):
-        form = DocumentoAcessorioAdministrativoForm()
-        doc = DocumentoAdministrativo.objects.get(
-            id=kwargs['pk'])
-        doc_ace_null = ''
-        doc_acessorio = DocumentoAcessorioAdministrativo.objects.filter(
-            documento_id=kwargs['pk'])
-        if not doc_acessorio:
-            doc_ace_null = _('Nenhum documento acessório' +
-                             'cadastrado para este processo.')
-
-        return self.render_to_response({'pk': kwargs['pk'],
-                                        'doc': doc,
-                                        'doc_ace': doc_acessorio,
-                                        'doc_ace_null': doc_ace_null,
-                                        'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = DocumentoAcessorioAdministrativoForm(request.POST)
-        if form.is_valid():
-            doc_ace = form.save(commit=False)
-            if 'arquivo' in request.FILES:
-                doc_ace.arquivo = request.FILES['arquivo']
-            doc = DocumentoAdministrativo.objects.get(
-                id=kwargs['pk'])
-            doc_ace.documento = doc
-            doc_ace.save()
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sapl.protocoloadm:doc_ace_adm', kwargs={'pk': pk})
-
-
 class TramitacaoAdmCrud(MasterDetailCrud):
     model = TramitacaoAdministrativo
     parent_field = 'documento'
@@ -672,6 +536,34 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+
+    class DetailView(DocumentoAdministrativoMixin,
+                     MasterDetailCrud.DetailView):
+        pass
+
+
+class DocumentoAcessorioAdministrativoCrud(MasterDetailCrud):
+    model = DocumentoAcessorioAdministrativo
+    parent_field = 'documento'
+    help_path = ''
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['nome', 'tipo',
+                            'data', 'autor',
+                            'assunto']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = DocumentoAcessorioAdministrativoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = DocumentoAcessorioAdministrativoForm
+
+    class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            return qs.filter(**kwargs).order_by('-data', '-id')
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):

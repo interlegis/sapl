@@ -3,10 +3,7 @@ from django.conf.urls import include, url
 from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ComprovanteProtocoloView,
                                      CriarDocumentoProtocolo,
-                                     DetailDocumentoAdministrativo,
                                      DocumentoAcessorioAdministrativoCrud,
-                                     DocumentoAcessorioAdministrativoEditView,
-                                     DocumentoAcessorioAdministrativoView,
                                      DocumentoAdministrativoCrud,
                                      PesquisarDocumentoAdministrativoView,
                                      ProtocoloDocumentoView,
@@ -27,18 +24,11 @@ app_name = AppConfig.name
 urlpatterns_documento_administrativo = [
     url(r'^docadm/',
         include(DocumentoAdministrativoCrud.get_urls() +
-                TramitacaoAdmCrud.get_urls())),
-    url(r'^docadm/doc-acessorio/',
-        include(DocumentoAcessorioAdministrativoCrud.get_urls())),
+                TramitacaoAdmCrud.get_urls() +
+                DocumentoAcessorioAdministrativoCrud.get_urls())),
+
     url(r'^docadm/pesq-doc-adm',
         PesquisarDocumentoAdministrativoView.as_view(), name='pesq_doc_adm'),
-    url(r'^docadm/doc-adm/(?P<pk>\d+)$',
-        DetailDocumentoAdministrativo.as_view(), name='detail_doc_adm'),
-    url(r'^docadm/doc-ace-adm/(?P<pk>\d+)',
-        DocumentoAcessorioAdministrativoView.as_view(), name='doc_ace_adm'),
-    url(r'^docadm/doc-ace-adm/edit/(?P<pk>\d+)/(?P<ano>\d+)',
-        DocumentoAcessorioAdministrativoEditView.as_view(),
-        name='doc_ace_adm_edit'),
 
     url(r'^docadm/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
         name='doc_texto_integral'),
