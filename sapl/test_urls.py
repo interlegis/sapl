@@ -187,6 +187,7 @@ apps_url_patterns_prefixs_and_users = {
             '/consultas/mesa_diretora/parlamentar/parlamentar_',
             '/generico/norma_juridica_pesquisar_',
             '/consultas/norma_juridica/norma_juridica_mostrar_proc',
+            '/relatorios_administrativos/historicoTramitacoes/historicoTramitacoes',
         ]},
     'lexml': {
         'prefixs': [

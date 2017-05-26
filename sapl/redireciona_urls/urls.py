@@ -1,5 +1,6 @@
 from .views import (
     RedirecionaComissao,
+    RedirecionaHistoricoTramitacoesList,
     RedirecionaMateriaLegislativaDetail,
     RedirecionaMateriaLegislativaList,
     RedirecionaMesaDiretoraView,
@@ -58,4 +59,7 @@ urlpatterns = [
     url(r'^generico/materia_pesquisar_',
         RedirecionaMateriaLegislativaList.as_view(),
         name='redireciona_materialegislativa_list'),
+    url(r'^relatorios_administrativos/historicoTramitacoes/historicoTramitacoes',
+        RedirecionaHistoricoTramitacoesList.as_view(),
+        name='redireciona_historico_tramitacoes'),
 ]
