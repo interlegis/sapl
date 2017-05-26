@@ -494,10 +494,12 @@ def get_sessao_plenaria(sessao, casa):
                 dic_mesa = {}
                 dic_mesa['nom_parlamentar'] = parlamentar.nome_parlamentar
                 partido_sigla = Filiacao.objects.filter(
-                    parlamentar=parlamentar).first().partido.sigla
+                    parlamentar=parlamentar).first()
                 if not partido_sigla:
-                    partido_sigla = ''
-                dic_mesa['sgl_partido'] = partido_sigla
+                    sigla = ''
+                else:
+                    sigla = partido_sigla.partido.sigla
+                dic_mesa['sgl_partido'] = sigla
                 dic_mesa['des_cargo'] = cargo.descricao
                 lst_mesa.append(dic_mesa)
 
@@ -635,10 +637,12 @@ def get_sessao_plenaria(sessao, casa):
         dic_oradores_expediente["nom_parlamentar"] = (
             parlamentar.nome_parlamentar)
         partido_sigla = Filiacao.objects.filter(
-            parlamentar=parlamentar).first().partido.sigla
+            parlamentar=parlamentar).first()
         if not partido_sigla:
-            partido_sigla = ''
-        dic_oradores_expediente['sgl_partido'] = partido_sigla
+            sigla = ''
+        else:
+            sigla = partido_sigla.partido.sigla
+        dic_oradores_expediente['sgl_partido'] = sigla
         lst_oradores_expediente.append(dic_oradores_expediente)
 
     # Lista presença na ordem do dia
@@ -651,10 +655,12 @@ def get_sessao_plenaria(sessao, casa):
             dic_presenca_ordem_dia['nom_parlamentar'] = (
                 parlamentar.nome_parlamentar)
             partido_sigla = Filiacao.objects.filter(
-                parlamentar=parlamentar).first().partido.sigla
+                parlamentar=parlamentar).first()
             if not partido_sigla:
-                partido_sigla = ''
-            dic_presenca_ordem_dia['sgl_partido'] = partido_sigla
+                sigla = ''
+            else:
+                sigla = partido_sigla.partido.sigla
+            dic_presenca_ordem_dia['sgl_partido'] = sigla
             lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
 
     # Lista das matérias da Ordem do Dia, incluindo o resultado das votacoes
@@ -746,10 +752,12 @@ def get_sessao_plenaria(sessao, casa):
             dic_oradores["num_ordem"] = orador.numero_ordem
             dic_oradores["nom_parlamentar"] = parlamentar.nome_parlamentar
             partido_sigla = Filiacao.objects.filter(
-                parlamentar=parlamentar).first().partido.sigla
+                parlamentar=parlamentar).first()
             if not partido_sigla:
-                partido_sigla = ''
-            dic_oradores['sgl_partido'] = partido_sigla
+                sigla = ''
+            else:
+                sigla = partido_sigla.partido.sigla
+            dic_oradores['sgl_partido'] = sigla
             lst_oradores.append(dic_oradores)
 
     return (inf_basicas_dic,
