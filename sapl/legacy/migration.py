@@ -26,7 +26,7 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica, NormaRelacionada)
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import Parlamentar, TipoAfastamento
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
@@ -676,6 +676,12 @@ def adjust_registrovotacao_depois_salvar(new, old):
             reversion.set_comment('RegistroVotacao sem ordem ou expediente')
 
 
+def adjust_tipoafastamento(new, old):
+    if old.ind_afastamento == 1:
+        new.indicador = 'A'
+
+
+
 def adjust_tipoproposicao(new, old):
     if old.ind_mat_ou_doc == 'M':
         new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
@@ -775,6 +781,7 @@ AJUSTE_ANTES_SALVAR = {
     Participacao: adjust_participacao,
     Protocolo: adjust_protocolo,
     RegistroVotacao: adjust_registrovotacao_antes_salvar,
+    TipoAfastamento: adjust_tipoafastamento,
     TipoProposicao: adjust_tipoproposicao,
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
