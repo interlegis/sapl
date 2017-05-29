@@ -601,3 +601,69 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
+
+
+class RedirecionaPresencaParlamentaresTests(TestCase):
+    url_pattern = 'sapl.redireciona_urls:redireciona_presencaparlamentar_list'
+
+    def test_redireciona_presenca_list_sem_parametros(self):
+        args_e = EMPTY_STRING
+        args = EMPTY_STRING
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.base:presenca_sessao')
+
+        inicio_intervalo_presenca = EMPTY_STRING
+        fim_intervalo_presenca = EMPTY_STRING
+
+        args += "?txt_dat_inicio=%s" % (
+            inicio_intervalo_presenca)
+        args += "&txt_dat_fim=%s" % (
+            fim_intervalo_presenca)
+        url = "%s%s" % (url, args)
+
+        # Remove zeros à esquerda
+        inicio_intervalo_presenca = inicio_intervalo_presenca.lstrip("0")
+        fim_intervalo_presenca = fim_intervalo_presenca.lstrip("0")
+
+        args_e += "?data_inicio_0=%s" % (
+            inicio_intervalo_presenca)
+        args_e += "&data_inicio_1=%s" % (
+            fim_intervalo_presenca)
+        args_e += "&salvar=%s" % ('Pesquisar')
+
+        url_e = "%s%s" % (url_e, args_e)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
+        self.assertEqual(response.url, url_e)
+
+    def test_redireciona_presenca_list(self):
+        args_e = EMPTY_STRING
+        args = EMPTY_STRING
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.base:presenca_sessao')
+
+        inicio_intervalo_presenca = '01/02/2015'
+        fim_intervalo_presenca = '01/02/2017'
+
+        args += "?txt_dat_inicio=%s" % (
+            inicio_intervalo_presenca)
+        args += "&txt_dat_fim=%s" % (
+            fim_intervalo_presenca)
+        url = "%s%s" % (url, args)
+
+        # Remove zeros à esquerda
+        inicio_intervalo_presenca = inicio_intervalo_presenca.lstrip("0")
+        fim_intervalo_presenca = fim_intervalo_presenca.lstrip("0")
+
+        args_e += "?data_inicio_0=%s" % (
+            inicio_intervalo_presenca)
+        args_e += "&data_inicio_1=%s" % (
+            fim_intervalo_presenca)
+        args_e += "&salvar=%s" % ('Pesquisar')
+
+        url_e = "%s%s" % (url_e, args_e)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
+        self.assertEqual(response.url, url_e)

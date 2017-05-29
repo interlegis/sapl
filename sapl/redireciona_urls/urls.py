@@ -9,6 +9,7 @@ from .views import (
     RedirecionaNormasJuridicasList,
     RedirecionaParlamentar,
     RedirecionaPautaSessao,
+    RedirecionaPresencaParlamentares,
     RedirecionaRelatoriosList,
     RedirecionaRelatoriosMateriasEmTramitacaoList,
     RedirecionaSessaoPlenaria,
@@ -66,4 +67,7 @@ urlpatterns = [
     url(r'^relatorios_administrativos/atasSessao',
         RedirecionaAtasList.as_view(),
         name='redireciona_atas_list'),
+    url(r'^relatorios_administrativos/presencaSessao',
+        RedirecionaPresencaParlamentares.as_view(),
+        name='redireciona_presencaparlamentar_list'),
 ]
