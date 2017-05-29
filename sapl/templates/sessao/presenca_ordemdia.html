@@ -17,18 +17,45 @@
         </label>
       </div>
     </div>
-    <br>
+
+    <br />
 
     <div class="controls">
-		{% for parlamentar, check in view.get_presencas_ordem %}
       <div class="checkbox">
-      <label for="id_presenca_{{forloop.counter}}">
-        <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-        {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
-      </label>
+        <label for="id_ativos">
+          <input type="checkbox" name="ativos" id="id_ativos" onchange="escondeInativos()" checked /> Exibir somente parlamentares ativos
+        </label>
       </div>
-		{% endfor %}
     </div>
+
+    <br />
+
+    <div id="ativos">
+      <div class="controls">
+  		{% for parlamentar, check in view.get_presencas_ordem_ativos %}
+        <div class="checkbox">
+        <label for="id_presenca_{{forloop.counter}}">
+          <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
+          {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
+        </label>
+        </div>
+		{% endfor %}
+      </div>
+    </div>
+
+    <div id="demais" style="display:none;">
+      <div class="controls">
+                {% for parlamentar, check in view.get_presencas_ordem_demais %}
+        <div class="checkbox">
+        <label for="id_presenca_{{forloop.counter}}">
+          <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_demais" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
+          {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
+        </label>
+        </div>
+                {% endfor %}
+      </div>
+    </div>
+
 
 		<br />
 		<input type="submit" value="Salvar" class="btn btn-primary" />
@@ -56,10 +83,25 @@
 {% block extra_js %}
 	<script language="JavaScript">
 		function checkAll(event) {
-      $('[name=presenca]').each(function() {
-        $(this).prop('checked', event.target.checked ? 'checked': null);
-        $(this).trigger('click');
-      });
-		}
+                        $('[name=presenca_ativos]').each(function() {
+                                $(this).prop('checked', event.target.checked ? 'checked': null);
+                                $(this).trigger('click');
+                        });
+                        if (($('[name=ativos]').is(':checked')) == false) {
+                                $('[name=presenca_demais]').each(function() {
+                                        $(this).prop('checked', event.target.checked ? 'checked': null);
+                                        $(this).trigger('click');
+                               });
+                        }
+
+                }
+
+                function escondeInativos() {
+                        if ($('[name=ativos]').is(':checked')) {
+                             document.getElementById("demais").style.display = 'none';
+                        } else {
+                             document.getElementById("demais").style.display = 'block';
+                        }
+                }
 	</script>
 {% endblock %}
