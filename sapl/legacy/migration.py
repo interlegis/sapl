@@ -12,7 +12,7 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
-from django.db.models import CharField, Max, ProtectedError, TextField
+from django.db.models import CharField, Max, ProtectedError, TextField, Count
 from django.db.models.base import ModelBase
 from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
@@ -373,6 +373,34 @@ def fill_vinculo_norma_juridica():
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
+# Uma anomalia no sapl 2.5 causa a duplicação de registros de votação.
+# Essa duplicação deve ser eliminada para que não haja erro no sapl 3.1
+def excluir_registrovotacao_duplicados():
+    duplicatas_ids = RegistroVotacao.objects.values(
+        'materia', 'ordem', 'expediente').annotate(
+            Count('id')).order_by().filter(id__count__gt=1)
+    duplicatas_queryset = RegistroVotacao.objects.filter(
+        materia__in=[item['materia'] for item in duplicatas_ids])
+
+    for dup in duplicatas_queryset:
+        lista_dups = duplicatas_queryset.filter(
+            materia=dup.materia, expediente=dup.expediente, ordem=dup.ordem)
+        primeiro_registro = lista_dups[0]
+        lista_dups = lista_dups.exclude(pk=primeiro_registro.pk)
+        for objeto in lista_dups:
+            if (objeto.pk > primeiro_registro.pk):
+                try:
+                    objeto.delete()
+                except:
+                    assert 0
+            else:
+                try:
+                    primeiro_registro.delete()
+                    primeiro_registro = objeto
+                except:
+                    assert 0
+
+
 class DataMigrator:
 
     def __init__(self):
@@ -467,6 +495,9 @@ class DataMigrator:
             warn(msg + ' => ' + descricao)
             save_relation(obj=obj, problema=msg,
                           descricao=descricao, eh_stub=False)
+
+        info('Excluindo possíveis duplicações em RegistroVotacao...')
+        excluir_registrovotacao_duplicados()
 
         info('Deletando stubs desnecessários...')
         while self.delete_stubs():
