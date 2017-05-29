@@ -58,12 +58,12 @@
         {% for value, href in value_list %}
         <td>
           {% if href %}
-          <a href="{{ href }}">{{ value|safe }}</a>
+          <a href="{{ href }}">{{ value|safe|default:"Não informado" }}</a>
           {% elif valu != 'core.Cep.None' %}
             {% if value|url %}
-              <a href="{{ value|safe }}"> {{ value|safe }} </a></div>
+              <a href="{{ value|safe }}"> {{ value|safe|default:"Não informado" }} </a></div>
             {% else %}
-              {{ value|safe }}
+              {{ value|safe|default:"Não informado" }}
             {% endif %}
           {% endif %}
         </td>

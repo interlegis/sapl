@@ -66,9 +66,9 @@
                   <div class="controls">
                     {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
                     {% if column.text|url %}
-                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
+                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"Não informado" }} </a></div>
                     {% else %}
-                      <div class="form-control-static">{{ column.text|safe }}</div>
+                      <div class="form-control-static">{{ column.text|safe|default:"Não informado" }}</div>
                     {% endif %}
                   </div>
                 </div>
