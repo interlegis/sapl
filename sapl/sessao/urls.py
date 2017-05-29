@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
 
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
-                               AdicionarVariasMateriasOrdemDia, BancadaCrud,
-                               BlocoCrud, CargoBancadaCrud,
+                               AdicionarVariasMateriasOrdemDia,
+                               BancadaCrud, BlocoCrud, CargoBancadaCrud,
                                ExpedienteMateriaCrud, ExpedienteView,
                                MateriaOrdemDiaCrud, MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
@@ -22,8 +22,11 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoNominalView, VotacaoView,
                                abrir_votacao_expediente_view,
                                abrir_votacao_ordem_view,
+                               atualizar_mesa,
+                               insere_parlamentar_composicao,
                                mudar_ordem_materia_sessao, recuperar_materia,
                                recuperar_numero_sessao,
+                               remove_parlamentar_composicao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
                                sessao_legislativa_legislatura_ajax)
@@ -40,6 +43,18 @@ urlpatterns = [
                              MateriaOrdemDiaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
+
+    url(r'^sessao/mesa/atualizar-mesa/$',
+        atualizar_mesa,
+        name='atualizar_mesa'),
+
+    url(r'^sessao/mesa/insere-parlamentar/composicao/$',
+        insere_parlamentar_composicao,
+        name='insere_parlamentar_composicao'),
+
+    url(r'^sessao/mesa/remove-parlamentar-composicao/$',
+        remove_parlamentar_composicao,
+        name='remove_parlamentar_composicao'),
 
     url(r'^sessao/recuperar-materia/', recuperar_materia),
     url(r'^sessao/recuperar-numero-sessao/', recuperar_numero_sessao),
