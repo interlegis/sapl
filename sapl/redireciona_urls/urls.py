@@ -1,4 +1,5 @@
 from .views import (
+    RedirecionaAtasList,
     RedirecionaComissao,
     RedirecionaHistoricoTramitacoesList,
     RedirecionaMateriaLegislativaDetail,
@@ -62,4 +63,7 @@ urlpatterns = [
     url(r'^relatorios_administrativos/historicoTramitacoes/historicoTramitacoes',
         RedirecionaHistoricoTramitacoesList.as_view(),
         name='redireciona_historico_tramitacoes'),
+    url(r'^relatorios_administrativos/atasSessao',
+        RedirecionaAtasList.as_view(),
+        name='redireciona_atas_list'),
 ]

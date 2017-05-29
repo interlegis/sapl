@@ -188,6 +188,7 @@ apps_url_patterns_prefixs_and_users = {
             '/generico/norma_juridica_pesquisar_',
             '/consultas/norma_juridica/norma_juridica_mostrar_proc',
             '/relatorios_administrativos/historicoTramitacoes/historicoTramitacoes',
+            '/relatorios_administrativos/atasSessao',
         ]},
     'lexml': {
         'prefixs': [

@@ -7,16 +7,19 @@ from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.norma.apps import AppConfig as normaConfig
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
+from sapl.base.apps import AppConfig as atasConfig
 
 EMPTY_STRING = ''
 
 app_parlamentares = parlamentaresConfig.name
+app_atas = atasConfig.name
 app_comissoes = comissoesConfig.name
 app_materia = materiaConfig.name
 app_sessao = sessaoConfig.name
 app_norma = normaConfig.name
 app_relatorios = relatoriosConfig.name
 
+pesquisar_atas = ( app_atas + ':atas')
 parlamentar_list = ( app_parlamentares + ':parlamentar_list')
 parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
 parlamentar_mesa_diretora = (app_parlamentares + ':mesa_diretora')
@@ -414,5 +417,37 @@ class RedirecionaHistoricoTramitacoesList(RedirectView):
             args += "&salvar=%s" % ('Pesquisar')
 
             url = "%s%s" % (url, args)
+
+        return url
+
+
+class RedirecionaAtasList(RedirectView):
+
+    permanent = True
+
+    def get_redirect_url(self):
+        url = EMPTY_STRING
+        args = EMPTY_STRING
+        try:
+            url = reverse(pesquisar_atas)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(pesquisar_atas)
+
+        inicio_intervalo_data_ata = self.request.GET.get(
+            'txt_dat_inicio',
+            EMPTY_STRING
+            ).lstrip("0")
+        fim_intervalo_data_ata = self.request.GET.get(
+            'txt_dat_fim',
+            EMPTY_STRING
+            ).lstrip("0")
+
+        args += "?data_inicio_0=%s" % (
+            inicio_intervalo_data_ata)
+        args += "&data_inicio_1=%s" % (
+            fim_intervalo_data_ata)
+        args += "&salvar=%s" % ('Pesquisar')
+
+        url = "%s%s" % (url, args)
 
         return url
