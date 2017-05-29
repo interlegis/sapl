@@ -2,63 +2,248 @@
 {% load i18n %}
 
 {% block detail_content %}
-	<fieldset class="form-group">
-		<legend>Mesa Diretora da Sessão</legend>
-		<form method="POST">
-		    {% csrf_token %}
-				<br />
-	      <div class="row">
-	        <div class="col-md-4">
-						<label>Composição</label>
-	          <select multiple size="5" name="composicao_mesa" id="composicao_mesa" class="form-control">
-	            {% for i in integrantes %}
-	            	<option value="{{i.parlamentar.id}}:{{i.cargo.id}}">
-	            {{i.parlamentar.nome_parlamentar}} || {{i.cargo.descricao}}
-	            </option>
-	            {% endfor %}
-	          </select>
-	        </div>
 
-	        <div class="col-md-4" align="center">
-            {% if perms.sessao %}
-  						<br /><br />
-  	          {% if view.get_cargos_mesa %}<input type="submit" name="Incluir" Value="Incluir" class="btn btn-primary" />{% endif %}
-  	          <br /><br />
-              <input type="submit" name="Excluir" Value="Excluir" class="btn btn-danger" onclick="verificar()"/>
-            {% endif %}
-	        </div>
-	        {% if view.get_cargos_mesa %}
-		        <div class="col-md-4">
-							<label>Parlamentare | Cargo</label>
-		          <select name="parlamentar" id="parlamentar" class="form-control">
-		            {% for parlamentar in view.get_candidatos_mesa %}
-		            	<option value="{{parlamentar.id}}" name="parlamentar" id="parlamentar">{{parlamentar.nome_parlamentar}}</option>
-		            {% endfor %}
-		          </select>
-							<br />
-		          <select name="cargo" id="cargo" class="form-control">
-		            {% for cargo in view.get_cargos_mesa %}
-		            	<option value="{{cargo.id}}" name="cargo" id="cargo">{{cargo.descricao}}</option>
-		            {% endfor %}
-		          </select>
-		        </div>
-	        {% endif %}
-	      </div>
-		</form>
-	</fieldset>
+<!-- Success and errors messages div -->
+<div class="alert alert-danger alert-dismissible fade in" id="div-error" role="alert" style="display: none">
+	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+</button>
+	<b><span id="error-message"></span></b>
+</div>
+
+<div class="alert alert-success alert-dismissible fade in" id="div-success" style="display: none" role="alert">
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+</button>
+<b><span id="success-message"></span></b>
+</div>
+<!-- Success and errors messages div end -->
+
+<fieldset class="form-group">
+	<legend>Escolha da Composição da Mesa Diretora da Sessão Plenária</legend>
+<div class="row">
+  <div class="col-md-4">
+    <label>Composição da Mesa Diretora</label>
+    <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
+      {% for p in composicao_mesa %}
+          <option value="{{p.id}}">
+          	{{p.parlamentar}} || {{p.cargo}}
+          </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-md-4" align="center">
+			<br /><br />
+	{% if perms.parlamentares.add_cargomesa %}
+		<input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
+	{% endif %}
+    <br />
+    <br />
+    {% if perms.parlamentares.add_composicaomesa %}
+    	<input type="submit" style="display: none" name="Excluir" id="id_excluir" Value="Excluir" class="btn btn-danger" />
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label id='parlamentar-cargo-title' style="display: none">Parlamentar | Cargo</label>
+    <select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
+      {% for p in parlamentares %}
+      	<option value="{{p.id}}">{{p.nome_completo}}</option>
+      {% endfor %}
+    </select>
+			<br />
+    <select class="form-control" name="cargo" id="id_cargo" style="display: none">
+      {% for c in cargos_vagos %}
+      	<option value="{{c.id}}">{{c}}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+</div>
+</fieldset>
 {% endblock detail_content %}
 
+
 {% block extra_js %}
-	<script language="Javascript">
-		function verificar(){
-			x = document.getElementById("composicao_mesa");
-			flag = true;
-			for (i = 0; i < x.options.length; i++){
-				if (x.options[i].selected == true)
-					flag = false;
-			}
-			if(flag)
-				alert('Nenhum parlamentar foi selecionado!');
-		}
-	</script>
-{% endblock extra_js %}
+
+<script language="Javascript">
+
+	//##############################################################
+	//                Inicialização da View                        #
+	//##############################################################
+
+  // Se a composicao estiver completa, deve-se esconder o botão e os
+  // campos de inserção
+  $(document).ready(function(){
+  	if($("#id_parlamentar").val() == null || $("#id_cargo").val() == null){
+  		$("#id_parlamentar").hide();
+  		$("#id_cargo").hide();
+  		$("#parlamentar-cargo-title").hide();
+  		$('#id_incluir').hide();
+  	}
+  	else{
+  		$("#id_parlamentar").show();
+  		$("#id_cargo").show();
+  		$("#parlamentar-cargo-title").show();
+  		$('#id_incluir').show();
+  	}
+
+  	// Se a composição estiver vazia, deve-se esconder
+  	// de Excluir
+  	if (!$("#id_composicao_mesa option").val()){
+  		$("#id_excluir").hide()
+  	}
+  	else{
+  		$("#id_excluir").show()
+  	}
+  });
+
+  //##############################################################
+  //#                     EVENT HANDLERS                         #
+  //##############################################################
+
+  function errors_handler(msg){
+  	if (msg == null){
+    	  	$("#div-success").hide()
+    	  	$("#div-error").hide()
+    	  	$("#success-message").html('')
+    	  	$("#error-message").html('')
+    	  }
+	  else{
+	  	if (msg[1] == 0){
+	  		$("#div-error").show()
+	  		$("#error-message").html(msg[0])
+	  	}
+	  	else{
+	  		$("#div-success").show()
+	  		$("#success-message").html(msg[0])
+	  	}
+	  }
+
+  }
+
+  // Atualiza os campos após alguma operação Inserção/Remoção
+  function atualizar_mesa(msg=null){
+    // Pega o novo valor dos campos modificados
+    var sessao_value = {{sessaoplenaria.id|safe}}
+
+    // Limpa os campos que serão atualizados
+    $("#id_composicao_mesa option").remove();
+    $("#id_parlamentar option").remove();
+    $("#id_cargo option").remove();
+
+    $.get("{% url 'sapl.sessao:atualizar_mesa' %}",
+    	{sessao: sessao_value},
+    	function(data) {
+    		// Caso não venha nenhum dado da requisição, retorna null
+    	  if ($.isEmptyObject(data)){
+    	  	return null
+    	  }
+
+        lista_composicao = data['lista_composicao'];
+        lista_parlamentares = data['lista_parlamentares'];
+        lista_cargos = data['lista_cargos'];
+
+
+        for (i = 0; i < lista_composicao.length; i++) {
+            $('#id_composicao_mesa').append('<option value="' + lista_composicao[i][0] + '">' + lista_composicao[i][1] + ' || ' + lista_composicao[i][2] + '</option>');
+        }
+
+        // Caso ainda tenha parlamentares/cargos a serem inseridos, preenche a listagem com
+        // os disponíveis e garante que as ferramentas de inserção estejam disponíveis
+        if (lista_parlamentares.length != 0 && lista_cargos.length != 0){
+        	$('#id_incluir').show()
+        	$('#id_cargo').show();
+      		$('#id_parlamentar').show();
+      		$("#parlamentar-cargo-title").show();
+
+          for (i = 0; i < lista_parlamentares.length; i++) {
+              $('#id_parlamentar').append('<option value="' + lista_parlamentares[i][0] + '">' + lista_parlamentares[i][1] + '</option>');
+          }
+
+          for (i = 0; i < lista_cargos.length; i++) {
+              $('#id_cargo').append('<option value="' + lista_cargos[i][0] + '">' + lista_cargos[i][1] + '</option>');
+          }
+      	}
+
+      	// Caso contrário, esconde do usuário essas opções
+      	else{
+      		$('#id_incluir').hide();
+      		$('#id_cargo').hide();
+      		$('#id_parlamentar').hide();
+      		$("#parlamentar-cargo-title").hide();
+      	}
+
+      	// Garante que o botão de remoção aparecerá, caso tenha
+      	// algum parlamentar na composição
+      	if (lista_composicao.length != 0){
+  				$("#id_excluir").show()
+  			}
+  			else{
+  				$("#id_excluir").hide()
+  			}
+
+      // Caso haja algum erro que venha após a alteração da legislatura/sessao
+      // Essa mensagem de erro é prioridade
+      if (data['msg'][1] == 0){
+      	msg = data['msg']
+      }
+			errors_handler(msg)	      
+      
+    });
+  }
+
+  //#############################################################
+  //#                     EVENTS CATCH                          #
+  //#############################################################
+  $('#id_incluir').click(function(){
+  	var sessao_value = {{sessaoplenaria.id|safe}}
+  	$.ajax({
+      data: {sessao: sessao_value,
+             parlamentar: $("#id_parlamentar").val(),
+             cargo: $("#id_cargo").val()},
+      type: 'POST',
+      url: "{% url 'sapl.sessao:insere_parlamentar_composicao' %}",
+      headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+      success: function(data){
+				var msg = data['msg'];
+        setTimeout(function(data){
+         // Atualiza os campos após a inserção
+      	 atualizar_mesa(msg)
+        }, 500)
+      },
+    });
+  })
+
+  $('#id_excluir').click(function(){
+  	// Pega o id do parlamentar que foi selecionado
+  	selecionado = $("#id_composicao_mesa option:selected").val()
+
+  	if (selecionado){
+    	$.ajax({
+        data: {composicao_mesa: selecionado},
+        type: 'POST',
+        url: "{% url 'sapl.sessao:remove_parlamentar_composicao' %}",
+        headers: {
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+        success: function(data){		 
+          var msg = data['msg'];
+          legislatura = $("#id_legislatura").val();
+					sessao = $("#id_sessao_legislativa").val();
+
+          setTimeout(function(data){
+           // Atualiza os campos após a remoção
+        	 atualizar_mesa(msg);
+         }, 500)
+      	},
+	  	});
+  	}
+	});
+
+</script>
+
+{% endblock %}
