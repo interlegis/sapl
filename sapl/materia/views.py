@@ -1384,7 +1384,6 @@ class AcompanhamentoMateriaView(CreateView):
         materia = MateriaLegislativa.objects.get(id=pk)
 
         if form.is_valid():
-
             email = form.cleaned_data['email']
             usuario = request.user
 
