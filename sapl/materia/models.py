@@ -119,14 +119,14 @@ TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
                                     ('E', 'escrita', _('Escrita')))
 
 def materia_upload_path(instance, filename):
-        return texto_upload_path(instance, filename, subpath=instance.ano)        
+        return texto_upload_path(instance, filename, subpath=instance.ano)
 
 def anexo_upload_path(instance, filename):
         return texto_upload_path(instance, filename, subpath=instance.materia.ano)
-    
+
 @reversion.register()
 class MateriaLegislativa(models.Model):
-      
+
     tipo = models.ForeignKey(TipoMateriaLegislativa,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
@@ -218,7 +218,7 @@ class MateriaLegislativa(models.Model):
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
-        
+
 
     def data_entrada_protocolo(self):
         '''
@@ -235,7 +235,7 @@ class MateriaLegislativa(models.Model):
                 pass
 
         return ''
-    
+
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
             self.texto_original.delete()
@@ -838,4 +838,4 @@ class Tramitacao(models.Model):
         return _('%(materia)s | %(status)s | %(data)s') % {
             'materia': self.materia,
             'status': self.status,
-            'data': self.data_tramitacao}
+            'data': self.data_tramitacao.strftime("%d/%m/%Y")}
