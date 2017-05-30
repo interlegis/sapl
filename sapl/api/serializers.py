@@ -84,8 +84,6 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
     TRANSMISSAO_EM_ANDAMENTO =  1
     SEM_TRANSMISSAO =  0
 
-    casa = CasaLegislativa.objects.first()
-
     class Meta:
         model = SessaoPlenaria
         fields = (
@@ -156,13 +154,17 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
         return str(pauta_sessao)
 
     def get_endereco_orgao(self, obj):
-        return self.casa.endereco
+        return self.casa().endereco
 
     def get_reuniao_conjunta(self, obj):
         return False
 
     def get_sigla_orgao(self, obj):
-        return self.casa.sigla
+        return self.casa().sigla
 
     def get_nome_orgao(self, obj):
-        return self.casa.nome
+        return self.casa().nome
+
+    def casa(self):
+        casa = CasaLegislativa.objects.first()
+        return casa
