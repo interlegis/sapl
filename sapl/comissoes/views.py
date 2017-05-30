@@ -54,9 +54,21 @@ class ComposicaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['composicao_pk'] = context['composicao_list'].last(
-                ).pk if self.take_composicao_pk(
-                ) == 0 else self.take_composicao_pk()
+#            context['composicao_pk'] = context['composicao_list'].last(
+#                ).pk if self.take_composicao_pk(
+#                ) == 0 else self.take_composicao_pk()
+
+            composicao_pk = self.take_composicao_pk()
+
+            if composicao_pk == 0:
+                ultima_composicao = context['composicao_list'].last()
+                if ultima_composicao:
+                    context['composicao_pk'] = ultima_composicao.pk
+                else:
+                    context['composicao_pk'] = 0
+            else:
+                context['composicao_pk'] = composicao_pk
+
             context['participacao_set'] = Participacao.objects.filter(
                 composicao__pk=context['composicao_pk']
                 ).order_by('parlamentar')
