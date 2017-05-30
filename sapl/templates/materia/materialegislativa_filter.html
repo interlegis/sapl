@@ -48,7 +48,7 @@
                    </br>
                 {% endif %}
                 {% if m.data_fim_prazo %}
-                   <strong>Data Fim Prazo: </strong>{{ m.data_fim_prazo }}
+                   <strong>Data Fim Prazo (Matéria): </strong>{{ m.data_fim_prazo|default_if_none:"" }}
                    </br>
                 {% endif %}
                 {% if m.numeracao_set.first %}
@@ -73,7 +73,8 @@
                 <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino}}</br>
                 {% endif %}
                 {% if m.tramitacao_set.last.status %}
-                <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
+                  <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
+                  <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.last.data_fim_prazo|default_if_none:""}}</br>
                 {% endif %}
                 {% if m.registrovotacao_set.exists %}
                     <strong>Data da última Votação:</strong>
@@ -128,7 +129,7 @@
                     {% endfor %}
                 {% endif %}
                 <p></p>
-                    
+
                 <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
 
             </tr>
