@@ -910,8 +910,11 @@ class TramitacaoCrud(MasterDetailCrud):
             if 'status' in request.POST and request.POST['status']:
                 status = StatusTramitacao.objects.filter(
                     id=request.POST['status']).first()
+                unidade_destino = UnidadeTramitacao.objects.get(
+                    id=request.POST['unidade_tramitacao_destino']
+                    )
                 do_envia_email_tramitacao(
-                    request, materia, status)
+                    request, materia, status, unidade_destino)
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -924,8 +927,11 @@ class TramitacaoCrud(MasterDetailCrud):
             if 'status' in request.POST and request.POST['status']:
                 status = StatusTramitacao.objects.filter(
                     id=request.POST['status']).first()
+                unidade_destino = UnidadeTramitacao.objects.get(
+                    id=request.POST['unidade_tramitacao_destino']
+                    )
                 do_envia_email_tramitacao(
-                    request, materia, status)
+                    request, materia, status, unidade_destino)
 
             return super(UpdateView, self).post(request, *args, **kwargs)
 
@@ -1479,7 +1485,7 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
 
 
 def criar_email_tramitacao(request, casa_legislativa, materia, status,
-                           hash_txt=''):
+                           unidade_destino, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
@@ -1515,8 +1521,7 @@ def criar_email_tramitacao(request, casa_legislativa, materia, status,
                                       "autoria": autores,
                                       "data": tramitacao.data_tramitacao,
                                       "status": status,
-                                      "localizacao": tramitacao\
-                                            .unidade_tramitacao_destino,
+                                      "localizacao": unidade_destino,
                                       "texto_acao": tramitacao.texto,
                                       "hash_txt": hash_txt,
                                       "materia": str(materia),
@@ -1596,7 +1601,7 @@ def do_envia_email_confirmacao(request, materia, email):
     return None
 
 
-def do_envia_email_tramitacao(request, materia, status):
+def do_envia_email_tramitacao(request, materia, status, unidade_destino):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
@@ -1615,6 +1620,7 @@ def do_envia_email_tramitacao(request, materia, status):
                                              casa,
                                              materia,
                                              status,
+                                             unidade_destino,
                                              destinatario.hash,)
         recipients.append(destinatario.email)
         messages.append({
@@ -1623,9 +1629,7 @@ def do_envia_email_tramitacao(request, materia, status):
             'txt_message': email_texts[0],
             'html_message': email_texts[1],
         })
-
     enviar_emails(sender, recipients, messages)
-    return None
 
 
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
