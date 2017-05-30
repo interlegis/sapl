@@ -906,7 +906,12 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def post(self, request, *args, **kwargs):
             materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-            do_envia_email_tramitacao(request, materia)
+
+            if 'status' in request.POST and request.POST['status']:
+                status = StatusTramitacao.objects.filter(
+                    id=request.POST['status']).first()
+                do_envia_email_tramitacao(
+                    request, materia, status)
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -915,7 +920,13 @@ class TramitacaoCrud(MasterDetailCrud):
         def post(self, request, *args, **kwargs):
             materia = MateriaLegislativa.objects.get(
                 tramitacao__id=kwargs['pk'])
-            do_envia_email_tramitacao(request, materia)
+
+            if 'status' in request.POST and request.POST['status']:
+                status = StatusTramitacao.objects.filter(
+                    id=request.POST['status']).first()
+                do_envia_email_tramitacao(
+                    request, materia, status)
+
             return super(UpdateView, self).post(request, *args, **kwargs)
 
         @property
@@ -1245,19 +1256,32 @@ class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
 
 class AcompanhamentoConfirmarView(TemplateView):
 
-    def get_redirect_url(self):
-        return reverse('sapl.sessao:list_pauta_sessao')
+    def get_redirect_url(self, email):
+        msg = _('Esta matéria está sendo acompanhada pelo e-mail: %s') % (
+            email)
+        messages.add_message(self.request, messages.SUCCESS, msg)
+        return reverse('sapl.materia:materialegislativa_detail',
+                       kwargs={'pk': self.kwargs['pk']})
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
 
-        acompanhar = AcompanhamentoMateria.objects.get(materia_id=materia_id,
-                                                       hash=hash_txt)
+        try:
+            acompanhar = AcompanhamentoMateria.objects.get(
+                materia_id=materia_id,
+                hash=hash_txt)
+        except ObjectDoesNotExist:
+            raise Http404()
+        # except MultipleObjectsReturned:
+        # A melhor solução deve ser permitir que a exceção
+        # (MultipleObjectsReturned) seja lançada e vá para o log,
+        # pois só poderá ser causada por um erro de desenvolvimente
+
         acompanhar.confirmado = True
         acompanhar.save()
 
-        return HttpResponseRedirect(self.get_redirect_url())
+        return HttpResponseRedirect(self.get_redirect_url(acompanhar.email))
 
 
 class AcompanhamentoExcluirView(TemplateView):
@@ -1366,40 +1390,44 @@ class AcompanhamentoMateriaView(CreateView):
 
             hash_txt = self.get_random_chars()
 
-            try:
-                AcompanhamentoMateria.objects.get(
-                    email=email,
-                    materia=materia,
-                    hash=hash_txt)
-            except ObjectDoesNotExist:
-                acompanhar = form.save(commit=False)
+            acompanhar = AcompanhamentoMateria.objects.get_or_create(
+                materia=materia,
+                email=form.data['email'])
+
+            # Se o segundo elemento do retorno do get_or_create for True
+            # quer dizer que o elemento não existia
+            if acompanhar[1]:
+                acompanhar = acompanhar[0]
                 acompanhar.hash = hash_txt
-                acompanhar.materia = materia
                 acompanhar.usuario = usuario.username
                 acompanhar.confirmado = False
                 acompanhar.save()
-            except MultipleObjectsReturned:
-                AcompanhamentoMateria.objects.filter(
-                    email=email,
-                    materia=materia,
-                    hash=hash_txt).first()
-
                 do_envia_email_confirmacao(request, materia, email)
+                msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
+                         de mensagens e clique no link que nós enviamos para \
+                         confirmar o acompanhamento desta matéria.')
+                messages.add_message(request, messages.SUCCESS, msg)
 
+            # Caso esse Acompanhamento já exista
+            # avisa ao usuário que essa matéria já está sendo acompanhada
             else:
+                msg = _('Este e-mail já está acompanhando essa matéria.')
+                messages.add_message(request, messages.INFO, msg)
+
                 return self.render_to_response(
                     {'form': form,
                      'materia': materia,
                      'error': _('Essa matéria já está\
                      sendo acompanhada por este e-mail.')})
-            return self.form_valid(form)
+            return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
                 {'form': form,
                  'materia': materia})
 
     def get_success_url(self):
-        return reverse('sapl.sessao:list_pauta_sessao')
+        return reverse('sapl.materia:materialegislativa_detail',
+                       kwargs={'pk': self.kwargs['pk']})
 
 
 def load_email_templates(templates, context={}):
@@ -1428,7 +1456,7 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
                  casa_legislativa.uf)
 
     base_url = get_base_url(request)
-    materia_url = reverse('sapl.materia:acompanhar_materia',
+    materia_url = reverse('sapl.materia:materialegislativa_detail',
                           kwargs={'pk': materia.id})
     confirmacao_url = reverse('sapl.materia:acompanhar_confirmar',
                               kwargs={'pk': materia.id})
@@ -1451,7 +1479,8 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
     return templates
 
 
-def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
+def criar_email_tramitacao(request, casa_legislativa, materia, status,
+                           hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
@@ -1465,7 +1494,7 @@ def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
                  casa_legislativa.uf)
 
     base_url = get_base_url(request)
-    url_materia = reverse('sapl.materia:acompanhar_materia',
+    url_materia = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
     url_excluir = reverse('sapl.materia:acompanhar_excluir',
                           kwargs={'pk': materia.id})
@@ -1485,8 +1514,7 @@ def criar_email_tramitacao(request, casa_legislativa, materia, hash_txt=''):
                                       "autoria": autores,
                                       "data": materia.tramitacao_set.last(
                                       ).data_tramitacao,
-                                      "status": materia.tramitacao_set.last(
-                                      ).status,
+                                      "status": status,
                                       "texto_acao":
                                          materia.tramitacao_set.last().texto,
                                       "hash_txt": hash_txt,
@@ -1567,7 +1595,7 @@ def do_envia_email_confirmacao(request, materia, email):
     return None
 
 
-def do_envia_email_tramitacao(request, materia):
+def do_envia_email_tramitacao(request, materia, status):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
@@ -1585,13 +1613,14 @@ def do_envia_email_tramitacao(request, materia):
         email_texts = criar_email_tramitacao(request,
                                              casa,
                                              materia,
+                                             status,
                                              destinatario.hash,)
         recipients.append(destinatario.email)
         messages.append({
             'recipient': destinatario.email,
             'subject': subject,
             'txt_message': email_texts[0],
-            'html_message': email_texts[1]
+            'html_message': email_texts[1],
         })
 
     enviar_emails(sender, recipients, messages)
