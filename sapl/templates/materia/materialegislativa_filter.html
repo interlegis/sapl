@@ -47,6 +47,10 @@
                    <strong>Apresentação: </strong>{{ m.data_apresentacao }}
                    </br>
                 {% endif %}
+                {% if m.data_fim_prazo %}
+                   <strong>Data Fim Prazo: </strong>{{ m.data_fim_prazo }}
+                   </br>
+                {% endif %}
                 {% if m.numeracao_set.first %}
                    <strong>Processo: </strong>{{ m.numeracao_set.first.numero_materia }} / {{ m.numeracao_set.first.ano_materia }}
                    </br>
