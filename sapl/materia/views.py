@@ -1502,6 +1502,8 @@ def criar_email_tramitacao(request, casa_legislativa, materia, status,
     for autoria in materia.autoria_set.all():
         autores.append(autoria.autor.nome)
 
+    tramitacao = materia.tramitacao_set.last()
+
     templates = load_email_templates(['email/tramitacao.txt',
                                       'email/tramitacao.html'],
                                      {"casa_legislativa": casa_nome,
@@ -1511,11 +1513,11 @@ def criar_email_tramitacao(request, casa_legislativa, materia, status,
                                       "logotipo": casa_legislativa.logotipo,
                                       "descricao_materia": materia.ementa,
                                       "autoria": autores,
-                                      "data": materia.tramitacao_set.last(
-                                      ).data_tramitacao,
+                                      "data": tramitacao.data_tramitacao,
                                       "status": status,
-                                      "texto_acao":
-                                         materia.tramitacao_set.last().texto,
+                                      "localizacao": tramitacao\
+                                            .unidade_tramitacao_destino,
+                                      "texto_acao": tramitacao.texto,
                                       "hash_txt": hash_txt,
                                       "materia": str(materia),
                                       "base_url": base_url,

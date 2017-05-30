@@ -18,6 +18,8 @@ Data da ação: {{data}}
 
 Status: {{status}}
 
+Localização Atual: {{localizacao}}
+
 Texto da ação: {{texto_acao}}
 
 Acesse o link abaixo para excluir seu e-mail da lista de envio
