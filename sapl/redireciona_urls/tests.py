@@ -667,3 +667,44 @@ class RedirecionaPresencaParlamentaresTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
+
+
+class RedirecionaMateriasPorAutorTests(TestCase):
+    url_pattern = 'sapl.redireciona_urls:redireciona_materias_por_autor_list'
+
+    def test_redireciona_materias_por_autor_list_sem_parametros(self):
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.base:materia_por_autor')
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
+        self.assertEqual(response.url, url_e)
+
+
+class RedirecionaMateriasPorAnoAutorTipoTests(TestCase):
+    url_pattern = (
+        'sapl.redireciona_urls:redireciona_materia_por_ano_autor_tipo_list')
+
+    def test_redireciona_materias_por_ano_autor_tipo_list_sem_parametros(self):
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.base:materia_por_ano_autor_tipo')
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
+        self.assertEqual(response.url, url_e)
+
+    def test_redireciona_materias_por_ano_autor_tipo_list(self):
+        url = reverse(self.url_pattern)
+        url_e = reverse('sapl.base:materia_por_ano_autor_tipo')
+
+        ano = 2017
+
+        args = "?ano=%s" % (ano)
+        url = "%s%s" % (url, args)
+
+        args_e = "?ano=%s&salvar=Pesquisar" % (ano)
+        url_e = "%s%s" % (url_e, args_e)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
+        self.assertEqual(response.url, url_e)

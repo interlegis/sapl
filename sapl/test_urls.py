@@ -190,6 +190,8 @@ apps_url_patterns_prefixs_and_users = {
             '/historicoTramitacoes/historicoTramitacoes',
             '/atasSessao',
             '/presencaSessao',
+            '/resumoPropositurasAutor',
+            '/propositurasAnoAutorTipo',
         ]},
     'lexml': {
         'prefixs': [

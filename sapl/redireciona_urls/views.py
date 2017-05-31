@@ -44,6 +44,9 @@ norma_juridica_pesquisa = (app_norma + ':norma_pesquisa')
 
 relatorios_list = (app_relatorios + ':relatorios_list')
 relatorio_materia_por_tramitacao = (app_relatorios + ':materia_por_tramitacao')
+relatorio_materia_por_autor = (app_relatorios + ':materia_por_autor')
+relatorio_materia_por_ano_autor_tipo = (
+    app_relatorios + ':materia_por_ano_autor_tipo')
 historico_tramitacoes = (app_relatorios + ':historico_tramitacoes')
 
 
@@ -535,5 +538,40 @@ class RedirecionaPresencaParlamentares(RedirectView):
         args += "&salvar=%s" % ('Pesquisar')
 
         url = "%s%s" % (url, args)
+
+        return url
+
+
+class RedirecionaMateriasPorAutor(RedirectView):
+
+    permanent = True
+
+    def get_redirect_url(self):
+        url = EMPTY_STRING
+        try:
+            url = reverse(relatorio_materia_por_autor)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(relatorio_materia_por_autor)
+
+        return url
+
+
+class RedirecionaMateriasPorAnoAutorTipo(RedirectView):
+
+    permanent = True
+
+    def get_redirect_url(self):
+        url = EMPTY_STRING
+        ano = self.request.GET.get('ano', '')
+
+        try:
+            url = reverse(relatorio_materia_por_ano_autor_tipo)
+        except NoReverseMatch:
+            raise UnknownUrlNameError(relatorio_materia_por_ano_autor_tipo)
+
+        if ano:
+            args = "?ano=%s" % (ano)
+            args += "&salvar=%s" % ('Pesquisar')
+            url = "%s%s" % (url, args)
 
         return url
