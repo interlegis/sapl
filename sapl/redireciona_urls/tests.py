@@ -48,7 +48,7 @@ class RedirecionaParlamentarTests(TestCase):
         url = "%s%s" % (url, "?cod_parlamentar=%s" % (pk_parlamentar))
         url_e = reverse(
             'sapl.parlamentares:parlamentar_detail',
-            kwargs = {'pk': pk_parlamentar}
+            kwargs={'pk': pk_parlamentar}
             )
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
@@ -64,7 +64,7 @@ class RedirecionaComissaoTests(TestCase):
         url = "%s%s" % (url, "?cod_comissao=%s" % (pk_comissao))
         url_e = reverse(
             'sapl.comissoes:comissao_detail',
-            kwargs = {'pk': pk_comissao}
+            kwargs={'pk': pk_comissao}
             )
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
@@ -88,7 +88,7 @@ class RedirecionaPautaSessaoTests(TestCase):
         url = "%s%s" % (url, "?cod_sessao_plen=%s" % (pk_pauta_sessao))
         url_e = reverse(
             'sapl.sessao:pauta_sessao_detail',
-            kwargs = {'pk': pk_pauta_sessao}
+            kwargs={'pk': pk_pauta_sessao}
             )
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
@@ -96,7 +96,7 @@ class RedirecionaPautaSessaoTests(TestCase):
 
     def test_redireciona_pauta_sessao_list(self):
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.sessao:pesquisar_pauta')
+        url_e = reverse('sapl.sessao:pesquisar_pauta')
 
         response = self.client.get(url)
 
@@ -114,7 +114,7 @@ class RedirecionaPautaSessaoTests(TestCase):
 
         url = "%s%s" % (url, "?dat_sessao_sel=%s" % data_s_p)
 
-        url_e = reverse( 'sapl.sessao:pesquisar_pauta')
+        url_e = reverse('sapl.sessao:pesquisar_pauta')
 
         args_e = EMPTY_STRING
         args_e += "?data_inicio__year=%s" % (ano_s_p)
@@ -152,7 +152,7 @@ class RedirecionaMesaDiretoraParlamentarTests(TestCase):
         url = "%s%s" % (url, "?cod_parlamentar=%s" % (pk_parlamentar))
         url_e = reverse(
             'sapl.parlamentares:parlamentar_detail',
-            kwargs = {'pk': pk_parlamentar}
+            kwargs={'pk': pk_parlamentar}
             )
 
         response = self.client.get(url)
@@ -314,7 +314,7 @@ class RedirecionaNormasJuridicasDetailTests(TestCase):
             kwargs={
                 'pk': pk_norma}
             )
-        
+
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
@@ -329,7 +329,7 @@ class RedirecionaNormasJuridicasDetailTests(TestCase):
         url = "%s%s" % (url, args)
 
         url_e = reverse('sapl.norma:norma_pesquisa')
-        
+
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
@@ -344,7 +344,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
         url = "%s%s" % (url, "?cod_sessao_plen=%s" % (pk_sessao_plenaria))
         url_e = reverse(
             'sapl.sessao:sessaoplenaria_detail',
-            kwargs = {'pk': pk_sessao_plenaria}
+            kwargs={'pk': pk_sessao_plenaria}
             )
 
         response = self.client.get(url)
@@ -354,7 +354,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
 
     def test_redireciona_sessao_plenaria_list_sem_parametro(self):
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.sessao:pesquisar_sessao')
+        url_e = reverse('sapl.sessao:pesquisar_sessao')
 
         year = EMPTY_STRING
         month = EMPTY_STRING
@@ -384,7 +384,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
 
     def test_redireciona_sessao_plenaria_list_sem_tipo(self):
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.sessao:pesquisar_sessao')
+        url_e = reverse('sapl.sessao:pesquisar_sessao')
 
         year = '2015'
         month = '04'
@@ -414,7 +414,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
 
     def test_redireciona_sessao_plenaria_list_sem_tipo_e_ano(self):
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.sessao:pesquisar_sessao')
+        url_e = reverse('sapl.sessao:pesquisar_sessao')
 
         year = EMPTY_STRING
         month = '04'
@@ -444,7 +444,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
 
     def test_redireciona_sessao_plenaria_list_sem_ano(self):
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.sessao:pesquisar_sessao')
+        url_e = reverse('sapl.sessao:pesquisar_sessao')
 
         year = EMPTY_STRING
         month = '04'
@@ -473,7 +473,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
 
     def test_redireciona_sessao_plenaria_list_sem_mes_dia(self):
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.sessao:pesquisar_sessao')
+        url_e = reverse('sapl.sessao:pesquisar_sessao')
 
         year = '2015'
         month = EMPTY_STRING
@@ -508,16 +508,16 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         args_e = EMPTY_STRING
         args = EMPTY_STRING
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.base:historico_tramitacoes')
+        url_e = reverse('sapl.base:historico_tramitacoes')
 
-        inicio_intervalo_data_tramitacao = EMPTY_STRING
-        fim_intervalo_data_tramitacao = EMPTY_STRING
+        inicio_dt_tramitacao = EMPTY_STRING
+        fim_dt_tramitacao = EMPTY_STRING
         tipo_materia = EMPTY_STRING
         unidade_local_tramitacao = EMPTY_STRING
         status_tramitacao = EMPTY_STRING
 
-        args += "?txt_dat_inicio_periodo=%s" % (inicio_intervalo_data_tramitacao)
-        args += "&txt_dat_fim_periodo=%s" % (fim_intervalo_data_tramitacao)
+        args += "?txt_dat_inicio_periodo=%s" % (inicio_dt_tramitacao)
+        args += "&txt_dat_fim_periodo=%s" % (fim_dt_tramitacao)
         args += "&lst_tip_materia=%s" % (tipo_materia)
         args += "&lst_cod_unid_tram_dest=%s" % (unidade_local_tramitacao)
         args += "&lst_status=%s" % (status_tramitacao)
@@ -525,22 +525,22 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         url = "%s%s" % (url, args)
 
         # Remove zeros à esquerda
-        inicio_intervalo_data_tramitacao = inicio_intervalo_data_tramitacao.lstrip("0")
-        fim_intervalo_data_tramitacao = fim_intervalo_data_tramitacao.lstrip("0")
+        inicio_dt_tramitacao = inicio_dt_tramitacao.lstrip("0")
+        fim_dt_tramitacao = fim_dt_tramitacao.lstrip("0")
         tipo_materia = tipo_materia.lstrip("0")
         unidade_local_tramitacao = unidade_local_tramitacao.lstrip("0")
         status_tramitacao = status_tramitacao.lstrip("0")
 
-        if ((inicio_intervalo_data_tramitacao != EMPTY_STRING) or
-            (fim_intervalo_data_tramitacao != EMPTY_STRING) or
-            (tipo_materia != EMPTY_STRING) or
-            (unidade_local_tramitacao != EMPTY_STRING) or
-            (status_tramitacao != EMPTY_STRING)
-            ):
+        if (
+          (inicio_dt_tramitacao != EMPTY_STRING) or
+          (fim_dt_tramitacao != EMPTY_STRING) or
+          (tipo_materia != EMPTY_STRING) or
+          (unidade_local_tramitacao != EMPTY_STRING) or
+          (status_tramitacao != EMPTY_STRING)):
             args_e += "?tramitacao__data_tramitacao_0=%s" % (
-                    inicio_intervalo_data_tramitacao)
+                    inicio_dt_tramitacao)
             args_e += "&tramitacao__data_tramitacao_1=%s" % (
-                    fim_intervalo_data_tramitacao)
+                    fim_dt_tramitacao)
             args_e += "&tipo=%s" % (tipo_materia)
             args_e += "&tramitacao__unidade_tramitacao_local=%s" % (
                     unidade_local_tramitacao)
@@ -557,16 +557,16 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         args = EMPTY_STRING
         args_e = EMPTY_STRING
         url = reverse(self.url_pattern)
-        url_e = reverse( 'sapl.base:historico_tramitacoes')
+        url_e = reverse('sapl.base:historico_tramitacoes')
 
-        inicio_intervalo_data_tramitacao = '12/07/2000'
-        fim_intervalo_data_tramitacao = '26/05/2017'
+        inicio_dt_tramitacao = '12/07/2000'
+        fim_dt_tramitacao = '26/05/2017'
         unidade_local_tramitacao = '0'
         tipo_materia = '0'
         status_tramitacao = '0'
 
-        args += "?txt_dat_inicio_periodo=%s" % (inicio_intervalo_data_tramitacao)
-        args += "&txt_dat_fim_periodo=%s" % (fim_intervalo_data_tramitacao)
+        args += "?txt_dat_inicio_periodo=%s" % (inicio_dt_tramitacao)
+        args += "&txt_dat_fim_periodo=%s" % (fim_dt_tramitacao)
         args += "&lst_tip_materia=%s" % (tipo_materia)
         args += "&lst_cod_unid_tram_dest=%s" % (unidade_local_tramitacao)
         args += "&lst_status=%s" % (status_tramitacao)
@@ -574,22 +574,22 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         url = "%s%s" % (url, args)
 
         # Remove zeros à esquerda
-        inicio_intervalo_data_tramitacao = inicio_intervalo_data_tramitacao.lstrip("0")
-        fim_intervalo_data_tramitacao = fim_intervalo_data_tramitacao.lstrip("0")
+        inicio_dt_tramitacao = inicio_dt_tramitacao.lstrip("0")
+        fim_dt_tramitacao = fim_dt_tramitacao.lstrip("0")
         tipo_materia = tipo_materia.lstrip("0")
         unidade_local_tramitacao = unidade_local_tramitacao.lstrip("0")
         status_tramitacao = status_tramitacao.lstrip("0")
 
-        if ((inicio_intervalo_data_tramitacao != EMPTY_STRING) or
-            (fim_intervalo_data_tramitacao != EMPTY_STRING) or
-            (tipo_materia != EMPTY_STRING) or
-            (unidade_local_tramitacao != EMPTY_STRING) or
-            (status_tramitacao != EMPTY_STRING)
-            ):
+        if (
+          (inicio_dt_tramitacao != EMPTY_STRING) or
+          (fim_dt_tramitacao != EMPTY_STRING) or
+          (tipo_materia != EMPTY_STRING) or
+          (unidade_local_tramitacao != EMPTY_STRING) or
+          (status_tramitacao != EMPTY_STRING)):
             args_e += "?tramitacao__data_tramitacao_0=%s" % (
-                    inicio_intervalo_data_tramitacao)
+                    inicio_dt_tramitacao)
             args_e += "&tramitacao__data_tramitacao_1=%s" % (
-                    fim_intervalo_data_tramitacao)
+                    fim_dt_tramitacao)
             args_e += "&tipo=%s" % (tipo_materia)
             args_e += "&tramitacao__unidade_tramitacao_local=%s" % (
                     unidade_local_tramitacao)

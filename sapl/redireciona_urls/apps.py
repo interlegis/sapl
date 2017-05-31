@@ -6,6 +6,3 @@ class AppConfig(apps.AppConfig):
     name = 'sapl.redireciona_urls'
     label = 'redireciona_urls'
     verbose_name = _('Redirecionador de URLs')
-
-    def ready(self):
-        from . import signals

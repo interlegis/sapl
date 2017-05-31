@@ -1,3 +1,4 @@
+from .apps import AppConfig
 from .views import (
     RedirecionaAtasList,
     RedirecionaComissao,
@@ -16,8 +17,6 @@ from .views import (
     RedirecionaSAPLIndex)
 from django.conf.urls import url
 
-
-from .apps import AppConfig
 
 app_name = AppConfig.name
 
@@ -52,22 +51,22 @@ urlpatterns = [
     url(r'^relatorios_administrativos/relatorios_administrativos_index_html$',
         RedirecionaRelatoriosList.as_view(),
         name='redireciona_relatorios_list'),
-    url(r'^relatorios_administrativos/tramitacaoMaterias/tramitacaoMaterias',
+    url(r'tramitacaoMaterias/tramitacaoMaterias',
         RedirecionaRelatoriosMateriasEmTramitacaoList.as_view(),
         name='redireciona_relatorio_materia_por_tramitacao'),
-    url(r'^relatorios_administrativos/tramitacaoMaterias/materia_mostrar_proc$',
+    url(r'tramitacaoMaterias/materia_mostrar_proc$',
         RedirecionaMateriaLegislativaDetail.as_view(),
         name='redireciona_materialegislativa_detail'),
     url(r'^generico/materia_pesquisar_',
         RedirecionaMateriaLegislativaList.as_view(),
         name='redireciona_materialegislativa_list'),
-    url(r'^relatorios_administrativos/historicoTramitacoes/historicoTramitacoes',
+    url(r'historicoTramitacoes/historicoTramitacoes',
         RedirecionaHistoricoTramitacoesList.as_view(),
         name='redireciona_historico_tramitacoes'),
-    url(r'^relatorios_administrativos/atasSessao',
+    url(r'atasSessao',
         RedirecionaAtasList.as_view(),
         name='redireciona_atas_list'),
-    url(r'^relatorios_administrativos/presencaSessao',
+    url(r'presencaSessao',
         RedirecionaPresencaParlamentares.as_view(),
         name='redireciona_presencaparlamentar_list'),
 ]

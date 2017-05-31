@@ -1,14 +1,14 @@
 from .exceptions import UnknownUrlNameError
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
+from sapl.base.apps import AppConfig as atasConfig
+from sapl.base.apps import AppConfig as presenca_sessaoConfig
 from sapl.base.apps import AppConfig as relatoriosConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
 from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.norma.apps import AppConfig as normaConfig
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
-from sapl.base.apps import AppConfig as atasConfig
-from sapl.base.apps import AppConfig as presenca_sessaoConfig
 
 EMPTY_STRING = ''
 
@@ -21,9 +21,9 @@ app_sessao = sessaoConfig.name
 app_norma = normaConfig.name
 app_relatorios = relatoriosConfig.name
 
-pesquisar_atas = ( app_atas + ':atas')
-presenca_sessao = ( app_presenca_sessao + ':presenca_sessao')
-parlamentar_list = ( app_parlamentares + ':parlamentar_list')
+pesquisar_atas = (app_atas + ':atas')
+presenca_sessao = (app_presenca_sessao + ':presenca_sessao')
+parlamentar_list = (app_parlamentares + ':parlamentar_list')
 parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
 parlamentar_mesa_diretora = (app_parlamentares + ':mesa_diretora')
 
@@ -64,7 +64,9 @@ class RedirecionaParlamentar(RedirectView):
 
     def get_redirect_url(self):
         url = EMPTY_STRING
-        pk_parlamentar = self.request.GET.get('cod_parlamentar', EMPTY_STRING)
+        pk_parlamentar = self.request.GET.get(
+            'cod_parlamentar',
+            EMPTY_STRING)
 
         if pk_parlamentar:
             try:
@@ -78,7 +80,9 @@ class RedirecionaParlamentar(RedirectView):
             except NoReverseMatch:
                 raise UnknownUrlNameError(parlamentar_list)
 
-            numero_legislatura = self.request.GET.get('hdn_num_legislatura', EMPTY_STRING)
+            numero_legislatura = self.request.GET.get(
+                'hdn_num_legislatura',
+                EMPTY_STRING)
             if numero_legislatura:
                 args = '?pk=' + numero_legislatura
                 url = "%s%s" % (url, args)
@@ -95,7 +99,7 @@ class RedirecionaComissao(RedirectView):
 
         if pk_comissao:
             kwargs = {'pk': pk_comissao}
-            
+
             try:
                 url = reverse(comissao_detail, kwargs=kwargs)
             except NoReverseMatch:
@@ -112,7 +116,9 @@ class RedirecionaPautaSessao(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
-        pk_sessao_plenaria = self.request.GET.get('cod_sessao_plen', EMPTY_STRING)
+        pk_sessao_plenaria = self.request.GET.get(
+            'cod_sessao_plen',
+            EMPTY_STRING)
 
         if pk_sessao_plenaria:
             kwargs = {'pk': pk_sessao_plenaria}
@@ -126,8 +132,9 @@ class RedirecionaPautaSessao(RedirectView):
             except NoReverseMatch:
                 raise UnknownUrlNameError(pauta_sessao_list)
 
-
-            data_sessao_plenaria = self.request.GET.get('dat_sessao_sel', EMPTY_STRING)
+            data_sessao_plenaria = self.request.GET.get(
+                'dat_sessao_sel',
+                EMPTY_STRING)
 
             if data_sessao_plenaria:
                 dia_s_p, mes_s_p, ano_s_p = data_sessao_plenaria.split('/')
@@ -148,7 +155,9 @@ class RedirecionaSessaoPlenaria(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
-        pk_sessao_plenaria = self.request.GET.get('cod_sessao_plen', EMPTY_STRING)
+        pk_sessao_plenaria = self.request.GET.get(
+            'cod_sessao_plen',
+            EMPTY_STRING)
         url = EMPTY_STRING
         if pk_sessao_plenaria:
             kwargs = {'pk': pk_sessao_plenaria}
@@ -163,10 +172,18 @@ class RedirecionaSessaoPlenaria(RedirectView):
             except NoReverseMatch:
                 raise UnknownUrlNameError(sessao_plenaria_list)
 
-            year = self.request.GET.get('ano_sessao_sel', EMPTY_STRING)
-            month = self.request.GET.get('mes_sessao_sel', EMPTY_STRING)
-            day = self.request.GET.get('dia_sessao_sel', EMPTY_STRING)
-            tipo_sessao = self.request.GET.get('tip_sessao_sel', EMPTY_STRING)
+            year = self.request.GET.get(
+                'ano_sessao_sel',
+                EMPTY_STRING)
+            month = self.request.GET.get(
+                'mes_sessao_sel',
+                EMPTY_STRING)
+            day = self.request.GET.get(
+                'dia_sessao_sel',
+                EMPTY_STRING)
+            tipo_sessao = self.request.GET.get(
+                'tip_sessao_sel',
+                EMPTY_STRING)
 
             # Remove zeros à esquerda
             day = day.lstrip("0")
@@ -203,12 +220,22 @@ class RedirecionaRelatoriosMateriasEmTramitacaoList(RedirectView):
         except NoReverseMatch:
             raise UnknownUrlNameError(relatorio_materia_por_tramitacao)
 
-        year = self.request.GET.get('selAno', EMPTY_STRING)
+        year = self.request.GET.get(
+            'selAno',
+            EMPTY_STRING)
         if year:
-            tramitacao_tipo = self.request.GET.get('lst_tip_materia', EMPTY_STRING)
-            tramitacao_unidade_local = self.request.GET.get('lst_cod_unid_tram_dest', EMPTY_STRING)
-            tramitacao_status = self.request.GET.get('lst_status', EMPTY_STRING)
-            salvar = self.request.GET.get('btn_materia_pesquisar', 'Pesquisar')
+            tramitacao_tipo = self.request.GET.get(
+                'lst_tip_materia',
+                EMPTY_STRING)
+            tramitacao_unidade_local = self.request.GET.get(
+                'lst_cod_unid_tram_dest',
+                EMPTY_STRING)
+            tramitacao_status = self.request.GET.get(
+                'lst_status',
+                EMPTY_STRING)
+            salvar = self.request.GET.get(
+                'btn_materia_pesquisar',
+                'Pesquisar')
 
             tramitacao_tipo = tramitacao_tipo.lstrip("0")
             tramitacao_unidade_local = tramitacao_unidade_local.lstrip("0")
@@ -217,7 +244,8 @@ class RedirecionaRelatoriosMateriasEmTramitacaoList(RedirectView):
             args = EMPTY_STRING
             args += "?ano=%s" % (year)
             args += "&tipo=%s" % (tramitacao_tipo)
-            args += "&tramitacao__unidade_tramitacao_local=%s" % (tramitacao_unidade_local)
+            args += "&tramitacao__unidade_tramitacao_local=%s" % (
+                tramitacao_unidade_local)
             args += "&tramitacao__status=%s" % (tramitacao_status)
             args += "&salvar=%s" % (salvar)
             url = "%s%s" % (url, args)
@@ -249,20 +277,42 @@ class RedirecionaMateriaLegislativaList(RedirectView):
         except NoReverseMatch:
             raise UnknownUrlNameError(materialegislativa_list)
 
-        tipo_materia = self.request.GET.get('lst_tip_materia', EMPTY_STRING)
-        numero_materia = self.request.GET.get('txt_numero', EMPTY_STRING)
-        ano_materia = self.request.GET.get('txt_ano', EMPTY_STRING)
-        numero_processo = self.request.GET.get('txt_npc', EMPTY_STRING)
-        num_protocolo_materia = self.request.GET.get('txt_num_protocolo', EMPTY_STRING)
-        periodo_inicial_apresentacao = self.request.GET.get('dt_apres', EMPTY_STRING)
-        periodo_final_apresentacao = self.request.GET.get('dt_apres2', EMPTY_STRING)
-        periodo_inicial_publicacao = self.request.GET.get('dt_public', EMPTY_STRING)
-        periodo_final_publicacao = self.request.GET.get('dt_public2', EMPTY_STRING)
-        hdn_cod_autor = self.request.GET.get('hdn_cod_autor', EMPTY_STRING)
-        tipo_autor = self.request.GET.get('lst_tip_autor', EMPTY_STRING)
-        ementa_materia = self.request.GET.get('txt_assunto', EMPTY_STRING)
-        tramitando = self.request.GET.get('rad_tramitando', EMPTY_STRING)
-        status_tramitacao = self.request.GET.get('lst_status', EMPTY_STRING)
+        tipo_materia = self.request.GET.get(
+            'lst_tip_materia',
+            EMPTY_STRING)
+        numero_materia = self.request.GET.get(
+            'txt_numero',
+            EMPTY_STRING)
+        ano_materia = self.request.GET.get(
+            'txt_ano',
+            EMPTY_STRING)
+        num_protocolo_materia = self.request.GET.get(
+            'txt_num_protocolo',
+            EMPTY_STRING)
+        periodo_inicial_apresentacao = self.request.GET.get(
+            'dt_apres',
+            EMPTY_STRING)
+        periodo_final_apresentacao = self.request.GET.get(
+            'dt_apres2',
+            EMPTY_STRING)
+        periodo_inicial_publicacao = self.request.GET.get(
+            'dt_public',
+            EMPTY_STRING)
+        periodo_final_publicacao = self.request.GET.get(
+            'dt_public2',
+            EMPTY_STRING)
+        tipo_autor = self.request.GET.get(
+            'lst_tip_autor',
+            EMPTY_STRING)
+        ementa_materia = self.request.GET.get(
+            'txt_assunto',
+            EMPTY_STRING)
+        tramitando = self.request.GET.get(
+            'rad_tramitando',
+            EMPTY_STRING)
+        status_tramitacao = self.request.GET.get(
+            'lst_status',
+            EMPTY_STRING)
 
         args += "?tipo=%s" % (tipo_materia)
         args += "&numero=%s" % (numero_materia)
@@ -282,7 +332,7 @@ class RedirecionaMateriaLegislativaList(RedirectView):
         args += "&o=%s" % (EMPTY_STRING)
         args += "&materiaassunto__assunto=%s" % (EMPTY_STRING)
         args += "&ementa=%s" % (ementa_materia)
-        args += "&salvar=%s" % ('Pesquisar') # Default in both SAPL version
+        args += "&salvar=%s" % ('Pesquisar')  # Default in both SAPL version
 
         url = "%s%s" % (url, args)
 
@@ -312,6 +362,7 @@ class RedirecionaNormasJuridicasDetail(RedirectView):
             return reverse(norma_juridica_detail, kwargs=kwargs)
         else:
             return reverse(norma_juridica_pesquisa)
+
 
 class RedirecionaNormasJuridicasList(RedirectView):
 
@@ -362,7 +413,7 @@ class RedirecionaNormasJuridicasList(RedirectView):
         args += "&data_publicacao_1=%s" % (periodo_final_publicacao)
         args += "&ementa=%s" % (ementa_norma)
         args += "&assuntos=%s" % (assuntos_norma)
-        args += "&salvar=%s" % ('Pesquisar') # Default in both SAPL version
+        args += "&salvar=%s" % ('Pesquisar')  # Default in both SAPL version
 
         url = "%s%s" % (url, args)
 
@@ -402,12 +453,12 @@ class RedirecionaHistoricoTramitacoesList(RedirectView):
             EMPTY_STRING
             ).lstrip("0")
 
-        if ((inicio_intervalo_data_tramitacao != EMPTY_STRING) or
-            (fim_intervalo_data_tramitacao != EMPTY_STRING) or
-            (tipo_materia != EMPTY_STRING) or
-            (unidade_local_tramitacao != EMPTY_STRING) or
-            (status_tramitacao != EMPTY_STRING)
-            ):
+        if (
+          (inicio_intervalo_data_tramitacao != EMPTY_STRING) or
+          (fim_intervalo_data_tramitacao != EMPTY_STRING) or
+          (tipo_materia != EMPTY_STRING) or
+          (unidade_local_tramitacao != EMPTY_STRING) or
+          (status_tramitacao != EMPTY_STRING)):
 
             args += "?tramitacao__data_tramitacao_0=%s" % (
                 inicio_intervalo_data_tramitacao)
