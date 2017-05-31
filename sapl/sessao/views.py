@@ -124,6 +124,16 @@ def abrir_votacao_ordem_view(request, pk, spk):
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
 
 
+def put_link_materia(context):
+    for i, row in enumerate(context['rows']):
+        materia = context['object_list'][i].materia
+        url_materia = reverse('sapl.materia:materialegislativa_detail',
+                              kwargs={'pk': materia.id})
+
+        context['rows'][i][1] = (row[1][0], url_materia)
+    return context
+
+
 class MateriaOrdemDiaCrud(MasterDetailCrud):
     model = OrdemDia
     parent_field = 'sessao_plenaria'
@@ -166,19 +176,13 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            for i in range(len(context['rows'])):
-                materia = context['object_list'][i].materia
-                url_materia = reverse('sapl.materia:materialegislativa_detail',
-                                      kwargs={'pk': materia.id})
 
-                context['rows'][i][1] = (context['rows'][i][1][0], url_materia)
-            return context
+            return put_link_materia(context)
 
         def get_rows(self, object_list):
             for obj in object_list:
                 exist_resultado = obj.registrovotacao_set.filter(
-                    materia=obj.materia
-                    ).exists()
+                    materia=obj.materia).exists()
                 if not exist_resultado:
                     if obj.votacao_aberta:
                         url = ''
@@ -292,13 +296,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            for i in range(len(context['rows'])):
-                materia = context['object_list'][i].materia
-                url_materia = reverse('sapl.materia:materialegislativa_detail',
-                                      kwargs={'pk': materia.id})
 
-                context['rows'][i][1] = (context['rows'][i][1][0], url_materia)
-            return context
+            return put_link_materia(context)
 
         def get_rows(self, object_list):
             for obj in object_list:
