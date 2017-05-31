@@ -502,12 +502,12 @@ def get_dados_painel(request, pk):
             else:
                 if ultimo_expediente_votado.tipo_votacao in [1, 3]:
                     return JsonResponse(
-                        get_votos(get_presentes(
+                        get_votos(get_presentes_expediente(
                                   pk, response, ultimo_expediente_votado),
                                   ultimo_expediente_votado))
                 elif ultimo_expediente_votado.tipo_votacao == 2:
                     return JsonResponse(
-                        get_votos_nominal(get_presentes(
+                        get_votos_nominal(get_presentes_expediente(
                                           pk, response,
                                           ultimo_expediente_votado),
                                           ultimo_expediente_votado))
@@ -518,8 +518,9 @@ def get_dados_painel(request, pk):
                 pk, response, ultima_ordem_votada))
         # Caso a Ordem do dia não tenha resultado, mostra o último expediente
         if last_expediente_voto:
-            return JsonResponse(get_presentes(pk, response,
-                                              ultimo_expediente_votado))
+            return JsonResponse(get_presentes_expediente(
+                pk, response,
+                ultimo_expediente_votado))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(response)
