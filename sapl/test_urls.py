@@ -254,6 +254,7 @@ apps_url_patterns_prefixs_and_users = {
 }
 
 
+@pytest.mark.skip(reason="TODO: Lento demais. Precisa ser refatorado")
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_urlpatterns(url_item, admin_client):
 
