@@ -30,32 +30,25 @@
 
     <br />
 
-    <div id="ativos">
       <div class="controls">
-  		{% for parlamentar, check in view.get_presencas_ordem_ativos %}
-        <div class="checkbox">
-        <label for="id_presenca_{{forloop.counter}}">
-          <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-          {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
-        </label>
-        </div>
-		{% endfor %}
+        {% for parlamentar, check in view.get_presencas_ordem %}
+          {% if parlamentar.ativo %}
+          <div class="checkbox">
+            <label for="id_presenca_{{forloop.counter}}">
+              <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
+              {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
+            </label>
+          </div>
+          {% else %}
+          <div class="checkbox inativos" style="display:none;">
+            <label for="id_presenca_{{forloop.counter}}">
+              <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
+              {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
+            </label>
+          </div>
+          {% endif %}
+        {% endfor %}
       </div>
-    </div>
-
-    <div id="demais" style="display:none;">
-      <div class="controls">
-                {% for parlamentar, check in view.get_presencas_ordem_demais %}
-        <div class="checkbox">
-        <label for="id_presenca_{{forloop.counter}}">
-          <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_demais" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-          {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
-        </label>
-        </div>
-                {% endfor %}
-      </div>
-    </div>
-
 
 		<br />
 		<input type="submit" value="Salvar" class="btn btn-primary" />
@@ -88,7 +81,7 @@
                                 $(this).trigger('click');
                         });
                         if (($('[name=ativos]').is(':checked')) == false) {
-                                $('[name=presenca_demais]').each(function() {
+                                $('[name=presenca_inativos]').each(function() {
                                         $(this).prop('checked', event.target.checked ? 'checked': null);
                                         $(this).trigger('click');
                                });
@@ -97,11 +90,7 @@
                 }
 
                 function escondeInativos() {
-                        if ($('[name=ativos]').is(':checked')) {
-                             document.getElementById("demais").style.display = 'none';
-                        } else {
-                             document.getElementById("demais").style.display = 'block';
-                        }
+                        $(".inativos").toggle();
                 }
 	</script>
 {% endblock %}
