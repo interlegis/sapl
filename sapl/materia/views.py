@@ -1297,8 +1297,9 @@ class AcompanhamentoConfirmarView(TemplateView):
 
 class AcompanhamentoExcluirView(TemplateView):
 
-    def get_redirect_url(self):
-        return reverse('sapl.sessao:list_pauta_sessao')
+    def get_success_url(self):
+        return reverse('sapl.materia:materialegislativa_detail',
+                       kwargs={'pk': self.kwargs['pk']})
 
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
@@ -1310,7 +1311,7 @@ class AcompanhamentoExcluirView(TemplateView):
         except ObjectDoesNotExist:
             pass
 
-        return HttpResponseRedirect(self.get_redirect_url())
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class MateriaLegislativaPesquisaView(FilterView):
