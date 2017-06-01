@@ -38,6 +38,7 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
+from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
@@ -57,6 +58,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
+
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -1579,7 +1581,7 @@ def do_envia_email_confirmacao(request, materia, email):
                                                      confirmado=False)
     casa = CasaLegislativa.objects.first()
 
-    sender = 'sapl-test@interlegis.leg.br'
+    sender = EMAIL_SEND_USER
     # FIXME i18n
     subject = "[SAPL] " + str(materia) + " - Ative o Acompanhamento da Materia"
     messages = []
@@ -1609,7 +1611,7 @@ def do_envia_email_tramitacao(request, materia, status, unidade_destino):
                                                          confirmado=True)
     casa = CasaLegislativa.objects.first()
 
-    sender = 'sapl-test@interlegis.leg.br'
+    sender = EMAIL_SEND_USER
     # FIXME i18n
     subject = "[SAPL] " + str(materia) + \
               " - Acompanhamento de Materia Legislativa"
