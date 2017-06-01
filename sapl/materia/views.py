@@ -932,8 +932,11 @@ class TramitacaoCrud(MasterDetailCrud):
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
                     )
+                texto = request.POST['texto']
+                data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
-                    request, materia, status, unidade_destino)
+                    request, materia, status,
+                    unidade_destino, texto, data_tramitacao)
 
             return super(UpdateView, self).post(request, *args, **kwargs)
 
@@ -1486,8 +1489,9 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
     return templates
 
 
-def criar_email_tramitacao(request, casa_legislativa, materia, status,
-                           unidade_destino, hash_txt=''):
+def criar_email_tramitacao(
+                        request, casa_legislativa, materia, status,
+                        unidade_destino, texto, data_tramitacao, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
@@ -1521,10 +1525,10 @@ def criar_email_tramitacao(request, casa_legislativa, materia, status,
                                       "logotipo": casa_legislativa.logotipo,
                                       "descricao_materia": materia.ementa,
                                       "autoria": autores,
-                                      "data": tramitacao.data_tramitacao,
+                                      "data": data_tramitacao,
                                       "status": status,
                                       "localizacao": unidade_destino,
-                                      "texto_acao": tramitacao.texto,
+                                      "texto_acao": texto,
                                       "hash_txt": hash_txt,
                                       "materia": str(materia),
                                       "base_url": base_url,
@@ -1603,7 +1607,8 @@ def do_envia_email_confirmacao(request, materia, email):
     return None
 
 
-def do_envia_email_tramitacao(request, materia, status, unidade_destino):
+def do_envia_email_tramitacao(
+    request, materia, status, unidade_destino, texto, data_tramitacao):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
@@ -1623,6 +1628,8 @@ def do_envia_email_tramitacao(request, materia, status, unidade_destino):
                                              materia,
                                              status,
                                              unidade_destino,
+                                             texto,
+                                             data_tramitacao,
                                              destinatario.hash,)
         recipients.append(destinatario.email)
         messages.append({
