@@ -8,7 +8,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
-from django.http.response import HttpResponseRedirect
+from django.http.response import Http404, HttpResponseRedirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
@@ -1568,6 +1568,10 @@ class VotacaoView(SessaoPermissionMixin):
                        kwargs={'pk': pk})
 
 
+def fechar_votacao_materia(sessao, materia, ordem=None, expediente=None):
+    
+
+
 class VotacaoNominalView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal.html'
 
@@ -1638,14 +1642,15 @@ class VotacaoNominalView(SessaoPermissionMixin):
                 elif(voto == 'Não Votou'):
                     nao_votou += 1
 
-            try:
-                votacao = RegistroVotacao.objects.get(
-                    materia_id=materia_id,
-                    ordem_id=ordem_id)
-            except ObjectDoesNotExist:
-                pass
-            else:
-                votacao.delete()
+            if nao_votou == len(request.POST.getlist('voto_parlamentar')):
+
+            votacao = RegistroVotacao.objects.filter(
+                materia_id=materia_id,
+                ordem_id=ordem_id)
+
+            # Remove todas as votação desta matéria, caso existam
+            for v in votacao:
+                v.delete()
 
             votacao = RegistroVotacao()
             votacao.numero_votos_sim = votos_sim
@@ -1721,9 +1726,17 @@ class VotacaoNominalEditView(SessaoPermissionMixin):
         materia_id = kwargs['oid']
         ordem_id = kwargs['mid']
 
-        votacao = RegistroVotacao.objects.get(
-            materia_id=materia_id,
-            ordem_id=ordem_id)
+        try:
+            votacao = RegistroVotacao.objects.get(
+                materia_id=materia_id,
+                ordem_id=ordem_id)
+        except ObjectDoesNotExist:
+            raise Http404()
+        except MultipleObjectsReturned:
+            votacao = RegistroVotacao.objects.filter(
+                materia_id=materia_id,
+                ordem_id=ordem_id).first()
+
         ordem = OrdemDia.objects.get(id=ordem_id)
         votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
 
