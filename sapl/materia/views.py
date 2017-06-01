@@ -915,8 +915,11 @@ class TramitacaoCrud(MasterDetailCrud):
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
                     )
+                texto = request.POST['texto']
+                data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
-                    request, materia, status, unidade_destino)
+                    request, materia, status,
+                    unidade_destino, texto, data_tramitacao)
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
