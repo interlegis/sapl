@@ -8,12 +8,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import Context, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -57,6 +55,8 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
+
+from .email_utils import do_envia_email_confirmacao
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -904,36 +904,9 @@ class TramitacaoCrud(MasterDetailCrud):
             self.initial['data_tramitacao'] = datetime.now()
             return self.initial
 
-        def post(self, request, *args, **kwargs):
-            materia = MateriaLegislativa.objects.get(id=kwargs['pk'])
-
-            if 'status' in request.POST and request.POST['status']:
-                status = StatusTramitacao.objects.filter(
-                    id=request.POST['status']).first()
-                unidade_destino = UnidadeTramitacao.objects.get(
-                    id=request.POST['unidade_tramitacao_destino']
-                    )
-                do_envia_email_tramitacao(
-                    request, materia, status, unidade_destino)
-            return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
-
-        def post(self, request, *args, **kwargs):
-            materia = MateriaLegislativa.objects.get(
-                tramitacao__id=kwargs['pk'])
-
-            if 'status' in request.POST and request.POST['status']:
-                status = StatusTramitacao.objects.filter(
-                    id=request.POST['status']).first()
-                unidade_destino = UnidadeTramitacao.objects.get(
-                    id=request.POST['unidade_tramitacao_destino']
-                    )
-                do_envia_email_tramitacao(
-                    request, materia, status, unidade_destino)
-
-            return super(UpdateView, self).post(request, *args, **kwargs)
 
         @property
         def layout_key(self):
@@ -1407,7 +1380,20 @@ class AcompanhamentoMateriaView(CreateView):
                 acompanhar.usuario = usuario.username
                 acompanhar.confirmado = False
                 acompanhar.save()
-                do_envia_email_confirmacao(request, materia, email)
+
+                base_url = get_base_url(request)
+
+                destinatario = AcompanhamentoMateria.objects.get(
+                                                     materia=materia,
+                                                     email=email,
+                                                     confirmado=False)
+                casa = CasaLegislativa.objects.first()
+
+                do_envia_email_confirmacao(base_url,
+                                           casa,
+                                           materia,
+                                           destinatario)
+
                 msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
                          de mensagens e clique no link que nós enviamos para \
                          confirmar o acompanhamento desta matéria.')
@@ -1433,203 +1419,6 @@ class AcompanhamentoMateriaView(CreateView):
     def get_success_url(self):
         return reverse('sapl.materia:materialegislativa_detail',
                        kwargs={'pk': self.kwargs['pk']})
-
-
-def load_email_templates(templates, context={}):
-
-    emails = []
-    for t in templates:
-        tpl = loader.get_template(t)
-        email = tpl.render(Context(context))
-        if t.endswith(".html"):
-            email = email.replace('\n', '').replace('\r', '')
-        emails.append(email)
-    return emails
-
-
-def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
-
-    if not casa_legislativa:
-        raise ValueError("Casa Legislativa é obrigatória")
-
-    if not materia:
-        raise ValueError("Matéria é obrigatória")
-
-    # FIXME i18n
-    casa_nome = (casa_legislativa.nome + ' de ' +
-                 casa_legislativa.municipio + '-' +
-                 casa_legislativa.uf)
-
-    base_url = get_base_url(request)
-    materia_url = reverse('sapl.materia:materialegislativa_detail',
-                          kwargs={'pk': materia.id})
-    confirmacao_url = reverse('sapl.materia:acompanhar_confirmar',
-                              kwargs={'pk': materia.id})
-
-    autores = []
-    for autoria in materia.autoria_set.all():
-        autores.append(autoria.autor.nome)
-
-    templates = load_email_templates(['email/acompanhar.txt',
-                                      'email/acompanhar.html'],
-                                     {"casa_legislativa": casa_nome,
-                                      "logotipo": casa_legislativa.logotipo,
-                                      "descricao_materia": materia.ementa,
-                                      "autoria": autores,
-                                      "hash_txt": hash_txt,
-                                      "base_url": base_url,
-                                      "materia": str(materia),
-                                      "materia_url": materia_url,
-                                      "confirmacao_url": confirmacao_url, })
-    return templates
-
-
-def criar_email_tramitacao(request, casa_legislativa, materia, status,
-                           unidade_destino, hash_txt=''):
-
-    if not casa_legislativa:
-        raise ValueError("Casa Legislativa é obrigatória")
-
-    if not materia:
-        raise ValueError("Matéria é obrigatória")
-
-    # FIXME i18n
-    casa_nome = (casa_legislativa.nome + ' de ' +
-                 casa_legislativa.municipio + '-' +
-                 casa_legislativa.uf)
-
-    base_url = get_base_url(request)
-    url_materia = reverse('sapl.materia:tramitacao_list',
-                          kwargs={'pk': materia.id})
-    url_excluir = reverse('sapl.materia:acompanhar_excluir',
-                          kwargs={'pk': materia.id})
-
-    autores = []
-    for autoria in materia.autoria_set.all():
-        autores.append(autoria.autor.nome)
-
-    tramitacao = materia.tramitacao_set.last()
-
-    templates = load_email_templates(['email/tramitacao.txt',
-                                      'email/tramitacao.html'],
-                                     {"casa_legislativa": casa_nome,
-                                      "data_registro": datetime.now().strftime(
-                                          "%d/%m/%Y"),
-                                      "cod_materia": materia.id,
-                                      "logotipo": casa_legislativa.logotipo,
-                                      "descricao_materia": materia.ementa,
-                                      "autoria": autores,
-                                      "data": tramitacao.data_tramitacao,
-                                      "status": status,
-                                      "localizacao": unidade_destino,
-                                      "texto_acao": tramitacao.texto,
-                                      "hash_txt": hash_txt,
-                                      "materia": str(materia),
-                                      "base_url": base_url,
-                                      "materia_url": url_materia,
-                                      "excluir_url": url_excluir})
-    return templates
-
-
-def enviar_emails(sender, recipients, messages):
-    '''
-        Recipients is a string list of email addresses
-
-        Messages is an array of dicts of the form:
-        {'recipient': 'address', # useless????
-         'subject': 'subject text',
-         'txt_message': 'text message',
-         'html_message': 'html message'
-        }
-    '''
-
-    if len(messages) == 1:
-        # sends an email simultaneously to all recipients
-        send_mail(messages[0]['subject'],
-                  messages[0]['txt_message'],
-                  sender,
-                  recipients,
-                  html_message=messages[0]['html_message'],
-                  fail_silently=False)
-
-    elif len(recipients) > len(messages):
-        raise ValueError("Message list should have size 1 \
-                         or equal recipient list size. \
-                         recipients: %s, messages: %s" % (recipients, messages)
-                         )
-
-    else:
-        # sends an email simultaneously to all reciepients
-        for (d, m) in zip(recipients, messages):
-            send_mail(m['subject'],
-                      m['txt_message'],
-                      sender,
-                      [d],
-                      html_message=m['html_message'],
-                      fail_silently=False)
-    return None
-
-
-def do_envia_email_confirmacao(request, materia, email):
-    #
-    # Envia email de confirmacao para atualizações de tramitação
-    #
-    destinatario = AcompanhamentoMateria.objects.get(materia=materia,
-                                                     email=email,
-                                                     confirmado=False)
-    casa = CasaLegislativa.objects.first()
-
-    sender = 'sapl-test@interlegis.leg.br'
-    # FIXME i18n
-    subject = "[SAPL] " + str(materia) + " - Ative o Acompanhamento da Materia"
-    messages = []
-    recipients = []
-
-    email_texts = criar_email_confirmacao(request,
-                                          casa,
-                                          materia,
-                                          destinatario.hash,)
-    recipients.append(destinatario.email)
-    messages.append({
-        'recipient': destinatario.email,
-        'subject': subject,
-        'txt_message': email_texts[0],
-        'html_message': email_texts[1]
-    })
-
-    enviar_emails(sender, recipients, messages)
-    return None
-
-
-def do_envia_email_tramitacao(request, materia, status, unidade_destino):
-    #
-    # Envia email de tramitacao para usuarios cadastrados
-    #
-    destinatarios = AcompanhamentoMateria.objects.filter(materia=materia,
-                                                         confirmado=True)
-    casa = CasaLegislativa.objects.first()
-
-    sender = 'sapl-test@interlegis.leg.br'
-    # FIXME i18n
-    subject = "[SAPL] " + str(materia) + \
-              " - Acompanhamento de Materia Legislativa"
-    messages = []
-    recipients = []
-    for destinatario in destinatarios:
-        email_texts = criar_email_tramitacao(request,
-                                             casa,
-                                             materia,
-                                             status,
-                                             unidade_destino,
-                                             destinatario.hash,)
-        recipients.append(destinatario.email)
-        messages.append({
-            'recipient': destinatario.email,
-            'subject': subject,
-            'txt_message': email_texts[0],
-            'html_message': email_texts[1],
-        })
-    enviar_emails(sender, recipients, messages)
 
 
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
