@@ -414,8 +414,18 @@ class RegistroVotacao(models.Model):
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     votacao = models.ForeignKey(RegistroVotacao, on_delete=models.PROTECT)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    # XXX change to restricted choices
     voto = models.CharField(max_length=10)
+
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             black=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          null=True,
+                          black=True)
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'), auto_now_add=True)
 
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
@@ -424,28 +434,6 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
             'votacao': self.votacao, 'parlamentar': self.parlamentar}
-
-
-@reversion.register()
-class VotoNominal(models.Model):
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    voto = models.CharField(verbose_name=_('Voto'), max_length=10)
-
-    sessao = models.ForeignKey(SessaoPlenaria, on_delete=models.PROTECT)
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
-
-    user = models.ForeignKey(get_settings_auth_user_model(),
-                             on_delete=models.PROTECT)
-    ip = models.CharField(verbose_name=_('IP'), max_length=30)
-    data_hora = models.DateTimeField(
-        verbose_name=_('Data/Hora'), auto_now_add=True)
-
-    class Meta:
-        verbose_name = _('Registro do Voto do Parlamentar')
-        verbose_name_plural = _('Registros dos Votos dos Parlamentares')
-
-    def __str__(self):
-        return '%s - %s' % (self.parlamentar.nome_parlamentar, self.voto)
 
 
 @reversion.register()

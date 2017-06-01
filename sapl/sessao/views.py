@@ -1568,8 +1568,40 @@ class VotacaoView(SessaoPermissionMixin):
                        kwargs={'pk': pk})
 
 
-def fechar_votacao_materia(sessao, materia, ordem=None, expediente=None):
-    
+def fechar_votacao_materia(presentes, ordem=None, expediente=None):
+    if ordem:
+        for p in presentes:
+            try:
+                voto_nominal = VotoNominal.objects.get(
+                    parlamentar=p.parlamentar,
+                    registro_votacao__ordem=ordem)
+            except ObjectDoesNotExist:
+                pass
+            else:
+                registro_votacao = voto_nominal.registro_votacao
+
+                registro_votacao.delete()
+                voto_nominal.delete()
+
+        ordem.votacao_aberta = False
+        ordem.save()
+
+    elif expediente:
+        for p in presentes:
+            try:
+                voto_nominal = VotoNominal.objects.get(
+                    parlamentar=p.parlamentar,
+                    registro_votacao__expediente=expediente)
+            except ObjectDoesNotExist:
+                pass
+            else:
+                registro_votacao = voto_nominal.registro_votacao
+
+                registro_votacao.delete()
+                voto_nominal.delete()
+
+        expediente.votacao_aberta = False
+        expediente.save()
 
 
 class VotacaoNominalView(SessaoPermissionMixin):
@@ -1595,28 +1627,20 @@ class VotacaoNominalView(SessaoPermissionMixin):
         self.object = self.get_object()
 
         ordem_id = kwargs['mid']
-        ordem = OrdemDia.objects.get(id=ordem_id)
+
+        try:
+            ordem = OrdemDia.objects.get(id=ordem_id)
+        except ObjectDoesNotExist:
+            raise Http404()
 
         form = VotacaoNominalForm(request.POST)
 
         if 'cancelar-votacao' in request.POST:
-            sessao = self.object
-            materia = ordem.materia
             presentes = PresencaOrdemDia.objects.filter(
-                sessao_plenaria_id=expediente.sessao_plenaria_id)
-            for p in presentes:
-                try:
-                    voto = VotoNominal.objects.get(
-                        parlamentar=p.parlamentar,
-                        sessao=self.object.pk,
-                        materia=materia)
-                except ObjectDoesNotExist:
-                    pass
-                else:
-                    voto.delete()
+                sessao_plenaria_id=ordem.sessao_plenaria_id)
 
-            ordem.votacao_aberta = False
-            ordem.save()
+            fechar_votacao_materia(presentes, ordem=ordem)
+
             return self.form_valid(form)
 
         if form.is_valid():
@@ -1642,7 +1666,14 @@ class VotacaoNominalView(SessaoPermissionMixin):
                 elif(voto == 'Não Votou'):
                     nao_votou += 1
 
+            # Caso todas as opções sejam 'Não votou', fecha a votação
             if nao_votou == len(request.POST.getlist('voto_parlamentar')):
+                presentes = PresencaOrdemDia.objects.filter(
+                    sessao_plenaria_id=ordem.sessao_plenaria_id)
+
+                fechar_votacao_materia(presentes, ordem=ordem)
+
+                return self.form_valid(form)
 
             votacao = RegistroVotacao.objects.filter(
                 materia_id=materia_id,
@@ -1699,9 +1730,9 @@ class VotacaoNominalView(SessaoPermissionMixin):
             if parlamentar in presentes:
                 try:
                     voto = VotoNominal.objects.get(
-                            parlamentar=parlamentar,
-                            sessao=self.object.pk,
-                            materia=materia)
+                        parlamentar=parlamentar,
+                        sessao=self.object.pk,
+                        materia=materia)
                 except ObjectDoesNotExist:
                     yield [parlamentar, None]
                 else:
@@ -1796,6 +1827,8 @@ class VotacaoNominalEditView(SessaoPermissionMixin):
             ordem.votacao_aberta = False
             ordem.save()
 
+            registro.delete()
+
             try:
                 votacao = VotoParlamentar.objects.filter(
                     votacao_id=registro.id)
@@ -1839,30 +1872,20 @@ class VotacaoNominalExpedienteView(SessaoPermissionMixin):
         self.object = self.get_object()
 
         expediente_id = kwargs['mid']
-        expediente = ExpedienteMateria.objects.get(id=expediente_id)
+
+        try:
+            expediente = ExpedienteMateria.objects.get(id=expediente_id)
+        except ObjectDoesNotExist:
+            raise Http404()
 
         form = VotacaoNominalForm(request.POST)
 
         if 'cancelar-votacao' in request.POST:
-            sessao = self.object
-            expediente_id = kwargs['mid']
-            expediente = ExpedienteMateria.objects.get(id=expediente_id)
-            materia = expediente.materia
             presentes = SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=expediente.sessao_plenaria_id)
-            for p in presentes:
-                try:
-                    voto = VotoNominal.objects.get(
-                        parlamentar=p.parlamentar,
-                        sessao=self.object.pk,
-                        materia=materia)
-                except ObjectDoesNotExist:
-                    pass
-                else:
-                    voto.delete()
 
-            expediente.votacao_aberta = False
-            expediente.save()
+            fechar_votacao_materia(presentes, expediente=expediente)
+
             return self.form_valid(form)
 
         if form.is_valid():
@@ -1887,6 +1910,23 @@ class VotacaoNominalExpedienteView(SessaoPermissionMixin):
                     abstencoes += 1
                 elif(voto == 'Não Votou'):
                     nao_votou += 1
+
+            # Caso todas as opções sejam 'Não votou', fecha a votação
+            if nao_votou == len(request.POST.getlist('voto_parlamentar')):
+                presentes = SessaoPlenariaPresenca.objects.filter(
+                    sessao_plenaria_id=expediente.sessao_plenaria_id)
+
+                fechar_votacao_materia(presentes, expediente=expediente)
+
+                return self.form_valid(form)
+
+            votacao = RegistroVotacao.objects.filter(
+                materia_id=materia_id,
+                expediente=expediente)
+
+            # Remove todas as votação desta matéria, caso existam
+            for v in votacao:
+                v.delete()
 
             try:
                 votacao = RegistroVotacao()
