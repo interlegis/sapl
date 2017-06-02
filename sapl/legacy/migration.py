@@ -22,13 +22,15 @@ from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
-                                 MateriaLegislativa, StatusTramitacao,
-                                 TipoDocumento, TipoMateriaLegislativa,
-                                 TipoProposicao, Tramitacao)
+                                 MateriaLegislativa, Proposicao,
+                                 StatusTramitacao, TipoDocumento,
+                                 TipoMateriaLegislativa, TipoProposicao,
+                                 Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica, NormaRelacionada)
 from sapl.parlamentares.models import Parlamentar, TipoAfastamento
-from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
+from sapl.protocoloadm.models import (DocumentoAdministrativo,Protocolo,
+                                      StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
 from sapl.utils import delete_texto, normalize, save_texto
@@ -585,6 +587,13 @@ def adjust_acompanhamentomateria(new, old):
     new.confirmado = True
 
 
+def adjust_documentoadministrativo(new, old):
+    if new.numero_protocolo:
+        protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
+                                          ano=new.ano)
+        new.protocolo = protocolo
+
+
 def adjust_ordemdia_antes_salvar(new, old):
     new.votacao_aberta = False
 
@@ -635,6 +644,11 @@ def adjust_participacao(new, old):
             composicao.save()
             reversion.set_comment('Objeto criado pela migração')
     new.composicao = composicao
+
+
+def adjust_proposicao(new, old):
+    if new.data_envio:
+        new.ano = new.data_envio.year
 
 
 def adjust_normarelacionada(new, old):
@@ -787,11 +801,13 @@ AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
     AcompanhamentoMateria: adjust_acompanhamentomateria,
     Comissao: adjust_comissao,
+    DocumentoAdministrativo: adjust_documentoadministrativo,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     NormaRelacionada: adjust_normarelacionada,
     OrdemDia: adjust_ordemdia_antes_salvar,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
+    Proposicao: adjust_proposicao,
     Protocolo: adjust_protocolo,
     RegistroVotacao: adjust_registrovotacao_antes_salvar,
     TipoAfastamento: adjust_tipoafastamento,
