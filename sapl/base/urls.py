@@ -66,7 +66,7 @@ urlpatterns = [
 
     # TODO mover estas telas para a app 'relatorios'
     url(r'^sistema/relatorios/$', TemplateView.as_view(
-        template_name='base/relatorios_list.html')),
+        template_name='base/relatorios_list.html'), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
     url(r'^sistema/relatorios/materia-por-ano-autor-tipo$',
