@@ -21,10 +21,10 @@ from model_mommy.mommy import foreign_key_required, make
 from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
-                                 StatusTramitacao, TipoDocumento,
-                                 TipoMateriaLegislativa, TipoProposicao,
-                                 Tramitacao)
+from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
+                                 MateriaLegislativa, StatusTramitacao,
+                                 TipoDocumento, TipoMateriaLegislativa,
+                                 TipoProposicao, Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica, NormaRelacionada)
 from sapl.parlamentares.models import Parlamentar, TipoAfastamento
@@ -581,6 +581,10 @@ def migrate(obj=appconfs, interativo=True):
 
 # MIGRATION_ADJUSTMENTS #####################################################
 
+def adjust_acompanhamentomateria(new, old):
+    new.confirmado = True
+
+
 def adjust_ordemdia_antes_salvar(new, old):
     new.votacao_aberta = False
 
@@ -781,6 +785,7 @@ def adjust_comissao(new, old):
 
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
+    AcompanhamentoMateria: adjust_acompanhamentomateria,
     Comissao: adjust_comissao,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     NormaRelacionada: adjust_normarelacionada,
