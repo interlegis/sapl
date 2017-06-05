@@ -190,20 +190,20 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             url = reverse('sapl.sessao:votacaosimbolica',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 2:
                             url = reverse('sapl.sessao:votacaonominal',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 3:
                             url = reverse('sapl.sessao:votacaosecreta',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         if self.request.user.has_module_perms(AppConfig.label):
                             btn_registrar = '''
                             <a href="%s"
@@ -228,7 +228,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             obj.resultado = '''Não há resultado'''
                 else:
                     resultado = obj.registrovotacao_set.get(
-                                    materia_id=obj.materia_id)
+                        materia_id=obj.materia_id)
                     resultado_descricao = resultado.tipo_resultado_votacao.nome
                     resultado_observacao = resultado.observacao
 
@@ -238,28 +238,28 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             url = reverse('sapl.sessao:votacaosimbolicaedit',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 2:
                             url = reverse('sapl.sessao:votacaonominaledit',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 3:
                             url = reverse('sapl.sessao:votacaosecretaedit',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         obj.resultado = ('<a href="%s">%s</a><br/>%s' %
-                                           (url,
-                                            resultado_descricao,
-                                            resultado_observacao))
+                                         (url,
+                                          resultado_descricao,
+                                          resultado_observacao))
                     else:
                         obj.resultado = ('%s<br/>%s' %
-                                           (resultado_descricao,
-                                            resultado_observacao))
+                                         (resultado_descricao,
+                                          resultado_observacao))
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -310,20 +310,20 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             url = reverse('sapl.sessao:votacaosimbolicaexp',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 2:
                             url = reverse('sapl.sessao:votacaonominalexp',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 3:
                             url = reverse('sapl.sessao:votacaosecretaexp',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
 
                         if self.request.user.has_module_perms(AppConfig.label):
                             btn_registrar = '''
@@ -355,20 +355,20 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                 'sapl.sessao:votacaosimbolicaexpedit',
                                 kwargs={
                                     'pk': obj.sessao_plenaria_id,
-                                    'oid': obj.materia_id,
-                                    'mid': obj.pk})
+                                    'oid': obj.pk,
+                                    'mid': obj.materia_id})
                         elif obj.tipo_votacao == 2:
                             url = reverse('sapl.sessao:votacaonominalexpedit',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         elif obj.tipo_votacao == 3:
                             url = reverse('sapl.sessao:votacaosecretaexpedit',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.materia_id,
-                                              'mid': obj.pk})
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id})
                         obj.resultado = ('<a href="%s">%s</a><br/>%s' %
                                            (url,
                                             resultado_descricao,
@@ -378,8 +378,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             url = reverse('sapl.sessao:votacaonominalexpdetail',
                                             kwargs={
                                                   'pk': obj.sessao_plenaria_id,
-                                                  'oid': obj.materia_id,
-                                                  'mid': obj.pk})
+                                                  'oid': obj.pk,
+                                                  'mid': obj.materia_id})
                             obj.resultado = ('<a href="%s">%s</a><br/>%s' %
                                            (url,
                                             resultado_descricao,
@@ -761,8 +761,8 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
             autor = [str(a.autor) for a in autoria]
 
             mat = {'pk': pk,
-                   'oid': o.materia_id,
-                   'ordem_id': o.id,
+                   'oid': o.id,
+                   'ordem_id': o.materia_id,
                    'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
@@ -821,8 +821,8 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
                     autor = [str(a.autor) for a in autoria]
 
                     mat = {'pk': pk,
-                           'oid': o.materia_id,
-                           'ordem_id': o.id,
+                           'oid': o.id,
+                           'ordem_id': o.materia_id,
                            'ementa': ementa,
                            'titulo': titulo,
                            'numero': numero,
@@ -1388,8 +1388,8 @@ class VotacaoEditView(SessaoPermissionMixin):
         self.object = self.get_object()
         form = VotacaoEditForm(request.POST)
 
-        materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
+        materia_id = kwargs['mid']
+        ordem_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
             RegistroVotacao.objects.filter(
@@ -1417,8 +1417,8 @@ class VotacaoEditView(SessaoPermissionMixin):
         else:
             titulo = _("Não definida")
 
-        materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
+        materia_id = kwargs['mid']
+        ordem_id = kwargs['oid']
 
         ordem = OrdemDia.objects.get(id=ordem_id)
 
@@ -1471,7 +1471,7 @@ class VotacaoView(SessaoPermissionMixin):
         else:
             titulo = _("Não definida")
 
-        ordem_id = kwargs['mid']
+        ordem_id = kwargs['oid']
         ordem = OrdemDia.objects.get(id=ordem_id)
         qtde_presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id).count()
@@ -1497,7 +1497,7 @@ class VotacaoView(SessaoPermissionMixin):
         else:
             titulo = _("Não definida")
 
-        ordem_id = kwargs['mid']
+        ordem_id = kwargs['oid']
         ordem = OrdemDia.objects.get(id=ordem_id)
         qtde_presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id).count()
@@ -1515,8 +1515,8 @@ class VotacaoView(SessaoPermissionMixin):
             return self.form_valid(form)
 
         if form.is_valid():
-            materia_id = kwargs['oid']
-            ordem_id = kwargs['mid']
+            materia_id = kwargs['mid']
+            ordem_id = kwargs['oid']
 
             qtde_presentes = PresencaOrdemDia.objects.filter(
                 sessao_plenaria_id=self.object.id).count()
@@ -1568,85 +1568,115 @@ class VotacaoView(SessaoPermissionMixin):
                        kwargs={'pk': pk})
 
 
-def fechar_votacao_materia(presentes, ordem=None, expediente=None):
+def fechar_votacao_materia(ordem=None, expediente=None):
     if ordem:
-        for p in presentes:
-            try:
-                voto_nominal = VotoNominal.objects.get(
-                    parlamentar=p.parlamentar,
-                    registro_votacao__ordem=ordem)
-            except ObjectDoesNotExist:
-                pass
-            else:
-                registro_votacao = voto_nominal.registro_votacao
+        registro_votacao = RegistroVotacao.objects.filter(ordem=ordem)
 
-                registro_votacao.delete()
-                voto_nominal.delete()
+        for r in registro_votacao:
+            r.delete()
 
         ordem.votacao_aberta = False
         ordem.save()
 
     elif expediente:
-        for p in presentes:
-            try:
-                voto_nominal = VotoNominal.objects.get(
-                    parlamentar=p.parlamentar,
-                    registro_votacao__expediente=expediente)
-            except ObjectDoesNotExist:
-                pass
-            else:
-                registro_votacao = voto_nominal.registro_votacao
+        registro_votacao = RegistroVotacao.objects.filter(
+            expediente=expediente)
 
-                registro_votacao.delete()
-                voto_nominal.delete()
+        for r in registro_votacao:
+            r.delete()
 
         expediente.votacao_aberta = False
         expediente.save()
 
 
-class VotacaoNominalView(SessaoPermissionMixin):
+class VotacaoNominalAbstract(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal.html'
+    ordem = None
+    expediente = None
 
     def get(self, request, *args, **kwargs):
-        ordem_id = kwargs['mid']
-        ordem = OrdemDia.objects.get(id=ordem_id)
-        total = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=ordem.sessao_plenaria_id).count()
+        if self.ordem:
+            ordem_id = kwargs['oid']
+            if RegistroVotacao.objects.filter(ordem_id=ordem_id).exists():
+                msg = _('Esta matéria já foi votada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(reverse(
+                    'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
 
-        materia = {'materia': ordem.materia,
+            try:
+                ordem = OrdemDia.objects.get(id=ordem_id)
+            except ObjectDoesNotExist:
+                raise Http404()
+
+            total = PresencaOrdemDia.objects.filter(
+                sessao_plenaria_id=ordem.sessao_plenaria_id).count()
+
+            tipo_materia_votacao = ordem
+
+        elif self.expediente:
+            expediente_id = kwargs['oid']
+            if (RegistroVotacao.objects.filter(
+               expediente_id=expediente_id).exists()):
+                msg = _('Esta matéria já foi votada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(reverse(
+                    'sapl.sessao:expedientemateria_list',
+                    kwargs={'pk': kwargs['pk']}))
+
+            try:
+                expediente = ExpedienteMateria.objects.get(id=expediente_id)
+            except ObjectDoesNotExist:
+                raise Http404()
+
+            total = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=expediente.sessao_plenaria_id).count()
+
+            tipo_materia_votacao = expediente
+
+        materia = {'materia': tipo_materia_votacao.materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(ordem.observacao))}
+                       '&nbsp;', ' ', strip_tags(
+                           tipo_materia_votacao.observacao))}
         context = {'materia': materia, 'object': self.get_object(),
-                   'parlamentares': self.get_parlamentares(ordem.materia),
-                   'tipos': self.get_tipos_votacao(),
-                   'total': total}
+                   'parlamentares': self.get_parlamentares(
+            tipo_materia_votacao.materia),
+            'tipos': self.get_tipos_votacao(),
+            'total': total}
 
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
 
-        ordem_id = kwargs['mid']
+        if self.ordem:
+            ordem_id = kwargs['oid']
+            try:
+                ordem = OrdemDia.objects.get(id=ordem_id)
+            except ObjectDoesNotExist:
+                raise Http404()
 
-        try:
-            ordem = OrdemDia.objects.get(id=ordem_id)
-        except ObjectDoesNotExist:
-            raise Http404()
+            tipo_materia_votacao = ordem
+
+        elif self.expediente:
+            expediente_id = kwargs['oid']
+            try:
+                expediente = ExpedienteMateria.objects.get(id=expediente_id)
+            except ObjectDoesNotExist:
+                raise Http404()
+
+            tipo_materia_votacao = expediente
 
         form = VotacaoNominalForm(request.POST)
 
         if 'cancelar-votacao' in request.POST:
-            presentes = PresencaOrdemDia.objects.filter(
-                sessao_plenaria_id=ordem.sessao_plenaria_id)
-
-            fechar_votacao_materia(presentes, ordem=ordem)
+            if self.ordem:
+                fechar_votacao_materia(ordem=ordem)
+            elif self.expediente:
+                fechar_votacao_materia(expediente=expediente)
 
             return self.form_valid(form)
 
         if form.is_valid():
-            materia_id = kwargs['oid']
-            ordem_id = kwargs['mid']
-
             votos_sim = 0
             votos_nao = 0
             abstencoes = 0
@@ -1668,16 +1698,19 @@ class VotacaoNominalView(SessaoPermissionMixin):
 
             # Caso todas as opções sejam 'Não votou', fecha a votação
             if nao_votou == len(request.POST.getlist('voto_parlamentar')):
-                presentes = PresencaOrdemDia.objects.filter(
-                    sessao_plenaria_id=ordem.sessao_plenaria_id)
-
-                fechar_votacao_materia(presentes, ordem=ordem)
+                if self.ordem:
+                    fechar_votacao_materia(ordem=ordem)
+                elif self.expediente:
+                    fechar_votacao_materia(expediente=expediente)
 
                 return self.form_valid(form)
 
-            votacao = RegistroVotacao.objects.filter(
-                materia_id=materia_id,
-                ordem_id=ordem_id)
+            if self.ordem:
+                votacao = RegistroVotacao.objects.filter(
+                    ordem_id=ordem_id)
+            elif self.expediente:
+                votacao = RegistroVotacao.objects.filter(
+                    expediente_id=expediente_id)
 
             # Remove todas as votação desta matéria, caso existam
             for v in votacao:
@@ -1688,8 +1721,14 @@ class VotacaoNominalView(SessaoPermissionMixin):
             votacao.numero_votos_nao = votos_nao
             votacao.numero_abstencoes = abstencoes
             votacao.observacao = request.POST['observacao']
-            votacao.materia_id = materia_id
-            votacao.ordem_id = ordem_id
+
+            if self.ordem:
+                votacao.materia_id = ordem.materia.id
+                votacao.ordem_id = ordem_id
+            elif self.expediente:
+                votacao.materia_id = expediente.materia.id
+                votacao.expediente_id = expediente_id
+
             votacao.tipo_resultado_votacao_id = int(
                 request.POST['resultado_votacao'])
             votacao.save()
@@ -1705,14 +1744,12 @@ class VotacaoNominalView(SessaoPermissionMixin):
                 voto_parlamentar.votacao_id = votacao.id
                 voto_parlamentar.save()
 
-                ordem = OrdemDia.objects.get(
-                    sessao_plenaria_id=self.object.id,
-                    materia_id=materia_id)
                 resultado = TipoResultadoVotacao.objects.get(
                     id=request.POST['resultado_votacao'])
-                ordem.resultado = resultado.nome
-                ordem.votacao_aberta = False
-                ordem.save()
+
+                tipo_materia_votacao.resultado = resultado.nome
+                tipo_materia_votacao.votacao_aberta = False
+                tipo_materia_votacao.save()
 
             return self.form_valid(form)
         else:
@@ -1726,13 +1763,18 @@ class VotacaoNominalView(SessaoPermissionMixin):
         )
         presentes = [p.parlamentar for p in presencas]
 
+        if self.ordem:
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                votacao__ordem=self.kwargs['oid'])
+        elif self.expediente:
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                votacao__expediente=self.kwargs['oid'])
+
         for parlamentar in Parlamentar.objects.filter(ativo=True):
             if parlamentar in presentes:
                 try:
-                    voto = VotoNominal.objects.get(
-                        parlamentar=parlamentar,
-                        sessao=self.object.pk,
-                        materia=materia)
+                    voto = voto_parlamentar.get(
+                        parlamentar=parlamentar)
                 except ObjectDoesNotExist:
                     yield [parlamentar, None]
                 else:
@@ -1744,273 +1786,47 @@ class VotacaoNominalView(SessaoPermissionMixin):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk})
+
+        if self.ordem:
+            return reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': pk})
+        elif self.expediente:
+            return reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': pk})
 
 
-class VotacaoNominalEditView(SessaoPermissionMixin):
+class VotacaoNominalEditAbstract(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal_edit.html'
 
     def get(self, request, *args, **kwargs):
         context = {}
 
-        materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
-
-        try:
-            votacao = RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                ordem_id=ordem_id)
-        except ObjectDoesNotExist:
-            raise Http404()
-        except MultipleObjectsReturned:
-            votacao = RegistroVotacao.objects.filter(
-                materia_id=materia_id,
-                ordem_id=ordem_id).first()
-
-        ordem = OrdemDia.objects.get(id=ordem_id)
-        votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
-
-        list_votos = []
-        for v in votos:
-            parlamentar = Parlamentar.objects.get(id=v.parlamentar_id)
-            list_votos.append({'parlamentar': parlamentar, 'voto': v.voto})
-
-        context.update({'votos': list_votos})
-
-        materia = {'materia': ordem.materia,
-                   'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(ordem.observacao))}
-        context.update({'materia': materia})
-
-        votacao_existente = {'observacao': sub(
-            '&nbsp;', ' ', strip_tags(votacao.observacao)),
-            'resultado': votacao.tipo_resultado_votacao.nome,
-            'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
-        context.update({'votacao': votacao_existente,
-                        'tipos': self.get_tipos_votacao()})
-
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = VotacaoEditForm(request.POST)
-
-        materia_id = kwargs['oid']
-        ordem_id = kwargs['mid']
-
-        sessao = self.object
-        ordem = ExpedienteMateria.objects.get(id=ordem_id)
-        presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=ordem.sessao_plenaria_id)
-        for p in presentes:
-            try:
-                voto = VotoNominal.objects.get(
-                    parlamentar=p.parlamentar,
-                    sessao=self.object.pk,
-                    materia=materia_id)
-            except ObjectDoesNotExist:
-                pass
-            else:
-                voto.delete()
-
-        if(int(request.POST['anular_votacao']) == 1):
-            registro = RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                ordem_id=ordem_id)
-
-            ordem = OrdemDia.objects.get(
-                sessao_plenaria_id=self.object.id,
-                materia_id=materia_id)
-            ordem.resultado = ''
-            ordem.votacao_aberta = False
-            ordem.save()
-
-            registro.delete()
+        if self.ordem:
+            ordem_id = kwargs['oid']
 
             try:
-                votacao = VotoParlamentar.objects.filter(
-                    votacao_id=registro.id)
-                for v in votacao:
-                    v.delete()
-            except:
-                pass
-
-        return self.form_valid(form)
-
-    def get_tipos_votacao(self):
-        for tipo in TipoResultadoVotacao.objects.all():
-            yield tipo
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk})
-
-
-class VotacaoNominalExpedienteView(SessaoPermissionMixin):
-    template_name = 'sessao/votacao/nominal.html'
-
-    def get(self, request, *args, **kwargs):
-        expediente_id = kwargs['mid']
-        expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        total = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=expediente.sessao_plenaria_id).count()
-
-        materia = {'materia': expediente.materia,
-                   'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(expediente.observacao))}
-        context = {'materia': materia, 'object': self.get_object(),
-                   'parlamentares': self.get_parlamentares(expediente.materia),
-                   'tipos': self.get_tipos_votacao(),
-                   'total': total}
-
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        expediente_id = kwargs['mid']
-
-        try:
-            expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        except ObjectDoesNotExist:
-            raise Http404()
-
-        form = VotacaoNominalForm(request.POST)
-
-        if 'cancelar-votacao' in request.POST:
-            presentes = SessaoPlenariaPresenca.objects.filter(
-                sessao_plenaria_id=expediente.sessao_plenaria_id)
-
-            fechar_votacao_materia(presentes, expediente=expediente)
-
-            return self.form_valid(form)
-
-        if form.is_valid():
-            materia_id = kwargs['oid']
-            expediente_id = kwargs['mid']
-
-            votos_sim = 0
-            votos_nao = 0
-            abstencoes = 0
-            nao_votou = 0
-
-            for votos in request.POST.getlist('voto_parlamentar'):
-                v = votos.split(':')
-                voto = v[0]
-                parlamentar_id = v[1]
-
-                if(voto == 'Sim'):
-                    votos_sim += 1
-                elif(voto == 'Não'):
-                    votos_nao += 1
-                elif(voto == 'Abstenção'):
-                    abstencoes += 1
-                elif(voto == 'Não Votou'):
-                    nao_votou += 1
-
-            # Caso todas as opções sejam 'Não votou', fecha a votação
-            if nao_votou == len(request.POST.getlist('voto_parlamentar')):
-                presentes = SessaoPlenariaPresenca.objects.filter(
-                    sessao_plenaria_id=expediente.sessao_plenaria_id)
-
-                fechar_votacao_materia(presentes, expediente=expediente)
-
-                return self.form_valid(form)
-
-            votacao = RegistroVotacao.objects.filter(
-                materia_id=materia_id,
-                expediente=expediente)
-
-            # Remove todas as votação desta matéria, caso existam
-            for v in votacao:
-                v.delete()
-
-            try:
-                votacao = RegistroVotacao()
-                votacao.numero_votos_sim = votos_sim
-                votacao.numero_votos_nao = votos_nao
-                votacao.numero_abstencoes = abstencoes
-                votacao.observacao = request.POST['observacao']
-                votacao.materia_id = materia_id
-                votacao.expediente = expediente
-                votacao.tipo_resultado_votacao_id = int(
-                    request.POST['resultado_votacao'])
-                votacao.save()
-            except:
-                return self.form_invalid(form)
-            else:
+                ordem = OrdemDia.objects.get(id=ordem_id)
                 votacao = RegistroVotacao.objects.get(
-                    materia_id=materia_id,
-                    expediente_id=expediente)
+                    ordem_id=ordem_id)
+            except ObjectDoesNotExist:
+                raise Http404()
 
-                for votos in request.POST.getlist('voto_parlamentar'):
-                    v = votos.split(':')
-                    voto = v[0]
-                    parlamentar_id = v[1]
+            materia = ordem.materia
+            observacao = ordem.observacao
 
-                    voto_parlamentar = VotoParlamentar()
-                    voto_parlamentar.voto = voto
-                    voto_parlamentar.parlamentar_id = parlamentar_id
-                    voto_parlamentar.votacao_id = votacao.id
-                    voto_parlamentar.save()
+        elif self.expediente:
+            expediente_id = kwargs['oid']
 
-                    expediente = ExpedienteMateria.objects.get(
-                        sessao_plenaria_id=self.object.id,
-                        materia_id=materia_id)
-                    resultado = TipoResultadoVotacao.objects.get(
-                        id=request.POST['resultado_votacao'])
-                    expediente.resultado = resultado.nome
-                    expediente.votacao_aberta = False
-                    expediente.save()
+            try:
+                expediente = ExpedienteMateria.objects.get(id=expediente_id)
+                votacao = RegistroVotacao.objects.get(
+                    expediente_id=expediente_id)
+            except ObjectDoesNotExist:
+                raise Http404()
 
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+            materia = expediente.materia
+            observacao = expediente.observacao
 
-    def get_parlamentares(self, materia):
-        self.object = self.get_object()
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=self.object.id
-        )
-        presentes = [p.parlamentar for p in presencas]
-
-        for parlamentar in Parlamentar.objects.filter(ativo=True):
-            if parlamentar in presentes:
-                try:
-                    voto = VotoNominal.objects.get(
-                            parlamentar=parlamentar,
-                            sessao=self.object.pk,
-                            materia=materia)
-                except ObjectDoesNotExist:
-                    yield [parlamentar, None]
-                else:
-                    yield [parlamentar, voto.voto]
-
-    def get_tipos_votacao(self):
-        for tipo in TipoResultadoVotacao.objects.all():
-            yield tipo
-
-    def get_success_url(self):
-        pk = self.kwargs['pk']
-        return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
-
-
-class VotacaoNominalExpedienteEditView(SessaoPermissionMixin):
-    template_name = 'sessao/votacao/nominal_edit.html'
-
-    def get(self, request, *args, **kwargs):
-        context = {}
-        materia_id = kwargs['oid']
-        expediente_id = kwargs['mid']
-
-        votacao = RegistroVotacao.objects.get(
-            materia_id=materia_id,
-            expediente_id=expediente_id)
-        expediente = ExpedienteMateria.objects.get(id=expediente_id)
         votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
 
         list_votos = []
@@ -2020,9 +1836,9 @@ class VotacaoNominalExpedienteEditView(SessaoPermissionMixin):
 
         context.update({'votos': list_votos})
 
-        materia = {'materia': expediente.materia,
+        materia = {'materia': materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(expediente.observacao))}
+                       '&nbsp;', ' ', strip_tags(observacao))}
         context.update({'materia': materia})
 
         votacao_existente = {'observacao': sub(
@@ -2039,43 +1855,35 @@ class VotacaoNominalExpedienteEditView(SessaoPermissionMixin):
         self.object = self.get_object()
         form = VotacaoEditForm(request.POST)
 
-        materia_id = kwargs['oid']
-        expediente_id = kwargs['mid']
+        if self.ordem:
+            ordem_id = kwargs['oid']
 
-        sessao = self.object
-        expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        presentes = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=expediente.sessao_plenaria_id)
-        for p in presentes:
             try:
-                voto = VotoNominal.objects.get(
-                    parlamentar=p.parlamentar,
-                    sessao=self.object.pk,
-                    materia=materia_id)
+                ordem = OrdemDia.objects.get(id=ordem_id)
             except ObjectDoesNotExist:
-                pass
-            else:
-                voto.delete()
+                raise Http404()
+
+        elif self.expediente:
+            expediente_id = kwargs['oid']
+
+            try:
+                expediente = ExpedienteMateria.objects.get(id=expediente_id)
+            except ObjectDoesNotExist:
+                raise Http404()
 
         if(int(request.POST['anular_votacao']) == 1):
-            registro = RegistroVotacao.objects.get(
-                materia_id=materia_id,
-                expediente_id=expediente_id)
+            if self.ordem:
+                registro = RegistroVotacao.objects.get(
+                    ordem=ordem)
+                materia_votacao = registro.ordem
+            elif self.expediente:
+                registro = RegistroVotacao.objects.get(
+                    expediente=expediente)
+                materia_votacao = registro.expediente
 
-            expediente = ExpedienteMateria.objects.get(
-                sessao_plenaria_id=self.object.id,
-                materia_id=materia_id)
-            expediente.resultado = ''
-            expediente.votacao_aberta = False
-            expediente.save()
-
-            try:
-                votacao = VotoParlamentar.objects.filter(
-                    votacao_id=registro.id)
-                for v in votacao:
-                    v.delete()
-            except:
-                pass
+            materia_votacao.resultado = ''
+            materia_votacao.votacao_aberta = False
+            materia_votacao.save()
 
             registro.delete()
 
@@ -2087,16 +1895,42 @@ class VotacaoNominalExpedienteEditView(SessaoPermissionMixin):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+
+        if self.ordem:
+            return reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': pk})
+        elif self.expediente:
+            return reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': pk})
+
+
+class VotacaoNominalView(VotacaoNominalAbstract):
+    ordem = True
+    expediente = False
+
+
+class VotacaoNominalExpedienteView(VotacaoNominalAbstract):
+    expediente = True
+    ordem = False
+
+
+class VotacaoNominalEditView(VotacaoNominalEditAbstract):
+    ordem = True
+    expediente = False
+
+
+class VotacaoNominalExpedienteEditView(VotacaoNominalEditAbstract):
+    expediente = True
+    ordem = False
+
 
 class VotacaoNominalExpedienteDetailView(DetailView):
     template_name = 'sessao/votacao/nominal_detail.html'
 
     def get(self, request, *args, **kwargs):
         context = {}
-        materia_id = kwargs['oid']
-        expediente_id = kwargs['mid']
+        materia_id = kwargs['mid']
+        expediente_id = kwargs['oid']
 
         votacao = RegistroVotacao.objects.get(
             materia_id=materia_id,
@@ -2158,7 +1992,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
         else:
             titulo = _("Não definida")
 
-        expediente_id = kwargs['mid']
+        expediente_id = kwargs['oid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
         qtde_presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=self.object.id).count()
@@ -2185,7 +2019,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
         else:
             titulo = _("Não definida")
 
-        expediente_id = kwargs['mid']
+        expediente_id = kwargs['oid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
         qtde_presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=self.object.id).count()
@@ -2204,8 +2038,8 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             return self.form_valid(form)
 
         if form.is_valid():
-            materia_id = kwargs['oid']
-            expediente_id = kwargs['mid']
+            materia_id = kwargs['mid']
+            expediente_id = kwargs['oid']
 
             qtde_presentes = SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=self.object.id).count()
@@ -2288,8 +2122,8 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         else:
             titulo = _("Não definida")
 
-        materia_id = kwargs['oid']
-        expediente_id = kwargs['mid']
+        materia_id = kwargs['mid']
+        expediente_id = kwargs['oid']
 
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
@@ -2320,8 +2154,8 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         self.object = self.get_object()
         form = VotacaoEditForm(request.POST)
 
-        materia_id = kwargs['oid']
-        expediente_id = kwargs['mid']
+        materia_id = kwargs['mid']
+        expediente_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
             try:
