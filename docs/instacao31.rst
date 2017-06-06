@@ -151,7 +151,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
 
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
         SECRET_KEY = 'cole aqui entre as aspas simples a chave gerada pelo comando abaixo'
-        DEBUG = True
+        DEBUG = False
         EMAIL_USE_TLS = True
         EMAIL_PORT = 587
         EMAIL_HOST =
