@@ -412,6 +412,12 @@ class RegistroVotacao(models.Model):
 
 @reversion.register()
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
+    '''
+    As colunas ordem e expediente são redundantes, levando em consideração
+    que RegistroVotacao já possui ordem/expediente. Entretanto, para
+    viabilizar a votação interativa, uma vez que ela é feita antes de haver
+    um RegistroVotacao, é preciso identificar o voto por ordem/expediente.
+    '''
     votacao = models.ForeignKey(RegistroVotacao,
                                 blank=True,
                                 null=True)
@@ -431,6 +437,13 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         auto_now_add=True,
         blank=True,
         null=True)
+
+    ordem = models.ForeignKey(OrdemDia,
+                              blank=True,
+                              null=True)
+    expediente = models.ForeignKey(ExpedienteMateria,
+                                   blank=True,
+                                   null=True)
 
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')

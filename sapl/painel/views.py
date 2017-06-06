@@ -38,7 +38,11 @@ def votante_view(request, pk):
     context = {'head_title': str(_('Votação Individual')), 'sessao_id': pk}
 
     # Pega sessão
-    sessao = SessaoPlenaria.objects.get(pk=pk)
+    try:
+        sessao = SessaoPlenaria.objects.get(pk=pk)
+    except ObjectDoesNotExist:
+        raise Http404()
+
     context.update({'sessao': sessao,
                     'data': sessao.data_inicio,
                     'hora': sessao.hora_inicio})
@@ -98,11 +102,15 @@ def votante_view(request, pk):
                             'Nenhuma matéria com votação nominal aberta.'})
 
     # Recupera o voto do parlamentar logado
+    if ordem_dia:
+        voto = VotoParlamentar.objects.filter(
+            ordem=ordem_dia)
+    elif expediente:
+        voto = VotoParlamentar.objects.filter(
+            expediente=expediente)
+
     try:
-        voto = VotoNominal.objects.get(
-            sessao=sessao,
-            parlamentar=parlamentar,
-            materia=materia)
+        voto = voto.get(parlamentar=parlamentar)
     except ObjectDoesNotExist:
         context.update({'voto_parlamentar': 'Voto não computado.'})
     else:
@@ -110,23 +118,42 @@ def votante_view(request, pk):
 
     # Salva o voto
     if request.method == 'POST':
-        try:
-            voto = VotoNominal.objects.get(
-                sessao=sessao,
-                parlamentar=parlamentar,
-                materia=materia)
-        except ObjectDoesNotExist:
-            voto = VotoNominal.objects.create(
-                sessao=sessao,
-                parlamentar=parlamentar,
-                materia=materia,
-                voto=request.POST['voto'],
-                ip=get_client_ip(request),
-                user=request.user)
-        else:
-            voto.voto = request.POST['voto']
-            voto.ip = get_client_ip(request)
-            voto.save()
+        if ordem_dia:
+            try:
+                voto = VotoParlamentar.objects.get(
+                    parlamentar=parlamentar,
+                    ordem=ordem_dia)
+            except ObjectDoesNotExist:
+                voto = VotoParlamentar.objects.create(
+                    parlamentar=parlamentar,
+                    voto=request.POST['voto'],
+                    user=request.user,
+                    ip=get_client_ip(request),
+                    ordem=ordem_dia)
+            else:
+                voto.voto = request.POST['voto']
+                voto.ip = get_client_ip(request)
+                voto.user = request.user
+                voto.save()
+
+        elif expediente:
+            try:
+                voto = VotoParlamentar.objects.get(
+                    parlamentar=parlamentar,
+                    expediente=expediente)
+            except ObjectDoesNotExist:
+                voto = VotoParlamentar.objects.create(
+                    parlamentar=parlamentar,
+                    voto=request.POST['voto'],
+                    user=request.user,
+                    ip=get_client_ip(request),
+                    expediente=expediente)
+            else:
+                voto.voto = request.POST['voto']
+                voto.ip = get_client_ip(request)
+                voto.user = request.user
+                voto.save()
+
         return HttpResponseRedirect(
             reverse('sapl.painel:voto_individual', kwargs={'pk': pk}))
 
