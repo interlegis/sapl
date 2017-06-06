@@ -996,6 +996,7 @@ def insere_parlamentar_composicao(request):
     else:
         return JsonResponse(
             {'msg': ('Você não tem permissão para esta operação!', 0)})
+<<<<<<< HEAD
 
 
 def remove_parlamentar_composicao(request):
@@ -1016,6 +1017,28 @@ def remove_parlamentar_composicao(request):
                         {'msg': (
                             'Composição da Mesa não pôde ser removida!', 0)})
 
+=======
+
+
+def remove_parlamentar_composicao(request):
+    """
+        Essa função lida com qualquer operação de remoção
+        na composição da Mesa Diretora
+    """
+    if request.POST and request.user.has_perm(
+        '%s.delete_%s' % (
+            AppConfig.label, IntegranteMesa._meta.model_name)):
+
+            if 'composicao_mesa' in request.POST:
+                try:
+                    composicao = IntegranteMesa.objects.get(
+                        id=int(request.POST['composicao_mesa']))
+                except ObjectDoesNotExist:
+                    return JsonResponse(
+                        {'msg': (
+                            'Composição da Mesa não pôde ser removida!', 0)})
+
+>>>>>>> upstream2/master
                 composicao.delete()
 
                 return JsonResponse(

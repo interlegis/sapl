@@ -33,7 +33,10 @@ create_env() {
     echo "EMAIL_HOST = ""${EMAIL_HOST-''}" >> $FILENAME
     echo "EMAIL_HOST_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "EMAIL_HOST_PASSWORD = ""${EMAIL_HOST_PASSWORD-''}" >> $FILENAME
-
+    echo "EMAIL_SEND_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    
     echo "[ENV FILE] done."
 }
 
