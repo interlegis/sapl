@@ -1787,7 +1787,10 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         qr = self.request.GET.copy()
 
         if ('tramitacao__status' in qr and
-           'tramitacao__unidade_tramitacao_destino' in qr):
+           'tramitacao__unidade_tramitacao_destino' in qr and
+           qr['tramitacao__status'] and
+           qr['tramitacao__unidade_tramitacao_destino']
+           ):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])

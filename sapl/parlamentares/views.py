@@ -349,7 +349,6 @@ class ParlamentarCrud(Crud):
 
                 # preenche coluna foto, se vazia
                 if not row[0][0]:
-                    # img = '&nbsp;&nbsp;'
                     img = "<center><img width='50px' \
                             height='50px' src='%s'/></center>" \
                             % static('img/avatar.png')
