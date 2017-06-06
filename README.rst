@@ -17,7 +17,7 @@ atual do sistema (2.5), visite a página do `projeto na Interlegis wiki <https:/
 
 Instalação do Ambiente de Desenvolvimento
 =========================================
-   `Instalação do Ambiente de Desenvolvimento <https://github.com/interlegis/sapl/blob/master/docs/instacao31.rst>`_
+   `Instalação do Ambiente de Desenvolvimento <https://github.com/interlegis/sapl/blob/master/docs/instalacao31.rst>`_
 
 
 Instruções para Importação da base mysql 2.5
