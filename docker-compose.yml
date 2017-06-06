@@ -10,7 +10,11 @@ sapldb:
   ports:
     - "5532:5432"
 sapl:
+<<<<<<< HEAD
+  image: interlegis/sapl:3.1.6-BETA
+=======
   image: interlegis/sapl:3.1.7-BETA
+>>>>>>> upstream2/master
   volumes:
     - sapl_data:/var/interlegis/sapl/data
     - sapl_media:/var/interlegis/sapl/media

@@ -44,6 +44,9 @@
               </br>
               <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não Informado"}}</br>
               <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não Informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
+<<<<<<< HEAD
+              <strong>Autor:</strong> {{p.autor.nome}} </br>
+=======
               
               {% if p.tipo_processo == 0 %}
                 <strong>Interessado:</strong> {{ p.interessado|default_if_none:"Não informado" }}</br>
@@ -51,8 +54,15 @@
                 <strong>Autor:</strong> {{ p.autor.nome|default_if_none:"Não informado" }}</br>
               {% endif %}
 
+>>>>>>> upstream2/master
               <strong>Natureza do Processo:</strong>
-              {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
+              {% if p.tipo_processo == 0 %}
+                  Administrativo</br>
+                  <strong>Interessado:</strong> {{ p.interessado }}
+              {% elif p.tipo_processo == 1 %}
+                  Matéria Legislativa
+              {% endif %}
+              </br>
               <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:p.tipo_materia }} </br>
               {% if p.anulado %}
                 <strong>Anulado por: </strong>{{ p.user_anulacao }} - IP {{ p.ip_anulacao }}</br>

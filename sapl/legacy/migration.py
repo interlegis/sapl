@@ -581,6 +581,10 @@ def migrate(obj=appconfs, interativo=True):
 
 # MIGRATION_ADJUSTMENTS #####################################################
 
+<<<<<<< HEAD
+def adjust_ordemdia_antes_salvar(new, old):
+    # Prestar atenção
+=======
 def adjust_acompanhamentomateria(new, old):
     new.confirmado = True
 
@@ -588,8 +592,25 @@ def adjust_acompanhamentomateria(new, old):
 def adjust_ordemdia_antes_salvar(new, old):
     new.votacao_aberta = False
 
+>>>>>>> upstream2/master
     if not old.tip_votacao:
         new.tipo_votacao = 1
+    if old.num_ordem is None:
+        new.numero_ordem = 999999999
+
+
+def adjust_ordemdia_depois_salvar(new, old):
+    if old.num_ordem is None and new.numero_ordem == 999999999:
+        with reversion.create_revision():
+            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem'\
+                ' nulo.' % old.pk
+            descricao = 'O valor %s foi colocado no lugar.' % new.numero_ordem
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('OrdemDia sem número da ordem.')
+    pass
+
     if old.num_ordem is None:
         new.numero_ordem = 999999999
 

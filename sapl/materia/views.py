@@ -915,11 +915,16 @@ class TramitacaoCrud(MasterDetailCrud):
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
                     )
+<<<<<<< HEAD
+                do_envia_email_tramitacao(
+                    request, materia, status, unidade_destino)
+=======
                 texto = request.POST['texto']
                 data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
                     request, materia, status,
                     unidade_destino, texto, data_tramitacao)
+>>>>>>> upstream2/master
             return super(CreateView, self).post(request, *args, **kwargs)
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -935,11 +940,16 @@ class TramitacaoCrud(MasterDetailCrud):
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
                     )
+<<<<<<< HEAD
+                do_envia_email_tramitacao(
+                    request, materia, status, unidade_destino)
+=======
                 texto = request.POST['texto']
                 data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
                     request, materia, status,
                     unidade_destino, texto, data_tramitacao)
+>>>>>>> upstream2/master
 
             return super(UpdateView, self).post(request, *args, **kwargs)
 
@@ -1493,9 +1503,14 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
     return templates
 
 
+<<<<<<< HEAD
+def criar_email_tramitacao(request, casa_legislativa, materia, status,
+                           unidade_destino, hash_txt=''):
+=======
 def criar_email_tramitacao(
                         request, casa_legislativa, materia, status,
                         unidade_destino, texto, data_tramitacao, hash_txt=''):
+>>>>>>> upstream2/master
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
@@ -1529,10 +1544,17 @@ def criar_email_tramitacao(
                                       "logotipo": casa_legislativa.logotipo,
                                       "descricao_materia": materia.ementa,
                                       "autoria": autores,
+<<<<<<< HEAD
+                                      "data": tramitacao.data_tramitacao,
+                                      "status": status,
+                                      "localizacao": unidade_destino,
+                                      "texto_acao": tramitacao.texto,
+=======
                                       "data": data_tramitacao,
                                       "status": status,
                                       "localizacao": unidade_destino,
                                       "texto_acao": texto,
+>>>>>>> upstream2/master
                                       "hash_txt": hash_txt,
                                       "materia": str(materia),
                                       "base_url": base_url,
@@ -1611,8 +1633,12 @@ def do_envia_email_confirmacao(request, materia, email):
     return None
 
 
+<<<<<<< HEAD
+def do_envia_email_tramitacao(request, materia, status, unidade_destino):
+=======
 def do_envia_email_tramitacao(
     request, materia, status, unidade_destino, texto, data_tramitacao):
+>>>>>>> upstream2/master
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
@@ -1632,8 +1658,11 @@ def do_envia_email_tramitacao(
                                              materia,
                                              status,
                                              unidade_destino,
+<<<<<<< HEAD
+=======
                                              texto,
                                              data_tramitacao,
+>>>>>>> upstream2/master
                                              destinatario.hash,)
         recipients.append(destinatario.email)
         messages.append({
@@ -1787,10 +1816,14 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         qr = self.request.GET.copy()
 
         if ('tramitacao__status' in qr and
+<<<<<<< HEAD
+           'tramitacao__unidade_tramitacao_destino' in qr):
+=======
            'tramitacao__unidade_tramitacao_destino' in qr and
            qr['tramitacao__status'] and
            qr['tramitacao__unidade_tramitacao_destino']
            ):
+>>>>>>> upstream2/master
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])
