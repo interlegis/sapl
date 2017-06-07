@@ -405,11 +405,18 @@ class RegistroVotacao(models.Model):
         verbose_name_plural = _('Votações')
 
     def __str__(self):
-        return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
-                 'Matéria: %(materia)s') % {
-                     'ordem': self.ordem,
-                     'votacao': self.tipo_resultado_votacao,
-            'materia': self.materia}
+        if self.ordem:
+            return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
+                     'Matéria: %(materia)s') % {
+                         'ordem': self.ordem,
+                         'votacao': self.tipo_resultado_votacao,
+                'materia': self.materia}
+        elif self.expediente:
+            return _('Expediente: %(expediente)s - Votação: %(votacao)s - '
+                     'Matéria: %(materia)s') % {
+                         'expediente': self.expediente,
+                         'votacao': self.tipo_resultado_votacao,
+                'materia': self.materia}
 
 
 @reversion.register()
@@ -432,8 +439,8 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
                           max_length=30,
-                          null=True,
-                          blank=True)
+                          blank=True,
+                          default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
         auto_now_add=True,
