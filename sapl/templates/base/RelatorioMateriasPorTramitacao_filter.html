@@ -45,7 +45,7 @@
             <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}">
               {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
             </a></td>
-            <td>{{materia.tramitacao_set.last.unidade_tramitacao_local}}</td>
+            <td>{{materia.tramitacao_set.last.unidade_tramitacao_destino}}</td>
             <td>{{materia.tramitacao_set.last.status}}</td>
           </tr>
         {% endfor %}
