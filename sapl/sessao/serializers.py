@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .models import SessaoPlenaria
 
+
 class SessaoPlenariaSerializer(serializers.Serializer):
     class Meta:
         model = SessaoPlenaria

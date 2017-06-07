@@ -1,22 +1,21 @@
 from django.conf.urls import include, url
 
-from sapl.parlamentares.views import (altera_field_mesa,
-                                      altera_field_mesa_public_view,
-                                      CargoMesaCrud, ColigacaoCrud,
+from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
-                                      LegislaturaCrud,
-                                      insere_parlamentar_composicao,
-                                      MandatoCrud,
+                                      LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
                                       ParlamentarCrud,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
                                       RelatoriaParlamentarCrud,
-                                      remove_parlamentar_composicao,
                                       SessaoLegislativaCrud,
                                       TipoAfastamentoCrud, TipoDependenteCrud,
-                                      TipoMilitarCrud, VotanteView)
+                                      TipoMilitarCrud, VotanteView,
+                                      altera_field_mesa,
+                                      altera_field_mesa_public_view,
+                                      insere_parlamentar_composicao,
+                                      remove_parlamentar_composicao)
 
 from .apps import AppConfig
 

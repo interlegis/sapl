@@ -24,8 +24,8 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import (AssuntoNorma, NormaJuridica,
-                               TipoVinculoNormaJuridica, NormaRelacionada)
+from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                               TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import Parlamentar, TipoAfastamento
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao

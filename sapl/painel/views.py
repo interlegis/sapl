@@ -102,6 +102,7 @@ def votante_view(request, pk):
                             'Nenhuma matéria com votação nominal aberta.'})
 
     # Recupera o voto do parlamentar logado
+    voto = []
     if ordem_dia:
         voto = VotoParlamentar.objects.filter(
             ordem=ordem_dia)
@@ -109,12 +110,13 @@ def votante_view(request, pk):
         voto = VotoParlamentar.objects.filter(
             expediente=expediente)
 
-    try:
-        voto = voto.get(parlamentar=parlamentar)
-    except ObjectDoesNotExist:
-        context.update({'voto_parlamentar': 'Voto não computado.'})
-    else:
-        context.update({'voto_parlamentar': voto.voto})
+    if voto:
+        try:
+            voto = voto.get(parlamentar=parlamentar)
+        except ObjectDoesNotExist:
+            context.update({'voto_parlamentar': 'Voto não computado.'})
+        else:
+            context.update({'voto_parlamentar': voto.voto})
 
     # Salva o voto
     if request.method == 'POST':

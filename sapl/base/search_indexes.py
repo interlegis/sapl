@@ -4,13 +4,12 @@ import os.path
 import textract
 from django.template import Context, loader
 from haystack import indexes
+from textract.exceptions import ExtensionNotSupported
 
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
-
-from textract.exceptions import ExtensionNotSupported
-
 from sapl.settings import BASE_DIR
+
 logger = logging.getLogger(BASE_DIR.name)
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
