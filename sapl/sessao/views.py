@@ -124,6 +124,7 @@ def abrir_votacao_ordem_view(request, pk, spk):
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
 
 
+
 def put_link_materia(context):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
@@ -132,6 +133,21 @@ def put_link_materia(context):
 
         context['rows'][i][1] = (row[1][0], url_materia)
     return context
+
+def get_presencas_generic(model, sessao, legislatura):
+    presencas = model.objects.filter(
+        sessao_plenaria=sessao)
+
+    presentes = [p.parlamentar for p in presencas]
+
+    mandato = Mandato.objects.filter(
+        legislatura=legislatura)
+
+    for m in mandato:
+        if m.parlamentar in presentes:
+            yield (m.parlamentar, True)
+        else:
+            yield (m.parlamentar, False)
 
 
 class MateriaOrdemDiaCrud(MasterDetailCrud):
@@ -554,42 +570,16 @@ class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,
 class PresencaMixin:
 
     def get_presencas(self):
-        self.object = self.get_object()
-
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=self.object.id
-        )
-        presentes = [p.parlamentar for p in presencas]
-
-        mandato = Mandato.objects.filter(
-            legislatura_id=self.object.legislatura_id)
-
-        mandato_parlamentar = [p.parlamentar for p in mandato]
-
-        for parlamentar in mandato_parlamentar:
-            if parlamentar in presentes:
-                yield (parlamentar, True)
-            else:
-                yield (parlamentar, False)
+        return get_presencas_generic(
+            SessaoPlenariaPresenca,
+            self.object,
+            self.object.legislatura)
 
     def get_presencas_ordem(self):
-        self.object = self.get_object()
-
-        presencas = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id
-        )
-        presentes = [p.parlamentar for p in presencas]
-
-        mandato = Mandato.objects.filter(
-            legislatura_id=self.object.legislatura_id)
-
-        mandato_parlamentar = [p.parlamentar for p in mandato]
-
-        for parlamentar in mandato_parlamentar:
-            if parlamentar in presentes:
-                yield (parlamentar, True)
-            else:
-                yield (parlamentar, False)
+        return get_presencas_generic(
+            PresencaOrdemDia,
+            self.object,
+            self.object.legislatura)
 
 
 class PresencaView(FormMixin, PresencaMixin, DetailView):
