@@ -1,11 +1,12 @@
-import sys
 import os
+import sys
+
 import django
+from django.contrib.auth.models import User
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")
 django.setup()
 
-from django.contrib.auth.models import User
 
 def create_superuser():
     username = "admin"

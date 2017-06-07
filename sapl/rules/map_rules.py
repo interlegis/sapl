@@ -152,8 +152,6 @@ rules_group_sessao = {
         (sessao.PresencaOrdemDia, __base__),
         (sessao.RegistroVotacao, __base__),
         (sessao.VotoParlamentar, __base__),
-
-        (sessao.VotoNominal, __base__),
     ]
 }
 

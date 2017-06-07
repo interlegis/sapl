@@ -1,6 +1,6 @@
 from django.db.models import Q
-from django.forms.fields import MultiValueField, CharField
-from django.forms.widgets import TextInput, MultiWidget
+from django.forms.fields import CharField, MultiValueField
+from django.forms.widgets import MultiWidget, TextInput
 from django_filters.filters import MethodFilter, ModelChoiceFilter
 from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet

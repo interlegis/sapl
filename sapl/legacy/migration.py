@@ -599,6 +599,7 @@ def adjust_ordemdia_antes_salvar(new, old):
 
     if not old.tip_votacao:
         new.tipo_votacao = 1
+
     if old.num_ordem is None:
         new.numero_ordem = 999999999
 

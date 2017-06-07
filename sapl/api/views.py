@@ -5,9 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly,
-                                        AllowAny)
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from sapl.api.forms import AutorChoiceFilterSet, AutorSearchForFieldFilterSet

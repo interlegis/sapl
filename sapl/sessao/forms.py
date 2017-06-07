@@ -35,6 +35,7 @@ def recupera_anos():
 def ANO_CHOICES():
     return [('', '---------')] + recupera_anos()
 
+
 MES_CHOICES = [('', '---------')] + RANGE_MESES
 DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
 
@@ -151,21 +152,18 @@ class OrdemDiaForm(ExpedienteMateriaForm):
     def clean_data_ordem(self):
         return self.instance.sessao_plenaria.data_inicio
 
-
     def clean_numero_ordem(self):
         sessao = self.instance.sessao_plenaria
 
         numero_ordem_exists = OrdemDia.objects.filter(
-                                sessao_plenaria=sessao,
-                                numero_ordem=self.cleaned_data[
-                                    'numero_ordem']).exists()
+            sessao_plenaria=sessao,
+            numero_ordem=self.cleaned_data['numero_ordem']).exists()
 
         if numero_ordem_exists:
             msg = _('Esse número de ordem já existe.')
             raise ValidationError(msg)
 
         return self.cleaned_data['numero_ordem']
-
 
     def clean(self):
         cleaned_data = self.cleaned_data

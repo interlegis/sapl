@@ -1,13 +1,15 @@
+import hashlib
+import logging
+import os
+import re
 from datetime import date
 from functools import wraps
 from subprocess import PIPE, call
 from threading import Thread
 from unicodedata import normalize as unicodedata_normalize
-import hashlib
-import logging
-import os
-import re
 
+import django_filters
+import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -20,12 +22,9 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
-import django_filters
-import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR, PROJECT_DIR
-
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 

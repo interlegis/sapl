@@ -6,8 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base.models import (CasaLegislativa, ProblemaMigracao, Argumento,
-                              Constraint)
+from sapl.base.models import (Argumento, CasaLegislativa, Constraint,
+                              ProblemaMigracao)
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TipoDispositivo,
                                     TipoDispositivoRelationship)

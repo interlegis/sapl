@@ -3,19 +3,18 @@ import os
 import re
 
 import magic
-
 from django.db.models.signals import post_delete, post_save
+
 from sapl.base.models import CasaLegislativa
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
-from sapl.protocoloadm.models import DocumentoAdministrativo
-from sapl.protocoloadm.models import DocumentoAcessorioAdministrativo
+from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
+                                      DocumentoAdministrativo)
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 from sapl.utils import delete_texto, save_texto
-
 
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
 EXTENSOES = {

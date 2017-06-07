@@ -1,8 +1,8 @@
 from django.db.models.signals import post_delete, post_save
-from sapl.utils import save_texto, delete_texto
+
+from sapl.utils import delete_texto, save_texto
 
 from .models import DocumentoAcessorio, MateriaLegislativa
-
 
 post_save.connect(save_texto, sender=MateriaLegislativa)
 post_save.connect(save_texto, sender=DocumentoAcessorio)

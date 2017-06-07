@@ -1,7 +1,6 @@
-from datetime import datetime
-
-import re
 import html
+import re
+from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
