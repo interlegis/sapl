@@ -30,7 +30,7 @@ from sapl.materia.models import (Autoria, DocumentoAcessorio,
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import (Filiacao, Legislatura, Parlamentar,
-                                       SessaoLegislativa)
+                                       SessaoLegislativa, Mandato)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 
@@ -561,7 +561,12 @@ class PresencaMixin:
         )
         presentes = [p.parlamentar for p in presencas]
 
-        for parlamentar in Parlamentar.objects.filter(ativo=True):
+        mandato = Mandato.objects.filter(
+            legislatura_id=self.object.legislatura_id)
+
+        mandato_parlamentar = [p.parlamentar for p in mandato]
+
+        for parlamentar in mandato_parlamentar:
             if parlamentar in presentes:
                 yield (parlamentar, True)
             else:
@@ -575,7 +580,12 @@ class PresencaMixin:
         )
         presentes = [p.parlamentar for p in presencas]
 
-        for parlamentar in Parlamentar.objects.filter(ativo=True):
+        mandato = Mandato.objects.filter(
+            legislatura_id=self.object.legislatura_id)
+
+        mandato_parlamentar = [p.parlamentar for p in mandato]
+
+        for parlamentar in mandato_parlamentar:
             if parlamentar in presentes:
                 yield (parlamentar, True)
             else:
@@ -605,13 +615,13 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
                 sessao_plenaria_id=self.object.id)
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca')
+            marcados = request.POST.getlist('presenca_ativos') + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcadors
             deletar = set(set(presentes_banco) - set(marcados))
             for d in deletar:
                 SessaoPlenariaPresenca.objects.filter(
-                    parlamentar_id=d.parlamentar_id).delete()
+                    parlamentar_id=d.parlamentar_id, sessao_plenaria_id=self.object.id).delete()
 
             for p in marcados:
                 sessao = SessaoPlenariaPresenca()
@@ -713,13 +723,13 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
                 sessao_plenaria_id=pk)
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca')
+            marcados = request.POST.getlist('presenca_ativos') + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcadors
             deletar = set(set(presentes_banco) - set(marcados))
             for d in deletar:
                 PresencaOrdemDia.objects.filter(
-                    parlamentar_id=d.parlamentar_id).delete()
+                    parlamentar_id=d.parlamentar_id, sessao_plenaria_id=self.object.id).delete()
 
             for p in marcados:
                 ordem = PresencaOrdemDia()
