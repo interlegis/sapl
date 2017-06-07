@@ -405,18 +405,11 @@ class RegistroVotacao(models.Model):
         verbose_name_plural = _('Votações')
 
     def __str__(self):
-        if self.ordem:
-            return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
-                     'Matéria: %(materia)s') % {
-                         'ordem': self.ordem,
-                         'votacao': self.tipo_resultado_votacao,
-                'materia': self.materia}
-        elif self.expediente:
-            return _('Expediente: %(expediente)s - Votação: %(votacao)s - '
-                     'Matéria: %(materia)s') % {
-                         'expediente': self.expediente,
-                         'votacao': self.tipo_resultado_votacao,
-                'materia': self.materia}
+        return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
+                 'Matéria: %(materia)s') % {
+                     'ordem': self.ordem,
+                     'votacao': self.tipo_resultado_votacao,
+            'materia': self.materia}
 
 
 @reversion.register()
