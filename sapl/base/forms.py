@@ -505,6 +505,11 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
             'widget': RangeWidgetOverride}
     }}
 
+    @property
+    def qs(self):
+        parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
+        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+
     class Meta:
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
