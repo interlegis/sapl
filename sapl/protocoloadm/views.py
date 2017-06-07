@@ -121,6 +121,10 @@ class DocumentoAdministrativoCrud(Crud):
                     kwargs={'pk': self.object.pk}))
             return context
 
+    class DeleteView(DocumentoAdministrativoMixin, Crud.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.protocoloadm:pesq_doc_adm', kwargs={})
+
 
 class StatusTramitacaoAdministrativoCrud(CrudAux):
     model = StatusTramitacaoAdministrativo

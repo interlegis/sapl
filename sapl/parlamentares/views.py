@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
+from django.templatetags.static import static
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView
@@ -345,6 +346,14 @@ class ParlamentarCrud(Crud):
 
             # Tira Link do avatar_html e coloca no nome
             for row in context['rows']:
+
+                # preenche coluna foto, se vazia
+                if not row[0][0]:
+                    img = "<center><img width='50px' \
+                            height='50px' src='%s'/></center>" \
+                            % static('img/avatar.png')
+                    row[0] = (img, row[0][1])
+
                 # Coloca a filiação atual ao invés da última
                 if row[0][1]:
                     # Pega o Parlamentar por meio da pk

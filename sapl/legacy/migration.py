@@ -8,6 +8,7 @@ import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
@@ -20,12 +21,12 @@ from model_mommy.mommy import foreign_key_required, make
 from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
-                                 StatusTramitacao, TipoDocumento,
-                                 TipoMateriaLegislativa, TipoProposicao,
-                                 Tramitacao)
-from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
-                               TipoVinculoNormaJuridica)
+from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
+                                 MateriaLegislativa, StatusTramitacao,
+                                 TipoDocumento, TipoMateriaLegislativa,
+                                 TipoProposicao, Tramitacao)
+from sapl.norma.models import (AssuntoNorma, NormaJuridica,
+                               TipoVinculoNormaJuridica, NormaRelacionada)
 from sapl.parlamentares.models import Parlamentar, TipoAfastamento
 from sapl.protocoloadm.models import Protocolo, StatusTramitacaoAdministrativo
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
@@ -580,8 +581,13 @@ def migrate(obj=appconfs, interativo=True):
 
 # MIGRATION_ADJUSTMENTS #####################################################
 
+def adjust_acompanhamentomateria(new, old):
+    new.confirmado = True
+
+
 def adjust_ordemdia_antes_salvar(new, old):
-    # Prestar atenção
+    new.votacao_aberta = False
+
     if not old.tip_votacao:
         new.tipo_votacao = 1
 
@@ -755,6 +761,13 @@ def adjust_autor(new, old):
             with reversion.create_revision():
                 user.save()
                 reversion.set_comment('Objeto criado pela migração')
+
+            grupo_autor = Group.objects.get(name="Autor")
+            user.groups.add(grupo_autor)
+            if old.cod_parlamentar:
+                grupo_parlamentar = Group.objects.get(name="Parlamentar")
+                user.groups.add(grupo_parlamentar)
+
             new.user = user
         else:
             new.user = get_user_model().objects.filter(
@@ -773,6 +786,7 @@ def adjust_comissao(new, old):
 
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
+    AcompanhamentoMateria: adjust_acompanhamentomateria,
     Comissao: adjust_comissao,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     NormaRelacionada: adjust_normarelacionada,
