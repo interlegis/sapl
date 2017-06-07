@@ -44,7 +44,7 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoNominal,
+                     TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -369,24 +369,25 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                               'oid': obj.pk,
                                               'mid': obj.materia_id})
                         obj.resultado = ('<a href="%s">%s</a><br/>%s' %
-                                           (url,
-                                            resultado_descricao,
-                                            resultado_observacao))
+                                         (url,
+                                          resultado_descricao,
+                                          resultado_observacao))
                     else:
                         if obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacaonominalexpdetail',
-                                            kwargs={
-                                                  'pk': obj.sessao_plenaria_id,
-                                                  'oid': obj.pk,
-                                                  'mid': obj.materia_id})
+                            url = reverse(
+                                'sapl.sessao:votacaonominalexpdetail',
+                                kwargs={
+                                    'pk': obj.sessao_plenaria_id,
+                                    'oid': obj.pk,
+                                    'mid': obj.materia_id})
                             obj.resultado = ('<a href="%s">%s</a><br/>%s' %
-                                           (url,
-                                            resultado_descricao,
-                                            resultado_observacao))
+                                             (url,
+                                              resultado_descricao,
+                                              resultado_observacao))
                         else:
                             obj.resultado = ('%s<br/>%s' %
-                                                (resultado_descricao,
-                                                 resultado_observacao))
+                                             (resultado_descricao,
+                                              resultado_observacao))
             return [self._as_row(obj) for obj in object_list]
 
     class CreateView(MasterDetailCrud.CreateView):

@@ -14,8 +14,7 @@ from sapl.painel.models import Painel
 from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
-                                SessaoPlenariaPresenca, VotoNominal,
-                                VotoParlamentar)
+                                SessaoPlenariaPresenca, VotoParlamentar)
 from sapl.utils import get_client_ip
 
 from .models import Cronometro
