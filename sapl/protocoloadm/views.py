@@ -434,6 +434,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
             id=self.request.POST['tipo_materia'])
         protocolo.numero_paginas = self.request.POST['numero_paginas']
+        protocolo.assunto_ementa = self.request.POST['assunto_ementa']
         protocolo.observacao = self.request.POST['observacao']
         protocolo.assunto_ementa = self.request.POST['assunto_ementa']
 
