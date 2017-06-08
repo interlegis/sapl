@@ -34,7 +34,19 @@
 
       </br>
       </br>
-      <h2><font color="red"><p align="center" style="font-family:Verdana">Voto: {{voto_parlamentar}}</p></font></h2>
+      <h2>
+        <font color="white">
+          <p align="center" style="font-family:Verdana">Voto:
+            {% if voto_parlamentar == "Sim" %}
+              <font color="#449d44">{{voto_parlamentar}}</font>
+            {% elif voto_parlamentar == "Não" %}
+              <font color="#d9534f">{{voto_parlamentar}}</font>
+            {% elif voto_parlamentar == "Abstenção" %}
+              <font color="#eaeaea">{{voto_parlamentar}}</font>
+            {% endif %}
+          </p>
+        </font>
+      </h2>
       </br>
       </br>
 
@@ -48,19 +60,18 @@
       <br /><br />
       <form method='POST'>
         {% csrf_token %}
-        <table style="width:75%; border:1px;" align="center">
-          <tr><th style="text-align:center">
-            <select id="voto" name="voto" style="width:30%;">
-              <option value="">Selecione</option>
-              <option value="Sim">Sim</option>
-              <option value="Não">Não</option>
-              <option value="Abstenção">Abstenção</option>
-            </select>
-          </th></tr>
-          <tr><th style="text-align:center">
-            <input type="submit" value="Votar" name="Votar" style="width:10%;"/>
-          </th></tr>
-        </table>
+        <div class="row container-detail clearfix" style="text-align:center">
+          <div  class="row-fluid">
+            <div class="col-md-12">
+              <input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim"/>
+              &nbsp
+              <input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/>
+              &nbsp
+              <input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/>
+            </div>
+          </div>
+        </div>
+
       </form>
     </body>
   {% elif not permissao %}
