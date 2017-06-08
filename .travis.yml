@@ -18,9 +18,11 @@ before_script:
 script:
   - ./manage.py migrate
   - ./manage.py bower install
-  - py.test --create-db
-  # - ./test_and_check_qa.sh
+  - py.test --create-db --cov . --cov-report term
 
 addons:
     hosts:
         - 127.0.0.1 sapldb
+
+after_sucess:
+  - CODECLIMATE_REPO_TOKEN=4d19e43ef9a92ca21314499fc1cc4e127cc5a4dea7fcc5b8e36e03780ada43c9 codeclimate-test-reporter
