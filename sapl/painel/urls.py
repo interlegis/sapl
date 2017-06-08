@@ -20,6 +20,6 @@ urlpatterns = [
     url(r'^painel/cronometro$', cronometro_painel, name='cronometro_painel'),
     # url(r'^painel/cronometro$', include(CronometroPainelCrud.get_urls())),
 
-    url(r'^voto-individual/(?P<pk>\d+)$', votante_view,
+    url(r'^voto-individual/$', votante_view,
         name="voto_individual"),
 ]

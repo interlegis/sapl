@@ -63,6 +63,11 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li><a>{{user.username}}</a></li>
+                    {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
+                      <li><a href="{% url 'sapl.painel:voto_individual' %}">
+                        Votar Matéria
+                      </a></li>
+                    {% endif %}
                     <li><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
                   </ul>
                 </li>
