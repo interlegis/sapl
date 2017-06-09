@@ -26,17 +26,10 @@ class Legislatura(models.Model):
 
     def atual(self):
         current_year = datetime.now().year
-        if(self.data_inicio.year <= current_year and
-           self.data_fim.year >= current_year):
-            return True
-        else:
-            return False
+        return self.data_inicio.year <= current_year <= self.data_fim.year
 
     def __str__(self):
-        if self.atual():
-            current = ' (%s)' % _('Atual')
-        else:
-            current = ''
+        current = ' (%s)' % _('Atual') if self.atual() else ''
 
         return _('%(numero)sª (%(start)s - %(end)s)%(current)s') % {
             'numero': self.numero,
