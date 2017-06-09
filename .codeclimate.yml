@@ -1,8 +1,8 @@
 engines:
   eslint:
-    enabled: true
+    enabled: false
   csslint:
-    enabled: true
+    enabled: false
   duplication:
     enabled: true
     config:
@@ -21,3 +21,4 @@ exclude_paths:
 - sapl/**/migrations/*
 - sapl/**/legacy/*
 - sapl/relatorios/
+- sapl/templates/*
