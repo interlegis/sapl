@@ -87,8 +87,8 @@ def proposicao_texto(request, pk):
     proposicao = Proposicao.objects.get(pk=pk)
 
     if proposicao.texto_original:
-        if not proposicao.data_recebimento:
-            if proposicao.autor.user_id != request.user.id:
+        if (not proposicao.data_recebimento and
+            proposicao.autor.user_id != request.user.id):
                 raise Http404
 
         arquivo = proposicao.texto_original
