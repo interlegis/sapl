@@ -1,0 +1,23 @@
+engines:
+  eslint:
+    enabled: true
+  csslint:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - python
+      - javascript
+  fixme:
+    enabled: true
+  radon:
+    enabled: true
+ratings:
+  paths:
+  - "**.py"
+  - "**.js"
+exclude_paths:
+- sapl/**/migrations/*
+- sapl/**/legacy/*
+- sapl/relatorios/
