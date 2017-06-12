@@ -46,7 +46,7 @@ def votacao_aberta(request):
                 v.__str__()))
 
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
-                'nas seguintes Sessões: ' + ''.join(msg_abertas) + '. '
+                'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
                 'Para votar, peça para que o Operador feche-as.')
         messages.add_message(request, messages.INFO, msg)
         return None, msg
