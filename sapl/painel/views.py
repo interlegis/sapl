@@ -38,23 +38,39 @@ def votacao_aberta(request):
         Q(expedientemateria__votacao_aberta=True)).distinct()
 
     if len(votacoes_abertas) > 1:
-        msg_abertas = ''
-        for i, v in enumerate(votacoes_abertas):
-            if i != 0:
-                msg_abertas += ', '
-            msg_abertas += '''<a href="%s">%s</a>''' % (
+        msg_abertas = []
+        for v in votacoes_abertas:
+            msg_abertas.append('''<li><a href="%s">%s</a></li>''' % (
                 reverse('sapl.sessao:sessaoplenaria_detail',
                         kwargs={'pk': v.id}),
-                v.__str__())
+                v.__str__()))
 
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
-                'nas seguintes Sessões: ' + msg_abertas + '. Para votar, '
-                'peça para que o Operador as feche.')
+                'nas seguintes Sessões: ' + ''.join(msg_abertas) + '. '
+                'Para votar, peça para que o Operador feche-as.')
         messages.add_message(request, messages.INFO, msg)
-        return HttpResponseRedirect('/')
+        return None, msg
 
-    else:
-        return votacoes_abertas.first()
+    elif len(votacoes_abertas) == 1:
+        ordens = OrdemDia.objects.filter(
+            sessao_plenaria=votacoes_abertas.first(),
+            votacao_aberta=True)
+        expedientes = ExpedienteMateria.objects.filter(
+            sessao_plenaria=votacoes_abertas.first(),
+            votacao_aberta=True)
+
+        numero_materias_abertas = len(ordens) + len(expedientes)
+        if numero_materias_abertas > 1:
+            msg = _('Existe mais de uma votação aberta na Sessão: ' +
+                    ('''<li><a href="%s">%s</a></li>''' % (
+                        reverse('sapl.sessao:sessaoplenaria_detail',
+                                kwargs={'pk': votacoes_abertas.first().id}),
+                        votacoes_abertas.first().__str__())) +
+                    'Para votar, peça para que o Operador as feche.')
+            messages.add_message(request, messages.INFO, msg)
+            return None, msg
+
+    return votacoes_abertas.first(), None
 
 
 def votante_view(request):
@@ -71,9 +87,9 @@ def votante_view(request):
         context.update({'permissao': True})
 
         # Pega sessão
-        sessao = votacao_aberta(request)
+        sessao, msg = votacao_aberta(request)
 
-        if sessao:
+        if sessao and not msg:
             pk = sessao.pk
             context.update({'sessao_id': pk})
             context.update({'sessao': sessao,
@@ -92,11 +108,13 @@ def votante_view(request):
             if ordem_dia:
                 materia_aberta = ordem_dia
                 presentes = PresencaOrdemDia.objects.filter(
-                    sessao_plenaria_id=pk)
+                    sessao_plenaria_id=pk).values_list(
+                    'parlamentar_id', flat=True).distinct()
             elif expediente:
                 materia_aberta = expediente
                 presentes = SessaoPlenariaPresenca.objects.filter(
-                    sessao_plenaria_id=pk)
+                    sessao_plenaria_id=pk).values_list(
+                    'parlamentar_id', flat=True).distinct()
 
             if materia_aberta:
                 if materia_aberta.tipo_votacao == VOTACAO_NOMINAL:
@@ -105,11 +123,8 @@ def votante_view(request):
 
                     parlamentar = votante.parlamentar
                     parlamentar_presente = False
-                    if len(presentes) > 0:
-                        for p in presentes:
-                            if p.parlamentar.id == parlamentar.id:
-                                parlamentar_presente = True
-                                break
+                    if parlamentar.id in presentes:
+                        parlamentar_presente = True
                     else:
                         context.update({'error_message':
                                         'Não há presentes na Sessão com a '
@@ -143,6 +158,9 @@ def votante_view(request):
             else:
                 context.update(
                     {'error_message': 'Nenhuma matéria aberta.'})
+
+        elif not sessao and msg:
+            return HttpResponseRedirect('/')
 
         else:
             context.update(

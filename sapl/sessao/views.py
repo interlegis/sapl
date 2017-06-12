@@ -88,17 +88,15 @@ def verifica_votacoes_abertas(request, model, pk):
         Q(expedientemateria__votacao_aberta=True)).distinct()
 
     if votacoes_abertas:
-        msg_abertas = ''
-        for i, v in enumerate(votacoes_abertas):
-            if i != 0:
-                msg_abertas += ', '
-            msg_abertas += '''<a href="%s">%s</a>''' % (
+        msg_abertas = []
+        for v in votacoes_abertas:
+            msg_abertas.append('''<li><a href="%s">%s</a></li>''' % (
                 reverse('sapl.sessao:sessaoplenaria_detail',
                         kwargs={'pk': v.id}),
-                v.__str__())
+                v.__str__()))
 
         msg = _('Já existem votações abertas nas seguintes Sessões: ' +
-                msg_abertas + '. Para abrir '
+                ''.join(msg_abertas) + '. Para abrir '
                 'outra, termine ou feche as votações abertas.')
         messages.add_message(request, messages.INFO, msg)
 
