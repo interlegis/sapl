@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -9,6 +8,7 @@ from django.db import models
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -19,8 +19,10 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
 
+
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
+
 
 def grupo_autor():
     try:
@@ -28,6 +30,7 @@ def grupo_autor():
     except Group.DoesNotExist:
         return None
     return grupo.id
+
 
 @reversion.register()
 class TipoProposicao(models.Model):
@@ -118,11 +121,14 @@ class Origem(models.Model):
 TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
                                     ('E', 'escrita', _('Escrita')))
 
+
 def materia_upload_path(instance, filename):
-        return texto_upload_path(instance, filename, subpath=instance.ano)
+    return texto_upload_path(instance, filename, subpath=instance.ano)
+
 
 def anexo_upload_path(instance, filename):
-        return texto_upload_path(instance, filename, subpath=instance.materia.ano)
+    return texto_upload_path(instance, filename, subpath=instance.materia.ano)
+
 
 @reversion.register()
 class MateriaLegislativa(models.Model):
@@ -204,6 +210,9 @@ class MateriaLegislativa(models.Model):
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
 
+    proposicao = GenericRelation(
+        'Proposicao', related_query_name='proposicao')
+
     autores = models.ManyToManyField(
         Autor,
         through='Autoria',
@@ -218,7 +227,6 @@ class MateriaLegislativa(models.Model):
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
-
 
     def data_entrada_protocolo(self):
         '''
@@ -239,6 +247,12 @@ class MateriaLegislativa(models.Model):
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
             self.texto_original.delete()
+
+        proposicao = self.proposicao.all()
+        if proposicao:
+            for p in proposicao:
+                p.conteudo_gerado_related = None
+                p.save()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
@@ -400,6 +414,9 @@ class DocumentoAcessorio(models.Model):
         verbose_name=_('Texto Integral'),
         validators=[restringe_tipos_de_arquivo_txt])
 
+    proposicao = GenericRelation(
+        'Proposicao', related_query_name='proposicao')
+
     class Meta:
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
@@ -414,6 +431,12 @@ class DocumentoAcessorio(models.Model):
     def delete(self, using=None, keep_parents=False):
         if self.arquivo:
             self.arquivo.delete()
+
+        proposicao = self.proposicao.all()
+        if proposicao:
+            for p in proposicao:
+                p.conteudo_gerado_related = None
+                p.save()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
