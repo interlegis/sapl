@@ -96,7 +96,7 @@ def verifica_votacoes_abertas(request, model, pk):
                 v.__str__()))
 
         msg = _('Já existem votações abertas nas seguintes Sessões: ' +
-                ''.join(msg_abertas) + '. Para abrir '
+                ', '.join(msg_abertas) + '. Para abrir '
                 'outra, termine ou feche as votações abertas.')
         messages.add_message(request, messages.INFO, msg)
 
