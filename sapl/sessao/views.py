@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
@@ -81,47 +82,42 @@ def reordernar_materias_ordem(request, pk):
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
 
+def verifica_votacoes_abertas(request, model, pk):
+    votacoes_abertas = SessaoPlenaria.objects.filter(
+        Q(ordemdia__votacao_aberta=True) |
+        Q(expedientemateria__votacao_aberta=True)).distinct()
+
+    if votacoes_abertas:
+        msg_abertas = []
+        for v in votacoes_abertas:
+            msg_abertas.append('''<li><a href="%s">%s</a></li>''' % (
+                reverse('sapl.sessao:sessaoplenaria_detail',
+                        kwargs={'pk': v.id}),
+                v.__str__()))
+
+        msg = _('Já existem votações abertas nas seguintes Sessões: ' +
+                ', '.join(msg_abertas) + '. Para abrir '
+                'outra, termine ou feche as votações abertas.')
+        messages.add_message(request, messages.INFO, msg)
+
+    else:
+        materia_votacao = model.objects.get(id=pk)
+        materia_votacao.votacao_aberta = True
+        materia_votacao.save()
+
+
 @permission_required('sessao.change_expedientemateria')
 def abrir_votacao_expediente_view(request, pk, spk):
-    existe_expediente_aberto = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=spk, votacao_aberta=True
-    ).exists()
-    existe_ordem_aberta = OrdemDia.objects.filter(
-        sessao_plenaria_id=spk, votacao_aberta=True
-    ).exists()
-
-    if existe_expediente_aberto or existe_ordem_aberta:
-        msg = _('Já existe uma matéria com votação aberta. Para abrir '
-                'outra, termine ou feche a votação existente.')
-        messages.add_message(request, messages.INFO, msg)
-    else:
-        expediente = ExpedienteMateria.objects.get(id=pk)
-        expediente.votacao_aberta = True
-        expediente.save()
+    verifica_votacoes_abertas(request, ExpedienteMateria, pk)
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
 @permission_required('sessao.change_ordemdia')
 def abrir_votacao_ordem_view(request, pk, spk):
-    existe_ordem_aberta = OrdemDia.objects.filter(
-        sessao_plenaria_id=spk, votacao_aberta=True
-    ).exists()
-    existe_expediente_aberto = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=spk, votacao_aberta=True
-    ).exists()
-
-    if existe_ordem_aberta or existe_expediente_aberto:
-        msg = _('Já existe uma matéria com votação aberta. Para abrir '
-                'outra, termine ou feche a votação existente.')
-        messages.add_message(request, messages.INFO, msg)
-    else:
-        ordem = OrdemDia.objects.get(id=pk)
-        ordem.votacao_aberta = True
-        ordem.save()
+    verifica_votacoes_abertas(request, OrdemDia, pk)
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
-
 
 
 def put_link_materia(context):
@@ -132,6 +128,7 @@ def put_link_materia(context):
 
         context['rows'][i][1] = (row[1][0], url_materia)
     return context
+
 
 def get_presencas_generic(model, sessao, legislatura):
     presencas = model.objects.filter(
@@ -1753,6 +1750,18 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 materia_votacao.votacao_aberta = False
                 materia_votacao.save()
 
+            # Verifica se existe algum VotoParlamentar sem RegistroVotacao
+            # Por exemplo, se algum parlamentar votar e sua presença for
+            # removida da ordem do dia/expediente antes da conclusão da
+            # votação
+            if self.ordem:
+                VotoParlamentar.objects.filter(
+                    ordem=ordem,
+                    votacao__isnull=True).delete()
+            elif self.expediente:
+                VotoParlamentar.objects.filter(
+                    expediente=expediente,
+                    votacao__isnull=True).delete()
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
