@@ -248,11 +248,9 @@ class MateriaLegislativa(models.Model):
         if self.texto_original:
             self.texto_original.delete()
 
-        proposicao = self.proposicao.all()
-        if proposicao:
-            for p in proposicao:
-                p.conteudo_gerado_related = None
-                p.save()
+        for p in self.proposicao.all():
+            p.conteudo_gerado_related = None
+            p.save()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
@@ -432,11 +430,9 @@ class DocumentoAcessorio(models.Model):
         if self.arquivo:
             self.arquivo.delete()
 
-        proposicao = self.proposicao.all()
-        if proposicao:
-            for p in proposicao:
-                p.conteudo_gerado_related = None
-                p.save()
+        for p in self.proposicao.all():
+            p.conteudo_gerado_related = None
+            p.save()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
