@@ -58,103 +58,99 @@ def votacao_aberta(request):
 
 
 def votante_view(request):
-    if not Votante.objects.filter(user=request.user).exists():
-        raise Http404('Você não tem permissão para votar')
+    # Pega o votante relacionado ao usuário
+    try:
+        votante = Votante.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        raise Http404()
 
     context = {'head_title': str(_('Votação Individual'))}
 
     # Verifica se usuário possui permissão para votar
     if 'parlamentares.can_vote' in request.user.get_all_permissions():
         context.update({'permissao': True})
-    else:
-        context.update({'permissao': False})
 
-    # Pega o votante relacionado ao usuário
-    try:
-        votante = Votante.objects.get(user=request.user)
-    except ObjectDoesNotExist:
-        context.update({'error_message':
-                        'Erro ao recuperar parlamentar ligado ao usuário'})
-    except MultipleObjectsReturned:
-        context.update({'error_message':
-                        'Este usuário está ligado a mais de um Votante!'})
+        # Pega sessão
+        sessao = votacao_aberta(request)
 
-    # Pega sessão
-    sessao = votacao_aberta(request)
-    if sessao:
-        pk = sessao.pk
+        if sessao:
+            pk = sessao.pk
+            context.update({'sessao_id': pk})
+            context.update({'sessao': sessao,
+                            'data': sessao.data_inicio,
+                            'hora': sessao.hora_inicio})
 
-        context.update({'sessao_id': pk})
+            # Inicializa presentes
+            presentes = []
 
-        context.update({'sessao': sessao,
-                        'data': sessao.data_inicio,
-                        'hora': sessao.hora_inicio})
+            # Verifica votação aberta
+            # Se aberta, verifica se é nominal. ID nominal == 2
+            ordem_dia = get_materia_aberta(pk)
+            expediente = get_materia_expediente_aberta(pk)
 
-        # Inicializa presentes
-        presentes = []
-
-        # Verifica votação aberta
-        # Se aberta, verifica se é nominal. ID nominal == 2
-        ordem_dia = get_materia_aberta(pk)
-        expediente = get_materia_expediente_aberta(pk)
-        materia = None
-
-        if ordem_dia:
-            materia = ordem_dia.materia
-            if ordem_dia.tipo_votacao == VOTACAO_NOMINAL:
-                context.update({'materia': materia, 'ementa': materia.ementa})
+            materia_aberta = None
+            if ordem_dia:
+                materia_aberta = ordem_dia
                 presentes = PresencaOrdemDia.objects.filter(
                     sessao_plenaria_id=pk)
-            else:
-                context.update(
-                    {'materia': 'A matéria aberta não é votação nominal.'})
-        elif expediente:
-            materia = expediente.materia
-            if expediente.tipo_votacao == VOTACAO_NOMINAL:
-                context.update({'materia': materia, 'ementa': materia.ementa})
+            elif expediente:
+                materia_aberta = expediente
                 presentes = SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=pk)
+
+            if materia_aberta:
+                if materia_aberta.tipo_votacao == VOTACAO_NOMINAL:
+                    context.update({'materia': materia_aberta.materia,
+                                    'ementa': materia_aberta.materia.ementa})
+
+                    parlamentar = votante.parlamentar
+                    parlamentar_presente = False
+                    if len(presentes) > 0:
+                        for p in presentes:
+                            if p.parlamentar.id == parlamentar.id:
+                                parlamentar_presente = True
+                                break
+                    else:
+                        context.update({'error_message':
+                                        'Não há presentes na Sessão com a '
+                                        'matéria em votação.'})
+
+                    if parlamentar_presente:
+                        voto = []
+                        if ordem_dia:
+                            voto = VotoParlamentar.objects.filter(
+                                ordem=ordem_dia)
+                        elif expediente:
+                            voto = VotoParlamentar.objects.filter(
+                                expediente=expediente)
+
+                        if voto:
+                            try:
+                                voto = voto.get(parlamentar=parlamentar)
+                                context.update({'voto_parlamentar': voto.voto})
+                            except ObjectDoesNotExist:
+                                context.update(
+                                    {'voto_parlamentar': 'Voto não '
+                                     'computado.'})
+                    else:
+                        context.update({'error_message':
+                                        'Você não está presente na '
+                                        'Ordem do Dia/Expediente em votação.'})
+                else:
+                    context.update(
+                        {'error_message': 'A matéria aberta não é votação '
+                         'nominal.'})
             else:
                 context.update(
-                    {'materia': 'A matéria aberta não é votação nominal.'})
+                    {'error_message': 'Nenhuma matéria aberta.'})
+
         else:
             context.update(
-                {'materia': 'Nenhuma matéria com votação nominal aberta.'})
-
-        # Verifica se usuário está presente na sessão
-        if votante:
-            parlamentar = votante.parlamentar
-            context.update({'presente': False})
-            if len(presentes) > 0:
-                for p in presentes:
-                    if p.parlamentar.id == parlamentar.id:
-                        context.update({'presente': True})
-                        break
-            else:
-                context.update({'error_message':
-                                'Não há presentes na Sessão com a matéria em '
-                                'votação.'})
-
-            # Recupera o voto do parlamentar logado
-            voto = []
-            if ordem_dia:
-                voto = VotoParlamentar.objects.filter(
-                    ordem=ordem_dia)
-            elif expediente:
-                voto = VotoParlamentar.objects.filter(
-                    expediente=expediente)
-
-            if voto:
-                try:
-                    voto = voto.get(parlamentar=parlamentar)
-                except ObjectDoesNotExist:
-                    context.update({'voto_parlamentar': 'Voto não computado.'})
-                else:
-                    context.update({'voto_parlamentar': voto.voto})
+                {'error_message': 'Nenhuma sessão com matéria aberta.'})
 
     else:
-        context.update(
-            {'error_message': 'Nenhuma matéria aberta.'})
+        context.update({'permissao': False,
+                        'error_message': 'Usuário sem permissão para votar.'})
 
     # Salva o voto
     if request.method == 'POST':
@@ -195,7 +191,7 @@ def votante_view(request):
                 voto.save()
 
         return HttpResponseRedirect(
-            reverse('sapl.painel:voto_individual', kwargs={'pk': pk}))
+            reverse('sapl.painel:voto_individual'))
 
     return render(request, 'painel/voto_nominal.html', context)
 

@@ -1752,6 +1752,18 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 materia_votacao.votacao_aberta = False
                 materia_votacao.save()
 
+            # Verifica se existe algum VotoParlamentar sem RegistroVotacao
+            # Por exemplo, se algum parlamentar votar e sua presença for
+            # removida da ordem do dia/expediente antes da conclusão da
+            # votação
+            if self.ordem:
+                VotoParlamentar.objects.filter(
+                    ordem=ordem,
+                    votacao__isnull=True).delete()
+            elif self.expediente:
+                VotoParlamentar.objects.filter(
+                    expediente=expediente,
+                    votacao__isnull=True).delete()
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
