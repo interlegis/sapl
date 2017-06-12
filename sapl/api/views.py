@@ -238,9 +238,12 @@ class AutorListView(ListAPIView):
                     q_filter = q_filter & q_fs
 
                 qs = qs.filter(q_filter).distinct(
-                    fields[0].fields_search[0][0])
+                    fields[0].fields_search[0][0]).order_by(
+                        fields[0].fields_search[0][0])
+            else:
+                qs = qs.order_by(fields[0].fields_search[0][0])
 
-            qs = qs.order_by(fields[0].fields_search[0][0]).values_list(
+            qs = qs.values_list(
                 'id', fields[0].fields_search[0][0])
             r += list(qs)
 
