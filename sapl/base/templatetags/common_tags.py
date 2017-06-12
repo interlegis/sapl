@@ -117,6 +117,14 @@ def str2intabs(value):
     except:
         return ''
 
+@register.filter
+def has_iframe(request):
+    iframe = request.session.get('iframe', False)
+    if not iframe and 'iframe' in request.GET:
+        request.session['iframe'] = True
+        return True
+    return iframe
+
 
 @register.filter
 def url(value):

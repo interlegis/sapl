@@ -28,6 +28,7 @@
 
   <body>
     <div class="page fadein">
+      {% if not request|has_iframe %}
       {% block navigation %}
       <nav class="navbar navbar-inverse navbar-static-top">
         <div class="container">
@@ -73,6 +74,7 @@
         </div>
       </nav>
       {% endblock navigation %}
+      {% endif %}
 
       {# Header #}
       {% block main_header %}
@@ -103,7 +105,6 @@
       {# Main content #}
       {% block content_container %}
         <main id="content" class="content page__row">
-
           <div class="container">
 
             {# Feedback messages #}
@@ -147,7 +148,7 @@
 
       {% endblock content_container %}
 
-
+      {% if not request|has_iframe %}
       {% block footer_container %}
       <footer id="footer" class="footer page__row hidden-print">
         <div class="container">
@@ -204,6 +205,7 @@
       </footer>
     </div>
     {% endblock footer_container %}
+    {% endif %}
 
     {% block foot_js %}
       <!-- Bootstrap core JavaScript ================================================== -->
