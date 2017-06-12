@@ -599,16 +599,19 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
         if form.is_valid():
             # Pegar os presentes salvos no banco
             presentes_banco = SessaoPlenariaPresenca.objects.filter(
-                sessao_plenaria_id=self.object.id)
+                                sessao_plenaria_id=self.object.id).values_list(
+                                'parlamentar_id', flat=True).distinct()
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca_ativos') + request.POST.getlist('presenca_inativos')
+            marcados = request.POST.getlist('presenca_ativos') \
+                     + request.POST.getlist('presenca_inativos')
+            marcados = list(map(lambda x: int(x), marcados))
 
-            # Deletar os que foram desmarcadors
-            deletar = set(set(presentes_banco) - set(marcados))
-            for d in deletar:
-                SessaoPlenariaPresenca.objects.filter(
-                    parlamentar_id=d.parlamentar_id, sessao_plenaria_id=self.object.id).delete()
+            # Deletar os que foram desmarcados
+            deletar = set(presentes_banco) - set(marcados)
+            SessaoPlenariaPresenca.objects.filter(
+                parlamentar_id__in=deletar,
+                sessao_plenaria_id=self.object.id).delete()
 
             for p in marcados:
                 sessao = SessaoPlenariaPresenca()
@@ -707,16 +710,19 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
         if form.is_valid():
             # Pegar os presentes salvos no banco
             presentes_banco = PresencaOrdemDia.objects.filter(
-                sessao_plenaria_id=pk)
+                                sessao_plenaria_id=self.object.id).values_list(
+                                'parlamentar_id', flat=True).distinct()
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca_ativos') + request.POST.getlist('presenca_inativos')
+            marcados = request.POST.getlist('presenca_ativos') \
+                     + request.POST.getlist('presenca_inativos')
+            marcados = list(map(lambda x: int(x), marcados))
 
-            # Deletar os que foram desmarcadors
-            deletar = set(set(presentes_banco) - set(marcados))
-            for d in deletar:
-                PresencaOrdemDia.objects.filter(
-                    parlamentar_id=d.parlamentar_id, sessao_plenaria_id=self.object.id).delete()
+            # Deletar os que foram desmarcados
+            deletar = set(presentes_banco) - set(marcados)
+            PresencaOrdemDia.objects.filter(
+                parlamentar_id__in=deletar,
+                sessao_plenaria_id=self.object.id).delete()
 
             for p in marcados:
                 ordem = PresencaOrdemDia()
