@@ -119,13 +119,19 @@ def str2intabs(value):
 
 @register.filter
 def has_iframe(request):
+
     iframe = request.session.get('iframe', False)
     if not iframe and 'iframe' in request.GET:
-        request.session['iframe'] = True
-        return True
-    if 'no-iframe' in request.GET and iframe:
-        del request.session['iframe']
-        return False
+        ival = request.GET['iframe']
+        if ival and int(ival) == 1:
+            request.session['iframe'] = True
+            return True
+    elif 'iframe' in request.GET:
+        ival = request.GET['iframe']
+        if ival and int(ival) == 0:
+            del request.session['iframe']
+            return False
+
     return iframe
 
 
