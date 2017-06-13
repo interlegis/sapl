@@ -59,6 +59,8 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 
+from .signals import tramitacao_signal
+
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -914,13 +916,20 @@ class TramitacaoCrud(MasterDetailCrud):
                     id=request.POST['status']).first()
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
-                    )
+                )
                 texto = request.POST['texto']
                 data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
                     request, materia, status,
                     unidade_destino, texto, data_tramitacao)
             return super(CreateView, self).post(request, *args, **kwargs)
+
+        def form_valid(self, form):
+            self.object = form.save()
+            tramitacao_signal.send(sender=Tramitacao,
+                                   post=self.object,
+                                   request=self.request)
+            return super().form_valid(form)
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
@@ -933,8 +942,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 status = StatusTramitacao.objects.filter(
                     id=request.POST['status']).first()
                 unidade_destino = UnidadeTramitacao.objects.get(
-                    id=request.POST['unidade_tramitacao_destino']
-                    )
+                    id=request.POST['unidade_tramitacao_destino'])
                 texto = request.POST['texto']
                 data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
@@ -946,6 +954,13 @@ class TramitacaoCrud(MasterDetailCrud):
         @property
         def layout_key(self):
             return 'TramitacaoUpdate'
+
+        def form_valid(self, form):
+            self.object = form.save()
+            tramitacao_signal.send(sender=Tramitacao,
+                                   post=self.object,
+                                   request=self.request)
+            return super().form_valid(form)
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -1493,9 +1508,9 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
     return templates
 
 
-def criar_email_tramitacao(
-                        request, casa_legislativa, materia, status,
-                        unidade_destino, texto, data_tramitacao, hash_txt=''):
+def criar_email_tramitacao(request, casa_legislativa, materia,
+                           status, unidade_destino, texto,
+                           data_tramitacao, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
@@ -1611,8 +1626,12 @@ def do_envia_email_confirmacao(request, materia, email):
     return None
 
 
-def do_envia_email_tramitacao(
-    request, materia, status, unidade_destino, texto, data_tramitacao):
+def do_envia_email_tramitacao(request,
+                              materia,
+                              status,
+                              unidade_destino,
+                              texto,
+                              data_tramitacao):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #

@@ -25,6 +25,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
 
 from .apps import AppConfig
 
+from . import receivers
+
 app_name = AppConfig.name
 
 urlpatterns_materia = [
