@@ -21,7 +21,6 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -42,6 +41,7 @@ from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
+import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
@@ -448,7 +448,7 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                     hasher = gerar_hash_arquivo(
                         proposicao.texto_original.path,
                         str(proposicao.pk)) \
-                            if proposicao.texto_original else None
+                        if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
@@ -553,7 +553,7 @@ class ProposicaoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data_envio', 'data_recebimento', 'descricao',
-                            'tipo']
+                            'tipo', 'conteudo_gerado_related']
 
     class BaseLocalMixin:
         form_class = ProposicaoForm
