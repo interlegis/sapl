@@ -116,7 +116,7 @@
           <h2 class="legend">{% trans "Conteúdo Gerado" %}</h2>
           <div id="div_id_conteudo_gerado_related" class="form-group">
             <div class="controls">
-                <a href="{% url object|urldetail_content_type:object.conteudo_gerado_related object.id%}">
+                <a href="{% url object|urldetail_content_type:object.conteudo_gerado_related object.conteudo_gerado_related.id%}">
                   {{object.conteudo_gerado_related}}
                 </a>
             </div>
