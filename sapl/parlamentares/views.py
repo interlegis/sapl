@@ -183,6 +183,26 @@ class ColigacaoCrud(CrudAux):
     class ListView(CrudAux.ListView):
         ordering = ('-numero_votos', 'nome')
 
+        def get_context_data(self, **kwargs):
+            context = super(ColigacaoCrud.ListView, self).get_context_data(kwargs=kwargs)
+            rows = context['rows']
+            coluna_votos_recebidos = 2
+            for row in rows:
+                if not row[coluna_votos_recebidos][0]:
+                    row[coluna_votos_recebidos] = ('0', None)
+
+            return context
+
+    class DetailView(CrudAux.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super(ColigacaoCrud.DetailView, self).get_context_data(kwargs=kwargs)
+            coligacao = context['coligacao']
+            if not coligacao.numero_votos:
+                coligacao.numero_votos = '0'
+
+            return context
+
     class BaseMixin(CrudAux.BaseMixin):
         subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
 
@@ -199,6 +219,21 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
+
+        def get_context_data(self, **kwargs):
+            context = super(MasterDetailCrud.ListView, self).get_context_data(kwargs=kwargs)
+            rows = context['rows']
+            coluna_coligacao = 2
+            coluna_votos_recebidos = 3
+            for row in rows:
+                if not row[coluna_coligacao][0]:
+                    row[coluna_coligacao] = (' ', None)
+
+                if not row[coluna_votos_recebidos][0]:
+                    row[coluna_votos_recebidos] = (' ', None)
+
+            return context
+
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = MandatoForm
