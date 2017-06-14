@@ -1174,6 +1174,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.fields['gerar_protocolo'].initial = True
 
     def clean(self):
+        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+
+        if not numeracao:
+            raise ValidationError("A sequência de numeração (por ano ou geral)"
+                                  " não foi configurada para a aplicação em "
+                                  "tabelas auxiliares")
         if 'incorporar' in self.data:
             cd = ProposicaoForm.clean(self)
 
