@@ -4,10 +4,10 @@ import django.dispatch
 
 from sapl.utils import delete_texto, save_texto
 
-from .models import DocumentoAcessorio, MateriaLegislativa, Tramitacao
+from .models import DocumentoAcessorio, MateriaLegislativa
 
 
-tramitacao_signal = django.dispatch.Signal(providing_args=["post", "request"])
+tramitacao_signal = django.dispatch.Signal(providing_args=['post', 'request'])
 
 # post_save.connect(save_texto, sender=MateriaLegislativa)
 # post_save.connect(save_texto, sender=DocumentoAcessorio)

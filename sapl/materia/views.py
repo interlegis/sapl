@@ -1282,6 +1282,8 @@ class AcompanhamentoConfirmarView(TemplateView):
 class AcompanhamentoExcluirView(TemplateView):
 
     def get_success_url(self):
+        msg = _('Você parou de acompanhar esta matéria.')
+        messages.add_message(self.request, messages.INFO, msg)
         return reverse('sapl.materia:materialegislativa_detail',
                        kwargs={'pk': self.kwargs['pk']})
 
