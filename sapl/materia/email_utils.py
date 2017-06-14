@@ -1,8 +1,14 @@
-from django.core.mail import send_mail
+from datetime import datetime
+
+from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from django.core.urlresolvers import reverse
 from django.template import Context, loader
 
+from sapl.base.models import CasaLegislativa
 from sapl.settings import EMAIL_SEND_USER
+
+from .models import AcompanhamentoMateria
+
 
 def load_email_templates(templates, context={}):
 
@@ -14,7 +20,6 @@ def load_email_templates(templates, context={}):
             email = email.replace('\n', '').replace('\r', '')
         emails.append(email)
     return emails
-
 
 
 def enviar_emails(sender, recipients, messages):
@@ -175,20 +180,31 @@ def do_envia_email_tramitacao(base_url, materia, status, unidade_destino):
     # FIXME i18n
     subject = "[SAPL] " + str(materia) + \
               " - Acompanhamento de Materia Legislativa"
-    messages = []
-    recipients = []
+
+    connection = get_connection()
+    connection.open()
+
     for destinatario in destinatarios:
-        email_texts = criar_email_tramitacao(base_url,
-                                             casa,
-                                             materia,
-                                             status,
-                                             unidade_destino,
-                                             destinatario.hash,)
-        recipients.append(destinatario.email)
-        messages.append({
-            'recipient': destinatario.email,
-            'subject': subject,
-            'txt_message': email_texts[0],
-            'html_message': email_texts[1],
-        })
-    enviar_emails(sender, recipients, messages)
+        try:
+            email_texts = criar_email_tramitacao(base_url,
+                                                 casa,
+                                                 materia,
+                                                 status,
+                                                 unidade_destino,
+                                                 destinatario.hash,)
+
+            email = EmailMultiAlternatives(
+                subject,
+                email_texts[0],
+                sender,
+                [destinatario.email],
+                connection=connection)
+            email.attach_alternative(email_texts[1], "text/html")
+            email.send()
+
+        # Garantia de que, mesmo com o lançamento de qualquer exceção,
+        # a conexão será fechada
+        except Exception:
+            connection.close()
+
+    connection.close()
