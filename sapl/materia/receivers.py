@@ -10,7 +10,7 @@ from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import get_base_url
 
 from .models import AcompanhamentoMateria
-from .views import load_email_templates
+from .email_utils import load_email_templates
 
 
 @receiver(tramitacao_signal)
