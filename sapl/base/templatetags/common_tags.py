@@ -168,3 +168,15 @@ def search_get_model(object):
         return 'n'
 
     return None
+
+
+@register.filter
+def urldetail_content_type(obj, value):
+    return '%s:%s_detail' % (
+        value._meta.app_config.name, obj.content_type.model)
+
+
+@register.filter
+def urldetail(obj):
+    return '%s:%s_detail' % (
+        obj._meta.app_config.name, obj._meta.model_name)

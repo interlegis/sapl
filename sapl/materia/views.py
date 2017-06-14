@@ -21,7 +21,6 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -42,6 +41,7 @@ from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
+import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
@@ -446,7 +446,7 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                     hasher = gerar_hash_arquivo(
                         proposicao.texto_original.path,
                         str(proposicao.pk)) \
-                            if proposicao.texto_original else None
+                        if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
@@ -551,7 +551,7 @@ class ProposicaoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data_envio', 'data_recebimento', 'descricao',
-                            'tipo']
+                            'tipo', 'conteudo_gerado_related']
 
     class BaseLocalMixin:
         form_class = ProposicaoForm
@@ -914,7 +914,7 @@ class TramitacaoCrud(MasterDetailCrud):
                     id=request.POST['status']).first()
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
-                    )
+                )
                 texto = request.POST['texto']
                 data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
@@ -934,7 +934,7 @@ class TramitacaoCrud(MasterDetailCrud):
                     id=request.POST['status']).first()
                 unidade_destino = UnidadeTramitacao.objects.get(
                     id=request.POST['unidade_tramitacao_destino']
-                    )
+                )
                 texto = request.POST['texto']
                 data_tramitacao = request.POST['data_tramitacao']
                 do_envia_email_tramitacao(
@@ -1494,8 +1494,8 @@ def criar_email_confirmacao(request, casa_legislativa, materia, hash_txt=''):
 
 
 def criar_email_tramitacao(
-                        request, casa_legislativa, materia, status,
-                        unidade_destino, texto, data_tramitacao, hash_txt=''):
+        request, casa_legislativa, materia, status,
+        unidade_destino, texto, data_tramitacao, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
@@ -1612,7 +1612,7 @@ def do_envia_email_confirmacao(request, materia, email):
 
 
 def do_envia_email_tramitacao(
-    request, materia, status, unidade_destino, texto, data_tramitacao):
+        request, materia, status, unidade_destino, texto, data_tramitacao):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
@@ -1787,10 +1787,10 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         qr = self.request.GET.copy()
 
         if ('tramitacao__status' in qr and
-           'tramitacao__unidade_tramitacao_destino' in qr and
-           qr['tramitacao__status'] and
-           qr['tramitacao__unidade_tramitacao_destino']
-           ):
+                'tramitacao__unidade_tramitacao_destino' in qr and
+                qr['tramitacao__status'] and
+                qr['tramitacao__unidade_tramitacao_destino']
+                ):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])

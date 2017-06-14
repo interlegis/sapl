@@ -1,12 +1,13 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
+from django.core.urlresolvers import reverse
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -77,29 +78,30 @@ def get_field_display(obj, fieldname):
         else:
             value = getattr(obj, fieldname)
 
-    str_type = str(type(value))
+    str_type_from_value = str(type(value))
+    str_type_from_field = str(type(field))
 
     if value is None:
         display = ''
-    elif 'date' in str_type:
+    elif 'date' in str_type_from_value:
         display = formats.date_format(value, "SHORT_DATE_FORMAT")
-    elif 'bool' in str(type(value)):
+    elif 'bool' in str_type_from_value:
         display = _('Sim') if value else _('Não')
     elif 'ImageFieldFile' in str(type(value)):
         if value:
             display = '<img src="{}" />'.format(value.url)
         else:
             display = ''
-    elif 'FieldFile' in str(type(value)):
+    elif 'FieldFile' in str_type_from_value:
         if value:
             display = '<a href="{}">{}</a>'.format(
                 value.url,
                 value.name.split('/')[-1:][0])
         else:
             display = ''
-    elif 'ManyRelatedManager' in str(type(value))\
-            or 'RelatedManager' in str(type(value))\
-            or 'GenericRelatedObjectManager' in str(type(value)):
+    elif 'ManyRelatedManager' in str_type_from_value\
+            or 'RelatedManager' in str_type_from_value\
+            or 'GenericRelatedObjectManager' in str_type_from_value:
         display = '<ul>'
         for v in value.all():
             display += '<li>%s</li>' % str(v)
@@ -110,6 +112,13 @@ def get_field_display(obj, fieldname):
                     field.related_model._meta.verbose_name_plural)
             elif hasattr(field, 'model'):
                 verbose_name = str(field.model._meta.verbose_name_plural)
+    elif 'GenericForeignKey' in str_type_from_field:
+        display = '<a href="{}">{}</a>'.format(
+            reverse(
+                '%s:%s_detail' % (
+                    value._meta.app_config.name, obj.content_type.model),
+                args=(value.id,)),
+            value)
     else:
         display = str(value)
     return verbose_name, display
