@@ -1,6 +1,6 @@
 from django.core import mail
 
-from sapl.materia.views import enviar_emails, load_email_templates
+from sapl.materia.email_utils import enviar_emails, load_email_templates
 
 
 def test_email_template_loading():
