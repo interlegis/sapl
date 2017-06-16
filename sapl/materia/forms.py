@@ -803,13 +803,28 @@ class TipoProposicaoForm(ModelForm):
 
     def clean(self):
         cd = self.cleaned_data
-
+        super(TipoProposicaoForm, self).clean()
         content_type = cd['content_type']
-
-        if 'tipo_conteudo_related' not in cd or not cd[
-           'tipo_conteudo_related']:
+        try:
+            tipo_conteudo_related = cd['tipo_conteudo_related']
+            if not tipo_conteudo_related:
+                raise ValidationError(
+                    _('Seleção de Tipo não definida'))
+        except KeyError:
             raise ValidationError(
                 _('Seleção de Tipo não definida'))
+        tipo = TipoProposicao.objects.filter(
+          content_type_id=content_type,
+          object_id=tipo_conteudo_related).first()
+        if tipo:
+            raise ValidationError(
+                _('O %(model)s: %(content_type)s, %(object_id)s já existe.'),
+                code='invalid',
+                params={
+                    'model': self._meta.model._meta.verbose_name,
+                    'content_type': content_type.__str__(),
+                    'object_id': tipo.tipo_conteudo_related.__str__()},
+                )
 
         if not content_type.model_class().objects.filter(
                 pk=cd['tipo_conteudo_related']).exists():
@@ -818,6 +833,17 @@ class TipoProposicaoForm(ModelForm):
                   ) % (cd['tipo_conteudo_related'], cd['q'], content_type))
 
         return self.cleaned_data
+
+    def clean_content_type(self):
+        try:
+            content_type = self.cleaned_data['content_type']
+            if not content_type:
+                raise ValidationError(
+                    _('Definição de Tipo não definida'))
+        except KeyError:
+            raise ValidationError(
+                _('Definição de Tipo não definida'))
+        return content_type
 
     @transaction.atomic
     def save(self, commit=False):
