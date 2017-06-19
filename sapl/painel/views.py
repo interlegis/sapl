@@ -330,7 +330,8 @@ def get_presentes(pk, response, materia):
         'num_presentes_sessao_plenaria': num_presentes_sessao_plen,
         'status_painel': 'ABERTO',
         'msg_painel': str(_('Votação aberta!')),
-        'tipo_resultado': tipo_votacao,
+        'tipo_resultado': materia.resultado,
+        'tipo_votacao': tipo_votacao,
         'observacao_materia': materia.observacao,
         'materia_legislativa_texto': str(materia.materia)})
 
