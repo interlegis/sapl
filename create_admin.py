@@ -1,14 +1,13 @@
 import os
 import sys
-
 import django
-from django.contrib.auth.models import User
+from sapl import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")
-django.setup()
-
 
 def create_superuser():
+    from django.contrib.auth.models import User
+
     username = "admin"
     password = os.environ['ADMIN_PASSWORD'] if 'ADMIN_PASSWORD' in os.environ else None
     email = os.environ['ADMIN_EMAIL'] if 'ADMIN_EMAIL' in os.environ else ''
@@ -31,4 +30,5 @@ def create_superuser():
         sys.exit(0)
 
 if __name__ == '__main__':
+    django.setup()
     create_superuser()

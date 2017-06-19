@@ -50,7 +50,11 @@ python3 manage.py migrate --noinput
 #python3 manage.py collectstatic --no-input
 python3 manage.py rebuild_index --noinput &
 
+echo "Criando usuário admin..."
+
 user_created=$(python3 create_admin.py 2>&1)
+
+echo $user_created
 
 cmd=$(echo $user_created | grep 'ADMIN_USER_EXISTS')
 user_exists=$?
