@@ -1,8 +1,7 @@
 
-import os
 from datetime import date, datetime
+import os
 
-import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -21,8 +20,8 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -40,6 +39,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -164,6 +164,7 @@ class DocumentoAcessorioForm(ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
+
 
 class RelatoriaForm(ModelForm):
 
@@ -848,11 +849,11 @@ class TipoProposicaoSelect(Select):
         else:
             selected_html = ''
         return format_html(
-                        '<option value="{}"{} data-has-perfil={}>{}</option>',
-                        option_value,
-                        selected_html,
-                        str(data_has_perfil),
-                        force_text(option_label))
+            '<option value="{}"{} data-has-perfil={}>{}</option>',
+            option_value,
+            selected_html,
+            str(data_has_perfil),
+            force_text(option_label))
 
     def render_options(self, choices, selected_choices):
         # Normalize to strings.
@@ -1100,6 +1101,18 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             if 'numero_de_paginas' not in self._meta.fields:
                 self._meta.fields.append('numero_de_paginas')
 
+        self.instance = kwargs.get('instance', None)
+        if not self.instance:
+            raise ValueError(_('Erro na Busca por proposição a incorporar'))
+
+        if self.instance.tipo.content_type.model_class() == TipoDocumento:
+            if 'numero_de_paginas' in self._meta.fields:
+                self._meta.fields.remove('numero_de_paginas')
+            if 'gerar_protocolo' in self._meta.fields:
+                self._meta.fields.remove('gerar_protocolo')
+            if 'regime_tramitacao' in self._meta.fields:
+                self._meta.fields.remove('regime_tramitacao')
+
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
@@ -1131,13 +1144,17 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                        css_class="ementa_materia hidden alert-info",
                        dismiss=False), 12))))
 
-        itens_incorporacao = [to_column(('regime_tramitacao', 4))]
-        if self.proposicao_incorporacao_obrigatoria == 'C':
-            itens_incorporacao.append(to_column((InlineRadios(
-                'gerar_protocolo'), 4)))
+        itens_incorporacao = []
+        if self.instance.tipo.content_type.model_class() == \
+                TipoMateriaLegislativa:
+            itens_incorporacao = [to_column(('regime_tramitacao', 4))]
 
-        if self.proposicao_incorporacao_obrigatoria != 'N':
-            itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
+            if self.proposicao_incorporacao_obrigatoria == 'C':
+                itens_incorporacao.append(to_column((InlineRadios(
+                    'gerar_protocolo'), 4)))
+
+            if self.proposicao_incorporacao_obrigatoria != 'N':
+                itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
 
         itens_incorporacao.append(to_column((FormActions(Submit(
             'incorporar', _('Incorporar'), css_class='pull-right')), 12)))
@@ -1366,6 +1383,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         proposicao.conteudo_gerado_related = conteudo_gerado
         proposicao.save()
+
+        if self.instance.tipo.content_type.model_class() == TipoDocumento:
+            return self.instance
 
         # Nunca gerar protocolo
         if self.proposicao_incorporacao_obrigatoria == 'N':
