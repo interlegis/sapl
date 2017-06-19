@@ -7,6 +7,7 @@ from django.http.response import HttpResponseRedirect
 from django.templatetags.static import static
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 
 from sapl.comissoes.models import Participacao
@@ -278,6 +279,22 @@ class LegislaturaCrud(CrudAux):
     class UpdateView(CrudAux.UpdateView):
         form_class = LegislaturaUpdateForm
 
+    class DetailView(CrudAux.DetailView):
+        def has_permission(self):
+            return True
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
+    class ListView(CrudAux.ListView):
+        def has_permission(self):
+            return True
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
@@ -312,8 +329,13 @@ class ParlamentarCrud(Crud):
 
         def get_template_names(self):
             return ['crud/detail.html']\
-                if self.request.user.has_perm(self.permission(RP_CHANGE))\
+                if self.request.user.has_perm(self.permission(RP_CHANGE)) and\
+                'iframe' not in self.request.GET\
                 else ['parlamentares/parlamentar_perfil_publico.html']
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
 
     class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
@@ -337,6 +359,10 @@ class ParlamentarCrud(Crud):
     class ListView(Crud.ListView):
         template_name = "parlamentares/parlamentares_list.html"
         paginate_by = None
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
 
         def take_legislatura_id(self):
             try:
@@ -438,7 +464,8 @@ class MesaDiretoraView(FormView):
     def get_template_names(self):
         return ['parlamentares/composicaomesa_form.html']\
             if self.request.user.has_perm(
-                'parlamentares.change_composicaomesa')\
+                'parlamentares.change_composicaomesa') and\
+            'iframe' not in self.request.GET\
             else ['parlamentares/public_composicaomesa_form.html']
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
@@ -454,6 +481,7 @@ class MesaDiretoraView(FormView):
                 'legislatura_selecionada': Legislatura.objects.last(),
                 'cargos_vagos': CargoMesa.objects.all()})
 
+    @xframe_options_exempt
     def get(self, request, *args, **kwargs):
 
         if (not Legislatura.objects.exists() or

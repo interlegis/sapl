@@ -1,6 +1,7 @@
 
 from django.core.urlresolvers import reverse
 from django.db.models import F
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
 
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
@@ -83,6 +84,17 @@ class ComissaoCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
         ordering = '-ativa', 'sigla'
+
+    class ListView(Crud.ListView):
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
+    class DetailView(Crud.DetailView):
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
 
 
 class MateriasTramitacaoListView(ListView):
