@@ -28,7 +28,7 @@
 
   <body>
     <div class="page fadein">
-      {% if not request|has_iframe %}
+      {% if not request|has_iframe %}  
       {% block navigation %}
       <nav class="navbar navbar-inverse navbar-static-top">
         <div class="container">
@@ -79,7 +79,6 @@
         </div>
       </nav>
       {% endblock navigation %}
-      {% endif %}
 
       {# Header #}
       {% block main_header %}
@@ -106,6 +105,7 @@
         </div>
       </header>
       {% endblock main_header %}
+      {% endif %}
 
       {# Main content #}
       {% block content_container %}
