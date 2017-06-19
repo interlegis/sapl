@@ -181,6 +181,8 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = 'auth.User'
 
+X_FRAME_OPTIONS = 'ALLOWALL'
+
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
