@@ -328,10 +328,14 @@ class ParlamentarCrud(Crud):
     class DetailView(Crud.DetailView):
 
         def get_template_names(self):
-            return ['crud/detail.html']\
-                if self.request.user.has_perm(self.permission(RP_CHANGE)) and\
-                'iframe' not in self.request.GET\
-                else ['parlamentares/parlamentar_perfil_publico.html']
+            if self.request.user.has_perm(self.permission(RP_CHANGE)):
+                if 'iframe' not in self.request.GET:
+                    if not self.request.session.get('iframe'):
+                        return ['crud/detail.html']
+                elif self.request.GET['iframe'] == '0':
+                    return ['crud/detail.html']
+
+            return ['parlamentares/parlamentar_perfil_publico.html']
 
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):
@@ -462,11 +466,14 @@ class MesaDiretoraView(FormView):
     success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
 
     def get_template_names(self):
-        return ['parlamentares/composicaomesa_form.html']\
-            if self.request.user.has_perm(
-                'parlamentares.change_composicaomesa') and\
-            'iframe' not in self.request.GET\
-            else ['parlamentares/public_composicaomesa_form.html']
+        if self.request.user.has_perm('parlamentares.change_composicaomesa'):
+            if 'iframe' not in self.request.GET:
+                if not self.request.session.get('iframe'):
+                    return 'parlamentares/composicaomesa_form.html'
+            elif self.request.GET['iframe'] == '0':
+                return 'parlamentares/composicaomesa_form.html'
+
+        return 'parlamentares/public_composicaomesa_form.html'
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):
