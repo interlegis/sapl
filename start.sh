@@ -46,7 +46,7 @@ create_env
 
 /bin/sh busy-wait.sh $DATABASE_URL
 
-python3 manage.py migrate
+python3 manage.py migrate --noinput
 #python3 manage.py collectstatic --no-input
 python3 manage.py rebuild_index --noinput &
 
