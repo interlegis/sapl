@@ -1438,7 +1438,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.data = date.today()
         protocolo.hora = datetime.now().time()
 
-        # TODO transformar campo timestamp  em auto_now_add
+        # TODO transformar campo timestamp em auto_now_add
         protocolo.timestamp = datetime.now()
         protocolo.tipo_protocolo = '1'
 
