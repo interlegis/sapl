@@ -33,6 +33,11 @@ def check_permission(user):
 
 
 def votacao_aberta(request):
+    '''
+    Função que verifica se há somente 1 uma matéria aberta ou
+    nenhuma. É utilizada como uma função auxiliar para a view
+    votante_view.
+    '''
     votacoes_abertas = SessaoPlenaria.objects.filter(
         Q(ordemdia__votacao_aberta=True) |
         Q(expedientemateria__votacao_aberta=True)).distinct()

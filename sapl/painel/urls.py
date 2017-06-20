@@ -21,5 +21,5 @@ urlpatterns = [
     # url(r'^painel/cronometro$', include(CronometroPainelCrud.get_urls())),
 
     url(r'^voto-individual/$', votante_view,
-        name="voto_individual"),
+        name='voto_individual'),
 ]
