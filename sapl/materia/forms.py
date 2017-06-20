@@ -8,7 +8,8 @@ from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Submit)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError,\
+    NON_FIELD_ERRORS
 from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
@@ -816,7 +817,19 @@ class TipoProposicaoForm(ModelForm):
                 pk=cd['tipo_conteudo_related']).exists():
             raise ValidationError(
                 _('O Registro definido (%s) não está na base de %s.'
-                  ) % (cd['tipo_conteudo_related'], cd['q'], content_type))
+                  ) % (cd['tipo_conteudo_related'], content_type))
+
+        unique_value = self._meta.model.objects.filter(
+            content_type=content_type, object_id=cd['tipo_conteudo_related']
+        ).first()
+
+        if unique_value:
+            raise ValidationError(
+                _('Já existe um Tipo de Proposição (%s) '
+                  'que foi defindo como (%s) para (%s)'
+                  ) % (unique_value,
+                       content_type,
+                       unique_value.tipo_conteudo_related))
 
         return self.cleaned_data
 
