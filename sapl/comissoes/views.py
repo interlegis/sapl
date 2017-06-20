@@ -81,7 +81,7 @@ class ComissaoCrud(Crud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
+        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'data_extincao', 'ativa']
         ordering = '-ativa', 'sigla'
 
 
