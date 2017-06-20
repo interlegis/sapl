@@ -883,6 +883,28 @@ class RelatoriaCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = RelatoriaForm
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            try:
+                comissao = Comissao.objects.get(
+                    pk=context['form'].initial['comissao'])
+            except ObjectDoesNotExist:
+                pass
+            else:
+                composicao = comissao.composicao_set.last()
+                participacao = Participacao.objects.filter(
+                    composicao=composicao)
+
+                parlamentares = []
+                for p in participacao:
+                    if p.titular:
+                        parlamentares.append(
+                            [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                context['form'].fields['parlamentar'].choices = parlamentares
+
+            return context
+
 
 class TramitacaoCrud(MasterDetailCrud):
     model = Tramitacao
