@@ -286,11 +286,6 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
     return result
 
 
-@register.filter
-def urldetail_content_type(obj):
-    return '%s:%s_detail' % (
-        obj.content_object._meta.app_config.name, obj.content_type.model)
-
 
 @register.filter
 def list(obj):
