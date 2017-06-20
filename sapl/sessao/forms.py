@@ -60,6 +60,8 @@ class BancadaForm(ModelForm):
                   'data_extincao', 'descricao']
 
     def clean(self):
+        super(BancadaForm, self).clean()
+
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
                     self.cleaned_data['data_criacao']):
@@ -110,6 +112,8 @@ class ExpedienteMateriaForm(ModelForm):
         return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
+        super(ExpedienteMateriaForm, self).clean()
+
         cleaned_data = self.cleaned_data
         sessao = self.instance.sessao_plenaria
 
@@ -166,6 +170,8 @@ class OrdemDiaForm(ExpedienteMateriaForm):
         return self.cleaned_data['numero_ordem']
 
     def clean(self):
+        super(OrdemDiaForm, self).clean()
+
         cleaned_data = self.cleaned_data
         sessao = self.instance.sessao_plenaria
 
@@ -426,6 +432,8 @@ class ResumoOrdenacaoForm(forms.Form):
         )
 
     def clean(self):
+        super(ResumoOrdenacaoForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         for c1 in cleaned_data:

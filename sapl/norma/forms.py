@@ -118,6 +118,8 @@ class NormaJuridicaForm(ModelForm):
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
     def clean(self):
+        super(NormaJuridicaForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         if (cleaned_data['tipo_materia'] and
@@ -175,6 +177,8 @@ class NormaRelacionadaForm(ModelForm):
         super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(NormaRelacionadaForm, self).clean()
+        
         if self.errors:
             return self.errors
         cleaned_data = self.cleaned_data

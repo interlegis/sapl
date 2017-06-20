@@ -227,6 +227,8 @@ class AutorForm(ModelForm):
         return True
 
     def clean(self):
+        super(AutorForm, self).clean()
+
         User = get_user_model()
         cd = self.cleaned_data
 
@@ -725,6 +727,8 @@ class RecuperarSenhaForm(PasswordResetForm):
         super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(RecuperarSenhaForm, self).clean()
+        
         email_existente = User.objects.filter(
             email=self.data['email']).exists()
 
