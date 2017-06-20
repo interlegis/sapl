@@ -124,6 +124,8 @@ class UnidadeTramitacaoForm(ModelForm):
         fields = ['comissao', 'orgao', 'parlamentar']
 
     def clean(self):
+        super(UnidadeTramitacaoForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         for key in list(cleaned_data.keys()):
@@ -179,6 +181,8 @@ class RelatoriaForm(ModelForm):
         super(RelatoriaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(RelatoriaForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         try:
@@ -211,6 +215,7 @@ class TramitacaoForm(ModelForm):
         self.fields['data_tramitacao'].initial = datetime.now()
 
     def clean(self):
+        super(TramitacaoForm, self).clean()
 
         if 'data_encaminhamento' in self.data:
             data_enc_form = self.cleaned_data['data_encaminhamento']
@@ -288,6 +293,8 @@ class TramitacaoUpdateForm(TramitacaoForm):
         }
 
     def clean(self):
+        super(TramitacaoUpdateForm, self).clean()
+
         local = self.instance.unidade_tramitacao_local
         data_tram = self.instance.data_tramitacao
 
@@ -328,6 +335,8 @@ class LegislacaoCitadaForm(ModelForm):
                   'item']
 
     def clean(self):
+        super(LegislacaoCitadaForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -389,6 +398,8 @@ class NumeracaoForm(ModelForm):
                   'data_materia']
 
     def clean(self):
+        super(NumeracaoForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -432,6 +443,8 @@ class AnexadaForm(ModelForm):
         return super(AnexadaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(AnexadaForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -612,6 +625,8 @@ class DespachoInicialForm(ModelForm):
         fields = ['comissao']
 
     def clean(self):
+        super(DespachoInicialForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -632,6 +647,8 @@ class AutoriaForm(ModelForm):
         fields = ['autor', 'primeiro_autor']
 
     def clean(self):
+        super(AutoriaForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -803,6 +820,8 @@ class TipoProposicaoForm(ModelForm):
                 'tipo_conteudo_related'].initial = self.instance.object_id
 
     def clean(self):
+        super(TipoProposicaoForm, self).clean()
+
         cd = self.cleaned_data
 
         content_type = cd['content_type']
@@ -1001,6 +1020,8 @@ class ProposicaoForm(forms.ModelForm):
             return texto_original
 
     def clean(self):
+        super(ProposicaoForm, self).clean()
+
         cd = self.cleaned_data
 
         tm, am, nm = (cd.get('tipo_materia', ''),
@@ -1207,6 +1228,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.fields['gerar_protocolo'].initial = True
 
     def clean(self):
+        super(ConfirmarProposicaoForm, self).clean()
+
         numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
 
         if not numeracao:

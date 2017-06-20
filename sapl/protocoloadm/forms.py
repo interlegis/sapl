@@ -213,6 +213,8 @@ class AnularProcoloAdmForm(ModelForm):
         widget=forms.Textarea)
 
     def clean(self):
+        super(AnularProcoloAdmForm, self).clean()
+
         cleaned_data = super(AnularProcoloAdmForm, self).clean()
 
         numero = cleaned_data.get("numero")
@@ -430,6 +432,8 @@ class TramitacaoAdmForm(ModelForm):
         }
 
     def clean(self):
+        super(TramitacaoAdmForm, self).clean()
+
         data_enc_form = self.cleaned_data['data_encaminhamento']
         data_prazo_form = self.cleaned_data['data_fim_prazo']
         data_tram_form = self.cleaned_data['data_tramitacao']
@@ -502,6 +506,8 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         }
 
     def clean(self):
+        super(TramitacaoAdmEditForm, self).clean()
+
         local = self.instance.unidade_tramitacao_local
         data_tram = self.instance.data_tramitacao
 
@@ -542,6 +548,8 @@ class DocumentoAdministrativoForm(ModelForm):
         widgets = {'protocolo': forms.HiddenInput()}
 
     def clean(self):
+        super(DocumentoAdministrativoForm, self).clean()
+
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
 
