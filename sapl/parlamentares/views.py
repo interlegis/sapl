@@ -113,7 +113,7 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
             context = CrudBaseForListAndDetailExternalAppView\
                 .ListView.get_context_data(self, **kwargs)
             context['title'] = context['title'].replace(
-                'Proposições', 'Matérias')
+                'Proposições', 'Proposições')
             return context
 
         def get_queryset(self):
