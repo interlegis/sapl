@@ -8,8 +8,7 @@ from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Submit)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError,\
-    NON_FIELD_ERRORS
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
@@ -820,8 +819,12 @@ class TipoProposicaoForm(ModelForm):
                   ) % (cd['tipo_conteudo_related'], content_type))
 
         unique_value = self._meta.model.objects.filter(
-            content_type=content_type, object_id=cd['tipo_conteudo_related']
-        ).first()
+            content_type=content_type, object_id=cd['tipo_conteudo_related'])
+
+        if self.instance.pk:
+            unique_value = unique_value.exclude(pk=self.instance.pk)
+
+        unique_value = unique_value.first()
 
         if unique_value:
             raise ValidationError(
@@ -831,7 +834,7 @@ class TipoProposicaoForm(ModelForm):
                        content_type,
                        unique_value.tipo_conteudo_related))
 
-        return self.cleaned_data
+        return super().clean()
 
     @transaction.atomic
     def save(self, commit=False):

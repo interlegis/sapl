@@ -34,7 +34,13 @@ def grupo_autor():
 
 @reversion.register()
 class TipoProposicao(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    descricao = models.CharField(
+        max_length=50,
+        verbose_name=_('Descrição'),
+        unique=True,
+        error_messages={
+            'unique': _('Já existe um Tipo de Proposição com esta descrição.')
+        })
 
     # FIXME - para a rotina de migração - estes campos mudaram
     # retire o comentário quando resolver
