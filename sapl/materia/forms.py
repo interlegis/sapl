@@ -213,6 +213,7 @@ class TramitacaoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = datetime.now()
+        self.fields['unidade_tramitacao_local'].widget.attrs['disabled'] = True
 
     def clean(self):
         super(TramitacaoForm, self).clean()
