@@ -158,18 +158,18 @@ def votante_view(request):
                                         'Ordem do Dia/Expediente em votação.'})
                 else:
                     context.update(
-                        {'error_message': 'A matéria aberta não é votação '
-                         'nominal.'})
+                        {'error_message': 'A matéria aberta não é do tipo '
+                         'votação nominal.'})
             else:
                 context.update(
-                    {'error_message': 'Nenhuma matéria aberta.'})
+                    {'error_message': 'Não há nenhuma matéria aberta.'})
 
         elif not sessao and msg:
             return HttpResponseRedirect('/')
 
         else:
             context.update(
-                {'error_message': 'Nenhuma sessão com matéria aberta.'})
+                {'error_message': 'Não há nenhuma sessão com matéria aberta.'})
 
     else:
         context.update({'permissao': False,
