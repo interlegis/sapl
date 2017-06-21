@@ -504,11 +504,10 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista de presença na sessão
     lst_presenca_sessao = []
-    for presenca in SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria=sessao):
+    presenca = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
 
-        for parlamentar in Parlamentar.objects.filter(
-                id=presenca.parlamentar.id):
+    for parlamentar in [p.parlamentar for p in presenca]:
             dic_presenca = {}
             dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
             partido = Filiacao.objects.filter(
@@ -646,10 +645,9 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista presença na ordem do dia
     lst_presenca_ordem_dia = []
-    for presenca_ordem_dia in PresencaOrdemDia.objects.filter(
-            sessao_plenaria=sessao):
-        for parlamentar in Parlamentar.objects.filter(
-                id=presenca_ordem_dia.parlamentar.id):
+    presenca_ordem_dia = PresencaOrdemDia.objects.filter(
+            sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+    for parlamentar in [p.parlamentar for p in presenca_ordem_dia]:
             dic_presenca_ordem_dia = {}
             dic_presenca_ordem_dia['nom_parlamentar'] = (
                 parlamentar.nome_parlamentar)
