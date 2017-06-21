@@ -313,7 +313,7 @@ class Parlamentar(models.Model):
         ordering = ['nome_parlamentar']
 
     def __str__(self):
-        return self.nome_completo
+        return self.nome_parlamentar
 
     @property
     def filiacao_atual(self):
