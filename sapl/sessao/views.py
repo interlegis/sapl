@@ -137,7 +137,7 @@ def get_presencas_generic(model, sessao, legislatura):
     presentes = [p.parlamentar for p in presencas]
 
     mandato = Mandato.objects.filter(
-        legislatura=legislatura)
+        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
 
     for m in mandato:
         if m.parlamentar in presentes:
@@ -1119,13 +1119,9 @@ class ResumoView(DetailView):
         # Presença Sessão
         presencas = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=self.object.id
-        )
+        ).order_by('parlamentar__nome_parlamentar')
 
-        parlamentares_sessao = []
-        for p in presencas:
-            parlamentar = Parlamentar.objects.get(
-                id=p.parlamentar_id)
-            parlamentares_sessao.append(parlamentar)
+        parlamentares_sessao = [p.parlamentar for p in presencas]
 
         context.update({'presenca_sessao': parlamentares_sessao})
 
@@ -1198,13 +1194,9 @@ class ResumoView(DetailView):
         # Presença Ordem do Dia
         presencas = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id
-        )
+        ).order_by('parlamentar__nome_parlamentar')
 
-        parlamentares_ordem = []
-        for p in presencas:
-            parlamentar = Parlamentar.objects.get(
-                id=p.parlamentar_id)
-            parlamentares_ordem.append(parlamentar)
+        parlamentares_ordem = [p.parlamentar for p in presencas]
 
         context.update({'presenca_ordem': parlamentares_ordem})
 
