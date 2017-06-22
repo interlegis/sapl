@@ -119,6 +119,12 @@ class AppConfig(models.Model):
         verbose_name=_('Sequência de numeração'),
         choices=SEQUENCIA_NUMERACAO, default='A')
 
+    num_inicial_sequencia = models.PositiveIntegerField(
+        verbose_name=_('Número inicial Sequência'),
+        blank=True,
+        null=True,
+        default=0)
+
     painel_aberto = models.BooleanField(
         verbose_name=_('Painel aberto para usuário anônimo'),
         choices=YES_NO_CHOICES, default=False)
