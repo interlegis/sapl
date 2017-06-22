@@ -303,7 +303,7 @@ class Autoria(models.Model):
 @reversion.register()
 class AcompanhamentoMateria(models.Model):
     usuario = models.CharField(max_length=50)
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa)
     email = models.EmailField(
         max_length=100, verbose_name=_('E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)
