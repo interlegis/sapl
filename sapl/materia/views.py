@@ -922,6 +922,10 @@ class TramitacaoCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoForm
 
+        def get_success_url(self):
+            return reverse('sapl.materia:tramitacao_list', kwargs={
+                'pk': self.kwargs['pk']})
+
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
                 pk=self.kwargs['pk']).tramitacao_set.order_by(
