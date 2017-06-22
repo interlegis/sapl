@@ -4,6 +4,7 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -923,12 +924,29 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
-                pk=self.kwargs['pk']).tramitacao_set.last()
+                pk=self.kwargs['pk']).tramitacao_set.order_by(
+                '-data_tramitacao').first()
+
             if local:
                 self.initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
+            else:
+                self.initial['unidade_tramitacao_local'] = ''
             self.initial['data_tramitacao'] = datetime.now()
             return self.initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            primeira_tramitacao = not(Tramitacao.objects.filter(
+                materia_id=int(kwargs['root_pk'])).exists())
+
+            # Se não for a primeira tramitação daquela matéria, o campo
+            # não pode ser modificado
+            if not primeira_tramitacao:
+                context['form'].fields[
+                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+            return context
 
         def form_valid(self, form):
             self.object = form.save()
