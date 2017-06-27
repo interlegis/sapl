@@ -6,6 +6,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
                                       ParlamentarCrud,
+                                      ParlamentarMateriasView,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
                                       RelatoriaParlamentarCrud,
@@ -30,6 +31,9 @@ urlpatterns = [
         RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls() +
         VotanteView.get_urls()
     )),
+
+    url(r'^parlamentar/(?P<pk>\d+)/materias$',
+        ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +

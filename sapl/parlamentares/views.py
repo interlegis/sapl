@@ -25,6 +25,11 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
 
+from sapl.base.models import Autor
+from sapl.materia.models import Autoria
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.aggregates import Count
+
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
 SessaoLegislativaCrud = CrudAux.build(SessaoLegislativa, 'sessao_legislativa')
@@ -457,6 +462,63 @@ class ParlamentarCrud(Crud):
                 row[0] = (row[0][0], None)
 
             return context
+
+
+class ParlamentarMateriasView(FormView):
+    template_name = "parlamentares/materias.html"
+    success_url = reverse_lazy('sapl.parlamentares:parlamentar_materia')
+
+    def get_autoria(self, resultset):
+        autoria = {}
+        total_autoria = 0
+
+        for i in resultset:
+            row = autoria.get(i['materia__ano'], [])
+            columns = (i['materia__tipo__pk'],
+                       i['materia__tipo__sigla'],
+                       i['materia__tipo__descricao'],
+                       int(i['total']))
+            row.append(columns)
+            autoria[i['materia__ano']] = row
+            total_autoria += columns[3]
+        autoria = sorted(autoria.items(), reverse=True)
+        return autoria, total_autoria
+
+    @xframe_options_exempt
+    def get(self, request, *args, **kwargs):
+        parlamentar_pk = kwargs['pk']
+        autor = Autor.objects.get(
+            content_type=ContentType.objects.get_for_model(Parlamentar),
+            object_id=parlamentar_pk)
+
+        autoria = Autoria.objects.filter(
+            autor=autor, primeiro_autor=True).values(
+                'materia__ano',
+                'materia__tipo__pk',
+                'materia__tipo__sigla',
+                'materia__tipo__descricao').annotate(
+                    total=Count('materia__tipo__pk')).order_by(
+                        '-materia__ano', 'materia__tipo')
+
+        coautoria = Autoria.objects.filter(
+            autor=autor, primeiro_autor=False).values(
+                'materia__ano',
+                'materia__tipo__pk',
+                'materia__tipo__sigla',
+                'materia__tipo__descricao').annotate(
+                    total=Count('materia__tipo__pk')).order_by(
+                                '-materia__ano', 'materia__tipo')
+
+        autor_list = self.get_autoria(autoria)
+        coautor_list = self.get_autoria(coautoria)
+
+        nome_parlamentar = autor.autor_related.nome_parlamentar
+
+        return self.render_to_response({'autor_pk': autor.pk,
+                                        'autoria': autor_list,
+                                        'coautoria': coautor_list,
+                                        'nome_parlamentar': nome_parlamentar
+                                        })
 
 
 class MesaDiretoraView(FormView):

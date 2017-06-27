@@ -490,6 +490,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
+    autoria__primeiro_autor = django_filters.BooleanFilter(required=False,
+                                                           label=u'Primeiro Autor',
+                                                           widget=forms.HiddenInput())
+
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
@@ -516,6 +520,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
+                  'autoria__primeiro_autor',
                   # FIXME 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
@@ -545,6 +550,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
              ('data_publicacao', 6)])
         row4 = to_row(
             [('autoria__autor', 0),
+             ('autoria__primeiro_autor', 0),
              (Button('pesquisar',
                      'Pesquisar Autor',
                      css_class='btn btn-primary btn-sm'), 2),
