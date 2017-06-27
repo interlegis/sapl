@@ -3,6 +3,8 @@
   url: parlamentar_detail
 - title: {% trans 'Mandatos' %}
   url: mandato_list
+- title: {% trans 'Matérias' %}
+  url: parlamentar_materias
 - title: {% trans 'Filiações Partidárias' %}
   url: filiacao_list
 - title: {% trans 'Dependentes' %}
