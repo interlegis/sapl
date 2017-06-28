@@ -225,8 +225,9 @@ class MandatoCrud(MasterDetailCrud):
         ordering = ('-legislatura__numero')
 
         def get_context_data(self, **kwargs):
-            context = super(MasterDetailCrud.ListView, self).get_context_data(kwargs=kwargs)
+            context = super().get_context_data(**kwargs)
             rows = context['rows']
+
             coluna_coligacao = 2
             coluna_votos_recebidos = 3
             for row in rows:
@@ -512,9 +513,11 @@ class ParlamentarMateriasView(FormView):
         autor_list = self.get_autoria(autoria)
         coautor_list = self.get_autoria(coautoria)
 
+        parlamentar_pk = autor.autor_related.pk
         nome_parlamentar = autor.autor_related.nome_parlamentar
 
         return self.render_to_response({'autor_pk': autor.pk,
+                                        'root_pk': parlamentar_pk,
                                         'autoria': autor_list,
                                         'coautoria': coautor_list,
                                         'nome_parlamentar': nome_parlamentar
