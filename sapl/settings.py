@@ -199,7 +199,7 @@ MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 LANGUAGE_CODE = 'pt-br'
 LANGUAGES = (
-    ('pt-br', u'Português'),
+    ('pt-br','Português'),
 )
 
 TIME_ZONE = 'America/Sao_Paulo'
