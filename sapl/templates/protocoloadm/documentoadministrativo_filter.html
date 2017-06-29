@@ -37,7 +37,7 @@
           <tr>
             <td>
               <strong><a href="{% url 'protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
-              <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:""}}</br>
+              <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:"Não informado"}}</br>
               <strong>Assunto:</strong>&nbsp;{{ d.assunto|safe }}</br>
 
               {% if d.protocolo %}

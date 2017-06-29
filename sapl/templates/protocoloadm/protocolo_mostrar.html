@@ -4,18 +4,18 @@
 
 {% block detail_content %}
 	<strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }}</br>
-	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"" }}</br>
+	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"Não informado" }}</br>
 	<strong>Data Protocolo: </strong> {{ protocolo.data|date:"d/m/Y" }} - Horário: {{ protocolo.hora|date:"H:i" }}</br>
 
 	{% if protocolo.tipo_processo == 0 %}
-		<strong>Interessado:</strong> {{ protocolo.interessado|default_if_none:"" }}</br>
+		<strong>Interessado:</strong> {{ protocolo.interessado|default_if_none:"Não informado" }}</br>
 	{% elif protocolo.tipo_processo == 1 %}
-		<strong>Autor:</strong>{{ protocolo.autor.nome|default_if_none:"" }}</br>
+		<strong>Autor:</strong>{{ protocolo.autor.nome|default_if_none:"Não informado" }}</br>
 	{% endif %}	<!-- TODO: convert if-else to custom tag -->
 
 	<strong>Natureza do Processo: </strong>{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Legislativo {% endif %}</br>
 	<strong>Número de Páginas: </strong> {{ protocolo.numero_paginas }} </br>
-	<strong>Observação: </strong>{{ protocolo.observacao|default:"" }}</br>
+	<strong>Observação: </strong>{{ protocolo.observacao|default:"Não informado" }}</br>
 	<strong>Anulado: {% if protocolo.anulado %} <font color="red"> Sim {% else %} <font color="green"> Não {% endif %} </font></strong>
 	<br /><br />
 
