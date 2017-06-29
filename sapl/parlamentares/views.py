@@ -488,9 +488,18 @@ class ParlamentarMateriasView(FormView):
     @xframe_options_exempt
     def get(self, request, *args, **kwargs):
         parlamentar_pk = kwargs['pk']
-        autor = Autor.objects.get(
-            content_type=ContentType.objects.get_for_model(Parlamentar),
-            object_id=parlamentar_pk)
+
+        try:
+            autor = Autor.objects.get(
+                content_type=ContentType.objects.get_for_model(Parlamentar),
+                object_id=parlamentar_pk)
+        except ObjectDoesNotExist:
+            mensagem = _('Este Parlamentar não é autor de matéria.')
+            messages.add_message(request, messages.ERROR, mensagem)
+            return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:parlamentar_detail',
+                    kwargs={'pk': parlamentar_pk}))
 
         autoria = Autoria.objects.filter(
             autor=autor, primeiro_autor=True).values(
