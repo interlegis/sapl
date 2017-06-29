@@ -1555,6 +1555,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         context['urgente_tramitacao'] = YES_NO_CHOICES
         context['unidade_local'] = UnidadeTramitacao.objects.all()
 
+        context['primeira_tramitacao'] = True
+
         # Pega somente matéria que não possuem tramitação
         if (type(self.__dict__['filterset']).__name__ ==
                 'PrimeiraTramitacaoEmLoteFilterSet'):
@@ -1625,6 +1627,8 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
                         self).get_context_data(**kwargs)
 
         qr = self.request.GET.copy()
+
+        context['primeira_tramitacao'] = False
 
         if ('tramitacao__status' in qr and
            'tramitacao__unidade_tramitacao_destino' in qr and

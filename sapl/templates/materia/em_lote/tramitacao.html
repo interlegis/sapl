@@ -133,7 +133,11 @@
 		}
 
     $(document).ready(function(){
-      $('#id_unidade_tramitacao_local').prop('disabled', true);
+      var primeira_tramitacao = {{primeira_tramitacao|yesno:"true,false"}}
+
+      if (primeira_tramitacao == false){
+        $('#id_unidade_tramitacao_local').prop('disabled', true);
+      }
     });
 
     // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
