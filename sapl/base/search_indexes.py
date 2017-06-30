@@ -1,16 +1,19 @@
 import logging
 import os.path
+import re
+import string
 
 import textract
-from django.template import Context, loader
+from django.template import loader
 from haystack import indexes
 from textract.exceptions import ExtensionNotSupported
 
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
-from sapl.settings import BASE_DIR
+from sapl.settings import BASE_DIR, SOLR_URL
 
 logger = logging.getLogger(BASE_DIR.name)
+
 
 class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
@@ -40,19 +43,38 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
             if not os.path.splitext(arquivo.path)[1][:1]:
                 return self.prepared_data
 
-            try:
-                extracted_data = textract.process(
-                    arquivo.path,
-                    language='pt-br').decode('utf-8').replace('\n', ' ')
-            except ExtensionNotSupported:
-                return self.prepared_data
-            except Exception:
-                msg = 'Erro inesperado processando arquivo: %s' % arquivo.path
-                print(msg)
-                logger.error(msg)
-                return self.prepared_data
+            # Em ambiente de produção utiliza-se o SOLR
+            if SOLR_URL:
+                extracted_data = self._get_backend(None).extract_file_contents(
+                    arquivo)['contents']
+                # Remove as tags xml
+                extracted_data = re.sub('<[^>]*>', '', extracted_data)
+                # Remove tags \t e \n
+                extracted_data = extracted_data.replace(
+                    '\n', ' ').replace('\t', ' ')
+                # Remove sinais de pontuação
+                extracted_data = re.sub('[' + string.punctuation + ']',
+                                        ' ', extracted_data)
+                # Remove espaços múltiplos
+                extracted_data = " ".join(extracted_data.split())
 
-            extracted_data = extracted_data.replace('\t', ' ')
+            # Em ambiente de DEV utiliza-se o Whoosh
+            # Como ele não possui extração, faz-se uso do textract
+            else:
+                try:
+                    extracted_data = textract.process(
+                        arquivo.path,
+                        language='pt-br').decode('utf-8').replace('\n', ' ')
+                except ExtensionNotSupported:
+                    return self.prepared_data
+                except Exception:
+                    msg = 'Erro inesperado processando arquivo: %s' % (
+                        arquivo.path)
+                    print(msg)
+                    logger.error(msg)
+                    return self.prepared_data
+
+                extracted_data = extracted_data.replace('\t', ' ')
 
             # Now we'll finally perform the template processing to render the
             # text field with *all* of our metadata visible for templating:
