@@ -240,13 +240,13 @@ class VotacaoEditForm(forms.Form):
 class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
     data_inicio__year = django_filters.ChoiceFilter(required=False,
-                                                    label=u'Ano',
+                                                    label='Ano',
                                                     choices=ANO_CHOICES)
     data_inicio__month = django_filters.ChoiceFilter(required=False,
-                                                     label=u'Mês',
+                                                     label='Mês',
                                                      choices=MES_CHOICES)
     data_inicio__day = django_filters.ChoiceFilter(required=False,
-                                                   label=u'Dia',
+                                                   label='Dia',
                                                    choices=DIA_CHOICES)
     titulo = _('Pesquisa de Sessão Plenária')
 
@@ -382,7 +382,7 @@ class ResumoOrdenacaoForm(forms.Form):
                                  choices=ORDENACAO_RESUMO)
     segundo = forms.ChoiceField(label=_('2°'),
                                 choices=ORDENACAO_RESUMO)
-    terceiro = forms.ChoiceField(label=u'3°',
+    terceiro = forms.ChoiceField(label='3°',
                                  choices=ORDENACAO_RESUMO)
     quarto = forms.ChoiceField(label=_('4°'),
                                choices=ORDENACAO_RESUMO)
@@ -396,7 +396,7 @@ class ResumoOrdenacaoForm(forms.Form):
                                choices=ORDENACAO_RESUMO)
     nono = forms.ChoiceField(label=_('9°'),
                              choices=ORDENACAO_RESUMO)
-    decimo = forms.ChoiceField(label=u'10°',
+    decimo = forms.ChoiceField(label='10°',
                                choices=ORDENACAO_RESUMO)
 
     def __init__(self, *args, **kwargs):

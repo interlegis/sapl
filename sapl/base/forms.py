@@ -541,7 +541,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
-                                      label=u'Ano da Matéria',
+                                      label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
     class Meta:
@@ -572,7 +572,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
-                                      label=u'Ano da Matéria',
+                                      label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
     class Meta:

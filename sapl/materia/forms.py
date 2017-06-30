@@ -485,19 +485,19 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano da Matéria',
+                                      label='Ano da Matéria',
                                       choices=ANO_CHOICES)
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     autoria__primeiro_autor = django_filters.BooleanFilter(required=False,
-                                                           label=u'Primeiro Autor',
+                                                           label='Primeiro Autor',
                                                            widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
-                                                label=u'Em tramitação',
+                                                label='Em tramitação',
                                                 choices=em_tramitacao)
 
     materiaassunto__assunto = django_filters.ModelChoiceFilter(

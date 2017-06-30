@@ -47,7 +47,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano',
+                                      label='Ano',
                                       choices=ANO_CHOICES)
 
     assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
@@ -135,11 +135,11 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano',
+                                      label='Ano',
                                       choices=ANO_CHOICES)
 
     tramitacao = django_filters.ChoiceFilter(required=False,
-                                             label=u'Em Tramitação?',
+                                             label='Em Tramitação?',
                                              choices=EM_TRAMITACAO)
 
     assunto = django_filters.CharFilter(lookup_expr='icontains')

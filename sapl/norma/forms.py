@@ -47,7 +47,7 @@ class NormaFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano',
+                                      label='Ano',
                                       choices=ANO_CHOICES)
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
