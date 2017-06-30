@@ -954,9 +954,18 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def form_valid(self, form):
             self.object = form.save()
-            tramitacao_signal.send(sender=Tramitacao,
-                                   post=self.object,
-                                   request=self.request)
+
+            try:
+                tramitacao_signal.send(sender=Tramitacao,
+                                       post=self.object,
+                                       request=self.request)
+            except Exception:
+                # TODO log error
+                msg = _('Tramitação criada, mas e-mail de acompanhamento '
+                        'de matéria não enviado. Há problemas na configuração '
+                        'do e-mail.')
+                messages.add_message(self.request, messages.ERROR, msg)
+                return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -968,9 +977,18 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def form_valid(self, form):
             self.object = form.save()
-            tramitacao_signal.send(sender=Tramitacao,
-                                   post=self.object,
-                                   request=self.request)
+
+            try:
+                tramitacao_signal.send(sender=Tramitacao,
+                                       post=self.object,
+                                       request=self.request)
+            except Exception:
+                # TODO log error
+                msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
+                        'de matéria não enviado. Há problemas na configuração '
+                        'do e-mail.')
+                messages.add_message(self.request, messages.ERROR, msg)
+                return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
     class ListView(MasterDetailCrud.ListView):
