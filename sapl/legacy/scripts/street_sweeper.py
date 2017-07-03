@@ -7,7 +7,7 @@ import pymysql.cursors
 HOST = 'localhost'
 USER = 'root'
 PASSWORD = ''
-DB = 'sapl'
+DB = ''
 
 
 SELECT_EXCLUIDOS = "SELECT %s FROM %s WHERE ind_excluido = 1 ORDER BY %s"
@@ -21,6 +21,7 @@ NORMA_DEP = "DELETE FROM vinculo_norma_juridica WHERE cod_norma_referente in (%s
 
 mapa = {} # mapa com tabela principal -> tabelas dependentes
 
+mapa['tipo_autor'] = ['autor']
 mapa['materia_legislativa'] = ['acomp_materia', 'autoria', 'despacho_inicial',
                                'documento_acessorio', 'expediente_materia',
                                'legislacao_citada', 'materia_assunto',
@@ -117,6 +118,8 @@ if __name__ == '__main__':
                                  password=PASSWORD,
                                  db=DB)
     cursor = connection.cursor()
+    # TIPO AUTOR
+    remove_tabelas(cursor, 'tipo_autor', 'tip_autor')
     # MATERIA LEGISLATIVA
     remove_tabelas(cursor, 'materia_legislativa', 'cod_materia')
     # NORMA JURIDICA
