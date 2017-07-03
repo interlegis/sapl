@@ -96,19 +96,19 @@ class AutorListView(ListAPIView):
 
                   http://localhost:8000
                       /api/autor?tr=1
-                          &q_0=parlamentar_set__nome_completo__icontains,
+                          &q_0=parlamentar_set__nome_parlamentar__icontains,
                                parlamentar_set__ativo
                           &q_1=Carvalho,False
                       /api/autor?tr=1
-                          &q_0=parlamentar_set__nome_completo__icontains,
+                          &q_0=parlamentar_set__nome_parlamentar__icontains,
                                parlamentar_set__ativo
                           &q_1=Carvalho,True
                       /api/autor?tr=3
-                          &q_0=parlamentar_set__nome_completo__icontains,
+                          &q_0=parlamentar_set__nome_parlamentar__icontains,
                                parlamentar_set__ativo
                           &q_1=Carvalho,False
                       /api/autor?tr=3
-                          &q_0=parlamentar_set__nome_completo__icontains,
+                          &q_0=parlamentar_set__nome_parlamentar__icontains,
                                parlamentar_set__ativo
                           &q_1=Carvalho,True
 
