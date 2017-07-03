@@ -94,7 +94,6 @@ TipoAfastamento:
 Mandato:
   coligacao: cod_coligacao
   data_expedicao_diploma: dat_expedicao_diploma
-  data_fim_mandato: dat_fim_mandato
   legislatura: num_legislatura
   observacao: txt_observacao
   parlamentar: cod_parlamentar
