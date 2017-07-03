@@ -1378,7 +1378,7 @@ class MateriaLegislativaPesquisaView(FilterView):
         unidade_destino = self.request.GET.get(
             'tramitacao__unidade_tramitacao_destino')
 
-        qs = self.get_queryset()
+        qs = self.get_queryset().distinct()
 
         if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_destino_and_status(status_tramitacao,

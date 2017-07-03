@@ -20,7 +20,7 @@
      <tr>
      <td>{{ materias.1 }}&nbsp;</td>
      <td>
-     <a href="{% url 'sapl.materia:pesquisar_materia'%}?tipo={{materias.0}}&ano={{autoria.0}}&autoria__autor={{autor_pk}}&autoria__primeiro_autor=True">
+     <a href="{% url 'sapl.materia:pesquisar_materia'%}?tipo={{materias.0}}&ano={{autoria.0}}&autoria__autor={{autor_pk}}&autoria__primeiro_autor=1">
        {{ materias.2}}
      </a>
      </td>
@@ -41,7 +41,7 @@
   <tr>
   <td>{{ materias.1 }}&nbsp;</td>
   <td>
-  <a href="{% url 'sapl.materia:pesquisar_materia'%}?tipo={{materias.0}}&ano={{coautoria.0}}&autoria__autor={{autor_pk}}&autoria__primeiro_autor=False">
+  <a href="{% url 'sapl.materia:pesquisar_materia'%}?tipo={{materias.0}}&ano={{coautoria.0}}&autoria__autor={{autor_pk}}&autoria__primeiro_autor=0">
     {{ materias.2}}
   </a>
   </td>
