@@ -28,7 +28,8 @@ from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica,
                                TipoVinculoNormaJuridica, NormaRelacionada)
-from sapl.parlamentares.models import Parlamentar, TipoAfastamento
+from sapl.parlamentares.models import (Legislatura,Mandato, Parlamentar,
+                                       TipoAfastamento)
 from sapl.protocoloadm.models import (DocumentoAdministrativo,Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
@@ -594,6 +595,13 @@ def adjust_documentoadministrativo(new, old):
         new.protocolo = protocolo
 
 
+def adjust_mandato(new, old):
+    if not new.data_fim_mandato:
+        legislatura = Legislatura.objects.latest('data_fim')
+        new.data_fim_mandato = legislatura.data_fim
+        new.data_expedicao_diploma = legislatura.data_inicio
+
+
 def adjust_ordemdia_antes_salvar(new, old):
     new.votacao_aberta = False
 
@@ -803,6 +811,7 @@ AJUSTE_ANTES_SALVAR = {
     AcompanhamentoMateria: adjust_acompanhamentomateria,
     Comissao: adjust_comissao,
     DocumentoAdministrativo: adjust_documentoadministrativo,
+    Mandato: adjust_mandato,
     NormaJuridica: adjust_normajuridica_antes_salvar,
     NormaRelacionada: adjust_normarelacionada,
     OrdemDia: adjust_ordemdia_antes_salvar,
