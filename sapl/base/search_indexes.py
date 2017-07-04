@@ -28,6 +28,34 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
 
+    def solr_extraction(self, arquivo):
+        extracted_data = self._get_backend(None).extract_file_contents(
+            arquivo)['contents']
+        # Remove as tags xml
+        extracted_data = re.sub('<[^>]*>', '', extracted_data)
+        # Remove tags \t e \n
+        extracted_data = extracted_data.replace(
+            '\n', ' ').replace('\t', ' ')
+        # Remove sinais de pontuação
+        extracted_data = re.sub('[' + string.punctuation + ']',
+                                ' ', extracted_data)
+        # Remove espaços múltiplos
+        extracted_data = " ".join(extracted_data.split())
+
+        return extracted_data
+
+    def whoosh_extraction(self, arquivo):
+        return textract.process(
+            arquivo.path,
+            language='pt-br').decode('utf-8').replace('\n', ' ').replace(
+            '\t', ' ')
+
+    def print_error(self, arquivo):
+        msg = 'Erro inesperado processando arquivo: %s' % (
+            arquivo.path)
+        print(msg)
+        logger.error(msg)
+
     def prepare(self, obj):
         if not self.filename or not self.model or not self.template_name:
             raise Exception
@@ -45,36 +73,24 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
 
             # Em ambiente de produção utiliza-se o SOLR
             if SOLR_URL:
-                extracted_data = self._get_backend(None).extract_file_contents(
-                    arquivo)['contents']
-                # Remove as tags xml
-                extracted_data = re.sub('<[^>]*>', '', extracted_data)
-                # Remove tags \t e \n
-                extracted_data = extracted_data.replace(
-                    '\n', ' ').replace('\t', ' ')
-                # Remove sinais de pontuação
-                extracted_data = re.sub('[' + string.punctuation + ']',
-                                        ' ', extracted_data)
-                # Remove espaços múltiplos
-                extracted_data = " ".join(extracted_data.split())
+                try:
+                    extracted_data = self.solr_extraction(arquivo)
+                except Exception:
+                    self.print_error(arquivo)
+                    return self.prepared_data
 
             # Em ambiente de DEV utiliza-se o Whoosh
             # Como ele não possui extração, faz-se uso do textract
             else:
                 try:
-                    extracted_data = textract.process(
-                        arquivo.path,
-                        language='pt-br').decode('utf-8').replace('\n', ' ')
-                except ExtensionNotSupported:
+                    extracted_data = self.whoosh_extraction(arquivo)
+                except ExtensionNotSupported as e:
+                    print(str(e))
+                    logger.error(str(e))
                     return self.prepared_data
                 except Exception:
-                    msg = 'Erro inesperado processando arquivo: %s' % (
-                        arquivo.path)
-                    print(msg)
-                    logger.error(msg)
+                    self.print_error(arquivo)
                     return self.prepared_data
-
-                extracted_data = extracted_data.replace('\t', ' ')
 
             # Now we'll finally perform the template processing to render the
             # text field with *all* of our metadata visible for templating:
