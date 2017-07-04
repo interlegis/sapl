@@ -28,7 +28,7 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl poppler-utils
+    python3-pip curl poppler-utils default-jre
 
     sudo -i
     curl -sL https://deb.nodesource.com/setup_5.x | bash -
@@ -145,6 +145,8 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       EMAIL_HOST_PASSWORD = [Insira este parâmetro]
       DEFAULT_FROM_EMAIL = [Insira este parâmetro]
       SERVER_EMAIL = [Insira este parâmetro]
+      
+      SOLR_URL = '[Insira este parâmetro]'
 
 
     * Uma configuração mínima para atender os procedimentos acima seria::
@@ -159,9 +161,9 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
         EMAIL_HOST_PASSWORD =
         DEFAULT_FROM_EMAIL =
         SERVER_EMAIL =
-
-
-
+        
+        SOLR_URL = 'http://127.0.0.1:8983/solr'
+        
 
 Rodar o comando abaixo, um detalhe importante, esse comando só funciona com o django extensions, mas ele já está presente no arquivo requirements/requirements.txt desse projeto::
 
