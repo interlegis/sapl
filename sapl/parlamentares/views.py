@@ -38,9 +38,6 @@ NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
-FrenteCrud = CrudAux.build(Frente, 'tipo_situa_militar', list_field_names=[
-    'nome', 'data_criacao', 'parlamentares'])
-
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
 
@@ -209,6 +206,31 @@ class ColigacaoCrud(CrudAux):
 
     class BaseMixin(CrudAux.BaseMixin):
         subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
+
+
+def frente_lista_parlamentar(request):
+    presencas = model.objects.filter(
+        sessao_plenaria=sessao)
+
+    presentes = [p.parlamentar for p in presencas]
+
+    mandato = Mandato.objects.filter(
+        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
+
+    for m in mandato:
+        if m.parlamentar in presentes:
+            yield (m.parlamentar, True)
+        else:
+            yield (m.parlamentar, False)
+
+
+class FrenteCrud(CrudAux):
+    model = Frente
+    help_path = 'tabelas_auxiliares#tipo_situa_militar'
+    list_field_names = ['nome', 'data_criacao', 'parlamentares']
+
+    # class CreateView(CrudAux.ListView):
+    #     pass
 
 
 class MandatoCrud(MasterDetailCrud):

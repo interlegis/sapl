@@ -9,38 +9,29 @@
 
     <div class="row-fluid">
       <div class="col-md-12" >
-        <div id="div_id_nome" class="form-group">
-          {{ form.nome }}
-
-
-    <div class="controls">
-      <div class="checkbox">
-        <label for="id_ativos">
-          <input type="checkbox" name="ativos" id="id_ativos" onchange="escondeInativos()" checked /> Exibir somente parlamentares ativos
-        </label>
+        {{ form.nome|as_crispy_field }}
       </div>
     </div>
 
-    <br />
+    <div class="row-fluid">
+      <div class="col-md-6" >
+        {{ form.data_criacao|as_crispy_field }}
+      </div>
+      <div class="col-md-6" >
+        {{ form.data_extincao|as_crispy_field }}
+      </div>
+    </div>
 
-    <div class="controls">
-      {% for parlamentar, check in view.get_presencas_ordem %}
-        {% if parlamentar.ativo %}
-        <div class="checkbox">
-          <label for="id_presenca_{{forloop.counter}}">
-            <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-            {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
-          </label>
-        </div>
-        {% else %}
-        <div class="checkbox inativos" style="display:none;">
-          <label for="id_presenca_{{forloop.counter}}">
-            <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-            {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}
-          </label>
-        </div>
-        {% endif %}
-      {% endfor %}
+    <div class="row-fluid">
+      <div class="col-md-12" >
+        {{ form.parlamentares|as_crispy_field }}
+      </div>
+    </div>
+
+    <div class="row-fluid">
+      <div class="col-md-12" >
+        {{ form.descricao|as_crispy_field }}
+      </div>
     </div>
 
 		<br />
@@ -51,21 +42,32 @@
 
 {% block extra_js %}
 	<script language="JavaScript">
-		function checkAll(event) {
-      $('[name=presenca_ativos]').each(function() {
-              $(this).prop('checked', event.target.checked ? 'checked': null);
-              $(this).trigger('click');
-      });
-      if (($('[name=ativos]').is(':checked')) == false) {
-              $('[name=presenca_inativos]').each(function() {
-                      $(this).prop('checked', event.target.checked ? 'checked': null);
-                      $(this).trigger('click');
-             });
-      }
+    function atualiza_parlamentares() {
+        // Coloca para selecao os parlamentares no intervalo informado
+        // e somente os ativos, caso seja solicitado
+        // var ativos;
+        var data_criacao = $("#id_data_criacao").val();
+        var data_extincao = $("#id_data_extincao").val();
+
+        if (data_criacao == '') {
+            $('#div_id_parlamentares').hide();
+        }
+        else{
+            $('#div_id_parlamentares').show();
+        }
+
+
     }
 
-    function escondeInativos() {
-            $(".inativos").toggle();
-    }
+    // Fazer a listagem ficar escondida caso não haja data de criacao
+    // Caso contrario, lista os parlamentares para aquele intervalo
+    $(document).ready(atualiza_parlamentares());
+    
+    $("#id_data_criacao").change(function () {
+        atualiza_parlamentares();
+    });
+    $("#id_data_extincao").change(function () {
+        atualiza_parlamentares();
+    });
 	</script>
 {% endblock %}
