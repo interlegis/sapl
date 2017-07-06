@@ -102,7 +102,7 @@ class ExpedienteMateriaForm(ModelForm):
             sessao_plenaria=sessao,
             numero_ordem=self.cleaned_data['numero_ordem']).exists()
 
-        if numero_ordem_exists:
+        if numero_ordem_exists and not self.instance.pk:
             msg = _('Esse número de ordem já existe.')
             raise ValidationError(msg)
 
@@ -131,9 +131,9 @@ class ExpedienteMateriaForm(ModelForm):
 
         ex = ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao,
-            materia=materia).count()
+            materia=materia).exists()
 
-        if ex >= 1:
+        if ex and not self.instance.pk:
             msg = _('Essa matéria já foi cadastrada.')
             raise ValidationError(msg)
 
@@ -163,7 +163,7 @@ class OrdemDiaForm(ExpedienteMateriaForm):
             sessao_plenaria=sessao,
             numero_ordem=self.cleaned_data['numero_ordem']).exists()
 
-        if numero_ordem_exists:
+        if numero_ordem_exists and not self.instance.pk:
             msg = _('Esse número de ordem já existe.')
             raise ValidationError(msg)
 
@@ -189,9 +189,9 @@ class OrdemDiaForm(ExpedienteMateriaForm):
 
         ex = ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao,
-            materia=materia).count()
+            materia=materia).exists()
 
-        if ex >= 1:
+        if ex and not self.instance.pk:
             msg = _('Essa matéria já foi cadastrada.')
             raise ValidationError(msg)
 
