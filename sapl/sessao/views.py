@@ -412,6 +412,9 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         def get_initial(self):
             self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
+            max_numero_ordem = ExpedienteMateria.objects.filter(
+              sessao_plenaria=self.kwargs['pk']).aggregate(Max('numero_ordem'))['numero_ordem__max']
+            self.initial['numero_ordem'] = (max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
 
         def get_success_url(self):
