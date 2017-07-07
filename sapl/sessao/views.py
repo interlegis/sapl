@@ -611,7 +611,6 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
                      + request.POST.getlist('presenca_inativos')
-            marcados = list(map(lambda x: int(x), marcados))
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -722,7 +721,6 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
                      + request.POST.getlist('presenca_inativos')
-            marcados = list(map(lambda x: int(x), marcados))
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
