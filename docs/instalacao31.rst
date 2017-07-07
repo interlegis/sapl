@@ -178,6 +178,7 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
 * Instalar as dependências do ``bower``::
 
+    sudo chown -R sapl31:sapl31 /home/sapl31/    
     ./manage.py bower install
 
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
@@ -188,8 +189,6 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
    ./manage.py collectstatic --noinput
 
-* Preparar o ambiente para indexação de arquivos::
-   ./manage.py rebuild_index
 
 * Subir o servidor do django::
 
