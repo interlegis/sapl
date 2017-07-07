@@ -72,6 +72,8 @@ class BancadaForm(ModelForm):
 
 class ExpedienteMateriaForm(ModelForm):
 
+    _model = ExpedienteMateria
+
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo Matéria'),
         required=True,
@@ -129,11 +131,11 @@ class ExpedienteMateriaForm(ModelForm):
         else:
             cleaned_data['materia'] = materia
 
-        ex = ExpedienteMateria.objects.filter(
+        exists = self._model.objects.filter(
             sessao_plenaria=sessao,
             materia=materia).exists()
 
-        if ex and not self.instance.pk:
+        if exists and not self.instance.pk:
             msg = _('Essa matéria já foi cadastrada.')
             raise ValidationError(msg)
 
@@ -147,6 +149,8 @@ class ExpedienteMateriaForm(ModelForm):
 
 
 class OrdemDiaForm(ExpedienteMateriaForm):
+
+    _model = OrdemDia
 
     class Meta:
         model = OrdemDia
@@ -171,31 +175,7 @@ class OrdemDiaForm(ExpedienteMateriaForm):
 
     def clean(self):
         super(OrdemDiaForm, self).clean()
-
-        cleaned_data = self.cleaned_data
-        sessao = self.instance.sessao_plenaria
-
-        try:
-            materia = MateriaLegislativa.objects.get(
-                numero=self.cleaned_data['numero_materia'],
-                ano=self.cleaned_data['ano_materia'],
-                tipo=self.cleaned_data['tipo_materia'])
-        except ObjectDoesNotExist:
-            msg = _('A matéria a ser inclusa não existe no cadastro'
-                    ' de matérias legislativas.')
-            raise ValidationError(msg)
-        else:
-            cleaned_data['materia'] = materia
-
-        ex = ExpedienteMateria.objects.filter(
-            sessao_plenaria=sessao,
-            materia=materia).exists()
-
-        if ex and not self.instance.pk:
-            msg = _('Essa matéria já foi cadastrada.')
-            raise ValidationError(msg)
-
-        return cleaned_data
+        return self.cleaned_data
 
     def save(self, commit=False):
         ordem = super(OrdemDiaForm, self).save(commit)
