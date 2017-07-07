@@ -80,3 +80,32 @@ Vincular os documentos ao novo banco do sapl 3.1
     %run sapl/legacy/migracao_documentos.py
 
     migrar_documentos()
+    
+    
+Para indexar os arquivos para pesquisa textual
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. workon sapl
+2. ./manage.py rebuild_index
+
+
+Dependendo da quantidade de arquivos a serem indexados, pode ser listado o seguinte erro 'Too many open files'
+
+Isto está ligado a quantidade máxima de aquivos que podem ser abertos ao mesmo tempo pelo sistema operacional
+
+Para aumentar este limite::
+
+   sudo nano /etc/security/limits.conf
+   *       soft    nofile  9000
+   *       hard    nofile  65000
+
+
+   sudo nano /etc/pam.d/common-session
+   session required pam_limits.so
+
+Após reiniciar, verificar se foram carregados os novos parâmetros com o comando::
+   ulimit -a
+
+deve ser apresentado o seguinte::
+   open files                      (-n) 9000
+
+
