@@ -225,9 +225,6 @@ este processo prende o prompt
 **OBS: Toda vez que o código da pesquisa textual for modificado, os comandos de build_solr_schema e start.jar devem ser rodados, nessa mesma ordem.**
 
 
-Para indexação de arquivos::
-
-    ./manage.py rebuild_index
 
 
 Instruções para criação do super usuário e de usuários de testes
