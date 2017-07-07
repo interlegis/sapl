@@ -17,16 +17,20 @@ alterando o variável DEBUG para false::
 
     DEBUG = False
 
+Entrar no ambiente virtual::
+
+   workon sapl
+
 
 Arquivos Estáticos
 ------------------
 Com o ambiente em produção, os arquivos estáticos devem ser servidos pelo web service, em nosso caso o `NGINX`, logo para ter acesso aos arquivos primeiro devemos rodar o seguinte comando::
 
-  python3 manage.py compilescss
+   ./manage.py compilescss
 
 para que os arquivos SASS/SCSS sejam compilados em arquivos .css em ambiente de produção, e em seguida rode::
 
-  pyhton3 manage.py collectstatic --no-input
+   ./manage.py collectstatic --no-input
 
 para coletar todos os arquivos estáticos do projeto e guarda-los no diretório definido em `STATIC_ROOT`, que será também o diretório no qual o `NGINX` irá referenciar para a aplicação.
 
@@ -40,7 +44,7 @@ Instalar o NGINX::
 
 Instalar o Gunicorn::
 
-  sudo pip install gunicorn
+  sudo pip3 install gunicorn
 
 
 Preparando o NGINX
@@ -91,7 +95,7 @@ Criar link simbólico para ativar o site::
 
    sudo ln -s /etc/nginx/sites-available/sapl31.conf /etc/nginx/sites-enabled/sapl3
 
-Reiniciar o nginx
+Reiniciar o nginx::
 
    sudo service nginx restart
 
