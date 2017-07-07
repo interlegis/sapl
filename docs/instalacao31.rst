@@ -178,6 +178,7 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
 * Instalar as dependências do ``bower``::
 
+    sudo chown -R sapl31:sapl31 /home/sapl31/    
     ./manage.py bower install
 
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
@@ -188,8 +189,6 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
    ./manage.py collectstatic --noinput
 
-* Preparar o ambiente para indexação de arquivos::
-   ./manage.py rebuild_index
 
 * Subir o servidor do django::
 
@@ -226,6 +225,9 @@ este processo prende o prompt
 **OBS: Toda vez que o código da pesquisa textual for modificado, os comandos de build_solr_schema e start.jar devem ser rodados, nessa mesma ordem.**
 
 
+Para indexação de arquivos::
+
+    ./manage.py rebuild_index
 
 
 Instruções para criação do super usuário e de usuários de testes
