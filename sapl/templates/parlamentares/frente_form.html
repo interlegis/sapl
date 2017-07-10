@@ -22,9 +22,20 @@
       </div>
     </div>
 
-    <div class="row-fluid">
-      <div class="col-md-12" >
-        {{ form.parlamentares|as_crispy_field }}
+    <div id="div_parlamentares" style="display: none">
+      <div class="row-fluid">
+        <div class="col-md-12" >
+          <div class="checkbox">
+            <input id="id_selecionar_ativos" type="checkbox">
+            <b><h4>Listar somente os parlamentares ativos</h4></b>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="col-md-12" >
+          {{ form.parlamentares|as_crispy_field }}
+        </div>
       </div>
     </div>
 
@@ -48,12 +59,39 @@
         // var ativos;
         var data_criacao = $("#id_data_criacao").val();
         var data_extincao = $("#id_data_extincao").val();
+        var ativos = $('#id_selecionar_ativos').prop('checked');
 
-        if (data_criacao == '') {
-            $('#div_id_parlamentares').hide();
+        if (data_criacao === '') {
+            $('#div_parlamentares').hide();
         }
         else{
-            $('#div_id_parlamentares').show();
+            $('#div_parlamentares').show();
+            // Limpa a listagem para atualizar
+            $("#id_parlamentares option").remove();
+
+            $.get("/sistema/frente/atualiza-lista-parlamentares",
+              {data_criacao: data_criacao,
+               data_extincao: data_extincao,
+               ativos: ativos},
+
+                function(data){
+                  // Caso não venha nenhum dado da requisição, retorna null
+      	          if ($.isEmptyObject(data)){
+      	  	        return null
+      	          }
+      	          lista_parlamentares = data['parlamentares_list'];
+
+      	          console.log(lista_parlamentares.length)
+
+      	          // Atualiza a listagem de parlamentares
+                  for (i = 0; i < lista_parlamentares.length; i++) {
+                      $('#id_parlamentares').append(
+                          '<option value="' + lista_parlamentares[i][0] + '">' +
+                          lista_parlamentares[i][1] + '</option>');
+                  }
+
+                }
+            );
         }
 
 
@@ -67,6 +105,9 @@
         atualiza_parlamentares();
     });
     $("#id_data_extincao").change(function () {
+        atualiza_parlamentares();
+    });
+    $("#id_selecionar_ativos").change(function () {
         atualiza_parlamentares();
     });
 	</script>

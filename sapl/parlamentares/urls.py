@@ -15,6 +15,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       TipoMilitarCrud, VotanteView,
                                       altera_field_mesa,
                                       altera_field_mesa_public_view,
+                                      frente_atualiza_lista_parlamentares,
                                       insere_parlamentar_composicao,
                                       remove_parlamentar_composicao)
 
@@ -40,6 +41,9 @@ urlpatterns = [
                 ComposicaoColigacaoCrud.get_urls())),
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
+    url(r'^sistema/frente/atualiza-lista-parlamentares',
+        frente_atualiza_lista_parlamentares,
+        name='atualiza_lista_parlamentares'),
     url(r'^sistema/parlamentar/legislatura/',
         include(LegislaturaCrud.get_urls())),
     url(r'^sistema/parlamentar/tipo-dependente/',
