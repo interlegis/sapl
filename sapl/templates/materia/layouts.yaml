@@ -59,7 +59,7 @@ AnexadaDetail:
 
 Autoria:
   {% trans 'Autoria' %}:
-  - autor primeiro_autor
+  - tipo_autor autor primeiro_autor
 
 DocumentoAcessorio:
   {% trans 'Documento Acessório' %}:
