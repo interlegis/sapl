@@ -81,6 +81,13 @@ def reordernar_materias_ordem(request, pk):
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
+def verifica_presenca(request, model, spk):
+    if not model.objects.filter(sessao_plenaria_id=spk).exists():
+        msg = _('Votação não pode ser aberta sem presenças')
+        messages.add_message(request, messages.ERROR, msg)
+        return False
+    return True
+
 
 def verifica_votacoes_abertas(request, model, pk):
     votacoes_abertas = SessaoPlenaria.objects.filter(
@@ -108,16 +115,18 @@ def verifica_votacoes_abertas(request, model, pk):
 
 @permission_required('sessao.change_expedientemateria')
 def abrir_votacao_expediente_view(request, pk, spk):
-    verifica_votacoes_abertas(request, ExpedienteMateria, pk)
+    if verifica_presenca(request, SessaoPlenariaPresenca, spk):
+        verifica_votacoes_abertas(request, ExpedienteMateria, pk)
     return HttpResponseRedirect(
-        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
+            reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
 @permission_required('sessao.change_ordemdia')
 def abrir_votacao_ordem_view(request, pk, spk):
-    verifica_votacoes_abertas(request, OrdemDia, pk)
+    if verifica_presenca(request, PresencaOrdemDia, spk):
+        verifica_votacoes_abertas(request, OrdemDia, pk)
     return HttpResponseRedirect(
-        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
+            reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
 
 
 def put_link_materia(context):
