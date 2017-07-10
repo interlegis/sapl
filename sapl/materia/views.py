@@ -1,49 +1,8 @@
-from datetime import datetime
+from datetime import datetime, date
 from random import choice
 from string import ascii_letters, digits
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML
-from django import forms
-from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import (ObjectDoesNotExist,
-                                    MultipleObjectsReturned)
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse, JsonResponse
-from django.http.response import Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect
-from django.utils import formats
-from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
-from django.views.generic.base import RedirectView
-from django.views.generic.edit import FormView
-from django_filters.views import FilterView
-
-from sapl.base.models import Autor, CasaLegislativa
-from sapl.comissoes.models import Comissao, Participacao
-from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
-                                    STATUS_TA_PRIVATE)
-from sapl.compilacao.views import IntegracaoTaView
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
-from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
-                            ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
-                            Crud, CrudAux, MasterDetailCrud,
-                            PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
-                                LegislacaoCitadaForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm,
-                                TramitacaoUpdateForm)
-from sapl.norma.models import LegislacaoCitada
-from sapl.protocoloadm.models import Protocolo
-from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
-                        autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor)
-import sapl
-
 from .email_utils import do_envia_email_confirmacao
-
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, MateriaAssuntoForm,
@@ -59,8 +18,51 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
-
 from .signals import tramitacao_signal
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML
+from django import forms
+from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import (ObjectDoesNotExist,
+                                    MultipleObjectsReturned)
+from django.core.urlresolvers import reverse
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
+from django.http.response import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import formats
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic.base import RedirectView
+from django.views.generic.edit import FormView
+from django_filters.views import FilterView
+import sapl
+from sapl.base.models import Autor, CasaLegislativa
+from sapl.comissoes.models import Comissao
+from sapl.comissoes.models import Comissao, Participacao
+from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
+                                    STATUS_TA_PRIVATE)
+from sapl.compilacao.views import IntegracaoTaView
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
+from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
+                            ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
+                            Crud, CrudAux, MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, make_pagination)
+from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
+                                LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
+                                TipoProposicaoForm, TramitacaoForm,
+                                TramitacaoUpdateForm)
+from sapl.materia.models import Autor
+from sapl.norma.models import LegislacaoCitada
+from sapl.parlamentares.models import Parlamentar
+from sapl.protocoloadm.models import Protocolo
+from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
+                        autor_modal, gerar_hash_arquivo, get_base_url,
+                        montar_row_autor)
+
 
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
@@ -1071,6 +1073,32 @@ class AutoriaCrud(MasterDetailCrud):
     parent_field = 'materia'
     help_path = ''
     public = [RP_LIST, RP_DETAIL]
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AutoriaForm
+
+        def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            autores_ativos = self.autores_ativos()
+
+            autores = []
+            for a in autores_ativos:
+                autores.append([a.id, a.__str__()])
+
+            context['form'].fields['autor'].choices = autores
+            return context
+
+        def autores_ativos(self):
+            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
+            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
+            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
+
+            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
+            model_comissao = ContentType.objects.get_for_model(Comissao)
+            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
+            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
+            q = autor_parlamentar | autor_comissoes | autores_outros
+            return q
 
 
 class DespachoInicialCrud(MasterDetailCrud):
