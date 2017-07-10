@@ -13,7 +13,7 @@ from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
-from django.forms import ModelForm, widgets
+from django.forms import ModelForm, ModelChoiceField, widgets
 from django.forms.forms import Form
 from django.forms.widgets import Select
 from django.utils.encoding import force_text
@@ -22,7 +22,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -648,9 +648,15 @@ class DespachoInicialForm(ModelForm):
 
 class AutoriaForm(ModelForm):
 
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=True,
+                                  queryset=
+                                  TipoAutor.objects.all().order_by('descricao'),
+                                  empty_label='Selecione',)
+
     class Meta:
         model = Autoria
-        fields = ['autor', 'primeiro_autor']
+        fields = ['tipo_autor', 'autor', 'primeiro_autor']
 
     def clean(self):
         super(AutoriaForm, self).clean()
