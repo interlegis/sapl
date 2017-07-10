@@ -856,6 +856,7 @@ class RelatoriaCrud(MasterDetailCrud):
                     composicao=composicao)
 
                 parlamentares = []
+                parlamentares.append(['', '---------'])
                 for p in participacao:
                     if p.titular:
                         parlamentares.append(
