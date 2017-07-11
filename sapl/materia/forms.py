@@ -649,10 +649,22 @@ class DespachoInicialForm(ModelForm):
 class AutoriaForm(ModelForm):
 
     tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
-                                  required=True,
+                                  required=False,
                                   queryset=
                                   TipoAutor.objects.all().order_by('descricao'),
                                   empty_label='Selecione',)
+
+    def __init__(self, *args, **kwargs):
+        super(AutoriaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 4),
+                       ('autor', 4),
+                       ('primeiro_autor', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Autoria'),
+                     row1, form_actions(save_label='Salvar')))
 
     class Meta:
         model = Autoria

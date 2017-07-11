@@ -1089,6 +1089,10 @@ class AutoriaCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AutoriaForm
 
+        @property
+        def layout_key(self):
+            return 'AutoriaCreate'
+
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
             autores_ativos = self.autores_ativos()
