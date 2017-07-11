@@ -59,6 +59,14 @@ AnexadaDetail:
 
 Autoria:
   {% trans 'Autoria' %}:
+  - autor primeiro_autor
+
+AutoriaCreate:
+  {% trans 'Autoria' %}:
+  - tipo_autor autor primeiro_autor
+
+AutoriaUpdate:
+  {% trans 'Autoria' %}:
   - tipo_autor autor primeiro_autor
 
 DocumentoAcessorio:
