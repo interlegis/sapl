@@ -53,21 +53,37 @@
 
 {% block extra_js %}
 	<script language="JavaScript">
+
+    function selecionar_parlamentares_frente() {
+        // Seleciona automaticamente todos os parlamentares
+        // que já estão presentes naquela frente
+        var update_view = {{ update_view }}
+        if (update_view == 1) {
+            var frente_id = {{ object.id }}
+            $.get("/sistema/frente/parlamentares-frente-selected",
+                {frente_id: frente_id},
+                function (data) {
+                  id_list = data['id_list'];
+                  $("div.controls select").val(id_list);
+                });
+        }
+    }
+
     function atualiza_parlamentares() {
         // Coloca para selecao os parlamentares no intervalo informado
         // e somente os ativos, caso seja solicitado
         // var ativos;
         var data_criacao = $("#id_data_criacao").val();
         var data_extincao = $("#id_data_extincao").val();
-        var ativos = $('#id_selecionar_ativos').prop('checked');
 
         if (data_criacao === '') {
             $('#div_parlamentares').hide();
         }
         else{
             $('#div_parlamentares').show();
+            var ativos = $('#id_selecionar_ativos').prop('checked');
             // Limpa a listagem para atualizar
-            $("#id_parlamentares option").remove();
+            $("#id_parlamentares").find("option").remove();
 
             $.get("/sistema/frente/atualiza-lista-parlamentares",
               {data_criacao: data_criacao,
@@ -81,8 +97,6 @@
       	          }
       	          lista_parlamentares = data['parlamentares_list'];
 
-      	          console.log(lista_parlamentares.length)
-
       	          // Atualiza a listagem de parlamentares
                   for (i = 0; i < lista_parlamentares.length; i++) {
                       $('#id_parlamentares').append(
@@ -91,15 +105,15 @@
                   }
 
                 }
-            );
+            ).done(function(){selecionar_parlamentares_frente();});
         }
 
 
     }
 
-    // Fazer a listagem ficar escondida caso não haja data de criacao
-    // Caso contrario, lista os parlamentares para aquele intervalo
-    $(document).ready(atualiza_parlamentares());
+    $(document).ready(function(){
+        atualiza_parlamentares();
+    });
     
     $("#id_data_criacao").change(function () {
         atualiza_parlamentares();

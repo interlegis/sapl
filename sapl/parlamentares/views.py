@@ -232,13 +232,13 @@ def parlamentares_ativos(data_inicio, data_fim=None):
     '''
     mandatos_ativos = Mandato.objects.filter(Q(
         data_inicio_mandato__lte=data_inicio,
-        data_fim_mandato__isnull=True))
+        data_fim_mandato__isnull=True) | Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__gte=data_inicio))
     if data_fim:
-        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(Q(
-            data_inicio_mandato__lte=data_inicio,
-            data_fim_mandato__gte=data_inicio) | Q(
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
             data_inicio_mandato__gte=data_inicio,
-            data_inicio_mandato__lte=data_fim))
+            data_inicio_mandato__lte=data_fim)
     else:
         mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
             data_inicio_mandato__gte=data_inicio)
@@ -275,13 +275,44 @@ def frente_atualiza_lista_parlamentares(request):
     return JsonResponse({'parlamentares_list': parlamentares_list})
 
 
+def parlamentares_frente_selected(request):
+    '''
+    :return: Lista com o id dos parlamentares em uma frente
+    '''
+    try:
+        frente = Frente.objects.get(id=int(request.GET['frente_id']))
+    except ObjectDoesNotExist:
+        lista_parlamentar_id = []
+    else:
+        lista_parlamentar_id = frente.parlamentares.all().values_list(
+            'id', flat=True)
+    return JsonResponse({'id_list': list(lista_parlamentar_id)})
+
+
 class FrenteCrud(CrudAux):
     model = Frente
     help_path = 'tabelas_auxiliares#tipo_situa_militar'
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
-    # class CreateView(CrudAux.ListView):
-    #     pass
+    class CreateView(CrudAux.CreateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            # Update view é um indicador para o javascript
+            # de que esta não é uma tela de edição de frente
+            context['update_view'] = 0
+
+            return context
+
+    class UpdateView(CrudAux.UpdateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            # Update view é um indicador para o javascript
+            # de que esta não é uma tela de edição de frente
+            context['update_view'] = 1
+
+            return context
 
 
 class MandatoCrud(MasterDetailCrud):
