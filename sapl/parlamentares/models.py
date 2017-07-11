@@ -449,7 +449,9 @@ class Mandato(models.Model):
         on_delete=models.PROTECT, verbose_name=_('Coligação'))
     # TODO what is this field??????
     tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
-    data_inicio_mandato = models.DateField(verbose_name=_('Início do Mandato'))
+    data_inicio_mandato = models.DateField(verbose_name=_('Início do Mandato'),
+                                           blank=True,
+                                           null=True)
     data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'),
                                         blank=True,
                                         null=True)
