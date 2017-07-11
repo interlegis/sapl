@@ -7,5 +7,5 @@ class AppConfig(apps.AppConfig):
     label = 'norma'
     verbose_name = _('Norma Jurídica')
 
-#    def ready(self):
-#        from . import signals
+    def ready(self):
+        from . import signals
