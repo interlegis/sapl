@@ -225,6 +225,11 @@ class MateriaLegislativa(models.Model):
         through_fields=('materia', 'autor'),
         symmetrical=False,)
 
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
+
     class Meta:
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
@@ -420,6 +425,11 @@ class DocumentoAcessorio(models.Model):
 
     proposicao = GenericRelation(
         'Proposicao', related_query_name='proposicao')
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Documento Acessório')
