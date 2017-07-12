@@ -28,6 +28,9 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
 
+    def get_updated_field(self):
+        return 'data_ultima_atualizacao'
+
     def solr_extraction(self, arquivo):
         extracted_data = self._get_backend(None).extract_file_contents(
             arquivo)['contents']
@@ -111,6 +114,9 @@ class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
     template_name = 'materia/materialegislativa_text.txt'
 
+    def get_updated_field(self):
+        return 'data_ultima_atualizacao'
+
 
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     text = indexes.CharField(document=True, use_template=True)
@@ -118,3 +124,6 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
     filename = 'texto_integral'
     model = NormaJuridica
     template_name = 'norma/normajuridica_text.txt'
+
+    def get_updated_field(self):
+        return 'data_ultima_atualizacao'    
