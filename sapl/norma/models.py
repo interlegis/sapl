@@ -69,7 +69,7 @@ class NormaJuridica(models.Model):
         ('F', 'federal', _('Federal')),
         ('M', 'municipal', _('Municipal')),
     )
-    
+
     texto_integral = models.FileField(
         blank=True,
         null=True,
@@ -120,6 +120,11 @@ class NormaJuridica(models.Model):
 
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Norma Jurídica')
