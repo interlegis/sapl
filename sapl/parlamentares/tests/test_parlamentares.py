@@ -147,7 +147,5 @@ def test_form_errors_mandato(admin_client):
 
     assert (response.context_data['form'].errors['legislatura'] ==
             ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['data_fim_mandato'] ==
-            ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['data_expedicao_diploma'] ==
             ['Este campo é obrigatório.'])

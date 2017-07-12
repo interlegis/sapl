@@ -30,6 +30,10 @@ from sapl.materia.models import Autoria
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.aggregates import Count
 
+import datetime
+import json
+
+
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
 SessaoLegislativaCrud = CrudAux.build(SessaoLegislativa, 'sessao_legislativa')
@@ -37,9 +41,6 @@ TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
-
-FrenteCrud = CrudAux.build(Frente, 'tipo_situa_militar', list_field_names=[
-    'nome', 'data_criacao', 'parlamentares'])
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
@@ -209,6 +210,109 @@ class ColigacaoCrud(CrudAux):
 
     class BaseMixin(CrudAux.BaseMixin):
         subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
+
+
+def json_date_convert(date):
+    '''
+    :param date: recebe a data de uma chamada ajax no formato de
+     string "dd/mm/yyyy"
+    :return:
+    '''
+    dia, mes, ano = date.split('/')
+    return datetime.date(day=int(dia),
+                         month=int(mes),
+                         year=int(ano))
+
+
+def parlamentares_ativos(data_inicio, data_fim=None):
+    '''
+    :param data_inicio: define a data de inicial do período desejado
+    :param data_fim: define a data final do período desejado
+    :return: queryset dos parlamentares ativos naquele período
+    '''
+    mandatos_ativos = Mandato.objects.filter(Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__isnull=True) | Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__gte=data_inicio))
+    if data_fim:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio,
+            data_inicio_mandato__lte=data_fim)
+    else:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio)
+
+    parlamentares_id = mandatos_ativos.values_list(
+        'parlamentar_id',
+        flat=True).distinct('parlamentar_id')
+
+    return Parlamentar.objects.filter(id__in=parlamentares_id)
+
+
+def frente_atualiza_lista_parlamentares(request):
+    '''
+    :param request: recebe os parâmetros do GET da chamada Ajax
+    :return: retorna a lista atualizada dos parlamentares
+    '''
+    ativos = json.loads(request.GET['ativos'])
+
+    parlamentares = Parlamentar.objects.all()
+
+    if ativos:
+        if 'data_criacao' in request.GET and request.GET['data_criacao']:
+            data_criacao = json_date_convert(request.GET['data_criacao'])
+
+            if 'data_extincao' in request.GET and request.GET['data_extincao']:
+                data_extincao = json_date_convert(request.GET['data_extincao'])
+                parlamentares = parlamentares_ativos(data_criacao,
+                                                     data_extincao)
+            else:
+                parlamentares = parlamentares_ativos(data_criacao)
+
+    parlamentares_list = [(p.id, p.__str__()) for p in parlamentares]
+
+    return JsonResponse({'parlamentares_list': parlamentares_list})
+
+
+def parlamentares_frente_selected(request):
+    '''
+    :return: Lista com o id dos parlamentares em uma frente
+    '''
+    try:
+        frente = Frente.objects.get(id=int(request.GET['frente_id']))
+    except ObjectDoesNotExist:
+        lista_parlamentar_id = []
+    else:
+        lista_parlamentar_id = frente.parlamentares.all().values_list(
+            'id', flat=True)
+    return JsonResponse({'id_list': list(lista_parlamentar_id)})
+
+
+class FrenteCrud(CrudAux):
+    model = Frente
+    help_path = 'tabelas_auxiliares#tipo_situa_militar'
+    list_field_names = ['nome', 'data_criacao', 'parlamentares']
+
+    class CreateView(CrudAux.CreateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            # Update view é um indicador para o javascript
+            # de que esta não é uma tela de edição de frente
+            context['update_view'] = 0
+
+            return context
+
+    class UpdateView(CrudAux.UpdateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            # Update view é um indicador para o javascript
+            # de que esta não é uma tela de edição de frente
+            context['update_view'] = 1
+
+            return context
 
 
 class MandatoCrud(MasterDetailCrud):

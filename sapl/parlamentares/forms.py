@@ -54,7 +54,8 @@ class MandatoForm(ModelForm):
     class Meta:
         model = Mandato
         fields = ['legislatura', 'coligacao', 'votos_recebidos',
-                  'data_fim_mandato', 'data_expedicao_diploma', 'titular',
+                  'data_inicio_mandato', 'data_fim_mandato',
+                  'data_expedicao_diploma', 'titular',
                   'tipo_afastamento', 'observacao', 'parlamentar']
         widgets = {'parlamentar': forms.HiddenInput()}
 
