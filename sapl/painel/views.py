@@ -220,27 +220,6 @@ def votante_view(request):
 
 
 @user_passes_test(check_permission)
-def controlador_painel(request):
-
-    painel_created = Painel.objects.get_or_create(data_painel=date.today())
-    painel = painel_created[0]
-
-    if request.method == 'POST':
-        if 'start-painel' in request.POST:
-            painel.aberto = True
-            painel.save()
-        elif 'stop-painel' in request.POST:
-            painel.aberto = False
-            painel.save()
-        elif 'save-painel' in request.POST:
-            painel.mostrar = request.POST['tipo_painel']
-            painel.save()
-
-    context = {'painel': painel, 'PAINEL_TYPES': Painel.PAINEL_TYPES}
-    return render(request, 'painel/controlador.html', context)
-
-
-@user_passes_test(check_permission)
 def painel_view(request, pk):
     context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk}
     return render(request, 'painel/index.html', context)
