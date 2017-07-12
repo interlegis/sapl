@@ -553,20 +553,3 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
         }
 
     return path
-
-
-class UpdateIndexCommand(Thread):
-
-    def run(self):
-        call([PROJECT_DIR.child('manage.py'), 'update_index'],
-             stdout=PIPE)
-
-
-def save_texto(sender, instance, **kwargs):
-    update_index = UpdateIndexCommand()
-    update_index.start()
-
-
-def delete_texto(sender, instance, **kwargs):
-    update_index = UpdateIndexCommand()
-    update_index.start()

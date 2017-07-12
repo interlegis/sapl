@@ -8,8 +8,3 @@ from .models import DocumentoAcessorio, MateriaLegislativa
 
 
 tramitacao_signal = django.dispatch.Signal(providing_args=['post', 'request'])
-
-# post_save.connect(save_texto, sender=MateriaLegislativa)
-# post_save.connect(save_texto, sender=DocumentoAcessorio)
-# post_delete.connect(delete_texto, sender=MateriaLegislativa)
-# post_delete.connect(delete_texto, sender=DocumentoAcessorio)

@@ -86,6 +86,7 @@ INSTALLED_APPS = (
 ) + SAPL_APPS
 
 # FTS = Full Text Search
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
 
