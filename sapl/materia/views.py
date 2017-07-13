@@ -1069,56 +1069,111 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             return context
 
 
-def filtra_ativos(content_type):
-    if content_type == Parlamentar:
-        mandatos_ativos = Mandato.objects.filter()
-        return
-    elif content_type == Comissao:
-        return
-    elif content_type == Frente:
-        return
-    elif content_type == Bancada:
-        return
-    elif content_type == Bloco:
-        return
-    elif content_type == Orgao:
-        return
+def filtra_ativos(content_type, materia):
+    if content_type.model_class() == Parlamentar:
+        mandatos_ativos = Mandato.objects.filter(Q(
+            data_inicio_mandato__lte=materia.data_apresentacao,
+            data_fim_mandato__isnull=True) | Q(
+            data_inicio_mandato__lte=materia.data_apresentacao,
+            data_fim_mandato__gte=materia.data_apresentacao)
+        ).values_list('parlamentar_id', flat=True).distinct('parlamentar_id')
+
+        return Autor.objects.filter(
+            content_type=content_type,
+            object_id__in=mandatos_ativos).order_by(
+            'autor_related__nome_completo')
+
+    elif content_type.model_class() == Comissao:
+        comissoes = Comissao.objects.filter(
+            data_criacao__lte=materia.data_apresentacao)
+        comissoes_id = comissoes.filter(Q(
+            data_extincao__isnull=True,
+            data_fim_comissao__isnull=True) | Q(
+            data_extincao__gte=materia.data_apresentacao,
+            data_fim_comissao__isnull=True) | Q(
+            data_extincao__gte=materia.data_apresentacao,
+            data_fim_comissao__isnull=True) | Q(
+            data_extincao__isnull=True,
+            data_fim_comissao__gte=materia.data_apresentacao) | Q(
+            data_extincao__gte=materia.data_apresentacao,
+            data_fim_comissao__gte=materia.data_apresentacao)).values_list(
+            'id', flat=True).distinct()
+
+        return Autor.objects.filter(
+            content_type=content_type,
+            object_id__in=comissoes_id).order_by(
+            'autor_related__nome')
+
+    elif content_type.model_class() == Frente:
+        frentes = Frente.objects.filter(
+            data_criacao__lte=materia.data_apresentacao)
+        frentes_id = frentes.filter(Q(
+            data_extincao__isnull=True) | Q(
+            data_extincao__gte=materia.data_apresentacao)).values_list(
+            'id', flat=True).distinct()
+
+        return Autor.objects.filter(
+            content_type=content_type,
+            object_id__in=frentes_id).order_by(
+            'autor_related__nome')
+
+    elif content_type.model_class() == Bancada:
+        bancadas = Bancada.objects.filter(
+            data_criacao__lte=materia.data_apresentacao)
+        bancadas_id = bancadas.filter(Q(
+            data_extincao__isnull=True) | Q(
+            data_extincao__gte=materia.data_apresentacao)).values_list(
+            'id', flat=True).distinct()
+
+        return Autor.objects.filter(
+            content_type=content_type,
+            object_id__in=bancadas_id).order_by(
+            'autor_related__nome')
+
+    elif content_type.model_class() == Bloco:
+        blocos = Bloco.objects.filter(
+            data_criacao__lte=materia.data_apresentacao)
+        blocos_id = blocos.filter(Q(
+            data_extincao__isnull=True) | Q(
+            data_extincao__gte=materia.data_apresentacao)).values_list(
+            'id', flat=True).distinct()
+
+        return Autor.objects.filter(
+            content_type=content_type,
+            object_id__in=blocos_id).order_by(
+            'autor_related__nome')
+
+    elif content_type.model_class() == Orgao:
+        orgaos_id = Orgao.objects.values_list('id', flat=True)
+
+        return Autor.objects.filter(
+            content_type=content_type,
+            object_id__in=orgaos_id).order_by(
+            'autor_related__nome')
 
 
-def autores_ativos(tipo=None):
+def autores_ativos(materia, tipo=None):
     content_types_list = []
-    for ta in TipoAutor:
+    for ta in TipoAutor.objects.all():
         if ta.content_type:
             content_types_list.append(ta.content_type)
 
     autores_by_ct = {}
     for ct in content_types_list:
-        autores_by_ct[str(ct.id)] = filtra_ativos(ct)
+        autores_by_ct[str(ct.id)] = filtra_ativos(ct, materia)
 
-    # model_parlamentar = ContentType.objects.get_for_model(
-    #     Parlamentar)
-    # model_comissao = ContentType.objects.get_for_model(Comissao)
-    #
-    # lista_parlamentares = Parlamentar.objects.filter(
-    #     ativo=True).values_list(
-    #     'id', flat=True)
-    # autor_parlamentar = Autor.objects.filter(
-    #     content_type=model_parlamentar,
-    #     object_id__in=lista_parlamentares)
-    #
-    # lista_comissoes = Comissao.objects.filter(
-    #     Q(data_extincao__isnull=True)|Q(
-    #         data_extincao__gt=date.today())).values_list(
-    #     'id', flat=True)
-    #
-    # autor_comissoes = Autor.objects.filter(
-    #     content_type=model_comissao,
-    #     object_id__in=lista_comissoes)
-    # autores_outros = Autor.objects.exclude(
-    #     content_type__in=[model_parlamentar,
-    #                       model_comissao])
-    # q = autor_parlamentar | autor_comissoes | autores_outros
-    return q
+    if not tipo:
+        autor_qs = Autor.objects.none()
+        for key in autores_by_ct:
+            autor_qs = autor_qs | autores_by_ct[key]
+
+        autores_by_ct['others'] = Autor.objects.exclude(
+                          content_type__in=content_types_list)
+
+        return (autor_qs | autores_by_ct['others']).order_by('content_type')
+
+    else:
+        return autores_by_ct[tipo]
 
 
 def atualizar_autores(request):
@@ -1140,7 +1195,7 @@ class AutoriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
-            autores_ativos_list = autores_ativos()
+            autores_ativos_list = autores_ativos(self.get_object().materia)
 
             autores = []
             for a in autores_ativos_list:
