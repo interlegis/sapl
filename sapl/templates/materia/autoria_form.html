@@ -1,0 +1,25 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+
+<script language="Javascript">
+
+  function atualizar_autores() {
+    var tipo_autor = $("#id_tipo_autor").val();
+    var materia_id = {{ root_pk }}
+
+    $.get("/materia/autoria/atualizar-autores",
+        {tipo_autor: tipo_autor, materia_id: materia_id},
+        function(data) {
+
+        });
+  }
+  $("#id_tipo_autor").change(function () {
+        atualizar_autores();
+    });
+</script>
+
+{% endblock %}

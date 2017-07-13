@@ -40,7 +40,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import sapl
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.models import Autor, CasaLegislativa, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -57,8 +57,9 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 TramitacaoUpdateForm)
 from sapl.materia.models import Autor
 from sapl.norma.models import LegislacaoCitada
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import Frente, Mandato, Parlamentar
 from sapl.protocoloadm.models import Protocolo
+from sapl.sessao.models import Bancada, Bloco
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
@@ -1068,6 +1069,62 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             return context
 
 
+def filtra_ativos(content_type):
+    if content_type == Parlamentar:
+        mandatos_ativos = Mandato.objects.filter()
+        return
+    elif content_type == Comissao:
+        return
+    elif content_type == Frente:
+        return
+    elif content_type == Bancada:
+        return
+    elif content_type == Bloco:
+        return
+    elif content_type == Orgao:
+        return
+
+
+def autores_ativos(tipo=None):
+    content_types_list = []
+    for ta in TipoAutor:
+        if ta.content_type:
+            content_types_list.append(ta.content_type)
+
+    autores_by_ct = {}
+    for ct in content_types_list:
+        autores_by_ct[str(ct.id)] = filtra_ativos(ct)
+
+    # model_parlamentar = ContentType.objects.get_for_model(
+    #     Parlamentar)
+    # model_comissao = ContentType.objects.get_for_model(Comissao)
+    #
+    # lista_parlamentares = Parlamentar.objects.filter(
+    #     ativo=True).values_list(
+    #     'id', flat=True)
+    # autor_parlamentar = Autor.objects.filter(
+    #     content_type=model_parlamentar,
+    #     object_id__in=lista_parlamentares)
+    #
+    # lista_comissoes = Comissao.objects.filter(
+    #     Q(data_extincao__isnull=True)|Q(
+    #         data_extincao__gt=date.today())).values_list(
+    #     'id', flat=True)
+    #
+    # autor_comissoes = Autor.objects.filter(
+    #     content_type=model_comissao,
+    #     object_id__in=lista_comissoes)
+    # autores_outros = Autor.objects.exclude(
+    #     content_type__in=[model_parlamentar,
+    #                       model_comissao])
+    # q = autor_parlamentar | autor_comissoes | autores_outros
+    return q
+
+
+def atualizar_autores(request):
+    pass
+
+
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
     parent_field = 'materia'
@@ -1083,26 +1140,21 @@ class AutoriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
-            autores_ativos = self.autores_ativos()
+            autores_ativos_list = autores_ativos()
 
             autores = []
-            for a in autores_ativos:
+            for a in autores_ativos_list:
                 autores.append([a.id, a.__str__()])
 
             context['form'].fields['autor'].choices = autores
             return context
 
-        def autores_ativos(self):
-            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
-            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
-            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AutoriaForm
 
-            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
-            model_comissao = ContentType.objects.get_for_model(Comissao)
-            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
-            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
-            q = autor_parlamentar | autor_comissoes | autores_outros
-            return q
+        @property
+        def layout_key(self):
+            return 'AutoriaUpdate'
 
 
 class DespachoInicialCrud(MasterDetailCrud):

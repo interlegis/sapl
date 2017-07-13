@@ -654,18 +654,6 @@ class AutoriaForm(ModelForm):
                                   TipoAutor.objects.all().order_by('descricao'),
                                   empty_label='Selecione',)
 
-    def __init__(self, *args, **kwargs):
-        super(AutoriaForm, self).__init__(*args, **kwargs)
-
-        row1 = to_row([('tipo_autor', 4),
-                       ('autor', 4),
-                       ('primeiro_autor', 4)])
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Autoria'),
-                     row1, form_actions(save_label='Salvar')))
-
     class Meta:
         model = Autoria
         fields = ['tipo_autor', 'autor', 'primeiro_autor']
