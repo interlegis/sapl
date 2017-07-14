@@ -1169,10 +1169,6 @@ def autores_ativos(materia, tipo=None):
     for ct, ta in content_types_list:
         autores_by_ct[str(ta.id)] = filtra_ativos(ct, materia)
 
-    autor_qs = Autor.objects.none()
-    for key in autores_by_ct:
-        autor_qs = autor_qs | autores_by_ct[key]
-
     ct_list = [c[0] for c in content_types_list]
     autores_by_ct['others'] = Autor.objects.exclude(
         content_type__in=ct_list).order_by(
@@ -1180,6 +1176,10 @@ def autores_ativos(materia, tipo=None):
     )
 
     if not tipo:
+        autor_qs = Autor.objects.none()
+        for key in autores_by_ct:
+            autor_qs = autor_qs | autores_by_ct[key]
+
         return (autor_qs | autores_by_ct['others']).order_by('nome')
 
     else:
