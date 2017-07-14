@@ -1080,8 +1080,7 @@ def filtra_ativos(content_type, materia):
 
         return Autor.objects.filter(
             content_type=content_type,
-            object_id__in=mandatos_ativos).order_by(
-            'autor_related__nome_completo')
+            object_id__in=mandatos_ativos)
 
     elif content_type.model_class() == Comissao:
         comissoes = Comissao.objects.filter(
@@ -1101,8 +1100,7 @@ def filtra_ativos(content_type, materia):
 
         return Autor.objects.filter(
             content_type=content_type,
-            object_id__in=comissoes_id).order_by(
-            'autor_related__nome')
+            object_id__in=comissoes_id)
 
     elif content_type.model_class() == Frente:
         frentes = Frente.objects.filter(
@@ -1114,8 +1112,7 @@ def filtra_ativos(content_type, materia):
 
         return Autor.objects.filter(
             content_type=content_type,
-            object_id__in=frentes_id).order_by(
-            'autor_related__nome')
+            object_id__in=frentes_id)
 
     elif content_type.model_class() == Bancada:
         bancadas = Bancada.objects.filter(
@@ -1127,8 +1124,7 @@ def filtra_ativos(content_type, materia):
 
         return Autor.objects.filter(
             content_type=content_type,
-            object_id__in=bancadas_id).order_by(
-            'autor_related__nome')
+            object_id__in=bancadas_id)
 
     elif content_type.model_class() == Bloco:
         blocos = Bloco.objects.filter(
@@ -1140,16 +1136,14 @@ def filtra_ativos(content_type, materia):
 
         return Autor.objects.filter(
             content_type=content_type,
-            object_id__in=blocos_id).order_by(
-            'autor_related__nome')
+            object_id__in=blocos_id)
 
     elif content_type.model_class() == Orgao:
         orgaos_id = Orgao.objects.values_list('id', flat=True)
 
         return Autor.objects.filter(
             content_type=content_type,
-            object_id__in=orgaos_id).order_by(
-            'autor_related__nome')
+            object_id__in=orgaos_id)
 
 
 def autores_ativos(materia, tipo=None):
@@ -1168,12 +1162,14 @@ def autores_ativos(materia, tipo=None):
             autor_qs = autor_qs | autores_by_ct[key]
 
         autores_by_ct['others'] = Autor.objects.exclude(
-                          content_type__in=content_types_list)
+                          content_type__in=content_types_list).order_by(
+            'nome'
+        )
 
-        return (autor_qs | autores_by_ct['others']).order_by('content_type')
+        return (autor_qs | autores_by_ct['others']).order_by('nome')
 
     else:
-        return autores_by_ct[tipo]
+        return autores_by_ct[tipo].order_by('nome')
 
 
 def atualizar_autores(request):
@@ -1195,7 +1191,11 @@ class AutoriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
-            autores_ativos_list = autores_ativos(self.get_object().materia)
+
+            materia = MateriaLegislativa.objects.get(
+                id=int(kwargs['root_pk']))
+
+            autores_ativos_list = autores_ativos(materia)
 
             autores = []
             for a in autores_ativos_list:
