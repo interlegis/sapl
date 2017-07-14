@@ -1022,7 +1022,9 @@ class ProposicaoForm(forms.ModelForm):
         texto_original = self.cleaned_data.get('texto_original', False)
         if texto_original:
             if texto_original.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+                raise ValidationError(
+                    "Arquivo muito grande. ( > {0}MB )".format(max_size))
             return texto_original
 
     def clean(self):
