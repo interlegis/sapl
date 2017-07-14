@@ -34,7 +34,7 @@ from sapl.protocoloadm.models import (DocumentoAdministrativo,Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
-from sapl.utils import delete_texto, normalize, save_texto
+from sapl.utils import normalize
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -161,6 +161,8 @@ def get_fk_related(field, value, label=None):
                             ct = ContentType.objects.get(pk=13)
                             value = TipoProposicao.objects.create(
                                 id=value, descricao='Erro', content_type=ct)
+                        ultimo_valor = get_last_value(type(value))
+                        alter_sequence(type(value), ultimo_valor+1)
                     else:
                         value = tipo[0]
                 else:
@@ -244,6 +246,25 @@ def delete_constraints(model):
                  (table, r[0]))
 
 
+def problema_duplicatas(model, lista_duplicatas, argumentos):
+    for obj in lista_duplicatas:
+        pks = []
+        string_pks = ""
+        problema = "%s de PK %s não é único." % (model.__name__, obj.pk)
+        args_dict = {k: obj.__dict__[k]
+                    for k in set(argumentos) & set(obj.__dict__.keys())}
+        for dup in model.objects.filter(**args_dict):
+            pks.append(dup.pk)
+        string_pks = "(" + ", ".join(map(str, pks)) + ")"
+        descricao = "As entradas de PK %s são idênticas, mas " \
+            "apenas uma deve existir" % string_pks
+        with reversion.create_revision():
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=obj, problema=problema,
+                          descricao=descricao, eh_stub=False, critico=True)
+            reversion.set_comment('%s não é único.' % model.__name__)
+
+
 def recria_constraints():
     constraints = Constraint.objects.all()
     for con in constraints:
@@ -253,6 +274,8 @@ def recria_constraints():
             args = [a.argumento for a in con.argumento_set.all()]
             args_string = ''
             args_string = "(" + "_".join(map(str, args[2:-1])) + ")"
+            model = ContentType.objects.filter(
+                model=con.nome_model.lower())[0].model_class()
             try:
                 exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
                          (nome_tabela, nome_constraint, args_string))
@@ -272,18 +295,30 @@ def recria_constraints():
                     args[i] = args[i] + '_id'
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
-            try:
-                exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
-                         (nome_tabela, nome_constraint, args_string))
-            except ProgrammingError:
-                info('A constraint %s já foi recriada!' % nome_constraint)
-            except Exception as err:
-                problema = re.findall('\(.*?\)', err.args[0])
-                erro('A constraint [%s] da tabela [%s] não pode ser recriada' %
-                     (nome_constraint, nome_tabela))
-                erro('Os dados %s = %s estão duplicados. '
-                     'Arrume antes de recriar as constraints!' %
-                     (problema[0], problema[1]))
+
+            distintos = model.objects.distinct(*args)
+            todos = model.objects.all()
+            if hasattr(model, "content_type"):
+                distintos = distintos.exclude(content_type_id=None,
+                                              object_id=None)
+                todos = todos.exclude(content_type_id=None, object_id=None)
+
+            lista_duplicatas = list(set(todos).difference(set(distintos)))
+            if lista_duplicatas:
+                problema_duplicatas(model, lista_duplicatas, args)
+            else:
+                try:
+                    exec_sql("ALTER TABLE %s ADD CONSTRAINT %s UNIQUE %s;" %
+                             (nome_tabela, nome_constraint, args_string))
+                except ProgrammingError:
+                    info('A constraint %s já foi recriada!' % nome_constraint)
+                except Exception as err:
+                    problema = re.findall('\(.*?\)', err.args[0])
+                    erro('A constraint [%s] da tabela [%s] não pode ser" \
+                         recriada' % (nome_constraint, nome_tabela))
+                    erro('Os dados %s = %s estão duplicados. '
+                         'Arrume antes de recriar as constraints!' %
+                         (problema[0], problema[1]))
 
 
 def obj_desnecessario(obj):
@@ -315,10 +350,10 @@ def save_with_id(new, id):
 
 
 def save_relation(obj, nome_campo='', problema='', descricao='',
-                  eh_stub=False):
+                  eh_stub=False, critico=False):
     link = ProblemaMigracao(
         content_object=obj, nome_campo=nome_campo, problema=problema,
-        descricao=descricao, eh_stub=eh_stub,)
+        descricao=descricao, eh_stub=eh_stub, critico=critico)
     link.save()
 
 
@@ -477,8 +512,6 @@ class DataMigrator:
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
-        desconecta_sinais_indexacao()
-
         fill_vinculo_norma_juridica()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
@@ -503,7 +536,8 @@ class DataMigrator:
         while self.delete_stubs():
             pass
 
-        conecta_sinais_indexacao()
+        info('Recriando constraints...')
+        recria_constraints()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
@@ -686,9 +720,23 @@ def adjust_participacao(new, old):
     new.composicao = composicao
 
 
-def adjust_proposicao(new, old):
+def adjust_proposicao_antes_salvar(new, old):
     if new.data_envio:
         new.ano = new.data_envio.year
+
+
+def adjust_proposicao_depois_salvar(new, old):
+    if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
+        msg = "O valor do campo data_envio (DateField) da model Proposicao"
+        "era inválido"
+        descricao = 'A data 1111-11-11 foi colocada no lugar'
+        problema = 'O valor da data era nulo ou inválido'
+        warn(msg + ' => ' + descricao)
+        new.data_envio = date(1111, 11, 11)
+        with reversion.create_revision():
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('Ajuste de data pela migração')
 
 
 def adjust_normarelacionada(new, old):
@@ -848,7 +896,7 @@ AJUSTE_ANTES_SALVAR = {
     OrdemDia: adjust_ordemdia_antes_salvar,
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
-    Proposicao: adjust_proposicao,
+    Proposicao: adjust_proposicao_antes_salvar,
     Protocolo: adjust_protocolo,
     RegistroVotacao: adjust_registrovotacao_antes_salvar,
     TipoAfastamento: adjust_tipoafastamento,
@@ -861,6 +909,7 @@ AJUSTE_ANTES_SALVAR = {
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
     OrdemDia: adjust_ordemdia_depois_salvar,
+    Proposicao: adjust_proposicao_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
     RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
@@ -896,23 +945,3 @@ def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
     return stub
 
 make_with_log.required = foreign_key_required
-
-# DISCONNECT SIGNAL  ########################################################
-
-
-def desconecta_sinais_indexacao():
-    post_save.disconnect(save_texto, NormaJuridica)
-    post_save.disconnect(save_texto, DocumentoAcessorio)
-    post_save.disconnect(save_texto, MateriaLegislativa)
-    post_delete.disconnect(delete_texto, NormaJuridica)
-    post_delete.disconnect(delete_texto, DocumentoAcessorio)
-    post_delete.disconnect(delete_texto, MateriaLegislativa)
-
-
-def conecta_sinais_indexacao():
-    post_save.connect(save_texto, NormaJuridica)
-    post_save.connect(save_texto, DocumentoAcessorio)
-    post_save.connect(save_texto, MateriaLegislativa)
-    post_delete.connect(delete_texto, NormaJuridica)
-    post_delete.connect(delete_texto, DocumentoAcessorio)
-    post_delete.connect(delete_texto, MateriaLegislativa)
