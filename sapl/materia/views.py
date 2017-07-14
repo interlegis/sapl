@@ -1147,33 +1147,63 @@ def filtra_ativos(content_type, materia):
 
 
 def autores_ativos(materia, tipo=None):
+    """
+    :param materia: é a matéria para na qual a Autoria será inserida
+    :param tipo: é o tipo de autor que foi selecionado
+    :return: Lista dos autores ativos disponíveis para serem inseridos
+    na matéria em questão.
+    Primeiramente são inseridos em uma lista uma tupla relacionando
+    cada TipoAutor ao seu ContentType. Posteriormente, para cada elemento
+    dessa lista são filtrados os autores ativos para aquele ContentType e,
+    por convêniencia, inseridos em um dicionário no qual a chave é o id
+    do TipoAutor. Após isso, com a chave 'others' são inseridos os Autores
+    os quais seu TipoAutor não possui ContentType.
+    """
+
     content_types_list = []
     for ta in TipoAutor.objects.all():
         if ta.content_type:
-            content_types_list.append(ta.content_type)
+            content_types_list.append((ta.content_type, ta))
 
     autores_by_ct = {}
-    for ct in content_types_list:
-        autores_by_ct[str(ct.id)] = filtra_ativos(ct, materia)
+    for ct, ta in content_types_list:
+        autores_by_ct[str(ta.id)] = filtra_ativos(ct, materia)
+
+    autor_qs = Autor.objects.none()
+    for key in autores_by_ct:
+        autor_qs = autor_qs | autores_by_ct[key]
+
+    ct_list = [c[0] for c in content_types_list]
+    autores_by_ct['others'] = Autor.objects.exclude(
+        content_type__in=ct_list).order_by(
+        'nome'
+    )
 
     if not tipo:
-        autor_qs = Autor.objects.none()
-        for key in autores_by_ct:
-            autor_qs = autor_qs | autores_by_ct[key]
-
-        autores_by_ct['others'] = Autor.objects.exclude(
-                          content_type__in=content_types_list).order_by(
-            'nome'
-        )
-
         return (autor_qs | autores_by_ct['others']).order_by('nome')
 
     else:
+        if not tipo in autores_by_ct:
+            tipo = 'others'
+
         return autores_by_ct[tipo].order_by('nome')
 
 
 def atualizar_autores(request):
-    pass
+    if ('tipo_autor' in request.GET and 'materia_id' in request.GET and
+       request.GET['tipo_autor'] and request.GET['materia_id']):
+        tipo_autor = request.GET['tipo_autor']
+        materia_id = int(request.GET['materia_id'])
+
+        try:
+            materia = MateriaLegislativa.objects.get(id=materia_id)
+        except ObjectDoesNotExist:
+            autores = []
+        else:
+            autores = autores_ativos(materia, tipo=tipo_autor)
+            autores_list = [(a.id, a.__str__()) for a in autores]
+
+        return JsonResponse({'lista_autores': autores_list})
 
 
 class AutoriaCrud(MasterDetailCrud):
@@ -1210,6 +1240,21 @@ class AutoriaCrud(MasterDetailCrud):
         @property
         def layout_key(self):
             return 'AutoriaUpdate'
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(**kwargs)
+
+            materia = MateriaLegislativa.objects.get(
+                id=int(kwargs['root_pk']))
+
+            autores_ativos_list = autores_ativos(materia)
+
+            autores = []
+            for a in autores_ativos_list:
+                autores.append([a.id, a.__str__()])
+
+            context['form'].fields['autor'].choices = autores
+            return context
 
 
 class DespachoInicialCrud(MasterDetailCrud):
