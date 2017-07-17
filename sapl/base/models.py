@@ -65,8 +65,8 @@ class ProblemaMigracao(models.Model):
     problema = models.CharField(max_length=300, verbose_name=_('Problema'))
     descricao = models.CharField(max_length=300, verbose_name=_('Descrição'))
     eh_stub = models.BooleanField(verbose_name=_('É stub?'))
-    eh_importante = models.BooleanField(
-        default=False, verbose_name=_('É importante?'))
+    critico = models.BooleanField(
+        default=False, verbose_name=_('Crítico'))
 
     class Meta:
         verbose_name = _('Problema na Migração')
