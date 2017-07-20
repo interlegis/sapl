@@ -60,12 +60,14 @@
 
                 {% endif %}
                 {% if m.autoria_set.all %}
-                <strong>Autor:</strong>
-                {% for a in m.autoria_set.all %}
-                    {% if a.primeiro_autor %}
-                        &nbsp;{{a.autor.nome}}
-                    {% endif %}
-                {% endfor %}
+				        <strong>Autor:</strong>
+				        {% for a in m.autoria_set.all %}                 
+                {% if not forloop.first %}
+                     </br> {{a.autor}}
+                   {% else %}
+                     &nbsp;{{a.autor}}
+                   {% endif %}
+                {% endfor %}				
                 </br>
                 {% endif %}
                 {% if m.tramitacao_set.last.unidade_tramitacao_destino %}
