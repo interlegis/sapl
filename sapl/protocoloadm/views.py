@@ -15,6 +15,7 @@ from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
 import sapl
+from sapl.base.models import Autor
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
@@ -429,8 +430,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.tipo_processo = '1'  # TODO validar o significado
         protocolo.anulado = False
 
-        if form.cleaned_data['autor']:
-            protocolo.autor = form.cleaned_data['autor']
+        protocolo.autor = Autor.objects.get(
+            id=self.request.POST['autor'])
         protocolo.tipo_materia = TipoMateriaLegislativa.objects.get(
             id=self.request.POST['tipo_materia'])
         protocolo.numero_paginas = self.request.POST['numero_paginas']
