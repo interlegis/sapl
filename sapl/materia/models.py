@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -9,6 +8,7 @@ from django.db import models
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -18,6 +18,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -33,7 +34,13 @@ def grupo_autor():
 
 @reversion.register()
 class TipoProposicao(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    descricao = models.CharField(
+        max_length=50,
+        verbose_name=_('Descrição'),
+        unique=True,
+        error_messages={
+            'unique': _('Já existe um Tipo de Proposição com esta descrição.')
+        })
 
     # FIXME - para a rotina de migração - estes campos mudaram
     # retire o comentário quando resolver
@@ -121,6 +128,14 @@ TIPO_APRESENTACAO_CHOICES = Choices(('O', 'oral', _('Oral')),
                                     ('E', 'escrita', _('Escrita')))
 
 
+def materia_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath=instance.ano)
+
+
+def anexo_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath=instance.materia.ano)
+
+
 @reversion.register()
 class MateriaLegislativa(models.Model):
 
@@ -194,18 +209,26 @@ class MateriaLegislativa(models.Model):
     texto_original = models.FileField(
         blank=True,
         null=True,
-        upload_to=texto_upload_path,
+        upload_to=materia_upload_path,
         verbose_name=_('Texto Original'),
         validators=[restringe_tipos_de_arquivo_txt])
 
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
 
+    proposicao = GenericRelation(
+        'Proposicao', related_query_name='proposicao')
+
     autores = models.ManyToManyField(
         Autor,
         through='Autoria',
         through_fields=('materia', 'autor'),
         symmetrical=False,)
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
@@ -235,6 +258,10 @@ class MateriaLegislativa(models.Model):
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
             self.texto_original.delete()
+
+        for p in self.proposicao.all():
+            p.conteudo_gerado_related = None
+            p.save()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
@@ -281,7 +308,7 @@ class Autoria(models.Model):
 @reversion.register()
 class AcompanhamentoMateria(models.Model):
     usuario = models.CharField(max_length=50)
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa)
     email = models.EmailField(
         max_length=100, verbose_name=_('E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)
@@ -392,9 +419,17 @@ class DocumentoAcessorio(models.Model):
     arquivo = models.FileField(
         blank=True,
         null=True,
-        upload_to=texto_upload_path,
+        upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
         validators=[restringe_tipos_de_arquivo_txt])
+
+    proposicao = GenericRelation(
+        'Proposicao', related_query_name='proposicao')
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Documento Acessório')
@@ -410,6 +445,10 @@ class DocumentoAcessorio(models.Model):
     def delete(self, using=None, keep_parents=False):
         if self.arquivo:
             self.arquivo.delete()
+
+        for p in self.proposicao.all():
+            p.conteudo_gerado_related = None
+            p.save()
 
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
@@ -625,7 +664,7 @@ class Proposicao(models.Model):
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     texto_original = models.FileField(
-        upload_to=texto_upload_path,
+        upload_to=materia_upload_path,
         blank=True,
         null=True,
         verbose_name=_('Texto Original'),
@@ -834,4 +873,4 @@ class Tramitacao(models.Model):
         return _('%(materia)s | %(status)s | %(data)s') % {
             'materia': self.materia,
             'status': self.status,
-            'data': self.data_tramitacao}
+            'data': self.data_tramitacao.strftime("%d/%m/%Y")}

@@ -5,7 +5,7 @@ from sapl.legacy import migration
 
 class Command(BaseCommand):
 
-    help = u'Migração de dados do SAPL 2.5 para o SAPL 3.1'
+    help ='Migração de dados do SAPL 2.5 para o SAPL 3.1'
 
     def add_arguments(self, parser):
         parser.add_argument(

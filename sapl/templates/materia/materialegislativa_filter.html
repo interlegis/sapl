@@ -47,6 +47,10 @@
                    <strong>Apresentação: </strong>{{ m.data_apresentacao }}
                    </br>
                 {% endif %}
+                {% if m.data_fim_prazo %}
+                   <strong>Data Fim Prazo (Matéria): </strong>{{ m.data_fim_prazo|default_if_none:"" }}
+                   </br>
+                {% endif %}
                 {% if m.numeracao_set.first %}
                    <strong>Processo: </strong>{{ m.numeracao_set.first.numero_materia }} / {{ m.numeracao_set.first.ano_materia }}
                    </br>
@@ -56,13 +60,11 @@
 
                 {% endif %}
                 {% if m.autoria_set.all %}
-                <strong>Autores:</strong>
+                <strong>Autor:</strong>
                 {% for a in m.autoria_set.all %}
-                  {% if not forloop.first %}
-                    , &nbsp;&nbsp; {{a.autor}}
-                  {% else %}
-                    &nbsp;{{a.autor}}
-                  {% endif %}
+                    {% if a.primeiro_autor %}
+                        &nbsp;{{a.autor.nome}}
+                    {% endif %}
                 {% endfor %}
                 </br>
                 {% endif %}
@@ -70,7 +72,8 @@
                 <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino}}</br>
                 {% endif %}
                 {% if m.tramitacao_set.last.status %}
-                <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
+                  <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
+                  <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.last.data_fim_prazo|default_if_none:""}}</br>
                 {% endif %}
                 {% if m.registrovotacao_set.exists %}
                     <strong>Data da última Votação:</strong>
@@ -125,9 +128,9 @@
                     {% endfor %}
                 {% endif %}
                 <p></p>
-                {% if m.tramitacao_set.all.exists %}
-                    <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
-                {% endif %}
+
+                <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
+
             </tr>
           {% endfor %}
         {% else  %}

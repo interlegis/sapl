@@ -65,8 +65,8 @@ class ProblemaMigracao(models.Model):
     problema = models.CharField(max_length=300, verbose_name=_('Problema'))
     descricao = models.CharField(max_length=300, verbose_name=_('Descrição'))
     eh_stub = models.BooleanField(verbose_name=_('É stub?'))
-    eh_importante = models.BooleanField(
-        default=False, verbose_name=_('É importante?'))
+    critico = models.BooleanField(
+        default=False, verbose_name=_('Crítico'))
 
     class Meta:
         verbose_name = _('Problema na Migração')
@@ -211,7 +211,7 @@ class Autor(models.Model):
     autor_related = GenericForeignKey('content_type', 'object_id')
 
     nome = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Nome do Autor'))
+        max_length=60, blank=True, verbose_name=_('Nome do Autor'))
 
     cargo = models.CharField(max_length=50, blank=True)
 

@@ -4,9 +4,9 @@ import os
 import re
 from datetime import date
 from functools import wraps
-from unicodedata import normalize as unicodedata_normalize
 from subprocess import PIPE, call
 from threading import Thread
+from unicodedata import normalize as unicodedata_normalize
 
 import django_filters
 import magic
@@ -159,8 +159,8 @@ class SaplGenericRelation(GenericRelation):
             assert isinstance(field, (tuple, list)), _(
                 'fields_search deve ser um array de tuplas ou listas.')
 
-            assert len(field) == 2, _(
-                'cada tupla de fields_search deve possuir duas strins')
+            assert len(field) <= 3, _(
+                'cada tupla de fields_search deve possuir até 3 strings')
 
             # TODO implementar assert para validar campos do Model e lookups
 
@@ -368,8 +368,8 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
         if not os.path.splitext(value.path)[1][:1]:
-                raise ValidationError(_(
-                    'Não é possível fazer upload de arquivos sem extensão.'))
+            raise ValidationError(_(
+                'Não é possível fazer upload de arquivos sem extensão.'))
 
         mime = magic.from_buffer(value.read(), mime=True)
         if mime not in lista:
@@ -389,92 +389,6 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
     maior_inicio = max(a_inicio, b_inicio)
     menor_fim = min(a_fim, b_fim)
     return maior_inicio <= menor_fim
-
-
-"""
-def permissoes(nome_grupo, app_label):
-    lista_permissoes = []
-    try:
-        perms = list(Permission.objects.filter(
-            group__name=nome_grupo))
-        for p in perms:
-            lista_permissoes.append('%s.%s' % (app_label, p.codename))
-    except:
-        pass
-    return set(lista_permissoes)
-
-
-def permission_required_for_app(app_label, login_url=None,
-                                raise_exception=False):
-
-    Decorator for views that checks whether a user has a particular permission
-    enabled, redirecting to the log-in page if necessary.
-    If the raise_exception parameter is given the PermissionDenied exception
-    is raised.
-
-    def check_perms(user):
-        if user.has_module_perms(app_label):
-            return True
-        # In case the 403 handler should be called raise the exception
-        if raise_exception:
-            raise PermissionDenied
-        # As the last resort, show the login form
-        return False
-    return user_passes_test(check_perms, login_url=login_url)
-
-def permissoes_materia():
-    return permissoes('Operador de Matéria', 'materia')
-
-
-def permissoes_comissoes():
-    return permissoes('Operador de Comissões', 'comissoes')
-
-
-def permissoes_norma():
-    return permissoes('Operador de Norma Jurídica', 'norma')
-
-
-def permissoes_protocoloadm():
-    return permissoes('Operador de Protocolo Administrativo', 'protocoloadm')
-
-
-def permissoes_adm():
-    return permissoes('Operador Administrativo', 'protocoloadm')
-
-
-def permissoes_sessao():
-    return permissoes('Operador de Sessão Plenária', 'sessao')
-
-
-def permissoes_painel():
-    return permissoes('Operador de Painel Eletrônico', 'painel')
-
-
-def permissoes_autor():
-    return permissoes('Autor', 'materia')
-
-
-def permissoes_parlamentares():
-    lista_permissoes = []
-    try:
-        cts = ContentType.objects.filter(app_label='parlamentares')
-        perms_parlamentares = list(Permission.objects.filter(
-            content_type__in=cts))
-        for p in perms_parlamentares:
-            lista_permissoes.append('parlamentares.' + p.codename)
-    except:
-        pass
-    return set(lista_permissoes)
-
-
-def permissao_tb_aux(self):
-    u = self.request.user
-    if u.groups.filter(name='Operador Geral').exists() or u.is_superuser:
-        return True
-    else:
-        return False
-
-"""
 
 
 class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
@@ -583,7 +497,7 @@ def generic_relations_for_model(model):
     ))
 
 
-def texto_upload_path(instance, filename, subpath=''):
+def texto_upload_path(instance, filename, subpath='', pk_first=False):
     """
     O path gerado por essa função leva em conta a pk de instance.
     isso não é possível naturalmente em uma inclusão pois a implementação
@@ -605,8 +519,8 @@ def texto_upload_path(instance, filename, subpath=''):
     seguida para armazenar o arquivo.
     """
 
-    if subpath and '/' not in subpath:
-        subpath = subpath + '/'
+#    if subpath and '/' not in subpath:
+#        subpath = subpath + '/'
 
     """ TODO: Verifique possibilidade de otimização do código de normalização
     do filename...
@@ -624,7 +538,12 @@ def texto_upload_path(instance, filename, subpath=''):
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
 
-    path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s%(filename)s' %\
+    str_path = './sapl/%(prefix)s/%(model_name)s/%(subpath)s/%(pk)s/%(filename)s'
+
+    if pk_first:
+        str_path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s/%(filename)s'
+
+    path = str_path %\
         {
             'prefix': prefix,
             'model_name': instance._meta.model_name,
@@ -634,19 +553,3 @@ def texto_upload_path(instance, filename, subpath=''):
         }
 
     return path
-
-
-class UpdateIndexCommand(Thread):
-    def run(self):
-        call([PROJECT_DIR.child('manage.py'), 'update_index'],
-             stdout=PIPE)
-
-
-def save_texto(sender, instance, **kwargs):
-    update_index = UpdateIndexCommand()
-    update_index.start()
-
-
-def delete_texto(sender, instance, **kwargs):
-    update_index = UpdateIndexCommand()
-    update_index.start()

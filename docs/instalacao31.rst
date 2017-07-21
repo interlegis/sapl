@@ -28,7 +28,7 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl
+    python3-pip curl poppler-utils default-jre
 
     sudo -i
     curl -sL https://deb.nodesource.com/setup_5.x | bash -
@@ -145,13 +145,15 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       EMAIL_HOST_PASSWORD = [Insira este parâmetro]
       DEFAULT_FROM_EMAIL = [Insira este parâmetro]
       SERVER_EMAIL = [Insira este parâmetro]
+      
+      SOLR_URL = '[Insira este parâmetro]'
 
 
     * Uma configuração mínima para atender os procedimentos acima seria::
 
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
         SECRET_KEY = 'cole aqui entre as aspas simples a chave gerada pelo comando abaixo'
-        DEBUG = True
+        DEBUG = False
         EMAIL_USE_TLS = True
         EMAIL_PORT = 587
         EMAIL_HOST =
@@ -160,8 +162,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
         DEFAULT_FROM_EMAIL =
         SERVER_EMAIL =
 
-
-
+        
 
 Rodar o comando abaixo, um detalhe importante, esse comando só funciona com o django extensions, mas ele já está presente no arquivo requirements/requirements.txt desse projeto::
 
@@ -177,6 +178,7 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
 * Instalar as dependências do ``bower``::
 
+    sudo chown -R sapl31:sapl31 /home/sapl31/    
     ./manage.py bower install
 
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
@@ -187,8 +189,6 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
    ./manage.py collectstatic --noinput
 
-* Preparar o ambiente para indexação de arquivos::
-   ./manage.py rebuild_index
 
 * Subir o servidor do django::
 
@@ -197,6 +197,35 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 * Acesse o SAPL em::
 
    http://localhost:8001/
+
+================================
+Instruções para instalar o Solr
+================================
+
+Solr é a ferramenta utilizada pelo SAPL 3.1 para indexar documentos para que possa ser feita
+a Pesquisa Textual.
+
+Adicione ao final do arquivo ``.env`` o seguinte atributo:
+
+``SOLR_URL = 'http://127.0.0.1:8983/solr'``
+
+Dentro do diretório principal siga os seguintes passos::
+
+   curl -LO https://archive.apache.org/dist/lucene/solr/4.10.2/solr-4.10.2.tgz
+   tar xvzf solr-4.10.2.tgz
+   cd solr-4.10.2
+   cd example
+   java -jar start.jar
+   ./manage.py build_solr_schema --filename solr-4.10.2/example/solr/collection1/conf/schema.xml
+
+
+Após isso, deve-se parar o servidor do Solr e restartar com ``java -jar start.jar``
+este processo prende o prompt
+
+**OBS: Toda vez que o código da pesquisa textual for modificado, os comandos de build_solr_schema e start.jar devem ser rodados, nessa mesma ordem.**
+
+
+
 
 Instruções para criação do super usuário e de usuários de testes
 ===========================================================================

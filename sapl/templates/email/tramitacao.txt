@@ -3,7 +3,7 @@
 Sistema de Apoio ao Processo Legislativo
 -----------------------------------------
 
-A seguinte matéria de seu interesse sofreu tramitação registrada em {{data_registro}}
+A seguinte matéria, de seu interesse, sofreu Tramitação registrada em {{data_registro}}
 
 Matéria: {{materia}} - {{descricao_materia}}
 
@@ -17,6 +17,8 @@ Autoria:
 Data da ação: {{data}}
 
 Status: {{status}}
+
+Localização Atual: {{localizacao}}
 
 Texto da ação: {{texto_acao}}
 

@@ -86,17 +86,19 @@ def get_sessao_media_path(instance, subpath, filename):
 
 
 def pauta_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='pauta')
+    return texto_upload_path(
+        instance, filename, subpath='pauta', pk_first=True)
     # return get_sessao_media_path(instance, 'pauta', filename)
 
 
 def ata_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='ata')
+    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
     # return get_sessao_media_path(instance, 'ata', filename)
 
 
 def anexo_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='anexo')
+    return texto_upload_path(
+        instance, filename, subpath='anexo', pk_first=True)
     # return get_sessao_media_path(instance, 'anexo', filename)
 
 
@@ -412,10 +414,38 @@ class RegistroVotacao(models.Model):
 
 @reversion.register()
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
-    votacao = models.ForeignKey(RegistroVotacao, on_delete=models.PROTECT)
+    '''
+    As colunas ordem e expediente são redundantes, levando em consideração
+    que RegistroVotacao já possui ordem/expediente. Entretanto, para
+    viabilizar a votação interativa, uma vez que ela é feita antes de haver
+    um RegistroVotacao, é preciso identificar o voto por ordem/expediente.
+    '''
+    votacao = models.ForeignKey(RegistroVotacao,
+                                blank=True,
+                                null=True)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    # XXX change to restricted choices
     voto = models.CharField(max_length=10)
+
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'),
+        auto_now_add=True,
+        blank=True,
+        null=True)
+
+    ordem = models.ForeignKey(OrdemDia,
+                              blank=True,
+                              null=True)
+    expediente = models.ForeignKey(ExpedienteMateria,
+                                   blank=True,
+                                   null=True)
 
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
@@ -424,28 +454,6 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
             'votacao': self.votacao, 'parlamentar': self.parlamentar}
-
-
-@reversion.register()
-class VotoNominal(models.Model):
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    voto = models.CharField(verbose_name=_('Voto'), max_length=10)
-
-    sessao = models.ForeignKey(SessaoPlenaria, on_delete=models.PROTECT)
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
-
-    user = models.ForeignKey(get_settings_auth_user_model(),
-                             on_delete=models.PROTECT)
-    ip = models.CharField(verbose_name=_('IP'), max_length=30)
-    data_hora = models.DateTimeField(
-        verbose_name=_('Data/Hora'), auto_now_add=True)
-
-    class Meta:
-        verbose_name = _('Registro do Voto do Parlamentar')
-        verbose_name_plural = _('Registros dos Votos dos Parlamentares')
-
-    def __str__(self):
-        return '%s - %s' % (self.parlamentar.nome_parlamentar, self.voto)
 
 
 @reversion.register()
@@ -493,3 +501,28 @@ class Bloco(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+@reversion.register()
+class ResumoOrdenacao(models.Model):
+    '''
+        Tabela para registrar em qual ordem serão renderizados os componentes
+        da tela de resumo de uma sessão
+    '''
+    primeiro = models.CharField(max_length=30)
+    segundo = models.CharField(max_length=30)
+    terceiro = models.CharField(max_length=30)
+    quarto = models.CharField(max_length=30)
+    quinto = models.CharField(max_length=30)
+    sexto = models.CharField(max_length=30)
+    setimo = models.CharField(max_length=30)
+    oitavo = models.CharField(max_length=30)
+    nono = models.CharField(max_length=30)
+    decimo = models.CharField(max_length=30)
+
+    class Meta:
+        verbose_name = _('Ordenação do Resumo de uma Sessão')
+        verbose_name_plural = _('Ordenação do Resumo de uma Sessão')
+
+    def __str__(self):
+        return 'Ordenação do Resumo de uma Sessão'

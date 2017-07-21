@@ -1,14 +1,12 @@
 {% load i18n %}
 {% load static %}
 <html><head></head><body bgcolor='#ffffff'>
-<p align='center'>
-    <img src="{{base_url}}{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
-     alt="Logo" class="img-responsive visible-lg-inline-block vcenter" >
-</p>
-  <h2 align='center'><b>{{casa_legislativa}}</b>
-      <br/>
-      Sistema de Apoio ao Processo Legislativo
-  </h2>
+
+<h2 align='center'><b>{{casa_legislativa}}</b>
+  <br/>
+  Sistema de Apoio ao Processo Legislativo
+</h2>
+
 <p>Registramos seu pedido para acompanhamento por e-mail da matéria legislativa identificada a seguir:</p>
 <a href="{{base_url}}{{materia_url}}">{{materia}}<b> - {{descricao_materia}}</b></a><br/>
 {{ementa}}<br/>

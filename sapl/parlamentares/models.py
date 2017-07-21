@@ -1,9 +1,9 @@
 from datetime import datetime
 
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
@@ -26,17 +26,10 @@ class Legislatura(models.Model):
 
     def atual(self):
         current_year = datetime.now().year
-        if(self.data_inicio.year <= current_year and
-           self.data_fim.year >= current_year):
-            return True
-        else:
-            return False
+        return self.data_inicio.year <= current_year <= self.data_fim.year
 
     def __str__(self):
-        if self.atual():
-            current = ' (%s)' % _('Atual')
-        else:
-            current = ''
+        current = ' (%s)' % _('Atual') if self.atual() else ''
 
         return _('%(numero)sª (%(start)s - %(end)s)%(current)s') % {
             'numero': self.numero,
@@ -206,6 +199,15 @@ def foto_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='')
 
 
+def true_false_none(x):
+    if x == 'True':
+        return True
+    elif x == 'False':
+        return False
+    else:
+        return None
+
+
 @reversion.register()
 class Parlamentar(models.Model):
     FEMININO = 'F'
@@ -311,7 +313,7 @@ class Parlamentar(models.Model):
         ordering = ['nome_parlamentar']
 
     def __str__(self):
-        return self.nome_completo
+        return self.nome_parlamentar
 
     @property
     def filiacao_atual(self):
@@ -447,7 +449,12 @@ class Mandato(models.Model):
         on_delete=models.PROTECT, verbose_name=_('Coligação'))
     # TODO what is this field??????
     tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
-    data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'))
+    data_inicio_mandato = models.DateField(verbose_name=_('Início do Mandato'),
+                                           blank=True,
+                                           null=True)
+    data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'),
+                                        blank=True,
+                                        null=True)
     votos_recebidos = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Votos Recebidos (Mandato)'))
     data_expedicao_diploma = models.DateField(

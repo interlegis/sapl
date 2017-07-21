@@ -28,15 +28,28 @@ def recupera_anos():
         # apos a adicao do .dates(), por isso o reversed() abaixo
         anos = [(k.year, k.year) for k in reversed(anos_list)]
         return anos
-    except:
+    except Exception:
         return []
 
 
 def ANO_CHOICES():
     return [('', '---------')] + recupera_anos()
 
+
 MES_CHOICES = [('', '---------')] + RANGE_MESES
 DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
+
+
+ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
+                    ('exp', 'Expedientes'),
+                    ('id_basica', 'Identificação Básica'),
+                    ('lista_p', 'Lista de Presença'),
+                    ('lista_p_o_d', 'Lista de Presença Ordem do Dia'),
+                    ('mat_exp', 'Matérias do Expediente'),
+                    ('mat_o_d', 'Matérias da Ordem do Dia'),
+                    ('mesa_d', 'Mesa Diretora'),
+                    ('oradores_exped', 'Oradores do Expediente'),
+                    ('oradores_expli', 'Oradores das Explicações Pessoais')]
 
 
 class BancadaForm(ModelForm):
@@ -47,6 +60,8 @@ class BancadaForm(ModelForm):
                   'data_extincao', 'descricao']
 
     def clean(self):
+        super(BancadaForm, self).clean()
+
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
                     self.cleaned_data['data_criacao']):
@@ -56,6 +71,8 @@ class BancadaForm(ModelForm):
 
 
 class ExpedienteMateriaForm(ModelForm):
+
+    _model = ExpedienteMateria
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo Matéria'),
@@ -87,7 +104,7 @@ class ExpedienteMateriaForm(ModelForm):
             sessao_plenaria=sessao,
             numero_ordem=self.cleaned_data['numero_ordem']).exists()
 
-        if numero_ordem_exists:
+        if numero_ordem_exists and not self.instance.pk:
             msg = _('Esse número de ordem já existe.')
             raise ValidationError(msg)
 
@@ -97,6 +114,8 @@ class ExpedienteMateriaForm(ModelForm):
         return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
+        super(ExpedienteMateriaForm, self).clean()
+
         cleaned_data = self.cleaned_data
         sessao = self.instance.sessao_plenaria
 
@@ -112,11 +131,11 @@ class ExpedienteMateriaForm(ModelForm):
         else:
             cleaned_data['materia'] = materia
 
-        ex = ExpedienteMateria.objects.filter(
+        exists = self._model.objects.filter(
             sessao_plenaria=sessao,
-            materia=materia).count()
+            materia=materia).exists()
 
-        if ex >= 1:
+        if exists and not self.instance.pk:
             msg = _('Essa matéria já foi cadastrada.')
             raise ValidationError(msg)
 
@@ -131,6 +150,8 @@ class ExpedienteMateriaForm(ModelForm):
 
 class OrdemDiaForm(ExpedienteMateriaForm):
 
+    _model = OrdemDia
+
     class Meta:
         model = OrdemDia
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
@@ -139,47 +160,22 @@ class OrdemDiaForm(ExpedienteMateriaForm):
     def clean_data_ordem(self):
         return self.instance.sessao_plenaria.data_inicio
 
-
     def clean_numero_ordem(self):
         sessao = self.instance.sessao_plenaria
 
         numero_ordem_exists = OrdemDia.objects.filter(
-                                sessao_plenaria=sessao,
-                                numero_ordem=self.cleaned_data[
-                                    'numero_ordem']).exists()
+            sessao_plenaria=sessao,
+            numero_ordem=self.cleaned_data['numero_ordem']).exists()
 
-        if numero_ordem_exists:
+        if numero_ordem_exists and not self.instance.pk:
             msg = _('Esse número de ordem já existe.')
             raise ValidationError(msg)
 
         return self.cleaned_data['numero_ordem']
 
-
     def clean(self):
-        cleaned_data = self.cleaned_data
-        sessao = self.instance.sessao_plenaria
-
-        try:
-            materia = MateriaLegislativa.objects.get(
-                numero=self.cleaned_data['numero_materia'],
-                ano=self.cleaned_data['ano_materia'],
-                tipo=self.cleaned_data['tipo_materia'])
-        except ObjectDoesNotExist:
-            msg = _('A matéria a ser inclusa não existe no cadastro'
-                    ' de matérias legislativas.')
-            raise ValidationError(msg)
-        else:
-            cleaned_data['materia'] = materia
-
-        ex = ExpedienteMateria.objects.filter(
-            sessao_plenaria=sessao,
-            materia=materia).count()
-
-        if ex >= 1:
-            msg = _('Essa matéria já foi cadastrada.')
-            raise ValidationError(msg)
-
-        return cleaned_data
+        super(OrdemDiaForm, self).clean()
+        return self.cleaned_data
 
     def save(self, commit=False):
         ordem = super(OrdemDiaForm, self).save(commit)
@@ -224,13 +220,13 @@ class VotacaoEditForm(forms.Form):
 class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
     data_inicio__year = django_filters.ChoiceFilter(required=False,
-                                                    label=u'Ano',
+                                                    label='Ano',
                                                     choices=ANO_CHOICES)
     data_inicio__month = django_filters.ChoiceFilter(required=False,
-                                                     label=u'Mês',
+                                                     label='Mês',
                                                      choices=MES_CHOICES)
     data_inicio__day = django_filters.ChoiceFilter(required=False,
-                                                   label=u'Dia',
+                                                   label='Dia',
                                                    choices=DIA_CHOICES)
     titulo = _('Pesquisa de Sessão Plenária')
 
@@ -359,3 +355,72 @@ class OradorExpedienteForm(ModelForm):
 
 class PautaSessaoFilterSet(SessaoPlenariaFilterSet):
     titulo = _('Pesquisa de Pauta de Sessão')
+
+
+class ResumoOrdenacaoForm(forms.Form):
+    primeiro = forms.ChoiceField(label=_('1°'),
+                                 choices=ORDENACAO_RESUMO)
+    segundo = forms.ChoiceField(label=_('2°'),
+                                choices=ORDENACAO_RESUMO)
+    terceiro = forms.ChoiceField(label='3°',
+                                 choices=ORDENACAO_RESUMO)
+    quarto = forms.ChoiceField(label=_('4°'),
+                               choices=ORDENACAO_RESUMO)
+    quinto = forms.ChoiceField(label=_('5°'),
+                               choices=ORDENACAO_RESUMO)
+    sexto = forms.ChoiceField(label=_('6°'),
+                              choices=ORDENACAO_RESUMO)
+    setimo = forms.ChoiceField(label=_('7°'),
+                               choices=ORDENACAO_RESUMO)
+    oitavo = forms.ChoiceField(label=_('8°'),
+                               choices=ORDENACAO_RESUMO)
+    nono = forms.ChoiceField(label=_('9°'),
+                             choices=ORDENACAO_RESUMO)
+    decimo = forms.ChoiceField(label='10°',
+                               choices=ORDENACAO_RESUMO)
+
+    def __init__(self, *args, **kwargs):
+        super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('primeiro', 12)])
+        row2 = to_row(
+            [('segundo', 12)])
+        row3 = to_row(
+            [('terceiro', 12)])
+        row4 = to_row(
+            [('quarto', 12)])
+        row5 = to_row(
+            [('quinto', 12)])
+        row6 = to_row(
+            [('sexto', 12)])
+        row7 = to_row(
+            [('setimo', 12)])
+        row8 = to_row(
+            [('oitavo', 12)])
+        row9 = to_row(
+            [('nono', 12)])
+        row10 = to_row(
+            [('decimo', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_(''),
+                     row1, row2, row3, row4, row5,
+                     row6, row7, row8, row9, row10,
+                     form_actions(save_label='Atualizar'))
+        )
+
+    def clean(self):
+        super(ResumoOrdenacaoForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        for c1 in cleaned_data:
+            i = 0
+            for c2 in cleaned_data:
+                if cleaned_data[str(c1)] == cleaned_data[str(c2)]:
+                    i = i + 1
+                    if i > 1:
+                        raise ValidationError(_(
+                            'Não é possível ter campos repetidos'))

@@ -1,8 +1,7 @@
 
-import os
 from datetime import date, datetime
+import os
 
-import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -21,8 +20,8 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -40,6 +39,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -52,8 +52,8 @@ def ANO_CHOICES():
 
 def em_tramitacao():
     return [('', 'Tanto Faz'),
-            (True, 'Sim'),
-            (False, 'Não')]
+            (1, 'Sim'),
+            (0, 'Não')]
 
 
 class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
@@ -124,6 +124,8 @@ class UnidadeTramitacaoForm(ModelForm):
         fields = ['comissao', 'orgao', 'parlamentar']
 
     def clean(self):
+        super(UnidadeTramitacaoForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         for key in list(cleaned_data.keys()):
@@ -164,17 +166,6 @@ class DocumentoAcessorioForm(ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
-        widgets = {'autor': forms.HiddenInput()}
-
-    def clean_autor(self):
-        autor_field = self.cleaned_data['autor']
-        try:
-            int(autor_field)
-        except ValueError:
-            return autor_field
-        else:
-            if autor_field:
-                return str(Autor.objects.get(id=autor_field))
 
 
 class RelatoriaForm(ModelForm):
@@ -190,6 +181,8 @@ class RelatoriaForm(ModelForm):
         super(RelatoriaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(RelatoriaForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         try:
@@ -222,6 +215,7 @@ class TramitacaoForm(ModelForm):
         self.fields['data_tramitacao'].initial = datetime.now()
 
     def clean(self):
+        super(TramitacaoForm, self).clean()
 
         if 'data_encaminhamento' in self.data:
             data_enc_form = self.cleaned_data['data_encaminhamento']
@@ -299,6 +293,8 @@ class TramitacaoUpdateForm(TramitacaoForm):
         }
 
     def clean(self):
+        super(TramitacaoUpdateForm, self).clean()
+
         local = self.instance.unidade_tramitacao_local
         data_tram = self.instance.data_tramitacao
 
@@ -339,6 +335,8 @@ class LegislacaoCitadaForm(ModelForm):
                   'item']
 
     def clean(self):
+        super(LegislacaoCitadaForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -400,6 +398,8 @@ class NumeracaoForm(ModelForm):
                   'data_materia']
 
     def clean(self):
+        super(NumeracaoForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -443,6 +443,8 @@ class AnexadaForm(ModelForm):
         return super(AnexadaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(AnexadaForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -483,20 +485,28 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano da Matéria',
+                                      label='Ano da Matéria',
                                       choices=ANO_CHOICES)
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
+    autoria__primeiro_autor = django_filters.BooleanFilter(required=False,
+                                                           label='Primeiro Autor',
+                                                           widget=forms.HiddenInput())
+
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
-                                                label=u'Em tramitação',
+                                                label='Em tramitação',
                                                 choices=em_tramitacao)
 
     materiaassunto__assunto = django_filters.ModelChoiceFilter(
         queryset=AssuntoMateria.objects.all(),
         label=_('Assunto da Matéria'))
+
+    numeracao__numero_materia = django_filters.NumberFilter(
+        required=False,
+        label=_('Número do Processo'))
 
     o = MateriaPesquisaOrderingFilter()
 
@@ -504,11 +514,13 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         model = MateriaLegislativa
         fields = ['numero',
                   'numero_protocolo',
+                  'numeracao__numero_materia',
                   'ano',
                   'tipo',
                   'data_apresentacao',
                   'data_publicacao',
                   'autoria__autor__tipo',
+                  'autoria__primeiro_autor',
                   # FIXME 'autoria__autor__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
@@ -529,14 +541,16 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         row1 = to_row(
             [('tipo', 12)])
         row2 = to_row(
-            [('numero', 4),
-             ('ano', 4),
-             ('numero_protocolo', 4)])
+            [('numero', 3),
+             ('numeracao__numero_materia', 3),
+             ('numero_protocolo', 3),
+             ('ano', 3)])
         row3 = to_row(
             [('data_apresentacao', 6),
              ('data_publicacao', 6)])
         row4 = to_row(
             [('autoria__autor', 0),
+             ('autoria__primeiro_autor', 0),
              (Button('pesquisar',
                      'Pesquisar Autor',
                      css_class='btn btn-primary btn-sm'), 2),
@@ -617,6 +631,8 @@ class DespachoInicialForm(ModelForm):
         fields = ['comissao']
 
     def clean(self):
+        super(DespachoInicialForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -637,6 +653,8 @@ class AutoriaForm(ModelForm):
         fields = ['autor', 'primeiro_autor']
 
     def clean(self):
+        super(AutoriaForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -808,6 +826,8 @@ class TipoProposicaoForm(ModelForm):
                 'tipo_conteudo_related'].initial = self.instance.object_id
 
     def clean(self):
+        super(TipoProposicaoForm, self).clean()
+
         cd = self.cleaned_data
 
         content_type = cd['content_type']
@@ -821,9 +841,25 @@ class TipoProposicaoForm(ModelForm):
                 pk=cd['tipo_conteudo_related']).exists():
             raise ValidationError(
                 _('O Registro definido (%s) não está na base de %s.'
-                  ) % (cd['tipo_conteudo_related'], cd['q'], content_type))
+                  ) % (cd['tipo_conteudo_related'], content_type))
 
-        return self.cleaned_data
+        unique_value = self._meta.model.objects.filter(
+            content_type=content_type, object_id=cd['tipo_conteudo_related'])
+
+        if self.instance.pk:
+            unique_value = unique_value.exclude(pk=self.instance.pk)
+
+        unique_value = unique_value.first()
+
+        if unique_value:
+            raise ValidationError(
+                _('Já existe um Tipo de Proposição (%s) '
+                  'que foi defindo como (%s) para (%s)'
+                  ) % (unique_value,
+                       content_type,
+                       unique_value.tipo_conteudo_related))
+
+        return super().clean()
 
     @transaction.atomic
     def save(self, commit=False):
@@ -854,11 +890,11 @@ class TipoProposicaoSelect(Select):
         else:
             selected_html = ''
         return format_html(
-                        '<option value="{}"{} data-has-perfil={}>{}</option>',
-                        option_value,
-                        selected_html,
-                        str(data_has_perfil),
-                        force_text(option_label))
+            '<option value="{}"{} data-has-perfil={}>{}</option>',
+            option_value,
+            selected_html,
+            str(data_has_perfil),
+            force_text(option_label))
 
     def render_options(self, choices, selected_choices):
         # Normalize to strings.
@@ -986,10 +1022,14 @@ class ProposicaoForm(forms.ModelForm):
         texto_original = self.cleaned_data.get('texto_original', False)
         if texto_original:
             if texto_original.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+                raise ValidationError(
+                    "Arquivo muito grande. ( > {0}MB )".format(max_size))
             return texto_original
 
     def clean(self):
+        super(ProposicaoForm, self).clean()
+
         cd = self.cleaned_data
 
         tm, am, nm = (cd.get('tipo_materia', ''),
@@ -1106,6 +1146,18 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             if 'numero_de_paginas' not in self._meta.fields:
                 self._meta.fields.append('numero_de_paginas')
 
+        self.instance = kwargs.get('instance', None)
+        if not self.instance:
+            raise ValueError(_('Erro na Busca por proposição a incorporar'))
+
+        if self.instance.tipo.content_type.model_class() == TipoDocumento:
+            if 'numero_de_paginas' in self._meta.fields:
+                self._meta.fields.remove('numero_de_paginas')
+            if 'gerar_protocolo' in self._meta.fields:
+                self._meta.fields.remove('gerar_protocolo')
+            if 'regime_tramitacao' in self._meta.fields:
+                self._meta.fields.remove('regime_tramitacao')
+
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
@@ -1137,13 +1189,17 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                        css_class="ementa_materia hidden alert-info",
                        dismiss=False), 12))))
 
-        itens_incorporacao = [to_column(('regime_tramitacao', 4))]
-        if self.proposicao_incorporacao_obrigatoria == 'C':
-            itens_incorporacao.append(to_column((InlineRadios(
-                'gerar_protocolo'), 4)))
+        itens_incorporacao = []
+        if self.instance.tipo.content_type.model_class() == \
+                TipoMateriaLegislativa:
+            itens_incorporacao = [to_column(('regime_tramitacao', 4))]
 
-        if self.proposicao_incorporacao_obrigatoria != 'N':
-            itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
+            if self.proposicao_incorporacao_obrigatoria == 'C':
+                itens_incorporacao.append(to_column((InlineRadios(
+                    'gerar_protocolo'), 4)))
+
+            if self.proposicao_incorporacao_obrigatoria != 'N':
+                itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
 
         itens_incorporacao.append(to_column((FormActions(Submit(
             'incorporar', _('Incorporar'), css_class='pull-right')), 12)))
@@ -1180,6 +1236,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             self.fields['gerar_protocolo'].initial = True
 
     def clean(self):
+        super(ConfirmarProposicaoForm, self).clean()
+
+        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+
+        if not numeracao:
+            raise ValidationError("A sequência de numeração (por ano ou geral)"
+                                  " não foi configurada para a aplicação em "
+                                  "tabelas auxiliares")
         if 'incorporar' in self.data:
             cd = ProposicaoForm.clean(self)
 
@@ -1367,6 +1431,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         proposicao.conteudo_gerado_related = conteudo_gerado
         proposicao.save()
 
+        if self.instance.tipo.content_type.model_class() == TipoDocumento:
+            return self.instance
+
         # Nunca gerar protocolo
         if self.proposicao_incorporacao_obrigatoria == 'N':
             return self.instance
@@ -1402,7 +1469,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.data = date.today()
         protocolo.hora = datetime.now().time()
 
-        # TODO transformar campo timestamp  em auto_now_add
+        # TODO transformar campo timestamp em auto_now_add
         protocolo.timestamp = datetime.now()
         protocolo.tipo_protocolo = '1'
 

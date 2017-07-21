@@ -20,8 +20,8 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Enviado'), ('1', 'Recebido'), ('', 'Ambos')]
-TIPOS_PROTOCOLO_CREATE = [('0', 'Enviado'), ('1', 'Recebido')]
+TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('', 'Ambos')]
+TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado')]
 
 NATUREZA_PROCESSO = [('', 'Ambos'),
                      ('0', 'Administrativo'),
@@ -47,7 +47,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano',
+                                      label='Ano',
                                       choices=ANO_CHOICES)
 
     assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
@@ -135,11 +135,11 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano',
+                                      label='Ano',
                                       choices=ANO_CHOICES)
 
     tramitacao = django_filters.ChoiceFilter(required=False,
-                                             label=u'Em Tramitação?',
+                                             label='Em Tramitação?',
                                              choices=EM_TRAMITACAO)
 
     assunto = django_filters.CharFilter(lookup_expr='icontains')
@@ -213,6 +213,8 @@ class AnularProcoloAdmForm(ModelForm):
         widget=forms.Textarea)
 
     def clean(self):
+        super(AnularProcoloAdmForm, self).clean()
+
         cleaned_data = super(AnularProcoloAdmForm, self).clean()
 
         numero = cleaned_data.get("numero")
@@ -409,34 +411,6 @@ class DocumentoAcessorioAdministrativoForm(ModelForm):
             'data': forms.DateInput(format='%d/%m/%Y')
         }
 
-    def __init__(self, excluir=False, *args, **kwargs):
-
-        row1 = to_row(
-            [('tipo', 4),
-             ('nome', 4),
-             ('data', 4)])
-        row2 = to_row(
-            [('autor', 12)])
-        row3 = to_row(
-            [('arquivo', 12)])
-        row4 = to_row(
-            [('assunto', 12)])
-
-        more = []
-        if excluir:
-            more = [Submit('Excluir', 'Excluir')]
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Incluir Documento Acessório'),
-                row1, row2, row3, row4,
-                form_actions(more=more)
-            )
-        )
-        super(DocumentoAcessorioAdministrativoForm, self).__init__(
-            *args, **kwargs)
-
 
 class TramitacaoAdmForm(ModelForm):
 
@@ -458,6 +432,8 @@ class TramitacaoAdmForm(ModelForm):
         }
 
     def clean(self):
+        super(TramitacaoAdmForm, self).clean()
+
         data_enc_form = self.cleaned_data['data_encaminhamento']
         data_prazo_form = self.cleaned_data['data_fim_prazo']
         data_tram_form = self.cleaned_data['data_tramitacao']
@@ -530,6 +506,8 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         }
 
     def clean(self):
+        super(TramitacaoAdmEditForm, self).clean()
+
         local = self.instance.unidade_tramitacao_local
         data_tram = self.instance.data_tramitacao
 
@@ -570,6 +548,8 @@ class DocumentoAdministrativoForm(ModelForm):
         widgets = {'protocolo': forms.HiddenInput()}
 
     def clean(self):
+        super(DocumentoAdministrativoForm, self).clean()
+
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
 

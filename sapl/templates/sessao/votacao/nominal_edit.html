@@ -18,8 +18,15 @@
 			<legend>Votos</legend>
       <div class="row">
         {% for v in votos %}
-        <div class="col-md-6">{{v.parlamentar}}</div>
-        <div class="col-md-6">{{v.voto}}</div>
+
+        <div class="col-md-6">{{v.parlamentar}} -
+          {% if v.voto == '-1'%}
+                 <b>Voto não Registrado</b>
+          {% else %}
+                 <b>{{v.voto}}</b>
+          {% endif %}
+        </div>
+
         {% endfor %}
       </div>
 		</fieldset>

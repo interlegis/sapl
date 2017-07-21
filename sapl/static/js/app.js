@@ -89,10 +89,12 @@ function autorModal() {
     });
 
     $("#pesquisar").click(function() {
-        var query = $("#q").val()
+        var name_in_query = $("#q").val()
+        var q_0 = "q_0=parlamentar_set__ativo,parlamentar_set__nome_parlamentar__icontains"
+        var q_1 = "q_1=True," + name_in_query
+        query = q_0 + "&" + q_1
 
-
-        $.get("/api/autor?q=" + query, function(data, status) {
+        $.get("/api/autor?" + query, function(data, status) {
             $("#div-resultado").children().remove();
             if (data.pagination.total_entries == 0) {
                 $("#selecionar").attr("hidden", "hidden");

@@ -5,6 +5,9 @@ Instruções para instalar o Solr
 Solr é a ferramenta utilizada pelo SAPL 3.1 para indexar documentos para que possa ser feita
 a Pesquisa Textual.
 
+Adicione ao arquivo ``.env`` o seguinte atributo:
+
+``SOLR_URL = 'http://127.0.0.1:8983/solr'``
 
 Dentro do diretório principal siga os seguintes passos::
 

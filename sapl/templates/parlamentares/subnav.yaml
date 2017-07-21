@@ -3,6 +3,8 @@
   url: parlamentar_detail
 - title: {% trans 'Mandatos' %}
   url: mandato_list
+- title: {% trans 'Matérias' %}
+  url: parlamentar_materias
 - title: {% trans 'Filiações Partidárias' %}
   url: filiacao_list
 - title: {% trans 'Dependentes' %}
@@ -10,7 +12,7 @@
   check_permission: parlamentares.list_dependente
 - title: {% trans 'Comissões' %}
   url: participacao_parlamentar_list
-- title: {% trans 'Matérias' %}
+- title: {% trans 'Proposições' %}
   url: proposicao_parlamentar_list
   check_permission: materia.add_proposicao
 - title: {% trans 'Relatorias' %}

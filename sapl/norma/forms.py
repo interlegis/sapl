@@ -47,7 +47,7 @@ class NormaFilterSet(django_filters.FilterSet):
     }}
 
     ano = django_filters.ChoiceFilter(required=False,
-                                      label=u'Ano',
+                                      label='Ano',
                                       choices=ANO_CHOICES)
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
@@ -118,6 +118,8 @@ class NormaJuridicaForm(ModelForm):
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
     def clean(self):
+        super(NormaJuridicaForm, self).clean()
+
         cleaned_data = self.cleaned_data
 
         if (cleaned_data['tipo_materia'] and
@@ -142,7 +144,9 @@ class NormaJuridicaForm(ModelForm):
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral:
             if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+                raise ValidationError(
+                    "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return texto_integral
 
     def save(self, commit=False):
@@ -175,6 +179,8 @@ class NormaRelacionadaForm(ModelForm):
         super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(NormaRelacionadaForm, self).clean()
+
         if self.errors:
             return self.errors
         cleaned_data = self.cleaned_data

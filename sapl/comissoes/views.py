@@ -1,6 +1,7 @@
 
 from django.core.urlresolvers import reverse
 from django.db.models import F
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
 
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
@@ -54,9 +55,21 @@ class ComposicaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['composicao_pk'] = context['composicao_list'].last(
-                ).pk if self.take_composicao_pk(
-                ) == 0 else self.take_composicao_pk()
+#            context['composicao_pk'] = context['composicao_list'].last(
+#                ).pk if self.take_composicao_pk(
+#                ) == 0 else self.take_composicao_pk()
+
+            composicao_pk = self.take_composicao_pk()
+
+            if composicao_pk == 0:
+                ultima_composicao = context['composicao_list'].last()
+                if ultima_composicao:
+                    context['composicao_pk'] = ultima_composicao.pk
+                else:
+                    context['composicao_pk'] = 0
+            else:
+                context['composicao_pk'] = composicao_pk
+
             context['participacao_set'] = Participacao.objects.filter(
                 composicao__pk=context['composicao_pk']
                 ).order_by('parlamentar')
@@ -69,8 +82,19 @@ class ComissaoCrud(Crud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'ativa']
+        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'data_extincao', 'ativa']
         ordering = '-ativa', 'sigla'
+
+    class ListView(Crud.ListView):
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
+    class DetailView(Crud.DetailView):
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
 
 
 class MateriasTramitacaoListView(ListView):

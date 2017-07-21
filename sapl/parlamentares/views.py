@@ -1,11 +1,13 @@
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
+from django.templatetags.static import static
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 
 from sapl.comissoes.models import Participacao
@@ -23,6 +25,15 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
 
+from sapl.base.models import Autor
+from sapl.materia.models import Autoria
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.aggregates import Count
+
+import datetime
+import json
+
+
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
 SessaoLegislativaCrud = CrudAux.build(SessaoLegislativa, 'sessao_legislativa')
@@ -30,9 +41,6 @@ TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
-
-FrenteCrud = CrudAux.build(Frente, 'tipo_situa_militar', list_field_names=[
-    'nome', 'data_criacao', 'parlamentares'])
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
@@ -110,8 +118,6 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
         def get_context_data(self, **kwargs):
             context = CrudBaseForListAndDetailExternalAppView\
                 .ListView.get_context_data(self, **kwargs)
-            context['title'] = context['title'].replace(
-                'Proposições', 'Matérias')
             return context
 
         def get_queryset(self):
@@ -182,8 +188,131 @@ class ColigacaoCrud(CrudAux):
     class ListView(CrudAux.ListView):
         ordering = ('-numero_votos', 'nome')
 
+        def get_context_data(self, **kwargs):
+            context = super(ColigacaoCrud.ListView, self).get_context_data(kwargs=kwargs)
+            rows = context['rows']
+            coluna_votos_recebidos = 2
+            for row in rows:
+                if not row[coluna_votos_recebidos][0]:
+                    row[coluna_votos_recebidos] = ('0', None)
+
+            return context
+
+    class DetailView(CrudAux.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super(ColigacaoCrud.DetailView, self).get_context_data(kwargs=kwargs)
+            coligacao = context['coligacao']
+            if not coligacao.numero_votos:
+                coligacao.numero_votos = '0'
+
+            return context
+
     class BaseMixin(CrudAux.BaseMixin):
         subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
+
+
+def json_date_convert(date):
+    '''
+    :param date: recebe a data de uma chamada ajax no formato de
+     string "dd/mm/yyyy"
+    :return:
+    '''
+    dia, mes, ano = date.split('/')
+    return datetime.date(day=int(dia),
+                         month=int(mes),
+                         year=int(ano))
+
+
+def parlamentares_ativos(data_inicio, data_fim=None):
+    '''
+    :param data_inicio: define a data de inicial do período desejado
+    :param data_fim: define a data final do período desejado
+    :return: queryset dos parlamentares ativos naquele período
+    '''
+    mandatos_ativos = Mandato.objects.filter(Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__isnull=True) | Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__gte=data_inicio))
+    if data_fim:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio,
+            data_inicio_mandato__lte=data_fim)
+    else:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio)
+
+    parlamentares_id = mandatos_ativos.values_list(
+        'parlamentar_id',
+        flat=True).distinct('parlamentar_id')
+
+    return Parlamentar.objects.filter(id__in=parlamentares_id)
+
+
+def frente_atualiza_lista_parlamentares(request):
+    '''
+    :param request: recebe os parâmetros do GET da chamada Ajax
+    :return: retorna a lista atualizada dos parlamentares
+    '''
+    ativos = json.loads(request.GET['ativos'])
+
+    parlamentares = Parlamentar.objects.all()
+
+    if ativos:
+        if 'data_criacao' in request.GET and request.GET['data_criacao']:
+            data_criacao = json_date_convert(request.GET['data_criacao'])
+
+            if 'data_extincao' in request.GET and request.GET['data_extincao']:
+                data_extincao = json_date_convert(request.GET['data_extincao'])
+                parlamentares = parlamentares_ativos(data_criacao,
+                                                     data_extincao)
+            else:
+                parlamentares = parlamentares_ativos(data_criacao)
+
+    parlamentares_list = [(p.id, p.__str__()) for p in parlamentares]
+
+    return JsonResponse({'parlamentares_list': parlamentares_list})
+
+
+def parlamentares_frente_selected(request):
+    '''
+    :return: Lista com o id dos parlamentares em uma frente
+    '''
+    try:
+        frente = Frente.objects.get(id=int(request.GET['frente_id']))
+    except ObjectDoesNotExist:
+        lista_parlamentar_id = []
+    else:
+        lista_parlamentar_id = frente.parlamentares.all().values_list(
+            'id', flat=True)
+    return JsonResponse({'id_list': list(lista_parlamentar_id)})
+
+
+class FrenteCrud(CrudAux):
+    model = Frente
+    help_path = 'tabelas_auxiliares#tipo_situa_militar'
+    list_field_names = ['nome', 'data_criacao', 'parlamentares']
+
+    class CreateView(CrudAux.CreateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            # Update view é um indicador para o javascript
+            # de que esta não é uma tela de edição de frente
+            context['update_view'] = 0
+
+            return context
+
+    class UpdateView(CrudAux.UpdateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            # Update view é um indicador para o javascript
+            # de que esta não é uma tela de edição de frente
+            context['update_view'] = 1
+
+            return context
 
 
 class MandatoCrud(MasterDetailCrud):
@@ -198,6 +327,22 @@ class MandatoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ('-legislatura__numero')
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            rows = context['rows']
+
+            coluna_coligacao = 2
+            coluna_votos_recebidos = 3
+            for row in rows:
+                if not row[coluna_coligacao][0]:
+                    row[coluna_coligacao] = (' ', None)
+
+                if not row[coluna_votos_recebidos][0]:
+                    row[coluna_votos_recebidos] = (' ', None)
+
+            return context
+
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = MandatoForm
@@ -242,6 +387,22 @@ class LegislaturaCrud(CrudAux):
     class UpdateView(CrudAux.UpdateView):
         form_class = LegislaturaUpdateForm
 
+    class DetailView(CrudAux.DetailView):
+        def has_permission(self):
+            return True
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
+    class ListView(CrudAux.ListView):
+        def has_permission(self):
+            return True
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
 
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
@@ -275,9 +436,18 @@ class ParlamentarCrud(Crud):
     class DetailView(Crud.DetailView):
 
         def get_template_names(self):
-            return ['crud/detail.html']\
-                if self.request.user.has_perm(self.permission(RP_CHANGE))\
-                else ['parlamentares/parlamentar_perfil_publico.html']
+            if self.request.user.has_perm(self.permission(RP_CHANGE)):
+                if 'iframe' not in self.request.GET:
+                    if not self.request.session.get('iframe'):
+                        return ['crud/detail.html']
+                elif self.request.GET['iframe'] == '0':
+                    return ['crud/detail.html']
+
+            return ['parlamentares/parlamentar_perfil_publico.html']
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
 
     class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
@@ -301,6 +471,10 @@ class ParlamentarCrud(Crud):
     class ListView(Crud.ListView):
         template_name = "parlamentares/parlamentares_list.html"
         paginate_by = None
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
 
         def take_legislatura_id(self):
             try:
@@ -345,6 +519,14 @@ class ParlamentarCrud(Crud):
 
             # Tira Link do avatar_html e coloca no nome
             for row in context['rows']:
+
+                # preenche coluna foto, se vazia
+                if not row[0][0]:
+                    img = "<center><img width='50px' \
+                            height='50px' src='%s'/></center>" \
+                            % static('img/avatar.png')
+                    row[0] = (img, row[0][1])
+
                 # Coloca a filiação atual ao invés da última
                 if row[0][1]:
                     # Pega o Parlamentar por meio da pk
@@ -387,15 +569,87 @@ class ParlamentarCrud(Crud):
             return context
 
 
+class ParlamentarMateriasView(FormView):
+    template_name = "parlamentares/materias.html"
+    success_url = reverse_lazy('sapl.parlamentares:parlamentar_materia')
+
+    def get_autoria(self, resultset):
+        autoria = {}
+        total_autoria = 0
+
+        for i in resultset:
+            row = autoria.get(i['materia__ano'], [])
+            columns = (i['materia__tipo__pk'],
+                       i['materia__tipo__sigla'],
+                       i['materia__tipo__descricao'],
+                       int(i['total']))
+            row.append(columns)
+            autoria[i['materia__ano']] = row
+            total_autoria += columns[3]
+        autoria = sorted(autoria.items(), reverse=True)
+        return autoria, total_autoria
+
+    @xframe_options_exempt
+    def get(self, request, *args, **kwargs):
+        parlamentar_pk = kwargs['pk']
+
+        try:
+            autor = Autor.objects.get(
+                content_type=ContentType.objects.get_for_model(Parlamentar),
+                object_id=parlamentar_pk)
+        except ObjectDoesNotExist:
+            mensagem = _('Este Parlamentar não é autor de matéria.')
+            messages.add_message(request, messages.ERROR, mensagem)
+            return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:parlamentar_detail',
+                    kwargs={'pk': parlamentar_pk}))
+
+        autoria = Autoria.objects.filter(
+            autor=autor, primeiro_autor=True).values(
+                'materia__ano',
+                'materia__tipo__pk',
+                'materia__tipo__sigla',
+                'materia__tipo__descricao').annotate(
+                    total=Count('materia__tipo__pk')).order_by(
+                        '-materia__ano', 'materia__tipo')
+
+        coautoria = Autoria.objects.filter(
+            autor=autor, primeiro_autor=False).values(
+                'materia__ano',
+                'materia__tipo__pk',
+                'materia__tipo__sigla',
+                'materia__tipo__descricao').annotate(
+                    total=Count('materia__tipo__pk')).order_by(
+                                '-materia__ano', 'materia__tipo')
+
+        autor_list = self.get_autoria(autoria)
+        coautor_list = self.get_autoria(coautoria)
+
+        parlamentar_pk = autor.autor_related.pk
+        nome_parlamentar = autor.autor_related.nome_parlamentar
+
+        return self.render_to_response({'autor_pk': autor.pk,
+                                        'root_pk': parlamentar_pk,
+                                        'autoria': autor_list,
+                                        'coautoria': coautor_list,
+                                        'nome_parlamentar': nome_parlamentar
+                                        })
+
+
 class MesaDiretoraView(FormView):
     template_name = 'parlamentares/composicaomesa_form.html'
     success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
 
     def get_template_names(self):
-        return ['parlamentares/composicaomesa_form.html']\
-            if self.request.user.has_perm(
-                'parlamentares.change_composicaomesa')\
-            else ['parlamentares/public_composicaomesa_form.html']
+        if self.request.user.has_perm('parlamentares.change_composicaomesa'):
+            if 'iframe' not in self.request.GET:
+                if not self.request.session.get('iframe'):
+                    return 'parlamentares/composicaomesa_form.html'
+            elif self.request.GET['iframe'] == '0':
+                return 'parlamentares/composicaomesa_form.html'
+
+        return 'parlamentares/public_composicaomesa_form.html'
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):
@@ -410,6 +664,7 @@ class MesaDiretoraView(FormView):
                 'legislatura_selecionada': Legislatura.objects.last(),
                 'cargos_vagos': CargoMesa.objects.all()})
 
+    @xframe_options_exempt
     def get(self, request, *args, **kwargs):
 
         if (not Legislatura.objects.exists() or

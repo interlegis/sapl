@@ -1,0 +1,8 @@
+<fieldset>
+  <legend>Lista de Presença na Sessão</legend>
+    <div class="row">
+      {% for p in presenca_sessao %}
+        <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_atual }}</div>
+      {% endfor %}
+    </div>
+</fieldset>

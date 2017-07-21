@@ -6,10 +6,6 @@
 {% block sections_nav %}
 {% endblock %}
 
-
-
-
-
 {% block detail_content %}
     {% block buttons %}
 
@@ -57,15 +53,15 @@
                       <strong>Autores:</strong>
                       {% for a in m.autoria_set.all %}
                         {% if not forloop.first %}
-                          , &nbsp;&nbsp; {{a.autor|default_if_none:"Não Informado"}}
+                          , &nbsp;&nbsp; {{a.autor|default_if_none:""}}
                         {% else %}
-                          &nbsp;{{a.autor|default_if_none:"Não Informado"}}
+                          &nbsp;{{a.autor|default_if_none:""}}
                         {% endif %}
                       {% endfor %}
                       </br>
-                      <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não Informada"}}</br>
-                      <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não Informada"}}</br>
-                      <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não Informada"}}</br>
+                      <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não informado"}}</br>
+                      <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não informado"}}</br>
+                      <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não informado"}}</br>
                       <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
                       <p></p>
                       <td class="col-md-3">

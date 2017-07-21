@@ -33,7 +33,10 @@ create_env() {
     echo "EMAIL_HOST = ""${EMAIL_HOST-''}" >> $FILENAME
     echo "EMAIL_HOST_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "EMAIL_HOST_PASSWORD = ""${EMAIL_HOST_PASSWORD-''}" >> $FILENAME
-
+    echo "EMAIL_SEND_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    
     echo "[ENV FILE] done."
 }
 
@@ -43,11 +46,15 @@ create_env
 
 /bin/sh busy-wait.sh $DATABASE_URL
 
-python3 manage.py migrate
+python3 manage.py migrate --noinput
 #python3 manage.py collectstatic --no-input
 python3 manage.py rebuild_index --noinput &
 
+echo "Criando usuário admin..."
+
 user_created=$(python3 create_admin.py 2>&1)
+
+echo $user_created
 
 cmd=$(echo $user_created | grep 'ADMIN_USER_EXISTS')
 user_exists=$?

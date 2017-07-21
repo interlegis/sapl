@@ -152,8 +152,6 @@ rules_group_sessao = {
         (sessao.PresencaOrdemDia, __base__),
         (sessao.RegistroVotacao, __base__),
         (sessao.VotoParlamentar, __base__),
-
-        (sessao.VotoNominal, __base__),
     ]
 }
 
@@ -251,6 +249,7 @@ rules_group_geral = {
         (sessao.TipoResultadoVotacao, __base__),
         (sessao.TipoExpediente, __base__),
         (sessao.Bloco, __base__),
+        (sessao.ResumoOrdenacao, __base__),
 
         (lexml.LexmlProvedor, __base__),
         (lexml.LexmlPublicador, __base__),

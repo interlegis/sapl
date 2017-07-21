@@ -1,22 +1,24 @@
 from django.conf.urls import include, url
 
-from sapl.parlamentares.views import (altera_field_mesa,
-                                      altera_field_mesa_public_view,
-                                      CargoMesaCrud, ColigacaoCrud,
+from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
-                                      LegislaturaCrud,
-                                      insere_parlamentar_composicao,
-                                      MandatoCrud,
+                                      LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
                                       ParlamentarCrud,
+                                      ParlamentarMateriasView,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
                                       RelatoriaParlamentarCrud,
-                                      remove_parlamentar_composicao,
                                       SessaoLegislativaCrud,
                                       TipoAfastamentoCrud, TipoDependenteCrud,
-                                      TipoMilitarCrud, VotanteView)
+                                      TipoMilitarCrud, VotanteView,
+                                      altera_field_mesa,
+                                      altera_field_mesa_public_view,
+                                      frente_atualiza_lista_parlamentares,
+                                      insere_parlamentar_composicao,
+                                      parlamentares_frente_selected,
+                                      remove_parlamentar_composicao)
 
 from .apps import AppConfig
 
@@ -32,11 +34,22 @@ urlpatterns = [
         VotanteView.get_urls()
     )),
 
+    url(r'^parlamentar/(?P<pk>\d+)/materias$',
+        ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
+
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
                 ComposicaoColigacaoCrud.get_urls())),
+
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
+    url(r'^sistema/frente/atualiza-lista-parlamentares',
+        frente_atualiza_lista_parlamentares,
+        name='atualiza_lista_parlamentares'),
+    url(r'^sistema/frente/parlamentares-frente-selected',
+        parlamentares_frente_selected,
+        name='parlamentares_frente_selected'),
+
     url(r'^sistema/parlamentar/legislatura/',
         include(LegislaturaCrud.get_urls())),
     url(r'^sistema/parlamentar/tipo-dependente/',

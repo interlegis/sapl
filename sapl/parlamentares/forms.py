@@ -54,11 +54,14 @@ class MandatoForm(ModelForm):
     class Meta:
         model = Mandato
         fields = ['legislatura', 'coligacao', 'votos_recebidos',
-                  'data_fim_mandato', 'data_expedicao_diploma', 'titular',
+                  'data_inicio_mandato', 'data_fim_mandato',
+                  'data_expedicao_diploma', 'titular',
                   'tipo_afastamento', 'observacao', 'parlamentar']
         widgets = {'parlamentar': forms.HiddenInput()}
 
     def clean(self):
+        super(MandatoForm, self).clean()
+
         data = self.cleaned_data
         try:
             if 'legislatura' in data and 'parlamentar' in data:
@@ -82,6 +85,8 @@ class LegislaturaForm(ModelForm):
 class LegislaturaCreateForm(LegislaturaForm):
 
     def clean(self):
+        super(LegislaturaCreateForm, self).clean()
+
         cleaned_data = self.cleaned_data
         eleicao = cleaned_data['data_eleicao']
         inicio = cleaned_data['data_inicio']
@@ -96,6 +101,8 @@ class LegislaturaCreateForm(LegislaturaForm):
 class LegislaturaUpdateForm(LegislaturaCreateForm):
 
     def clean(self):
+        super(LegislaturaUpdateForm, self).clean()
+
         cleaned_data = super(LegislaturaCreateForm, self).clean()
         eleicao = cleaned_data['data_eleicao']
         inicio = cleaned_data['data_inicio']
@@ -214,6 +221,8 @@ class FiliacaoForm(ModelForm):
                   'data_desfiliacao']
 
     def clean(self):
+        super(FiliacaoForm, self).clean()
+
         if self.errors:
             return self.errors
 
@@ -236,6 +245,8 @@ class ComposicaoColigacaoForm(ModelForm):
         fields = ['partido']
 
     def clean(self):
+        super(ComposicaoColigacaoForm, self).clean()
+
         cleaned_data = self.cleaned_data
         pk = self.initial['coligacao_id']
         if (ComposicaoColigacao.objects.filter(
@@ -311,6 +322,8 @@ class VotanteForm(ModelForm):
         return True
 
     def clean(self):
+        super(VotanteForm, self).clean()
+        
         cd = self.cleaned_data
 
         username = cd['username']

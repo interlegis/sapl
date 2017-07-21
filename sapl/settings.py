@@ -53,6 +53,7 @@ SAPL_APPS = (
     'sapl.lexml',
     'sapl.painel',
     'sapl.protocoloadm',
+    'sapl.redireciona_urls',
     'sapl.compilacao',
     'sapl.api',
 
@@ -85,6 +86,7 @@ INSTALLED_APPS = (
 ) + SAPL_APPS
 
 # FTS = Full Text Search
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
 
@@ -180,6 +182,8 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model
 AUTH_USER_MODEL = 'auth.User'
 
+X_FRAME_OPTIONS = 'ALLOWALL'
+
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
@@ -189,14 +193,14 @@ EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 
-MAX_DOC_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_DOC_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 LANGUAGE_CODE = 'pt-br'
 LANGUAGES = (
-    ('pt-br', u'Português'),
+    ('pt-br','Português'),
 )
 
 TIME_ZONE = 'America/Sao_Paulo'

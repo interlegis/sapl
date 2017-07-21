@@ -42,9 +42,15 @@
               <a href="{% url 'relatorios:relatorio_etiqueta_protocolo' p.numero p.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a>
               {% if p.anulado %}<strong><font color="red">&nbsp;&nbsp;** NULO **</font></strong>{% endif %}
               </br>
-              <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não Informado"}}</br>
-              <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não Informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
-              <strong>Interessado:</strong> {{ p.interessado }}</br>
+              <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não informado"}}</br>
+              <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
+              
+              {% if p.tipo_processo == 0 %}
+                <strong>Interessado:</strong> {{ p.interessado|default_if_none:"Não informado" }}</br>
+              {% elif p.tipo_processo == 1 %}
+                <strong>Autor:</strong> {{ p.autor.nome|default_if_none:"Não informado" }}</br>
+              {% endif %}
+
               <strong>Natureza do Processo:</strong>
               {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>
               <strong>Classificação:</strong> {{ p.tipo_documento|default_if_none:p.tipo_materia }} </br>

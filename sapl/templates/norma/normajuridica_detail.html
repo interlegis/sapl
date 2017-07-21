@@ -14,15 +14,15 @@
                     {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
 
                     {% if column.text|url %}
-                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe }} </a></div>
+                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a></div>
                     {% elif column.verbose_name == 'Matéria' %}
                       {% if object.materia.id %}
-                        <div class="form-control-static"><a href="{% url 'sapl.materia:materialegislativa_detail' object.materia.id  %}"> {{ column.text|safe }} </a></div>
+                        <div class="form-control-static"><a href="{% url 'sapl.materia:materialegislativa_detail' object.materia.id  %}"> {{ column.text|safe|default:"" }} </a></div>
                       {% else %}
-                        <div class="form-control-static">{{ column.text|safe }}</div>
+                        <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
                       {% endif %}
                     {% else %}
-                      <div class="form-control-static">{{ column.text|safe }}</div>
+                      <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
                     {% endif %}
                   </div>
                 </div>

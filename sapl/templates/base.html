@@ -28,8 +28,8 @@
 
   <body>
     <div class="page fadein">
+      {% if not request|has_iframe %}
       {% block navigation %}
-
       <nav class="navbar navbar-inverse navbar-static-top">
         <div class="container">
           <div class="navbar-header">
@@ -64,6 +64,11 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li><a>{{user.username}}</a></li>
+                    {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
+                      <li><a href="{% url 'sapl.painel:voto_individual' %}">
+                        Votar Matéria
+                      </a></li>
+                    {% endif %}
                     <li><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
                   </ul>
                 </li>
@@ -100,11 +105,19 @@
         </div>
       </header>
       {% endblock main_header %}
+      {% else %}
+              <header class="masthead">
+                <div class="container">
+                  <div class="hidden-print">
+                    {% subnav %}
+                  </div>
+                </div>
+              </header>
+      {% endif %}
 
       {# Main content #}
       {% block content_container %}
         <main id="content" class="content page__row">
-
           <div class="container">
 
             {# Feedback messages #}
@@ -148,7 +161,7 @@
 
       {% endblock content_container %}
 
-
+      {% if not request|has_iframe %}
       {% block footer_container %}
       <footer id="footer" class="footer page__row hidden-print">
         <div class="container">
@@ -157,11 +170,13 @@
             <div class="col-md-4">
 
               <a class="footer__logo" href="#">
-                <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
+                <a href="http://www.interlegis.leg.br/">
+                  <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
+                </a>
               </a>
               <p>
                 <small>
-                  Desenvolvido pelo <a href="#">Interlegis</a> em software livre e aberto.
+                  Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
                 </small>
               </p>
             </div>
@@ -171,7 +186,7 @@
               </a>
               <p>
                 <small>
-                  Conteúdo e dados sob licença <a href="#">Creative Commons</a> 4.0 <a href="#">Atribuir Fonte - Compartilhar Igual</a>
+                  Conteúdo e dados sob licença <a href="https://creativecommons.org">Creative Commons</a> 4.0 <a href="https://creativecommons.org/licenses/by/4.0/">Atribuir Fonte - Compartilhar Igual</a>
                 </small>
               </p>
             </div>
@@ -203,6 +218,7 @@
       </footer>
     </div>
     {% endblock footer_container %}
+    {% endif %}
 
     {% block foot_js %}
       <!-- Bootstrap core JavaScript ================================================== -->

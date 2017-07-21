@@ -227,6 +227,8 @@ class AutorForm(ModelForm):
         return True
 
     def clean(self):
+        super(AutorForm, self).clean()
+
         User = get_user_model()
         cd = self.cleaned_data
 
@@ -505,6 +507,11 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
             'widget': RangeWidgetOverride}
     }}
 
+    @property
+    def qs(self):
+        parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
+        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+
     class Meta:
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
@@ -534,7 +541,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
-                                      label=u'Ano da Matéria',
+                                      label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
     class Meta:
@@ -565,7 +572,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
-                                      label=u'Ano da Matéria',
+                                      label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
     class Meta:
@@ -720,6 +727,8 @@ class RecuperarSenhaForm(PasswordResetForm):
         super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
 
     def clean(self):
+        super(RecuperarSenhaForm, self).clean()
+        
         email_existente = User.objects.filter(
             email=self.data['email']).exists()
 
