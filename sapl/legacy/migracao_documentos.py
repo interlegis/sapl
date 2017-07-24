@@ -14,7 +14,6 @@ from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo)
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
-from sapl.utils import delete_texto, save_texto
 
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
 EXTENSOES = {
@@ -193,21 +192,21 @@ def migrar_docs_por_ids(tipo):
 
 
 def desconecta_sinais_indexacao():
-    post_save.disconnect(save_texto, NormaJuridica)
-    post_save.disconnect(save_texto, DocumentoAcessorio)
-    post_save.disconnect(save_texto, MateriaLegislativa)
-    post_delete.disconnect(delete_texto, NormaJuridica)
-    post_delete.disconnect(delete_texto, DocumentoAcessorio)
-    post_delete.disconnect(delete_texto, MateriaLegislativa)
+    post_save.disconnect(NormaJuridica)
+    post_save.disconnect(DocumentoAcessorio)
+    post_save.disconnect(MateriaLegislativa)
+    post_delete.disconnect(NormaJuridica)
+    post_delete.disconnect(DocumentoAcessorio)
+    post_delete.disconnect(MateriaLegislativa)
 
 
 def conecta_sinais_indexacao():
-    post_save.connect(save_texto, NormaJuridica)
-    post_save.connect(save_texto, DocumentoAcessorio)
-    post_save.connect(save_texto, MateriaLegislativa)
-    post_delete.connect(delete_texto, NormaJuridica)
-    post_delete.connect(delete_texto, DocumentoAcessorio)
-    post_delete.connect(delete_texto, MateriaLegislativa)
+    post_save.connect(NormaJuridica)
+    post_save.connect(DocumentoAcessorio)
+    post_save.connect(MateriaLegislativa)
+    post_delete.connect(NormaJuridica)
+    post_delete.connect(DocumentoAcessorio)
+    post_delete.connect(MateriaLegislativa)
 
 
 def migrar_documentos():
