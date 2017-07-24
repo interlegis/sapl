@@ -1100,6 +1100,13 @@ class AutoriaCrud(MasterDetailCrud):
             q = autor_parlamentar | autor_comissoes | autores_outros
             return q
 
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super().get_queryset()
+
+            return qs.order_by('-primeiro_autor', 'autor__nome')
+
 
 class DespachoInicialCrud(MasterDetailCrud):
     model = DespachoInicial
