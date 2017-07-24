@@ -60,13 +60,13 @@
 
                 {% endif %}
                 {% if m.autoria_set.all %}
-				        <strong>Autor:</strong>
-				        {% for a in m.autoria_set.all %}                 
-                {% if not forloop.first %}
-                     </br> {{a.autor}}
-                   {% else %}
-                     &nbsp;{{a.autor}}
-                   {% endif %}
+		<strong>Autor:</strong>
+		{% for a in m.autoria_set.all %}
+                    {% if not forloop.first %}
+                         </br> {{a.autor}}
+                    {% else %}
+                         &nbsp;{{a.autor}}
+                    {% endif %}
                 {% endfor %}				
                 </br>
                 {% endif %}
