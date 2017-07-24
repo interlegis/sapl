@@ -170,6 +170,7 @@
 
               var presentes = $("#parlamentares");
               var votacao = $("#votacao");
+              var temp = [];
               $("#votacao").text('');
               presentes.children().remove();
               votacao.children().remove()
@@ -181,10 +182,29 @@
                 else if (data["presentes_expediente"] != null){
                   presentes_ordem_dia = data["presentes_expediente"]
                 }
-                if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
+                if(data["tipo_resultado"]){
                     if(data["tipo_votacao"] == "Nominal") {
                         jQuery.each(data["votos"], function(index, parlamentar) {
-                           $('<li />', {text: parlamentar.parlamentar + '  -  ' + parlamentar.partido + '  -  Voto: ' + parlamentar.voto}).appendTo(presentes);
+                              if(parlamentar.voto == "Sim") {
+                                      temp[temp.length] = parlamentar.parlamentar + "  -  " + parlamentar.partido + "  -  <span class='voto_sim'>" + parlamentar.voto + "</span>";
+                              }
+                              else {
+                                  if(parlamentar.voto == "Não") {
+                                      temp[temp.length] = parlamentar.parlamentar + "  -  " + parlamentar.partido + "  -  <span class='voto_nao'>" + parlamentar.voto + "</span>";
+                                  }
+                                  else {
+                                      if(parlamentar.voto == "Abstenção") {
+                                          temp[temp.length] = parlamentar.parlamentar + "  -  " + parlamentar.partido + "  -  <span class='voto_abstencao'>" + parlamentar.voto + "</span>";
+
+                                      }
+                                      else {
+                                          temp[temp.length] = parlamentar.parlamentar + "  -  " + parlamentar.partido + "  -  <span class='nao_votou'>" + parlamentar.voto + "</span>";
+                                      }
+                                  }
+                              }
+                        });
+                        jQuery.each(temp.sort(), function(index, value) {
+                            $('<li />', {html: value}).appendTo(presentes);
                         });
                     }
                     else{
@@ -193,14 +213,12 @@
                       });
                     }
                 }
-
                 else{
                   jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
                         $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
                       });
                 }
 
-                //console.debug(presentes_ordem_dia)
                 var votacao = $("#votacao")
                 if (data["num_presentes_ordem_dia"] != null) {
                   num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
@@ -209,11 +227,15 @@
                   num_presentes_ordem_dia = data["num_presentes_expediente"]
                 }
 
-                votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
-                votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
-                votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
+                votacao.append("<li><div class='voto_sim'>Sim: " + data["numero_votos_sim"] + "</div></li>")
+                votacao.append("<li><div class='voto_nao'>Não: " + data["numero_votos_nao"] + "</div></li>")
+                votacao.append("<li><div class='voto_abstencao'>Abstenções: " + data["numero_abstencoes"] + "</div></li>")
                 votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
                 votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
+                votacao.append("<li><h3 id='res_votacao' color='blue'>" + data["tipo_resultado"] + "</h3></li>")
+                $(".voto_sim").css({"color" : "green"});
+                $(".voto_nao").css({"color" : "red"});
+                $(".voto_abstencao").css({"color" : "yellow"});
               }
 
               else{
