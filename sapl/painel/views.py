@@ -439,7 +439,7 @@ def get_votos(response, materia):
 
 
 def get_votos_nominal(response, materia):
-    votos = {}
+    votos = []
 
     if materia.tipo_votacao == 1:
         tipo_votacao = 'Simbólica'
@@ -468,7 +468,7 @@ def get_votos_nominal(response, materia):
 
     else:
         votos_parlamentares = VotoParlamentar.objects.filter(
-            votacao_id=registro.id)
+            votacao_id=registro.id).order_by('parlamentar__nome_parlamentar')
 
         filiacao = Filiacao.objects.filter(
             data_desfiliacao__isnull=True, parlamentar__ativo=True)
@@ -481,18 +481,18 @@ def get_votos_nominal(response, materia):
             try:
                 parlamentar_partido[v.parlamentar.nome_parlamentar]
             except KeyError:
-                votos.update({v.parlamentar.id: {
+                votos.append({
                     'parlamentar': v.parlamentar.nome_parlamentar,
                     'voto': str(v.voto),
                     'partido': str(_('Sem Registro'))
-                }})
+                })
             else:
-                votos.update({v.parlamentar.id: {
+                votos.append({
                     'parlamentar': v.parlamentar.nome_parlamentar,
                     'voto': str(v.voto),
                     'partido': parlamentar_partido[
                         v.parlamentar.nome_parlamentar]
-                }})
+                })
 
         total = (registro.numero_votos_sim +
                  registro.numero_votos_nao +
