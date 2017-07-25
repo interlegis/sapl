@@ -1400,9 +1400,8 @@ class VotacaoEditView(SessaoPermissionMixin):
         ordem_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.filter(
-                materia_id=materia_id,
-                ordem_id=ordem_id).last().delete()
+            for r in RegistroVotacao.objects.filter(ordem_id=ordem_id):
+                r.delete()
 
             ordem = OrdemDia.objects.get(
                 sessao_plenaria_id=self.object.id,
@@ -2165,14 +2164,8 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            try:
-                RegistroVotacao.objects.get(
-                    materia_id=materia_id,
-                    expediente_id=expediente_id).delete()
-            except MultipleObjectsReturned:
-                RegistroVotacao.objects.filter(
-                    materia_id=materia_id,
-                    expediente_id=expediente_id).last().delete()
+            for r in RegistroVotacao.objects.filter(expediente_id=expediente_id):
+                r.delete()
 
             expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,
