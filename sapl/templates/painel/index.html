@@ -181,24 +181,37 @@
                 else if (data["presentes_expediente"] != null){
                   presentes_ordem_dia = data["presentes_expediente"]
                 }
-                if( (data["tipo_resultado"] == "Aprovado por unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")){
-                    if(data["tipo_votacao"] == "Nominal") {
-                        jQuery.each(data["votos"], function(index, parlamentar) {
-                           $('<li />', {text: parlamentar.parlamentar + '  -  ' + parlamentar.partido + '  -  Voto: ' + parlamentar.voto}).appendTo(presentes);
+                presentes.append('<table id="parlamentares_list">');
+                if( (data["tipo_resultado"] == "Aprovado por Unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")) {
+                    if (data["tipo_votacao"] == "Nominal") {
+                        jQuery.each(data["votos"], function (index, parlamentar) {
+                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
+                                parlamentar.parlamentar +
+                                '</td> <td style="padding-right:20px">' +
+                                parlamentar.partido + '</td> <td style="padding-right:20px">'
+                                + show_voto(parlamentar.voto) + '</td> </tr>')
                         });
                     }
-                    else{
-                      jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
-                        $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
-                      });
+                    else {
+                        jQuery.each(data["votos"], function (index, parlamentar) {
+                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
+                                parlamentar.parlamentar +
+                                '</td> <td style="padding-right:20px">' +
+                                parlamentar.partido + '</td> </tr>')
+                        });
                     }
                 }
 
                 else{
-                  jQuery.each(presentes_ordem_dia, function(index, parlamentar) {
-                        $('<li />', {text: parlamentar.nome + '  -  ' + parlamentar.partido}).appendTo(presentes);
-                      });
+                    jQuery.each(presentes_ordem_dia, function (index, parlamentar) {
+                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
+                                parlamentar.nome +
+                                '</td> <td style="padding-right:20px">' +
+                                parlamentar.partido + '</td> </tr>')
+                        });
                 }
+
+                presentes.append('</table>');
 
                 //console.debug(presentes_ordem_dia)
                 var votacao = $("#votacao")
@@ -280,5 +293,15 @@
         })
       })();
      });
+
+     function show_voto(voto) {
+      if (voto == "Sim"){
+          return '<font color="green"> Sim </font>'
+      }
+      else if (voto == "Não"){
+          return '<font color="red"> Não </font>'
+      }
+      return voto
+     }
   </script>
 </html>
