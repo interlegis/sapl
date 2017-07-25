@@ -661,6 +661,8 @@ def adjust_documentoadministrativo(new, old):
 
 
 def adjust_mandato(new, old):
+    if old.dat_fim_mandato:
+        new.data_fim_mandato = old.dat_fim_mandato
     if not new.data_fim_mandato:
         legislatura = Legislatura.objects.latest('data_fim')
         new.data_fim_mandato = legislatura.data_fim
