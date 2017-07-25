@@ -20,7 +20,9 @@
 <!-- Success and errors messages div end -->
 
 <fieldset class="form-group">
-	<legend>Escolha da Composição da Mesa Diretora da Sessão Plenária</legend>
+  {% if perms.parlamentares.add_cargomesa %}
+	  <legend>Escolha da Composição da Mesa Diretora da Sessão Plenária</legend>
+  {% endif %}
 <div class="row">
   <div class="col-md-4">
     <label>Composição da Mesa Diretora</label>
