@@ -20,7 +20,7 @@
 <!-- Success and errors messages div end -->
 
 <fieldset class="form-group">
-  {% if perms.parlamentares.add_cargomesa %}
+  {% if perms.sessao.add_integrantemesa %}
 	  <legend>Escolha da Composição da Mesa Diretora da Sessão Plenária</legend>
   {% endif %}
 <div class="row">
@@ -37,12 +37,12 @@
 
   <div class="col-md-4" align="center">
 			<br /><br />
-	{% if perms.parlamentares.add_cargomesa %}
+	{% if perms.sessao.add_integrantemesa %}
 		<input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
 	{% endif %}
     <br />
     <br />
-    {% if perms.parlamentares.add_composicaomesa %}
+    {% if perms.sessao.add_integrantemesa %}
     	<input type="submit" style="display: none" name="Excluir" id="id_excluir" Value="Excluir" class="btn btn-danger" />
     {% endif %}
   </div>
