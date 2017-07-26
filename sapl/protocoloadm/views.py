@@ -419,12 +419,10 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero = (
             numero['numero__max'] + 1) if numero['numero__max'] else 1
         protocolo.ano = datetime.now().year
-        protocolo.data = datetime.strptime(datetime.now().strftime("%Y-%m-%d"),
-                                           '%Y-%m-%d')
-        protocolo.hora = datetime.strptime(datetime.now().strftime("%H:%M"),
-                                           '%H:%M')
-        protocolo.timestamp = datetime.strptime(
-            datetime.now().strftime("%Y-%m-%d %H:%M"), "%Y-%m-%d %H:%M")
+        protocolo.data = datetime.now().date()
+        protocolo.hora = datetime.now().time()
+        protocolo.timestamp = datetime.now()
+
         protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado
         protocolo.anulado = False
