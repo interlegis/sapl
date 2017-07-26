@@ -1,8 +1,10 @@
 from datetime import date, datetime
 
+
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
@@ -28,6 +30,10 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+from sapl.parlamentares.models import Parlamentar
+from sapl.protocoloadm.models import Protocolo
+from sapl.comissoes.models import Comissao
+from django.contrib.contenttypes.models import ContentType
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -440,6 +446,30 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo.save()
         return redirect(self.get_success_url(protocolo))
+    
+    def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            autores_ativos = self.autores_ativos()
+
+            autores = []
+            for a in autores_ativos:
+                autores.append([a.id, a.__str__()])
+
+            context['form'].fields['autor'].choices = autores
+            return context
+        
+
+    def autores_ativos(self):
+            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
+            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
+            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
+
+            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
+            model_comissao = ContentType.objects.get_for_model(Comissao)
+            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
+            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
+            q = autor_parlamentar | autor_comissoes | autores_outros
+            return q   
 
 
 class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):

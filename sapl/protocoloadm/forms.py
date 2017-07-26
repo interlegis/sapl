@@ -352,6 +352,16 @@ class ProtocoloMateriaForm(ModelForm):
 
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label='Ementa')
+    
+    def clean_autor(self):
+        autor_field = self.cleaned_data['autor']
+        try:
+            autor = Autor.objects.get(id=autor_field)
+        except ObjectDoesNotExist:
+            autor_field = None
+        else:
+            autor_field = autor
+        return autor_field
 
 
     class Meta:
@@ -379,7 +389,7 @@ class ProtocoloMateriaForm(ModelForm):
             Fieldset(_('Identificação da Matéria'),
                      row1, row2, row3,
                      row4, form_actions(save_label='Protocolar Matéria')))
-					 
+                     
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
 
