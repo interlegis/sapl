@@ -458,11 +458,11 @@ class AppConfigCrud(CrudAux):
             return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
 
 
-class SearchView(SearchView):
-    results_per_page = 1
+class SaplSearchView(SearchView):
+    results_per_page = 10
 
     def get_context(self):
-        context = super(SearchView, self).get_context()
+        context = super(SaplSearchView, self).get_context()
 
         if 'models' in self.request.GET:
             models = self.request.GET.getlist('models')

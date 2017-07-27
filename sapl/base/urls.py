@@ -17,7 +17,7 @@ from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
                     RelatorioPresencaSessaoView,
-                    SearchView)
+                    SaplSearchView)
 
 app_name = AppConfig.name
 
@@ -101,6 +101,6 @@ urlpatterns = [
         name='login'),
     url(r'^logout/$', views.logout, {'next_page': '/login'}, name='logout'),
 
-    url(r'^sistema/search/', SearchView(), name='search_view'),
+    url(r'^sistema/search/', SaplSearchView(), name='search_view'),
 
 ] + recuperar_senha
