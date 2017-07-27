@@ -101,6 +101,6 @@ urlpatterns = [
         name='login'),
     url(r'^logout/$', views.logout, {'next_page': '/login'}, name='logout'),
 
-    url(r'^sistema/search/', SaplSearchView(), name='search_view'),
+    url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
 
 ] + recuperar_senha
