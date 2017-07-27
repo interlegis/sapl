@@ -14,6 +14,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
+from haystack.views import SearchView
+
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
@@ -454,3 +456,22 @@ class AppConfigCrud(CrudAux):
 
         def get(self, request, *args, **kwargs):
             return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
+
+
+class SaplSearchView(SearchView):
+    results_per_page = 10
+
+    def get_context(self):
+        context = super(SaplSearchView, self).get_context()
+
+        if 'models' in self.request.GET:
+            models = self.request.GET.getlist('models')
+        else:
+            models = []
+
+        context['models'] = ''
+
+        for m in models:
+            context['models'] = context['models'] + '&models=' + m
+
+        return context
