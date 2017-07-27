@@ -460,7 +460,18 @@ class AppConfigCrud(CrudAux):
 
 class SearchView(SearchView):
     results_per_page = 1
-    def get_results(self):
-        x = super(SearchView, self).get_results()
-        import ipdb; ipdb.set_trace()
-        return x
+
+    def get_context(self):
+        context = super(SearchView, self).get_context()
+
+        if 'models' in self.request.GET:
+            models = self.request.GET.getlist('models')
+        else:
+            models = []
+
+        context['models'] = ''
+
+        for m in models:
+            context['models'] = context['models'] + '&models=' + m
+
+        return context
