@@ -2289,11 +2289,13 @@ class PautaSessaoDetailView(DetailView):
             ementa = o.observacao
             titulo = o.materia
             numero = o.numero_ordem
-
+            situacao = o.materia.tramitacao_set.last().status
+            if situacao is None:
+                situacao = _("Não informada")
             # Verificar resultado
-            resultado = o.registrovotacao_set.all()
+            rv = o.registrovotacao_set.all()
             if resultado:
-                resultado = resultado[0].tipo_resultado_votacao.nome
+                resultado = rv[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
 
@@ -2306,6 +2308,8 @@ class PautaSessaoDetailView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'resultado_observacao': resultado_observacao,
+                   'situacao': situacao,
                    'autor': autor
                    }
             materias_ordem.append(mat)
