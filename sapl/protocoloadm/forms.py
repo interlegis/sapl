@@ -333,7 +333,10 @@ class ProtocoloDocumentForm(ModelForm):
 
 
 class ProtocoloMateriaForm(ModelForm):
-    autor = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    autor = forms.ModelChoiceField(required=True,
+                                    empty_label='Selecione',
+                                    queryset=Autor.objects.all()
+                                    )
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo de Matéria'),
@@ -349,7 +352,7 @@ class ProtocoloMateriaForm(ModelForm):
 
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label='Ementa')
-
+    
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
         try:
@@ -359,6 +362,7 @@ class ProtocoloMateriaForm(ModelForm):
         else:
             autor_field = autor
         return autor_field
+
 
     class Meta:
         model = Protocolo
@@ -374,13 +378,7 @@ class ProtocoloMateriaForm(ModelForm):
             [('tipo_materia', 4),
              ('numero_paginas', 4)])
         row2 = to_row(
-            [('autor', 0),
-             (Button('pesquisar',
-                     'Pesquisar Autor',
-                     css_class='btn btn-primary btn-sm'), 2),
-             (Button('limpar',
-                     'limpar Autor',
-                     css_class='btn btn-primary btn-sm'), 10)])
+            [('autor', 4)])             
         row3 = to_row(
             [('assunto_ementa', 12)])
         row4 = to_row(
@@ -389,9 +387,9 @@ class ProtocoloMateriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
-                     row1, HTML(autor_label), HTML(autor_modal), row2, row3,
+                     row1, row2, row3,
                      row4, form_actions(save_label='Protocolar Matéria')))
-
+                     
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
 
