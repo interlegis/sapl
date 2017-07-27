@@ -4,7 +4,7 @@ ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig
 python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
 py3-magic postgresql-client poppler-utils vim
 
-RUN apk add --no-cache python3 nginx && \
+RUN apk add --no-cache python3 nginx tzdata && \
     python3 -m ensurepip && \
     rm -r /usr/lib/python*/ensurepip && \
     pip3 install --upgrade pip setuptools && \
@@ -29,6 +29,9 @@ RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgr
     rm -r /tmp/*
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
+
+# Configura timezone
+RUN cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && echo "America/Sao_Paulo" > /etc/timezone
 
 # manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
 

@@ -1,0 +1,129 @@
+System check identified no issues (0 silenced).
+./create_admin.py:4:1: F401 'sapl.settings' imported but unused
+./create_admin.py:8:1: E302 expected 2 blank lines, found 1
+./create_admin.py:12:80: E501 line too long (87 > 79 characters)
+./create_admin.py:16:80: E501 line too long (87 > 79 characters)
+./create_admin.py:20:80: E501 line too long (116 > 79 characters)
+./create_admin.py:25:80: E501 line too long (92 > 79 characters)
+./genkey.py:5:80: E501 line too long (123 > 79 characters)
+./scripts/set_inicio_mandato.py:10:31: W292 no newline at end of file
+./sapl/settings.py:104:22: E203 whitespace before ':'
+./sapl/settings.py:203:13: E231 missing whitespace after ','
+./sapl/test_urls.py:182:80: E501 line too long (80 > 79 characters)
+./sapl/urls.py:38:80: E501 line too long (84 > 79 characters)
+./sapl/utils.py:7:1: F401 'subprocess.PIPE' imported but unused
+./sapl/utils.py:7:1: F401 'subprocess.call' imported but unused
+./sapl/utils.py:8:1: F401 'threading.Thread' imported but unused
+./sapl/utils.py:27:1: F401 'sapl.settings.PROJECT_DIR' imported but unused
+./sapl/utils.py:541:80: E501 line too long (81 > 79 characters)
+./sapl/utils.py:544:80: E501 line too long (85 > 79 characters)
+./sapl/parlamentares/forms.py:326:1: W293 blank line contains whitespace
+./sapl/parlamentares/views.py:192:80: E501 line too long (89 > 79 characters)
+./sapl/parlamentares/views.py:204:80: E501 line too long (91 > 79 characters)
+./sapl/parlamentares/views.py:347:5: E303 too many blank lines (2)
+./sapl/protocoloadm/views.py:9:1: F401 'django.http.HttpResponseRedirect' imported but unused
+./sapl/protocoloadm/views.py:13:1: F401 'django.views.generic.DetailView' imported but unused
+./sapl/protocoloadm/views.py:13:1: F401 'django.views.generic.FormView' imported but unused
+./sapl/protocoloadm/views.py:115:5: F811 redefinition of unused 'DetailView' from line 13
+./sapl/protocoloadm/views.py:542:5: F811 redefinition of unused 'DetailView' from line 13
+./sapl/protocoloadm/views.py:570:5: F811 redefinition of unused 'DetailView' from line 13
+./sapl/norma/apps.py:11:9: F401 '.signals' imported but unused
+./sapl/norma/models.py:62:1: E302 expected 2 blank lines, found 1
+./sapl/norma/models.py:65:1: E302 expected 2 blank lines, found 1
+./sapl/norma/signals.py:1:1: F401 'django.db.models.signals.post_delete' imported but unused
+./sapl/norma/signals.py:1:1: F401 'django.db.models.signals.post_save' imported but unused
+./sapl/norma/signals.py:3:1: F401 '.models.NormaJuridica' imported but unused
+./sapl/base/forms.py:731:1: W293 blank line contains whitespace
+./sapl/base/search_indexes.py:129:41: W291 trailing whitespace
+./sapl/painel/views.py:1:1: F401 'datetime.date' imported but unused
+./sapl/painel/views.py:5:1: F401 'django.core.exceptions.MultipleObjectsReturned' imported but unused
+./sapl/painel/views.py:15:1: F401 'sapl.painel.models.Painel' imported but unused
+./sapl/sessao/views.py:84:1: E302 expected 2 blank lines, found 1
+./sapl/sessao/views.py:175:80: E501 line too long (100 > 79 characters)
+./sapl/sessao/views.py:176:80: E501 line too long (92 > 79 characters)
+./sapl/sessao/views.py:425:80: E501 line too long (100 > 79 characters)
+./sapl/sessao/views.py:426:80: E501 line too long (92 > 79 characters)
+./sapl/sessao/views.py:622:22: E127 continuation line over-indented for visual indent
+./sapl/sessao/views.py:722:9: F841 local variable 'pk' is assigned to but never used
+./sapl/sessao/views.py:732:22: E127 continuation line over-indented for visual indent
+./sapl/sessao/views.py:2167:80: E501 line too long (81 > 79 characters)
+./sapl/relatorios/views.py:16:1: F401 'sapl.sessao.models.RegistroVotacao' imported but unused
+./sapl/relatorios/views.py:16:1: F401 'sapl.sessao.models.TipoExpediente' imported but unused
+./sapl/compilacao/views.py:145:9: F841 local variable 'map_fields' is assigned to but never used
+./sapl/compilacao/templatetags/compilacao_filters.py:290:1: E303 too many blank lines (3)
+./sapl/api/forms.py:45:80: E501 line too long (94 > 79 characters)
+./sapl/api/serializers.py:67:80: E501 line too long (84 > 79 characters)
+./sapl/api/serializers.py:71:80: E501 line too long (82 > 79 characters)
+./sapl/api/serializers.py:72:80: E501 line too long (85 > 79 characters)
+./sapl/api/serializers.py:74:80: E501 line too long (99 > 79 characters)
+./sapl/api/serializers.py:83:28: E222 multiple spaces after operator
+./sapl/api/serializers.py:84:31: E222 multiple spaces after operator
+./sapl/api/serializers.py:85:22: E222 multiple spaces after operator
+./sapl/api/serializers.py:109:9: F841 local variable 'casa' is assigned to but never used
+./sapl/api/serializers.py:149:5: E301 expected 1 blank line, found 0
+./sapl/api/views.py:10:1: F401 'rest_framework.viewsets.ModelViewSet' imported but unused
+./sapl/api/views.py:88:61: W291 trailing whitespace
+./sapl/api/views.py:117:66: W291 trailing whitespace
+./sapl/api/views.py:130:73: W291 trailing whitespace
+./sapl/materia/apps.py:11:9: F401 '.signals' imported but unused
+./sapl/materia/email_utils.py:209:80: E501 line too long (82 > 79 characters)
+./sapl/materia/forms.py:494:80: E501 line too long (82 > 79 characters)
+./sapl/materia/forms.py:495:80: E501 line too long (86 > 79 characters)
+./sapl/materia/signals.py:1:1: F401 'django.db.models.signals.post_delete' imported but unused
+./sapl/materia/signals.py:1:1: F401 'django.db.models.signals.post_save' imported but unused
+./sapl/materia/signals.py:5:1: F401 '.models.DocumentoAcessorio' imported but unused
+./sapl/materia/signals.py:5:1: F401 '.models.MateriaLegislativa' imported but unused
+./sapl/materia/urls.py:28:1: F401 '.receivers' imported but unused
+./sapl/materia/views.py:24:1: F401 'django.forms' imported but unused
+./sapl/materia/views.py:29:1: F401 'django.core.exceptions.MultipleObjectsReturned' imported but unused
+./sapl/materia/views.py:45:1: F811 redefinition of unused 'Comissao' from line 44
+./sapl/materia/views.py:55:80: E501 line too long (82 > 79 characters)
+./sapl/materia/views.py:58:1: F811 redefinition of unused 'Autor' from line 43
+./sapl/materia/views.py:68:1: E303 too many blank lines (3)
+./sapl/materia/views.py:96:5: E129 visually indented line with same indent as next logical line
+./sapl/materia/views.py:1092:80: E501 line too long (101 > 79 characters)
+./sapl/materia/views.py:1094:80: E501 line too long (119 > 79 characters)
+./sapl/materia/views.py:1096:80: E501 line too long (147 > 79 characters)
+./sapl/materia/views.py:1096:84: E227 missing whitespace around bitwise or shift operator
+./sapl/materia/views.py:1098:80: E501 line too long (110 > 79 characters)
+./sapl/materia/views.py:1099:80: E501 line too long (104 > 79 characters)
+./sapl/materia/views.py:1689:12: E128 continuation line under-indented for visual indent
+./sapl/materia/views.py:1690:12: E128 continuation line under-indented for visual indent
+./sapl/materia/views.py:1691:12: E124 closing bracket does not match visual indentation
+./sapl/legacy/migracao_documentos.py:6:1: F401 'django.db.models.signals.post_delete' imported but unused
+./sapl/legacy/migracao_documentos.py:6:1: F401 'django.db.models.signals.post_save' imported but unused
+./sapl/legacy/migracao_documentos.py:89:80: E501 line too long (87 > 79 characters)
+./sapl/legacy/migracao_documentos.py:208:7: E101 indentation contains mixed spaces and tabs
+./sapl/legacy/migracao_documentos.py:208:7: W191 indentation contains tabs
+./sapl/legacy/migration.py:17:1: F401 'django.db.models.signals.post_delete' imported but unused
+./sapl/legacy/migration.py:17:1: F401 'django.db.models.signals.post_save' imported but unused
+./sapl/legacy/migration.py:24:1: F401 'sapl.materia.models.DocumentoAcessorio' imported but unused
+./sapl/legacy/migration.py:24:1: F401 'sapl.materia.models.MateriaLegislativa' imported but unused
+./sapl/legacy/migration.py:31:51: E231 missing whitespace after ','
+./sapl/legacy/migration.py:33:62: E231 missing whitespace after ','
+./sapl/legacy/migration.py:255:21: E128 continuation line under-indented for visual indent
+./sapl/legacy/migration.py:792:1: E303 too many blank lines (3)
+./sapl/legacy/scripts/street_sweeper.py:15:80: E501 line too long (82 > 79 characters)
+./sapl/legacy/scripts/street_sweeper.py:22:10: E261 at least two spaces before inline comment
+./sapl/legacy/scripts/street_sweeper.py:46:1: E302 expected 2 blank lines, found 1
+./sapl/legacy/scripts/street_sweeper.py:61:80: E501 line too long (113 > 79 characters)
+./sapl/legacy/scripts/street_sweeper.py:72:51: E222 multiple spaces after operator
+./sapl/legacy/scripts/street_sweeper.py:72:80: E501 line too long (89 > 79 characters)
+./sapl/legacy/scripts/street_sweeper.py:77:51: E127 continuation line over-indented for visual indent
+./sapl/legacy/management/commands/migracao_25_31.py:8:11: E225 missing whitespace around operator
+./sapl/legacy/management/commands/migracao_documentos.py:8:11: E225 missing whitespace around operator
+./sapl/comissoes/views.py:85:80: E501 line too long (94 > 79 characters)
+./sapl/comissoes/views.py:100:1: E303 too many blank lines (3)
+ERROR: /home/eribeiro/python-projects/sapl/sapl/crispy_layout_mixin.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/parlamentares/views.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/parlamentares/models.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/redireciona_urls/views.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/redireciona_urls/urls.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/painel/views.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/sessao/views.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/materia/views.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/materia/models.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/materia/signals.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/materia/urls.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/materia/forms.py Imports are incorrectly sorted.
+ERROR: /home/eribeiro/python-projects/sapl/sapl/legacy/migration.py Imports are incorrectly sorted.
