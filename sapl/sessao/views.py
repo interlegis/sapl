@@ -2294,7 +2294,7 @@ class PautaSessaoDetailView(DetailView):
                 situacao = _("Não informada")
             # Verificar resultado
             rv = o.registrovotacao_set.all()
-            if resultado:
+            if rv:
                 resultado = rv[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
