@@ -1,0 +1,31 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+   <script language="Javascript">
+      $(document).ready(function() {
+          $("#id_tipo_autor").change(function() {
+              $("#id_autor option").remove()
+              var selected = $("#id_tipo_autor").val();
+              if (selected !== undefined && selected !== null) {
+                $.getJSON("/api/autor?tipo=" + selected, function(data){
+                    if (data) {
+                      var results = data.results;
+                      if (results.length > 1) {
+                        $("#id_autor").append("<option>-----</option>");
+                      }
+                      $.each(results, function(idx, obj) {
+                          $("#id_autor")
+                            .append($("<option></option>")
+                            .attr("value", obj.value)
+                            .text(obj.text));
+                      });
+                    }
+                });
+            }
+          });
+      });
+   </script>
+{% endblock %}

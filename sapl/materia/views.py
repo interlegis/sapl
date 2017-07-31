@@ -1098,8 +1098,6 @@ class AutoriaCrud(MasterDetailCrud):
             autores_ativos = self.autores_ativos()
 
             autores = []
-            for a in autores_ativos:
-                autores.append([a.id, a.__str__()])
 
             context['form'].fields['autor'].choices = autores
             return context
