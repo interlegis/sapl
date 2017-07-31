@@ -13,7 +13,7 @@ from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
-from django.forms import ModelForm, widgets
+from django.forms import ModelForm, ModelChoiceField, widgets
 from django.forms.forms import Form
 from django.forms.widgets import Select
 from django.utils import six
@@ -26,7 +26,7 @@ from django_filters.filterset import STRICTNESS
 
 import django_filters
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -691,9 +691,27 @@ class DespachoInicialForm(ModelForm):
 
 class AutoriaForm(ModelForm):
 
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=
+                                  TipoAutor.objects.all().order_by('descricao'),
+                                  empty_label='Selecione',)
+
+    def __init__(self, *args, **kwargs):
+        super(AutoriaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 4),
+                       ('autor', 4),
+                       ('primeiro_autor', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Autoria'),
+                     row1, form_actions(save_label='Salvar')))
+
     class Meta:
         model = Autoria
-        fields = ['autor', 'primeiro_autor']
+        fields = ['tipo_autor', 'autor', 'primeiro_autor']
 
     def clean(self):
         super(AutoriaForm, self).clean()
