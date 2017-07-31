@@ -30,8 +30,8 @@ RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgr
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
-# Configura timezone
-RUN cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && echo "America/Sao_Paulo" > /etc/timezone
+# Configura timezone para BRT
+# RUN cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && echo "America/Sao_Paulo" > /etc/timezone
 
 # manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
 
