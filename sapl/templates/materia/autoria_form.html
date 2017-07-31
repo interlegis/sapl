@@ -5,6 +5,15 @@
 
 {% block extra_js %}
    <script language="Javascript">
+
+     function compare(a, b) {
+       if (a.text < b.text)
+         return -1;
+       if (a.text > b.text)
+         return 1;
+       return 0;
+     }
+
       $(document).ready(function() {
           $("#id_tipo_autor").change(function() {
               $("#id_autor option").remove()
@@ -12,7 +21,7 @@
               if (selected !== undefined && selected !== null) {
                 $.getJSON("/api/autor?tipo=" + selected, function(data){
                     if (data) {
-                      var results = data.results;
+                      var results = data.results.sort(compare);
                       if (results.length > 1) {
                         $("#id_autor").append("<option>-----</option>");
                       }
