@@ -16,10 +16,14 @@ from django.db.models import Max
 from django.forms import ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.widgets import Select
+from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+
+from django_filters.filterset import STRICTNESS
+
 import django_filters
 
 from sapl.base.models import Autor
@@ -585,6 +589,45 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      row4, row5, row6, row7, row8, row9, row10,
                      form_actions(save_label='Pesquisar'))
         )
+
+    @property
+    def qs(self):
+        if not hasattr(self, '_qs'):
+            valid = self.is_bound and self.form.is_valid()
+
+            if self.is_bound and not valid:
+                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                    raise forms.ValidationError(self.form.errors)
+                elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                    self._qs = self.queryset.none()
+                    return self._qs
+                    # else STRICTNESS.IGNORE...  ignoring
+
+            # start with all the results and filter from there
+            qs = self.queryset.all()
+            for name, filter_ in six.iteritems(self.filters):
+                value = None
+                if valid:
+                    value = self.form.cleaned_data[name]
+                else:
+                    raw_value = self.form[name].value()
+                    try:
+                        value = self.form.fields[name].clean(raw_value)
+                    except forms.ValidationError:
+                        if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                            raise
+                        elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                            self._qs = self.queryset.none()
+                            return self._qs
+                            # else STRICTNESS.IGNORE...  ignoring
+
+                if value is not None:  # valid & clean data
+                    qs = qs._next_is_sticky()
+                    qs = filter_.filter(qs, value)
+
+            self._qs = qs
+
+        return self._qs
 
 
 def pega_ultima_tramitacao():
