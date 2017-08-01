@@ -93,7 +93,7 @@ Criar o ambiente virtual de desenvolvimento para o SAPL
 -------------------------------------------------------
 * ::
 
-    mkvirtualenv sapl -a /var/interlegis/sapl -p /usr/bin/python3
+    mkvirtualenv -a /var/interlegis/sapl -p python3 -r requirements/requirements.txt sapl
 
 Instalação e configuração das dependências do projeto
 -----------------------------------------------------
@@ -119,9 +119,9 @@ Instalação e configuração das dependências do projeto
   * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
 
-* **Ajustar as permissões - onde sapl31 trocar por usuario**::
+* **Ajustar as permissões - onde $USER trocar por usuario**::
 
-    sudo chown -R sapl31:sapl31 /var/interlegis/
+    eval $(echo "sudo chown -R $USER:$USER /var/interlegis/")
 
 
 
@@ -178,7 +178,7 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
 * Instalar as dependências do ``bower``::
 
-    sudo chown -R sapl31:sapl31 /home/sapl31/    
+    eval $(echo "sudo chown -R $USER:$USER /home/$USER/")    
     ./manage.py bower install
 
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
