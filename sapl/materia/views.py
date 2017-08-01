@@ -1215,7 +1215,23 @@ def atualizar_autores(request):
             autores = autores_ativos(materia, tipo=tipo_autor)
             autores_list = [(a.id, a.__str__()) for a in autores]
 
-        return JsonResponse({'lista_autores': autores_list})
+        # Se já houver algum autor selecionado (ex: view de update)
+        # no campo correspondente e caso o TipoAutor selecionado
+        # seja o mesmo do autor que está aualmente marcado
+        # deve ser enviado um sinal (manter autor) para que o javascript
+        # mantenha este selecionado
+        manter_autor = False
+        if 'autor_id' in request.GET and request.GET['autor_id']:
+            try:
+                autor = Autor.objects.get(id=request.GET['autor_id'])
+            except ObjectDoesNotExist:
+                pass
+            else:
+                if autor.tipo.id == int(tipo_autor):
+                    manter_autor = True
+
+        return JsonResponse({'lista_autores': autores_list,
+                             'manter_autor': manter_autor})
 
 
 class AutoriaCrud(MasterDetailCrud):
@@ -1252,6 +1268,13 @@ class AutoriaCrud(MasterDetailCrud):
         @property
         def layout_key(self):
             return 'AutoriaUpdate'
+
+        def get_initial(self):
+            return {
+                'tipo_autor': self.object.autor.tipo.id,
+                'autor': self.object.autor.id,
+                'primeiro_autor': self.object.primeiro_autor
+            }
 
         def get_context_data(self, **kwargs):
             context = super(UpdateView, self).get_context_data(**kwargs)
