@@ -16,10 +16,14 @@ from django.db.models import Max
 from django.forms import ModelForm, ModelChoiceField, widgets
 from django.forms.forms import Form
 from django.forms.widgets import Select
+from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+
+from django_filters.filterset import STRICTNESS
+
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
@@ -586,6 +590,45 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      form_actions(save_label='Pesquisar'))
         )
 
+    @property
+    def qs(self):
+        if not hasattr(self, '_qs'):
+            valid = self.is_bound and self.form.is_valid()
+
+            if self.is_bound and not valid:
+                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                    raise forms.ValidationError(self.form.errors)
+                elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                    self._qs = self.queryset.none()
+                    return self._qs
+                    # else STRICTNESS.IGNORE...  ignoring
+
+            # start with all the results and filter from there
+            qs = self.queryset.all()
+            for name, filter_ in six.iteritems(self.filters):
+                value = None
+                if valid:
+                    value = self.form.cleaned_data[name]
+                else:
+                    raw_value = self.form[name].value()
+                    try:
+                        value = self.form.fields[name].clean(raw_value)
+                    except forms.ValidationError:
+                        if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                            raise
+                        elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                            self._qs = self.queryset.none()
+                            return self._qs
+                            # else STRICTNESS.IGNORE...  ignoring
+
+                if value is not None:  # valid & clean data
+                    qs = qs._next_is_sticky()
+                    qs = filter_.filter(qs, value)
+
+            self._qs = qs
+
+        return self._qs
+
 
 def pega_ultima_tramitacao():
     ultimas_tramitacoes = Tramitacao.objects.values(
@@ -654,6 +697,18 @@ class AutoriaForm(ModelForm):
                                   TipoAutor.objects.all().order_by('descricao'),
                                   empty_label='Selecione',)
 
+    def __init__(self, *args, **kwargs):
+        super(AutoriaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 4),
+                       ('autor', 4),
+                       ('primeiro_autor', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Autoria'),
+                     row1, form_actions(save_label='Salvar')))
+
     class Meta:
         model = Autoria
         fields = ['tipo_autor', 'autor', 'primeiro_autor']
@@ -664,12 +719,13 @@ class AutoriaForm(ModelForm):
         if self.errors:
             return self.errors
 
-        if Autoria.objects.filter(
-            materia=self.instance.materia,
-            autor=self.cleaned_data['autor'],
-        ).exists():
-            msg = _('Esse Autor já foi cadastrado.')
-            raise ValidationError(msg)
+        if not self.instance.pk:
+            if Autoria.objects.filter(
+                materia=self.instance.materia,
+                autor=self.cleaned_data['autor'],
+            ).exists():
+                msg = _('Esse Autor já foi cadastrado.')
+                raise ValidationError(msg)
 
         return self.cleaned_data
 

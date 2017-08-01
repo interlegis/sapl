@@ -193,7 +193,7 @@ EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 
-MAX_DOC_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_DOC_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # Internationalization
@@ -205,7 +205,7 @@ LANGUAGES = (
 
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
-USE_L10N = False
+USE_L10N = True
 USE_TZ = False
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'

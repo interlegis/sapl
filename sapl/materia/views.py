@@ -959,6 +959,12 @@ class TramitacaoCrud(MasterDetailCrud):
         def form_valid(self, form):
             self.object = form.save()
 
+            if form.instance.status.indicador == 'F':
+                form.instance.materia.em_tramitacao = False
+            else:
+                form.instance.materia.em_tramitacao = True
+            form.instance.materia.save()
+
             try:
                 tramitacao_signal.send(sender=Tramitacao,
                                        post=self.object,
@@ -981,6 +987,12 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def form_valid(self, form):
             self.object = form.save()
+
+            if form.instance.status.indicador == 'F':
+                form.instance.materia.em_tramitacao = False
+            else:
+                form.instance.materia.em_tramitacao = True
+            form.instance.materia.save()
 
             try:
                 tramitacao_signal.send(sender=Tramitacao,
@@ -1255,6 +1267,13 @@ class AutoriaCrud(MasterDetailCrud):
 
             context['form'].fields['autor'].choices = autores
             return context
+
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super().get_queryset()
+
+            return qs.order_by('-primeiro_autor', 'autor__nome')
 
 
 class DespachoInicialCrud(MasterDetailCrud):

@@ -144,7 +144,9 @@ class NormaJuridicaForm(ModelForm):
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral:
             if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError("Arquivo muito grande. ( > 5mb )")
+                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+                raise ValidationError(
+                    "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return texto_integral
 
     def save(self, commit=False):
@@ -178,7 +180,7 @@ class NormaRelacionadaForm(ModelForm):
 
     def clean(self):
         super(NormaRelacionadaForm, self).clean()
-        
+
         if self.errors:
             return self.errors
         cleaned_data = self.cleaned_data
