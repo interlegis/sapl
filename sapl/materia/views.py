@@ -1186,7 +1186,8 @@ def autores_ativos(materia, tipo=None):
         content_type__in=ct_list).order_by(
         'nome'
     )
-
+    # import ipdb;
+    # ipdb.set_trace()
     if not tipo:
         autor_qs = Autor.objects.none()
         for key in autores_by_ct:
@@ -1195,10 +1196,11 @@ def autores_ativos(materia, tipo=None):
         return (autor_qs | autores_by_ct['others']).order_by('nome')
 
     else:
+        tipo_autor = tipo
         if not tipo in autores_by_ct:
-            tipo = 'others'
+            tipo_autor = 'others'
 
-        return autores_by_ct[tipo].order_by('nome')
+        return autores_by_ct[tipo_autor].filter(tipo_id=tipo).order_by('nome')
 
 
 def atualizar_autores(request):
