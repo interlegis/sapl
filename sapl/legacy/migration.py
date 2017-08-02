@@ -327,6 +327,9 @@ def obj_desnecessario(obj):
         if (f.one_to_many or f.one_to_one) and f.auto_created]
     sem_referencia = not any(rr.related_model.objects.filter(
         **{rr.field.name: obj}).exists() for rr in relacoes)
+    if type(obj).__name__ == 'Parlamentar' and sem_referencia and \
+            obj.autor.all():
+        sem_referencia = False
     return sem_referencia
 
 
