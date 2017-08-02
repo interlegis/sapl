@@ -1186,8 +1186,7 @@ def autores_ativos(materia, tipo=None):
         content_type__in=ct_list).order_by(
         'nome'
     )
-    # import ipdb;
-    # ipdb.set_trace()
+
     if not tipo:
         autor_qs = Autor.objects.none()
         for key in autores_by_ct:
