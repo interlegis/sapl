@@ -18,7 +18,10 @@ class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
     # cod_casa => id (pk)
 
-    codigo = models.CharField(max_length=100, verbose_name=_('Codigo'))
+    codigo = models.CharField(max_length=100,
+                              blank=True,
+                              null=True,
+                              verbose_name=_('Codigo'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
     endereco = models.CharField(max_length=100, verbose_name=_('Endereço'))
