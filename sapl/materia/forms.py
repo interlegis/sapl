@@ -1,6 +1,5 @@
 
 import os
-from datetime import date, datetime
 
 import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
@@ -18,6 +17,7 @@ from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, Select
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -215,7 +215,7 @@ class TramitacaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
-        self.fields['data_tramitacao'].initial = datetime.now().date()
+        self.fields['data_tramitacao'].initial = timezone.now().date()
 
     def clean(self):
         cleaned_data = super(TramitacaoForm, self).clean()
@@ -245,7 +245,7 @@ class TramitacaoForm(ModelForm):
                             'destino  da última adicionada!')
                     raise ValidationError(msg)
 
-            if cleaned_data['data_tramitacao'] > datetime.now().date():
+            if cleaned_data['data_tramitacao'] > timezone.now().date():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -1164,10 +1164,10 @@ class ProposicaoForm(forms.ModelForm):
 
             return super().save(commit)
 
-        inst.ano = datetime.now().year
+        inst.ano = timezone.now().year
         numero__max = Proposicao.objects.filter(
             autor=inst.autor,
-            ano=datetime.now().year).aggregate(Max('numero_proposicao'))
+            ano=timezone.now().year).aggregate(Max('numero_proposicao'))
         numero__max = numero__max['numero_proposicao__max']
         inst.numero_proposicao = (
             numero__max + 1) if numero__max else 1
@@ -1376,7 +1376,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         cd = self.cleaned_data
 
         if 'devolver' in self.data:
-            self.instance.data_devolucao = datetime.now()
+            self.instance.data_devolucao = timezone.now()
             self.instance.data_recebimento = None
             self.instance.data_envio = None
             self.instance.save()
@@ -1398,7 +1398,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         elif 'incorporar' in self.data:
             self.instance.justificativa_devolucao = ''
             self.instance.data_devolucao = None
-            self.instance.data_recebimento = datetime.now()
+            self.instance.data_recebimento = timezone.now()
             self.instance.materia_de_vinculo = cd['materia_de_vinculo']
 
             if self.instance.texto_articulado.exists():
@@ -1435,7 +1435,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         ) == TipoMateriaLegislativa:
             numero__max = MateriaLegislativa.objects.filter(
                 tipo=proposicao.tipo.tipo_conteudo_related,
-                ano=datetime.now().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
             numero__max = numero__max['numero__max']
 
             # dados básicos
@@ -1443,8 +1443,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             materia.numero = (numero__max + 1) if numero__max else 1
             materia.tipo = proposicao.tipo.tipo_conteudo_related
             materia.ementa = proposicao.descricao
-            materia.ano = datetime.now().year
-            materia.data_apresentacao = datetime.now()
+            materia.ano = timezone.now().year
+            materia.data_apresentacao = timezone.now()
             materia.em_tramitacao = True
             materia.regime_tramitacao = cd['regime_tramitacao']
 
@@ -1483,7 +1483,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 anexada = Anexada()
                 anexada.materia_principal = proposicao.materia_de_vinculo
                 anexada.materia_anexada = materia
-                anexada.data_anexacao = datetime.now()
+                anexada.data_anexacao = timezone.now()
                 anexada.save()
 
                 self.instance.results['messages']['success'].append(_(
@@ -1555,18 +1555,18 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'U':
             nm = Protocolo.objects.all().aggregate(Max('numero'))
 
         protocolo = Protocolo()
         protocolo.numero = (nm['numero__max'] + 1) if nm['numero__max'] else 1
-        protocolo.ano = date.today().year
-        protocolo.data = date.today()
-        protocolo.hora = datetime.now().time()
+        protocolo.ano = timezone.now().year
+        protocolo.data = timezone.now()
+        protocolo.hora = timezone.now().time()
 
         # TODO transformar campo timestamp em auto_now_add
-        protocolo.timestamp = datetime.now()
+        protocolo.timestamp = timezone.now()
         protocolo.tipo_protocolo = '1'
 
         protocolo.interessado = str(proposicao.autor)

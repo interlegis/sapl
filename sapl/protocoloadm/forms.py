@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import django_filters
 from crispy_forms.bootstrap import InlineRadios
@@ -8,6 +7,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
@@ -468,7 +468,7 @@ class TramitacaoAdmForm(ModelForm):
                             'destino  da última adicionada!')
                     raise ValidationError(msg)
 
-            if self.cleaned_data['data_tramitacao'] > datetime.now().date():
+            if self.cleaned_data['data_tramitacao'] > timezone.now().date():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -540,7 +540,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
 class DocumentoAdministrativoForm(ModelForm):
 
-    data = forms.DateField(initial=datetime.today)
+    data = forms.DateField(initial=timezone.now)
 
     ano_protocolo = forms.ChoiceField(required=False,
                                       label=Protocolo._meta.

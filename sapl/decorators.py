@@ -1,6 +1,6 @@
-from datetime import date
 from functools import wraps
 
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -18,7 +18,7 @@ def vigencia_atual(decorated_method):
         string_displayed = decorated_method(self)
 
         if hasattr(self, 'data_inicio') and hasattr(self, 'data_fim'):
-            today = date.today()
+            today = timezone.now().today().date()
             e_atual = self.data_inicio <= today <= self.data_fim
             string_displayed = "{} {}".format(
                 string_displayed, "(Atual)" if e_atual else "")

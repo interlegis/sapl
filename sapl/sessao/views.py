@@ -1,4 +1,3 @@
-from datetime import datetime
 from re import sub
 
 from django.contrib import messages
@@ -10,6 +9,7 @@ from django.db.models import Max, Q
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
+from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
@@ -2576,7 +2576,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                     expediente.numero_ordem = posicao
                 else:
                     expediente.numero_ordem = 1
-                expediente.data_ordem = datetime.now()
+                expediente.data_ordem = timezone.now()
                 expediente.tipo_votacao = request.POST['tipo_votacao_%s' % m]
                 expediente.save()
 
@@ -2645,7 +2645,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                     ordem_dia.numero_ordem = posicao
                 else:
                     ordem_dia.numero_ordem = 1
-                ordem_dia.data_ordem = datetime.now()
+                ordem_dia.data_ordem = timezone.now()
                 ordem_dia.tipo_votacao = tipo_votacao
                 ordem_dia.save()
 

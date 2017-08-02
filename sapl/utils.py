@@ -2,7 +2,6 @@ import hashlib
 import logging
 import os
 import re
-from datetime import date
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
 
@@ -18,7 +17,7 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.utils import six
+from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
 from floppyforms import ClearableFileInput
@@ -303,7 +302,8 @@ UF = [
     ('EX', 'Exterior'),
 ]
 
-RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
+RANGE_ANOS = [(year, year) for year in range(timezone.now().year,
+                                             1889, -1)]
 
 RANGE_MESES = [
     (1, 'Janeiro'),

@@ -10,6 +10,7 @@ from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.templatetags.static import static
+from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -226,10 +227,8 @@ def json_date_convert(date):
      string "dd/mm/yyyy"
     :return:
     '''
-    dia, mes, ano = date.split('/')
-    return datetime.date(day=int(dia),
-                         month=int(mes),
-                         year=int(ano))
+
+    return datetime.strptime(date, "%d/%m/%Y").date()
 
 
 def frente_atualiza_lista_parlamentares(request):
@@ -660,7 +659,7 @@ class MesaDiretoraView(FormView):
         sessoes = SessaoLegislativa.objects.filter(
             legislatura=legislatura).order_by("data_inicio")
 
-        year = datetime.now().year
+        year = timezone.now().year
         sessao_atual = sessoes.filter(data_inicio__year=year).first()
 
         mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
@@ -715,7 +714,7 @@ def altera_field_mesa(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        year = datetime.now().year
+        year = timezone.now().year
         try:
             sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist:
@@ -883,7 +882,7 @@ def altera_field_mesa_public_view(request):
     # atual deve ser a primeira daquela legislatura
     else:
         try:
-            year = datetime.now().year
+            year = timezone.now().year
             sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist as e:
             sessao_selecionada = sessoes.first().id

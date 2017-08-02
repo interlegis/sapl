@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import django_filters
 from crispy_forms.helper import FormHelper
@@ -7,6 +6,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm, widgets
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -154,7 +154,7 @@ class NormaJuridicaForm(ModelForm):
 
     def save(self, commit=False):
         norma = self.instance
-        norma.timestamp = datetime.now()
+        norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
         return norma
