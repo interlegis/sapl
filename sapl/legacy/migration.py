@@ -850,8 +850,21 @@ def adjust_protocolo_depois_salvar(new, old):
 
 def adjust_autor(new, old):
     if old.cod_parlamentar:
-        new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+        try:
+            new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+        except Exception:
+            with reversion.create_revision():
+                msg = 'Um parlamentar relacionado de PK [%s] não existia' \
+                        % old.cod_parlamentar
+                reversion.set_comment('Stub criado pela migração')
+                value = make_stub(Parlamentar, old.cod_parlamentar)
+                descricao = 'stub criado para entrada orfã!'
+                warn(msg + ' => ' + descricao)
+                save_relation(value, [], msg, descricao,
+                              eh_stub=True)
+                new.autor_related = value
         new.nome = new.autor_related.nome_parlamentar
+
     elif old.cod_comissao:
         new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
         new.nome = new.autor_related.nome
@@ -859,22 +872,14 @@ def adjust_autor(new, old):
     if old.col_username:
         if not get_user_model().objects.filter(
                 username=old.col_username).exists():
-            user = get_user_model()(
-                username=old.col_username, password=12345)
+            user = get_user_model()(username=old.col_username)
+            user.set_password(12345)
             with reversion.create_revision():
                 user.save()
                 reversion.set_comment('Objeto criado pela migração')
 
             grupo_autor = Group.objects.get(name="Autor")
             user.groups.add(grupo_autor)
-            if old.cod_parlamentar:
-                grupo_parlamentar = Group.objects.get(name="Parlamentar")
-                user.groups.add(grupo_parlamentar)
-
-            new.user = user
-        else:
-            new.user = get_user_model().objects.filter(
-                username=old.col_username)[0]
 
 
 def adjust_comissao(new, old):
