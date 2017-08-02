@@ -55,6 +55,7 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
             if q:
                 queryset = queryset.filter(q).order_by(*order_by)
 
+        print(queryset.query)
         return queryset
 
 
