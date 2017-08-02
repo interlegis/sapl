@@ -747,17 +747,22 @@ def adjust_normarelacionada(new, old):
     new.tipo_vinculo = tipo[0]
 
 
-def adjust_protocolo(new, old):
-    if new.numero is None and not primeira_vez:
-        p = ProtocoloLegado.objects.filter(
-            ano_protocolo=new.ano).aggregate(Max('num_protocolo'))
-        numero_maximo = p['num_protocolo__max']
-        new.numero = 1 if numero_maximo is None else numero_maximo + 1
-        primeira_vez.append(True)
-    if new.numero is None and primeira_vez:
-        p = Protocolo.objects.filter(
-            ano=new.ano).aggregate(Max('numero'))
-        new.numero = p['numero__max'] + 1
+def adjust_protocolo_antes_salvar(new, old):
+    data_ajuste = date(2014, 11, 13)
+
+    if old.num_protocolo is None and data_ajuste >= old.dat_protocolo:
+        new.numero = old.pk
+
+
+def adjust_protocolo_depois_salvar(new, old):
+    if old.num_protocolo is None:
+        with reversion.create_revision():
+            problema = 'Número do protocolo de PK %s é nulo' % new.pk
+            descricao = 'Número do protocolo alterado para %s!' % new.numero
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('Número de protocolo teve que ser alterado')
 
 
 def adjust_registrovotacao_antes_salvar(new, old):
@@ -837,17 +842,6 @@ def adjust_normajuridica_depois_salvar(new, old):
         new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
 
 
-def adjust_protocolo_depois_salvar(new, old):
-    if old.num_protocolo is None:
-        with reversion.create_revision():
-            problema = 'Número do protocolo de PK %s é nulo' % new.pk
-            descricao = 'Número do protocolo alterado para %s!' % new.numero
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('Numero de protocolo teve que ser alterado')
-
-
 def adjust_autor(new, old):
     if old.cod_parlamentar:
         try:
@@ -904,7 +898,7 @@ AJUSTE_ANTES_SALVAR = {
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
     Proposicao: adjust_proposicao_antes_salvar,
-    Protocolo: adjust_protocolo,
+    Protocolo: adjust_protocolo_antes_salvar,
     RegistroVotacao: adjust_registrovotacao_antes_salvar,
     TipoAfastamento: adjust_tipoafastamento,
     TipoProposicao: adjust_tipoproposicao,
