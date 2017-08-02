@@ -90,11 +90,11 @@ function autorModal() {
 
     $("#pesquisar").click(function() {
         var name_in_query = $("#q").val()
-        var q_0 = "q_0=nome__icontains"
-        var q_1 = "q_1=" + name_in_query
-        query = q_0 + "&" + q_1
+        //var q_0 = "q_0=nome__icontains"
+        //var q_1 = name_in_query
+        //query = q_1
 
-        $.get("/api/autor?" + query, function(data, status) {
+        $.get("/api/autor?q=" + name_in_query, function(data, status) {
             $("#div-resultado").children().remove();
             if (data.pagination.total_entries == 0) {
                 $("#selecionar").attr("hidden", "hidden");

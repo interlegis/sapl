@@ -38,17 +38,20 @@ class SaplGenericRelationSearchFilterSet(FilterSet):
                                     item.related_query_name(),
                                     field[0])
                                 )
-                            if len(field) == 3 and field[2](qtext) is not None:
-                                q_fs = q_fs | Q(**{'%s__%s%s' % (
-                                    item.related_query_name(),
-                                    field[0],
-                                    field[1]): qtext if len(field) == 2 else field[2](qtext)})
+                            # if len(field) == 3 and field[2](qtext) is not
+                            # None:
+                            q_fs = q_fs | Q(**{'%s__%s%s' % (
+                                item.related_query_name(),
+                                field[0],
+                                field[1]): qtext if len(field) == 2
+                                else field[2](qtext)})
 
                 q = q & q_fs
 
             if q:
                 queryset = queryset.filter(q).order_by(*order_by)
 
+        print(queryset.query)
         return queryset
 
 
