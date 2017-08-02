@@ -655,9 +655,27 @@ def adjust_acompanhamentomateria(new, old):
 
 def adjust_documentoadministrativo(new, old):
     if new.numero_protocolo:
-        protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                          ano=new.ano)
-        new.protocolo = protocolo
+        try:
+            protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
+                                              ano=new.ano)
+            new.protocolo = protocolo
+        except Exception:
+            try:
+                protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
+                                                  ano=new.ano+1)
+                new.protocolo = protocolo
+            except Exception:
+                protocolo = mommy.make(Protocolo, numero=new.numero_protocolo,
+                                       ano=new.ano)
+                with reversion.create_revision():
+                    problema = 'Protocolo Vinculado [numero_protocolo=%s, '\
+                            'ano=%s] não existe' % (new.numero_protocolo,
+                                                    new.ano)
+                    descricao = 'O protocolo inexistente foi criado'
+                    warn(problema + ' => ' + descricao)
+                    save_relation(obj=protocolo, problema=problema,
+                                  descricao=descricao, eh_stub=True)
+                    reversion.set_comment('Protocolo não existia.')
 
 
 def adjust_mandato(new, old):
