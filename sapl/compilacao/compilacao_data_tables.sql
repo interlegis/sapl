@@ -258,9 +258,6 @@ INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, 
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (126, 1, false, 4, -1, false);
 
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 1, -1, false);
-INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 1, -1, false);
-
-INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 2, -1, true);
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (122, 119, false, 2, -1, true);
 
 
