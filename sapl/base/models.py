@@ -21,6 +21,7 @@ class CasaLegislativa(models.Model):
 
     codigo = models.CharField(max_length=100,
                               blank=True,
+                              null=True,
                               verbose_name=_('Codigo'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
