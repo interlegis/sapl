@@ -58,7 +58,7 @@ function autorModal() {
       autoOpen: false,
       modal: true,
       width: 500,
-      height: 300,
+      height: 340,
       show: {
         effect: "blind",
         duration: 500},
@@ -111,10 +111,11 @@ function autorModal() {
                 select.append($("<option>").attr('value', item.value).text(item.text));
             });
 
-
-
           $("#div-resultado").append("<br/>").append(select);
           $("#selecionar").removeAttr("hidden", "hidden");
+
+          if (data.pagination.total_pages > 1)
+              $("#div-resultado").prepend('<span><br/>Mostrando 10 primeiros autores relativos a sua busca.<br/></span>');
 
           $("#selecionar").click(function() {
               res = $("#resultados option:selected");

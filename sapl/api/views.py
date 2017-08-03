@@ -9,7 +9,8 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from sapl.api.forms import AutorChoiceFilterSet, AutorSearchForFieldFilterSet
+from sapl.api.forms import AutorChoiceFilterSet, AutorSearchForFieldFilterSet,\
+    AutoresPossiveisFilterSet
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
                                   ChoiceSerializer,
                                   MateriaLegislativaSerializer,
@@ -70,7 +71,7 @@ class AutorListView(ListAPIView):
                       o django-filter é desativado e a busca é feita
                       no model do ContentType associado ao tipo.
 
-    - q_0 / q_1 - q_0 faz o código ignorar "q"...
+    - q_0 / q_1 - q_0 é opcional e quando usado, faz o código ignorar "q"...
 
                   q_0 -> campos lookup a serem filtrados em qualquer Model
                   que implemente SaplGenericRelation
@@ -150,6 +151,7 @@ class AutorListView(ListAPIView):
             return tr
 
     def get(self, request, *args, **kwargs):
+
         if self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)
@@ -246,9 +248,9 @@ class AutoresPossiveisListView(ListAPIView):
     queryset = Autor.objects.all()
     model = Autor
 
-    filter_class = AutorChoiceFilterSet
+    filter_class = AutoresPossiveisFilterSet
     filter_backends = (DjangoFilterBackend, )
-    serializer_class = ChoiceSerializer
+    serializer_class = AutorChoiceSerializer
 
 
 class MateriaLegislativaViewSet(ListModelMixin,

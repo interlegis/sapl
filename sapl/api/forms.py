@@ -117,3 +117,14 @@ class AutorSearchForFieldFilterSet(AutorChoiceFilterSet):
                 v = '1' if v == 'True' else '0'
             params[key] = v
         return queryset.filter(**params).distinct('nome').order_by('nome')
+
+
+class AutoresPossiveisFilterSet(FilterSet):
+    tipo = MethodFilter()
+
+    class Meta:
+        model = Autor
+        fields = ['tipo', ]
+
+    def filter_tipo(self, queryset, value):
+        return queryset
