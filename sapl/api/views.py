@@ -57,14 +57,6 @@ class AutorListView(ListAPIView):
                       de Autores feita pelo django-filter
                       -> processo usado nas pesquisas, o mais usado.
 
-                  = 2 -> para (value, text) usados geralmente
-                      em combobox, radiobox, checkbox, etc com pesquisa básica
-                      de Autores mas feito para Possíveis Autores armazenados
-                      segundo o ContentType associado ao Tipo de Autor via
-                      relacionamento genérico.
-                      Busca feita sem django-filter processada no get_queryset
-                      -> processo no cadastro de autores para seleção e busca
-                          dos possíveis autores
 
                   = 3 -> Devolve instancias da classe Autor filtradas pelo
                          django-filter
@@ -132,10 +124,8 @@ class AutorListView(ListAPIView):
     """
 
     TR_AUTOR_CHOICE_SERIALIZER = 1
-    TR_CHOICE_SERIALIZER = 2
     TR_AUTOR_SERIALIZER = 3
 
-    # FIXME aplicar permissão correta de usuário
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Autor.objects.all()
     model = Autor
@@ -152,7 +142,6 @@ class AutorListView(ListAPIView):
 
             assert tr in (
                 AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
-                AutorListView.TR_CHOICE_SERIALIZER,
                 AutorListView.TR_AUTOR_SERIALIZER), sapl_logger.info(
                 _("Tipo do Resultado a ser fornecido não existe!"))
         except:
@@ -161,16 +150,7 @@ class AutorListView(ListAPIView):
             return tr
 
     def get(self, request, *args, **kwargs):
-        """
-            desativa o django-filter se a busca for por possiveis autores
-            parametro tr = TR_CHOICE_SERIALIZER
-        """
-        if self.tr == AutorListView.TR_CHOICE_SERIALIZER:
-            self.filter_class = None
-            self.filter_backends = []
-            self.serializer_class = ChoiceSerializer
-
-        elif self.tr == AutorListView.TR_AUTOR_SERIALIZER:
+        if self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)
 
@@ -179,11 +159,19 @@ class AutorListView(ListAPIView):
 
         return ListAPIView.get(self, request, *args, **kwargs)
 
+
+class AutoresProvaveisListView(ListAPIView):
+
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = Autor.objects.all()
+    model = Autor
+
+    filter_class = None
+    filter_backends = []
+    serializer_class = ChoiceSerializer
+
     def get_queryset(self):
         queryset = ListAPIView.get_queryset(self)
-
-        if self.filter_backends:
-            return queryset
 
         params = {'content_type__isnull': False}
 
@@ -250,6 +238,17 @@ class AutorListView(ListAPIView):
         if tipos.count() > 1:
             r.sort(key=lambda x: x[1].upper())
         return r
+
+
+class AutoresPossiveisListView(ListAPIView):
+
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = Autor.objects.all()
+    model = Autor
+
+    filter_class = AutorChoiceFilterSet
+    filter_backends = (DjangoFilterBackend, )
+    serializer_class = ChoiceSerializer
 
 
 class MateriaLegislativaViewSet(ListModelMixin,
