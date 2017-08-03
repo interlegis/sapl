@@ -78,7 +78,7 @@ class AutorListView(ListAPIView):
                   q_1 -> o valor que será pesquisado no lookup de q_0
 
                   q_0 e q_1 podem ser separados por ","... isso dará a
-                  possibilidade de filtrar mais de um campo. 
+                  possibilidade de filtrar mais de um campo.
 
 
                   http://localhost:8000
@@ -107,7 +107,7 @@ class AutorListView(ListAPIView):
 
 
                   não importa o campo que vc passe de qualquer dos Models
-                  ligados... é possível ver que models são esses, 
+                  ligados... é possível ver que models são esses,
                       na ocasião do commit deste texto, executando:
                         In [6]: from sapl.utils import models_with_gr_for_model
 
@@ -120,7 +120,7 @@ class AutorListView(ListAPIView):
                          sapl.sessao.models.Bancada,
                          sapl.sessao.models.Bloco]
 
-                      qualquer atributo destes models podem ser passados 
+                      qualquer atributo destes models podem ser passados
                       para busca
     """
 
@@ -151,7 +151,6 @@ class AutorListView(ListAPIView):
             return tr
 
     def get(self, request, *args, **kwargs):
-
         if self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)
@@ -253,9 +252,6 @@ class AutoresPossiveisListView(ListAPIView):
     filter_class = AutoresPossiveisFilterSet
     #filter_backends = (DjangoFilterBackend, )
     serializer_class = AutorChoiceSerializer
-
-    def get_queryset(self):
-        return ListAPIView.get_queryset(self)
 
 
 class MateriaLegislativaViewSet(ListModelMixin,
