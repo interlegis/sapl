@@ -25,11 +25,12 @@
 
           lista_autores = data['lista_autores'];
           // Atualiza a listagem de autores
-          for (i = 0; i < lista_autores.length; i++) {
-              $('#id_autor').append(
-                  '<option value="' + lista_autores[i][0] + '">' +
-                  lista_autores[i][1] + '</option>');
-          }
+
+          $.each(lista_autores, function(index, value) {
+            $('#id_autor').append(
+                '<option value="' + value[0] + '">' +
+                value[1] + '</option>');
+          });
 
           if (data['manter_autor'] == true){
               $('#id_autor').val(autor_id);

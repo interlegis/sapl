@@ -1195,44 +1195,50 @@ def autores_ativos(materia, tipo=None):
         return (autor_qs | autores_by_ct['others']).order_by('nome')
 
     else:
-        tipo_autor = tipo
         if not tipo in autores_by_ct:
-            tipo_autor = 'others'
+            return autores_by_ct['others'].filter(
+                tipo_id=tipo).order_by('nome')
 
-        return autores_by_ct[tipo_autor].filter(tipo_id=tipo).order_by('nome')
+        return autores_by_ct[tipo].order_by('nome')
 
 
 def atualizar_autores(request):
-    if ('tipo_autor' in request.GET and 'materia_id' in request.GET and
-       request.GET['tipo_autor'] and request.GET['materia_id']):
-        tipo_autor = request.GET['tipo_autor']
+    if 'materia_id' in request.GET and request.GET['materia_id']:
         materia_id = int(request.GET['materia_id'])
 
         try:
             materia = MateriaLegislativa.objects.get(id=materia_id)
         except ObjectDoesNotExist:
-            autores = []
+            pass
         else:
-            autores = autores_ativos(materia, tipo=tipo_autor)
+            manter_autor = False
+            if 'tipo_autor' in request.GET and request.GET['tipo_autor']:
+                tipo_autor = request.GET['tipo_autor']
+                autores = autores_ativos(materia, tipo=tipo_autor)
+
+                # Se já houver algum autor selecionado (ex: view de update)
+                # no campo correspondente e caso o TipoAutor selecionado
+                # seja o mesmo do autor que está aualmente marcado
+                # deve ser enviado um sinal (manter autor) para que o
+                # javascript mantenha este selecionado
+                if 'autor_id' in request.GET and request.GET['autor_id']:
+                    try:
+                        autor = Autor.objects.get(id=request.GET['autor_id'])
+                    except ObjectDoesNotExist:
+                        pass
+                    else:
+                        if autor.tipo.id == int(tipo_autor):
+                            manter_autor = True
+
+            else:
+                autores = autores_ativos(materia)
+
             autores_list = [(a.id, a.__str__()) for a in autores]
 
-        # Se já houver algum autor selecionado (ex: view de update)
-        # no campo correspondente e caso o TipoAutor selecionado
-        # seja o mesmo do autor que está aualmente marcado
-        # deve ser enviado um sinal (manter autor) para que o javascript
-        # mantenha este selecionado
-        manter_autor = False
-        if 'autor_id' in request.GET and request.GET['autor_id']:
-            try:
-                autor = Autor.objects.get(id=request.GET['autor_id'])
-            except ObjectDoesNotExist:
-                pass
-            else:
-                if autor.tipo.id == int(tipo_autor):
-                    manter_autor = True
+            return JsonResponse({'lista_autores': autores_list,
+                                 'manter_autor': manter_autor})
 
-        return JsonResponse({'lista_autores': autores_list,
-                             'manter_autor': manter_autor})
+    return JsonResponse({})
 
 
 class AutoriaCrud(MasterDetailCrud):
