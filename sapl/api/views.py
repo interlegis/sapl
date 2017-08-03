@@ -151,6 +151,7 @@ class AutorListView(ListAPIView):
             return tr
 
     def get(self, request, *args, **kwargs):
+
         if self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)
@@ -250,7 +251,6 @@ class AutoresPossiveisListView(ListAPIView):
     pagination_class = None
 
     filter_class = AutoresPossiveisFilterSet
-    #filter_backends = (DjangoFilterBackend, )
     serializer_class = AutorChoiceSerializer
 
 
