@@ -10,13 +10,12 @@
   function atualizar_autores() {
     var tipo_autor = $("#id_tipo_autor").val();
     var materia_id = {{ root_pk }};
-    var autor_id = $("#id_autor").val();
 
     // Limpa a listagem para atualizar
     $("#id_autor").find("option").remove();
 
     $.get("/materia/autoria/atualizar-autores",
-        {tipo_autor: tipo_autor, materia_id: materia_id, autor_id: autor_id},
+        {tipo_autor: tipo_autor, materia_id: materia_id},
         function(data) {
           // Caso não venha nenhum dado da requisição, retorna null
           if ($.isEmptyObject(data)){
@@ -26,15 +25,12 @@
           lista_autores = data['lista_autores'];
           // Atualiza a listagem de autores
 
-          $.each(lista_autores, function(index, value) {
-            $('#id_autor').append(
-                '<option value="' + value[0] + '">' +
-                value[1] + '</option>');
+          $.each(lista_autores, function(index, obj) {
+            $("#id_autor").append($("<option></option>")
+                          .attr("value", obj[0])
+                          .text(obj[1]));
           });
 
-          if (data['manter_autor'] == true){
-              $('#id_autor').val(autor_id);
-          }
         });
   }
   $("#id_tipo_autor").change(function () {

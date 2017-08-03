@@ -1211,32 +1211,17 @@ def atualizar_autores(request):
         except ObjectDoesNotExist:
             pass
         else:
-            manter_autor = False
             if 'tipo_autor' in request.GET and request.GET['tipo_autor']:
                 tipo_autor = request.GET['tipo_autor']
                 autores = autores_ativos(materia, tipo=tipo_autor)
 
-                # Se já houver algum autor selecionado (ex: view de update)
-                # no campo correspondente e caso o TipoAutor selecionado
-                # seja o mesmo do autor que está aualmente marcado
-                # deve ser enviado um sinal (manter autor) para que o
-                # javascript mantenha este selecionado
-                if 'autor_id' in request.GET and request.GET['autor_id']:
-                    try:
-                        autor = Autor.objects.get(id=request.GET['autor_id'])
-                    except ObjectDoesNotExist:
-                        pass
-                    else:
-                        if autor.tipo.id == int(tipo_autor):
-                            manter_autor = True
-
             else:
                 autores = autores_ativos(materia)
 
+            empty_option = [('', '---------')]
             autores_list = [(a.id, a.__str__()) for a in autores]
 
-            return JsonResponse({'lista_autores': autores_list,
-                                 'manter_autor': manter_autor})
+            return JsonResponse({'lista_autores': empty_option + autores_list})
 
     return JsonResponse({})
 
@@ -1260,13 +1245,20 @@ class AutoriaCrud(MasterDetailCrud):
             materia = MateriaLegislativa.objects.get(
                 id=int(kwargs['root_pk']))
 
-            autores_ativos_list = autores_ativos(materia)
+            if context['form']['tipo_autor'].data:
+                autores_ativos_list = autores_ativos(
+                    materia,
+                    context['form']['tipo_autor'].data
+                )
+            else:
+                autores_ativos_list = autores_ativos(materia)
 
             autores = []
             for a in autores_ativos_list:
                 autores.append([a.id, a.__str__()])
 
-            context['form'].fields['autor'].choices = autores
+            empty_option = [('', '---------')]
+            context['form'].fields['autor'].choices = empty_option + autores
             return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -1289,13 +1281,26 @@ class AutoriaCrud(MasterDetailCrud):
             materia = MateriaLegislativa.objects.get(
                 id=int(kwargs['root_pk']))
 
-            autores_ativos_list = autores_ativos(materia)
+            if context['form']['tipo_autor'].data is None:
+                autores_ativos_list = autores_ativos(
+                    materia,
+                    str(context['object'].autor.tipo.id))
+            else:
+                if context['form']['tipo_autor'].data == '':
+                    autores_ativos_list = autores_ativos(
+                        materia)
+                else:
+                    autores_ativos_list = autores_ativos(
+                        materia,
+                        context['form']['tipo_autor'].data)
 
             autores = []
             for a in autores_ativos_list:
                 autores.append([a.id, a.__str__()])
 
-            context['form'].fields['autor'].choices = autores
+            empty_option = [('', '---------')]
+            context['form'].fields['autor'].choices = empty_option + autores
+
             return context
 
     class ListView(MasterDetailCrud.ListView):
