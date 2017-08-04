@@ -4,37 +4,38 @@
 {% load common_tags %}
 
 {% block extra_js %}
-   <script language="Javascript">
 
-     function compare(a, b) {
-       if (a.text < b.text)
-         return -1;
-       if (a.text > b.text)
-         return 1;
-       return 0;
-     }
+<script language="Javascript">
 
-      $(document).ready(function() {
-          $("#id_tipo_autor").change(function() {
-              $("#id_autor option").remove()
-              var selected = $("#id_tipo_autor").val();
-              if (selected !== undefined && selected !== null) {
-                $.getJSON("/api/autor?tipo=" + selected, function(data){
-                    if (data) {
-                      var results = data.results.sort(compare);
-                      if (results.length > 1) {
-                        $("#id_autor").append("<option>-----</option>");
-                      }
-                      $.each(results, function(idx, obj) {
-                          $("#id_autor")
-                            .append($("<option></option>")
-                            .attr("value", obj.value)
-                            .text(obj.text));
-                      });
-                    }
-                });
-            }
+  function atualizar_autores() {
+    var tipo_autor = $("#id_tipo_autor").val();
+    var materia_id = {{ root_pk }};
+
+    // Limpa a listagem para atualizar
+    $("#id_autor").find("option").remove();
+
+    $.get("/materia/autoria/atualizar-autores",
+        {tipo_autor: tipo_autor, materia_id: materia_id},
+        function(data) {
+          // Caso não venha nenhum dado da requisição, retorna null
+          if ($.isEmptyObject(data)){
+            return null
+          }
+
+          lista_autores = data['lista_autores'];
+          // Atualiza a listagem de autores
+
+          $.each(lista_autores, function(index, obj) {
+            $("#id_autor").append($("<option></option>")
+                          .attr("value", obj[0])
+                          .text(obj[1]));
           });
-      });
-   </script>
+
+        });
+  }
+  $("#id_tipo_autor").change(function () {
+        atualizar_autores();
+    });
+</script>
+
 {% endblock %}

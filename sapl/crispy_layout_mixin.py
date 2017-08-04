@@ -67,7 +67,11 @@ def get_field_display(obj, fieldname):
             ou mesmo uma método no model.
         """
         value = getattr(obj, fieldname)
-        verbose_name = ''
+
+        try:
+            verbose_name = value.model._meta.verbose_name
+        except AttributeError:
+            verbose_name = ''
 
     else:
         verbose_name = str(field.verbose_name)\
