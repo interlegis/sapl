@@ -1,5 +1,5 @@
 -- Apaga as restrições somente para essa sessão
-SELECT REPLACE(@@sql_mode,'STRICT_TRANS_TABLES,','');
+SELECT REPLACE(@@sql_mode,'STRICT_TRANS_TABLES,','ALLOW_INVALID_DATES');
 -- Exclui procedures caso já existam
 DROP PROCEDURE IF EXISTS verifica_campos_proposicao;
 DROP PROCEDURE IF EXISTS verifica_campos_tipo_materia_legislativa;
@@ -7,7 +7,7 @@ DROP PROCEDURE IF EXISTS verifica_campos_sessao_plenaria_presenca;
 DROP PROCEDURE IF EXISTS cria_lexml_registro_provedor_e_publicador;
 DROP PROCEDURE IF EXISTS muda_vinculo_norma_juridica_ind_excluido;
 -- Procedure para criar campo num_proposicao em proposicao
-CREATE PROCEDURE verifica_campos_proposicao() BEGIN IF NOT EXISTS (SELECT * FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='proposicao' AND column_name='num_proposicao') THEN ALTER TABLE proposicao ADD COLUMN num_proposicao INT(11) NULL after txt_justif_devolucao; END IF; END;
+CREATE PROCEDURE verifica_campos_proposicao() BEGIN IF NOT EXISTS (SELECT * FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='proposicao' AND column_name='num_proposicao') THEN UPDATE proposicao SET dat_envio = '1800-01-01' WHERE CAST(dat_envio AS CHAR(20)) = '0000-00-00 00:00:00'; ALTER TABLE proposicao ADD COLUMN num_proposicao INT(11) NULL after txt_justif_devolucao; END IF; END;
 -- Procedure para criar campo iind_num_automatica em tipo_materia_legislativa
 CREATE PROCEDURE verifica_campos_tipo_materia_legislativa() BEGIN IF NOT EXISTS (SELECT * FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='tipo_materia_legislativa' AND column_name='ind_num_automatica') THEN ALTER TABLE tipo_materia_legislativa ADD COLUMN ind_num_automatica BOOLEAN NULL DEFAULT FALSE after des_tipo_materia; END IF; IF NOT EXISTS (SELECT * FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='tipo_materia_legislativa' AND column_name='quorum_minimo_votacao') THEN ALTER TABLE tipo_materia_legislativa ADD COLUMN quorum_minimo_votacao INT(11) NULL after ind_num_automatica; END IF; END;
 -- Procedure para criar campos cod_presenca_sessao (sendo a nova PK da tabela) e dat_sessao em sessao_plenaria_presenca

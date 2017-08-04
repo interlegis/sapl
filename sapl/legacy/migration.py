@@ -750,8 +750,8 @@ def adjust_proposicao_antes_salvar(new, old):
 
 def adjust_proposicao_depois_salvar(new, old):
     if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
-        msg = "O valor do campo data_envio (DateField) da model Proposicao"
-        "era inválido"
+        msg = "O valor do campo data_envio (DateField) da model Proposicao"\
+                " era inválido"
         descricao = 'A data 1111-11-11 foi colocada no lugar'
         problema = 'O valor da data era nulo ou inválido'
         warn(msg + ' => ' + descricao)
