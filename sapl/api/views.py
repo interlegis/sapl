@@ -248,9 +248,14 @@ class AutoresPossiveisListView(ListAPIView):
     queryset = Autor.objects.all()
     model = Autor
 
+    pagination_class = None
+
     filter_class = AutoresPossiveisFilterSet
-    filter_backends = (DjangoFilterBackend, )
+    #filter_backends = (DjangoFilterBackend, )
     serializer_class = AutorChoiceSerializer
+
+    def get_queryset(self):
+        return ListAPIView.get_queryset(self)
 
 
 class MateriaLegislativaViewSet(ListModelMixin,

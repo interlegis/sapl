@@ -1,7 +1,9 @@
 from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
-from django_filters.filters import MethodFilter, ModelChoiceFilter
+from django.utils.translation import ugettext_lazy as _
+from django_filters.filters import MethodFilter, ModelChoiceFilter, DateFilter
+from rest_framework import serializers
 from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet
 
@@ -120,11 +122,72 @@ class AutorSearchForFieldFilterSet(AutorChoiceFilterSet):
 
 
 class AutoresPossiveisFilterSet(FilterSet):
+    data_relativa = DateFilter(method='filter_data_relativa')
     tipo = MethodFilter()
 
     class Meta:
         model = Autor
-        fields = ['tipo', ]
+        fields = ['data_relativa', 'tipo', ]
+
+    def filter_data_relativa(self, queryset, name, value):
+        return queryset
 
     def filter_tipo(self, queryset, value):
+        try:
+            tipo = TipoAutor.objects.get(pk=value)
+        except:
+            raise serializers.ValidationError(_('Tipo de Autor inexistente.'))
+
+        qs = queryset.filter(tipo=tipo)
+
+        return qs
+
+    @property
+    def qs(self):
+        qs = super().qs
+
+        data_relativa = self.form.cleaned_data['data_relativa'] \
+            if 'data_relativa' in self.form.cleaned_data else None
+
+        tipo = self.form.cleaned_data['tipo'] \
+            if 'tipo' in self.form.cleaned_data else None
+
+        if not tipo and not data_relativa:
+            return qs
+
+        if tipo:
+            # não precisa de try except, já foi validado em filter_tipo
+            tipo = TipoAutor.objects.get(pk=tipo)
+            if not tipo.content_type:
+                return qs
+
+        filter_for_model = 'filter_%s' % tipo.content_type.model
+
+        if not hasattr(self, filter_for_model):
+            return qs
+
+        return getattr(self, filter_for_model)(qs, data_relativa)
+
+    def filter_parlamentar(self, queryset, data_relativa):
+        # implementar regras específicas para parlamenar
+        return queryset
+
+    def filter_frente(self, queryset, data_relativa):
+        # implementar regras específicas para frente
+        return queryset
+
+    def filter_comissao(self, queryset, data_relativa):
+        # implementar regras específicas para comissao
+        return queryset
+
+    def filter_orgao(self, queryset, data_relativa):
+        # implementar regras específicas para orgao
+        return queryset
+
+    def filter_bancada(self, queryset, data_relativa):
+        # implementar regras específicas para bancada
+        return queryset
+
+    def filter_bloco(self, queryset, data_relativa):
+        # implementar regras específicas para bloco
         return queryset
