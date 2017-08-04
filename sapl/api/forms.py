@@ -175,9 +175,9 @@ class AutoresPossiveisFilterSet(FilterSet):
         if not data_relativa:
             data_relativa = timezone.now()
 
-        data_relativa_na_legislatura_atual = Legislatura.objects.filter(
-            data_inicio__lte=timezone.now(),
-            data_fim__gte=timezone.now()).exists()
+        legislatura_relativa = Legislatura.objects.filter(
+            data_inicio__lte=data_relativa,
+            data_fim__gte=data_relativa).first()
 
         params = {
             'parlamentar_set__mandato__data_inicio_mandato__lte':
@@ -185,7 +185,7 @@ class AutoresPossiveisFilterSet(FilterSet):
             'parlamentar_set__mandato__data_fim_mandato__gte': data_relativa
         }
 
-        if data_relativa_na_legislatura_atual:
+        if legislatura_relativa.atual():
             params['parlamentar_set__ativo'] = True
 
         qs = queryset.filter(**params).distinct()
