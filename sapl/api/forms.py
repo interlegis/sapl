@@ -1,6 +1,7 @@
-from django.db.models import Q
+from django.db.models import Q, F
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filters import MethodFilter, ModelChoiceFilter, DateFilter
 from rest_framework import serializers
@@ -8,6 +9,7 @@ from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet
 
 from sapl.base.models import Autor, TipoAutor
+from sapl.parlamentares.models import Legislatura
 from sapl.utils import generic_relations_for_model
 
 
@@ -169,8 +171,26 @@ class AutoresPossiveisFilterSet(FilterSet):
         return getattr(self, filter_for_model)(qs, data_relativa)
 
     def filter_parlamentar(self, queryset, data_relativa):
-        # implementar regras específicas para parlamenar
-        return queryset
+        # não leva em conta afastamentos
+        if not data_relativa:
+            data_relativa = timezone.now()
+
+        data_relativa_na_legislatura_atual = Legislatura.objects.filter(
+            data_inicio__lte=timezone.now(),
+            data_fim__gte=timezone.now()).exists()
+
+        params = {
+            'parlamentar_set__mandato__data_inicio_mandato__lte':
+            data_relativa,
+            'parlamentar_set__mandato__data_fim_mandato__gte': data_relativa
+        }
+
+        if data_relativa_na_legislatura_atual:
+            params['parlamentar_set__ativo'] = True
+
+        qs = queryset.filter(**params).distinct()
+
+        return qs
 
     def filter_frente(self, queryset, data_relativa):
         # implementar regras específicas para frente
