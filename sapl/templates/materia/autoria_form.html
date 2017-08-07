@@ -19,9 +19,13 @@
               $("#id_autor option").remove()
               var selected = $("#id_tipo_autor").val();
               if (selected !== undefined && selected !== null) {
-                $.getJSON("/api/autor?tipo=" + selected, function(data){
+                var json_data = {
+                   tipo : selected,
+                   data_relativa : $("#id_data_relativa").val()
+                }
+                $.getJSON("/api/autor/possiveis", json_data, function(data){
                     if (data) {
-                      var results = data.results.sort(compare);
+                      var results = data.sort(compare);
                       if (results.length > 1) {
                         $("#id_autor").append("<option>-----</option>");
                       }

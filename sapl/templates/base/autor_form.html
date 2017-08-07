@@ -28,12 +28,11 @@ $(document).ready(function(){
   var update_search = function(pk, atualizar=true) {
     var q = $('#id_q').val();
 
-    var url = '{% url 'sapl.api:autor_list'%}'
+    var url = '{% url 'sapl.api:autores_provaveis_list'%}'
 
     var formData = {
           'q'         : q,
-          'tipo'      : pk,
-          'tr' : '2' // tipo_resultado = 2 - api fornecerá possíveis Autores
+          'tipo'      : pk
     }
     $.get(url, formData).done(function(data) {
         active('pesquisa');

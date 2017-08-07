@@ -14,16 +14,15 @@ from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm, ModelChoiceField, widgets
+from django.forms.fields import BooleanField
 from django.forms.forms import Form
-from django.forms.widgets import Select
+from django.forms.widgets import Select, HiddenInput
 from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-
 from django_filters.filterset import STRICTNESS
-
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
@@ -693,9 +692,12 @@ class AutoriaForm(ModelForm):
 
     tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
                                   required=False,
-                                  queryset=
-                                  TipoAutor.objects.all().order_by('descricao'),
+                                  queryset=TipoAutor.objects.all().order_by(
+                                      'descricao'),
                                   empty_label='Selecione',)
+
+    data_relativa = forms.DateField(
+        widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(AutoriaForm, self).__init__(*args, **kwargs)
@@ -707,11 +709,14 @@ class AutoriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
-                     row1, form_actions(save_label='Salvar')))
+                     row1, 'data_relativa', form_actions(save_label='Salvar')))
+
+        if not kwargs['instance']:
+            self.fields['autor'].choices = []
 
     class Meta:
         model = Autoria
-        fields = ['tipo_autor', 'autor', 'primeiro_autor']
+        fields = ['tipo_autor', 'autor', 'primeiro_autor', 'data_relativa']
 
     def clean(self):
         super(AutoriaForm, self).clean()
