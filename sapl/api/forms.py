@@ -1,14 +1,7 @@
 from django.db.models import Q, F
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
-<<<<<<< 233015e0699614bb9657fe7c38784452368e70e2
-<<<<<<< 81d175e66dec22aa3542d5de92129a7688b14e0b
 from django.utils import timezone
-=======
->>>>>>> Impl estrutura base para busca de possíveis autores
-=======
-from django.utils import timezone
->>>>>>> Impl filtro p busca de possiveis autores parlamentares
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filters import MethodFilter, ModelChoiceFilter, DateFilter
 from rest_framework import serializers
