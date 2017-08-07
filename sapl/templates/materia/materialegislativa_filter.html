@@ -79,7 +79,7 @@
                 {% endif %}
                 {% if m.registrovotacao_set.exists %}
                     <strong>Data Votação:</strong>
-                    {% for rv in m.registrovotacao_set %}
+                    {% for rv in m.registrovotacao_set.all %}
                         {% if rv.ordem %}
                           <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">
                             {{ rv.ordem.data_ordem }}
