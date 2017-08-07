@@ -21,7 +21,6 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
-                                atualizar_autores,
                                 proposicao_texto, recuperar_materia)
 
 from .apps import AppConfig
@@ -41,10 +40,6 @@ urlpatterns_materia = [
                               TramitacaoCrud.get_urls() +
                               RelatoriaCrud.get_urls() +
                               DocumentoAcessorioCrud.get_urls())),
-
-    url(r'^materia/autoria/atualizar-autores$',
-            atualizar_autores,
-            name='atualizar_autores'),
 
     url(r'^materia/(?P<pk>[0-9]+)/create_simplificado$',
         CriarProtocoloMateriaView.as_view(),

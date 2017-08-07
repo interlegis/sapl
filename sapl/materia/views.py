@@ -40,7 +40,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import sapl
-from sapl.base.models import Autor, CasaLegislativa, TipoAutor
+from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -57,9 +57,8 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 TramitacaoUpdateForm)
 from sapl.materia.models import Autor
 from sapl.norma.models import LegislacaoCitada
-from sapl.parlamentares.models import Frente, Mandato, Parlamentar
+from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
-from sapl.sessao.models import Bancada, Bloco
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
@@ -1081,151 +1080,6 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             return context
 
 
-def filtra_ativos(content_type, materia):
-    if content_type.model_class() == Parlamentar:
-        mandatos_ativos = Mandato.objects.filter(Q(
-            data_inicio_mandato__lte=materia.data_apresentacao,
-            data_fim_mandato__isnull=True) | Q(
-            data_inicio_mandato__lte=materia.data_apresentacao,
-            data_fim_mandato__gte=materia.data_apresentacao)
-        ).values_list('parlamentar_id', flat=True).distinct('parlamentar_id')
-
-        return Autor.objects.filter(
-            content_type=content_type,
-            object_id__in=mandatos_ativos)
-
-    elif content_type.model_class() == Comissao:
-        comissoes = Comissao.objects.filter(
-            data_criacao__lte=materia.data_apresentacao)
-        comissoes_id = comissoes.filter(Q(
-            data_extincao__isnull=True,
-            data_fim_comissao__isnull=True) | Q(
-            data_extincao__gte=materia.data_apresentacao,
-            data_fim_comissao__isnull=True) | Q(
-            data_extincao__gte=materia.data_apresentacao,
-            data_fim_comissao__isnull=True) | Q(
-            data_extincao__isnull=True,
-            data_fim_comissao__gte=materia.data_apresentacao) | Q(
-            data_extincao__gte=materia.data_apresentacao,
-            data_fim_comissao__gte=materia.data_apresentacao)).values_list(
-            'id', flat=True).distinct()
-
-        return Autor.objects.filter(
-            content_type=content_type,
-            object_id__in=comissoes_id)
-
-    elif content_type.model_class() == Frente:
-        frentes = Frente.objects.filter(
-            data_criacao__lte=materia.data_apresentacao)
-        frentes_id = frentes.filter(Q(
-            data_extincao__isnull=True) | Q(
-            data_extincao__gte=materia.data_apresentacao)).values_list(
-            'id', flat=True).distinct()
-
-        return Autor.objects.filter(
-            content_type=content_type,
-            object_id__in=frentes_id)
-
-    elif content_type.model_class() == Bancada:
-        bancadas = Bancada.objects.filter(
-            data_criacao__lte=materia.data_apresentacao)
-        bancadas_id = bancadas.filter(Q(
-            data_extincao__isnull=True) | Q(
-            data_extincao__gte=materia.data_apresentacao)).values_list(
-            'id', flat=True).distinct()
-
-        return Autor.objects.filter(
-            content_type=content_type,
-            object_id__in=bancadas_id)
-
-    elif content_type.model_class() == Bloco:
-        blocos = Bloco.objects.filter(
-            data_criacao__lte=materia.data_apresentacao)
-        blocos_id = blocos.filter(Q(
-            data_extincao__isnull=True) | Q(
-            data_extincao__gte=materia.data_apresentacao)).values_list(
-            'id', flat=True).distinct()
-
-        return Autor.objects.filter(
-            content_type=content_type,
-            object_id__in=blocos_id)
-
-    elif content_type.model_class() == Orgao:
-        orgaos_id = Orgao.objects.values_list('id', flat=True)
-
-        return Autor.objects.filter(
-            content_type=content_type,
-            object_id__in=orgaos_id)
-
-
-def autores_ativos(materia, tipo=None):
-    """
-    :param materia: é a matéria para na qual a Autoria será inserida
-    :param tipo: é o tipo de autor que foi selecionado
-    :return: Lista dos autores ativos disponíveis para serem inseridos
-    na matéria em questão.
-    Primeiramente são inseridos em uma lista uma tupla relacionando
-    cada TipoAutor ao seu ContentType. Posteriormente, para cada elemento
-    dessa lista são filtrados os autores ativos para aquele ContentType e,
-    por convêniencia, inseridos em um dicionário no qual a chave é o id
-    do TipoAutor. Após isso, com a chave 'others' são inseridos os Autores
-    os quais seu TipoAutor não possui ContentType.
-    """
-
-    content_types_list = []
-    for ta in TipoAutor.objects.all():
-        if ta.content_type:
-            content_types_list.append((ta.content_type, ta))
-
-    autores_by_ct = {}
-    for ct, ta in content_types_list:
-        autores_by_ct[str(ta.id)] = filtra_ativos(ct, materia)
-
-    ct_list = [c[0] for c in content_types_list]
-    autores_by_ct['others'] = Autor.objects.exclude(
-        content_type__in=ct_list).order_by(
-        'nome'
-    )
-
-    if not tipo:
-        autor_qs = Autor.objects.none()
-        for key in autores_by_ct:
-            autor_qs = autor_qs | autores_by_ct[key]
-
-        return (autor_qs | autores_by_ct['others']).order_by('nome')
-
-    else:
-        if not tipo in autores_by_ct:
-            return autores_by_ct['others'].filter(
-                tipo_id=tipo).order_by('nome')
-
-        return autores_by_ct[tipo].order_by('nome')
-
-
-def atualizar_autores(request):
-    if 'materia_id' in request.GET and request.GET['materia_id']:
-        materia_id = int(request.GET['materia_id'])
-
-        try:
-            materia = MateriaLegislativa.objects.get(id=materia_id)
-        except ObjectDoesNotExist:
-            pass
-        else:
-            if 'tipo_autor' in request.GET and request.GET['tipo_autor']:
-                tipo_autor = request.GET['tipo_autor']
-                autores = autores_ativos(materia, tipo=tipo_autor)
-
-            else:
-                autores = autores_ativos(materia)
-
-            empty_option = [('', '---------')]
-            autores_list = [(a.id, a.__str__()) for a in autores]
-
-            return JsonResponse({'lista_autores': empty_option + autores_list})
-
-    return JsonResponse({})
-
-
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
     parent_field = 'materia'
@@ -1241,67 +1095,24 @@ class AutoriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super(CreateView, self).get_context_data(**kwargs)
-
-            materia = MateriaLegislativa.objects.get(
-                id=int(kwargs['root_pk']))
-
-            if context['form']['tipo_autor'].data:
-                autores_ativos_list = autores_ativos(
-                    materia,
-                    context['form']['tipo_autor'].data
-                )
-            else:
-                autores_ativos_list = autores_ativos(materia)
+            autores_ativos = self.autores_ativos()
 
             autores = []
-            for a in autores_ativos_list:
-                autores.append([a.id, a.__str__()])
 
-            empty_option = [('', '---------')]
-            context['form'].fields['autor'].choices = empty_option + autores
+            context['form'].fields['autor'].choices = autores
             return context
 
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = AutoriaForm
+        def autores_ativos(self):
+            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
+            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
+            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
 
-        @property
-        def layout_key(self):
-            return 'AutoriaUpdate'
-
-        def get_initial(self):
-            return {
-                'tipo_autor': self.object.autor.tipo.id,
-                'autor': self.object.autor.id,
-                'primeiro_autor': self.object.primeiro_autor
-            }
-
-        def get_context_data(self, **kwargs):
-            context = super(UpdateView, self).get_context_data(**kwargs)
-
-            materia = MateriaLegislativa.objects.get(
-                id=int(kwargs['root_pk']))
-
-            if context['form']['tipo_autor'].data is None:
-                autores_ativos_list = autores_ativos(
-                    materia,
-                    str(context['object'].autor.tipo.id))
-            else:
-                if context['form']['tipo_autor'].data == '':
-                    autores_ativos_list = autores_ativos(
-                        materia)
-                else:
-                    autores_ativos_list = autores_ativos(
-                        materia,
-                        context['form']['tipo_autor'].data)
-
-            autores = []
-            for a in autores_ativos_list:
-                autores.append([a.id, a.__str__()])
-
-            empty_option = [('', '---------')]
-            context['form'].fields['autor'].choices = empty_option + autores
-
-            return context
+            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
+            model_comissao = ContentType.objects.get_for_model(Comissao)
+            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
+            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
+            q = autor_parlamentar | autor_comissoes | autores_outros
+            return q
 
     class ListView(MasterDetailCrud.ListView):
 

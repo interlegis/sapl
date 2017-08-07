@@ -723,16 +723,8 @@ class AutoriaForm(ModelForm):
             materia=self.instance.materia,
             autor=self.cleaned_data['autor'],
         ).exists():
-            if not self.instance.pk:
-                msg = _('Esse Autor já foi cadastrado.')
-                raise ValidationError(msg)
-            else:
-                autoria = Autoria.objects.get(
-                    materia=self.instance.materia,
-                    autor=self.cleaned_data['autor'])
-                if autoria != self.instance:
-                    msg = _('Esse Autor já foi cadastrado.')
-                    raise ValidationError(msg)
+            msg = _('Esse Autor já foi cadastrado.')
+            raise ValidationError(msg)
 
         return self.cleaned_data
 
