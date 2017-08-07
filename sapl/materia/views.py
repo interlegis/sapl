@@ -1101,22 +1101,23 @@ class AutoriaCrud(MasterDetailCrud):
             initial['autor'] = []
             return initial
 
-        def autores_ativos(self):
-            lista_parlamentares = Parlamentar.objects.filter(
-                ativo=True).values_list('id', flat=True)
-            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
-            autor_parlamentar = Autor.objects.filter(
-                content_type=model_parlamentar, object_id__in=lista_parlamentares)
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AutoriaForm
 
-            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True) | Q(
-                data_extincao__gt=date.today())).values_list('id', flat=True)
-            model_comissao = ContentType.objects.get_for_model(Comissao)
-            autor_comissoes = Autor.objects.filter(
-                content_type=model_comissao, object_id__in=lista_comissoes)
-            autores_outros = Autor.objects.exclude(
-                content_type__in=[model_parlamentar, model_comissao])
-            q = autor_parlamentar | autor_comissoes | autores_outros
-            return q
+        @property
+        def layout_key(self):
+            return 'AutoriaUpdate'
+
+        def get_initial(self):
+            initial = super().get_initial()
+            autoria = Autoria.objects.get(id=self.kwargs['pk'])
+            initial.update({
+                'data_relativa': autoria.materia.data_apresentacao,
+                'tipo_autor': self.object.autor.tipo.id,
+                'autor': self.object.autor.id,
+                'primeiro_autor': self.object.primeiro_autor
+            })
+            return initial
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -1704,8 +1705,8 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
 
         if ('tramitacao__status' in qr and
             'tramitacao__unidade_tramitacao_destino' in qr and
-                    qr['tramitacao__status'] and
-                    qr['tramitacao__unidade_tramitacao_destino']
+                qr['tramitacao__status'] and
+                qr['tramitacao__unidade_tramitacao_destino']
             ):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],

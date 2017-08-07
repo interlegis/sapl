@@ -16,11 +16,12 @@
 
       $(document).ready(function() {
           $("#id_tipo_autor").change(function() {
+              var tipo_selecionado = $("#id_tipo_autor").val();
+              var autor_selecionado = $("#id_autor").val();
               $("#id_autor option").remove()
-              var selected = $("#id_tipo_autor").val();
-              if (selected !== undefined && selected !== null) {
+              if (tipo_selecionado !== undefined && tipo_selecionado !== null) {
                 var json_data = {
-                   tipo : selected,
+                   tipo : tipo_selecionado,
                    data_relativa : $("#id_data_relativa").val()
                 }
                 $.getJSON("/api/autor/possiveis", json_data, function(data){
@@ -35,10 +36,12 @@
                             .attr("value", obj.value)
                             .text(obj.text));
                       });
+                      $("#id_autor").val(autor_selecionado);
                     }
                 });
             }
           });
+          $("#id_tipo_autor").trigger('change');
       });
    </script>
 {% endblock %}
